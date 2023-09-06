@@ -1,6 +1,5 @@
-import 'dart:js';
-
 import 'package:flutter/material.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -42,25 +41,19 @@ Widget loginBody(context) {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [loginLogo()],
               ),
-              space(),
+              space(height: 29),
               usernameText(),
               usernameField(),
-              space(),
+              space(height: 29),
               passsowdText(),
               passwordField(),
-              space(),
+              space(height: 29),
               forgotText(),
-              space(),
+              space(height: 29),
               loginBtn(context)
             ]),
       ),
     ),
-  );
-}
-
-Widget space() {
-  return SizedBox(
-    height: 30.0,
   );
 }
 
