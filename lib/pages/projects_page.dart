@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:sic4change/pages/project.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+
+final pr = SProject("Proyecto de prueba", "Descripción del proyecto de prueba");
+List<SProject> projects = [
+  SProject("Proyecto de prueba", "Descripción del proyecto de prueba"),
+  SProject("Proyecto de prueba 2", "Descripción del proyecto de prueba 2"),
+];
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -17,12 +24,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
       /*appBar: AppBar(
         title: const Text('Service Page'),
       ),*/
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [mainMenu(context), projectsBody(context)],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          mainMenu(context),
+          projectsBody(context),
+          Expanded(child: projectList(context))
+        ],
       ),
     );
   }
@@ -35,7 +44,11 @@ Widget projectsBody(context) {
     padding: EdgeInsets.all(10),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [projectSearch(), space(width: 50), projectCard(context)],
+      children: [
+        projectSearch(),
+        space(width: 50),
+        //projectCard(context, pr),
+      ],
     ),
   );
 }
@@ -59,8 +72,80 @@ Widget projectSearch() {
   );
 }
 
-Widget projectCard(context) {
-  return FractionallySizedBox(
+Widget projectList(context) {
+  return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 1,
+        //childAspectRatio: 1,
+        //crossAxisSpacing: 0,
+        //mainAxisSpacing: 0
+      ),
+      itemCount: projects.length,
+      itemBuilder: (_, index) {
+        return projectCard(context, projects[index]);
+        /*return Container(
+          //padding: const EdgeInsets.all(8),
+          //color: Colors.teal[100],
+          child: projectCard(context, projects[index]),
+          //child: Text(projects[index].name),
+        );*/
+      });
+}
+/*Widget projectList(context) {
+  return GridView.count(
+    primary: false,
+    padding: const EdgeInsets.all(20),
+    crossAxisSpacing: 10,
+    mainAxisSpacing: 10,
+    crossAxisCount: 2,
+    children: <Widget>[
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[100],
+        child: const Text("He'd have you all unravel at the"),
+      ),
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[200],
+        child: const Text('Heed not the rabble'),
+      ),
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[300],
+        child: const Text('Sound of screams but the'),
+      ),
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[400],
+        child: const Text('Who scream'),
+      ),
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[500],
+        child: const Text('Revolution is coming...'),
+      ),
+      Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.teal[600],
+        child: const Text('Revolution, they...'),
+      ),
+    ],
+  );
+}*/
+
+Widget projectCard(context, _project) {
+  return Container(
+    padding: EdgeInsets.all(15),
+    decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.grey,
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(10))),
+    child: projectCardDatas(context, _project),
+  );
+
+  /*return FractionallySizedBox(
       widthFactor: 0.45,
       child: Container(
         padding: EdgeInsets.all(15),
@@ -69,21 +154,22 @@ Widget projectCard(context) {
               color: Colors.grey,
             ),
             borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: projectCardDatas(context),
+        child: projectCardDatas(context, _project),
       ));
+      */
 }
 
-Widget projectCardDatas(context) {
+Widget projectCardDatas(context, _project) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Educación Rural",
+        _project.name,
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
       space(height: 10),
       Text(
-        "Breve descripción del prouecto Educación Rural",
+        _project.desc,
         style: TextStyle(fontSize: 15),
       ),
       space(height: 10),

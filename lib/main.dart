@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
     '/projects': (context) => const ProjectsPage(),
+    '/contacts': (context) => const ContactsPage(),
   };
 
   @override

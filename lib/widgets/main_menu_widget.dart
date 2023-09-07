@@ -21,7 +21,7 @@ Widget mainMenu(context) {
           menuBtn(context, "Cuadro de mando", Icons.grading_sharp, "/home"),
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects"),
           menuBtn(context, "Documentos", Icons.folder, "/home"),
-          menuBtn(context, "Contactos", Icons.handshake, "/home"),
+          menuBtn(context, "Contactos", Icons.handshake, "/contacts"),
         ],
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
       ),
