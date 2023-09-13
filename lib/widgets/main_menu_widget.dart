@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget mainMenu(context) {
@@ -22,6 +23,7 @@ Widget mainMenu(context) {
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects"),
           menuBtn(context, "Documentos", Icons.folder, "/home"),
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),
+          logoutBtn(context, "Salir", Icons.arrow_back),
         ],
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
       ),

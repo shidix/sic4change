@@ -3,12 +3,17 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/project.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/services/firebase_service.dart';
 
-final pr = SProject("Proyecto de prueba", "Descripción del proyecto de prueba");
-List<SProject> projects = [
+//final pr = SProject("Proyecto de prueba", "Descripción del proyecto de prueba");
+/*List<SProject> projects = [
   SProject("Proyecto de prueba", "Descripción del proyecto de prueba"),
   SProject("Proyecto de prueba 2", "Descripción del proyecto de prueba 2"),
-];
+  SProject("Proyecto de prueba 3", "Descripción del proyecto de prueba 3"),
+  SProject("Proyecto de prueba 4", "Descripción del proyecto de prueba 4"),
+];*/
+
+const PROJECT_TITLE = "Proyectos";
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -29,17 +34,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context),
-          projectsBody(context),
-          Expanded(child: projectList(context))
+          projectsHeader(context),
+          Expanded(
+              child: Container(
+            child: projectList(context),
+            padding: EdgeInsets.all(10),
+          ))
         ],
       ),
     );
   }
 }
 
-const PROJECT_TITLE = "Proyectos";
-
-Widget projectsBody(context) {
+Widget projectsHeader(context) {
   return Container(
     padding: EdgeInsets.all(10),
     child: Column(
@@ -47,7 +54,6 @@ Widget projectsBody(context) {
       children: [
         projectSearch(),
         space(width: 50),
-        //projectCard(context, pr),
       ],
     ),
   );
@@ -73,66 +79,29 @@ Widget projectSearch() {
 }
 
 Widget projectList(context) {
-  return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 1,
-        //childAspectRatio: 1,
-        //crossAxisSpacing: 0,
-        //mainAxisSpacing: 0
-      ),
-      itemCount: projects.length,
-      itemBuilder: (_, index) {
-        return projectCard(context, projects[index]);
-        /*return Container(
-          //padding: const EdgeInsets.all(8),
-          //color: Colors.teal[100],
-          child: projectCard(context, projects[index]),
-          //child: Text(projects[index].name),
-        );*/
-      });
+  return FutureBuilder(
+      future: getProjects(),
+      builder: ((context, snapshot) {
+        if (snapshot.hasData) {
+          return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: .8,
+              ),
+              itemCount: snapshot.data?.length,
+              itemBuilder: (_, index) {
+                return projectCard(context, snapshot.data?[index]);
+                //return projectCard(context, projects[index]);
+              });
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      }));
 }
-/*Widget projectList(context) {
-  return GridView.count(
-    primary: false,
-    padding: const EdgeInsets.all(20),
-    crossAxisSpacing: 10,
-    mainAxisSpacing: 10,
-    crossAxisCount: 2,
-    children: <Widget>[
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[100],
-        child: const Text("He'd have you all unravel at the"),
-      ),
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[200],
-        child: const Text('Heed not the rabble'),
-      ),
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[300],
-        child: const Text('Sound of screams but the'),
-      ),
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[400],
-        child: const Text('Who scream'),
-      ),
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[500],
-        child: const Text('Revolution is coming...'),
-      ),
-      Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.teal[600],
-        child: const Text('Revolution, they...'),
-      ),
-    ],
-  );
-}*/
 
 Widget projectCard(context, _project) {
   return Container(
@@ -144,19 +113,6 @@ Widget projectCard(context, _project) {
         borderRadius: BorderRadius.all(Radius.circular(10))),
     child: projectCardDatas(context, _project),
   );
-
-  /*return FractionallySizedBox(
-      widthFactor: 0.45,
-      child: Container(
-        padding: EdgeInsets.all(15),
-        decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey,
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: projectCardDatas(context, _project),
-      ));
-      */
 }
 
 Widget projectCardDatas(context, _project) {
@@ -169,7 +125,7 @@ Widget projectCardDatas(context, _project) {
       ),
       space(height: 10),
       Text(
-        _project.desc,
+        _project.description,
         style: TextStyle(fontSize: 15),
       ),
       space(height: 10),

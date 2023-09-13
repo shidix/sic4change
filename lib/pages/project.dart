@@ -1,15 +1,15 @@
 class SProject {
   final String name;
-  final String desc;
+  final String description;
 
-  SProject(this.name, this.desc);
+  SProject(this.name, this.description);
 
-  /*SProject.fromJson(Map<String, dynamic> json)
+  SProject.fromJson(Map<String, dynamic> json)
       : name = json['name'],
-        desc = json['desc'];
+        description = json['description'];
 
   Map<String, String> toJson() => {
         'name': name,
-        'desc': desc,
-      };*/
+        'description': description,
+      };
 }

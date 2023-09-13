@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
@@ -13,6 +15,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
+
     return Scaffold(
       /*appBar: AppBar(
         centerTitle: true,
@@ -35,6 +39,17 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           mainMenu(context),
+          Container(
+            padding: EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Signed In as"),
+                space(height: 10),
+                Text(user.email!),
+              ],
+            ),
+          )
         ],
       ),
     );

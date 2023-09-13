@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -37,13 +38,36 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
+Widget logoutBtn(context, btnName, btnIcon) {
+  return ElevatedButton(
+    onPressed: () {
+      FirebaseAuth.instance.signOut();
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+      side: const BorderSide(width: 0, color: Colors.blueGrey),
+      backgroundColor: Colors.blueGrey,
+      //primary: Colors.purple),
+    ),
+    child: Column(
+      children: [
+        Icon(btnIcon, color: Colors.black54),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black54, fontSize: 18),
+        ),
+      ],
+    ),
+  );
+}
+
 Widget customBtn(context, btnName, btnIcon, btnRoute) {
   return ElevatedButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
