@@ -49,10 +49,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 }
 
-Widget foldersHeader(context, currentFolder) {
+Widget foldersHeader(context, _currentFolder) {
   String _title;
-  if (currentFolder != null)
-    _title = currentFolder.name;
+  if (_currentFolder != null)
+    _title = _currentFolder.name;
   else
     _title = "/";
   return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -60,12 +60,12 @@ Widget foldersHeader(context, currentFolder) {
       padding: EdgeInsets.only(left: 40),
       child: Row(children: [
         Text(_title, style: TextStyle(fontSize: 20)),
-        if (currentFolder != null)
+        if (_currentFolder != null)
           IconButton(
             icon: const Icon(Icons.arrow_upward),
             tooltip: 'Up folder',
             onPressed: () {
-              getFolderByUuid(currentFolder.parent).then((value) {
+              getFolderByUuid(_currentFolder.parent).then((value) {
                 Navigator.pushReplacementNamed(context, "/documents",
                     arguments: value);
               });
@@ -80,19 +80,19 @@ Widget foldersHeader(context, currentFolder) {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          folderAddBtn(context),
+          folderAddBtn(context, _currentFolder),
         ],
       ),
     ),
   ]);
 }
 
-Widget folderAddBtn(context) {
+Widget folderAddBtn(context, _currentFolder) {
   TextEditingController nameController = TextEditingController(text: "");
 
   return ElevatedButton(
     onPressed: () {
-      _folderEditDialog(context, nameController, null);
+      _folderEditDialog(context, nameController, null, _currentFolder);
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -137,7 +137,7 @@ Widget folderList(context, _currentFolder) {
                 return Row(children: [
                   customRowBtn(context, snapshot.data?[index].name,
                       Icons.folder, "/documents", {"parent": cFolder}),
-                  folderPopUpBtn(context, snapshot.data?[index])
+                  folderPopUpBtn(context, snapshot.data?[index], _currentFolder)
                 ]);
               });
         } else {
@@ -150,7 +150,7 @@ Widget folderList(context, _currentFolder) {
 
 enum SampleItem { itemOne, itemTwo }
 
-Widget folderPopUpBtn(context, _folder) {
+Widget folderPopUpBtn(context, _folder, _currentFolder) {
   SampleItem? selectedMenu;
   TextEditingController nameController =
       TextEditingController(text: _folder.name);
@@ -161,10 +161,10 @@ Widget folderPopUpBtn(context, _folder) {
     onSelected: (SampleItem item) async {
       selectedMenu = item;
       if (selectedMenu == SampleItem.itemOne) {
-        _folderEditDialog(context, nameController, _folder);
+        _folderEditDialog(context, nameController, _folder, _currentFolder);
       }
       if (selectedMenu == SampleItem.itemTwo) {
-        _confirmRemoveDialog(context, _folder.id);
+        _confirmRemoveDialog(context, _folder.id, _currentFolder);
       }
     },
     itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
@@ -190,7 +190,8 @@ Widget folderPopUpBtn(context, _folder) {
 /*
               Dialogs
 */
-Future<void> _folderEditDialog(context, _controller, _folder) async {
+Future<void> _folderEditDialog(
+    context, _controller, _folder, _currentFolder) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
@@ -214,14 +215,21 @@ Future<void> _folderEditDialog(context, _controller, _folder) async {
             child: const Text('Save'),
             onPressed: () async {
               if (_folder != null) {
-                await updateFolder(
-                        _folder.id, _folder.uuid, _controller.text, "")
+                await updateFolder(_folder.id, _folder.uuid, _controller.text,
+                        _folder.parent)
                     .then((value) {
-                  Navigator.popAndPushNamed(context, "/documents");
+                  Navigator.popAndPushNamed(context, "/documents",
+                      arguments: {"parent": _currentFolder});
                 });
               } else {
-                await addFolder(_controller.text, "").then((value) {
-                  Navigator.popAndPushNamed(context, "/documents");
+                String parent;
+                if (_currentFolder != null)
+                  parent = _currentFolder.uuid;
+                else
+                  parent = "";
+                await addFolder(_controller.text, parent).then((value) {
+                  Navigator.popAndPushNamed(context, "/documents",
+                      arguments: {"parent": _currentFolder});
                 });
               }
             },
@@ -238,7 +246,7 @@ Future<void> _folderEditDialog(context, _controller, _folder) async {
   );
 }
 
-Future<void> _confirmRemoveDialog(context, id) async {
+Future<void> _confirmRemoveDialog(context, id, _currentFolder) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
@@ -254,7 +262,8 @@ Future<void> _confirmRemoveDialog(context, id) async {
             child: const Text('Remove'),
             onPressed: () async {
               await deleteFolder(id).then((value) {
-                Navigator.popAndPushNamed(context, "/documents");
+                Navigator.popAndPushNamed(context, "/documents",
+                    arguments: {"parent": _currentFolder});
               });
             },
           ),

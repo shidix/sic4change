@@ -51,7 +51,9 @@ Future<List> getFolders(String _parent_uuid) async {
         .where("parent", isEqualTo: _parent_uuid)
         .get();
   } else {
-    queryFolders = await db.collection('s4c_folders').get();
+    //queryFolders = await db.collection('s4c_folders').get();
+    queryFolders =
+        await db.collection('s4c_folders').where("parent", isEqualTo: "").get();
   }
   for (var doc in queryFolders.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
