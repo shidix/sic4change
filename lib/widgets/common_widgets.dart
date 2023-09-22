@@ -88,6 +88,36 @@ Widget customBtn(context, btnName, btnIcon, btnRoute) {
     ),
   );
 }
+
+Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+      //Navigator.pushNamed(context, btnRoute, arguments: {"currentFolder": "1"});
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
   /*return Container(
     child: Column(
       children: [
