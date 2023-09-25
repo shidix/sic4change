@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:js' as js;
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -118,29 +119,30 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
   );
 }
 
-  /*return Container(
-    child: Column(
+Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
+  return ElevatedButton(
+    onPressed: () {
+      js.context.callMethod('open', [btnRoute]);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Row(
       children: [
-        IconButton(
-          icon: Icon(btn_icon),
-          tooltip: btn_name,
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, btn_route);
-          },
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
         ),
-        Text(btn_name),
+        space(height: 10),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
       ],
-    ),*/
-/*    child: ElevatedButton(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[Icon(my_icon), Text(btn_name)],
-      ),
-      onPressed: () {},
-      style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(Colors.blueGrey),
-          foregroundColor: MaterialStateProperty.all(Colors.grey),
-          padding: MaterialStateProperty.all(EdgeInsets.all(10)),
-          textStyle: MaterialStateProperty.all(TextStyle(fontSize: 15))),
-    ),*/
-
+    ),
+  );
+}
