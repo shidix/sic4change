@@ -90,6 +90,34 @@ Widget customBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
+Widget customBtnArgs(context, btnName, btnIcon, btnRoute, args) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Column(
+      children: [
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
 Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
   return ElevatedButton(
     onPressed: () {
@@ -145,4 +173,71 @@ Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
       ],
     ),
   );
+}
+
+Widget customTextField(_controller, _hint) {
+  return SizedBox(
+    width: 220,
+    child: TextField(
+      controller: _controller,
+      decoration: InputDecoration(
+        hintText: _hint,
+      ),
+    ),
+  );
+}
+
+Widget customAutocompleteField(_controller, _options, _hint) {
+  final FocusNode _focusNode = FocusNode();
+  final GlobalKey _autocompleteKey = GlobalKey();
+
+  return Column(children: [
+    SizedBox(
+      width: 220,
+      child: TextFormField(
+        controller: _controller,
+        focusNode: _focusNode,
+        decoration: InputDecoration(
+          hintText: _hint,
+        ),
+        onFieldSubmitted: (String value) {
+          RawAutocomplete.onFieldSubmitted<String>(_autocompleteKey);
+        },
+      ),
+    ),
+    SizedBox(
+      width: 250,
+      child: RawAutocomplete<String>(
+        key: _autocompleteKey,
+        focusNode: _focusNode,
+        textEditingController: _controller,
+        optionsBuilder: (TextEditingValue textEditingValue) {
+          return _options.where((String option) {
+            return option.contains(textEditingValue.text.toLowerCase());
+          }).toList();
+        },
+        optionsViewBuilder: (
+          BuildContext context,
+          AutocompleteOnSelected<String> onSelected,
+          Iterable<String> options,
+        ) {
+          return Material(
+            elevation: 4.0,
+            child: ListView(
+              children: options
+                  .map((String option) => GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          );
+        },
+      ),
+    ),
+  ]);
 }

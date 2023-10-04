@@ -13,6 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //bool _main = false;
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
@@ -47,6 +49,18 @@ class _HomePageState extends State<HomePage> {
                 Text("Signed In as"),
                 space(height: 10),
                 Text(user.email!),
+                /*IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Edit',
+                    onPressed: () async {
+                      testDialog(context);
+                    }),
+                IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Edit',
+                    onPressed: () async {
+                      testDialog2(context);
+                    }),*/
               ],
             ),
           )
@@ -54,6 +68,117 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+// Prueba de campo desplegable
+/*  Future<void> testDialog(context) {
+    var _currencies = [
+      "Food",
+      "Transport",
+      "Personal",
+      "Shopping",
+      "Medical",
+      "Rent",
+      "Movie",
+      "Salary"
+    ];
+    String _cVal = "Food";
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            // <-- SEE HERE
+            title: const Text('Goal edit'),
+            content: SingleChildScrollView(
+              /*child: Checkbox(
+                value: _main,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _main = value!;
+                    print(_main);
+                  });
+                },
+              ),*/
+              child: FormField<String>(
+                builder: (FormFieldState<String> state) {
+                  return InputDecorator(
+                    decoration: InputDecoration(
+                        //labelStyle: textStyle,
+                        errorStyle:
+                            TextStyle(color: Colors.redAccent, fontSize: 16.0),
+                        hintText: 'Please select expense',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                    isEmpty: _cVal == '',
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _cVal,
+                        isDense: true,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _cVal = newValue!;
+                            state.didChange(newValue);
+                          });
+                        },
+                        items: _currencies.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }*/
+
+// Prueba de campo checkbox
+/*  Future<void> testDialog2(context) {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            // <-- SEE HERE
+            title: const Text('Goal edit'),
+            content: SingleChildScrollView(
+              child: FormField<bool>(
+                builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: _main,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _main = value!;
+                        state.didChange(_main);
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }*/
 }
 
 class AppBarExample extends StatelessWidget {

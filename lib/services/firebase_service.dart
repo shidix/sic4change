@@ -1,41 +1,40 @@
+//import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sic4change/pages/models.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
+//--------------------------------------------------------------
+//                           PROJECTS
+//--------------------------------------------------------------
+CollectionReference _collectionProject = db.collection("s4c_projects");
+
 Future<List> getProjects() async {
-  List projects = [];
-  //CollectionReference collectionReferenceProjects =
-  //    db.collection('testfirebase_project');
-  //QuerySnapshot queryProject = await collectionReferenceProjects.get();
-  //queryProject.docs.forEach((element) {
-  QuerySnapshot queryProject =
-      await db.collection('testfirebase_project').get();
+  List items = [];
+  QuerySnapshot queryProject = await _collectionProject.get();
   for (var doc in queryProject.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    final project = SProject.fromJson(data);
-    /*final project = {
-      "name": data["name"],
-      "desc": data["description"],
-      "uid": doc.id,
-    };*/
-    projects.add(project);
+    data["id"] = doc.id;
+    final _item = SProject.fromJson(data);
+    items.add(_item);
   }
   ;
-  return projects;
+
+  return items;
 }
 
 Future<void> addProject(String name) async {
-  await db.collection("testfirebase_project").add({"name": name});
+  await _collectionProject.add({"name": name});
 }
 
 Future<void> updateProject(String uid, String name) async {
-  await db.collection("testfirebase_project").doc(uid).set({"name": name});
+  await _collectionProject.doc(uid).set({"name": name});
 }
 
 Future<void> deleteProject(String uid) async {
-  await db.collection('testfirebase_project').doc(uid).delete();
+  await _collectionProject.doc(uid).delete();
 }
 
 //--------------------------------------------------------------
@@ -131,4 +130,207 @@ Future<void> updateFile(
 
 Future<void> deleteFile(String id) async {
   await _collectionFile.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           CONTACTS
+//--------------------------------------------------------------
+CollectionReference _collectionContact = db.collection("s4c_contacts");
+
+Future<List> getContacts() async {
+  List<Contact> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionContact.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Contact.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addContact(String name, String company, List<String> projects,
+    String position, String email, String phone) async {
+  var uuid = Uuid();
+  await _collectionContact.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "company": company,
+    "projects": FieldValue.arrayUnion(projects),
+    "position": position,
+    "email": email,
+    "phone": phone
+  });
+}
+
+Future<void> updateContact(String id, String uuid, String name, String company,
+    List<String> projects, String position, String email, String phone) async {
+  await _collectionContact.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "company": company,
+    "projects": FieldValue.arrayUnion(projects),
+    "position": position,
+    "email": email,
+    "phone": phone
+  });
+}
+
+Future<void> deleteContact(String id) async {
+  await _collectionContact.doc(id).delete();
+}
+
+Future<List> searchContacts(_name) async {
+  List<Contact> items = [];
+  QuerySnapshot? query;
+
+  if (_name != "")
+    query = await _collectionContact.where("name", isEqualTo: _name).get();
+  else
+    query = await _collectionContact.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Contact.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+//--------------------------------------------------------------
+//                           COMPANIES
+//--------------------------------------------------------------
+CollectionReference _collectionComp = db.collection("s4c_companies");
+
+Future<List> getCompanies() async {
+  List<Company> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionComp.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Company.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addCompany(String name) async {
+  var uuid = Uuid();
+  await _collectionComp.add({
+    "uuid": uuid.v4(),
+    "name": name,
+  });
+}
+
+Future<void> updateCompany(String id, String uuid, String name) async {
+  await _collectionComp.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+  });
+}
+
+Future<void> deleteCompany(String id) async {
+  await _collectionComp.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           POSITION
+//--------------------------------------------------------------
+CollectionReference _collectionPos = db.collection("s4c_positions");
+
+Future<List> getPositions() async {
+  List<Position> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionPos.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Position.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addPosition(String name) async {
+  var uuid = Uuid();
+  await _collectionPos.add({
+    "uuid": uuid.v4(),
+    "name": name,
+  });
+}
+
+Future<void> updatePosition(String id, String uuid, String name) async {
+  await _collectionPos.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+  });
+}
+
+Future<void> deletePosition(String id) async {
+  await _collectionPos.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           GOAL
+//--------------------------------------------------------------
+CollectionReference _collectionGoal = db.collection("s4c_goals");
+
+Future<List> getGoals() async {
+  List<Goal> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionGoal.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Goal.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getGoalsByProject(String _project) async {
+  List<Goal> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionGoal.where("project", isEqualTo: _project).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Goal.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addGoal(
+    String name, String description, bool main, String project) async {
+  var uuid = Uuid();
+  await _collectionGoal.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "description": description,
+    "main": main,
+    "project": project,
+  });
+}
+
+Future<void> updateGoal(String id, String uuid, String name, String description,
+    bool main, String project) async {
+  await _collectionGoal.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "description": description,
+    "main": main,
+    "project": project,
+  });
+}
+
+Future<void> deleteGoal(String id) async {
+  await _collectionGoal.doc(id).delete();
 }
