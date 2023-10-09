@@ -39,6 +39,44 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
+Widget menuTab(context, btnName, btnRoute, args) {
+  return Container(
+      padding: EdgeInsets.all(5),
+      child: TextButton(
+        onPressed: () {
+          Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+        },
+        child: Text(
+          btnName,
+          style: TextStyle(color: Colors.black54, fontSize: 16),
+        ),
+      ));
+}
+
+Widget menuTabSelect(context, btnName, btnRoute, args) {
+  return Container(
+      padding: EdgeInsets.all(5),
+      decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(width: 1.0, color: Colors.grey),
+            left: BorderSide(width: 1.0, color: Colors.grey),
+            right: BorderSide(width: 1.0, color: Colors.grey),
+            bottom: BorderSide(width: 1.0, color: Colors.grey),
+          ),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+          color: Colors.grey),
+      child: TextButton(
+        onPressed: () {
+          Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+        },
+        child: Text(
+          btnName,
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ));
+}
+
 Widget logoutBtn(context, btnName, btnIcon) {
   return ElevatedButton(
     onPressed: () {

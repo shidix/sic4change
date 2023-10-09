@@ -298,7 +298,11 @@ Future<List> getGoalsByProject(String _project) async {
   List<Goal> items = [];
   QuerySnapshot? query;
 
-  query = await _collectionGoal.where("project", isEqualTo: _project).get();
+  query = await _collectionGoal
+      .orderBy("project")
+      .orderBy("main", descending: true)
+      .where("project", isEqualTo: _project)
+      .get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;

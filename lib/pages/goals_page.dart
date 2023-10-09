@@ -1,10 +1,12 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const PAGE_GOAL_TITLE = "Marco Lógico";
@@ -43,16 +45,16 @@ class _GoalsPageState extends State<GoalsPage> {
       body: Column(children: [
         mainMenu(context),
         goalHeader(context, _project),
+        goalMenu(context, _project),
         Expanded(
             child: Container(
-                padding: EdgeInsets.all(30),
+                padding: EdgeInsets.only(left: 10, right: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                      ),
-                      borderRadius: BorderRadius.all(Radius.circular(10))),
-                  //child: Text("LIST"),
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
+                  ),
                   child: goalList(context, _project),
                 )))
       ]),
@@ -66,7 +68,8 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: EdgeInsets.only(left: 40),
-        child: Text(PAGE_GOAL_TITLE, style: TextStyle(fontSize: 20)),
+        child: Text(PAGE_GOAL_TITLE + " de " + _project.name,
+            style: TextStyle(fontSize: 20)),
       ),
       Container(
         padding: EdgeInsets.all(10),
@@ -199,10 +202,27 @@ class _GoalsPageState extends State<GoalsPage> {
                             itemCount: goal_list.length,
                             itemBuilder: (BuildContext context, int index) {
                               Goal _goal = goal_list[index];
-                              return Container(
-                                  height: 50,
-                                  child: goalRow(context, _goal, _project));
-                            })))
+                              if (_goal.main)
+                                return Container(
+                                  height: 100,
+                                  padding: EdgeInsets.only(top: 20, bottom: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                        bottom: BorderSide(color: Colors.grey)),
+                                  ),
+                                  child: goalRowMain(context, _goal, _project),
+                                );
+                              else
+                                return Container(
+                                  height: 100,
+                                  padding: EdgeInsets.only(top: 20, bottom: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                        bottom: BorderSide(color: Colors.grey)),
+                                  ),
+                                  child: goalRow(context, _goal, _project),
+                                );
+                            }))),
               ],
             );
           } else {
@@ -213,13 +233,28 @@ class _GoalsPageState extends State<GoalsPage> {
         }));
   }
 
-  Widget goalRow(context, _goal, _project) {
+  Widget goalRowMain(context, _goal, _project) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${_goal.name}'),
-            if (_goal.main) Text(_goal.description),
+            space(height: 10),
+            new LinearPercentIndicator(
+              width: MediaQuery.of(context).size.width - 500,
+              animation: true,
+              lineHeight: 10.0,
+              animationDuration: 2500,
+              percent: 0.8,
+              //center: Text("80.0%"),
+              linearStrokeCap: LinearStrokeCap.roundAll,
+              progressColor: Colors.green,
+            ),
+            space(height: 10),
+            Text(_goal.description),
           ],
         ),
         Row(children: [
@@ -237,7 +272,46 @@ class _GoalsPageState extends State<GoalsPage> {
               }),
         ]),
       ],
+    );
+  }
+
+  Widget goalRow(context, _goal, _project) {
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${_goal.name}'),
+            space(height: 10),
+            new LinearPercentIndicator(
+              width: MediaQuery.of(context).size.width - 500,
+              animation: true,
+              lineHeight: 10.0,
+              animationDuration: 2500,
+              percent: 0.8,
+              //center: Text("80.0%"),
+              linearStrokeCap: LinearStrokeCap.roundAll,
+              progressColor: Colors.blue,
+            ),
+          ],
+        ),
+        Row(children: [
+          IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () async {
+                _editGoalDialog(context, _goal, _project);
+              }),
+          IconButton(
+              icon: const Icon(Icons.remove_circle),
+              tooltip: 'Remove',
+              onPressed: () {
+                _removeGoalDialog(context, _goal.id, _project);
+              }),
+        ]),
+      ],
     );
   }
 

@@ -183,7 +183,7 @@ Widget projectCardDatas(context, _project) {
       space(height: 10),
       Divider(color: Colors.grey),
       space(height: 10),
-      Row(
+      /*Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           new CircularPercentIndicator(
@@ -195,7 +195,7 @@ Widget projectCardDatas(context, _project) {
           ),
         ],
       ),
-      space(height: 20),
+      space(height: 20),*/
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
