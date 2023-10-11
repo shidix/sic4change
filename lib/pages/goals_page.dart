@@ -77,7 +77,8 @@ class _GoalsPageState extends State<GoalsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             goalAddBtn(context, _project),
-            customRowBtn(context, "Volver", Icons.arrow_back, "/projects", {})
+            //customRowBtn(context, "Volver", Icons.arrow_back, "/projects", {})
+            customRowPopBtn(context, "Volver", Icons.arrow_back),
           ],
         ),
       ),
@@ -257,20 +258,7 @@ class _GoalsPageState extends State<GoalsPage> {
             Text(_goal.description),
           ],
         ),
-        Row(children: [
-          IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () async {
-                _editGoalDialog(context, _goal, _project);
-              }),
-          IconButton(
-              icon: const Icon(Icons.remove_circle),
-              tooltip: 'Remove',
-              onPressed: () {
-                _removeGoalDialog(context, _goal.id, _project);
-              }),
-        ]),
+        goalRowOptions(context, _goal, _project),
       ],
     );
   }
@@ -297,22 +285,33 @@ class _GoalsPageState extends State<GoalsPage> {
             ),
           ],
         ),
-        Row(children: [
-          IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () async {
-                _editGoalDialog(context, _goal, _project);
-              }),
-          IconButton(
-              icon: const Icon(Icons.remove_circle),
-              tooltip: 'Remove',
-              onPressed: () {
-                _removeGoalDialog(context, _goal.id, _project);
-              }),
-        ]),
+        goalRowOptions(context, _goal, _project),
       ],
     );
+  }
+
+  Widget goalRowOptions(context, _goal, _project) {
+    return Row(children: [
+      IconButton(
+          icon: const Icon(Icons.list_alt),
+          tooltip: 'Results',
+          onPressed: () {
+            Navigator.pushNamed(context, "/results",
+                arguments: {'goal': _goal});
+          }),
+      IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: 'Edit',
+          onPressed: () async {
+            _editGoalDialog(context, _goal, _project);
+          }),
+      IconButton(
+          icon: const Icon(Icons.remove_circle),
+          tooltip: 'Remove',
+          onPressed: () {
+            _removeGoalDialog(context, _goal.id, _project);
+          }),
+    ]);
   }
 
   Future<void> _removeGoalDialog(context, id, _project) async {

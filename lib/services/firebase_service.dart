@@ -338,3 +338,196 @@ Future<void> updateGoal(String id, String uuid, String name, String description,
 Future<void> deleteGoal(String id) async {
   await _collectionGoal.doc(id).delete();
 }
+
+//--------------------------------------------------------------
+//                           RESULTS
+//--------------------------------------------------------------
+CollectionReference _collectionResult = db.collection("s4c_results");
+
+Future<List> getResults() async {
+  List<Result> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionResult.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Result.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getResultsByGoal(String _goal) async {
+  List<Result> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionResult
+      //.orderBy("goal")
+      //.orderBy("main", descending: true)
+      .where("goal", isEqualTo: _goal)
+      .get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Result.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addResult(String name, String description, String indicator_text,
+    String indicator_percent, String source, String goal) async {
+  var uuid = Uuid();
+  await _collectionResult.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "description": description,
+    "indicator_text": indicator_text,
+    "indicator_percent": indicator_percent,
+    "source": source,
+    "goal": goal,
+  });
+}
+
+Future<void> updateResult(
+    String id,
+    String uuid,
+    String name,
+    String description,
+    String indicator_text,
+    String indicator_percent,
+    String source,
+    String goal) async {
+  await _collectionResult.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "description": description,
+    "indicator_text": indicator_text,
+    "indicator_percent": indicator_percent,
+    "source": source,
+    "goal": goal,
+  });
+}
+
+Future<void> deleteResult(String id) async {
+  await _collectionResult.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           ACTIVITIES
+//--------------------------------------------------------------
+CollectionReference _collectionActivity = db.collection("s4c_activities");
+
+Future<List> getActivities() async {
+  List<Activity> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionActivity.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Activity.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getActivitiesByResult(String _result) async {
+  List<Activity> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionActivity.where("result", isEqualTo: _result).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Activity.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addActivity(String name, String result) async {
+  var uuid = Uuid();
+  await _collectionActivity.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "result": result,
+  });
+}
+
+Future<void> updateActivity(
+    String id, String uuid, String name, String result) async {
+  await _collectionActivity.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "result": result,
+  });
+}
+
+Future<void> deleteActivity(String id) async {
+  await _collectionActivity.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                      ACTIVITY INDICATORS
+//--------------------------------------------------------------
+CollectionReference _collectionActivityIndicator =
+    db.collection("s4c_activity_indicators");
+
+Future<List> getActivityIndicators() async {
+  List<ActivityIndicator> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionActivityIndicator.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ActivityIndicator.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getActivityIndicatorsByActivity(String _activity) async {
+  List<ActivityIndicator> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionActivityIndicator
+      .where("activity", isEqualTo: _activity)
+      .get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ActivityIndicator.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addActivityIndicator(
+    String name, String percent, String source, String activity) async {
+  var uuid = Uuid();
+  await _collectionActivityIndicator.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "percent": percent,
+    "source": source,
+    "activity": activity,
+  });
+}
+
+Future<void> updateActivityIndicator(String id, String uuid, String name,
+    String percent, String source, String activity) async {
+  await _collectionActivityIndicator.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "percent": percent,
+    "source": source,
+    "activity": activity,
+  });
+}
+
+Future<void> deleteActivityIndicator(String id) async {
+  await _collectionActivityIndicator.doc(id).delete();
+}

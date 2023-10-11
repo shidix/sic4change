@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:js' as js;
 
+import 'package:flutter/services.dart';
+
 Widget space({width = 10, height = 10}) {
   return SizedBox(
     width: width,
@@ -100,7 +102,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
   );
 }
 
-Widget customBtn(context, btnName, btnIcon, btnRoute) {
+/*Widget customBtn(context, btnName, btnIcon, btnRoute) {
   return ElevatedButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute);
@@ -126,12 +128,41 @@ Widget customBtn(context, btnName, btnIcon, btnRoute) {
       ],
     ),
   );
-}
+}*/
 
-Widget customBtnArgs(context, btnName, btnIcon, btnRoute, args) {
+//Widget customBtnArgs(context, btnName, btnIcon, btnRoute, args) {
+Widget customBtn(context, btnName, btnIcon, btnRoute, args) {
   return ElevatedButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Column(
+      children: [
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget customPushBtn(context, btnName, btnIcon, btnRoute, args) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pushNamed(context, btnRoute, arguments: args);
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -161,6 +192,34 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
       //Navigator.pushNamed(context, btnRoute, arguments: {"currentFolder": "1"});
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget customRowPopBtn(context, btnName, btnIcon) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pop(context);
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -222,6 +281,19 @@ Widget customTextField(_controller, _hint) {
         hintText: _hint,
       ),
     ),
+  );
+}
+
+Widget customDoubleField(_controller, _hint) {
+  return SizedBox(
+    width: 220,
+    child: TextField(
+        controller: _controller,
+        decoration: new InputDecoration(labelText: _hint),
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(RegExp(r"[0-9.]"))
+        ]),
   );
 }
 

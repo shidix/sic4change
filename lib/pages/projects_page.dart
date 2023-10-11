@@ -208,11 +208,13 @@ Widget projectCardDatas(context, _project) {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          customBtn(context, "Presupuesto", Icons.euro, "/projects"),
-          customBtnArgs(context, "Marco lógico", Icons.task, "/goals",
+          customBtn(context, "Presupuesto", Icons.euro, "/projects", {}),
+          /*customBtnArgs(context, "Marco lógico", Icons.task, "/goals",
+              {"project": _project}),*/
+          customPushBtn(context, "Marco lógico", Icons.task, "/goals",
               {"project": _project}),
-          customBtn(context, "Editar", Icons.edit, "/projects"),
-          customBtn(context, "Eliminar", Icons.remove_circle, "/projects"),
+          customBtn(context, "Editar", Icons.edit, "/projects", {}),
+          customBtn(context, "Eliminar", Icons.remove_circle, "/projects", {}),
         ],
       ),
       space(height: 10),
