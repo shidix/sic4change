@@ -1,6 +1,7 @@
-import 'dart:html';
+// import 'dart:ffi';
+// import 'dart:html';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SProject {
   final String id;
@@ -22,6 +23,12 @@ class SProject {
         'name': name,
         'description': description,
       };
+
+  String total_budget() 
+  {
+    double aux = 24;
+    return (aux.toString());
+  }
 }
 
 class Folder {
@@ -259,6 +266,8 @@ class ActivityIndicator {
       };
 }
 
+// Financiera
+
 class SFinn {
   final String id;
   final String uuid;
@@ -284,5 +293,27 @@ class SFinn {
         'description': description,
         'parent':parent,
         'project':project,
+      };
+}
+
+class FinnContribution {
+  final String id;
+  final String owner;
+  final double amount;
+  final String finn;
+
+  FinnContribution(this.id, this.owner, this.amount, this.finn);
+
+  FinnContribution.fromJson(Map<String, dynamic> json) : 
+    id = json["id"],
+    owner = json["owner"],
+    amount = json["amout"],
+    finn = json["finn"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'owner': owner,
+        'amount': amount,
+        'finn': finn,
       };
 }

@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -7,10 +6,9 @@ import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
-const PAGE_FINN_TITLE = "Presupuesto";
+const PAGE_FINN_TITLE = "Gestión Económica";
 List finn_list = [];
 
 class FinnsPage extends StatefulWidget {
@@ -24,7 +22,6 @@ class _FinnsPageState extends State<FinnsPage> {
   void loadFinns(value) async {
     await getFinnsByProject(value).then((val) {
       finn_list = val;
-      //print(contact_list);
     });
     setState(() {});
   }
@@ -32,8 +29,6 @@ class _FinnsPageState extends State<FinnsPage> {
   @override
   Widget build(BuildContext context) {
     final SProject? _project;
-
-    print("TEST");
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
@@ -48,16 +43,17 @@ class _FinnsPageState extends State<FinnsPage> {
       body: Column(children: [
         mainMenu(context),
         finnHeader(context, _project),
+        finnStatus(context, _project),
         //finnMenu(context, _project),
         Expanded(
             child: Container(
-                padding: EdgeInsets.only(left: 10, right: 10),
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
-                  ),
+                      // border: Border.all(
+                      //   color: Colors.grey,
+                      // ),
+                      ),
                   child: finnList(context, _project),
                 )))
       ]),
@@ -70,8 +66,8 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget finnHeader(context, _project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
-        padding: EdgeInsets.only(left: 40),
-        child: Text(PAGE_FINN_TITLE + " de " + _project.name,
+        padding: const EdgeInsets.only(left: 40),
+        child: Text("$PAGE_FINN_TITLE de ${_project.name}.",
             style: TextStyle(fontSize: 20)),
       ),
       Container(
@@ -88,27 +84,58 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
   }
 
+  Widget finnStatus(context, project) {
+    double totalAmount = 70702.01;
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+            ),
+          ),
+          padding: const EdgeInsets.only(left: 40),
+          child: const Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Presupuesto Total",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize:24,
+                    ),
+                  ),
+                  SizedBox(width:20, height: 20,),
+                  Text("70702.01"),
+                ],
+              )
+            ],
+          ))
+    ]);
+  }
+
   Widget finnAddBtn(context, _project) {
     return ElevatedButton(
       onPressed: () {
         _editFinnDialog(context, null, _project);
       },
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         backgroundColor: Colors.white,
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.add,
             color: Colors.black54,
             size: 30,
           ),
           space(height: 10),
-          Text(
-            "Add finn",
+          const Text(
+            "Nueva partida",
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
         ],
@@ -118,7 +145,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
   void _saveFinn(context, _finn, _name, _desc, _parent, _project) async {
     if (_finn != null) {
-      await updateFinn(_finn.id, _finn.uuid, _name, _desc, _parent, _project.uuid)
+      await updateFinn(
+              _finn.id, _finn.uuid, _name, _desc, _parent, _project.uuid)
           .then((value) async {
         loadFinns(_project.uuid);
       });
@@ -133,7 +161,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Future<void> _editFinnDialog(context, _finn, _project) {
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
-    String _parent= "";
+    String _parent = "";
 
     if (_finn != null) {
       nameController = TextEditingController(text: _finn.name);
@@ -149,11 +177,21 @@ class _FinnsPageState extends State<FinnsPage> {
           // <-- SEE HERE
           title: const Text('Nueva partida'),
           content: SingleChildScrollView(
-              child: Row(children: <Widget>[
-            customTextField(nameController, "Nombre"),
-            space(width: 20),
-            customTextField(descController, "Descripción")
-          ])),
+            child: Column(children: [
+              Row(
+                children: <Widget>[
+                  const Text('Nombre'),
+                  space(width: 150),
+                  const Text("Descripción")
+                ],
+              ),
+              Row(children: <Widget>[
+                customTextField(nameController, "Nombre"),
+                space(width: 20),
+                customTextField(descController, "Descripción")
+              ]),
+            ]),
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
@@ -163,7 +201,7 @@ class _FinnsPageState extends State<FinnsPage> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -200,8 +238,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                        bottom: BorderSide(color: Colors.grey)
-                                        ),
+                                        bottom: BorderSide(color: Colors.grey)),
                                   ),
                                   child: finnRowMain(context, _finn, _project),
                                 );
