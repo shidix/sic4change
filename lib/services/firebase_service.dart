@@ -531,3 +531,70 @@ Future<void> updateActivityIndicator(String id, String uuid, String name,
 Future<void> deleteActivityIndicator(String id) async {
   await _collectionActivityIndicator.doc(id).delete();
 }
+
+//--------------------------------------------------------------
+//                      FINN
+//--------------------------------------------------------------
+CollectionReference _collectionFinn = db.collection("s4c_finns");
+
+Future<List> getFinns() async {
+  List<SFinn> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionFinn.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = SFinn.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getFinnsByProject(String _project) async {
+  List<SFinn> items = [];
+  QuerySnapshot? query;
+
+  print(_project);
+  query = await _collectionFinn
+      .orderBy("project")
+      .orderBy("parent", descending: true)
+      .where("project", isEqualTo: _project)
+      .get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = SFinn.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addFinn(
+    String name, String description, String parent, String project) async {
+  var uuid = Uuid();
+  await _collectionFinn.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "description": description,
+    "parent":parent,
+    "project": project,
+  });
+}
+
+Future<void> updateFinn(String id, String uuid, String name, String description,
+    String parent, String project) async {
+  await _collectionFinn.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "description": description,
+    "parent": parent,
+    "project": project,
+  });
+}
+
+Future<void> deleteFinn(String id) async {
+  await _collectionFinn.doc(id).delete();
+}
+
+
