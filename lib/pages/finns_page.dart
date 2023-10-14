@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -40,23 +41,13 @@ class _FinnsPageState extends State<FinnsPage> {
     if (_project == null) return Page404();
 
     return Scaffold(
-      body: Column(children: [
-        mainMenu(context),
-        finnHeader(context, _project),
-        finnStatus(context, _project),
-        //finnMenu(context, _project),
-        Expanded(
-            child: Container(
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                      // border: Border.all(
-                      //   color: Colors.grey,
-                      // ),
-                      ),
-                  child: finnList(context, _project),
-                )))
-      ]),
+      body: 
+
+         Column(children: [
+         mainMenu(context),
+         finnHeader(context, _project),
+         finnStatus(context, _project),
+       ]),
     );
   }
 
@@ -85,34 +76,112 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnStatus(context, project) {
-    double totalAmount = 70702.01;
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey,
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Align(
+            alignment: AlignmentDirectional(-1.00, -1.00),
+            child: Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(60, 30, 60, 0),
+              child: Container(
+                width: MediaQuery.sizeOf(context).width,
+                height: MediaQuery.sizeOf(context).height * 0.1,
+                decoration: BoxDecoration(
+                  //color: FlutterFlowTheme.of(context).secondaryBackground,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional(-1.00, -1.00),
+                      child: Text(
+                        'Gestión Económica',
+                        style: TextStyle(
+                              fontFamily: 'Readex Pro',
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          padding: const EdgeInsets.only(left: 40),
-          child: const Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Presupuesto Total",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize:24,
-                    ),
+          Align(
+            alignment: AlignmentDirectional(-1.00, 0.00),
+            child: Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(60, 0, 0, 0),
+              child: Container(
+                width: MediaQuery.sizeOf(context).width * 0.25,
+                height: MediaQuery.sizeOf(context).height * 0.1,
+                decoration: BoxDecoration(
+                  //color: FlutterFlowTheme.of(context).secondaryBackground,
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(-1.00, -1.00),
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional(-1.00, -1.00),
+                        child: Text(
+                          'Presupuesto Total',
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional(1.00, -1.00),
+                        child: Text(
+                          '70.702,01 €',
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional(-1.00, 0.00),
+                        child: LinearPercentIndicator(
+                          percent: 0.5,
+                          width: MediaQuery.sizeOf(context).width * 0.25,
+                          lineHeight: 12,
+                          animation: true,
+                          animateFromLastPercent: true,
+                          // progressColor: FlutterFlowTheme.of(context).secondary,
+                          // backgroundColor:
+                          //     FlutterFlowTheme.of(context).secondaryText,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional(-1.00, 1.00),
+                        child: Text(
+                          '50% (de ejecución económica)',
+                          style: TextStyle(
+                                fontFamily: 'Readex Pro',
+                                fontSize: 10,
+                              ),
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width:20, height: 20,),
-                  Text("70702.01"),
-                ],
-              )
-            ],
-          ))
-    ]);
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(60, 0, 0, 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [],
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
   }
 
   Widget finnAddBtn(context, _project) {
