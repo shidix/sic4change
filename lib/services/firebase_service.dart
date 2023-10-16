@@ -414,6 +414,29 @@ Future<void> deleteResult(String id) async {
   await _collectionResult.doc(id).delete();
 }
 
+Future<SProject> getProjectByResult(String _uuid) async {
+  Goal _goal;
+  SProject _project;
+  QuerySnapshot? query;
+  QuerySnapshot? query_p;
+
+  query = await _collectionGoal.where("uuid", isEqualTo: _uuid).get();
+  final _dbGoal = query.docs.first;
+  final Map<String, dynamic> data = _dbGoal.data() as Map<String, dynamic>;
+  data["id"] = _dbGoal.id;
+  _goal = Goal.fromJson(data);
+
+  query_p =
+      await _collectionProject.where("uuid", isEqualTo: _goal.project).get();
+  final _dbProject = query_p.docs.first;
+  final Map<String, dynamic> dataProject =
+      _dbProject.data() as Map<String, dynamic>;
+  dataProject["id"] = _dbProject.id;
+  _project = SProject.fromJson(dataProject);
+
+  return _project;
+}
+
 //--------------------------------------------------------------
 //                           ACTIVITIES
 //--------------------------------------------------------------
@@ -467,6 +490,37 @@ Future<void> updateActivity(
 
 Future<void> deleteActivity(String id) async {
   await _collectionActivity.doc(id).delete();
+}
+
+Future<SProject> getProjectByActivity(String _uuid) async {
+  Result _result;
+  Goal _goal;
+  SProject _project;
+  QuerySnapshot? query;
+  QuerySnapshot? query_g;
+  QuerySnapshot? query_p;
+
+  query = await _collectionResult.where("uuid", isEqualTo: _uuid).get();
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
+  data["id"] = _dbResult.id;
+  _result = Result.fromJson(data);
+
+  query_g = await _collectionGoal.where("uuid", isEqualTo: _result.goal).get();
+  final _dbGoal = query_g.docs.first;
+  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
+  dataGoal["id"] = _dbGoal.id;
+  _goal = Goal.fromJson(dataGoal);
+
+  query_p =
+      await _collectionProject.where("uuid", isEqualTo: _goal.project).get();
+  final _dbProject = query_p.docs.first;
+  final Map<String, dynamic> dataProject =
+      _dbProject.data() as Map<String, dynamic>;
+  dataProject["id"] = _dbProject.id;
+  _project = SProject.fromJson(dataProject);
+
+  return _project;
 }
 
 //--------------------------------------------------------------
@@ -530,4 +584,132 @@ Future<void> updateActivityIndicator(String id, String uuid, String name,
 
 Future<void> deleteActivityIndicator(String id) async {
   await _collectionActivityIndicator.doc(id).delete();
+}
+
+Future<SProject> getProjectByActivityIndicator(String _uuid) async {
+  Activity _activity;
+  Result _result;
+  Goal _goal;
+  SProject _project;
+  QuerySnapshot? query;
+  QuerySnapshot? query_r;
+  QuerySnapshot? query_g;
+  QuerySnapshot? query_p;
+
+  query = await _collectionActivity.where("uuid", isEqualTo: _uuid).get();
+  final _dbActivity = query.docs.first;
+  final Map<String, dynamic> data = _dbActivity.data() as Map<String, dynamic>;
+  data["id"] = _dbActivity.id;
+  _activity = Activity.fromJson(data);
+
+  query_r =
+      await _collectionResult.where("uuid", isEqualTo: _activity.result).get();
+  final _dbResult = query_r.docs.first;
+  final Map<String, dynamic> dataResult =
+      _dbResult.data() as Map<String, dynamic>;
+  dataResult["id"] = _dbResult.id;
+  _result = Result.fromJson(dataResult);
+
+  query_g = await _collectionGoal.where("uuid", isEqualTo: _result.goal).get();
+  final _dbGoal = query_g.docs.first;
+  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
+  dataGoal["id"] = _dbGoal.id;
+  _goal = Goal.fromJson(dataGoal);
+
+  query_p =
+      await _collectionProject.where("uuid", isEqualTo: _goal.project).get();
+  final _dbProject = query_p.docs.first;
+  final Map<String, dynamic> dataProject =
+      _dbProject.data() as Map<String, dynamic>;
+  dataProject["id"] = _dbProject.id;
+  _project = SProject.fromJson(dataProject);
+
+  return _project;
+}
+
+//--------------------------------------------------------------
+//                           TASKS
+//--------------------------------------------------------------
+CollectionReference _collectionTask = db.collection("s4c_tasks");
+
+Future<List> getTasks() async {
+  List<Task> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionTask.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Task.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<List> getTasksByResult(String _result) async {
+  List<Task> items = [];
+  QuerySnapshot? query;
+
+  query = await _collectionTask.where("result", isEqualTo: _result).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Task.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<void> addTask(String name, String result) async {
+  var uuid = Uuid();
+  await _collectionTask.add({
+    "uuid": uuid.v4(),
+    "name": name,
+    "result": result,
+  });
+}
+
+Future<void> updateTask(
+    String id, String uuid, String name, String result) async {
+  await _collectionTask.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "result": result,
+  });
+}
+
+Future<void> deleteTask(String id) async {
+  await _collectionTask.doc(id).delete();
+}
+
+Future<SProject> getProjectByTask(String _uuid) async {
+  Result _result;
+  Goal _goal;
+  SProject _project;
+  QuerySnapshot? query;
+  QuerySnapshot? query_g;
+  QuerySnapshot? query_p;
+
+  query = await _collectionResult.where("uuid", isEqualTo: _uuid).get();
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> dataResult =
+      _dbResult.data() as Map<String, dynamic>;
+  dataResult["id"] = _dbResult.id;
+  _result = Result.fromJson(dataResult);
+
+  query_g = await _collectionGoal.where("uuid", isEqualTo: _result.goal).get();
+  final _dbGoal = query_g.docs.first;
+  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
+  dataGoal["id"] = _dbGoal.id;
+  _goal = Goal.fromJson(dataGoal);
+
+  query_p =
+      await _collectionProject.where("uuid", isEqualTo: _goal.project).get();
+  final _dbProject = query_p.docs.first;
+  final Map<String, dynamic> dataProject =
+      _dbProject.data() as Map<String, dynamic>;
+  dataProject["id"] = _dbProject.id;
+  _project = SProject.fromJson(dataProject);
+
+  return _project;
 }

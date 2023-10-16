@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -349,5 +350,28 @@ Widget customAutocompleteField(_controller, _options, _hint) {
         },
       ),
     ),
+  ]);
+}
+
+Widget customLinearPercent(context, _offset, _percent, _color) {
+  var _percentText = _percent * 100;
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    new LinearPercentIndicator(
+      width: MediaQuery.of(context).size.width - _offset,
+      animation: true,
+      lineHeight: 10.0,
+      animationDuration: 500,
+      percent: _percent,
+      //center: Text(_percentText.toString()),
+      //linearStrokeCap: LinearStrokeCap.roundAll,
+      progressColor: _color,
+    ),
+    space(height: 5),
+    Container(
+        padding: EdgeInsets.only(left: 10),
+        child: Text(
+          _percentText.toString() + " % Completado",
+          style: TextStyle(fontSize: 12),
+        ))
   ]);
 }

@@ -7,6 +7,7 @@ import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/project_header_widget.dart';
 
 const PAGE_ACTIVITY_INDICATOR_TITLE = "Indicadores de actividad";
 List ai_list = [];
@@ -42,6 +43,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     return Scaffold(
       body: Column(children: [
         mainMenu(context),
+        activityIndicatorProjectHeader(context, _activity),
         activityIndicatorHeader(context, _activity),
         //goalMenu(context, _goal),
         Expanded(
@@ -58,6 +60,24 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                 )))
       ]),
     );
+  }
+
+  Widget activityIndicatorProjectHeader(context, _activity) {
+    return FutureBuilder(
+        future: getProjectByActivityIndicator(_activity.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            final _project = snapshot.data!;
+            if (_project != null)
+              return projectHeader(context, _project);
+            else
+              return Text("Project not found!");
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
   }
 
 /*-------------------------------------------------------------

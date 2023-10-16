@@ -1,13 +1,13 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/project_header_widget.dart';
 
 const PAGE_GOAL_TITLE = "Marco Lógico";
 List goal_list = [];
@@ -42,8 +42,9 @@ class _GoalsPageState extends State<GoalsPage> {
     if (_project == null) return Page404();
 
     return Scaffold(
-      body: Column(children: [
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
+        projectHeader(context, _project),
         goalHeader(context, _project),
         goalMenu(context, _project),
         Expanded(
@@ -68,8 +69,9 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: EdgeInsets.only(left: 40),
-        child: Text(PAGE_GOAL_TITLE + " de " + _project.name,
-            style: TextStyle(fontSize: 20)),
+        child: Text(PAGE_GOAL_TITLE, style: TextStyle(fontSize: 20)),
+        /*child: Text(PAGE_GOAL_TITLE + " de " + _project.name,
+            style: TextStyle(fontSize: 20)),*/
       ),
       Container(
         padding: EdgeInsets.all(10),
@@ -205,7 +207,7 @@ class _GoalsPageState extends State<GoalsPage> {
                               Goal _goal = goal_list[index];
                               if (_goal.main)
                                 return Container(
-                                  height: 100,
+                                  height: 120,
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -244,16 +246,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             Text('${_goal.name}'),
             space(height: 10),
-            new LinearPercentIndicator(
-              width: MediaQuery.of(context).size.width - 500,
-              animation: true,
-              lineHeight: 10.0,
-              animationDuration: 2500,
-              percent: 0.8,
-              //center: Text("80.0%"),
-              linearStrokeCap: LinearStrokeCap.roundAll,
-              progressColor: Colors.green,
-            ),
+            customLinearPercent(context, 500, 0.8, Colors.green),
             space(height: 10),
             Text(_goal.description),
           ],
@@ -273,16 +266,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             Text('${_goal.name}'),
             space(height: 10),
-            new LinearPercentIndicator(
-              width: MediaQuery.of(context).size.width - 500,
-              animation: true,
-              lineHeight: 10.0,
-              animationDuration: 2500,
-              percent: 0.8,
-              //center: Text("80.0%"),
-              linearStrokeCap: LinearStrokeCap.roundAll,
-              progressColor: Colors.blue,
-            ),
+            customLinearPercent(context, 500, 0.8, Colors.blue),
           ],
         ),
         goalRowOptions(context, _goal, _project),

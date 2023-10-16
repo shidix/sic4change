@@ -9,20 +9,20 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/project_header_widget.dart';
 
-const PAGE_ACTIVITY_TITLE = "Actividades";
-List activity_list = [];
+const PAGE_TASKS_TITLE = "Tareas";
+List task_list = [];
 
-class ActivitiesPage extends StatefulWidget {
-  const ActivitiesPage({super.key});
+class TasksPage extends StatefulWidget {
+  const TasksPage({super.key});
 
   @override
-  State<ActivitiesPage> createState() => _ActivitiesPageState();
+  State<TasksPage> createState() => _TasksPageState();
 }
 
-class _ActivitiesPageState extends State<ActivitiesPage> {
-  void loadActivities(value) async {
-    await getActivitiesByResult(value).then((val) {
-      activity_list = val;
+class _TasksPageState extends State<TasksPage> {
+  void loadTasks(value) async {
+    await getTasksByResult(value).then((val) {
+      task_list = val;
     });
     setState(() {});
   }
@@ -43,8 +43,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     return Scaffold(
       body: Column(children: [
         mainMenu(context),
-        activityProjectHeader(context, _result),
-        activityHeader(context, _result),
+        taskProjectHeader(context, _result),
+        taskHeader(context, _result),
         //goalMenu(context, _goal),
         Expanded(
             child: Container(
@@ -56,15 +56,15 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                       color: Colors.grey,
                     ),
                   ),
-                  child: activityList(context, _result),
+                  child: taskList(context, _result),
                 )))
       ]),
     );
   }
 
-  Widget activityProjectHeader(context, _result) {
+  Widget taskProjectHeader(context, _result) {
     return FutureBuilder(
-        future: getProjectByActivity(_result.uuid),
+        future: getProjectByTask(_result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             final _project = snapshot.data!;
@@ -83,23 +83,20 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 /*-------------------------------------------------------------
                             ACTIVITY
 -------------------------------------------------------------*/
-  Widget activityHeader(context, _result) {
+  Widget taskHeader(context, _result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           padding: EdgeInsets.only(left: 40),
-          child: Text(
-            _result.name,
-            style: TextStyle(fontSize: 20),
-          ),
+          child: Text(_result.name, style: TextStyle(fontSize: 20)),
         ),
         space(height: 10),
         Container(
           padding: EdgeInsets.only(left: 40),
           child: Row(children: [
             Icon(Icons.chevron_right_rounded),
-            Text("Actividades",
-                style: TextStyle(fontSize: 18, color: Colors.blueGrey)),
+            Text("Tareas",
+                style: TextStyle(fontSize: 20, color: Colors.blueGrey))
           ]),
         ),
       ]),
@@ -108,7 +105,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            activityAddBtn(context, _result),
+            taskAddBtn(context, _result),
             customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
@@ -116,10 +113,10 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     ]);
   }
 
-  Widget activityAddBtn(context, _result) {
+  Widget taskAddBtn(context, _result) {
     return ElevatedButton(
       onPressed: () {
-        _editActivityDialog(context, null, _result);
+        _editTaskDialog(context, null, _result);
       },
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -136,7 +133,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           ),
           space(height: 10),
           Text(
-            "Add activity",
+            "Add task",
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
         ],
@@ -144,25 +141,25 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
   }
 
-  void _saveActivity(context, _activity, _name, _result) async {
-    if (_activity != null) {
-      await updateActivity(_activity.id, _activity.uuid, _name, _result.uuid)
+  void _saveTask(context, _task, _name, _result) async {
+    if (_task != null) {
+      await updateTask(_task.id, _task.uuid, _name, _result.uuid)
           .then((value) async {
-        loadActivities(_result.uuid);
+        loadTasks(_result.uuid);
       });
     } else {
-      await addActivity(_name, _result.uuid).then((value) async {
-        loadActivities(_result.uuid);
+      await addTask(_name, _result.uuid).then((value) async {
+        loadTasks(_result.uuid);
       });
     }
     Navigator.of(context).pop();
   }
 
-  Future<void> _editActivityDialog(context, _activity, _result) {
+  Future<void> _editTaskDialog(context, _task, _result) {
     TextEditingController nameController = TextEditingController(text: "");
 
-    if (_activity != null) {
-      nameController = TextEditingController(text: _activity.name);
+    if (_task != null) {
+      nameController = TextEditingController(text: _task.name);
     }
 
     return showDialog<void>(
@@ -171,7 +168,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Activity edit'),
+          title: const Text('Task edit'),
           content: SingleChildScrollView(
               child: Column(children: [
             customTextField(nameController, "Enter name"),
@@ -180,7 +177,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveActivity(context, _activity, nameController.text, _result);
+                _saveTask(context, _task, nameController.text, _result);
               },
             ),
             TextButton(
@@ -195,13 +192,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
   }
 
-  Widget activityList(context, _result) {
+  Widget taskList(context, _result) {
     return FutureBuilder(
-        future: getActivitiesByResult(_result.uuid),
+        future: getTasksByResult(_result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            activity_list = snapshot.data!;
-            if (activity_list.length > 0) {
+            task_list = snapshot.data!;
+            if (task_list.length > 0) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -213,18 +210,17 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                           padding: EdgeInsets.all(15),
                           child: ListView.builder(
                               padding: const EdgeInsets.all(8),
-                              itemCount: activity_list.length,
+                              itemCount: task_list.length,
                               itemBuilder: (BuildContext context, int index) {
-                                Activity _activity = activity_list[index];
+                                Task _task = task_list[index];
                                 return Container(
-                                  height: 100,
+                                  height: 80,
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(color: Colors.grey)),
                                   ),
-                                  child:
-                                      activityRow(context, _activity, _result),
+                                  child: taskRow(context, _task, _result),
                                 );
                               })))
                 ],
@@ -239,7 +235,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         }));
   }
 
-  Widget activityRow(context, _activity, _result) {
+  Widget taskRow(context, _task, _result) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,48 +244,41 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${_activity.name}',
+              '${_task.name}',
               style: TextStyle(color: Colors.blueGrey, fontSize: 16),
             ),
-            activityRowOptions(context, _activity, _result),
+            taskRowOptions(context, _task, _result),
           ],
         ),
       ],
     );
   }
 
-  Widget activityRowOptions(context, _activity, _result) {
+  Widget taskRowOptions(context, _task, _result) {
     return Row(children: [
-      IconButton(
-          icon: const Icon(Icons.align_horizontal_left),
-          tooltip: 'Indicators',
-          onPressed: () {
-            Navigator.pushNamed(context, "/activity_indicators",
-                arguments: {'activity': _activity});
-          }),
       IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
           onPressed: () async {
-            _editActivityDialog(context, _activity, _result);
+            _editTaskDialog(context, _task, _result);
           }),
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeActivityDialog(context, _activity.id, _result);
+            _removeTaskDialog(context, _task.id, _result);
           }),
     ]);
   }
 
-  Future<void> _removeActivityDialog(context, id, _result) async {
+  Future<void> _removeTaskDialog(context, id, _result) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Remove Activity'),
+          title: const Text('Remove Task'),
           content: SingleChildScrollView(
             child: Text("Are you sure to remove this element?"),
           ),
@@ -297,8 +286,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteActivity(id).then((value) {
-                  loadActivities(_result.uuid);
+                await deleteTask(id).then((value) {
+                  loadTasks(_result.uuid);
                   Navigator.of(context).pop();
                 });
               },

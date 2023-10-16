@@ -7,6 +7,7 @@ import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/project_header_widget.dart';
 
 const PAGE_RESULT_TITLE = "Resultados";
 List result_list = [];
@@ -27,6 +28,12 @@ class _ResultsPageState extends State<ResultsPage> {
     setState(() {});
   }
 
+  /*@override
+  initState() {
+    print("initState Called");
+    //await getProjectByGoal
+  }*/
+
   @override
   Widget build(BuildContext context) {
     final Goal? _goal;
@@ -43,6 +50,7 @@ class _ResultsPageState extends State<ResultsPage> {
     return Scaffold(
       body: Column(children: [
         mainMenu(context),
+        resultProjectHeader(context, _goal),
         resultHeader(context, _goal),
         //goalMenu(context, _goal),
         Expanded(
@@ -61,9 +69,28 @@ class _ResultsPageState extends State<ResultsPage> {
     );
   }
 
+  Widget resultProjectHeader(context, _goal) {
+    return FutureBuilder(
+        future: getProjectByResult(_goal.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            final _project = snapshot.data!;
+            if (_project != null)
+              return projectHeader(context, _project);
+            else
+              return Text("Project not found!");
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
 /*-------------------------------------------------------------
                             RESULTS
 -------------------------------------------------------------*/
+
   Widget resultHeader(context, _goal) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
@@ -314,6 +341,13 @@ class _ResultsPageState extends State<ResultsPage> {
           tooltip: 'Activities',
           onPressed: () {
             Navigator.pushNamed(context, "/activities",
+                arguments: {'result': _result});
+          }),
+      IconButton(
+          icon: const Icon(Icons.assignment_rounded),
+          tooltip: 'Tasks',
+          onPressed: () {
+            Navigator.pushNamed(context, "/tasks",
                 arguments: {'result': _result});
           }),
       IconButton(

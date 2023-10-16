@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
     '/results': (context) => const ResultsPage(),
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
+    '/tasks': (context) => const TasksPage(),
   };
 
   @override

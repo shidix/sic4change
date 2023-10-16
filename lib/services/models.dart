@@ -258,3 +258,25 @@ class ActivityIndicator {
         'activity': activity,
       };
 }
+
+class Task {
+  final String id;
+  final String uuid;
+  final String name;
+  final String result;
+
+  Task(this.id, this.uuid, this.name, this.result);
+
+  Task.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'],
+        result = json['result'];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+        'result': result,
+      };
+}
