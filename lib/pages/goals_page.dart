@@ -44,7 +44,8 @@ class _GoalsPageState extends State<GoalsPage> {
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        projectHeader(context, _project),
+        //pathHeader(context, _project.name),
+        goalPath(context, _project),
         goalHeader(context, _project),
         goalMenu(context, _project),
         Expanded(
@@ -65,6 +66,10 @@ class _GoalsPageState extends State<GoalsPage> {
 /*-------------------------------------------------------------
                             GOALS
 -------------------------------------------------------------*/
+  Widget goalPath(context, _project) {
+    return pathHeader(context, _project.name);
+  }
+
   Widget goalHeader(context, _project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
@@ -78,16 +83,24 @@ class _GoalsPageState extends State<GoalsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            goalAddBtn(context, _project),
+            //goalAddBtn(context, _project),
             //customRowBtn(context, "Volver", Icons.arrow_back, "/projects", {})
-            customRowPopBtn(context, "Volver", Icons.arrow_back),
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Añadir actividad',
+              onPressed: () {
+                _editGoalDialog(context, null, _project);
+              },
+            ),
+            returnBtn(context),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
   }
 
-  Widget goalAddBtn(context, _project) {
+  /*Widget goalAddBtn(context, _project) {
     return ElevatedButton(
       onPressed: () {
         _editGoalDialog(context, null, _project);
@@ -113,7 +126,7 @@ class _GoalsPageState extends State<GoalsPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveGoal(context, _goal, _name, _desc, _main, _project) async {
     if (_goal != null) {

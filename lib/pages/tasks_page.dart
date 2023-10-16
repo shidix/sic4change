@@ -1,9 +1,9 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+//import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service.dart';
+import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -41,9 +41,9 @@ class _TasksPageState extends State<TasksPage> {
     if (_result == null) return Page404();
 
     return Scaffold(
-      body: Column(children: [
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        taskProjectHeader(context, _result),
+        taskPath(context, _result),
         taskHeader(context, _result),
         //goalMenu(context, _goal),
         Expanded(
@@ -62,16 +62,16 @@ class _TasksPageState extends State<TasksPage> {
     );
   }
 
-  Widget taskProjectHeader(context, _result) {
+/*-------------------------------------------------------------
+                            ACTIVITY
+-------------------------------------------------------------*/
+  Widget taskPath(context, _result) {
     return FutureBuilder(
         future: getProjectByTask(_result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            final _project = snapshot.data!;
-            if (_project != null)
-              return projectHeader(context, _project);
-            else
-              return Text("Project not found!");
+            final _path = snapshot.data!;
+            return pathHeader(context, _path);
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -80,21 +80,18 @@ class _TasksPageState extends State<TasksPage> {
         }));
   }
 
-/*-------------------------------------------------------------
-                            ACTIVITY
--------------------------------------------------------------*/
   Widget taskHeader(context, _result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
+        /*Container(
           padding: EdgeInsets.only(left: 40),
           child: Text(_result.name, style: TextStyle(fontSize: 20)),
         ),
-        space(height: 10),
+        space(height: 10),*/
         Container(
           padding: EdgeInsets.only(left: 40),
           child: Row(children: [
-            Icon(Icons.chevron_right_rounded),
+            //Icon(Icons.chevron_right_rounded),
             Text("Tareas",
                 style: TextStyle(fontSize: 20, color: Colors.blueGrey))
           ]),
@@ -105,8 +102,17 @@ class _TasksPageState extends State<TasksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            taskAddBtn(context, _result),
-            customRowPopBtn(context, "Volver", Icons.arrow_back)
+            //taskAddBtn(context, _result),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Añadir tarea',
+              onPressed: () {
+                _editTaskDialog(context, null, _result);
+              },
+            ),
+            returnBtn(context),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),

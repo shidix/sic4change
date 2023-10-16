@@ -1,9 +1,9 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+//import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service.dart';
+import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -41,9 +41,9 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     if (_result == null) return Page404();
 
     return Scaffold(
-      body: Column(children: [
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        activityProjectHeader(context, _result),
+        activityPath(context, _result),
         activityHeader(context, _result),
         //goalMenu(context, _goal),
         Expanded(
@@ -62,16 +62,16 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
   }
 
-  Widget activityProjectHeader(context, _result) {
+/*-------------------------------------------------------------
+                            ACTIVITY
+-------------------------------------------------------------*/
+  Widget activityPath(context, _result) {
     return FutureBuilder(
         future: getProjectByActivity(_result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            final _project = snapshot.data!;
-            if (_project != null)
-              return projectHeader(context, _project);
-            else
-              return Text("Project not found!");
+            final _path = snapshot.data!;
+            return pathHeader(context, _path);
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -80,24 +80,21 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         }));
   }
 
-/*-------------------------------------------------------------
-                            ACTIVITY
--------------------------------------------------------------*/
   Widget activityHeader(context, _result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
+        /*Container(
           padding: EdgeInsets.only(left: 40),
           child: Text(
             _result.name,
             style: TextStyle(fontSize: 20),
           ),
         ),
-        space(height: 10),
+        space(height: 10),*/
         Container(
           padding: EdgeInsets.only(left: 40),
           child: Row(children: [
-            Icon(Icons.chevron_right_rounded),
+            //Icon(Icons.chevron_right_rounded),
             Text("Actividades",
                 style: TextStyle(fontSize: 18, color: Colors.blueGrey)),
           ]),
@@ -108,40 +105,19 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            activityAddBtn(context, _result),
-            customRowPopBtn(context, "Volver", Icons.arrow_back)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Añadir actividad',
+              onPressed: () {
+                _editActivityDialog(context, null, _result);
+              },
+            ),
+            returnBtn(context),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
-  }
-
-  Widget activityAddBtn(context, _result) {
-    return ElevatedButton(
-      onPressed: () {
-        _editActivityDialog(context, null, _result);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          Text(
-            "Add activity",
-            style: TextStyle(color: Colors.black, fontSize: 14),
-          ),
-        ],
-      ),
-    );
   }
 
   void _saveActivity(context, _activity, _name, _result) async {

@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service.dart';
+import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -43,7 +43,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     return Scaffold(
       body: Column(children: [
         mainMenu(context),
-        activityIndicatorProjectHeader(context, _activity),
+        activityIndicatorPath(context, _activity),
         activityIndicatorHeader(context, _activity),
         //goalMenu(context, _goal),
         Expanded(
@@ -62,16 +62,16 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     );
   }
 
-  Widget activityIndicatorProjectHeader(context, _activity) {
+/*-------------------------------------------------------------
+                        ACTIVITY INDICATORS
+-------------------------------------------------------------*/
+  Widget activityIndicatorPath(context, _activity) {
     return FutureBuilder(
         future: getProjectByActivityIndicator(_activity.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            final _project = snapshot.data!;
-            if (_project != null)
-              return projectHeader(context, _project);
-            else
-              return Text("Project not found!");
+            final _path = snapshot.data!;
+            return pathHeader(context, _path);
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -80,9 +80,6 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         }));
   }
 
-/*-------------------------------------------------------------
-                        ACTIVITY INDICATORS
--------------------------------------------------------------*/
   Widget activityIndicatorHeader(context, _activity) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
@@ -94,15 +91,24 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            activityIndicatorAddBtn(context, _activity),
-            customRowPopBtn(context, "Volver", Icons.arrow_back)
+            //activityIndicatorAddBtn(context, _activity),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Añadir indicador',
+              onPressed: () {
+                _editActivityIndicatorDialog(context, null, _activity);
+              },
+            ),
+            returnBtn(context),
+            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
   }
 
-  Widget activityIndicatorAddBtn(context, _activity) {
+  /*Widget activityIndicatorAddBtn(context, _activity) {
     return ElevatedButton(
       onPressed: () {
         _editActivityIndicatorDialog(context, null, _activity);
@@ -128,7 +134,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveActivityIndicator(
       context, _indicator, _name, _percent, _source, _activity) async {

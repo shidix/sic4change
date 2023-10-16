@@ -103,6 +103,16 @@ Widget logoutBtn(context, btnName, btnIcon) {
   );
 }
 
+Widget returnBtn(context) {
+  return IconButton(
+    icon: const Icon(Icons.arrow_back),
+    tooltip: 'Volver',
+    onPressed: () {
+      Navigator.pop(context);
+    },
+  );
+}
+
 /*Widget customBtn(context, btnName, btnIcon, btnRoute) {
   return ElevatedButton(
     onPressed: () {

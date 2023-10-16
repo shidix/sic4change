@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget projectHeader(context, _project) {
+Widget pathHeader(context, _name) {
   return Container(
       padding: EdgeInsets.only(top: 20, left: 20),
       child: Column(
@@ -9,10 +9,10 @@ Widget projectHeader(context, _project) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _project.name,
+              _name,
               style: TextStyle(fontSize: 20),
             ),
-            space(height: 10),
+            /*space(height: 10),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Container(
@@ -33,6 +33,6 @@ Widget projectHeader(context, _project) {
                   customLinearPercent(context, 750, 0.5, Colors.blue)
                 ],
               ),
-            ])
+            ])*/
           ]));
 }

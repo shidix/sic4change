@@ -208,7 +208,7 @@ Widget projectCardDatas(context, _project) {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          customBtn(context, "Presupuesto", Icons.euro, "/projects", {}),
+          customPushBtn(context, "Presupuesto", Icons.euro, "/finns", {"project":_project}),
           /*customBtnArgs(context, "Marco lógico", Icons.task, "/goals",
               {"project": _project}),*/
           customPushBtn(context, "Marco lógico", Icons.task, "/goals",

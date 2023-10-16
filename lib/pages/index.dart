@@ -10,3 +10,4 @@ export 'package:sic4change/pages/results_page.dart';
 export 'package:sic4change/pages/activities_page.dart';
 export 'package:sic4change/pages/activity_indicators_page.dart';
 export 'package:sic4change/pages/tasks_page.dart';
+export 'package:sic4change/pages/finns_page.dart';

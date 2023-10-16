@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),
     '/results': (context) => const ResultsPage(),
+    '/finns': (context) => const FinnsPage(),
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
     '/tasks': (context) => const TasksPage(),
