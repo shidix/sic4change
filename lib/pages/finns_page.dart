@@ -302,8 +302,15 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
   }
 
+
+
   Widget finnFullPage(context, project) {
-    return Column(
+    return FutureBuilder(
+      //initialData:getFinnsByProject(project.uuid),
+      future:getFinnsByProject(project.uuid),
+      builder: ((context, snapshot) {   
+        const TextStyle headerList =  TextStyle(fontFamily: 'Readex Pro', fontSize: 18, fontWeight: FontWeight.bold,);
+        return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
         Row(
@@ -317,7 +324,6 @@ class _FinnsPageState extends State<FinnsPage> {
                 children: [
                   Card(
                     clipBehavior: Clip.antiAliasWithSaveLayer,
-                    //color: FlutterFlowTheme.of(context).secondaryBackground,
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -325,10 +331,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: Container(
                       width: MediaQuery.sizeOf(context).width * 0.46,
                       height: 100,
-                      decoration: BoxDecoration(
-                        //   color: FlutterFlowTheme.of(context).secondaryBackground,
-                        shape: BoxShape.rectangle,
-                      ),
+                      decoration: BoxDecoration( shape: BoxShape.rectangle, ),
                       child: Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(20, 20, 0, 0),
                         child: Column(
@@ -338,36 +341,8 @@ class _FinnsPageState extends State<FinnsPage> {
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
-                                  child: Align(
-                                    alignment:
-                                        AlignmentDirectional(-1.00, -1.00),
-                                    child: Text(
-                                      'Presupuesto Total',
-                                      style: TextStyle(
-                                        fontFamily: 'Readex Pro',
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Align(
-                                    alignment:
-                                        AlignmentDirectional(1.00, -1.00),
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0, 0, 75, 0),
-                                      child: Text(
-                                        '70.702,01 €',
-                                        style: TextStyle(
-                                          fontFamily: 'Readex Pro',
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                Expanded( child: Align( alignment: AlignmentDirectional(-1.00, -1.00), child: Text( 'Presupuesto Total', style: TextStyle( fontFamily: 'Readex Pro', fontSize: 18, ), ), ), ),
+                                Expanded( child: Align( alignment: AlignmentDirectional( 1.00, -1.00), child: Padding(padding: const EdgeInsets.only(right:100), child:Text( '70.702,01 €', style: TextStyle( fontFamily: 'Readex Pro', fontSize: 18, ), ), ), ),),
                               ],
                             ),
                             Padding(
@@ -384,7 +359,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                 padding: EdgeInsets.zero,
                               ),
                             ),
-                            Align(
+                            const Align(
                               alignment: AlignmentDirectional(-1.00, 0.00),
                               child: Padding(
                                 padding:
@@ -411,16 +386,13 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Container(
                         width: MediaQuery.sizeOf(context).width * 0.5,
                         height: 100,
-                        decoration: BoxDecoration(
-                            //     color: FlutterFlowTheme.of(context).secondaryBackground,
-                            ),
                         child: Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(0, 20, 20, 0),
+                          padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 20, 0),
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Origen del presupuesto total',
                                 style: TextStyle(
                                   fontFamily: 'Readex Pro',
@@ -457,19 +429,15 @@ class _FinnsPageState extends State<FinnsPage> {
                                         Expanded(
                                           flex: 1,
                                           child: Align(
-                                            alignment: AlignmentDirectional(
-                                                0.00, -1.00),
+                                            alignment: const AlignmentDirectional( 0.00, -1.00),
                                             child: LinearPercentIndicator(
                                               percent: 0.5,
-                                              width: MediaQuery.sizeOf(context)
-                                                      .width *
-                                                  0.15,
+                                              width: MediaQuery.sizeOf(context) .width * 0.15,
                                               lineHeight: 15,
                                               animation: true,
                                               animateFromLastPercent: true,
-                                              progressColor: Color(0xFF00809A),
-                                              backgroundColor:
-                                                  Color(0xFFEBECEF),
+                                              progressColor: const Color(0xFF00809A),
+                                              backgroundColor: const Color(0xFFEBECEF),
                                               padding: EdgeInsets.zero,
                                             ),
                                           ),
@@ -477,15 +445,8 @@ class _FinnsPageState extends State<FinnsPage> {
                                         const Expanded(
                                           flex: 1,
                                           child: Align(
-                                            alignment: AlignmentDirectional(
-                                                1.00, -1.00),
-                                            child: Text(
-                                              '10.000,00 €',
-                                              textAlign: TextAlign.start,
-                                              style: TextStyle(
-                                                  backgroundColor:
-                                                      Color(0xffffffff)),
-                                            ),
+                                            alignment: AlignmentDirectional( 1.00, -1.00),
+                                            child: Text( '10.000,00 €', textAlign: TextAlign.start, style: TextStyle( backgroundColor: Color(0xffffffff)), ),
                                           ),
                                         ),
                                       ],
@@ -504,131 +465,106 @@ class _FinnsPageState extends State<FinnsPage> {
             ),
           ],
         ),
-        Padding(
+        const Padding(
           padding: EdgeInsets.only(top: 20),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.max,
             children: [
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Partidas',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Readex Pro',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Aportes',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Readex Pro',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Distribución aporte CM',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Readex Pro',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              Expanded(flex: 6, child: Text('Partidas', textAlign: TextAlign.center, style: headerList,),),
+              Expanded(flex: 8, child: Text('Aportes', textAlign: TextAlign.center, style: headerList,),),
+              Expanded( flex: 6, child: Text( 'Distribución aporte CM', textAlign: TextAlign.center, style: headerList, ), ),
+              Expanded(flex:1,  child:Padding(padding: EdgeInsets.only(top:10), child:Text(''),),),
             ],
           ),
         ),
         Padding(
-          padding:EdgeInsets.only(top:20), 
+          padding:const EdgeInsets.only(top:20), 
         child:
           Row(
           mainAxisSize: MainAxisSize.max,
           children: [
             Expanded(
-              flex: 1,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(),
-                child: ListView(
+              flex: 2,
+              child: ListView(
                   padding: EdgeInsets.zero,
+                  physics: BouncingScrollPhysics(),
+                  shrinkWrap: true,
                   scrollDirection: Axis.vertical,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Hello World',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  children: mylist(snapshot.data),
                 ),
-              ),
             ),
           ],
         ),
         ),
       ],
     );
+      })
+  );
+  }
+
+  List<Row> mylist(data)
+  {
+   // loadFinns(project.uuid);
+    ElevatedButton button = ElevatedButton(
+      onPressed: () {_editFinnDialog(context, null, null);},
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+        shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        backgroundColor: Colors.white,
+      ),
+      child: const Icon(Icons.edit, color: Colors.black54, size: 20,),
+    );
+
+    List<Row> rows = [];
+    List<Expanded> cells = [];
+    List<List <String>> list = [
+                          ['', 'Total', 'CM', 'S4C', 'FVMG', 'Madres Guía', 'Total', 'S4C', 'FVMG'],
+                          // ['B.3.1. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.2. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.3. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.4. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.1. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.2. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.3. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          // ['B.3.4. Funcionamiento, Materiales y suministros no inventariables','15855','15855','0','0','15855','5767','10088' ],
+                          ];
+
+    if (data != null) {
+      for (var i in data) {
+        list.add(["${i.name} ${i.description}", '15855','15855','0','0','0','15855','5767','10088']);
+      }
+    }
+    int rowsindex = 0;
+    for (var row in list) {
+      cells = [];
+      int counter=0;
+      TextStyle style = const TextStyle();
+      if (rowsindex == 0) { style = const TextStyle(fontWeight: FontWeight.bold);}
+      var textAlign = TextAlign.center;
+      for (String i in row) {
+        //print(i);
+        int flex = 2;
+
+        if (counter == 0) { 
+          flex = 6; textAlign = TextAlign.left;
+        }
+        else {
+          flex = 2; textAlign = TextAlign.center;
+        }
+
+        cells.add(Expanded(flex:flex,  child:Padding(padding: const EdgeInsets.only(top:10), child:Text(i,textAlign: textAlign,style:style,),),));
+        counter += 1;
+      }
+      if ( rowsindex > 0 ) {
+        cells.add(Expanded(flex:1,  child:Padding(padding: const EdgeInsets.only(top:10), child:button))); 
+      }
+      else {
+        cells.add(Expanded(flex:1,  child:Padding(padding: const EdgeInsets.only(top:10), child:Text('',textAlign: textAlign,style:style,),),));
+      }
+      rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells, ),);
+      rowsindex += 1;
+    }
+    return rows;
   }
 
   Future<void> _removeFinnDialog(context, id, _project) async {
