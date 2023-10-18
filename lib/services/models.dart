@@ -8,20 +8,23 @@ class SProject {
   final String uuid;
   final String name;
   final String description;
+  final List<dynamic> financiers;
 
-  SProject(this.id, this.uuid, this.name, this.description);
+  SProject(this.id, this.uuid, this.name, this.description, this.financiers);
 
   SProject.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
-        description = json['description'];
+        description = json['description'],
+        financiers = json['financiers'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
         'description': description,
+        'financiers': financiers,
       };
 
   String total_budget() {

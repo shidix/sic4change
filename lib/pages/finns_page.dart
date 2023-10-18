@@ -490,7 +490,7 @@ class _FinnsPageState extends State<FinnsPage> {
                   physics: BouncingScrollPhysics(),
                   shrinkWrap: true,
                   scrollDirection: Axis.vertical,
-                  children: mylist(snapshot.data),
+                  children: mylist(snapshot.data, project),
                 ),
             ),
           ],
@@ -502,9 +502,10 @@ class _FinnsPageState extends State<FinnsPage> {
   );
   }
 
-  List<Row> mylist(data)
+  List<Row> mylist(data, project)
   {
    // loadFinns(project.uuid);
+    print (project.financiers);
     ElevatedButton button = ElevatedButton(
       onPressed: () {_editFinnDialog(context, null, null);},
       style: ElevatedButton.styleFrom(
@@ -514,7 +515,6 @@ class _FinnsPageState extends State<FinnsPage> {
       ),
       child: const Icon(Icons.edit, color: Colors.black54, size: 20,),
     );
-
     List<Row> rows = [];
     List<Expanded> cells = [];
     List<List <String>> list = [
