@@ -8,26 +8,115 @@ class SProject {
   final String uuid;
   final String name;
   final String description;
+  final String type;
+  final String budget;
+  final String manager;
+  final String programme;
+  final String country;
+  final List financiers;
+  final List partners;
 
-  SProject(this.id, this.uuid, this.name, this.description);
+  SProject(
+      this.id,
+      this.uuid,
+      this.name,
+      this.description,
+      this.type,
+      this.budget,
+      this.manager,
+      this.programme,
+      this.country,
+      this.financiers,
+      this.partners);
 
   SProject.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
-        description = json['description'];
+        description = json['description'],
+        type = json['type'],
+        budget = json['budget'],
+        manager = json['manager'],
+        programme = json['programme'],
+        country = json['country'],
+        financiers = json['financiers'],
+        partners = json['partners'];
 
   Map<String, String> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
         'description': description,
+        'type': type,
+        'budget': budget,
+        'manager': manager,
+        'programme': programme,
+        'country': country,
+        'financiers': financiers.join(""),
+        'partners': partners.join(""),
       };
 
   String total_budget() {
     double aux = 24;
     return (aux.toString());
   }
+}
+
+class ProjectType {
+  final String id;
+  final String uuid;
+  final String name;
+
+  ProjectType(this.id, this.uuid, this.name);
+
+  ProjectType.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+}
+
+class Financier {
+  final String id;
+  final String uuid;
+  final String name;
+
+  Financier(this.id, this.uuid, this.name);
+
+  Financier.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+}
+
+class Programme {
+  final String id;
+  final String uuid;
+  final String name;
+
+  Programme(this.id, this.uuid, this.name);
+
+  Programme.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
 }
 
 class Folder {

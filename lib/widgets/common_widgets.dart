@@ -367,7 +367,7 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
   var _percentText = _percent * 100;
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     new LinearPercentIndicator(
-      width: MediaQuery.of(context).size.width - _offset,
+      width: MediaQuery.of(context).size.width / _offset,
       animation: true,
       lineHeight: 10.0,
       animationDuration: 500,
@@ -384,4 +384,18 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
           style: TextStyle(fontSize: 12),
         ))
   ]);
+}
+
+Widget customList(_list) {
+  return ListView.builder(
+      //padding: const EdgeInsets.all(8),
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: _list.length,
+      itemBuilder: (BuildContext context, int index) {
+        return Container(
+          padding: EdgeInsets.all(5),
+          child: Text('Entry ${_list[index]}'),
+        );
+      });
 }

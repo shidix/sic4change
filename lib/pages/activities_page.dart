@@ -7,7 +7,7 @@ import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:sic4change/widgets/project_header_widget.dart';
+import 'package:sic4change/widgets/path_header_widget.dart';
 
 const PAGE_ACTIVITY_TITLE = "Actividades";
 List activity_list = [];

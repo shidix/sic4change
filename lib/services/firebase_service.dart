@@ -25,16 +25,155 @@ Future<List> getProjects() async {
   return items;
 }
 
-Future<void> addProject(String name) async {
-  await _collectionProject.add({"name": name});
+Future<void> addProject(String name, String desc, String type, String budget,
+    String manager, String programme, String country) async {
+  var uuid = Uuid();
+  await _collectionProject.add({
+    "uuid": uuid,
+    "name": name,
+    "description": desc,
+    "type": type,
+    "budget": budget,
+    "manager": manager,
+    "programme": programme,
+    "country": country,
+    "financiers": [],
+    "partners": []
+  });
 }
 
-Future<void> updateProject(String uid, String name) async {
-  await _collectionProject.doc(uid).set({"name": name});
+Future<void> updateProject(
+    String id,
+    String uuid,
+    String name,
+    String desc,
+    String type,
+    String budget,
+    String manager,
+    String programme,
+    String country,
+    List financiers,
+    List partners) async {
+  await _collectionProject.doc(id).set({
+    "uuid": uuid,
+    "name": name,
+    "description": desc,
+    "type": type,
+    "budget": budget,
+    "manager": manager,
+    "programme": programme,
+    "country": country,
+    "financiers": financiers,
+    "partners": partners
+  });
 }
 
 Future<void> deleteProject(String uid) async {
   await _collectionProject.doc(uid).delete();
+}
+
+Future<void> updateProjectFinanciers(String id, List financiers) async {
+  await _collectionProject.doc(id).update({"financiers": financiers});
+}
+
+Future<void> updateProjectPartners(String id, List partners) async {
+  await _collectionProject.doc(id).update({"partners": partners});
+}
+
+//--------------------------------------------------------------
+//                           PROJECT TYPES
+//--------------------------------------------------------------
+CollectionReference _collectionProjectType = db.collection("s4c_project_type");
+
+Future<List> getProjectTypes() async {
+  List items = [];
+  QuerySnapshot queryProjectType = await _collectionProjectType.get();
+
+  for (var doc in queryProjectType.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectType.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<void> addProjectType(String name) async {
+  var uuid = Uuid();
+  await _collectionProjectType.add({"uuid": uuid.v4(), "name": name});
+}
+
+Future<void> updateProjectType(String id, String uuid, String name) async {
+  await _collectionProjectType.doc(id).set({"uuid": uuid, "name": name});
+}
+
+Future<void> deleteProjectType(String uid) async {
+  await _collectionProjectType.doc(uid).delete();
+}
+
+//--------------------------------------------------------------
+//                           FINANCIER
+//--------------------------------------------------------------
+CollectionReference _collectionFinancier = db.collection("s4c_financier");
+
+Future<List> getFinanciers() async {
+  List items = [];
+  QuerySnapshot queryFinancier = await _collectionFinancier.get();
+
+  for (var doc in queryFinancier.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Financier.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<void> addFinancier(String name) async {
+  var uuid = Uuid();
+  await _collectionFinancier.add({"uuid": uuid.v4(), "name": name});
+}
+
+Future<void> updateFinancier(String id, String uuid, String name) async {
+  await _collectionFinancier.doc(id).set({"uuid": uuid, "name": name});
+}
+
+Future<void> deleteFinancier(String id) async {
+  await _collectionFinancier.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           PROGRAMME
+//--------------------------------------------------------------
+CollectionReference _collectionProgramme = db.collection("s4c_programmes");
+
+Future<List> getProgrammes() async {
+  List items = [];
+  QuerySnapshot queryProgramme = await _collectionProgramme.get();
+
+  for (var doc in queryProgramme.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Programme.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<void> addProgramme(String name) async {
+  var uuid = Uuid();
+  await _collectionProgramme.add({"uuid": uuid.v4(), "name": name});
+}
+
+Future<void> updateProgramme(String id, String uuid, String name) async {
+  await _collectionProgramme.doc(id).set({"uuid": uuid, "name": name});
+}
+
+Future<void> deleteProgramme(String id) async {
+  await _collectionProgramme.doc(id).delete();
 }
 
 //--------------------------------------------------------------
@@ -278,7 +417,7 @@ Future<void> deletePosition(String id) async {
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------
-CollectionReference _collectionGoal = db.collection("s4c_goals");
+/*CollectionReference _collectionGoal = db.collection("s4c_goals");
 
 Future<List> getGoals() async {
   List<Goal> items = [];
@@ -337,12 +476,12 @@ Future<void> updateGoal(String id, String uuid, String name, String description,
 
 Future<void> deleteGoal(String id) async {
   await _collectionGoal.doc(id).delete();
-}
+}*/
 
 //--------------------------------------------------------------
 //                           RESULTS
 //--------------------------------------------------------------
-CollectionReference _collectionResult = db.collection("s4c_results");
+/*CollectionReference _collectionResult = db.collection("s4c_results");
 
 Future<List> getResults() async {
   List<Result> items = [];
@@ -436,12 +575,12 @@ Future<String> getProjectByResult(String _uuid) async {
 
   return _project.name;
   //return _project.name + " > " + _goal.name;
-}
+}*/
 
 //--------------------------------------------------------------
 //                           ACTIVITIES
 //--------------------------------------------------------------
-CollectionReference _collectionActivity = db.collection("s4c_activities");
+/*CollectionReference _collectionActivity = db.collection("s4c_activities");
 
 Future<List> getActivities() async {
   List<Activity> items = [];
@@ -523,12 +662,12 @@ Future<String> getProjectByActivity(String _uuid) async {
   _project = SProject.fromJson(dataProject);
 
   return _project.name + " > " + _goal.name + " > " + _result.name;
-}
+}*/
 
 //--------------------------------------------------------------
 //                      ACTIVITY INDICATORS
 //--------------------------------------------------------------
-CollectionReference _collectionActivityIndicator =
+/*CollectionReference _collectionActivityIndicator =
     db.collection("s4c_activity_indicators");
 
 Future<List> getActivityIndicators() async {
@@ -633,12 +772,12 @@ Future<String> getProjectByActivityIndicator(String _uuid) async {
       _result.name +
       " > " +
       _activity.name;
-}
+}*/
 
 //--------------------------------------------------------------
 //                           TASKS
 //--------------------------------------------------------------
-CollectionReference _collectionTask = db.collection("s4c_tasks");
+/*CollectionReference _collectionTask = db.collection("s4c_tasks");
 
 Future<List> getTasks() async {
   List<Task> items = [];
@@ -720,7 +859,7 @@ Future<String> getProjectByTask(String _uuid) async {
   _project = SProject.fromJson(dataProject);
 
   return _project.name + " > " + _goal.name + " > " + _result.name;
-}
+}*/
 
 //--------------------------------------------------------------
 //                      FINN

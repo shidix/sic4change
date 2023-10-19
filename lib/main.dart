@@ -25,6 +25,7 @@ class MyApp extends StatelessWidget {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
     '/projects': (context) => const ProjectsPage(),
+    '/project_info': (context) => const ProjectInfoPage(),
     '/contacts': (context) => const ContactsPage(),
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),
