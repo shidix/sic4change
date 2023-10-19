@@ -179,7 +179,7 @@ Future<void> deleteProgramme(String id) async {
 //--------------------------------------------------------------
 //                           FOLDERS
 //--------------------------------------------------------------
-CollectionReference _collectionFolder = db.collection("s4c_folders");
+/*CollectionReference _collectionFolder = db.collection("s4c_folders");
 
 Future<List> getFolders(String _parent_uuid) async {
   List folders = [];
@@ -269,12 +269,12 @@ Future<void> updateFile(
 
 Future<void> deleteFile(String id) async {
   await _collectionFile.doc(id).delete();
-}
+}*/
 
 //--------------------------------------------------------------
 //                           CONTACTS
 //--------------------------------------------------------------
-CollectionReference _collectionContact = db.collection("s4c_contacts");
+/*CollectionReference _collectionContact = db.collection("s4c_contacts");
 
 Future<List> getContacts() async {
   List<Contact> items = [];
@@ -413,7 +413,7 @@ Future<void> updatePosition(String id, String uuid, String name) async {
 Future<void> deletePosition(String id) async {
   await _collectionPos.doc(id).delete();
 }
-
+*/
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------

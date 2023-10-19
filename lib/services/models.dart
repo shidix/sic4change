@@ -119,7 +119,7 @@ class Programme {
       };
 }
 
-class Folder {
+/*class Folder {
   final String id;
   final String uuid;
   final String name;
@@ -164,9 +164,9 @@ class SFile {
         'folder': folder,
         'link': link,
       };
-}
+}*/
 
-class Contact {
+/*class Contact {
   final String id;
   final String uuid;
   final String name;
@@ -237,9 +237,9 @@ class Position {
         'uuid': uuid,
         'name': name,
       };
-}
+}*/
 
-class Goal {
+/*class Goal {
   final String id;
   final String uuid;
   final String name;
@@ -374,7 +374,7 @@ class Task {
         'name': name,
         'result': result,
       };
-}
+}*/
 
 // Financiera
 
