@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service.dart';
@@ -615,15 +616,16 @@ class _FinnsPageState extends State<FinnsPage> {
     List <Row> rows = [];
     rows.add(const Row(children:[
                 Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Financiador'))),
-                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Razón'))),
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Comentario'))),
                 Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Cantidad'))),
               ]));
     for (var financier in project.financiers) {
 
       rows.add(Row(children:[
                   Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text(financier))),
-                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(TextEditingController(text:""), 'Razón'))),
-                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(TextEditingController(text:""), 'Cantiidad'))),
+                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(TextEditingController(text:"",), 'Comentario'))),
+          //        Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: TextField(decoration:InputDecoration(labelText:'Test'), inputFormatters: [FilteringTextInputFormatter.digitsOnly],))),
+                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customDoubleField(TextEditingController(text:""), 'Cantiidad'))),
       ]));
     }
 
@@ -632,21 +634,43 @@ class _FinnsPageState extends State<FinnsPage> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
+        // List <FinnContribution> listContrib =  _getContribByFinn(finn.uuid);
+        // print(listContrib);
         return AlertDialog(
+          
           // <-- SEE HERE
-          title: const Text('Origen de la financiación'),
+          title: Card(color:Colors.blueGrey, child: Padding(padding:const EdgeInsets.all(10), 
+            child:Text('${finn.name}. ${finn.description}', style:const TextStyle(fontWeight:FontWeight.bold, fontSize: 18, color: Colors.white))
+            )),
           content: SingleChildScrollView(child: Column(children: rows ),),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
+                Future<List> aux = FinnContribution.getByFinnAndFinancier(finn.uuid, 'SIC4Changes');
+                print("TEST");
+                print(aux.then((value) => print(value)));
                 for (Row row in rows.skip(1)) {
+                  Text financier = (((row.children[0] as Expanded).child as Padding).child as Text);
                   TextEditingController subject = ((((row.children[1] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
-                  print ('Debug');
-                  print (subject.text);
-                }
-                // _saveFinn(context, finn, nameController.text,
+                  TextEditingController amount = ((((row.children[2] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
+
+                  try {
+
+                    //FinnContribution item = FinnContribution("", financier.data.toString(), amount as double, finn, subject as String);
+                    FinnContribution item = FinnContribution("496848bb-0cb2-4370-88f4-eb6b63302738", financier.data.toString(), double.parse(amount.text), finn.uuid, subject.text);
+                   // item.save();
+                    
+                    print ("OK");
+                  } on Exception catch (e) {
+                    print ("ERROR");
+                    print(e.runtimeType);
+                  }
+                  print("Debug 2");
+                // _saveFinnContrib(context, finn, ,
                 //     descController.text, parent, "");
+                }
+
               },
             ),
             TextButton(
@@ -660,6 +684,22 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     );
   }
+
+  void _saveFinnContrib(context, _finn, _name, _desc, _parent, _project) async {
+    if (_finn != null) {
+      await updateFinn(
+              _finn.id, _finn.uuid, _name, _desc, _parent, _project.uuid)
+          .then((value) async {
+        loadFinns(_project.uuid);
+      });
+    } else {
+      await addFinn(_name, _desc, _parent, _project.uuid).then((value) async {
+        loadFinns(_project.uuid);
+      });
+    }
+    Navigator.of(context).pop();
+  }
+
 
 
   Future<void> _removeFinnDialog(context, id, _project) async {
@@ -695,4 +735,20 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     );
   }
+}
+
+List<FinnContribution> _getContribByFinn(String finnuuid)  {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  List<FinnContribution> items = [];
+  final database = db.collection("s4c_finncontrib");
+  final query = database.where("finn", isEqualTo: finnuuid).get().then(
+    (querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        final item = FinnContribution.fromJson(data);
+        items.add(item);
+      }
+    }
+  );
+  return items;
 }
