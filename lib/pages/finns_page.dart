@@ -641,9 +641,9 @@ class _FinnsPageState extends State<FinnsPage> {
               child: const Text('Save'),
               onPressed: () async {
                 for (Row row in rows.skip(1)) {
-                  Text subject = ((row.children[0] as Expanded).child as Padding).child as Text;
+                  TextEditingController subject = ((((row.children[1] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
                   print ('Debug');
-                  print (subject);
+                  print (subject.text);
                 }
                 // _saveFinn(context, finn, nameController.text,
                 //     descController.text, parent, "");
