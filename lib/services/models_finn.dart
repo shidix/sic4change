@@ -29,22 +29,25 @@ class SFinn {
 
 class FinnContribution {
   final String id;
-  final String owner;
+  final String financier;
   final double amount;
   final String finn;
+  final String subject;
 
-  FinnContribution(this.id, this.owner, this.amount, this.finn);
+  FinnContribution(this.id, this.financier, this.amount, this.finn, this.subject);
 
   FinnContribution.fromJson(Map<String, dynamic> json)
       : id = json["id"],
-        owner = json["owner"],
+        financier = json["financier"],
         amount = json["amout"],
+        subject = json["subject"],
         finn = json["finn"];
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'owner': owner,
+        'financer': financier,
         'amount': amount,
+        'subject': subject,
         'finn': finn,
       };
 }

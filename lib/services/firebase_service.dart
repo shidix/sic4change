@@ -25,6 +25,21 @@ Future<List> getProjects() async {
   return items;
 }
 
+Future<SProject?> getProjectByUuid(String _uuid) async {
+  SProject? project;
+  QuerySnapshot? queryProjects;
+
+  queryProjects = await _collectionProject.where("uuid", isEqualTo: _uuid).get();
+  for (var doc in queryProjects.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    project = SProject.fromJson(data);
+    break;
+  }
+  return project;
+}
+
+
 Future<void> addProject(String name, String desc, String type, String budget,
     String manager, String programme, String country) async {
   var uuid = Uuid();
