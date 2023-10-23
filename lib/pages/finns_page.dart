@@ -14,6 +14,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
 List finn_list = [];
+List projects = [];
 
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key});
@@ -30,18 +31,59 @@ class _FinnsPageState extends State<FinnsPage> {
     setState(() {});
   }
 
+  // void loadProjects() async {
+  //   FirebaseFirestore db = FirebaseFirestore.instance;
+  //   CollectionReference data = db.collection("s4c_projects");
+  //   QuerySnapshot docData = await data.get();
+  //   projects = docData.docs.map((doc) => doc.data()).toList();
+  // }
+  
+  void loadProjects() async {
+    // FirebaseFirestore db = FirebaseFirestore.instance;
+    // CollectionReference data = db.collection("s4c_projects");
+    // Object? item;
+    // data.get().then((value) {item = value.docs.first.data();});
+    await getProjects().then((value) {
+      projects = value;
+    });
+    setState(() {});
+
+  }
+
   @override
   Widget build(BuildContext context) {
     final SProject? _project;
-
+    final List items = [];
+    
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       _project = args["project"];
     } else {
-      _project = null;
-    }
 
-    if (_project == null) return Page404();
+      // collection.then(
+      //   (querySnapshot) {
+      //     print("Successfully completed");
+      //     for (var docSnapshot in querySnapshot.docs) {
+      //       print('${docSnapshot.id} => ${docSnapshot.data()}');
+      //       items.add(docSnapshot);
+      //     }
+      // },
+      //   onError: (e) => print("Error completing: $e"),
+      // );
+      // _project = items.first;
+      // print (_project);
+      loadProjects();
+      //print (projects.first);
+      if (projects.isNotEmpty) {
+        _project = projects.first;
+      }
+      else {
+        _project = null;
+      }
+    }
+    
+    if (_project == null) {return Page404();}
+
 
     return Scaffold(
       body: Column(children: [
@@ -56,6 +98,10 @@ class _FinnsPageState extends State<FinnsPage> {
                             FINNS
 -------------------------------------------------------------*/
   Widget finnHeader(context, _project) {
+    print("D1");
+    print(projects);
+    // _project ??= projects.first;
+    // print(_project);
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),

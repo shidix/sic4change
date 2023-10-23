@@ -85,7 +85,7 @@ class FinnContribution {
     }
   }
 
-  static List getByFinnAndFinancier (finn, financier) async {
+  static Future<List> getByFinnAndFinancier (finn, financier) async {
     final db = FirebaseFirestore.instance;
     final collection = db.collection("s4c_finncontrib");
     final query = await collection.where("finn", isEqualTo: finn).where('financier', isEqualTo:financier).get();
