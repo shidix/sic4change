@@ -25,8 +25,26 @@ Future<List> getProjects() async {
   return items;
 }
 
-Future<void> addProject(String name, String desc, String type, String budget,
-    String manager, String programme, String country) async {
+Future<SProject> getProjectById(String id) async {
+  DocumentSnapshot? _doc;
+
+  _doc = await _collectionProject.doc(id).get();
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return SProject.fromJson(data);
+}
+
+Future<void> addProject(
+    String name,
+    String desc,
+    String type,
+    String budget,
+    String manager,
+    String programme,
+    String announcement,
+    String ambit,
+    bool audit,
+    bool evaluation) async {
   var uuid = Uuid();
   await _collectionProject.add({
     "uuid": uuid,
@@ -36,7 +54,10 @@ Future<void> addProject(String name, String desc, String type, String budget,
     "budget": budget,
     "manager": manager,
     "programme": programme,
-    "country": country,
+    "announcement": announcement,
+    "ambit": ambit,
+    "audit": audit,
+    "evaluation": evaluation,
     "financiers": [],
     "partners": []
   });
@@ -51,7 +72,10 @@ Future<void> updateProject(
     String budget,
     String manager,
     String programme,
-    String country,
+    String announcement,
+    String ambit,
+    bool audit,
+    bool evaluation,
     List financiers,
     List partners) async {
   await _collectionProject.doc(id).set({
@@ -62,7 +86,10 @@ Future<void> updateProject(
     "budget": budget,
     "manager": manager,
     "programme": programme,
-    "country": country,
+    "announcement": announcement,
+    "ambit": ambit,
+    "audit": audit,
+    "evaluation": evaluation,
     "financiers": financiers,
     "partners": partners
   });
@@ -174,6 +201,144 @@ Future<void> updateProgramme(String id, String uuid, String name) async {
 
 Future<void> deleteProgramme(String id) async {
   await _collectionProgramme.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           PROJECT DATES
+//--------------------------------------------------------------
+CollectionReference _collectionDates = db.collection("s4c_project_dates");
+
+Future<List> getProjectDates() async {
+  List items = [];
+  QuerySnapshot query = await _collectionDates.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectDates.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<ProjectDates> getProjectDatesById(String id) async {
+  DocumentSnapshot? _doc;
+
+  _doc = await _collectionDates.doc(id).get();
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return ProjectDates.fromJson(data);
+}
+
+Future<ProjectDates> getProjectDatesByProject(String _project) async {
+  ProjectDates _item;
+  QuerySnapshot? query;
+
+  query = await _collectionDates.where("project", isEqualTo: _project).get();
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
+  data["id"] = _dbResult.id;
+  _item = ProjectDates.fromJson(data);
+  return _item;
+}
+
+Future<void> addProjectDates(String approved, String start, String end,
+    String justification, String delivery, String project) async {
+  var uuid = Uuid();
+  await _collectionDates.add({
+    "uuid": uuid.v4(),
+    "approved": approved,
+    "start": start,
+    "end": end,
+    "justification": justification,
+    "delivery": delivery,
+    "project": project
+  });
+}
+
+Future<void> updateProjectDates(
+    String id,
+    String uuid,
+    String approved,
+    String start,
+    String end,
+    String justification,
+    String delivery,
+    String project) async {
+  await _collectionDates.doc(id).set({
+    "uuid": uuid,
+    "approved": approved,
+    "start": start,
+    "end": end,
+    "justification": justification,
+    "delivery": delivery,
+    "project": project
+  });
+}
+
+Future<void> deleteProjectDates(String id) async {
+  await _collectionDates.doc(id).delete();
+}
+
+//--------------------------------------------------------------
+//                           PROJECT LOCATION
+//--------------------------------------------------------------
+CollectionReference _collectionLocation = db.collection("s4c_project_location");
+
+Future<List> getProjectLocation() async {
+  List items = [];
+  QuerySnapshot query = await _collectionLocation.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectLocation.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<ProjectLocation> getProjectLocationByProject(String _project) async {
+  ProjectLocation _item;
+  QuerySnapshot? query;
+
+  query = await _collectionLocation.where("project", isEqualTo: _project).get();
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
+  data["id"] = _dbResult.id;
+  _item = ProjectLocation.fromJson(data);
+  return _item;
+}
+
+Future<void> addProjectLocation(String country, String province, String region,
+    String town, String project) async {
+  var uuid = Uuid();
+  await _collectionLocation.add({
+    "uuid": uuid.v4(),
+    "country": country,
+    "province": province,
+    "region": region,
+    "town": town,
+    "project": project
+  });
+}
+
+Future<void> updateProjectLocation(String id, String uuid, String country,
+    String province, String region, String town, String project) async {
+  await _collectionLocation.doc(id).set({
+    "uuid": uuid,
+    "country": country,
+    "province": province,
+    "region": region,
+    "town": town,
+    "project": project
+  });
+}
+
+Future<void> deleteProjectLocation(String id) async {
+  await _collectionLocation.doc(id).delete();
 }
 
 //--------------------------------------------------------------

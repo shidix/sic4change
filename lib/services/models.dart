@@ -12,7 +12,10 @@ class SProject {
   final String budget;
   final String manager;
   final String programme;
-  final String country;
+  final String announcement;
+  final String ambit;
+  final bool audit;
+  final bool evaluation;
   final List financiers;
   final List partners;
 
@@ -25,7 +28,10 @@ class SProject {
       this.budget,
       this.manager,
       this.programme,
-      this.country,
+      this.announcement,
+      this.ambit,
+      this.audit,
+      this.evaluation,
       this.financiers,
       this.partners);
 
@@ -38,7 +44,10 @@ class SProject {
         budget = json['budget'],
         manager = json['manager'],
         programme = json['programme'],
-        country = json['country'],
+        announcement = json['announcement'],
+        ambit = json['ambit'],
+        audit = json['audit'],
+        evaluation = json['evaluation'],
         financiers = json['financiers'],
         partners = json['partners'];
 
@@ -51,7 +60,10 @@ class SProject {
         'budget': budget,
         'manager': manager,
         'programme': programme,
-        'country': country,
+        'announcement': announcement,
+        'ambit': ambit,
+        'audit': audit.toString(),
+        'evaluation': evaluation.toString(),
         'financiers': financiers.join(""),
         'partners': partners.join(""),
       };
@@ -78,6 +90,73 @@ class ProjectType {
         'id': id,
         'uuid': uuid,
         'name': name,
+      };
+}
+
+class ProjectDates {
+  final String id;
+  final String uuid;
+  final String approved;
+  final String start;
+  final String end;
+  final String justification;
+  final String delivery;
+  final String project;
+
+  ProjectDates(this.id, this.uuid, this.approved, this.start, this.end,
+      this.justification, this.delivery, this.project);
+
+  ProjectDates.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        approved = json["approved"],
+        start = json["start"],
+        end = json["end"],
+        justification = json["justification"],
+        delivery = json["delivery"],
+        project = json["project"];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'approved': approved,
+        'start': start,
+        'end': end,
+        'justification': justification,
+        'delivery': delivery,
+        'project': project,
+      };
+}
+
+class ProjectLocation {
+  final String id;
+  final String uuid;
+  final String country;
+  final String province;
+  final String region;
+  final String town;
+  final String project;
+
+  ProjectLocation(this.id, this.uuid, this.country, this.province, this.region,
+      this.town, this.project);
+
+  ProjectLocation.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        country = json["country"],
+        province = json["province"],
+        region = json["region"],
+        town = json["town"],
+        project = json["project"];
+
+  Map<String, String> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'country': country,
+        'province': province,
+        'region': region,
+        'town': town,
+        'project': project,
       };
 }
 

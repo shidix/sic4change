@@ -138,13 +138,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
               _project.name,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-            IconButton(
+            Text(
+              _project.type.toUpperCase(),
+              style: TextStyle(fontSize: 15, color: Colors.blueGrey),
+            ),
+
+            /*IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Editar proyecto',
               onPressed: () {
                 _callProjectEditDialog(context, _project);
               },
-            ),
+            ),*/
           ],
         ),
         space(height: 10),
@@ -152,11 +157,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
           Text(
             _project.description,
             style: TextStyle(fontSize: 15),
-          ),
-          space(height: 10),
-          Text(
-            _project.type.toUpperCase(),
-            style: TextStyle(fontSize: 15, color: Colors.blueGrey),
           ),
         ]),
       ],
@@ -168,13 +168,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Financiador/es:", 16, textColor: Colors.grey),
-        IconButton(
+        /*IconButton(
           icon: const Icon(Icons.add),
           tooltip: 'Añadir financiador',
           onPressed: () {
             _callFinancierEditDialog(context, _project);
           },
-        )
+        )*/
       ]),
       ListView.builder(
           //padding: const EdgeInsets.all(8),
@@ -188,7 +188,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('${_list[index]}'),
-                      IconButton(
+                      /*IconButton(
                         icon: const Icon(
                           Icons.remove,
                           size: 12,
@@ -198,7 +198,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           _project.financiers.remove(_list[index]);
                           _removeFinancier(context, _project);
                         },
-                      )
+                      )*/
                     ]));
           })
     ]);
@@ -209,13 +209,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),
-        IconButton(
+        /*IconButton(
           icon: const Icon(Icons.add),
           tooltip: 'Añadir socio',
           onPressed: () {
             _callPartnerEditDialog(context, _project);
           },
-        )
+        )*/
       ]),
       ListView.builder(
           //padding: const EdgeInsets.all(8),
@@ -229,7 +229,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('${_list[index]}'),
-                      IconButton(
+                      /*IconButton(
                         icon: const Icon(
                           Icons.remove,
                           size: 12,
@@ -239,7 +239,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           _project.partners.remove(_list[index]);
                           _removePartner(context, _project);
                         },
-                      )
+                      )*/
                     ]));
           })
     ]);
@@ -301,7 +301,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("País de ejecución:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(_project.country, 16),
+        //customText(_project.country, 16),
         space(height: 5),
         Divider(color: Colors.grey),
         space(height: 5),
@@ -326,8 +326,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  void _saveProject(context, _project, _types, _contacts, _programmes, _name,
-      _desc, _type, _budget, _manager, _programme, _country) async {
+  /*void _saveProject(
+      context,
+      _project,
+      _types,
+      _contacts,
+      _programmes,
+      _name,
+      _desc,
+      _type,
+      _budget,
+      _manager,
+      _programme,
+      _country,
+      _announcement,
+      _ambit,
+      _audit,
+      _evaluation) async {
     if (_project != null) {
       await updateProject(
               _project.id,
@@ -339,14 +354,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
               _manager,
               _programme,
               _country,
+              _announcement,
+              _ambit,
+              _audit,
+              _evaluation,
               _project.financiers,
               _project.partners)
           .then((value) async {
         loadProjects();
       });
     } else {
-      await addProject(
-              _name, _desc, _type, _budget, _manager, _programme, _country)
+      await addProject(_name, _desc, _type, _budget, _manager, _programme,
+              _country, "", "", false, false)
           .then((value) async {
         loadProjects();
       });
@@ -446,7 +465,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     budgetController.text,
                     managerController.text,
                     programmeController.text,
-                    countryController.text);
+                    countryController.text,
+                    "",
+                    "",
+                    false,
+                    false);
               },
             ),
             TextButton(
@@ -459,12 +482,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
         );
       },
     );
-  }
+  }*/
 
   /*--------------------------------------------------------------------*/
   /*                           FINACIERS                                */
   /*--------------------------------------------------------------------*/
-  void _saveFinancier(context, _project, _name, _financiers) async {
+  /*void _saveFinancier(context, _project, _name, _financiers) async {
     _project.financiers.add(_name);
     await updateProjectFinanciers(_project.id, _project.financiers)
         .then((value) async {
@@ -526,12 +549,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
         );
       },
     );
-  }
+  }*/
 
   /*--------------------------------------------------------------------*/
   /*                           PARTNERS                                 */
   /*--------------------------------------------------------------------*/
-  void _savePartner(context, _project, _name, _contacts) async {
+  /*void _savePartner(context, _project, _name, _contacts) async {
     _project.partners.add(_name);
     await updateProjectPartners(_project.id, _project.partners)
         .then((value) async {
@@ -593,5 +616,5 @@ class _ProjectsPageState extends State<ProjectsPage> {
         );
       },
     );
-  }
+  }*/
 }
