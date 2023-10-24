@@ -44,6 +44,8 @@ Future<List> getFinnsByProject(String _project) async {
   return items;
 }
 
+
+
 Future<void> addFinn(
     String name, String description, String parent, String project) async {
   var uuid = Uuid();
@@ -92,7 +94,6 @@ Future<List> getContribByFinn(String finnuuid) async {
   QuerySnapshot? query;
 
   query = await _collectionFinnContrib
-      .orderBy("owner")
       .where("finn", isEqualTo: finnuuid)
       .get();
   for (var doc in query.docs) {
@@ -142,3 +143,4 @@ Future<void> updateFinnContrib(
 Future<void> deleteFinnContrib(String id) async {
   await _collectionFinnContrib.doc(id).delete();
 }
+ 

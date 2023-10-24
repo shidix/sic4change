@@ -11,10 +11,15 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:uuid/uuid.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
 List finn_list = [];
 List projects = [];
+SProject? _project;
+FirebaseFirestore db = FirebaseFirestore.instance;
+
+
 
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key});
@@ -24,25 +29,26 @@ class FinnsPage extends StatefulWidget {
 }
 
 class _FinnsPageState extends State<FinnsPage> {
+  Map<String,Map<String, Text>> aportes_controllers = {};
+
   void loadFinns(value) async {
     await getFinnsByProject(value).then((val) {
       finn_list = val;
     });
+    for (SFinn finn in finn_list) {
+      await getContribByFinn(finn.uuid).then((items) {
+        aportes_controllers[finn.uuid] = {};
+        aportes_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
+        for (FinnContribution item in items) {
+          Text labelButton = buttonEditableText((item.amount).toStringAsFixed(2));
+          aportes_controllers[finn.uuid]![item.financier] = labelButton;
+        }
+      });
+    }
     setState(() {});
   }
 
-  // void loadProjects() async {
-  //   FirebaseFirestore db = FirebaseFirestore.instance;
-  //   CollectionReference data = db.collection("s4c_projects");
-  //   QuerySnapshot docData = await data.get();
-  //   projects = docData.docs.map((doc) => doc.data()).toList();
-  // }
-  
   void loadProjects() async {
-    // FirebaseFirestore db = FirebaseFirestore.instance;
-    // CollectionReference data = db.collection("s4c_projects");
-    // Object? item;
-    // data.get().then((value) {item = value.docs.first.data();});
     await getProjects().then((value) {
       projects = value;
     });
@@ -52,38 +58,19 @@ class _FinnsPageState extends State<FinnsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final SProject? _project;
+    //final SProject? _project;
     final List items = [];
     
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       _project = args["project"];
     } else {
-
-      // collection.then(
-      //   (querySnapshot) {
-      //     print("Successfully completed");
-      //     for (var docSnapshot in querySnapshot.docs) {
-      //       print('${docSnapshot.id} => ${docSnapshot.data()}');
-      //       items.add(docSnapshot);
-      //     }
-      // },
-      //   onError: (e) => print("Error completing: $e"),
-      // );
-      // _project = items.first;
-      // print (_project);
-      loadProjects();
-      //print (projects.first);
-      if (projects.isNotEmpty) {
-        _project = projects.first;
-      }
-      else {
-        _project = null;
-      }
+      _project = null;
     }
     
     if (_project == null) {return Page404();}
-
+    
+    // loadFinns(_project!.uuid);
 
     return Scaffold(
       body: Column(children: [
@@ -352,9 +339,31 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
   }
 
+  Future<List> loadConfig(String _project) async {
+    List<SFinn> items = [];
+    QuerySnapshot? query;
+    final _collectionFinn = db.collection("s4c_finncontrib");
+
+
+    query = await _collectionFinn
+        .orderBy("project")
+        .orderBy("parent", descending: true)
+        .where("project", isEqualTo: _project)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final _item = SFinn.fromJson(data);
+      items.add(_item);
+    }
+    return items;
+  }
+
+
   Widget finnFullPage(context, project) {
+
     return FutureBuilder(
-        initialData: getFinnsByProject(project.uuid),
+        initialData: loadConfig(project.uuid), //getFinnsByProject(project.uuid),
         future: getFinnsByProject(project.uuid),
         builder: ((context, snapshot) {
           return Column(
@@ -594,13 +603,13 @@ class _FinnsPageState extends State<FinnsPage> {
       int w_partidas = 35;
       int w_aportes = 30;
       int w_dist = 30;
-      int w_tools = 5;
+
+      String totalAport = "0.00";
 
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded( flex: w_partidas, child: const Text( 'Partidas', textAlign: TextAlign.center, style: headerList, ), ),
         Expanded( flex: w_aportes, child: const Text( 'Aportes', textAlign: TextAlign.center, style: headerList, ), ),
         Expanded( flex: w_dist, child: const Text( 'Distribución aporte CM', textAlign: TextAlign.center, style: headerList, ), ),
-        Expanded( flex: w_tools, child: const Padding( padding: EdgeInsets.only(top: 10, bottom: 10), child: Text(''), ), ),
       ]));
 
       List<Expanded> subHeader = [];
@@ -616,16 +625,40 @@ class _FinnsPageState extends State<FinnsPage> {
       for (String partner in project.partners) {
         subHeader.add(Expanded( flex: f_dist, child: Text(partner, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
       }
-      subHeader.add(Expanded( flex: w_tools, child: const Text('', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
+      //subHeader.add(Expanded( flex: w_tools, child: const Text('', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: subHeader));
 
+
       for (SFinn finn in data.data) {
+        // aportes_controllers[finn.uuid] = {};
         List<Expanded> cells = [];
+        
         cells.add(Expanded( flex: w_partidas, child: Padding(padding: const EdgeInsets.all(15), child: Text( "${finn.name}. ${finn.description}", textAlign: TextAlign.left, style: TextStyle(fontWeight: FontWeight.bold), ))));
-        cells.add(Expanded( flex: f_aportes, child: Text((Random().nextDouble()*15000).toStringAsFixed(2), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
+        var totalText =  Text("0.00", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold));
+        try {
+          totalText = aportes_controllers[finn.uuid]!['Total'] as Text;
+        } catch (e) {};
+        cells.add(Expanded( flex: f_aportes, child: totalText));
+        double total = 0;
         for (String financier in project.financiers) {
-          cells.add(Expanded( flex: f_aportes, child: Text((Random().nextDouble()*15000).toStringAsFixed(2), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
+          Text? labelButton = buttonEditableText("0.00");
+          if (aportes_controllers.containsKey(finn.uuid)) {
+            if (aportes_controllers[finn.uuid]!.containsKey(financier)) {
+              labelButton = aportes_controllers[finn.uuid]![financier];
+              total += double.parse((labelButton as Text).data.toString());
+            } 
+          }
+          ElevatedButton button = ElevatedButton( 
+            onPressed: () { _editFinnRowDialog(context, finn, financier); }, 
+            style: buttonEditableTextStyle(),
+            child: labelButton, 
+          );
+          cells.add(Expanded( flex: f_aportes, child: Padding(padding:EdgeInsets.only(left: 5, right: 5), child:button)));
         }
+        
+        totalAport = total.toStringAsFixed(2);
+        int idx = (cells.length -1 - project.financiers.length) as int;
+        cells[idx] = Expanded(flex:f_aportes, child: Text(totalAport, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)));
         int f_dist = w_dist ~/ (project.partners.length + 1);
         cells.add(Expanded( flex: f_dist, child:  Text((Random().nextDouble()*15000).toStringAsFixed(2), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))));
         for (String partner in project.partners) {
@@ -640,7 +673,7 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
           child: const Icon( Icons.edit, color: Colors.black54, size: 20, ),
         );
-        cells.add(Expanded(flex: w_tools,  child:Padding(padding: const EdgeInsets.only(top:10), child:button)));
+        //cells.add(Expanded(flex: w_tools,  child:Padding(padding: const EdgeInsets.only(top:10), child:button)));
         rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
       }
 
@@ -653,27 +686,59 @@ class _FinnsPageState extends State<FinnsPage> {
       return containers;
     }
     else {
+      if (aportes_controllers.isEmpty) {
+        loadFinns(project.uuid);
+      }
       return [];
     }
   }
 
-   Future<void> _editFinnRowDialog(context, finn, project) {
-
+   Future<void> _editFinnRowDialog(context, finn, financier) {
+    final database = db.collection("s4c_finncontrib");
     List <Row> rows = [];
-    rows.add(const Row(children:[
-                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Financiador'))),
-                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Comentario'))),
-                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Cantidad'))),
-              ]));
-    for (var financier in project.financiers) {
+    TextEditingController amount = TextEditingController(text:"0");
+    TextEditingController comment = TextEditingController(text:"");    
+    FinnContribution item;
+    item = FinnContribution("", financier, double.parse(amount.text), finn.uuid, comment.text);
 
-      rows.add(Row(children:[
-                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text(financier))),
-                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(TextEditingController(text:"",), 'Comentario'))),
-          //        Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: TextField(decoration:InputDecoration(labelText:'Test'), inputFormatters: [FilteringTextInputFormatter.digitsOnly],))),
-                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customDoubleField(TextEditingController(text:""), 'Cantiidad'))),
-      ]));
-    }
+    final query = database.where("finn", isEqualTo: finn.uuid).where("financier", isEqualTo: financier).get().then(
+      (querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          item = FinnContribution.fromJson(querySnapshot.docs.first.data());
+          amount.text = item.amount.toStringAsFixed(2);
+          comment.text = item.subject;
+        }
+        else {
+          item = FinnContribution("", financier, double.parse(amount.text), finn.uuid, comment.text);
+        }
+      }
+    );
+
+    rows.add(const Row(children:[
+              Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Financiador'))),
+              Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Comentario'))),
+              Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Cantidad'))),
+            ]));
+
+    amount.text = "0";
+    rows.add(Row(children:[
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text(financier))),
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(comment, 'Comentario'))),
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customDoubleField(amount, 'Cantidad'))),
+    ]));
+
+    TextButton saveButton = TextButton(
+      child: const Text('Guardar'),
+      onPressed: () async {
+        item.amount = double.parse(amount.text);
+        item.subject = comment.text;
+        item.save();
+        loadFinns(_project!.uuid);
+        Navigator.of(context).pop();
+
+      },
+    );
+    
 
 
     return showDialog<void>(
@@ -690,35 +755,7 @@ class _FinnsPageState extends State<FinnsPage> {
             )),
           content: SingleChildScrollView(child: Column(children: rows ),),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                Future<List> aux = FinnContribution.getByFinnAndFinancier(finn.uuid, 'SIC4Changes');
-                print("TEST");
-                print(aux.then((value) => print(value)));
-                for (Row row in rows.skip(1)) {
-                  Text financier = (((row.children[0] as Expanded).child as Padding).child as Text);
-                  TextEditingController subject = ((((row.children[1] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
-                  TextEditingController amount = ((((row.children[2] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
-
-                  try {
-
-                    //FinnContribution item = FinnContribution("", financier.data.toString(), amount as double, finn, subject as String);
-                    FinnContribution item = FinnContribution("496848bb-0cb2-4370-88f4-eb6b63302738", financier.data.toString(), double.parse(amount.text), finn.uuid, subject.text);
-                   // item.save();
-                    
-                    print ("OK");
-                  } on Exception catch (e) {
-                    print ("ERROR");
-                    print(e.runtimeType);
-                  }
-                  print("Debug 2");
-                // _saveFinnContrib(context, finn, ,
-                //     descController.text, parent, "");
-                }
-
-              },
-            ),
+            saveButton ,
             TextButton(
               child: const Text('Cancelar'),
               onPressed: () {
@@ -798,3 +835,88 @@ List<FinnContribution> _getContribByFinn(String finnuuid)  {
   );
   return items;
 }
+
+ButtonStyle buttonEditableTextStyle () {
+  return  ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)), 
+            backgroundColor: Colors.white, );
+}
+
+Text buttonEditableText (String textButton) {
+  return Text(textButton, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color:Colors.blueGrey));
+}
+
+
+
+Future<void> _editFinnRowDialog2(context, finn, project) {
+
+    List <Row> rows = [];
+    rows.add(const Row(children:[
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Financiador'))),
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Comentario'))),
+                Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text('Cantidad'))),
+              ]));
+    for (var financier in project.financiers) {
+
+      rows.add(Row(children:[
+                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: Text(financier))),
+                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customTextField(TextEditingController(text:"",), 'Comentario'))),
+          //        Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: TextField(decoration:InputDecoration(labelText:'Test'), inputFormatters: [FilteringTextInputFormatter.digitsOnly],))),
+                  Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: customDoubleField(TextEditingController(text:""), 'Cantiidad'))),
+      ]));
+    }
+
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        // List <FinnContribution> listContrib =  _getContribByFinn(finn.uuid);
+        // print(listContrib);
+        return AlertDialog(
+          
+          // <-- SEE HERE
+          title: Card(color:Colors.blueGrey, child: Padding(padding:const EdgeInsets.all(10), 
+            child:Text('${finn.name}. ${finn.description}', style:const TextStyle(fontWeight:FontWeight.bold, fontSize: 18, color: Colors.white))
+            )),
+          content: SingleChildScrollView(child: Column(children: rows ),),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                Future<List> aux = FinnContribution.getByFinnAndFinancier(finn.uuid, 'SIC4Changes');
+                print("TEST");
+                print(aux.then((value) => print(value)));
+                for (Row row in rows.skip(1)) {
+                  Text financier = (((row.children[0] as Expanded).child as Padding).child as Text);
+                  TextEditingController subject = ((((row.children[1] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
+                  TextEditingController amount = ((((row.children[2] as Expanded).child as Padding).child as SizedBox).child as TextField).controller as TextEditingController;
+
+                  try {
+
+                    //FinnContribution item = FinnContribution("", financier.data.toString(), amount as double, finn, subject as String);
+                    FinnContribution item = FinnContribution("496848bb-0cb2-4370-88f4-eb6b63302738", financier.data.toString(), double.parse(amount.text), finn.uuid, subject.text);
+                   // item.save();
+                    
+                    print ("OK");
+                  } on Exception catch (e) {
+                    print ("ERROR");
+                    print(e.runtimeType);
+                  }
+                  print("Debug 2");
+                // _saveFinnContrib(context, finn, ,
+                //     descController.text, parent, "");
+                }
+
+              },
+            ),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
