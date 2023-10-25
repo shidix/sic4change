@@ -10,6 +10,9 @@ import 'package:sic4change/services/firebase_service_drive.dart';
 import 'package:file_picker/file_picker.dart';
 
 const PAGE_TITLE = "Documentos";
+List file_list = [];
+
+enum SampleItem { itemOne, itemTwo }
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -25,6 +28,14 @@ class _DocumentsPageState extends State<DocumentsPage> {
   Uint8List? pickedFileBytes;
   UploadTask? uploadTask;
   //String fileUrl = '';
+
+  void loadFiles(value) async {
+    await getFiles(value).then((val) {
+      file_list = val;
+      //print(contact_list);
+    });
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +144,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
         String fileUrl = await ref.getDownloadURL();
 
         await addFile(pickedFile!.name, _folderUuid, fileUrl).then((value) {
-          Navigator.popAndPushNamed(context, "/documents",
-              arguments: {"parent": _currentFolder});
+          loadFiles(_folderUuid);
+          //Navigator.pop(context);
+          /*Navigator.popAndPushNamed(context, "/documents",
+              arguments: {"parent": _currentFolder});*/
         });
 
         setState(() {
@@ -149,7 +162,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   Widget buildProgress() => StreamBuilder<TaskSnapshot>(
       stream: uploadTask?.snapshotEvents,
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
+        if ((snapshot.hasData) && (uploadTask != null)) {
           final data = snapshot.data!;
           double progress = data.bytesTransferred / data.totalBytes;
 
@@ -178,407 +191,424 @@ class _DocumentsPageState extends State<DocumentsPage> {
           );
         }
       });
-}
 
 /*-------------------------------------------------------------
                             FOLDERS
 -------------------------------------------------------------*/
-Widget foldersHeader(context, _currentFolder) {
-  String _title;
-  if (_currentFolder != null)
-    _title = _currentFolder.name;
-  else
-    _title = "/";
-  return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Container(
-      padding: EdgeInsets.only(left: 40),
-      child: Row(children: [
-        Text(_title, style: TextStyle(fontSize: 20)),
-        if (_currentFolder != null)
-          IconButton(
-            icon: const Icon(Icons.arrow_upward),
-            tooltip: 'Up folder',
-            onPressed: () {
-              getFolderByUuid(_currentFolder.parent).then((value) {
-                Navigator.pushReplacementNamed(context, "/documents",
-                    arguments: value);
-              });
-            },
-          ),
-      ]),
-      /*customRowBtn(context, "", Icons.arrow_upward, "/documents",
+  Widget foldersHeader(context, _currentFolder) {
+    String _title;
+    if (_currentFolder != null)
+      _title = _currentFolder.name;
+    else
+      _title = "/";
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Container(
+        padding: EdgeInsets.only(left: 40),
+        child: Row(children: [
+          Text(_title, style: TextStyle(fontSize: 20)),
+          if (_currentFolder != null)
+            IconButton(
+              icon: const Icon(Icons.arrow_upward),
+              tooltip: 'Up folder',
+              onPressed: () {
+                getFolderByUuid(_currentFolder.parent).then((value) {
+                  Navigator.pushReplacementNamed(context, "/documents",
+                      arguments: value);
+                });
+              },
+            ),
+        ]),
+        /*customRowBtn(context, "", Icons.arrow_upward, "/documents",
           {"parent": currentFolder}),*/
-    ),
-    Container(
-      padding: EdgeInsets.all(10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          folderAddBtn(context, _currentFolder),
-        ],
       ),
-    ),
-  ]);
-}
-
-Widget folderAddBtn(context, _currentFolder) {
-  TextEditingController nameController = TextEditingController(text: "");
-
-  return ElevatedButton(
-    onPressed: () {
-      _folderEditDialog(context, nameController, null, _currentFolder);
-    },
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      backgroundColor: Colors.white,
-    ),
-    child: Row(
-      children: [
-        Icon(
-          Icons.add,
-          color: Colors.black54,
-          size: 30,
-        ),
-        space(height: 10),
-        Text(
-          "Add Folder",
-          style: TextStyle(color: Colors.black, fontSize: 14),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget folderList(context, _currentFolder) {
-  String? parentUuid;
-  if (_currentFolder == null)
-    parentUuid = "";
-  else
-    parentUuid = _currentFolder.uuid;
-  return FutureBuilder(
-      future: getFolders(parentUuid!),
-      builder: ((context, snapshot) {
-        if (snapshot.hasData) {
-          return GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                childAspectRatio: 3,
-              ),
-              itemCount: snapshot.data?.length,
-              itemBuilder: (_, index) {
-                Folder? cFolder = snapshot.data?[index];
-                return Row(children: [
-                  customRowBtn(context, snapshot.data?[index].name,
-                      Icons.folder, "/documents", {"parent": cFolder}),
-                  folderPopUpBtn(context, snapshot.data?[index], _currentFolder)
-                ]);
-              });
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      }));
-}
-
-enum SampleItem { itemOne, itemTwo }
-
-Widget folderPopUpBtn(context, _folder, _currentFolder) {
-  SampleItem? selectedMenu;
-  TextEditingController nameController =
-      TextEditingController(text: _folder.name);
-
-  return PopupMenuButton<SampleItem>(
-    initialValue: selectedMenu,
-    // Callback that sets the selected popup menu item.
-    onSelected: (SampleItem item) async {
-      selectedMenu = item;
-      if (selectedMenu == SampleItem.itemOne) {
-        _folderEditDialog(context, nameController, _folder, _currentFolder);
-      }
-      if (selectedMenu == SampleItem.itemTwo) {
-        _confirmRemoveDialog(context, _folder.id, _currentFolder);
-      }
-    },
-    itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
-      const PopupMenuItem<SampleItem>(
-          value: SampleItem.itemOne,
-          child: Row(children: [
-            Icon(Icons.edit),
-            Text('Edit'),
-          ])),
-      const PopupMenuItem<SampleItem>(
-        value: SampleItem.itemTwo,
+      Container(
+        padding: EdgeInsets.all(10),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.remove_circle),
-            Text('Remove'),
+            folderAddBtn(context, _currentFolder),
           ],
         ),
       ),
-    ],
-  );
-}
+    ]);
+  }
+
+  Widget folderAddBtn(context, _currentFolder) {
+    TextEditingController nameController = TextEditingController(text: "");
+
+    return ElevatedButton(
+      onPressed: () {
+        _folderEditDialog(context, nameController, null, _currentFolder);
+      },
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        backgroundColor: Colors.white,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.add,
+            color: Colors.black54,
+            size: 30,
+          ),
+          space(height: 10),
+          Text(
+            "Add Folder",
+            style: TextStyle(color: Colors.black, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget folderList(context, _currentFolder) {
+    String? parentUuid;
+    if (_currentFolder == null)
+      parentUuid = "";
+    else
+      parentUuid = _currentFolder.uuid;
+    return FutureBuilder(
+        future: getFolders(parentUuid!),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  childAspectRatio: 3,
+                ),
+                itemCount: snapshot.data?.length,
+                itemBuilder: (_, index) {
+                  Folder? cFolder = snapshot.data?[index];
+                  return Row(children: [
+                    customRowBtn(context, snapshot.data?[index].name,
+                        Icons.folder, "/documents", {"parent": cFolder}),
+                    folderPopUpBtn(
+                        context, snapshot.data?[index], _currentFolder)
+                  ]);
+                });
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
+//enum SampleItem { itemOne, itemTwo }
+
+  Widget folderPopUpBtn(context, _folder, _currentFolder) {
+    SampleItem? selectedMenu;
+    TextEditingController nameController =
+        TextEditingController(text: _folder.name);
+
+    return PopupMenuButton<SampleItem>(
+      initialValue: selectedMenu,
+      // Callback that sets the selected popup menu item.
+      onSelected: (SampleItem item) async {
+        selectedMenu = item;
+        if (selectedMenu == SampleItem.itemOne) {
+          _folderEditDialog(context, nameController, _folder, _currentFolder);
+        }
+        if (selectedMenu == SampleItem.itemTwo) {
+          _confirmRemoveDialog(context, _folder.id, _currentFolder);
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemOne,
+            child: Row(children: [
+              Icon(Icons.edit),
+              Text('Edit'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+          value: SampleItem.itemTwo,
+          child: Row(
+            children: [
+              Icon(Icons.remove_circle),
+              Text('Remove'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
 /*-------------------------------------------------------------
                         FOLDERS Dialogs
 ---------------------------------------------------------------*/
-Future<void> _folderEditDialog(
-    context, _controller, _folder, _currentFolder) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        // <-- SEE HERE
-        title: const Text('Folder edit'),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: 250,
-            child: TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: "Enter name",
+  Future<void> _folderEditDialog(
+      context, _controller, _folder, _currentFolder) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // <-- SEE HERE
+          title: const Text('Folder edit'),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 250,
+              child: TextField(
+                controller: _controller,
+                decoration: const InputDecoration(
+                  hintText: "Enter name",
+                ),
               ),
             ),
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              if (_folder != null) {
-                await updateFolder(_folder.id, _folder.uuid, _controller.text,
-                        _folder.parent)
-                    .then((value) {
-                  Navigator.popAndPushNamed(context, "/documents",
-                      arguments: {"parent": _currentFolder});
-                });
-              } else {
-                String parent;
-                if (_currentFolder != null)
-                  parent = _currentFolder.uuid;
-                else
-                  parent = "";
-                await addFolder(_controller.text, parent).then((value) {
-                  Navigator.popAndPushNamed(context, "/documents",
-                      arguments: {"parent": _currentFolder});
-                });
-              }
-            },
-          ),
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                if (_folder != null) {
+                  await updateFolder(_folder.id, _folder.uuid, _controller.text,
+                          _folder.parent)
+                      .then((value) {
+                    Navigator.popAndPushNamed(context, "/documents",
+                        arguments: {"parent": _currentFolder});
+                  });
+                } else {
+                  String parent;
+                  if (_currentFolder != null)
+                    parent = _currentFolder.uuid;
+                  else
+                    parent = "";
+                  await addFolder(_controller.text, parent).then((value) {
+                    Navigator.popAndPushNamed(context, "/documents",
+                        arguments: {"parent": _currentFolder});
+                  });
+                }
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-Future<void> _confirmRemoveDialog(context, id, _currentFolder) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        // <-- SEE HERE
-        title: const Text('Remove Folder'),
-        content: SingleChildScrollView(
-          child: Text("Are you sure to remove this element?"),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Remove'),
-            onPressed: () async {
-              await deleteFolder(id).then((value) {
-                Navigator.popAndPushNamed(context, "/documents",
-                    arguments: {"parent": _currentFolder});
-              });
-            },
+  Future<void> _confirmRemoveDialog(context, id, _currentFolder) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // <-- SEE HERE
+          title: const Text('Remove Folder'),
+          content: SingleChildScrollView(
+            child: Text("Are you sure to remove this element?"),
           ),
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Remove'),
+              onPressed: () async {
+                await deleteFolder(id).then((value) {
+                  Navigator.popAndPushNamed(context, "/documents",
+                      arguments: {"parent": _currentFolder});
+                });
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
 /*-------------------------------------------------------------
                             FILES
 -------------------------------------------------------------*/
-Widget fileList(context, _currentFolder) {
-  String _folderUuid = "";
-  if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
+  Widget fileList(context, _currentFolder) {
+    String _folderUuid = "";
+    if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
 
-  return FutureBuilder(
-      future: getFiles(_folderUuid),
-      builder: ((context, snapshot) {
-        if (snapshot.hasData) {
-          return GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                childAspectRatio: 3,
-              ),
-              itemCount: snapshot.data?.length,
-              itemBuilder: (_, index) {
-                SFile? _file = snapshot.data?[index];
-                String? _name = _file?.name;
+    return FutureBuilder(
+        future: getFiles(_folderUuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            file_list = snapshot.data!;
+            return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  childAspectRatio: 3,
+                ),
+                //itemCount: snapshot.data?.length,
+                itemCount: file_list.length,
+                itemBuilder: (_, index) {
+                  //SFile? _file = snapshot.data?[index];
+                  SFile? _file = file_list[index];
+                  String? _name = _file?.name;
+                  String? _loc = "(${_file?.loc})";
 
-                print(_file?.link);
-                if (_name != null && _name.length > 6)
-                  _name = '${_name.substring(0, 6)}...';
-                return Row(children: [
-                  customRowExternalBtn(
-                      context, _name, Icons.picture_as_pdf, _file?.link),
-                  filePopUpBtn(context, _file, _currentFolder)
-                ]);
-              });
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+                  print(_file?.link);
+                  if (_name != null && _name.length > 6)
+                    _name = '${_name.substring(0, 6)}...';
+                  return Row(children: [
+                    customRowFileBtn(context, _name, _loc, Icons.picture_as_pdf,
+                        _file?.link),
+                    filePopUpBtn(context, _file, _currentFolder)
+                  ]);
+                });
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
+  Widget filePopUpBtn(context, _file, _currentFolder) {
+    SampleItem? selectedMenu;
+    TextEditingController nameController =
+        TextEditingController(text: _file.name);
+
+    return PopupMenuButton<SampleItem>(
+      initialValue: selectedMenu,
+      // Callback that sets the selected popup menu item.
+      onSelected: (SampleItem item) async {
+        selectedMenu = item;
+        if (selectedMenu == SampleItem.itemOne) {
+          _fileEditDialog(context, nameController, _file, _currentFolder);
         }
-      }));
-}
-
-Widget filePopUpBtn(context, _file, _currentFolder) {
-  SampleItem? selectedMenu;
-  TextEditingController nameController =
-      TextEditingController(text: _file.name);
-
-  return PopupMenuButton<SampleItem>(
-    initialValue: selectedMenu,
-    // Callback that sets the selected popup menu item.
-    onSelected: (SampleItem item) async {
-      selectedMenu = item;
-      if (selectedMenu == SampleItem.itemOne) {
-        _fileEditDialog(context, nameController, _file, _currentFolder);
-      }
-      if (selectedMenu == SampleItem.itemTwo) {
-        _confirmFileRemoveDialog(context, _file, _currentFolder);
-      }
-    },
-    itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
-      const PopupMenuItem<SampleItem>(
-          value: SampleItem.itemOne,
-          child: Row(children: [
-            Icon(Icons.edit),
-            Text('Change name'),
-          ])),
-      const PopupMenuItem<SampleItem>(
-        value: SampleItem.itemTwo,
-        child: Row(
-          children: [
-            Icon(Icons.remove_circle),
-            Text('Remove'),
-          ],
+        if (selectedMenu == SampleItem.itemTwo) {
+          _confirmFileRemoveDialog(context, _file, _currentFolder);
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemOne,
+            child: Row(children: [
+              Icon(Icons.edit),
+              Text('Change name'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+          value: SampleItem.itemTwo,
+          child: Row(
+            children: [
+              Icon(Icons.remove_circle),
+              Text('Remove'),
+            ],
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
 /*-------------------------------------------------------------
                         FILES Dialogs
 ---------------------------------------------------------------*/
 
-Future<void> _fileEditDialog(
-    context, _controller, _file, _currentFolder) async {
-  String _folderUuid = "";
-  if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
+  Future<void> _fileEditDialog(
+      context, _controller, _file, _currentFolder) async {
+    String _folderUuid = "";
+    if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
 
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        // <-- SEE HERE
-        title: const Text('Change name file'),
-        content: SingleChildScrollView(
-            child: Row(children: [
-          SizedBox(
-            width: 250,
-            child: TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: "Enter name",
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // <-- SEE HERE
+          title: const Text('Change name file'),
+          content: SingleChildScrollView(
+              child: Row(children: [
+            SizedBox(
+              width: 250,
+              child: TextField(
+                controller: _controller,
+                decoration: const InputDecoration(
+                  hintText: "Enter name",
+                ),
               ),
             ),
-          ),
-          //Text(_fileName),
-        ])),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              if (_file != null) {
-                await updateFile(_file.id, _file.uuid, _controller.text,
-                        _file.folder, _file.link)
-                    .then((value) {
-                  Navigator.popAndPushNamed(context, "/documents",
-                      arguments: {"parent": _currentFolder});
-                });
-              } /*else {
+            //Text(_fileName),
+          ])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                if (_file != null) {
+                  await updateFile(_file.id, _file.uuid, _controller.text,
+                          _file.folder, _file.link, _file.loc)
+                      .then((value) {
+                    var folderUuid = "";
+                    if (_currentFolder != null)
+                      folderUuid = _currentFolder.uuid;
+                    loadFiles(_folderUuid);
+                    Navigator.pop(context);
+                    /*Navigator.popAndPushNamed(context, "/documents",
+                        arguments: {"parent": _currentFolder});*/
+                  });
+                } /*else {
                 await addFile(_controller.text, _folderUuid, "").then((value) {
                   Navigator.popAndPushNamed(context, "/documents",
                       arguments: {"parent": _currentFolder});
                 });
               }*/
-            },
-          ),
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-Future<void> _confirmFileRemoveDialog(context, _file, _currentFolder) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        // <-- SEE HERE
-        title: const Text('Remove File'),
-        content: SingleChildScrollView(
-          child: Text("Are you sure to remove this element?"),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Remove'),
-            onPressed: () async {
-              final ref =
-                  FirebaseStorage.instance.ref().child(_file.link).delete();
-              await deleteFile(_file.id).then((value) {
-                Navigator.popAndPushNamed(context, "/documents",
-                    arguments: {"parent": _currentFolder});
-              });
-            },
+  Future<void> _confirmFileRemoveDialog(context, _file, _currentFolder) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // <-- SEE HERE
+          title: const Text('Remove File'),
+          content: SingleChildScrollView(
+            child: Text("Are you sure to remove this element?"),
           ),
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Remove'),
+              onPressed: () async {
+                try {
+                  final ref =
+                      FirebaseStorage.instance.ref().child(_file.link).delete();
+                } catch (err) {
+                  print(err);
+                }
+                await deleteFile(_file.id).then((value) {
+                  var folderUuid = "";
+                  if (_currentFolder != null) folderUuid = _currentFolder.uuid;
+                  loadFiles(folderUuid);
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

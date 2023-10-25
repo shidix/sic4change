@@ -283,6 +283,42 @@ Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
+Widget customRowFileBtn(context, btnName, btnLoc, btnIcon, btnRoute) {
+  return ElevatedButton(
+    onPressed: () {
+      js.context.callMethod('open', [btnRoute]);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          btnIcon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(width: 10),
+        Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            btnName,
+            style: TextStyle(color: Colors.black, fontSize: 14),
+          ),
+          space(height: 5),
+          Text(
+            btnLoc,
+            style: TextStyle(color: Colors.black, fontSize: 14),
+          ),
+        ])
+      ],
+    ),
+  );
+}
+
 Widget customTextField(_controller, _hint) {
   return SizedBox(
     width: 220,

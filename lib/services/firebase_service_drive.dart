@@ -1,8 +1,18 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
+
+String getRandomString(_length) {
+  const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  return String.fromCharCodes(Iterable.generate(
+      _length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+}
 
 //--------------------------------------------------------------
 //                           FOLDERS
@@ -82,17 +92,34 @@ Future<List> getFiles(String _folder) async {
   return files;
 }
 
-Future<void> addFile(String name, String folder, String link) async {
-  var uuid = Uuid();
-  await _collectionFile
-      .add({"uuid": uuid.v4(), "name": name, "folder": folder, "link": link});
+Future<String> getLoc() async {
+  QuerySnapshot? query;
+
+  var loc = "";
+  do {
+    loc = getRandomString(4);
+    query = await _collectionFile.where("loc", isEqualTo: loc).get();
+  } while (query.size > 0);
+  return loc;
 }
 
-Future<void> updateFile(
-    String id, String uuid, String name, String folder, String link) async {
-  await _collectionFile
-      .doc(id)
-      .set({"uuid": uuid, "name": name, "folder": folder, "link": link});
+Future<void> addFile(String name, String folder, String link) async {
+  await getLoc().then((value) async {
+    var uuid = Uuid();
+    await _collectionFile.add({
+      "uuid": uuid.v4(),
+      "name": name,
+      "folder": folder,
+      "link": link,
+      "loc": value
+    });
+  });
+}
+
+Future<void> updateFile(String id, String uuid, String name, String folder,
+    String link, String loc) async {
+  await _collectionFile.doc(id).set(
+      {"uuid": uuid, "name": name, "folder": folder, "link": link, "loc": loc});
 }
 
 Future<void> deleteFile(String id) async {
