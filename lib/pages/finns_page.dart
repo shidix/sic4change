@@ -28,13 +28,9 @@ class FinnsPage extends StatefulWidget {
 
 class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map<String, Text>> aportes_controllers = {};
-  Text totalBudget = Text(
-    '0.00',
-    style: const TextStyle(
-      fontFamily: 'Readex Pro',
-      fontSize: 18,
-    ),
-  );
+  Map<String, Map<String, Text>> distrib_controllers = {};
+  Map<String, Map<String, double>> distrib_amount = {};
+  Text totalBudget = const Text( '0.00', style:  TextStyle( fontFamily: 'Readex Pro', fontSize: 18, ), );
   void loadFinns(value) async {
     await getFinnsByProject(value).then((val) {
       finn_list = val;
@@ -51,6 +47,19 @@ class _FinnsPageState extends State<FinnsPage> {
           total += item.amount;
         }
       });
+
+      await FinnDistribution.getByFinn(finn.uuid).then((items) {
+        distrib_controllers[finn.uuid] = {};
+        distrib_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
+        distrib_amount[finn.uuid] = {};
+        for (FinnDistribution item in items) {
+          Text labelButton =
+              buttonEditableText((item.amount).toStringAsFixed(2));
+          distrib_controllers[finn.uuid]![item.partner] = labelButton;
+          distrib_amount[finn.uuid]![item.partner] = item.amount;
+        }
+      });
+    
     }
     totalBudget = Text(
       total.toStringAsFixed(2),
@@ -59,6 +68,8 @@ class _FinnsPageState extends State<FinnsPage> {
         fontSize: 18,
       ),
     );
+
+    print (distrib_controllers);
     setState(() {});
   }
 
@@ -367,6 +378,12 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnFullPage(context, project) {
+    List<Text> distrib_rows_amount = [];
+    List<Text> distrib_rows_partner = [];
+    for (var partner in project.partners) {
+      print (partner);
+    }
+
     return FutureBuilder(
         initialData:
             loadConfig(project.uuid), //getFinnsByProject(project.uuid),
@@ -510,7 +527,8 @@ class _FinnsPageState extends State<FinnsPage> {
                                             children: [
                                               const Expanded(
                                                 flex: 1,
-                                                child: Text(
+                                                child: 
+                                                  Text(
                                                   'Financiación propia',
                                                   textAlign: TextAlign.start,
                                                   style: TextStyle(
@@ -611,6 +629,7 @@ class _FinnsPageState extends State<FinnsPage> {
       int w_dist = 30;
 
       String totalAport = "0.00";
+      String totalDist = "0.00";
 
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded(
@@ -682,22 +701,11 @@ class _FinnsPageState extends State<FinnsPage> {
         // aportes_controllers[finn.uuid] = {};
         List<Expanded> cells = [];
 
-        cells.add(Expanded(
-            flex: w_partidas,
-            child: Padding(
-                padding: const EdgeInsets.all(15),
-                child: Text(
-                  "${finn.name}. ${finn.description}",
-                  textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ))));
-        var totalText = Text("0.00",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold));
+        cells.add(Expanded( flex: w_partidas, child: Padding( padding: const EdgeInsets.all(15), child: Text( "${finn.name}. ${finn.description}", textAlign: TextAlign.left, style: TextStyle(fontWeight: FontWeight.bold), ))));
+        var totalText = Text("0.00", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold));
         try {
           totalText = aportes_controllers[finn.uuid]!['Total'] as Text;
-        } catch (e) {}
-        ;
+        } catch (e) {};
         cells.add(Expanded(flex: f_aportes, child: totalText));
         double total = 0;
         for (String financier in project.financiers) {
@@ -722,42 +730,38 @@ class _FinnsPageState extends State<FinnsPage> {
         }
 
         totalAport = total.toStringAsFixed(2);
-        int idx = (cells.length - 1 - project.financiers.length) as int;
-        cells[idx] = Expanded(
-            flex: f_aportes,
-            child: Text(totalAport,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold)));
+        int idx = (cells.length - 1 - project.financiers.length) as int; 
+        cells[idx] = Expanded( flex: f_aportes, child: Text(totalAport, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)));
+
+        // By Partner
         int f_dist = w_dist ~/ (project.partners.length + 1);
-        cells.add(Expanded(
-            flex: f_dist,
-            child: Text((Random().nextDouble() * 15000).toStringAsFixed(2),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold))));
+        Text totalDistText = Text("0.0", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold));
+        cells.add(Expanded( flex: f_dist, child: totalDistText));
+        total = 0;
         for (String partner in project.partners) {
+          Text? labelButton = buttonEditableText("0.00");
+          if (distrib_controllers.containsKey(finn.uuid)) {
+            if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
+              labelButton = distrib_controllers[finn.uuid]![partner];
+              total += double.parse((labelButton as Text).data.toString());
+            }
+          }
+          ElevatedButton button = ElevatedButton(
+            onPressed: () {
+              _editFinnDistDialog(context, finn, partner);
+            },
+            style: buttonEditableTextStyle(),
+            child: labelButton,
+          );
           cells.add(Expanded(
               flex: f_dist,
-              child: Text((Random().nextDouble() * 15000).toStringAsFixed(2),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold))));
+              child: Padding(
+                  padding: EdgeInsets.only(left: 5, right: 5), child: button)));
         }
-        ElevatedButton button = ElevatedButton(
-          onPressed: () {
-            _editFinnRowDialog(context, finn, project);
-          },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            backgroundColor: Colors.white,
-          ),
-          child: const Icon(
-            Icons.edit,
-            color: Colors.black54,
-            size: 20,
-          ),
-        );
-        //cells.add(Expanded(flex: w_tools,  child:Padding(padding: const EdgeInsets.only(top:10), child:button)));
+        totalDist = total.toStringAsFixed(2);
+        idx = (cells.length - 1 - project.partners.length) as int; 
+        cells[idx] = Expanded( flex: f_dist, child: Text(totalDist, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)));
+
         rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
       }
 
@@ -845,10 +849,8 @@ class _FinnsPageState extends State<FinnsPage> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        // List <FinnContribution> listContrib =  _getContribByFinn(finn.uuid);
-        // print(listContrib);
+
         return AlertDialog(
-          // <-- SEE HERE
           title: Card(
               color: Colors.blueGrey,
               child: Padding(
@@ -874,6 +876,105 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     );
   }
+
+  Future<void> _editFinnDistDialog(context, finn, partner) {
+    final database = db.collection("s4c_finndistrib");
+    List<Row> rows = [];
+    TextEditingController amount = TextEditingController(text: "0");
+    TextEditingController comment = TextEditingController(text: "");
+    // FinnContribution item;
+    FinnDistribution item = FinnDistribution(
+        "", partner, double.parse(amount.text), finn.uuid, comment.text);
+
+    final query = database
+        .where("finn", isEqualTo: finn.uuid)
+        .where("partner", isEqualTo: partner)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        item = FinnDistribution.fromJson(querySnapshot.docs.first.data());
+        amount.text = item.amount.toStringAsFixed(2);
+        comment.text = item.subject;
+      } else {
+        item = FinnDistribution(
+            "", partner, double.parse(amount.text), finn.uuid, comment.text);
+      }
+    });
+
+    rows.add(const Row(children: [
+      Expanded(
+          flex: 1,
+          child:
+              Padding(padding: EdgeInsets.all(10), child: Text('Socio'))),
+      Expanded(
+          flex: 1,
+          child:
+              Padding(padding: EdgeInsets.all(10), child: Text('Comentario'))),
+      Expanded(
+          flex: 1,
+          child: Padding(padding: EdgeInsets.all(10), child: Text('Cantidad'))),
+    ]));
+
+    amount.text = "0";
+    rows.add(Row(children: [
+      Expanded(
+          flex: 1,
+          child: Padding(padding: EdgeInsets.all(10), child: Text(partner))),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: EdgeInsets.all(10),
+              child: customTextField(comment, 'Comentario'))),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: EdgeInsets.all(10),
+              child: customDoubleField(amount, ''))),
+    ]));
+
+    TextButton saveButton = TextButton(
+      child: const Text('Guardar'),
+      onPressed: () async {
+        item.amount = double.parse(amount.text);
+        item.subject = comment.text;
+        item.save();
+        loadFinns(_project!.uuid);
+        Navigator.of(context).pop();
+      },
+    );
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+
+        return AlertDialog(
+          title: Card(
+              color: Colors.blueGrey,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text('${finn.name}. ${finn.description}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white)))),
+          content: SingleChildScrollView(
+            child: Column(children: rows),
+          ),
+          actions: <Widget>[
+            saveButton,
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void _saveFinnContrib(context, _finn, _name, _desc, _parent, _project) async {
     if (_finn != null) {
