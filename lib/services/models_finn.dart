@@ -3,6 +3,9 @@ import 'dart:js_interop';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
+FirebaseFirestore db = FirebaseFirestore.instance;
+
+
 class SFinn {
   final String id;
   final String uuid;
@@ -30,34 +33,58 @@ class SFinn {
         'parent': parent,
         'project': project,
       };
+  
+  List<FinnContribution> getContribByFinn()  {
+    final List<FinnContribution> items = [];
+    bool semaphore = false;
+    final database = db.collection("s4c_finncontrib");
+    final query = database.where("finn", isEqualTo: uuid).get().then(
+      (querySnapshot) {
+        print(1);
+        print(uuid);
+        for (var doc in querySnapshot.docs) {
+          print(2);
+          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          final item = FinnContribution.fromJson(data);
+          items.add(item);
+          print(item);
+        }
+        print(3);
+        semaphore = true;
+      }
+    );
+    print(4);
+    print(5);
+    print(items);
+    return items;
+  }
 }
 
 class FinnContribution {
-  final String id;
-  final String financier;
-  final double amount;
-  final String finn;
-  final String subject;
+  String id;
+  String financier;
+  double amount;
+  String finn;
+  String subject;
 
   FinnContribution(this.id, this.financier, this.amount, this.finn, this.subject);
 
   FinnContribution.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         financier = json["financier"],
-        amount = json["amout"],
+        amount = json["amount"],
         subject = json["subject"],
         finn = json["finn"];
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'financer': financier,
+        'financier': financier,
         'amount': amount,
         'subject': subject,
         'finn': finn,
       };
 
   void save()  async {
-    final db = FirebaseFirestore.instance;
     final collection = db.collection("s4c_finncontrib");
 
     if ((this.id == null) || (this.id == ""))
@@ -86,7 +113,6 @@ class FinnContribution {
   }
 
   static Future<List> getByFinnAndFinancier (finn, financier) async {
-    final db = FirebaseFirestore.instance;
     final collection = db.collection("s4c_finncontrib");
     final query = await collection.where("finn", isEqualTo: finn).where('financier', isEqualTo:financier).get();
     List items = [];

@@ -6,7 +6,6 @@ import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-
 //--------------------------------------------------------------
 //                      FINN
 //--------------------------------------------------------------
@@ -32,7 +31,7 @@ Future<List> getFinnsByProject(String _project) async {
 
   query = await _collectionFinn
       .orderBy("project")
-      .orderBy("parent", descending: true)
+      .orderBy("name", descending: false)
       .where("project", isEqualTo: _project)
       .get();
   for (var doc in query.docs) {
@@ -91,10 +90,7 @@ Future<List> getContribByFinn(String finnuuid) async {
   List<FinnContribution> items = [];
   QuerySnapshot? query;
 
-  query = await _collectionFinnContrib
-      .orderBy("owner")
-      .where("finn", isEqualTo: finnuuid)
-      .get();
+  query = await _collectionFinnContrib.where("finn", isEqualTo: finnuuid).get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
@@ -104,18 +100,17 @@ Future<List> getContribByFinn(String finnuuid) async {
   return items;
 }
 
-List<FinnContribution> _getContribByFinn(String finnuuid)  {
+List<FinnContribution> _getContribByFinn(String finnuuid) {
   List<FinnContribution> items = [];
   final database = db.collection("s4c_finncontrib");
-  final query = database.where("finn", isEqualTo: finnuuid).get().then(
-    (querySnapshot) {
-      for (var doc in querySnapshot.docs) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        final item = FinnContribution.fromJson(data);
-        items.add(item);
-      }
+  final query =
+      database.where("finn", isEqualTo: finnuuid).get().then((querySnapshot) {
+    for (var doc in querySnapshot.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final item = FinnContribution.fromJson(data);
+      items.add(item);
     }
-  );
+  });
   return items;
 }
 
