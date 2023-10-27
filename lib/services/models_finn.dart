@@ -64,6 +64,11 @@ class SFinn {
       database.doc(id).set(data);
     }
   }
+    
+  void delete() {
+    final database = db.collection("s4c_finns");
+    if (id != "") { database.doc(id).delete(); }
+  }
 }
 
 class FinnContribution {

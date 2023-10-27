@@ -226,7 +226,7 @@ class _FinnsPageState extends State<FinnsPage> {
               ),
               Row(children: <Widget>[
                 Expanded(flex:20, child: customTextField(nameController, "Código")),
-                Spacer(flex:5),
+                const Spacer(flex:5),
                 Expanded(flex:75, child: customTextField(descController, "Descripción"))
               ]),
             ]),
@@ -539,12 +539,11 @@ class _FinnsPageState extends State<FinnsPage> {
 
       for (SFinn finn in data.data) {
         List<Expanded> cells = [];
-        ElevatedButton buttonTools = ElevatedButton(
-            onPressed: () { _editFinnDialog(context, finn, _project); },
-            style: buttonEditableTextStyle(),
-            child: const Icon( Icons.edit, color: Colors.black54, size: 12, ),
-        );
-        cells.add(Expanded( flex: wTools, child: Padding( padding: const EdgeInsets.only(left: 5, right: 5), child: buttonTools)));
+        IconButton buttonFinnEdit = IconButton(icon:const Icon(Icons.edit), onPressed: () { _editFinnDialog(context, finn, project);});
+        IconButton iconButton = IconButton(icon:const Icon(Icons.delete), onPressed: () {_removeFinnDialog(context, finn);},);
+        cells.add(Expanded( flex: wTools ~/ 2, child: Padding( padding: const EdgeInsets.only(left: 5, right: 5), child: buttonFinnEdit)));
+        cells.add(Expanded( flex: wTools ~/ 2, child: Padding( padding: const EdgeInsets.only(left: 5, right: 5), child: iconButton)));
+
         cells.add(Expanded( flex: wPartidas, child: Padding( padding: const EdgeInsets.all(15), child: Text( "${finn.name}. ${finn.description}", textAlign: TextAlign.left, style: const TextStyle(fontWeight: FontWeight.bold), ))));
         Text totalText;
         try {
@@ -819,38 +818,38 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
 
-  // Future<void> _removeFinnDialog(context, id, _project) async {
-  //   return showDialog<void>(
-  //     context: context,
-  //     barrierDismissible: false, // user must tap button!
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         // <-- SEE HERE
-  //         title: const Text('Remove Finn'),
-  //         content: const SingleChildScrollView(
-  //           child: Text("Are you sure to remove this element?"),
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: const Text('Remove'),
-  //             onPressed: () async {
-  //               await deleteFinn(id).then((value) {
-  //                 loadFinns(_project.uuid);
-  //                 Navigator.of(context).pop();
-  //                 //Navigator.popAndPushNamed(context, "/finns", arguments: {});
-  //               });
-  //             },
-  //           ),
-  //           TextButton(
-  //             child: const Text('Cancel'),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
+  Future<void> _removeFinnDialog(context, finn) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: s4cTitleBar('Eliminar partida'),
+          content: Text("Si confirma la acción, eliminará la partida seleccionada."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Confirmar'),
+              onPressed: () async {
+                  String projectUuid = finn.project;
+                  finn.delete();
+                  loadFinns(projectUuid);
+                  Navigator.of(context).pop();
+                  //Navigator.popAndPushNamed(context, "/finns", arguments: {});
+              },
+            ),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
+Card s4cTitleBar(String title) {
+  return Card( color: Colors.blueGrey, child: Padding( padding: const EdgeInsets.all(5), child: Text(title, style: const TextStyle( fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white))));
+}
