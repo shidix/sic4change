@@ -267,7 +267,7 @@ class _FinnsPageState extends State<FinnsPage> {
       double percent = aportes_amount[financier]! / totalBudgetDouble * 100;
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
           style: const TextStyle(fontWeight: FontWeight.bold));
-      if (percent > 55) {
+      if (percent > 45) {
         labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white));
