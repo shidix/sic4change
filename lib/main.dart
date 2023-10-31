@@ -33,7 +33,9 @@ class MyApp extends StatelessWidget {
     '/finns': (context) => const FinnsPage(),
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
+    '/result_tasks': (context) => const ResultTasksPage(),
     '/tasks': (context) => const TasksPage(),
+    '/task_info': (context) => const TaskInfoPage(),
   };
 
   @override

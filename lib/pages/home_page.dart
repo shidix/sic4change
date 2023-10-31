@@ -49,6 +49,13 @@ class _HomePageState extends State<HomePage> {
                 Text("Signed In as"),
                 space(height: 10),
                 Text(user.email!),
+                IconButton(
+                    icon: const Icon(Icons.task),
+                    tooltip: 'Edit',
+                    onPressed: () async {
+                      Navigator.popAndPushNamed(context, "/tasks");
+                    }),
+
                 /*IconButton(
                     icon: const Icon(Icons.edit),
                     tooltip: 'Edit',

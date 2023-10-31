@@ -370,59 +370,59 @@ Future<String> getProjectByActivityIndicator(String _uuid) async {
 //--------------------------------------------------------------
 //                           TASKS
 //--------------------------------------------------------------
-CollectionReference _collectionTask = db.collection("s4c_tasks");
+CollectionReference _collectionResultTask = db.collection("s4c_result_tasks");
 
-Future<List> getTasks() async {
-  List<Task> items = [];
+Future<List> getResultTasks() async {
+  List<ResultTask> items = [];
   QuerySnapshot? query;
 
-  query = await _collectionTask.get();
+  query = await _collectionResultTask.get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Task.fromJson(data);
+    final _item = ResultTask.fromJson(data);
     items.add(_item);
   }
   return items;
 }
 
-Future<List> getTasksByResult(String _result) async {
-  List<Task> items = [];
+Future<List> getResultTasksByResult(String _result) async {
+  List<ResultTask> items = [];
   QuerySnapshot? query;
 
-  query = await _collectionTask.where("result", isEqualTo: _result).get();
+  query = await _collectionResultTask.where("result", isEqualTo: _result).get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Task.fromJson(data);
+    final _item = ResultTask.fromJson(data);
     items.add(_item);
   }
   return items;
 }
 
-Future<void> addTask(String name, String result) async {
+Future<void> addResultTask(String name, String result) async {
   var uuid = Uuid();
-  await _collectionTask.add({
+  await _collectionResultTask.add({
     "uuid": uuid.v4(),
     "name": name,
     "result": result,
   });
 }
 
-Future<void> updateTask(
+Future<void> updateResultTask(
     String id, String uuid, String name, String result) async {
-  await _collectionTask.doc(id).set({
+  await _collectionResultTask.doc(id).set({
     "uuid": uuid,
     "name": name,
     "result": result,
   });
 }
 
-Future<void> deleteTask(String id) async {
-  await _collectionTask.doc(id).delete();
+Future<void> deleteResultTask(String id) async {
+  await _collectionResultTask.doc(id).delete();
 }
 
-Future<String> getProjectByTask(String _uuid) async {
+Future<String> getProjectByResultTask(String _uuid) async {
   Result _result;
   Goal _goal;
   SProject _project;

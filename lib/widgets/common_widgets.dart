@@ -319,9 +319,9 @@ Widget customRowFileBtn(context, btnName, btnLoc, btnIcon, btnRoute) {
   );
 }
 
-Widget customTextField(_controller, _hint) {
+Widget customTextField(_controller, _hint, {size = 220}) {
   return SizedBox(
-    width: 220,
+    width: size,
     child: TextField(
       controller: _controller,
       decoration: InputDecoration(
@@ -344,13 +344,13 @@ Widget customDoubleField(_controller, _hint) {
   );
 }
 
-Widget customAutocompleteField(_controller, _options, _hint) {
+Widget customAutocompleteField(_controller, _options, _hint, {width = 220}) {
   final FocusNode _focusNode = FocusNode();
   final GlobalKey _autocompleteKey = GlobalKey();
 
   return Column(children: [
     SizedBox(
-      width: 220,
+      width: width,
       child: TextFormField(
         controller: _controller,
         focusNode: _focusNode,

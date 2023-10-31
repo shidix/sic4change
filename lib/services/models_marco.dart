@@ -113,15 +113,15 @@ class ActivityIndicator {
       };
 }
 
-class Task {
+class ResultTask {
   final String id;
   final String uuid;
   final String name;
   final String result;
 
-  Task(this.id, this.uuid, this.name, this.result);
+  ResultTask(this.id, this.uuid, this.name, this.result);
 
-  Task.fromJson(Map<String, dynamic> json)
+  ResultTask.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],

@@ -1,8 +1,10 @@
 import 'dart:collection';
+import 'dart:html';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -11,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 
 const PAGE_TITLE = "Documentos";
 List file_list = [];
+List folder_list = [];
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -28,6 +31,14 @@ class _DocumentsPageState extends State<DocumentsPage> {
   Uint8List? pickedFileBytes;
   UploadTask? uploadTask;
   //String fileUrl = '';
+
+  void loadFolders(value) async {
+    await getFolders(value).then((val) {
+      folder_list = val;
+      //print(contact_list);
+    });
+    setState(() {});
+  }
 
   void loadFiles(value) async {
     await getFiles(value).then((val) {
@@ -273,19 +284,20 @@ class _DocumentsPageState extends State<DocumentsPage> {
         future: getFolders(parentUuid!),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
+            folder_list = snapshot.data!;
+
             return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 5,
                   childAspectRatio: 3,
                 ),
-                itemCount: snapshot.data?.length,
+                itemCount: folder_list.length,
                 itemBuilder: (_, index) {
-                  Folder? cFolder = snapshot.data?[index];
+                  Folder? cFolder = folder_list[index];
                   return Row(children: [
-                    customRowBtn(context, snapshot.data?[index].name,
-                        Icons.folder, "/documents", {"parent": cFolder}),
-                    folderPopUpBtn(
-                        context, snapshot.data?[index], _currentFolder)
+                    customRowBtn(context, folder_list[index].name, Icons.folder,
+                        "/documents", {"parent": cFolder}),
+                    folderPopUpBtn(context, folder_list[index], _currentFolder)
                   ]);
                 });
           } else {
@@ -297,6 +309,15 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
 //enum SampleItem { itemOne, itemTwo }
+
+  Future<bool> folderHaveChildren(_folder) async {
+    folder_list = await getFolders(_folder);
+    file_list = await getFiles(_folder);
+    if ((folder_list.length > 0) || (file_list.length > 0))
+      return true;
+    else
+      return false;
+  }
 
   Widget folderPopUpBtn(context, _folder, _currentFolder) {
     SampleItem? selectedMenu;
@@ -312,7 +333,11 @@ class _DocumentsPageState extends State<DocumentsPage> {
           _folderEditDialog(context, nameController, _folder, _currentFolder);
         }
         if (selectedMenu == SampleItem.itemTwo) {
-          _confirmRemoveDialog(context, _folder.id, _currentFolder);
+          bool haveChildren = await folderHaveChildren(_folder.uuid);
+          if (!haveChildren)
+            _confirmRemoveDialog(context, _folder.id, _currentFolder);
+          else
+            _errorRemoveDialog(context);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
@@ -340,13 +365,16 @@ class _DocumentsPageState extends State<DocumentsPage> {
 ---------------------------------------------------------------*/
   Future<void> _folderEditDialog(
       context, _controller, _folder, _currentFolder) async {
+    String _folderUuid = "";
+    if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Folder edit'),
+          title: const Text('Editar carpeta'),
           content: SingleChildScrollView(
             child: SizedBox(
               width: 250,
@@ -366,8 +394,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
                   await updateFolder(_folder.id, _folder.uuid, _controller.text,
                           _folder.parent)
                       .then((value) {
-                    Navigator.popAndPushNamed(context, "/documents",
-                        arguments: {"parent": _currentFolder});
+                    loadFolders(_folderUuid);
+                    Navigator.pop(context);
+                    /*Navigator.popAndPushNamed(context, "/documents",
+                        arguments: {"parent": _currentFolder});*/
                   });
                 } else {
                   String parent;
@@ -376,8 +406,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
                   else
                     parent = "";
                   await addFolder(_controller.text, parent).then((value) {
-                    Navigator.popAndPushNamed(context, "/documents",
-                        arguments: {"parent": _currentFolder});
+                    loadFolders(_folderUuid);
+                    Navigator.pop(context);
+                    /*Navigator.popAndPushNamed(context, "/documents",
+                        arguments: {"parent": _currentFolder});*/
                   });
                 }
               },
@@ -395,13 +427,16 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
   Future<void> _confirmRemoveDialog(context, id, _currentFolder) async {
+    String _folderUuid = "";
+    if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Remove Folder'),
+          title: const Text('Borrar carpeta'),
           content: SingleChildScrollView(
             child: Text("Are you sure to remove this element?"),
           ),
@@ -410,13 +445,40 @@ class _DocumentsPageState extends State<DocumentsPage> {
               child: const Text('Remove'),
               onPressed: () async {
                 await deleteFolder(id).then((value) {
-                  Navigator.popAndPushNamed(context, "/documents",
-                      arguments: {"parent": _currentFolder});
+                  loadFolders(_folderUuid);
+                  Navigator.pop(context);
+                  /*Navigator.popAndPushNamed(context, "/documents",
+                      arguments: {"parent": _currentFolder});*/
                 });
               },
             ),
             TextButton(
               child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _errorRemoveDialog(context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // <-- SEE HERE
+          title: const Text('Borrar carpeta'),
+          content: SingleChildScrollView(
+            child:
+                Text("No se puede borrar esta carpeta porque tiene contenido."),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cerrar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -543,9 +605,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
                   await updateFile(_file.id, _file.uuid, _controller.text,
                           _file.folder, _file.link, _file.loc)
                       .then((value) {
-                    var folderUuid = "";
-                    if (_currentFolder != null)
-                      folderUuid = _currentFolder.uuid;
                     loadFiles(_folderUuid);
                     Navigator.pop(context);
                     /*Navigator.popAndPushNamed(context, "/documents",

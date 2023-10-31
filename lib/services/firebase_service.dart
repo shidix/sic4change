@@ -38,7 +38,8 @@ Future<SProject?> getProjectByUuid(String _uuid) async {
   SProject? project;
   QuerySnapshot? queryProjects;
 
-  queryProjects = await _collectionProject.where("uuid", isEqualTo: _uuid).get();
+  queryProjects =
+      await _collectionProject.where("uuid", isEqualTo: _uuid).get();
   for (var doc in queryProjects.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;

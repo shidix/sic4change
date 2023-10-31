@@ -10,5 +10,7 @@ export 'package:sic4change/pages/goals_page.dart';
 export 'package:sic4change/pages/results_page.dart';
 export 'package:sic4change/pages/activities_page.dart';
 export 'package:sic4change/pages/activity_indicators_page.dart';
-export 'package:sic4change/pages/tasks_page.dart';
+export 'package:sic4change/pages/result_tasks_page.dart';
 export 'package:sic4change/pages/finns_page.dart';
+export 'package:sic4change/pages/tasks_page.dart';
+export 'package:sic4change/pages/task_info_page.dart';
