@@ -488,8 +488,8 @@ class _FinnsPageState extends State<FinnsPage> {
         fontWeight: FontWeight.bold,
       );
 
-      int wTools = 4;
-      int wPartidas = 36;
+      int wTools = 10;
+      int wPartidas = 30;
       int wAportes = 30;
       int wDist = 30;
 
@@ -564,27 +564,34 @@ class _FinnsPageState extends State<FinnsPage> {
 
       for (SFinn finn in data.data) {
         List<Expanded> cells = [];
+        IconButton buttonFinnInvoices =
+            IconButton(icon: const Icon(Icons.euro_symbol), onPressed: () {});
         IconButton buttonFinnEdit = IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
               _editFinnDialog(context, finn, project);
             });
-        IconButton iconButton = IconButton(
+        IconButton buttonFinnRemove = IconButton(
           icon: const Icon(Icons.delete),
           onPressed: () {
             _removeFinnDialog(context, finn);
           },
         );
         cells.add(Expanded(
-            flex: wTools ~/ 2,
+            flex: wTools ~/ 3,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 5, right: 5),
+                child: buttonFinnInvoices)));
+        cells.add(Expanded(
+            flex: wTools ~/ 3,
             child: Padding(
                 padding: const EdgeInsets.only(left: 5, right: 5),
                 child: buttonFinnEdit)));
         cells.add(Expanded(
-            flex: wTools ~/ 2,
+            flex: wTools ~/ 3,
             child: Padding(
                 padding: const EdgeInsets.only(left: 5, right: 5),
-                child: iconButton)));
+                child: buttonFinnRemove)));
 
         cells.add(Expanded(
             flex: wPartidas,
