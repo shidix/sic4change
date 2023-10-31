@@ -103,8 +103,7 @@ Future<List> getContribByFinn(String finnuuid) async {
 List<FinnContribution> _getContribByFinn(String finnuuid) {
   List<FinnContribution> items = [];
   final database = db.collection("s4c_finncontrib");
-  final query =
-      database.where("finn", isEqualTo: finnuuid).get().then((querySnapshot) {
+  database.where("finn", isEqualTo: finnuuid).get().then((querySnapshot) {
     for (var doc in querySnapshot.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       final item = FinnContribution.fromJson(data);

@@ -1,18 +1,15 @@
-import 'dart:js_interop';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-
 class SFinn {
-  final String id;
-  final String uuid;
-  final String name;
-  final String description;
-  final String parent;
-  final String project;
+  String id;
+  String uuid;
+  String name;
+  String description;
+  String parent;
+  String project;
 
   SFinn(this.id, this.uuid, this.name, this.description, this.parent,
       this.project);
@@ -33,30 +30,37 @@ class SFinn {
         'parent': parent,
         'project': project,
       };
-  
-  List<FinnContribution> getContribByFinn()  {
+
+  List<FinnContribution> getContribByFinn() {
     final List<FinnContribution> items = [];
-    bool semaphore = false;
     final database = db.collection("s4c_finncontrib");
-    final query = database.where("finn", isEqualTo: uuid).get().then(
-      (querySnapshot) {
-        print(1);
-        print(uuid);
-        for (var doc in querySnapshot.docs) {
-          print(2);
-          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          final item = FinnContribution.fromJson(data);
-          items.add(item);
-          print(item);
-        }
-        print(3);
-        semaphore = true;
+    database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        final Map<String, dynamic> data = doc.data();
+        final item = FinnContribution.fromJson(data);
+        items.add(item);
       }
-    );
-    print(4);
-    print(5);
-    print(items);
+    });
     return items;
+  }
+
+  void save() {
+    final database = db.collection("s4c_finns");
+    if (id == "") {
+      id = uuid;
+      Map<String, dynamic> data = toJson();
+      database.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      database.doc(id).set(data);
+    }
+  }
+
+  void delete() {
+    final database = db.collection("s4c_finns");
+    if (id != "") {
+      database.doc(id).delete();
+    }
   }
 }
 
@@ -67,7 +71,8 @@ class FinnContribution {
   String finn;
   String subject;
 
-  FinnContribution(this.id, this.financier, this.amount, this.finn, this.subject);
+  FinnContribution(
+      this.id, this.financier, this.amount, this.finn, this.subject);
 
   FinnContribution.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -84,43 +89,98 @@ class FinnContribution {
         'finn': finn,
       };
 
-  void save()  async {
+  void save() async {
     final collection = db.collection("s4c_finncontrib");
 
-    if ((this.id == null) || (this.id == ""))
-    {
-
+    if (id == "") {
       collection.add({
-        "id": Uuid().v4(),
-        "financier": this.financier,
-        "amount":this.amount,
-        "finn":this.finn,
-        "subject":this.subject,
+        "id": const Uuid().v4(),
+        "financier": financier,
+        "amount": amount,
+        "finn": finn,
+        "subject": subject,
       });
-    }
-    else {
+    } else {
       final query = await collection.where("id", isEqualTo: id).limit(1).get();
       final item = query.docs.first;
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
-      // collection.doc(this.id).set({
-      //   "financier": this.financier,
-      //   "amount":this.amount,
-      //   "finn":this.finn,
-      //   "subject":this.subject,
-      // });
     }
   }
 
-  static Future<List> getByFinnAndFinancier (finn, financier) async {
+  static Future<List> getByFinnAndFinancier(finn, financier) async {
     final collection = db.collection("s4c_finncontrib");
-    final query = await collection.where("finn", isEqualTo: finn).where('financier', isEqualTo:financier).get();
+    final query = await collection
+        .where("finn", isEqualTo: finn)
+        .where('financier', isEqualTo: financier)
+        .get();
     List items = [];
-    query.docs.forEach((element) { items.add(FinnContribution.fromJson(element.data()));});
-    print(items);
+    for (var element in query.docs) {
+      items.add(FinnContribution.fromJson(element.data()));
+    }
+    return items;
+  }
+}
+
+class FinnDistribution {
+  String id;
+  String partner;
+  double amount;
+  String finn;
+  String subject;
+
+  FinnDistribution(this.id, this.partner, this.amount, this.finn, this.subject);
+
+  FinnDistribution.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        partner = json["partner"],
+        amount = json["amount"],
+        subject = json["subject"],
+        finn = json["finn"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'partner': partner,
+        'amount': amount,
+        'subject': subject,
+        'finn': finn,
+      };
+
+  void save() async {
+    final collection = db.collection("s4c_finndistrib");
+
+    if (id == "") {
+      id = const Uuid().v4();
+      Map<String, dynamic> data = toJson();
+      collection.add(data);
+    } else {
+      final query = await collection.where("id", isEqualTo: id).limit(1).get();
+      final item = query.docs.first;
+      Map<String, dynamic> data = toJson();
+      collection.doc(item.id).set(data);
+    }
+  }
+
+  static Future<List> getByFinnAndFinancier(finn, partner) async {
+    final collection = db.collection("s4c_finndistrib");
+    final query = await collection
+        .where("finn", isEqualTo: finn)
+        .where('partner', isEqualTo: partner)
+        .get();
+    List items = [];
+    for (var element in query.docs) {
+      items.add(FinnDistribution.fromJson(element.data()));
+    }
     return items;
   }
 
-  
-
+  static Future<List> getByFinn(finn) async {
+    final collection = db.collection("s4c_finndistrib");
+    final query = await collection.where("finn", isEqualTo: finn).get();
+    List items = [];
+    for (var element in query.docs) {
+      items.add(FinnDistribution.fromJson(element.data()));
+    }
+    return items;
+  }
 }

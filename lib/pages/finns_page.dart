@@ -28,9 +28,12 @@ class FinnsPage extends StatefulWidget {
 
 class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map<String, Text>> aportes_controllers = {};
-  Text totalBudget = Text(
+  Map<String, Map<String, Text>> distrib_controllers = {};
+  Map<String, double> distrib_amount = {};
+  Map<String, double> aportes_amount = {};
+  Text totalBudget = const Text(
     '0.00',
-    style: const TextStyle(
+    style: TextStyle(
       fontFamily: 'Readex Pro',
       fontSize: 18,
     ),
@@ -39,6 +42,13 @@ class _FinnsPageState extends State<FinnsPage> {
     await getFinnsByProject(value).then((val) {
       finn_list = val;
     });
+    for (var partner in _project!.partners) {
+      distrib_amount[partner] = 0;
+    }
+    for (var financier in _project!.financiers) {
+      aportes_amount[financier] = 0;
+    }
+
     double total = 0;
     for (SFinn finn in finn_list) {
       await getContribByFinn(finn.uuid).then((items) {
@@ -49,9 +59,32 @@ class _FinnsPageState extends State<FinnsPage> {
               buttonEditableText((item.amount).toStringAsFixed(2));
           aportes_controllers[finn.uuid]![item.financier] = labelButton;
           total += item.amount;
+          if (aportes_amount.containsKey(item.financier)) {
+            aportes_amount[item.financier] =
+                (aportes_amount[item.financier]! + item.amount);
+          } else {
+            aportes_amount[item.financier] = item.amount;
+          }
+        }
+      });
+
+      await FinnDistribution.getByFinn(finn.uuid).then((items) {
+        distrib_controllers[finn.uuid] = {};
+        distrib_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
+        for (FinnDistribution item in items) {
+          Text labelButton =
+              buttonEditableText((item.amount).toStringAsFixed(2));
+          distrib_controllers[finn.uuid]![item.partner] = labelButton;
+          if (distrib_amount.containsKey(item.partner)) {
+            distrib_amount[item.partner] =
+                (distrib_amount[item.partner]! + item.amount);
+          } else {
+            distrib_amount[item.partner] = item.amount;
+          }
         }
       });
     }
+
     totalBudget = Text(
       total.toStringAsFixed(2),
       style: const TextStyle(
@@ -59,6 +92,7 @@ class _FinnsPageState extends State<FinnsPage> {
         fontSize: 18,
       ),
     );
+
     setState(() {});
   }
 
@@ -71,9 +105,6 @@ class _FinnsPageState extends State<FinnsPage> {
 
   @override
   Widget build(BuildContext context) {
-    //final SProject? _project;
-    final List items = [];
-
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       _project = args["project"];
@@ -82,7 +113,7 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     if (_project == null) {
-      return Page404();
+      return const Page404();
     }
 
     return Scaffold(
@@ -102,15 +133,14 @@ class _FinnsPageState extends State<FinnsPage> {
       Container(
         padding: const EdgeInsets.only(left: 40),
         child: Text("$PAGE_FINN_TITLE de ${_project.name}.",
-            style: TextStyle(fontSize: 20)),
+            style: const TextStyle(fontSize: 20)),
       ),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             finnAddBtn(context, _project),
-            //customRowBtn(context, "Volver", Icons.arrow_back, "/projects", {})
             customRowPopBtn(context, "Volver", Icons.arrow_back),
           ],
         ),
@@ -146,30 +176,28 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  void _saveFinn(context, _finn, _name, _desc, _parent, _project) async {
-    if (_finn != null) {
-      await updateFinn(
-              _finn.id, _finn.uuid, _name, _desc, _parent, _project.uuid)
-          .then((value) async {
-        loadFinns(_project.uuid);
-      });
-    } else {
-      await addFinn(_name, _desc, _parent, _project.uuid).then((value) async {
-        loadFinns(_project.uuid);
-      });
-    }
-    Navigator.of(context).pop();
+  void _saveFinn(context, _finn, _name, _desc, _parent, _project) {
+    _finn ??= SFinn("", const Uuid().v4(), _name, _desc, _parent, _project);
+
+    _finn.name = _name;
+    _finn.description = _desc;
+    _finn.parent = _parent;
+    _finn.project = _project;
+    _finn.save();
+    loadFinns(_project);
   }
 
   Future<void> _editFinnDialog(context, _finn, _project) {
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
     String _parent = "";
+    String title = "Nueva partida financiera";
 
     if (_finn != null) {
       nameController = TextEditingController(text: _finn.name);
       descController = TextEditingController(text: _finn.description);
       _parent = _finn.parent;
+      title = "Editar partida financiera";
     }
 
     return showDialog<void>(
@@ -178,29 +206,41 @@ class _FinnsPageState extends State<FinnsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Nueva partida'),
+          title: Card(
+              color: Colors.blueGrey,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white)))),
           content: SingleChildScrollView(
             child: Column(children: [
-              Row(
+              const Row(
                 children: <Widget>[
-                  const Text('Nombre'),
-                  space(width: 150),
-                  const Text("Descripción")
+                  Expanded(flex: 20, child: Text('Código')),
+                  Spacer(flex: 5),
+                  Expanded(flex: 75, child: Text("Descripción"))
                 ],
               ),
               Row(children: <Widget>[
-                customTextField(nameController, "Nombre"),
-                space(width: 20),
-                customTextField(descController, "Descripción")
+                Expanded(
+                    flex: 20, child: customTextField(nameController, "Código")),
+                const Spacer(flex: 5),
+                Expanded(
+                    flex: 75,
+                    child: customTextField(descController, "Descripción"))
               ]),
             ]),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Save'),
+              child: const Text('Guardar'),
               onPressed: () async {
                 _saveFinn(context, _finn, nameController.text,
-                    descController.text, _parent, _project);
+                    descController.text, _parent, _project.uuid);
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
@@ -215,359 +255,201 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Widget finnList(context, _project) {
-    return FutureBuilder(
-        future: getFinnsByProject(_project.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            finn_list = snapshot.data!;
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              verticalDirection: VerticalDirection.down,
-              children: <Widget>[
-                Expanded(
-                    child: Container(
-                        padding: EdgeInsets.all(15),
-                        child: ListView.builder(
-                            padding: const EdgeInsets.all(8),
-                            itemCount: finn_list.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              SFinn _finn = finn_list[index];
-                              if (_finn.parent == "") {
-                                return Container(
-                                  height: 100,
-                                  padding: const EdgeInsets.only(
-                                      top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
-                                  ),
-                                  child: finnRowMain(context, _finn, _project),
-                                );
-                              } else
-                                return Container(
-                                  height: 100,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
-                                  ),
-                                  child: finnRow(context, _finn, _project),
-                                );
-                            }))),
-              ],
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }
-
-  Widget finnRowMain(context, _finn, _project) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${_finn.name}'),
-            space(height: 10),
-            new LinearPercentIndicator(
-              width: MediaQuery.of(context).size.width - 500,
-              animation: true,
-              lineHeight: 10.0,
-              animationDuration: 2500,
-              percent: 0.8,
-              //center: Text("80.0%"),
-              linearStrokeCap: LinearStrokeCap.roundAll,
-              progressColor: Colors.green,
-            ),
-            space(height: 10),
-            Text(_finn.description),
-          ],
-        ),
-        finnRowOptions(context, _finn, _project),
-      ],
-    );
-  }
-
-  Widget finnRow(context, _finn, _project) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${_finn.name}'),
-            space(height: 10),
-            new LinearPercentIndicator(
-              width: MediaQuery.of(context).size.width - 500,
-              animation: true,
-              lineHeight: 10.0,
-              animationDuration: 2500,
-              percent: 0.8,
-              //center: Text("80.0%"),
-              linearStrokeCap: LinearStrokeCap.roundAll,
-              progressColor: Colors.blue,
-            ),
-          ],
-        ),
-        finnRowOptions(context, _finn, _project),
-      ],
-    );
-  }
-
-  Widget finnRowOptions(context, _finn, _project) {
-    return Row(children: [
-      IconButton(
-          icon: const Icon(Icons.list_alt),
-          tooltip: 'Results',
-          onPressed: () {
-            Navigator.pushNamed(context, "/results",
-                arguments: {'finn': _finn});
-          }),
-      IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: () async {
-            _editFinnDialog(context, _finn, _project);
-          }),
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Remove',
-          onPressed: () {
-            _removeFinnDialog(context, _finn.id, _project);
-          }),
-    ]);
-  }
-
-  Future<List> loadConfig(String _project) async {
-    List<SFinn> items = [];
-    QuerySnapshot? query;
-    final _collectionFinn = db.collection("s4c_finncontrib");
-
-    query = await _collectionFinn
-        .orderBy("project")
-        .orderBy("parent", descending: true)
-        .where("project", isEqualTo: _project)
-        .get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final _item = SFinn.fromJson(data);
-      items.add(_item);
-    }
-    return items;
-  }
-
   Widget finnFullPage(context, project) {
+    List<Container> source_rows = [];
+    double totalBudgetDouble =
+        max(1, double.parse(totalBudget.data.toString()));
+    TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
+    for (var financier in project.financiers) {
+      if (!aportes_amount.containsKey(financier)) {
+        aportes_amount[financier] = 0;
+      }
+      double percent = aportes_amount[financier]! / totalBudgetDouble * 100;
+      Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
+          style: const TextStyle(fontWeight: FontWeight.bold));
+      if (percent > 45) {
+        labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.white));
+      }
+      source_rows.add(Container(
+        decoration: const BoxDecoration(
+          color: Color(0xffffffff),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    financier,
+                    textAlign: TextAlign.start,
+                    style: ts,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: LinearPercentIndicator(
+                    percent: percent * 0.01,
+                    center: labelIndicator,
+                    lineHeight: 15,
+                    animation: true,
+                    animateFromLastPercent: true,
+                    progressColor: const Color(0xFF00809A),
+                    backgroundColor: const Color(0xFFEBECEF),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "${aportes_amount[financier]!.toStringAsFixed(2)} €",
+                    textAlign: TextAlign.end,
+                    style: ts,
+                  ),
+                ),
+              ],
+            )),
+      ));
+    }
+
     return FutureBuilder(
-        initialData:
-            loadConfig(project.uuid), //getFinnsByProject(project.uuid),
+        initialData: getFinnsByProject(project.uuid),
         future: getFinnsByProject(project.uuid),
         builder: ((context, snapshot) {
-          return Column(
+          return Card(
+              child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Align(
-                    alignment: AlignmentDirectional(-1.00, -1.00),
+                  Expanded(
+                    flex: 1,
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Card(
-                          clipBehavior: Clip.antiAliasWithSaveLayer,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Container(
-                            width: MediaQuery.sizeOf(context).width * 0.46,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                            ),
-                            child: Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(20, 20, 0, 0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Align(
-                                          alignment: AlignmentDirectional(
-                                              -1.00, -1.00),
-                                          child: Text(
-                                            'Presupuesto Total',
-                                            style: TextStyle(
-                                              fontFamily: 'Readex Pro',
-                                              fontSize: 18,
+                        Expanded(
+                            flex: 1,
+                            child: Card(
+                              clipBehavior: Clip.antiAliasWithSaveLayer,
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    20, 20, 0, 0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Expanded(
+                                          child: Align(
+                                            alignment: AlignmentDirectional(
+                                                -1.00, -1.00),
+                                            child: Text(
+                                              'Presupuesto Total',
+                                              style: TextStyle(
+                                                fontFamily: 'Readex Pro',
+                                                fontSize: 18,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment:
-                                              AlignmentDirectional(1.00, -1.00),
-                                          child: Padding(
-                                            padding:
-                                                EdgeInsets.only(right: 100),
-                                            child: totalBudget,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0, 10, 0, 0),
-                                    child: LinearPercentIndicator(
-                                      percent: 0.5,
-                                      width: MediaQuery.sizeOf(context).width *
-                                          0.40,
-                                      lineHeight: 12,
-                                      animation: true,
-                                      animateFromLastPercent: true,
-                                      progressColor: Color(0xFF00809A),
-                                      backgroundColor: Color(0xFFEBECEF),
-                                      padding: EdgeInsets.zero,
-                                    ),
-                                  ),
-                                  const Align(
-                                    alignment:
-                                        AlignmentDirectional(-1.00, 0.00),
-                                    child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0, 5, 0, 0),
-                                      child: Text(
-                                        '50% (de ejecución económica)',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Card(
-                          clipBehavior: Clip.antiAliasWithSaveLayer,
-                          //color: FlutterFlowTheme.of(context).secondaryBackground,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
-                            child: Container(
-                              width: MediaQuery.sizeOf(context).width * 0.5,
-                              height: 100,
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    0, 20, 20, 0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Origen del presupuesto total',
-                                      style: TextStyle(
-                                        fontFamily: 'Readex Pro',
-                                        color: Color(0xFF00809A),
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    ListView(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.vertical,
-                                      children: [
-                                        Container(
-                                          width: 100,
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xffffffff),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Expanded(
-                                                flex: 1,
-                                                child: Text(
-                                                  'Financiación propia',
-                                                  textAlign: TextAlign.start,
-                                                  style: TextStyle(
-                                                      backgroundColor:
-                                                          Color(0xffffffff)),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                flex: 1,
-                                                child: Align(
-                                                  alignment:
-                                                      const AlignmentDirectional(
-                                                          0.00, -1.00),
-                                                  child: LinearPercentIndicator(
-                                                    percent: 0.5,
-                                                    width: MediaQuery.sizeOf(
-                                                                context)
-                                                            .width *
-                                                        0.15,
-                                                    lineHeight: 15,
-                                                    animation: true,
-                                                    animateFromLastPercent:
-                                                        true,
-                                                    progressColor:
-                                                        const Color(0xFF00809A),
-                                                    backgroundColor:
-                                                        const Color(0xFFEBECEF),
-                                                    padding: EdgeInsets.zero,
-                                                  ),
-                                                ),
-                                              ),
-                                              const Expanded(
-                                                flex: 1,
-                                                child: Align(
-                                                  alignment:
-                                                      AlignmentDirectional(
-                                                          1.00, -1.00),
-                                                  child: Text(
-                                                    '10.000,00 €',
-                                                    textAlign: TextAlign.start,
-                                                    style: TextStyle(
-                                                        backgroundColor:
-                                                            Color(0xffffffff)),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                        Expanded(
+                                          child: Align(
+                                            alignment:
+                                                const AlignmentDirectional(
+                                                    1.00, -1.00),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 100),
+                                              child: totalBudget,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
+                                    Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0, 10, 0, 0),
+                                      child: LinearPercentIndicator(
+                                        percent: 0.5,
+                                        width:
+                                            MediaQuery.sizeOf(context).width *
+                                                0.40,
+                                        lineHeight: 12,
+                                        animation: true,
+                                        animateFromLastPercent: true,
+                                        progressColor: const Color(0xFF00809A),
+                                        backgroundColor:
+                                            const Color(0xFFEBECEF),
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    const Align(
+                                      alignment:
+                                          AlignmentDirectional(-1.00, 0.00),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            0, 5, 0, 0),
+                                        child: Text(
+                                          '50% (de ejecución económica)',
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
+                            )),
+                        Expanded(
+                            flex: 1,
+                            child: Card(
+                              clipBehavior: Clip.antiAliasWithSaveLayer,
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    20, 0, 20, 0),
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                      0, 20, 20, 0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Origen del presupuesto total',
+                                        style: TextStyle(
+                                          fontFamily: 'Readex Pro',
+                                          color: Color(0xFF00809A),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      ListView(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.vertical,
+                                        children: source_rows,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )),
                       ],
                     ),
                   ),
@@ -585,18 +467,18 @@ class _FinnsPageState extends State<FinnsPage> {
                         physics: const BouncingScrollPhysics(),
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
-                        children: mylist(snapshot, project),
+                        children: infoFinnGral(snapshot, project),
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-          );
+          ));
         }));
   }
 
-  List<Container> mylist(data, project) {
+  List<Container> infoFinnGral(data, project) {
     List<Row> rows = [];
 
     if (data.data is! Future<List>) {
@@ -606,15 +488,17 @@ class _FinnsPageState extends State<FinnsPage> {
         fontWeight: FontWeight.bold,
       );
 
-      int w_partidas = 35;
-      int w_aportes = 30;
-      int w_dist = 30;
+      int wTools = 4;
+      int wPartidas = 36;
+      int wAportes = 30;
+      int wDist = 30;
 
       String totalAport = "0.00";
+      String totalDist = "0.00";
 
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded(
-          flex: w_partidas,
+          flex: wPartidas + wTools,
           child: const Text(
             'Partidas',
             textAlign: TextAlign.center,
@@ -622,7 +506,7 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
         ),
         Expanded(
-          flex: w_aportes,
+          flex: wAportes,
           child: const Text(
             'Aportes',
             textAlign: TextAlign.center,
@@ -630,7 +514,7 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
         ),
         Expanded(
-          flex: w_dist,
+          flex: wDist,
           child: const Text(
             'Distribución aporte CM',
             textAlign: TextAlign.center,
@@ -641,7 +525,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
       List<Expanded> subHeader = [];
       subHeader.add(Expanded(
-          flex: w_partidas,
+          flex: wPartidas + wTools,
           child: const Padding(
               padding: EdgeInsets.all(15),
               child: Text(
@@ -650,55 +534,76 @@ class _FinnsPageState extends State<FinnsPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ))));
 
-      int f_aportes = w_aportes ~/ (project.financiers.length + 1);
+      int fAportes = wAportes ~/ (project.financiers.length + 1);
       subHeader.add(Expanded(
-          flex: f_aportes,
+          flex: fAportes,
           child: const Text('Total',
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold))));
       for (String financier in project.financiers) {
         subHeader.add(Expanded(
-            flex: f_aportes,
+            flex: fAportes,
             child: Text(financier,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold))));
+                style: const TextStyle(fontWeight: FontWeight.bold))));
       }
-      int f_dist = w_dist ~/ (project.partners.length + 1);
+      int fDist = wDist ~/ (project.partners.length + 1);
       subHeader.add(Expanded(
-          flex: f_dist,
+          flex: fDist,
           child: const Text('Total',
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold))));
       for (String partner in project.partners) {
         subHeader.add(Expanded(
-            flex: f_dist,
+            flex: fDist,
             child: Text(partner,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold))));
+                style: const TextStyle(fontWeight: FontWeight.bold))));
       }
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: subHeader));
 
       for (SFinn finn in data.data) {
-        // aportes_controllers[finn.uuid] = {};
         List<Expanded> cells = [];
+        IconButton buttonFinnEdit = IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              _editFinnDialog(context, finn, project);
+            });
+        IconButton iconButton = IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () {
+            _removeFinnDialog(context, finn);
+          },
+        );
+        cells.add(Expanded(
+            flex: wTools ~/ 2,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 5, right: 5),
+                child: buttonFinnEdit)));
+        cells.add(Expanded(
+            flex: wTools ~/ 2,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 5, right: 5),
+                child: iconButton)));
 
         cells.add(Expanded(
-            flex: w_partidas,
+            flex: wPartidas,
             child: Padding(
                 padding: const EdgeInsets.all(15),
                 child: Text(
                   "${finn.name}. ${finn.description}",
                   textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ))));
-        var totalText = Text("0.00",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold));
+        Text totalText;
         try {
           totalText = aportes_controllers[finn.uuid]!['Total'] as Text;
-        } catch (e) {}
-        ;
-        cells.add(Expanded(flex: f_aportes, child: totalText));
+        } catch (e) {
+          totalText = const Text("0.00",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold));
+        }
+        cells.add(Expanded(flex: fAportes, child: totalText));
         double total = 0;
         for (String financier in project.financiers) {
           Text? labelButton = buttonEditableText("0.00");
@@ -710,54 +615,62 @@ class _FinnsPageState extends State<FinnsPage> {
           }
           ElevatedButton button = ElevatedButton(
             onPressed: () {
-              _editFinnRowDialog(context, finn, financier);
+              _editFinnContribDialog(context, finn, financier);
             },
             style: buttonEditableTextStyle(),
             child: labelButton,
           );
           cells.add(Expanded(
-              flex: f_aportes,
+              flex: fAportes,
               child: Padding(
-                  padding: EdgeInsets.only(left: 5, right: 5), child: button)));
+                  padding: const EdgeInsets.only(left: 5, right: 5),
+                  child: button)));
         }
 
         totalAport = total.toStringAsFixed(2);
         int idx = (cells.length - 1 - project.financiers.length) as int;
         cells[idx] = Expanded(
-            flex: f_aportes,
+            flex: fAportes,
             child: Text(totalAport,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold)));
-        int f_dist = w_dist ~/ (project.partners.length + 1);
-        cells.add(Expanded(
-            flex: f_dist,
-            child: Text((Random().nextDouble() * 15000).toStringAsFixed(2),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold))));
+                style: const TextStyle(fontWeight: FontWeight.bold)));
+
+        // By Partner
+        int fDist = wDist ~/ (project.partners.length + 1);
+        Text totalDistText = const Text("0.0",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold));
+        cells.add(Expanded(flex: fDist, child: totalDistText));
+        total = 0;
         for (String partner in project.partners) {
+          Text? labelButton = buttonEditableText("0.00");
+          if (distrib_controllers.containsKey(finn.uuid)) {
+            if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
+              labelButton = distrib_controllers[finn.uuid]![partner];
+              total += double.parse((labelButton as Text).data.toString());
+            }
+          }
+          ElevatedButton button = ElevatedButton(
+            onPressed: () {
+              _editFinnDistDialog(context, finn, partner);
+            },
+            style: buttonEditableTextStyle(),
+            child: labelButton,
+          );
           cells.add(Expanded(
-              flex: f_dist,
-              child: Text((Random().nextDouble() * 15000).toStringAsFixed(2),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold))));
+              flex: fDist,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 5, right: 5),
+                  child: button)));
         }
-        ElevatedButton button = ElevatedButton(
-          onPressed: () {
-            _editFinnRowDialog(context, finn, project);
-          },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            backgroundColor: Colors.white,
-          ),
-          child: const Icon(
-            Icons.edit,
-            color: Colors.black54,
-            size: 20,
-          ),
-        );
-        //cells.add(Expanded(flex: w_tools,  child:Padding(padding: const EdgeInsets.only(top:10), child:button)));
+        totalDist = total.toStringAsFixed(2);
+        idx = (cells.length - 1 - project.partners.length) as int;
+        cells[idx] = Expanded(
+            flex: fDist,
+            child: Text(totalDist,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold)));
+
         rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
       }
 
@@ -775,7 +688,7 @@ class _FinnsPageState extends State<FinnsPage> {
     }
   }
 
-  Future<void> _editFinnRowDialog(context, finn, financier) {
+  Future<void> _editFinnContribDialog(context, finn, financier) {
     final database = db.collection("s4c_finncontrib");
     List<Row> rows = [];
     TextEditingController amount = TextEditingController(text: "0");
@@ -784,7 +697,7 @@ class _FinnsPageState extends State<FinnsPage> {
     item = FinnContribution(
         "", financier, double.parse(amount.text), finn.uuid, comment.text);
 
-    final query = database
+    database
         .where("finn", isEqualTo: finn.uuid)
         .where("financier", isEqualTo: financier)
         .get()
@@ -817,16 +730,17 @@ class _FinnsPageState extends State<FinnsPage> {
     rows.add(Row(children: [
       Expanded(
           flex: 1,
-          child: Padding(padding: EdgeInsets.all(10), child: Text(financier))),
+          child: Padding(
+              padding: const EdgeInsets.all(10), child: Text(financier))),
       Expanded(
           flex: 1,
           child: Padding(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: customTextField(comment, 'Comentario'))),
       Expanded(
           flex: 1,
           child: Padding(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: customDoubleField(amount, ''))),
     ]));
 
@@ -845,10 +759,7 @@ class _FinnsPageState extends State<FinnsPage> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        // List <FinnContribution> listContrib =  _getContribByFinn(finn.uuid);
-        // print(listContrib);
         return AlertDialog(
-          // <-- SEE HERE
           title: Card(
               color: Colors.blueGrey,
               child: Padding(
@@ -875,45 +786,124 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  void _saveFinnContrib(context, _finn, _name, _desc, _parent, _project) async {
-    if (_finn != null) {
-      await updateFinn(
-              _finn.id, _finn.uuid, _name, _desc, _parent, _project.uuid)
-          .then((value) async {
-        loadFinns(_project.uuid);
-      });
-    } else {
-      await addFinn(_name, _desc, _parent, _project.uuid).then((value) async {
-        loadFinns(_project.uuid);
-      });
-    }
-    Navigator.of(context).pop();
-  }
+  Future<void> _editFinnDistDialog(context, finn, partner) {
+    final database = db.collection("s4c_finndistrib");
+    List<Row> rows = [];
+    TextEditingController amount = TextEditingController(text: "0");
+    TextEditingController comment = TextEditingController(text: "");
+    FinnDistribution item = FinnDistribution(
+        "", partner, double.parse(amount.text), finn.uuid, comment.text);
 
-  Future<void> _removeFinnDialog(context, id, _project) async {
+    database
+        .where("finn", isEqualTo: finn.uuid)
+        .where("partner", isEqualTo: partner)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        item = FinnDistribution.fromJson(querySnapshot.docs.first.data());
+        amount.text = item.amount.toStringAsFixed(2);
+        comment.text = item.subject;
+      } else {
+        item = FinnDistribution(
+            "", partner, double.parse(amount.text), finn.uuid, comment.text);
+      }
+    });
+
+    rows.add(const Row(children: [
+      Expanded(
+          flex: 1,
+          child: Padding(padding: EdgeInsets.all(10), child: Text('Socio'))),
+      Expanded(
+          flex: 1,
+          child:
+              Padding(padding: EdgeInsets.all(10), child: Text('Comentario'))),
+      Expanded(
+          flex: 1,
+          child: Padding(padding: EdgeInsets.all(10), child: Text('Cantidad'))),
+    ]));
+
+    amount.text = "0";
+    rows.add(Row(children: [
+      Expanded(
+          flex: 1,
+          child:
+              Padding(padding: const EdgeInsets.all(10), child: Text(partner))),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: customTextField(comment, 'Comentario'))),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: customDoubleField(amount, ''))),
+    ]));
+
+    TextButton saveButton = TextButton(
+      child: const Text('Guardar'),
+      onPressed: () async {
+        item.amount = double.parse(amount.text);
+        item.subject = comment.text;
+        item.save();
+        loadFinns(_project!.uuid);
+        Navigator.of(context).pop();
+      },
+    );
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Remove Finn'),
+          title: Card(
+              color: Colors.blueGrey,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text('${finn.name}. ${finn.description}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white)))),
           content: SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
+            child: Column(children: rows),
           ),
           actions: <Widget>[
+            saveButton,
             TextButton(
-              child: const Text('Remove'),
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _removeFinnDialog(context, finn) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: s4cTitleBar('Eliminar partida'),
+          content:
+              Text("Si confirma la acción, eliminará la partida seleccionada."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Confirmar'),
               onPressed: () async {
-                await deleteFinn(id).then((value) {
-                  loadFinns(_project.uuid);
-                  Navigator.of(context).pop();
-                  //Navigator.popAndPushNamed(context, "/finns", arguments: {});
-                });
+                String projectUuid = finn.project;
+                finn.delete();
+                loadFinns(projectUuid);
+                Navigator.of(context).pop();
+                //Navigator.popAndPushNamed(context, "/finns", arguments: {});
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -925,145 +915,14 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 }
 
-List<FinnContribution> _getContribByFinn(String finnuuid) {
-  FirebaseFirestore db = FirebaseFirestore.instance;
-  List<FinnContribution> items = [];
-  final database = db.collection("s4c_finncontrib");
-  final query =
-      database.where("finn", isEqualTo: finnuuid).get().then((querySnapshot) {
-    for (var doc in querySnapshot.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      final item = FinnContribution.fromJson(data);
-      items.add(item);
-    }
-  });
-  return items;
-}
-
-ButtonStyle buttonEditableTextStyle() {
-  return ElevatedButton.styleFrom(
-    padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-    backgroundColor: Colors.white,
-  );
-}
-
-Text buttonEditableText(String textButton) {
-  return Text(textButton,
-      textAlign: TextAlign.center,
-      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey));
-}
-
-Future<void> _editFinnRowDialog2(context, finn, project) {
-  List<Row> rows = [];
-  rows.add(const Row(children: [
-    Expanded(
-        flex: 1,
-        child:
-            Padding(padding: EdgeInsets.all(10), child: Text('Financiador'))),
-    Expanded(
-        flex: 1,
-        child: Padding(padding: EdgeInsets.all(10), child: Text('Comentario'))),
-    Expanded(
-        flex: 1,
-        child: Padding(padding: EdgeInsets.all(10), child: Text('Cantidad'))),
-  ]));
-  for (var financier in project.financiers) {
-    rows.add(Row(children: [
-      Expanded(
-          flex: 1,
-          child: Padding(padding: EdgeInsets.all(10), child: Text(financier))),
-      Expanded(
-          flex: 1,
-          child: Padding(
-              padding: EdgeInsets.all(10),
-              child: customTextField(
-                  TextEditingController(
-                    text: "",
-                  ),
-                  'Comentario'))),
-      //        Expanded(flex:1, child: Padding(padding:EdgeInsets.all(10), child: TextField(decoration:InputDecoration(labelText:'Test'), inputFormatters: [FilteringTextInputFormatter.digitsOnly],))),
-      Expanded(
-          flex: 1,
-          child: Padding(
-              padding: EdgeInsets.all(10),
-              child: customDoubleField(
-                  TextEditingController(text: ""), 'Cantiidad'))),
-    ]));
-  }
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      // List <FinnContribution> listContrib =  _getContribByFinn(finn.uuid);
-      // print(listContrib);
-      return AlertDialog(
-        // <-- SEE HERE
-        title: Card(
-            color: Colors.blueGrey,
-            child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Text('${finn.name}. ${finn.description}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.white)))),
-        content: SingleChildScrollView(
-          child: Column(children: rows),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              Future<List> aux = FinnContribution.getByFinnAndFinancier(
-                  finn.uuid, 'SIC4Changes');
-              print("TEST");
-              print(aux.then((value) => print(value)));
-              for (Row row in rows.skip(1)) {
-                Text financier =
-                    (((row.children[0] as Expanded).child as Padding).child
-                        as Text);
-                TextEditingController subject =
-                    ((((row.children[1] as Expanded).child as Padding).child
-                                as SizedBox)
-                            .child as TextField)
-                        .controller as TextEditingController;
-                TextEditingController amount =
-                    ((((row.children[2] as Expanded).child as Padding).child
-                                as SizedBox)
-                            .child as TextField)
-                        .controller as TextEditingController;
-
-                try {
-                  //FinnContribution item = FinnContribution("", financier.data.toString(), amount as double, finn, subject as String);
-                  FinnContribution item = FinnContribution(
-                      "496848bb-0cb2-4370-88f4-eb6b63302738",
-                      financier.data.toString(),
-                      double.parse(amount.text),
-                      finn.uuid,
-                      subject.text);
-                  // item.save();
-
-                  print("OK");
-                } on Exception catch (e) {
-                  print("ERROR");
-                  print(e.runtimeType);
-                }
-                print("Debug 2");
-                // _saveFinnContrib(context, finn, ,
-                //     descController.text, parent, "");
-              }
-            },
-          ),
-          TextButton(
-            child: const Text('Cancelar'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+Card s4cTitleBar(String title) {
+  return Card(
+      color: Colors.blueGrey,
+      child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: Text(title,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white))));
 }

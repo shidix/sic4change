@@ -435,3 +435,17 @@ Widget customList(_list) {
         );
       });
 }
+
+ButtonStyle buttonEditableTextStyle() {
+  return ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    backgroundColor: Colors.white,
+  );
+}
+
+Text buttonEditableText(String textButton) {
+  return Text(textButton,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey));
+}
