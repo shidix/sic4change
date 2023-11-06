@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service.dart';
-import 'package:sic4change/services/firebase_service_finn.dart';
+//import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -39,7 +39,10 @@ class _FinnsPageState extends State<FinnsPage> {
     ),
   );
   void loadFinns(value) async {
-    await getFinnsByProject(value).then((val) {
+    // await getFinnsByProject(value).then((val) {
+    //   finn_list = val;
+    // });
+    await SFinn.byProject(value).then((val) {
       finn_list = val;
     });
     for (var partner in _project!.partners) {
@@ -51,7 +54,9 @@ class _FinnsPageState extends State<FinnsPage> {
 
     double total = 0;
     for (SFinn finn in finn_list) {
-      await getContribByFinn(finn.uuid).then((items) {
+      //await getContribByFinn(finn.uuid).then((items) 
+      await finn.getContrib().then((items)
+      {
         aportes_controllers[finn.uuid] = {};
         aportes_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
         for (FinnContribution item in items) {
@@ -376,8 +381,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
 
     return FutureBuilder(
-        initialData: getFinnsByProject(project.uuid),
-        future: getFinnsByProject(project.uuid),
+        initialData: SFinn.byProject(project.uuid),
+        future: SFinn.byProject(project.uuid),
         builder: ((context, snapshot) {
           return Card(
               child: Column(
