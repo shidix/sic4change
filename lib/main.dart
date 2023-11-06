@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
     '/projects': (context) => const ProjectsPage(),
     '/project_info': (context) => const ProjectInfoPage(),
     '/contacts': (context) => const ContactsPage(),
+    '/contact_info': (context) => const ContactInfoPage(),
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),
     '/results': (context) => const ResultsPage(),

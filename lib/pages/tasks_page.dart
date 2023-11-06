@@ -1,9 +1,4 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:sic4change/services/firebase_service_contact.dart';
-import 'package:sic4change/services/firebase_service_tasks.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -53,7 +48,7 @@ class _TasksPageState extends State<TasksPage> {
             },
             leading: const Icon(Icons.search),
           ),
-          /*Container(
+          Container(
             padding: EdgeInsets.all(10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -61,7 +56,7 @@ class _TasksPageState extends State<TasksPage> {
                 taskAddBtn(context),
               ],
             ),
-          ),*/
+          ),
         ]),
         //contactsHeader(context),
         Expanded(
@@ -76,7 +71,7 @@ class _TasksPageState extends State<TasksPage> {
 /*-------------------------------------------------------------
                             TASKS
 -------------------------------------------------------------*/
-  /*Widget taskAddBtn(context) {
+  Widget taskAddBtn(context) {
     return ElevatedButton(
       onPressed: () {
         _callEditDialog(context, null);
@@ -102,7 +97,7 @@ class _TasksPageState extends State<TasksPage> {
         ],
       ),
     );
-  }*/
+  }
 
   Widget taskList(context) {
     return FutureBuilder(
@@ -183,7 +178,7 @@ class _TasksPageState extends State<TasksPage> {
                           icon: const Icon(Icons.remove_circle),
                           tooltip: 'Remove',
                           onPressed: () {
-                            _removeTaskDialog(context, _task.id);
+                            _removeTaskDialog(context, _task);
                           }),
                     ]))
                   ]),
@@ -193,8 +188,9 @@ class _TasksPageState extends State<TasksPage> {
         ));
   }
 
-  /*void _callEditDialog(context, task) async {
-    List<String> status_list = [];
+  void _callEditDialog(context, task) async {
+    _taskEditDialog(context, task);
+    /*List<String> status_list = [];
     List<String> contact_list = [];
     await getTasksStatus().then((value) async {
       for (TasksStatus item in value) {
@@ -207,10 +203,29 @@ class _TasksPageState extends State<TasksPage> {
 
         _taskEditDialog(context, task, status_list, contact_list);
       });
-    });
+    });*/
   }
 
   void _saveTask(
+    context,
+    _task,
+    _name,
+  ) async {
+    STask _task = STask(_name);
+    _task.save();
+
+    Navigator.pushNamed(context, "/task_info", arguments: {'task': _task});
+    /*await addTask(_name, _description, _status, _deal_date, _deadline_date,
+              _new_deadline_date, _sender, List.empty())
+          .then((value) async {
+        if (!_status_list.contains(_status)) await addTasksStatus(_status);
+        loadTasks();
+        Navigator.pop(context);
+        //Navigator.popAndPushNamed(context, "/contacts");
+      });*/
+  }
+
+  /*void _saveTask(
       context,
       _task,
       _name,
@@ -248,9 +263,9 @@ class _TasksPageState extends State<TasksPage> {
         //Navigator.popAndPushNamed(context, "/contacts");
       });
     }
-  }
+  }*/
 
-  Widget customDateField(context, dateController) {
+  /*Widget customDateField(context, dateController) {
     return SizedBox(
         width: 220,
         child: TextField(
@@ -282,11 +297,12 @@ class _TasksPageState extends State<TasksPage> {
             }
           },
         ));
-  }
+  }*/
 
-  Future<void> _taskEditDialog(context, _task, _status_list, _contact_list) {
+  //Future<void> _taskEditDialog(context, _task, _status_list, _contact_list) {
+  Future<void> _taskEditDialog(context, _task) {
     TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descriptionController =
+    /* TextEditingController descriptionController =
         TextEditingController(text: "");
     TextEditingController statusController = TextEditingController(text: "");
     TextEditingController dealDateController = TextEditingController(text: "");
@@ -294,17 +310,17 @@ class _TasksPageState extends State<TasksPage> {
         TextEditingController(text: "");
     TextEditingController newDeadlineDateController =
         TextEditingController(text: "");
-    TextEditingController senderController = TextEditingController(text: "");
+    TextEditingController senderController = TextEditingController(text: "");*/
 
     if (_task != null) {
       nameController = TextEditingController(text: _task.name);
-      descriptionController = TextEditingController(text: _task.description);
+      /*descriptionController = TextEditingController(text: _task.description);
       statusController = TextEditingController(text: _task.status);
       dealDateController = TextEditingController(text: _task.deal_date);
       deadlineDateController = TextEditingController(text: _task.deadline_date);
       newDeadlineDateController =
           TextEditingController(text: _task.new_deadline_date);
-      senderController = TextEditingController(text: _task.sender);
+      senderController = TextEditingController(text: _task.sender);*/
     }
 
     return showDialog<void>(
@@ -322,7 +338,7 @@ class _TasksPageState extends State<TasksPage> {
                 customTextField(nameController, "Nombre", size: 700),
               ])
             ]),
-            space(height: 20),
+            /*space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Descripción:", 16, textColor: Colors.blue),
@@ -363,24 +379,21 @@ class _TasksPageState extends State<TasksPage> {
                 customDateField(context, newDeadlineDateController),
               ]),
               space(width: 20),
-            ])
+            ])*/
           ])),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveTask(
-                    context,
-                    _task,
-                    nameController.text,
-                    descriptionController.text,
+                _saveTask(context, _task, nameController.text);
+                /*descriptionController.text,
                     statusController.text,
                     dealDateController.text,
                     deadlineDateController.text,
                     newDeadlineDateController.text,
                     senderController.text,
                     [],
-                    _status_list);
+                    _status_list);*/
               },
             ),
             TextButton(
@@ -393,9 +406,9 @@ class _TasksPageState extends State<TasksPage> {
         );
       },
     );
-  }*/
+  }
 
-  Future<void> _removeTaskDialog(context, id) async {
+  Future<void> _removeTaskDialog(context, _task) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -410,11 +423,14 @@ class _TasksPageState extends State<TasksPage> {
             TextButton(
               child: const Text('Borrar'),
               onPressed: () async {
-                await deleteTask(id).then((value) {
+                _task.delete();
+                loadTasks();
+                Navigator.of(context).pop();
+                /*await deleteTask(id).then((value) {
                   loadTasks();
                   Navigator.of(context).pop();
                   //Navigator.popAndPushNamed(context, "/contacts");
-                });
+                });*/
               },
             ),
             TextButton(

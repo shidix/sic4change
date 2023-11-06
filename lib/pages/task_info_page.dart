@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/firebase_service.dart';
-import 'package:sic4change/services/firebase_service_contact.dart';
-import 'package:sic4change/services/firebase_service_tasks.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_tasks.dart';
@@ -23,13 +21,12 @@ class TaskInfoPage extends StatefulWidget {
 }
 
 class _TaskInfoPageState extends State<TaskInfoPage> {
-  void loadTask(id) async {
-    await getTaskById(id).then((val) {
+  void loadTask(task) async {
+    await task.reload().then((val) {
       Navigator.popAndPushNamed(context, "/task_info",
           arguments: {"task": val});
       /*setState(() {
-        _project = val;
-        print(_project?.announcement);
+        _task = val;
       });*/
     });
   }
@@ -265,7 +262,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       tooltip: 'Eliminar responsable',
                       onPressed: () async {
                         _task.assigned.remove(_task.assigned[index]);
-                        _removeAssigned(context, _task);
+                        _task.updateAssigned();
+                        loadTask(_task);
+                        //_removeAssigned(context, _task);
                       },
                     )
                   ]));
@@ -307,7 +306,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       tooltip: 'Eliminar programa',
                       onPressed: () async {
                         _task.programmes.remove(_task.programmes[index]);
-                        _removeProgrammes(context, _task);
+                        //_removeProgrammes(context, _task);
+                        _task.updateProgrammes();
+                        loadTask(_task);
                       },
                     )
                   ]));
@@ -357,53 +358,28 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       _project,
       _public,
       _status_list) async {
-    List<String> _assigned =
-        (_task.assigned as List).map((item) => item as String).toList();
-    List<String> _programmes =
-        (_task.programmes as List).map((item) => item as String).toList();
-    if (_task != null) {
-      await updateTask(
-              _task.id,
-              _task.uuid,
-              _name,
-              _description,
-              _comments,
-              _status,
-              _deal_date,
-              _deadline_date,
-              _new_deadline_date,
-              _sender,
-              _project,
-              _assigned,
-              _programmes,
-              _public)
-          .then((value) async {
-        if (!_status_list.contains(_status)) await addTasksStatus(_status);
-        loadTask(_task.id);
-        Navigator.pop(context);
-        //Navigator.popAndPushNamed(context, "/contacts");
-      });
-    } else {
-      await addTask(
-              _name,
-              _description,
-              _comments,
-              _status,
-              _deal_date,
-              _deadline_date,
-              _new_deadline_date,
-              _sender,
-              _project,
-              List.empty(),
-              List.empty(),
-              _public)
-          .then((value) async {
-        if (!_status_list.contains(_status)) await addTasksStatus(_status);
-        loadTask(_task.id);
-        Navigator.pop(context);
-        //Navigator.popAndPushNamed(context, "/contacts");
-      });
+    //if (_task != null) {
+    _task.name = _name;
+    _task.description = _description;
+    _task.comments = _comments;
+    _task.status = _status;
+    _task.deal_date = _deal_date;
+    _task.deadline_date = _deadline_date;
+    _task.new_deadline_date = _new_deadline_date;
+    _task.sender = _sender;
+    _task.project = _project;
+    _task.public = _public;
+    /*} else {
+      _task = STask("", "", _name, _description, _comments, _status, _deal_date,
+          _deadline_date, _new_deadline_date, _sender, _project, _public);
+    }*/
+    _task.save();
+    if (!_status_list.contains(_status)) {
+      TasksStatus _tasksStatus = TasksStatus(_status);
+      _tasksStatus.save();
     }
+    loadTask(_task);
+    Navigator.pop(context);
   }
 
   Widget customDateField(context, dateController) {
@@ -595,18 +571,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   void _saveAssigned(context, _task, _name, _contacts) async {
     _task.assigned.add(_name);
-    await updateTaskAssigned(_task.id, _task.assigned).then((value) async {
-      if (!_contacts.contains(_name))
-        await addContact(_name, "", [], "", "", "");
-      loadTask(_task.id);
-    });
-    Navigator.of(context).pop();
-  }
+    _task.updateAssigned();
 
-  void _removeAssigned(context, _task) async {
-    await updateTaskAssigned(_task.id, _task.assigned).then((value) async {
-      loadTask(_task.id);
-    });
+    if (!_contacts.contains(_name)) {
+      Contact _contact = Contact(_name, "", "", "", "");
+      _contact.save();
+    }
+    loadTask(_task);
+    Navigator.of(context).pop();
   }
 
   void _callAssignedEditDialog(context, _task) async {
@@ -660,17 +632,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   void _saveProgrammes(context, _task, _name, _programmes_list) async {
     _task.programmes.add(_name);
-    await updateTaskProgrammes(_task.id, _task.programmes).then((value) async {
-      if (!_programmes_list.contains(_name)) await addProgramme(_name);
-      loadTask(_task.id);
-    });
+    _task.updateProgrammes();
+    if (!_programmes_list.contains(_name)) await addProgramme(_name);
+    loadTask(_task);
     Navigator.of(context).pop();
-  }
-
-  void _removeProgrammes(context, _task) async {
-    await updateTaskProgrammes(_task.id, _task.programmes).then((value) async {
-      loadTask(_task.id);
-    });
   }
 
   void _callProgrammesEditDialog(context, _task) async {

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/services/firebase_service.dart';
-import 'package:sic4change/services/firebase_service_contact.dart';
 
 //final pr = SProject("Proyecto de prueba", "Descripción del proyecto de prueba");
 /*List<SProject> projects = [

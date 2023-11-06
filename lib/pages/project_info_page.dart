@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
-import 'package:sic4change/services/firebase_service_contact.dart';
 import 'package:sic4change/services/firebase_service_location.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -488,8 +487,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       });
     }
     if (!_types.contains(_type)) await addProjectType(_type);
-    if (!_contacts.contains(_manager))
-      await addContact(_manager, "", [], "", "", "");
+    if (!_contacts.contains(_manager)) {
+      Contact _contact = Contact(_manager, "", "", "", "");
+      _contact.save();
+    }
     if (!_programmes.contains(_programme)) await addProgramme(_programme);
     Navigator.of(context).pop();
   }
@@ -739,8 +740,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     _project.partners.add(_name);
     await updateProjectPartners(_project.id, _project.partners)
         .then((value) async {
-      if (!_contacts.contains(_name))
-        await addContact(_name, "", [], "", "", "");
+      if (!_contacts.contains(_name)) {
+        Contact _contact = Contact(_name, "", "", "", "");
+        _contact.save();
+      }
       loadProject(_project.id);
     });
     Navigator.of(context).pop();

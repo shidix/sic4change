@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/firebase_service_contact.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
@@ -209,6 +209,19 @@ SingleChildScrollView dataBody(context) {
                   DataCell(Text(contact.position)),
                   DataCell(Row(children: [
                     IconButton(
+                        icon: const Icon(Icons.info),
+                        tooltip: 'View',
+                        onPressed: () async {
+                          await getContactInfoByContact(contact.uuid)
+                              .then((contactInfo) {
+                            Navigator.pushNamed(context, "/contact_info",
+                                arguments: {
+                                  'contactInfo': contactInfo,
+                                  'contact': contact
+                                });
+                          });
+                        }),
+                    IconButton(
                         icon: const Icon(Icons.edit),
                         tooltip: 'Edit',
                         onPressed: () async {
@@ -218,7 +231,7 @@ SingleChildScrollView dataBody(context) {
                         icon: const Icon(Icons.remove_circle),
                         tooltip: 'Remove',
                         onPressed: () {
-                          _removeContactDialog(context, contact.id);
+                          _removeContactDialog(context, contact);
                         }),
                   ]))
                 ]),
@@ -248,21 +261,37 @@ void _callEditDialog(context, contact) async {
 void _saveContact(context, _contact, _name, _comp, _pos, _email, _phone,
     _companies, _positions) async {
   if (_contact != null) {
-    await updateContact(_contact.id, _contact.uuid, _name, _comp,
+    _contact.name = _name;
+    _contact.company = _comp;
+    _contact.position = _pos;
+    _contact.email = _email;
+    _contact.phone = _phone;
+    _contact.save();
+    /*await updateContact(_contact.id, _contact.uuid, _name, _comp,
             _contact.projects, _pos, _email, _phone)
         .then((value) async {
       if (!_companies.contains(_comp)) await addCompany(_comp);
       if (!_positions.contains(_pos)) await addPosition(_pos);
       Navigator.popAndPushNamed(context, "/contacts");
-    });
+    });*/
   } else {
-    await addContact(_name, _comp, List.empty(), _pos, _email, _phone)
+    Contact _contact = Contact(_name, _comp, _pos, _email, _phone);
+    /*await addContact(_name, _comp, List.empty(), _pos, _email, _phone)
         .then((value) async {
       if (!_companies.contains(_comp)) await addCompany(_comp);
       if (!_positions.contains(_pos)) await addPosition(_pos);
       Navigator.popAndPushNamed(context, "/contacts");
-    });
+    });*/
   }
+  if (!_companies.contains(_comp)) {
+    Company _company = Company(_comp);
+    _company.save();
+  }
+  if (!_positions.contains(_pos)) {
+    Position _position = Position(_pos);
+    _position.save();
+  }
+  Navigator.popAndPushNamed(context, "/contacts");
 }
 
 Future<void> _contactEditDialog(context, _contact, _companies, _positions) {
@@ -327,7 +356,7 @@ Future<void> _contactEditDialog(context, _contact, _companies, _positions) {
   );
 }
 
-Future<void> _removeContactDialog(context, id) async {
+Future<void> _removeContactDialog(context, _contact) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
@@ -342,9 +371,11 @@ Future<void> _removeContactDialog(context, id) async {
           TextButton(
             child: const Text('Remove'),
             onPressed: () async {
-              await deleteContact(id).then((value) {
+              _contact.delete();
+              Navigator.popAndPushNamed(context, "/contacts");
+              /*await deleteContact(id).then((value) {
                 Navigator.popAndPushNamed(context, "/contacts");
-              });
+              });*/
             },
           ),
           TextButton(
