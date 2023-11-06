@@ -3,5 +3,5 @@ export PATH=/home/danidiaz/develop/flutter/bin/:/usr/local/sbin:/usr/local/bin:/
 while true
 do
     cd /home/danidiaz/develop/sic4change/web
-    flutter run -d web-server --debug --web-hostname 0.0.0.0 --web-port 2222
+    flutter run -d web-server --debug --web-hostname 0.0.0.0 --web-port 8989
 done
