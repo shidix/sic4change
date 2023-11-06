@@ -256,7 +256,8 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnFullPage(context, project) {
-    List<Container> source_rows = [];
+    project = project as SProject;
+    List<Container> sourceRows = [];
     double totalBudgetDouble =
         max(1, double.parse(totalBudget.data.toString()));
     TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
@@ -272,7 +273,7 @@ class _FinnsPageState extends State<FinnsPage> {
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white));
       }
-      source_rows.add(Container(
+      sourceRows.add(Container(
         decoration: const BoxDecoration(
           color: Color(0xffffffff),
         ),
@@ -314,6 +315,65 @@ class _FinnsPageState extends State<FinnsPage> {
             )),
       ));
     }
+
+    List<Container> distrRows = [];
+    print(project.partners);
+
+    for (var partner in project.partners) {
+      if (!distrib_amount.containsKey(partner)) {
+        distrib_amount[partner] = 0;
+      }
+      double percent = distrib_amount[partner]! / totalBudgetDouble * 100;
+      Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
+          style: const TextStyle(fontWeight: FontWeight.bold));
+      if (percent > 45) {
+        labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.white));
+      }
+      distrRows.add(Container(
+        decoration: const BoxDecoration(
+          color: Color(0xffffffff),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    partner,
+                    textAlign: TextAlign.start,
+                    style: ts,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: LinearPercentIndicator(
+                    percent: percent * 0.01,
+                    center: labelIndicator,
+                    lineHeight: 15,
+                    animation: true,
+                    animateFromLastPercent: true,
+                    progressColor: const Color(0xFF00809A),
+                    backgroundColor: const Color(0xFFEBECEF),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "${distrib_amount[partner]!.toStringAsFixed(2)} €",
+                    textAlign: TextAlign.end,
+                    style: ts,
+                  ),
+                ),
+              ],
+            )),
+      ));
+    }
+
 
     return FutureBuilder(
         initialData: getFinnsByProject(project.uuid),
@@ -384,9 +444,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                               0, 10, 0, 0),
                                       child: LinearPercentIndicator(
                                         percent: 0.5,
-                                        width:
-                                            MediaQuery.sizeOf(context).width *
-                                                0.40,
+               
                                         lineHeight: 12,
                                         animation: true,
                                         animateFromLastPercent: true,
@@ -443,13 +501,54 @@ class _FinnsPageState extends State<FinnsPage> {
                                         padding: EdgeInsets.zero,
                                         shrinkWrap: true,
                                         scrollDirection: Axis.vertical,
-                                        children: source_rows,
+                                        children: sourceRows,
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            )),
+                            )
+                          ),
+                        Expanded(
+                            flex: 1,
+                            child: Card(
+                              clipBehavior: Clip.antiAliasWithSaveLayer,
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    20, 0, 20, 0),
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                      0, 20, 20, 0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Distribución Presupuesto',
+                                        style: TextStyle(
+                                          fontFamily: 'Readex Pro',
+                                          color: Color(0xFF00809A),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      ListView(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.vertical,
+                                        children: distrRows,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          ),
                       ],
                     ),
                   ),
@@ -488,8 +587,8 @@ class _FinnsPageState extends State<FinnsPage> {
         fontWeight: FontWeight.bold,
       );
 
-      int wTools = 4;
-      int wPartidas = 36;
+      int wTools = 10;
+      int wPartidas = 30;
       int wAportes = 30;
       int wDist = 30;
 
@@ -564,27 +663,34 @@ class _FinnsPageState extends State<FinnsPage> {
 
       for (SFinn finn in data.data) {
         List<Expanded> cells = [];
+        IconButton buttonFinnInvoices =
+            IconButton(icon: const Icon(Icons.euro_symbol), onPressed: () {});
         IconButton buttonFinnEdit = IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
               _editFinnDialog(context, finn, project);
             });
-        IconButton iconButton = IconButton(
+        IconButton buttonFinnRemove = IconButton(
           icon: const Icon(Icons.delete),
           onPressed: () {
             _removeFinnDialog(context, finn);
           },
         );
         cells.add(Expanded(
-            flex: wTools ~/ 2,
+            flex: wTools ~/ 3,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 5, right: 5),
+                child: buttonFinnInvoices)));
+        cells.add(Expanded(
+            flex: wTools ~/ 3,
             child: Padding(
                 padding: const EdgeInsets.only(left: 5, right: 5),
                 child: buttonFinnEdit)));
         cells.add(Expanded(
-            flex: wTools ~/ 2,
+            flex: wTools ~/ 3,
             child: Padding(
                 padding: const EdgeInsets.only(left: 5, right: 5),
-                child: iconButton)));
+                child: buttonFinnRemove)));
 
         cells.add(Expanded(
             flex: wPartidas,
