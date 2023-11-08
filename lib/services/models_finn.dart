@@ -44,10 +44,14 @@ class SFinn {
     return items;
   }
 
-  static Future<List> byProject(String uuidProject) async  {
+  static Future<List> byProject(String uuidProject) async {
     final List<SFinn> items = [];
     final database = db.collection("s4c_finns");
-    await database.where("project", isEqualTo: uuidProject).get().then((querySnapshot) {
+    await database
+        .where("project", isEqualTo: uuidProject)
+        .orderBy('name')
+        .get()
+        .then((querySnapshot) {
       for (var doc in querySnapshot.docs) {
         final Map<String, dynamic> data = doc.data();
         final item = SFinn.fromJson(data);
@@ -59,7 +63,7 @@ class SFinn {
 
   static SFinn byUuid(String uuid) {
     final database = db.collection("s4c_finns");
-    SFinn item = SFinn('',uuid,'','','','');
+    SFinn item = SFinn('', uuid, '', '', '', '');
     database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
       var first = querySnapshot.docs.first;
       item = SFinn.fromJson(first.data());
