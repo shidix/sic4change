@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget mainMenu(context) {
@@ -12,10 +12,11 @@ Widget mainMenu(context) {
       ),
     ),*/
     child: Container(
-      padding: EdgeInsets.all(3),
+      padding: const EdgeInsets.all(3),
       //margin: EdgeInsets.all(120.0),
       color: Colors.blueGrey,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           logo(),
           menuBtn(context, "Inicio", Icons.home, "/home"),
@@ -25,14 +26,13 @@ Widget mainMenu(context) {
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),
           logoutBtn(context, "Salir", Icons.arrow_back),
         ],
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
       ),
     ),
   );
 }
 
 Widget logo() {
-  return Image(
+  return const Image(
     image: AssetImage('assets/images/logo.jpg'),
     width: 100,
   );
