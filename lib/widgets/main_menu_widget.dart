@@ -18,7 +18,7 @@ Widget mainMenu(context) {
       child: Row(
         children: [
           logo(),
-          menuBtn(context, "Home", Icons.home, "/home"),
+          menuBtn(context, "Inicio", Icons.home, "/home"),
           menuBtn(context, "Cuadro de mando", Icons.grading_sharp, "/home"),
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects"),
           menuBtn(context, "Documentos", Icons.folder, "/documents"),
