@@ -18,6 +18,25 @@ List finn_list = [];
 List projects = [];
 SProject? _project;
 FirebaseFirestore db = FirebaseFirestore.instance;
+double totalBudgetProject = 1;
+double executedBudgetProject = 0;
+
+
+
+
+const TextStyle mainText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xFF00809A),
+  fontSize: 18,
+  fontWeight: FontWeight.bold,
+);
+
+const TextStyle secondaryText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xFF00809A),
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
 
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key});
@@ -27,17 +46,31 @@ class FinnsPage extends StatefulWidget {
 }
 
 class _FinnsPageState extends State<FinnsPage> {
-  Map<String, Map<String, Text>> aportes_controllers = {};
+  Map<String, Map<String, Text>> aportesControllers = {};
   Map<String, Map<String, Text>> distrib_controllers = {};
   Map<String, double> distrib_amount = {};
   Map<String, double> aportes_amount = {};
   Text totalBudget = const Text(
     '0.00',
+    textAlign: TextAlign.end,
     style: TextStyle(
       fontFamily: 'Readex Pro',
       fontSize: 18,
     ),
   );
+
+  Text totalExecuted = const Text(
+    '0 %',
+    textAlign: TextAlign.end,
+    style: TextStyle(
+      fontFamily: 'Readex Pro',
+      fontSize: 14,
+      color:Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+
   void loadFinns(value) async {
     // await getFinnsByProject(value).then((val) {
     //   finn_list = val;
@@ -51,18 +84,30 @@ class _FinnsPageState extends State<FinnsPage> {
     for (var financier in _project!.financiers) {
       aportes_amount[financier] = 0;
     }
+    _project!.totalBudget().then((value) {totalBudgetProject = value;});
+  
+    totalBudget = Text(
+      totalBudgetProject.toStringAsFixed(2),
+      textAlign: TextAlign.end,
+      style: const TextStyle(
+        fontFamily: 'Readex Pro',
+        fontSize: 18,
+      ),
+    );
+
+
 
     double total = 0;
     for (SFinn finn in finn_list) {
       //await getContribByFinn(finn.uuid).then((items) 
       await finn.getContrib().then((items)
       {
-        aportes_controllers[finn.uuid] = {};
-        aportes_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
+        aportesControllers[finn.uuid] = {};
+        aportesControllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
         for (FinnContribution item in items) {
           Text labelButton =
               buttonEditableText((item.amount).toStringAsFixed(2));
-          aportes_controllers[finn.uuid]![item.financier] = labelButton;
+          aportesControllers[finn.uuid]![item.financier] = labelButton;
           total += item.amount;
           if (aportes_amount.containsKey(item.financier)) {
             aportes_amount[item.financier] =
@@ -92,9 +137,29 @@ class _FinnsPageState extends State<FinnsPage> {
 
     totalBudget = Text(
       total.toStringAsFixed(2),
+      textAlign: TextAlign.end,
       style: const TextStyle(
         fontFamily: 'Readex Pro',
         fontSize: 18,
+      ),
+    );
+
+
+    // totalBudgetProject = max(1,total);
+    // executedBudgetProject = totalBudgetProject * 0.75;
+    await _project!.totalBudget().then((value) {
+      totalBudgetProject = max(1,value);
+      executedBudgetProject = value * 0.75;
+    });
+
+    totalExecuted = Text(
+      "${(executedBudgetProject / totalBudgetProject * 100).toStringAsFixed(0)}%",
+      textAlign: TextAlign.end,
+      style: const TextStyle(
+        fontFamily: 'Readex Pro',
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+        color: Colors.white,
       ),
     );
 
@@ -264,21 +329,16 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget finnFullPage(context, project) {
     project = project as SProject;
     List<Container> sourceRows = [];
-    double totalBudgetDouble =
-        max(1, double.parse(totalBudget.data.toString()));
+    // double totalBudgetDouble = max(1, double.parse(totalBudget.data.toString()));
     TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
     for (var financier in project.financiers) {
       if (!aportes_amount.containsKey(financier)) {
         aportes_amount[financier] = 0;
       }
-      double percent = aportes_amount[financier]! / totalBudgetDouble * 100;
+      double percent = aportes_amount[financier]! / totalBudgetProject * 100;
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-          style: const TextStyle(fontWeight: FontWeight.bold));
-      if (percent > 45) {
-        labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white));
-      }
       sourceRows.add(Container(
         decoration: const BoxDecoration(
           color: Color(0xffffffff),
@@ -304,8 +364,8 @@ class _FinnsPageState extends State<FinnsPage> {
                     lineHeight: 15,
                     animation: true,
                     animateFromLastPercent: true,
-                    progressColor: const Color(0xFF00809A),
-                    backgroundColor: const Color(0xFFEBECEF),
+                    progressColor: Colors.blueGrey,
+                    backgroundColor: Colors.grey,
                     padding: EdgeInsets.zero,
                   ),
                 ),
@@ -328,14 +388,11 @@ class _FinnsPageState extends State<FinnsPage> {
       if (!distrib_amount.containsKey(partner)) {
         distrib_amount[partner] = 0;
       }
-      double percent = distrib_amount[partner]! / totalBudgetDouble * 100;
+      double percent = distrib_amount[partner]! / totalBudgetProject * 100;
+
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-          style: const TextStyle(fontWeight: FontWeight.bold));
-      if (percent > 45) {
-        labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white));
-      }
+          style: const TextStyle( fontWeight: FontWeight.bold, color: Colors.white)
+      );
       distrRows.add(Container(
         decoration: const BoxDecoration(
           color: Color(0xffffffff),
@@ -361,8 +418,8 @@ class _FinnsPageState extends State<FinnsPage> {
                     lineHeight: 15,
                     animation: true,
                     animateFromLastPercent: true,
-                    progressColor: const Color(0xFF00809A),
-                    backgroundColor: const Color(0xFFEBECEF),
+                    progressColor: Colors.blueGrey,
+                    backgroundColor: Colors.grey,
                     padding: EdgeInsets.zero,
                   ),
                 ),
@@ -378,6 +435,7 @@ class _FinnsPageState extends State<FinnsPage> {
             )),
       ));
     }
+
 
 
     return FutureBuilder(
@@ -396,84 +454,8 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                            flex: 1,
-                            child: Card(
-                              clipBehavior: Clip.antiAliasWithSaveLayer,
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    20, 20, 0, 0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Expanded(
-                                          child: Align(
-                                            alignment: AlignmentDirectional(
-                                                -1.00, -1.00),
-                                            child: Text(
-                                              'Presupuesto Total',
-                                              style: TextStyle(
-                                                fontFamily: 'Readex Pro',
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Align(
-                                            alignment:
-                                                const AlignmentDirectional(
-                                                    1.00, -1.00),
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 100),
-                                              child: totalBudget,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsetsDirectional.fromSTEB(
-                                              0, 10, 0, 0),
-                                      child: LinearPercentIndicator(
-                                        percent: 0.5,
-               
-                                        lineHeight: 12,
-                                        animation: true,
-                                        animateFromLastPercent: true,
-                                        progressColor: const Color(0xFF00809A),
-                                        backgroundColor:
-                                            const Color(0xFFEBECEF),
-                                        padding: EdgeInsets.zero,
-                                      ),
-                                    ),
-                                    const Align(
-                                      alignment:
-                                          AlignmentDirectional(-1.00, 0.00),
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0, 5, 0, 0),
-                                        child: Text(
-                                          '50% (de ejecución económica)',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )),
                         Expanded(
                             flex: 1,
                             child: Card(
@@ -493,14 +475,49 @@ class _FinnsPageState extends State<FinnsPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Expanded(
+                                            flex:1,
+                                            child: Align(
+                                              alignment: AlignmentDirectional(
+                                                  -1.00, -1.00),
+                                              child: Text(
+                                                'Presupuesto Total',
+                                                style: mainText,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex:2,
+                                            child:                                       
+                                            Padding(
+                                              padding: const EdgeInsets.only(top:5, bottom:10),
+                                              child: 
+                                              LinearPercentIndicator(
+                                                percent:executedBudgetProject/totalBudgetProject,
+                                                center:totalExecuted,
+                                                lineHeight: 15,
+                                                animation: true,
+                                                animateFromLastPercent: true,
+                                                progressColor: Colors.blueGrey,
+                                                backgroundColor: Colors.grey,
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                            ),           
+                                          ),
+                                          Expanded(
+                                            flex:1,                                  
+                                            child: totalBudget,
+                                          ),
+                                        ],
+                                      ),                      
                                       const Text(
-                                        'Origen del presupuesto total',
-                                        style: TextStyle(
-                                          fontFamily: 'Readex Pro',
-                                          color: Color(0xFF00809A),
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        'Origen del presupuesto',
+                                        style: secondaryText,
                                       ),
                                       ListView(
                                         padding: EdgeInsets.zero,
@@ -535,12 +552,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                     children: [
                                       const Text(
                                         'Distribución Presupuesto',
-                                        style: TextStyle(
-                                          fontFamily: 'Readex Pro',
-                                          color: Color(0xFF00809A),
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: mainText,
                                       ),
                                       ListView(
                                         padding: EdgeInsets.zero,
@@ -669,7 +681,7 @@ class _FinnsPageState extends State<FinnsPage> {
       for (SFinn finn in data.data) {
         List<Expanded> cells = [];
         IconButton buttonFinnInvoices =
-            IconButton(icon: const Icon(Icons.euro_symbol), onPressed: () {});
+            IconButton(icon: const Icon(Icons.list), onPressed: () {});
         IconButton buttonFinnEdit = IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -708,7 +720,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 ))));
         Text totalText;
         try {
-          totalText = aportes_controllers[finn.uuid]!['Total'] as Text;
+          totalText = aportesControllers[finn.uuid]!['Total'] as Text;
         } catch (e) {
           totalText = const Text("0.00",
               textAlign: TextAlign.center,
@@ -718,9 +730,9 @@ class _FinnsPageState extends State<FinnsPage> {
         double total = 0;
         for (String financier in project.financiers) {
           Text? labelButton = buttonEditableText("0.00");
-          if (aportes_controllers.containsKey(finn.uuid)) {
-            if (aportes_controllers[finn.uuid]!.containsKey(financier)) {
-              labelButton = aportes_controllers[finn.uuid]![financier];
+          if (aportesControllers.containsKey(finn.uuid)) {
+            if (aportesControllers[finn.uuid]!.containsKey(financier)) {
+              labelButton = aportesControllers[finn.uuid]![financier];
               total += double.parse((labelButton as Text).data.toString());
             }
           }
@@ -792,7 +804,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
       return containers;
     } else {
-      if (aportes_controllers.isEmpty) {
+      if (aportesControllers.isEmpty) {
         loadFinns(project.uuid);
       }
       return [];
