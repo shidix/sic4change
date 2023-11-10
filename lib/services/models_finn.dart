@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -51,6 +53,8 @@ class SFinn {
       for (var doc in querySnapshot.docs) {
         final Map<String, dynamic> data = doc.data();
         final item = SFinn.fromJson(data);
+        item.id = doc.id;
+
         items.add(item);
       }
     });
@@ -62,6 +66,7 @@ class SFinn {
     SFinn item = SFinn('',uuid,'','','','');
     database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
       var first = querySnapshot.docs.first;
+      item.id = first.id;
       item = SFinn.fromJson(first.data());
     });
     return item;
@@ -85,7 +90,13 @@ class SFinn {
       database.doc(id).delete();
     }
   }
+
+  String toString() {
+    return jsonEncode(toJson());
+  }
 }
+
+/////////////////////
 
 class FinnContribution {
   String id;
@@ -142,6 +153,10 @@ class FinnContribution {
       items.add(FinnContribution.fromJson(element.data()));
     }
     return items;
+  }
+
+  String toString() {
+    return jsonEncode(toJson());
   }
 }
 

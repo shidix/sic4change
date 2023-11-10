@@ -118,7 +118,8 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     if (_project == null) {
-      return const Page404();
+      return const ProjectsPage();
+      //return const Page404();
     }
 
     return Scaffold(
@@ -322,7 +323,6 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     List<Container> distrRows = [];
-    print(project.partners);
 
     for (var partner in project.partners) {
       if (!distrib_amount.containsKey(partner)) {
