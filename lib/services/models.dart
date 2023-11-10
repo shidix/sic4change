@@ -76,11 +76,12 @@ class SProject {
   Future<double> totalBudget() async {
     final contribs = db.collection("s4c_finncontrib");
     final finns = db.collection("s4c_finns");
-    await finns.where("project", isEqualTo: uuid).get().then((list_finns) 
+    dblbudget = 0;
+    await finns.where("project", isEqualTo: uuid).get().then((list_finns) async
     {
       for (var finn in list_finns.docs)
       {
-        contribs.where("finn", isEqualTo: finn.data()["uuid"]).get().then((querySnapshot) {
+        await contribs.where("finn", isEqualTo: finn.data()["uuid"]).get().then((querySnapshot) {
           for (var doc in querySnapshot.docs) {
             final Map<String, dynamic> data = doc.data();
             dblbudget += data["amount"];
@@ -88,7 +89,6 @@ class SProject {
         });
       };
     });
-
     return dblbudget;
   }
 }

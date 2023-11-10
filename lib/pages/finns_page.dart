@@ -84,7 +84,7 @@ class _FinnsPageState extends State<FinnsPage> {
     for (var financier in _project!.financiers) {
       aportes_amount[financier] = 0;
     }
-    _project!.totalBudget().then((value) {totalBudgetProject = value;});
+    // _project!.totalBudget().then((value) {totalBudgetProject = value;});
   
     totalBudget = Text(
       totalBudgetProject.toStringAsFixed(2),
@@ -95,7 +95,12 @@ class _FinnsPageState extends State<FinnsPage> {
       ),
     );
 
-
+    // totalBudgetProject = max(1,total);
+    // executedBudgetProject = totalBudgetProject * 0.75;
+    await _project!.totalBudget().then((value) {
+      totalBudgetProject = max(1,value);
+      executedBudgetProject = value * 0.75;
+    });
 
     double total = 0;
     for (SFinn finn in finn_list) {
@@ -145,12 +150,6 @@ class _FinnsPageState extends State<FinnsPage> {
     );
 
 
-    // totalBudgetProject = max(1,total);
-    // executedBudgetProject = totalBudgetProject * 0.75;
-    await _project!.totalBudget().then((value) {
-      totalBudgetProject = max(1,value);
-      executedBudgetProject = value * 0.75;
-    });
 
     totalExecuted = Text(
       "${(executedBudgetProject / totalBudgetProject * 100).toStringAsFixed(0)}%",
@@ -335,7 +334,7 @@ class _FinnsPageState extends State<FinnsPage> {
       if (!aportes_amount.containsKey(financier)) {
         aportes_amount[financier] = 0;
       }
-      double percent = aportes_amount[financier]! / totalBudgetProject * 100;
+      double percent = min(aportes_amount[financier]! / totalBudgetProject * 100, 100);
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white));
@@ -388,7 +387,7 @@ class _FinnsPageState extends State<FinnsPage> {
       if (!distrib_amount.containsKey(partner)) {
         distrib_amount[partner] = 0;
       }
-      double percent = distrib_amount[partner]! / totalBudgetProject * 100;
+      double percent = min(distrib_amount[partner]! / totalBudgetProject * 100, 100);
 
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
           style: const TextStyle( fontWeight: FontWeight.bold, color: Colors.white)
