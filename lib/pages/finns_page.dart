@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -20,9 +19,6 @@ SProject? _project;
 FirebaseFirestore db = FirebaseFirestore.instance;
 double totalBudgetProject = 1;
 double executedBudgetProject = 0;
-
-
-
 
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
@@ -65,11 +61,10 @@ class _FinnsPageState extends State<FinnsPage> {
     style: TextStyle(
       fontFamily: 'Readex Pro',
       fontSize: 14,
-      color:Colors.white,
+      color: Colors.white,
       fontWeight: FontWeight.bold,
     ),
   );
-
 
   void loadFinns(value) async {
     // await getFinnsByProject(value).then((val) {
@@ -85,7 +80,7 @@ class _FinnsPageState extends State<FinnsPage> {
       aportes_amount[financier] = 0;
     }
     // _project!.totalBudget().then((value) {totalBudgetProject = value;});
-  
+
     totalBudget = Text(
       totalBudgetProject.toStringAsFixed(2),
       textAlign: TextAlign.end,
@@ -98,15 +93,14 @@ class _FinnsPageState extends State<FinnsPage> {
     // totalBudgetProject = max(1,total);
     // executedBudgetProject = totalBudgetProject * 0.75;
     await _project!.totalBudget().then((value) {
-      totalBudgetProject = max(1,value);
+      totalBudgetProject = max(1, value);
       executedBudgetProject = value * 0.75;
     });
 
     double total = 0;
     for (SFinn finn in finn_list) {
-      //await getContribByFinn(finn.uuid).then((items) 
-      await finn.getContrib().then((items)
-      {
+      //await getContribByFinn(finn.uuid).then((items)
+      await finn.getContrib().then((items) {
         aportesControllers[finn.uuid] = {};
         aportesControllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
         for (FinnContribution item in items) {
@@ -149,8 +143,6 @@ class _FinnsPageState extends State<FinnsPage> {
       ),
     );
 
-
-
     totalExecuted = Text(
       "${(executedBudgetProject / totalBudgetProject * 100).toStringAsFixed(0)}%",
       textAlign: TextAlign.end,
@@ -174,8 +166,9 @@ class _FinnsPageState extends State<FinnsPage> {
 
   @override
   Widget build(BuildContext context) {
+    _project = null;
     if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+      Map args = ModalRoute.of(context)!.settings.arguments as Map;
       _project = args["project"];
     } else {
       _project = null;
@@ -334,10 +327,11 @@ class _FinnsPageState extends State<FinnsPage> {
       if (!aportes_amount.containsKey(financier)) {
         aportes_amount[financier] = 0;
       }
-      double percent = min(aportes_amount[financier]! / totalBudgetProject * 100, 100);
+      double percent =
+          min(aportes_amount[financier]! / totalBudgetProject * 100, 100);
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white));
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.white));
       sourceRows.add(Container(
         decoration: const BoxDecoration(
           color: Color(0xffffffff),
@@ -387,11 +381,12 @@ class _FinnsPageState extends State<FinnsPage> {
       if (!distrib_amount.containsKey(partner)) {
         distrib_amount[partner] = 0;
       }
-      double percent = min(distrib_amount[partner]! / totalBudgetProject * 100, 100);
+      double percent =
+          min(distrib_amount[partner]! / totalBudgetProject * 100, 100);
 
       Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-          style: const TextStyle( fontWeight: FontWeight.bold, color: Colors.white)
-      );
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.white));
       distrRows.add(Container(
         decoration: const BoxDecoration(
           color: Color(0xffffffff),
@@ -434,8 +429,6 @@ class _FinnsPageState extends State<FinnsPage> {
             )),
       ));
     }
-
-
 
     return FutureBuilder(
         initialData: SFinn.byProject(project.uuid),
@@ -480,7 +473,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Expanded(
-                                            flex:1,
+                                            flex: 1,
                                             child: Align(
                                               alignment: AlignmentDirectional(
                                                   -1.00, -1.00),
@@ -491,14 +484,14 @@ class _FinnsPageState extends State<FinnsPage> {
                                             ),
                                           ),
                                           Expanded(
-                                            flex:2,
-                                            child:                                       
-                                            Padding(
-                                              padding: const EdgeInsets.only(top:5, bottom:10),
-                                              child: 
-                                              LinearPercentIndicator(
-                                                percent:executedBudgetProject/totalBudgetProject,
-                                                center:totalExecuted,
+                                            flex: 2,
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 5, bottom: 10),
+                                              child: LinearPercentIndicator(
+                                                percent: executedBudgetProject /
+                                                    totalBudgetProject,
+                                                center: totalExecuted,
                                                 lineHeight: 15,
                                                 animation: true,
                                                 animateFromLastPercent: true,
@@ -506,14 +499,14 @@ class _FinnsPageState extends State<FinnsPage> {
                                                 backgroundColor: Colors.grey,
                                                 padding: EdgeInsets.zero,
                                               ),
-                                            ),           
+                                            ),
                                           ),
                                           Expanded(
-                                            flex:1,                                  
+                                            flex: 1,
                                             child: totalBudget,
                                           ),
                                         ],
-                                      ),                      
+                                      ),
                                       const Text(
                                         'Origen del presupuesto',
                                         style: secondaryText,
@@ -528,8 +521,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                   ),
                                 ),
                               ),
-                            )
-                          ),
+                            )),
                         Expanded(
                             flex: 1,
                             child: Card(
@@ -563,8 +555,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                   ),
                                 ),
                               ),
-                            )
-                          ),
+                            )),
                       ],
                     ),
                   ),
