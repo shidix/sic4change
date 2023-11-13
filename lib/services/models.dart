@@ -1,7 +1,9 @@
 // import 'dart:ffi';
 // import 'dart:html';
 
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+FirebaseFirestore db = FirebaseFirestore.instance;
 
 class SProject {
   final String id;
@@ -18,6 +20,8 @@ class SProject {
   final bool evaluation;
   final List financiers;
   final List partners;
+
+  double dblbudget = 0;
 
   SProject(
       this.id,
@@ -76,6 +80,30 @@ class SProject {
   String total_budget() {
     double aux = 24;
     return (aux.toString());
+  }
+
+  Future<double> totalBudget() async {
+    final contribs = db.collection("s4c_finncontrib");
+    final finns = db.collection("s4c_finns");
+    dblbudget = 0;
+    await finns
+        .where("project", isEqualTo: uuid)
+        .get()
+        .then((list_finns) async {
+      for (var finn in list_finns.docs) {
+        await contribs
+            .where("finn", isEqualTo: finn.data()["uuid"])
+            .get()
+            .then((querySnapshot) {
+          for (var doc in querySnapshot.docs) {
+            final Map<String, dynamic> data = doc.data();
+            dblbudget += data["amount"];
+          }
+        });
+      }
+      ;
+    });
+    return dblbudget;
   }
 }
 

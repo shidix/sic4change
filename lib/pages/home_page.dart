@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Signed In as"),
+                Text("Usuario registrado como"),
                 space(height: 10),
                 Text(user.email!),
 

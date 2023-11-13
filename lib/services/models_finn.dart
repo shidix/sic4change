@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,10 +33,10 @@ class SFinn {
         'project': project,
       };
 
-  List<FinnContribution> getContribByFinn() {
+  Future<List> getContrib() async {
     final List<FinnContribution> items = [];
     final database = db.collection("s4c_finncontrib");
-    database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
+    await database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
       for (var doc in querySnapshot.docs) {
         final Map<String, dynamic> data = doc.data();
         final item = FinnContribution.fromJson(data);
@@ -42,6 +44,36 @@ class SFinn {
       }
     });
     return items;
+  }
+
+  static Future<List> byProject(String uuidProject) async {
+    final List<SFinn> items = [];
+    final database = db.collection("s4c_finns");
+    await database
+        .where("project", isEqualTo: uuidProject)
+        .orderBy('name')
+        .get()
+        .then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        final Map<String, dynamic> data = doc.data();
+        final item = SFinn.fromJson(data);
+        item.id = doc.id;
+
+        items.add(item);
+      }
+    });
+    return items;
+  }
+
+  static SFinn byUuid(String uuid) {
+    final database = db.collection("s4c_finns");
+    SFinn item = SFinn('', uuid, '', '', '', '');
+    database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+      var first = querySnapshot.docs.first;
+      item.id = first.id;
+      item = SFinn.fromJson(first.data());
+    });
+    return item;
   }
 
   void save() {
@@ -62,7 +94,13 @@ class SFinn {
       database.doc(id).delete();
     }
   }
+
+  String toString() {
+    return jsonEncode(toJson());
+  }
 }
+
+/////////////////////
 
 class FinnContribution {
   String id;
@@ -119,6 +157,10 @@ class FinnContribution {
       items.add(FinnContribution.fromJson(element.data()));
     }
     return items;
+  }
+
+  String toString() {
+    return jsonEncode(toJson());
   }
 }
 
