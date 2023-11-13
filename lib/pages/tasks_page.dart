@@ -155,9 +155,9 @@ class _TasksPageState extends State<TasksPage> {
                     ),
                     DataCell(Text(_task.deadline_date)),
                     DataCell(Text(_task.new_deadline_date)),
-                    DataCell(Text(_task.sender)),
+                    DataCell(Text(_task.senderObj.name)),
                     DataCell(Text(_task.assigned.join(","))),
-                    DataCell(Text(_task.status)),
+                    DataCell(Text(_task.statusObj.name)),
                     DataCell(Row(children: [
                       IconButton(
                           icon: const Icon(Icons.view_compact),

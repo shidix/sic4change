@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -19,8 +18,16 @@ class ActivitiesPage extends StatefulWidget {
 }
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
+  /*
   void loadActivities(value) async {
     await getActivitiesByResult(value).then((val) {
+      activity_list = val;
+    });
+    setState(() {});
+  }*/
+
+  void loadActivities(_result) async {
+    await _result.getActivitiesByResult().then((val) {
       activity_list = val;
     });
     setState(() {});
@@ -66,7 +73,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 -------------------------------------------------------------*/
   Widget activityPath(context, _result) {
     return FutureBuilder(
-        future: getProjectByActivity(_result.uuid),
+        //future: getProjectByActivity(_result.uuid),
+        future: _result.getProjectByActivity(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             final _path = snapshot.data!;
@@ -120,7 +128,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   void _saveActivity(context, _activity, _name, _result) async {
-    if (_activity != null) {
+    /*if (_activity != null) {
       await updateActivity(_activity.id, _activity.uuid, _name, _result.uuid)
           .then((value) async {
         loadActivities(_result.uuid);
@@ -129,7 +137,11 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       await addActivity(_name, _result.uuid).then((value) async {
         loadActivities(_result.uuid);
       });
-    }
+    }*/
+    if (_activity == null) _activity = Activity(_result);
+    _activity.name = _name;
+    _activity.save();
+    loadActivities(_result);
     Navigator.of(context).pop();
   }
 
@@ -148,9 +160,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           // <-- SEE HERE
           title: const Text('Activity edit'),
           content: SingleChildScrollView(
-              child: Column(children: [
-            customTextField(nameController, "Enter name"),
-          ])),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),
+              ])),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
@@ -172,6 +187,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   Widget activityList(context, _result) {
     return FutureBuilder(
+        //future: getActivitiesByResult(_result.uuid),
         future: getActivitiesByResult(_result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
@@ -252,12 +268,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeActivityDialog(context, _activity.id, _result);
+            _removeActivityDialog(context, _activity, _result);
           }),
     ]);
   }
 
-  Future<void> _removeActivityDialog(context, id, _result) async {
+  Future<void> _removeActivityDialog(context, _activity, _result) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -272,10 +288,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteActivity(id).then((value) {
+                _activity.delete();
+                loadActivities(_result);
+                Navigator.of(context).pop();
+                /*await deleteActivity(id).then((value) {
                   loadActivities(_result.uuid);
                   Navigator.of(context).pop();
-                });
+                });*/
               },
             ),
             TextButton(

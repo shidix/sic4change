@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -74,7 +73,7 @@ class _ResultsPageState extends State<ResultsPage> {
 -------------------------------------------------------------*/
   Widget resultPath(context, _goal) {
     return FutureBuilder(
-        future: getProjectByResult(_goal.uuid),
+        future: _goal.getProjectByGoal(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             final _path = snapshot.data!;
@@ -161,7 +160,7 @@ class _ResultsPageState extends State<ResultsPage> {
 
   void _saveResult(context, _result, _name, _desc, _indicator_text,
       _indicator_percent, _source, _goal) async {
-    if (_result != null) {
+    /*if (_result != null) {
       await updateResult(_result.id, _result.uuid, _name, _desc,
               _indicator_text, _indicator_percent, _source, _goal.uuid)
           .then((value) async {
@@ -173,7 +172,15 @@ class _ResultsPageState extends State<ResultsPage> {
           .then((value) async {
         loadResults(_goal.uuid);
       });
-    }
+    }*/
+    if (_result != null) _result = Result(_goal);
+    _goal.name = _name;
+    _goal.description = _desc;
+    _goal.indicator_text = _indicator_text;
+    _goal.indicator_percent = _indicator_percent;
+    _goal.source = _source;
+    _goal.save();
+    loadResults(_goal.uuid);
     Navigator.of(context).pop();
   }
 
@@ -204,17 +211,34 @@ class _ResultsPageState extends State<ResultsPage> {
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: <Widget>[
-              customTextField(nameController, "Enter name"),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),
+              ]),
               space(width: 20),
-              customTextField(descController, "Enter description"),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Descripción:", 16, textColor: Colors.blue),
+                customTextField(descController, "Descripción..."),
+              ]),
             ]),
+            space(height: 20),
             Row(children: <Widget>[
-              customTextField(iTextController, "Enter indicator"),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Indicador:", 16, textColor: Colors.blue),
+                customTextField(iTextController, "Indicador..."),
+              ]),
               space(width: 20),
-              customDoubleField(iPercentController, "Enter indicator percent")
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Porcentaje:", 16, textColor: Colors.blue),
+                customDoubleField(iPercentController, "Porcentaje...")
+              ]),
             ]),
+            space(height: 20),
             Row(children: <Widget>[
-              customTextField(sourceController, "Enter source"),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Fuente:", 16, textColor: Colors.blue),
+                customTextField(sourceController, "Fuente..."),
+              ]),
             ])
           ])),
           actions: <Widget>[
@@ -352,7 +376,7 @@ class _ResultsPageState extends State<ResultsPage> {
           icon: const Icon(Icons.assignment_rounded),
           tooltip: 'Tasks',
           onPressed: () {
-            Navigator.pushNamed(context, "/tasks",
+            Navigator.pushNamed(context, "/result_tasks",
                 arguments: {'result': _result});
           }),
       IconButton(
@@ -365,12 +389,12 @@ class _ResultsPageState extends State<ResultsPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeResultDialog(context, _result.id, _goal);
+            _removeResultDialog(context, _result, _goal);
           }),
     ]);
   }
 
-  Future<void> _removeResultDialog(context, id, _goal) async {
+  Future<void> _removeResultDialog(context, _result, _goal) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -385,11 +409,14 @@ class _ResultsPageState extends State<ResultsPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteResult(id).then((value) {
+                _result.delete();
+                loadResults(_goal.uuid);
+                Navigator.of(context).pop();
+                /*await deleteResult(id).then((value) {
                   loadResults(_goal.uuid);
                   Navigator.of(context).pop();
                   //Navigator.popAndPushNamed(context, "/goals", arguments: {});
-                });
+                });*/
               },
             ),
             TextButton(

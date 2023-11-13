@@ -1,9 +1,12 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -336,7 +339,7 @@ Widget customDoubleField(_controller, _hint) {
     width: 220,
     child: TextField(
         controller: _controller,
-        decoration: new InputDecoration(labelText: _hint),
+        //decoration: new InputDecoration(labelText: _hint),
         keyboardType: TextInputType.number,
         inputFormatters: <TextInputFormatter>[
           FilteringTextInputFormatter.allow(RegExp(r"[0-9.]"))
@@ -399,6 +402,32 @@ Widget customAutocompleteField(_controller, _options, _hint, {width = 220}) {
   ]);
 }
 
+Widget customDropdownField(_controller, _options, _hint, {width = 220}) {
+  return SizedBox(
+      width: width,
+      child: DropdownSearch<KeyValue>(
+        popupProps: PopupProps.menu(
+          showSearchBox: true,
+          showSelectedItems: true,
+          //disabledItemFn: (String s) => s.startsWith('I'),
+        ),
+        //items: ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
+        items: _options,
+        itemAsString: (KeyValue p) => p.value,
+        compareFn: (i1, i2) => i1.key == i2.key,
+        dropdownDecoratorProps: DropDownDecoratorProps(
+          dropdownSearchDecoration: InputDecoration(
+            //labelText: "Menu mode",
+            hintText: _hint,
+          ),
+        ),
+        onChanged: (val) {
+          _controller.text = val;
+        },
+        selectedItem: _options.first,
+      ));
+}
+
 Widget customLinearPercent(context, _offset, _percent, _color) {
   var _percentText = _percent * 100;
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -447,5 +476,6 @@ ButtonStyle buttonEditableTextStyle() {
 Text buttonEditableText(String textButton) {
   return Text(textButton,
       textAlign: TextAlign.center,
-      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey));
+      style:
+          const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey));
 }

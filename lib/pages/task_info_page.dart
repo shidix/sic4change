@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -90,9 +91,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     width: 10,
                     color: Colors.grey,
                   ),*/
-                  Text(_task.status,
+                  Text(_task.statusObj.name,
                       style: TextStyle(
-                          fontSize: 16, color: getStatusColor(_task.status))),
+                          fontSize: 16,
+                          color: getStatusColor(_task.statusObj.name))),
                   IconButton(
                       icon: const Icon(Icons.edit),
                       tooltip: 'Ver',
@@ -173,7 +175,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 children: [
                   customText("Devolución a:", 16, textColor: Colors.grey),
                   space(height: 5),
-                  customText(_task.sender, 16),
+                  customText(_task.senderObj.name, 16),
                 ],
               )),
           VerticalDivider(
@@ -187,7 +189,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 children: [
                   customText("Proyecto:", 16, textColor: Colors.grey),
                   space(height: 5),
-                  customText(_task.project, 16),
+                  customText(_task.projectObj.name, 16),
                 ],
               )),
           VerticalDivider(
@@ -319,22 +321,22 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void _callEditDialog(context, task) async {
-    List<String> status_list = [];
-    List<String> contact_list = [];
-    List<String> project_list = [];
+    List<KeyValue> status_list = [];
+    List<KeyValue> contact_list = [];
+    List<KeyValue> project_list = [];
 
     await getTasksStatus().then((value) async {
       for (TasksStatus item in value) {
-        status_list.add(item.name);
+        status_list.add(KeyValue.fromJson(item.toKeyValue()));
       }
       await getContacts().then((value) async {
         for (Contact item in value) {
-          contact_list.add(item.name);
+          contact_list.add(KeyValue.fromJson(item.toKeyValue()));
         }
 
         await getProjects().then((value) async {
           for (SProject item in value) {
-            project_list.add(item.name);
+            project_list.add(KeyValue.fromJson(item.toKeyValue()));
           }
 
           _taskEditDialog(
@@ -479,9 +481,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: Colors.blue),
-                customAutocompleteField(projectController, _project_list,
+                customDropdownField(
+                    projectController, _project_list, "Selecciona proyecto"),
+                /*customAutocompleteField(projectController, _project_list,
                     "Write or select project...",
-                    width: 700),
+                    width: 700),*/
               ]),
             ]),
             space(height: 20),
@@ -503,16 +507,20 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: Colors.blue),
-                customAutocompleteField(
+                customDropdownField(
+                    statusController, _status_list, "Selecciona estado"),
+                /*customAutocompleteField(
                     statusController, _status_list, "Write or select status...",
-                    width: 340),
+                    width: 340),*/
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: Colors.blue),
-                customAutocompleteField(senderController, _contact_list,
+                customDropdownField(
+                    senderController, _contact_list, "Selecciona contacto"),
+                /*customAutocompleteField(senderController, _contact_list,
                     "Write or select contact...",
-                    width: 340),
+                    width: 340),*/
               ]),
             ]),
             space(height: 20),

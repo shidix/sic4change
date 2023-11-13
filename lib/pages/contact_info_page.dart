@@ -2,11 +2,11 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/404_page.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:uuid/uuid.dart';
 
 const CONTACT_INFO_TITLE = "Detalles del Contacto";
 ContactInfo? _contactInfo;
@@ -91,9 +91,10 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                           fontSize: 16, color: getStatusColor(_task.status))),*/
                   IconButton(
                       icon: const Icon(Icons.edit),
-                      tooltip: 'Ver',
+                      tooltip: 'Editar',
                       onPressed: () async {
-                        //_callEditDialog(context, _task);
+                        _callContactInfoEditDialog(
+                            context, _contactInfo, _contact);
                       }),
                 ]),
           ),
@@ -279,106 +280,39 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT PROJECT                             */
 /*--------------------------------------------------------------------*/
-/*  void _saveProject(
-      context,
-      _project,
-      _types,
-      _contacts,
-      _programmes,
-      _name,
-      _desc,
-      _type,
-      _budget,
-      _manager,
-      _programme,
-      _announcement,
-      _ambit,
-      _audit,
-      _evaluation) async {
-    if (_project != null) {
-      await updateProject(
-              _project.id,
-              _project.uuid,
-              _name,
-              _desc,
-              _type,
-              _budget,
-              _manager,
-              _programme,
-              _announcement,
-              _ambit,
-              _audit,
-              _evaluation,
-              _project.financiers,
-              _project.partners)
-          .then((value) async {
-        loadContact(_project.id);
-      });
-    } else {
-      await addProject(_name, _desc, _type, _budget, _manager, _programme,
-              _announcement, _ambit, false, false)
-          .then((value) async {
-        loadContact(_project.id);
-      });
-    }
-    if (!_types.contains(_type)) await addProjectType(_type);
-    if (!_contacts.contains(_manager)) {
-      Contact _contact = Contact(_manager, "", "", "", "");
-      _contact.save();
-    }
-    if (!_programmes.contains(_programme)) await addProgramme(_programme);
-    Navigator.of(context).pop();
-  }
-
-  void _callProjectEditDialog(context, _project) async {
-    List<String> types = [];
-    List<String> contacts = [];
-    List<String> programmes = [];
-    await getProjectTypes().then((value) async {
-      for (ProjectType item in value) {
-        types.add(item.name);
+  void _callContactInfoEditDialog(context, _contactInfo, _contact) async {
+    List<String> organizations = [];
+    List<String> charges = [];
+    List<String> categories = [];
+    await getOrganizations().then((value) async {
+      for (Organization item in value) {
+        organizations.add(item.name);
       }
-      await getContacts().then((value) async {
-        for (Contact item2 in value) {
-          contacts.add(item2.name);
+      await getContactCharges().then((value) async {
+        for (ContactCharge item2 in value) {
+          charges.add(item2.name);
         }
-        await getProgrammes().then((value) async {
-          for (Programme item3 in value) {
-            programmes.add(item3.name);
+        await getContactCategories().then((value) async {
+          for (ContactCategory item3 in value) {
+            categories.add(item3.name);
           }
-          _editProjectDialog(context, _project, types, contacts, programmes);
+          _editContactInfoDialog(context, _contactInfo, _contact, organizations,
+              charges, categories);
         });
       });
     });
   }
 
-  Future<void> _editProjectDialog(
-      context, _project, _types, _contacts, _programmes) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    TextEditingController typeController = TextEditingController(text: "");
-    TextEditingController budgetController = TextEditingController(text: "");
-    TextEditingController managerController = TextEditingController(text: "");
-    TextEditingController programmeController = TextEditingController(text: "");
-    TextEditingController announcementController =
-        TextEditingController(text: "");
-    TextEditingController ambitController = TextEditingController(text: "");
-    bool _audit = false;
-    bool _evaluation = false;
-
-    if (_project != null) {
-      nameController = TextEditingController(text: _project.name);
-      descController = TextEditingController(text: _project.description);
-      typeController = TextEditingController(text: _project.type);
-      budgetController = TextEditingController(text: _project.budget);
-      managerController = TextEditingController(text: _project.manager);
-      programmeController = TextEditingController(text: _project.programme);
-      announcementController =
-          TextEditingController(text: _project.announcement);
-      ambitController = TextEditingController(text: _project.ambit);
-      _audit = _project.audit;
-      _evaluation = _project.evaluation;
-    }
+  Future<void> _editContactInfoDialog(
+      context, _contactInfo, _contact, _organizations, _charges, _categories) {
+    TextEditingController orgController =
+        TextEditingController(text: _contactInfo.organization);
+    TextEditingController chargeController =
+        TextEditingController(text: _contactInfo.charge);
+    TextEditingController catController =
+        TextEditingController(text: _contactInfo.category);
+    TextEditingController subcatController =
+        TextEditingController(text: _contactInfo.subcategory);
 
     return showDialog<void>(
       context: context,
@@ -386,107 +320,48 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Project edit'),
+          title: const Text('Modificar información de contacto'),
           content: SingleChildScrollView(
             child: Column(children: [
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Nombre:", 16, textColor: Colors.blue),
-                  customTextField(nameController, "Enter name"),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Descripción:", 16, textColor: Colors.blue),
-                  customTextField(descController, "Enter description"),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Tipo de proyecto:", 16, textColor: Colors.blue),
-                  customAutocompleteField(typeController, _types,
-                      "Write or select project type..."),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto:", 16, textColor: Colors.blue),
-                  customTextField(budgetController, "Enter budget"),
+                  customText("Organización:", 16, textColor: Colors.blue),
+                  customAutocompleteField(orgController, _organizations,
+                      "Escribe o selecciona una organización..."),
                 ]),
               ]),
               space(height: 20),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Responsable:", 16, textColor: Colors.blue),
-                  customAutocompleteField(managerController, _contacts,
-                      "Write or select manager..."),
+                  customText("Cargo:", 16, textColor: Colors.blue),
+                  customAutocompleteField(chargeController, _charges,
+                      "Escribe o selecciona un cargo..."),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Programa:", 16, textColor: Colors.blue),
-                  customAutocompleteField(programmeController, _programmes,
-                      "Write or select programme..."),
+                  customText("Categoría:", 16, textColor: Colors.blue),
+                  customAutocompleteField(catController, _categories,
+                      "Escribe o selecciona una categoría..."),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Convocatoria:", 16, textColor: Colors.blue),
-                  customTextField(announcementController, "Enter country"),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Ámbito:", 16, textColor: Colors.blue),
-                  customTextField(ambitController, "Enter ambit"),
+                  customText("Subcategoría:", 16, textColor: Colors.blue),
+                  customAutocompleteField(subcatController, _categories,
+                      "Escribe o selecciona una sub categoría..."),
                 ]),
               ]),
-              space(height: 20),
-              Row(
-                children: <Widget>[
-                  customText("Auditoría:", 16, textColor: Colors.blue),
-                  FormField<bool>(builder: (FormFieldState<bool> state) {
-                    return Checkbox(
-                      value: _audit,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _audit = value!;
-                          state.didChange(_audit);
-                        });
-                      },
-                    );
-                  }),
-                  space(width: 20),
-                  customText("Evaluación:", 16, textColor: Colors.blue),
-                  FormField<bool>(builder: (FormFieldState<bool> state) {
-                    return Checkbox(
-                      value: _evaluation,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _evaluation = value!;
-                          state.didChange(_evaluation);
-                        });
-                      },
-                    );
-                  })
-                ],
-              )
             ]),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveProject(
-                    context,
-                    _project,
-                    _types,
-                    _contacts,
-                    _programmes,
-                    nameController.text,
-                    descController.text,
-                    typeController.text,
-                    budgetController.text,
-                    managerController.text,
-                    programmeController.text,
-                    announcementController.text,
-                    ambitController.text,
-                    _audit,
-                    _evaluation);
+                _contactInfo.organization = orgController.text;
+                _contactInfo.charge = chargeController.text;
+                _contactInfo.category = catController.text;
+                _contactInfo.subcategory = subcatController.text;
+                _saveContactInfo(context, _contactInfo, _organizations,
+                    _charges, _categories);
               },
             ),
             TextButton(
@@ -499,7 +374,32 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         );
       },
     );
-  }*/
+  }
+
+  void _saveContactInfo(
+      context, _contactInfo, _organizations, _charges, _categories) async {
+    _contactInfo.save();
+    loadContactInfo(_contactInfo);
+
+    if (!_organizations.contains(_contactInfo.organization)) {
+      Organization _org = Organization(_contactInfo.organization);
+      _org.save();
+    }
+    if (!_charges.contains(_contactInfo.charge)) {
+      ContactCharge _charge = ContactCharge(_contactInfo.charge);
+      _charge.save();
+    }
+    if (!_categories.contains(_contactInfo.category)) {
+      ContactCategory _cat = ContactCategory(_contactInfo.category);
+      _cat.save();
+    }
+
+    if (!_categories.contains(_contactInfo.subcategory)) {
+      ContactCategory _cat = ContactCategory(_contactInfo.subcategory);
+      _cat.save();
+    }
+    Navigator.of(context).pop();
+  }
 
   /*--------------------------------------------------------------------*/
   /*                           FINACIERS                                */

@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -138,7 +137,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   void _saveActivityIndicator(
       context, _indicator, _name, _percent, _source, _activity) async {
-    if (_indicator != null) {
+    /*if (_indicator != null) {
       await updateActivityIndicator(_indicator.id, _indicator.uuid, _name,
               _percent, _source, _activity.uuid)
           .then((value) async {
@@ -149,7 +148,13 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           .then((value) async {
         loadActivityIndicators(_activity.uuid);
       });
-    }
+    }*/
+    if (_indicator != null) _indicator = ActivityIndicator(_activity);
+    _activity.name = _name;
+    _activity.percent = _percent;
+    _activity.source = _source;
+    _activity.save();
+    loadActivityIndicators(_activity.uuid);
     Navigator.of(context).pop();
   }
 
@@ -172,11 +177,18 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           // <-- SEE HERE
           title: const Text('Activity indicator edit'),
           content: SingleChildScrollView(
-              child: Column(children: [
-            customTextField(nameController, "Enter name"),
-            customTextField(percentController, "Enter percent"),
-            customTextField(sourceController, "Enter source"),
-          ])),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),
+                space(height: 20),
+                customText("Porcentaje:", 16, textColor: Colors.blue),
+                customTextField(percentController, "Porcentaje..."),
+                space(height: 20),
+                customText("Fuente:", 16, textColor: Colors.blue),
+                customTextField(sourceController, "Fuente..."),
+              ])),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
@@ -300,12 +312,13 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeActivityIndicatorDialog(context, _indicator.id, _activity);
+            _removeActivityIndicatorDialog(context, _indicator, _activity);
           }),
     ]);
   }
 
-  Future<void> _removeActivityIndicatorDialog(context, id, _activity) async {
+  Future<void> _removeActivityIndicatorDialog(
+      context, _indicator, _activity) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -320,10 +333,13 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteActivityIndicator(id).then((value) {
+                _indicator.delete();
+                loadActivityIndicators(_activity.uuid);
+                Navigator.of(context).pop();
+                /*await deleteActivityIndicator(id).then((value) {
                   loadActivityIndicators(_activity.uuid);
                   Navigator.of(context).pop();
-                });
+                });*/
               },
             ),
             TextButton(

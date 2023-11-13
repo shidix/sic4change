@@ -4,6 +4,25 @@ import 'package:uuid/uuid.dart';
 FirebaseFirestore db = FirebaseFirestore.instance;
 
 //--------------------------------------------------------------
+//                       KEY VALUE
+//--------------------------------------------------------------
+class KeyValue {
+  String key;
+  String value;
+
+  KeyValue(this.key, this.value);
+
+  KeyValue.fromJson(Map<String, dynamic> json)
+      : key = json["key"],
+        value = json['value'];
+
+  Map<String, dynamic> toJson() => {
+        'uuid': key,
+        'name': value,
+      };
+}
+
+//--------------------------------------------------------------
 //                       ORGANIZATIONS
 //--------------------------------------------------------------
 CollectionReference dbOrg = db.collection("s4c_organizations");

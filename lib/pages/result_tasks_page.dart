@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -147,7 +146,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
   }
 
   void _saveTask(context, _task, _name, _result) async {
-    if (_task != null) {
+    /*if (_task != null) {
       await updateResultTask(_task.id, _task.uuid, _name, _result.uuid)
           .then((value) async {
         loadTasks(_result.uuid);
@@ -156,7 +155,11 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
       await addResultTask(_name, _result.uuid).then((value) async {
         loadTasks(_result.uuid);
       });
-    }
+    }*/
+    if (_task != null) _task = ResultTask(_result);
+    _task.name = _name;
+    _task.save();
+    loadTasks(_result.uuid);
     Navigator.of(context).pop();
   }
 
@@ -175,9 +178,12 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           // <-- SEE HERE
           title: const Text('Task edit'),
           content: SingleChildScrollView(
-              child: Column(children: [
-            customTextField(nameController, "Enter name"),
-          ])),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),
+              ])),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
@@ -271,12 +277,12 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeTaskDialog(context, _task.id, _result);
+            _removeTaskDialog(context, _task, _result);
           }),
     ]);
   }
 
-  Future<void> _removeTaskDialog(context, id, _result) async {
+  Future<void> _removeTaskDialog(context, _task, _result) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -291,10 +297,13 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteResultTask(id).then((value) {
+                _task.delete();
+                loadTasks(_result.uuid);
+                Navigator.of(context).pop();
+                /*await deleteResultTask(id).then((value) {
                   loadTasks(_result.uuid);
                   Navigator.of(context).pop();
-                });
+                });*/
               },
             ),
             TextButton(

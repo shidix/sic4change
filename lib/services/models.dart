@@ -68,6 +68,11 @@ class SProject {
         'partners': partners.join(""),
       };
 
+  Map<String, String> toKeyValue() => {
+        'key': uuid,
+        'value': name,
+      };
+
   String total_budget() {
     double aux = 24;
     return (aux.toString());

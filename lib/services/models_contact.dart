@@ -41,6 +41,11 @@ class Contact {
         'phone': phone,
       };
 
+  Map<String, dynamic> toKeyValue() => {
+        'key': uuid,
+        'value': name,
+      };
+
   Future<void> save() async {
     if (id == "") {
       //id = uuid;

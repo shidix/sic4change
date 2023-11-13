@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_marco.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -130,7 +129,7 @@ class _GoalsPageState extends State<GoalsPage> {
   }*/
 
   void _saveGoal(context, _goal, _name, _desc, _main, _project) async {
-    if (_goal != null) {
+    /*if (_goal != null) {
       await updateGoal(_goal.id, _goal.uuid, _name, _desc, _main, _project.uuid)
           .then((value) async {
         loadGoals(_project.uuid);
@@ -139,7 +138,13 @@ class _GoalsPageState extends State<GoalsPage> {
       await addGoal(_name, _desc, _main, _project.uuid).then((value) async {
         loadGoals(_project.uuid);
       });
-    }
+    }*/
+    if (_goal != null) _goal = Goal(_project);
+    _goal.name = _name;
+    _goal.description = _desc;
+    _goal.main = _main;
+    _goal.save();
+    loadGoals(_project.uuid);
     Navigator.of(context).pop();
   }
 
@@ -164,9 +169,15 @@ class _GoalsPageState extends State<GoalsPage> {
           title: const Text('Goal edit'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
-            customTextField(nameController, "Enter name"),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Nombre:", 16, textColor: Colors.blue),
+              customTextField(nameController, "Nombre..."),
+            ]),
             space(width: 20),
-            customTextField(descController, "Enter description"),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Descripción:", 16, textColor: Colors.blue),
+              customTextField(descController, "Descripción..."),
+            ]),
             FormField<bool>(builder: (FormFieldState<bool> state) {
               return Checkbox(
                 value: _main,
@@ -307,12 +318,12 @@ class _GoalsPageState extends State<GoalsPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeGoalDialog(context, _goal.id, _project);
+            _removeGoalDialog(context, _goal, _project);
           }),
     ]);
   }
 
-  Future<void> _removeGoalDialog(context, id, _project) async {
+  Future<void> _removeGoalDialog(context, _goal, _project) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -327,11 +338,14 @@ class _GoalsPageState extends State<GoalsPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteGoal(id).then((value) {
+                _goal.delete();
+                loadGoals(_project.uuid);
+                Navigator.of(context).pop();
+                /*await deleteGoal(id).then((value) {
                   loadGoals(_project.uuid);
                   Navigator.of(context).pop();
                   //Navigator.popAndPushNamed(context, "/goals", arguments: {});
-                });
+                });*/
               },
             ),
             TextButton(
