@@ -226,3 +226,109 @@ class FinnDistribution {
     return items;
   }
 }
+
+class Invoice {
+  String id;
+  String uuid;
+  String number;
+  String code;
+  String finn;
+  String concept;
+  String date;
+  double base;
+  double taxes;
+  double total;
+  String provider;
+  String document;
+
+  Invoice(
+      this.id,
+      this.uuid,
+      this.number,
+      this.code,
+      this.finn,
+      this.concept,
+      this.date,
+      this.base,
+      this.taxes,
+      this.total,
+      this.provider,
+      this.document);
+
+  Invoice.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        number = json["number"],
+        code = json["code"],
+        finn = json["finn"],
+        concept = json["concept"],
+        date = json["date"],
+        base = json["base"],
+        taxes = json["taxes"],
+        total = json["total"],
+        provider = json["provider"],
+        document = json["document"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'number': number,
+        'code': code,
+        'finn': finn,
+        'concept': concept,
+        'date': date,
+        'base': base,
+        'taxes': taxes,
+        'total': total,
+        'provider': provider,
+        'document': document,
+      };
+
+  void save() async {
+    final collection = db.collection("s4c_invoices");
+
+    if (id == "") {
+      id = const Uuid().v4();
+      Map<String, dynamic> data = toJson();
+      collection.add(data);
+    } else {
+      final query = await collection.where("id", isEqualTo: id).limit(1).get();
+      final item = query.docs.first;
+      Map<String, dynamic> data = toJson();
+      collection.doc(item.id).set(data);
+    }
+  }
+
+  static Future<List> getByFinn(finn) async {
+    final collection = db.collection("s4c_invoices");
+    final query =
+        await collection.where("finn", isEqualTo: finn).orderBy('date').get();
+    List items = [];
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
+  static Future<Invoice> getByUuid(uuid) async {
+    final collection = db.collection("s4c_invoices");
+    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    Invoice item = Invoice.fromJson(query.docs.first.data());
+    item.id = query.docs.first.id;
+    return item;
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+
+  void delete() {
+    final collection = db.collection("s4c_invoices");
+    if (id != "") {
+      collection.doc(id).delete();
+    }
+  }
+}

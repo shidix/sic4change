@@ -512,3 +512,77 @@ Widget customRowDivider() {
     color: Color(0xffdfdfdf),
   );
 }
+
+class DateTimePicker extends StatelessWidget {
+  const DateTimePicker({
+    Key? key,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+  }) : super(key: key);
+
+  final String labelText;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate) onSelectedDate(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              "${selectedDate.toLocal()}".split(' ')[0],
+            ),
+            Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ReadOnlyTextField extends StatelessWidget {
+  final String label;
+  final String textToShow;
+
+  const ReadOnlyTextField(
+      {super.key, required this.label, required this.textToShow});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall, // Estilo similar al de un TextFormField
+        ),
+        SizedBox(height: 8.0), // Ajusta el espacio según sea necesario
+        Text(
+          textToShow,
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium, // Estilo similar al de un TextFormField
+        ),
+      ],
+    );
+  }
+}
