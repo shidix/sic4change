@@ -5,10 +5,11 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
-const PAGE_RESULT_TITLE = "Resultados";
+const pageResultTitle = "Resultados";
 List result_list = [];
 
 class ResultsPage extends StatefulWidget {
@@ -50,8 +51,9 @@ class _ResultsPageState extends State<ResultsPage> {
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         resultPath(context, _goal),
+        space(height: 20),
         resultHeader(context, _goal),
-        //goalMenu(context, _goal),
+        goalMenu(context, _goal),
         Expanded(
             child: Container(
                 width: double.infinity,
@@ -59,8 +61,10 @@ class _ResultsPageState extends State<ResultsPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Color(0xffdfdfdf),
+                      width: 2,
                     ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: resultList(context, _goal),
                 )))
@@ -95,17 +99,9 @@ class _ResultsPageState extends State<ResultsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(_goal.name, style: TextStyle(fontSize: 20)),
-              space(height: 10),
-              new LinearPercentIndicator(
-                width: MediaQuery.of(context).size.width - 500,
-                animation: true,
-                lineHeight: 10.0,
-                animationDuration: 2500,
-                percent: 0.8,
-                //center: Text("80.0%"),
-                linearStrokeCap: LinearStrokeCap.roundAll,
-                progressColor: Colors.blue,
-              ),
+              space(height: 20),
+              customLinearPercent(context, 1.5, 0.8, Colors.blue),
+              space(height: 20)
             ]),
       ),
       Container(
@@ -113,14 +109,24 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //resultAddBtn(context, _goal),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Añadir resultado',
+            FilledButton(
               onPressed: () {
                 _editResultDialog(context, null, _goal);
               },
+              style: FilledButton.styleFrom(
+                side: const BorderSide(width: 0, color: Color(0xffffffff)),
+                backgroundColor: Color(0xffffffff),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.add, color: Colors.black54),
+                  SizedBox(height: 5),
+                  Text(
+                    "Añadir",
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
@@ -129,34 +135,6 @@ class _ResultsPageState extends State<ResultsPage> {
       ),
     ]);
   }
-
-  /*Widget resultAddBtn(context, _goal) {
-    return ElevatedButton(
-      onPressed: () {
-        _editResultDialog(context, null, _goal);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          Text(
-            "Add result",
-            style: TextStyle(color: Colors.black, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }*/
 
   void _saveResult(context, _result, _name, _desc, _indicator_text,
       _indicator_percent, _source, _goal) async {
@@ -275,7 +253,24 @@ class _ResultsPageState extends State<ResultsPage> {
           if (snapshot.hasData) {
             result_list = snapshot.data!;
             if (result_list.length > 0) {
-              return Column(
+              return ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: result_list.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    Result _result = result_list[index];
+                    return Container(
+                      //height: 400,
+                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                      decoration: BoxDecoration(
+                        border: Border(
+                            bottom:
+                                BorderSide(color: Color(0xffdfdfdf), width: 2)),
+                      ),
+                      child: resultRow(context, _result, _goal),
+                    );
+                  });
+
+              /*return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +286,7 @@ class _ResultsPageState extends State<ResultsPage> {
                                 Result _result = result_list[index];
                                 return Container(
                                   height: 400,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
+                                  padding: EdgeInsets.only(top: 10, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(color: Colors.grey)),
@@ -300,7 +295,7 @@ class _ResultsPageState extends State<ResultsPage> {
                                 );
                               })))
                 ],
-              );
+              );*/
             } else
               return Text("");
           } else {
@@ -333,7 +328,9 @@ class _ResultsPageState extends State<ResultsPage> {
         ),
         space(height: 10),
         Text('${_result.description}'),
-        space(height: 30),
+        space(height: 10),
+        customRowDivider(),
+        space(height: 10),
         Text(
           'Indicador del resultado',
           style: TextStyle(color: Colors.blueGrey, fontSize: 16),
@@ -352,6 +349,8 @@ class _ResultsPageState extends State<ResultsPage> {
             ),
           ],
         ),
+        space(height: 10),
+        customRowDivider(),
         space(height: 10),
         Text(
           'Fuente',

@@ -51,7 +51,7 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
         Icon(btnIcon, color: Colors.black54),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black54, fontSize: 18),
+          style: TextStyle(color: Colors.black54, fontSize: 14),
         ),
       ],
     ),

@@ -149,8 +149,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     child: GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          //crossAxisSpacing: 10,
-                          //mainAxisSpacing: 10,
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
                           childAspectRatio: .9,
                         ),
                         itemCount: project_list.length,
