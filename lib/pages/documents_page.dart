@@ -8,7 +8,6 @@ import 'package:flutter/rendering.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/services/firebase_service_drive.dart';
 import 'package:file_picker/file_picker.dart';
 
 const PAGE_TITLE = "Documentos";
@@ -154,12 +153,15 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
         String fileUrl = await ref.getDownloadURL();
 
-        await addFile(pickedFile!.name, _folderUuid, fileUrl).then((value) {
+        SFile _file = SFile(pickedFile!.name, _folderUuid, fileUrl);
+        _file.save();
+        loadFiles(_folderUuid);
+        /*await addFile(pickedFile!.name, _folderUuid, fileUrl).then((value) {
           loadFiles(_folderUuid);
           //Navigator.pop(context);
           /*Navigator.popAndPushNamed(context, "/documents",
               arguments: {"parent": _currentFolder});*/
-        });
+        });*/
 
         setState(() {
           uploadTask = null;
@@ -335,7 +337,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         if (selectedMenu == SampleItem.itemTwo) {
           bool haveChildren = await folderHaveChildren(_folder.uuid);
           if (!haveChildren)
-            _confirmRemoveDialog(context, _folder.id, _currentFolder);
+            _confirmRemoveDialog(context, _folder, _currentFolder);
           else
             _errorRemoveDialog(context);
         }
@@ -391,27 +393,35 @@ class _DocumentsPageState extends State<DocumentsPage> {
               child: const Text('Save'),
               onPressed: () async {
                 if (_folder != null) {
-                  await updateFolder(_folder.id, _folder.uuid, _controller.text,
+                  _folder.name = _controller.text;
+                  _folder.save();
+                  /*await updateFolder(_folder.id, _folder.uuid, _controller.text,
                           _folder.parent)
                       .then((value) {
                     loadFolders(_folderUuid);
                     Navigator.pop(context);
                     /*Navigator.popAndPushNamed(context, "/documents",
                         arguments: {"parent": _currentFolder});*/
-                  });
+                  });*/
                 } else {
-                  String parent;
+                  String parent =
+                      (_currentFolder != null) ? _currentFolder.uuid : "";
+                  Folder _folder = Folder(_controller.text, parent);
+                  _folder.save();
+                  /*String parent;
                   if (_currentFolder != null)
                     parent = _currentFolder.uuid;
                   else
-                    parent = "";
-                  await addFolder(_controller.text, parent).then((value) {
+                    parent = "";*/
+                  /*await addFolder(_controller.text, parent).then((value) {
                     loadFolders(_folderUuid);
                     Navigator.pop(context);
                     /*Navigator.popAndPushNamed(context, "/documents",
                         arguments: {"parent": _currentFolder});*/
-                  });
+                  });*/
                 }
+                loadFolders(_folderUuid);
+                Navigator.pop(context);
               },
             ),
             TextButton(
@@ -426,9 +436,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
-  Future<void> _confirmRemoveDialog(context, id, _currentFolder) async {
-    String _folderUuid = "";
-    if (_currentFolder != null) _folderUuid = _currentFolder.uuid;
+  Future<void> _confirmRemoveDialog(context, _folder, _currentFolder) async {
+    String _folderUuid = (_currentFolder != null) ? _currentFolder.uuid : "";
 
     return showDialog<void>(
       context: context,
@@ -444,12 +453,15 @@ class _DocumentsPageState extends State<DocumentsPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await deleteFolder(id).then((value) {
+                _folder.delete();
+                loadFolders(_folderUuid);
+                Navigator.pop(context);
+                /*await deleteFolder(id).then((value) {
                   loadFolders(_folderUuid);
                   Navigator.pop(context);
                   /*Navigator.popAndPushNamed(context, "/documents",
                       arguments: {"parent": _currentFolder});*/
-                });
+                });*/
               },
             ),
             TextButton(
@@ -602,14 +614,18 @@ class _DocumentsPageState extends State<DocumentsPage> {
               child: const Text('Save'),
               onPressed: () async {
                 if (_file != null) {
-                  await updateFile(_file.id, _file.uuid, _controller.text,
+                  _file.name = _controller.text;
+                  _file.save();
+                  loadFiles(_folderUuid);
+                  Navigator.pop(context);
+                  /*await updateFile(_file.id, _file.uuid, _controller.text,
                           _file.folder, _file.link, _file.loc)
                       .then((value) {
                     loadFiles(_folderUuid);
                     Navigator.pop(context);
                     /*Navigator.popAndPushNamed(context, "/documents",
                         arguments: {"parent": _currentFolder});*/
-                  });
+                  });*/
                 } /*else {
                 await addFile(_controller.text, _folderUuid, "").then((value) {
                   Navigator.popAndPushNamed(context, "/documents",
@@ -651,12 +667,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
                 } catch (err) {
                   print(err);
                 }
-                await deleteFile(_file.id).then((value) {
+                _file.delete();
+                String folderUuid =
+                    (_currentFolder != null) ? _currentFolder.uuid : "";
+                loadFiles(folderUuid);
+                Navigator.of(context).pop();
+                /*await deleteFile(_file.id).then((value) {
                   var folderUuid = "";
                   if (_currentFolder != null) folderUuid = _currentFolder.uuid;
                   loadFiles(folderUuid);
                   Navigator.of(context).pop();
-                });
+                });*/
               },
             ),
             TextButton(

@@ -1,10 +1,30 @@
-class Folder {
-  final String id;
-  final String uuid;
-  final String name;
-  final String parent;
+import 'dart:math';
 
-  Folder(this.id, this.uuid, this.name, this.parent);
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+
+FirebaseFirestore db = FirebaseFirestore.instance;
+
+String getRandomString(_length) {
+  const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+  return String.fromCharCodes(Iterable.generate(
+      _length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+}
+
+//--------------------------------------------------------------
+//                           FOLDERS
+//--------------------------------------------------------------
+CollectionReference dbFolder = db.collection("s4c_folders");
+
+class Folder {
+  String id = "";
+  String uuid = "";
+  String name = "";
+  String parent = "";
+
+  Folder(this.name, this.parent);
 
   Folder.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -12,23 +32,71 @@ class Folder {
         name = json['name'],
         parent = json['parent'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
         'parent': parent,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbFolder.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbFolder.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbFolder.doc(id).delete();
+  }
 }
 
-class SFile {
-  final String id;
-  final String uuid;
-  final String name;
-  final String folder;
-  final String link;
-  final String loc;
+Future<List> getFolders(String _parent_uuid) async {
+  List folders = [];
+  QuerySnapshot? queryFolders;
 
-  SFile(this.id, this.uuid, this.name, this.folder, this.link, this.loc);
+  if (_parent_uuid != "") {
+    queryFolders =
+        await dbFolder.where("parent", isEqualTo: _parent_uuid).get();
+  } else {
+    queryFolders = await dbFolder.where("parent", isEqualTo: "").get();
+  }
+  for (var doc in queryFolders.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final folder = Folder.fromJson(data);
+    folders.add(folder);
+  }
+  return folders;
+}
+
+Future<Folder?> getFolderByUuid(String _uuid) async {
+  QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: _uuid).get();
+  final _doc = query.docs.first;
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return Folder.fromJson(data);
+}
+
+//--------------------------------------------------------------
+//                           FILES
+//--------------------------------------------------------------
+CollectionReference dbFile = db.collection("s4c_files");
+
+class SFile {
+  String id = "";
+  String uuid = "";
+  String name = "";
+  String folder = "";
+  String link = "";
+  String loc = "";
+
+  SFile(this.name, this.folder, this.link);
 
   SFile.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -38,7 +106,7 @@ class SFile {
         loc = json['loc'],
         link = json['link'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
@@ -46,4 +114,49 @@ class SFile {
         'loc': loc,
         'link': link,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbFile.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbFile.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbFile.doc(id).delete();
+  }
+}
+
+Future<List> getFiles(String _folder) async {
+  List files = [];
+  QuerySnapshot? query;
+
+  if (_folder != "") {
+    query = await dbFile.where("folder", isEqualTo: _folder).get();
+  } else {
+    query = await dbFile.where("folder", isEqualTo: "").get();
+  }
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _file = SFile.fromJson(data);
+    files.add(_file);
+  }
+  return files;
+}
+
+Future<String> getLoc() async {
+  QuerySnapshot? query;
+
+  var loc = "";
+  do {
+    loc = getRandomString(4);
+    query = await dbFile.where("loc", isEqualTo: loc).get();
+  } while (query.size > 0);
+  return loc;
 }

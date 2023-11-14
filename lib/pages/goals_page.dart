@@ -54,8 +54,10 @@ class _GoalsPageState extends State<GoalsPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Color(0xffdfdfdf),
+                      width: 2,
                     ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: goalList(context, _project),
                 )))
@@ -83,14 +85,24 @@ class _GoalsPageState extends State<GoalsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //goalAddBtn(context, _project),
-            //customRowBtn(context, "Volver", Icons.arrow_back, "/projects", {})
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Añadir actividad',
+            FilledButton(
               onPressed: () {
                 _editGoalDialog(context, null, _project);
               },
+              style: FilledButton.styleFrom(
+                side: const BorderSide(width: 0, color: Color(0xffffffff)),
+                backgroundColor: Color(0xffffffff),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.add, color: Colors.black54),
+                  SizedBox(height: 5),
+                  Text(
+                    "Añadir",
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
@@ -100,46 +112,8 @@ class _GoalsPageState extends State<GoalsPage> {
     ]);
   }
 
-  /*Widget goalAddBtn(context, _project) {
-    return ElevatedButton(
-      onPressed: () {
-        _editGoalDialog(context, null, _project);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          Text(
-            "Add goal",
-            style: TextStyle(color: Colors.black, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }*/
-
   void _saveGoal(context, _goal, _name, _desc, _main, _project) async {
-    /*if (_goal != null) {
-      await updateGoal(_goal.id, _goal.uuid, _name, _desc, _main, _project.uuid)
-          .then((value) async {
-        loadGoals(_project.uuid);
-      });
-    } else {
-      await addGoal(_name, _desc, _main, _project.uuid).then((value) async {
-        loadGoals(_project.uuid);
-      });
-    }*/
-    if (_goal != null) _goal = Goal(_project);
+    if (_goal == null) _goal = Goal(_project);
     _goal.name = _name;
     _goal.description = _desc;
     _goal.main = _main;
@@ -236,7 +210,9 @@ class _GoalsPageState extends State<GoalsPage> {
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
+                                        bottom: BorderSide(
+                                            color: Color(0xffdfdfdf),
+                                            width: 1)),
                                   ),
                                   child: goalRowMain(context, _goal, _project),
                                 );
@@ -246,7 +222,9 @@ class _GoalsPageState extends State<GoalsPage> {
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
+                                        bottom: BorderSide(
+                                            color: Color(0xffdfdfdf),
+                                            width: 1)),
                                   ),
                                   child: goalRow(context, _goal, _project),
                                 );
@@ -271,7 +249,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             Text('${_goal.name}'),
             space(height: 10),
-            customLinearPercent(context, 500, 0.8, Colors.green),
+            customLinearPercent(context, 2, 0.8, Colors.green),
             space(height: 10),
             Text(_goal.description),
           ],
@@ -291,7 +269,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             Text('${_goal.name}'),
             space(height: 10),
-            customLinearPercent(context, 500, 0.8, Colors.blue),
+            customLinearPercent(context, 2, 0.8, Colors.blue),
           ],
         ),
         goalRowOptions(context, _goal, _project),

@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/services/firebase_service.dart';
-
-//final pr = SProject("Proyecto de prueba", "Descripción del proyecto de prueba");
-/*List<SProject> projects = [
-  SProject("Proyecto de prueba", "Descripción del proyecto de prueba"),
-  SProject("Proyecto de prueba 2", "Descripción del proyecto de prueba 2"),
-  SProject("Proyecto de prueba 3", "Descripción del proyecto de prueba 3"),
-  SProject("Proyecto de prueba 4", "Descripción del proyecto de prueba 4"),
-];*/
 
 const PROJECT_TITLE = "Proyectos";
 List project_list = [];
@@ -25,7 +17,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void loadProjects() async {
     await getProjects().then((val) {
       project_list = val;
-      //print(contact_list);
     });
     setState(() {});
   }
@@ -33,44 +24,68 @@ class _ProjectsPageState extends State<ProjectsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*appBar: AppBar(
+        /*appBar: AppBar(
         title: const Text('Service Page'),
       ),*/
-      body: Column(
+        body: SingleChildScrollView(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context),
-          projectsHeader(context),
+          projectSearch(),
+          Container(
+              padding: EdgeInsets.all(10),
+              child: customTitle(context, "PROGRAMAS")),
+          programmeList(context),
+          /*SizedBox(
+            height: 100,
+            child: programmeList(context),
+          ),*/
+          Container(
+              padding: EdgeInsets.all(10),
+              child: customTitle(context, "PROYECTOS")),
+          projectList(context),
+          /*space(height: 20),
+
+          //projectsHeader(context),
           Expanded(
               child: Container(
             child: projectList(context),
-            padding: EdgeInsets.all(10),
-          ))
+          )),*/
         ],
       ),
-    );
+    ));
   }
 
-  Widget projectsHeader(context) {
+  /*Widget projectsHeader(context) {
     return Container(
       padding: EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           projectSearch(),
-          space(width: 50),
+          space(height: 30),
+          customTitle(context, "PROGRAMAS"),
+          SizedBox(
+            height: 100,
+            child: programmeList(context),
+          ),
+          customTitle(context, "PROYECTOS"),
+          space(height: 30),
         ],
       ),
     );
-  }
+  }*/
 
   Widget projectSearch() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(PROJECT_TITLE, style: TextStyle(fontSize: 20)),
-        Container(
+    return Container(
+        padding: const EdgeInsets.only(left: 20, top: 20),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(PROJECT_TITLE, style: TextStyle(fontSize: 20)),
+            /*Container(
           width: 500,
           child: SearchBar(
             padding: const MaterialStatePropertyAll<EdgeInsets>(
@@ -79,35 +94,75 @@ class _ProjectsPageState extends State<ProjectsPage> {
             onChanged: (_) {},
             leading: const Icon(Icons.search),
           ),
-        ),
-      ],
-    );
+        ),*/
+          ],
+        ));
+  }
+
+  Widget programmeList(context) {
+    return Container(
+        padding: EdgeInsets.only(left: 30, right: 30),
+        child: FutureBuilder(
+            future: getProgrammes(),
+            builder: ((context, snapshot) {
+              if (snapshot.hasData) {
+                return SizedBox(
+                    height: 80,
+                    child: GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          //crossAxisSpacing: 20,
+                          //mainAxisSpacing: 20,
+                          childAspectRatio: 10,
+                        ),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (_, index) {
+                          Programme _programme = snapshot.data![index];
+                          return Row(
+                            children: [
+                              customText(_programme.name, 15,
+                                  bold: FontWeight.bold),
+                              customText(
+                                  " ('${_programme.projects}' proyectos)", 15),
+                            ],
+                          );
+                        }));
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            })));
   }
 
   Widget projectList(context) {
-    return FutureBuilder(
-        future: getProjects(),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            project_list = snapshot.data!;
-
-            return GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: .8,
-                ),
-                itemCount: project_list.length,
-                itemBuilder: (_, index) {
-                  return projectCard(context, project_list[index]);
-                });
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+    return Container(
+        padding: EdgeInsets.only(left: 20, right: 20),
+        child: FutureBuilder(
+            future: getProjects(),
+            builder: ((context, snapshot) {
+              if (snapshot.hasData) {
+                project_list = snapshot.data!;
+                return SizedBox(
+                    height: 900,
+                    child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          //crossAxisSpacing: 10,
+                          //mainAxisSpacing: 10,
+                          childAspectRatio: .9,
+                        ),
+                        itemCount: project_list.length,
+                        itemBuilder: (_, index) {
+                          return projectCard(context, project_list[index]);
+                        }));
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            })));
   }
 
   Widget projectCard(context, _project) {
@@ -118,9 +173,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
             color: Colors.grey,
           ),
           borderRadius: BorderRadius.all(Radius.circular(10))),
-      child: SingleChildScrollView(
+      child: projectCardDatas(context, _project),
+      /*child: SingleChildScrollView(
         child: projectCardDatas(context, _project),
-      ),
+      ),*/
     );
   }
 

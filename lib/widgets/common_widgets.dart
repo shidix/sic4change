@@ -15,22 +15,35 @@ Widget space({width = 10, height = 10}) {
   );
 }
 
-Widget customText(_text, _size, {textColor = Colors.black}) {
+Widget customText(_text, _size,
+    {textColor = Colors.black, bold = FontWeight.normal}) {
   return Text(
     _text,
-    style: TextStyle(fontSize: _size, color: textColor),
+    style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
 }
 
+Widget customTitle(context, _text) {
+  return Container(
+      width: MediaQuery.of(context).size.width,
+      color: Color(0xffd0dbe0),
+      padding: EdgeInsets.all(10),
+      child: Text(
+        _text,
+        style: TextStyle(fontSize: 16, color: Color(0xff00809a)),
+        textAlign: TextAlign.center,
+      ));
+}
+
 Widget menuBtn(context, btnName, btnIcon, btnRoute) {
-  return ElevatedButton(
+  return FilledButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute);
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Colors.blueGrey),
-      backgroundColor: Colors.blueGrey,
+      side: const BorderSide(width: 0, color: Color(0xffedf7f9)),
+      backgroundColor: Color(0xffedf7f9),
       //primary: Colors.purple),
     ),
     child: Column(
@@ -61,37 +74,37 @@ Widget menuTab(context, btnName, btnRoute, args) {
 
 Widget menuTabSelect(context, btnName, btnRoute, args) {
   return Container(
-      padding: EdgeInsets.all(5),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(5),
+      decoration: const BoxDecoration(
           border: Border(
-            top: BorderSide(width: 1.0, color: Colors.grey),
-            left: BorderSide(width: 1.0, color: Colors.grey),
-            right: BorderSide(width: 1.0, color: Colors.grey),
-            bottom: BorderSide(width: 1.0, color: Colors.grey),
+            top: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+            left: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+            right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+            bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
           ),
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(5), topRight: Radius.circular(5)),
-          color: Colors.grey),
+          color: Colors.white),
       child: TextButton(
         onPressed: () {
           Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
         },
         child: Text(
           btnName,
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(color: Color(0xff00809a), fontSize: 16),
         ),
       ));
 }
 
 Widget logoutBtn(context, btnName, btnIcon) {
-  return ElevatedButton(
+  return FilledButton(
     onPressed: () {
       FirebaseAuth.instance.signOut();
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Colors.blueGrey),
-      backgroundColor: Colors.blueGrey,
+      side: const BorderSide(width: 0, color: Color(0xffedf7f9)),
+      backgroundColor: Color(0xffedf7f9),
       //primary: Colors.purple),
     ),
     child: Column(
@@ -107,12 +120,25 @@ Widget logoutBtn(context, btnName, btnIcon) {
 }
 
 Widget returnBtn(context) {
-  return IconButton(
-    icon: const Icon(Icons.arrow_back),
-    tooltip: 'Volver',
+  return FilledButton(
     onPressed: () {
       Navigator.pop(context);
     },
+    style: FilledButton.styleFrom(
+      //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+      side: const BorderSide(width: 0, color: Color(0xffffffff)),
+      backgroundColor: Color(0xffffffff),
+    ),
+    child: const Column(
+      children: [
+        Icon(Icons.arrow_circle_left_outlined, color: Colors.black54),
+        SizedBox(height: 5),
+        Text(
+          "Volver",
+          style: TextStyle(color: Colors.black54, fontSize: 12),
+        ),
+      ],
+    ),
   );
 }
 
@@ -478,4 +504,11 @@ Text buttonEditableText(String textButton) {
       textAlign: TextAlign.center,
       style:
           const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey));
+}
+
+Widget customRowDivider() {
+  return Divider(
+    height: 1,
+    color: Color(0xffdfdfdf),
+  );
 }

@@ -22,15 +22,18 @@ class ProjectInfoPage extends StatefulWidget {
 }
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
-  void loadProject(id) async {
-    await getProjectById(id).then((val) {
+  void loadProject(_project) async {
+    _project.reload();
+    Navigator.popAndPushNamed(context, "/project_info",
+        arguments: {"project": _project});
+    /*await getProjectById(id).then((val) {
       Navigator.popAndPushNamed(context, "/project_info",
           arguments: {"project": val});
       /*setState(() {
         _project = val;
         print(_project?.announcement);
       });*/
-    });
+    });*/
   }
 
   @override
@@ -58,8 +61,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.grey,
+                        color: Color(0xffdfdfdf),
+                        width: 2,
                       ),
+                      borderRadius: const BorderRadius.all(Radius.circular(5)),
                     ),
                     child: projectInfoDetails(context),
                     //child: projectInfoDetails(context, _project),
@@ -73,7 +78,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return Container(
         padding: EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_project.name, style: TextStyle(fontSize: 20)),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(_project.name, style: TextStyle(fontSize: 20)),
+            returnBtn(context),
+          ]),
           space(height: 20),
           IntrinsicHeight(
             child: Row(
@@ -99,7 +107,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ],
             ),
           ),
-          Divider(color: Colors.grey),
+          //Divider(color: Colors.grey),
+          space(height: 20)
         ]));
   }
 
@@ -381,60 +390,44 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               children: [
                 projectManagerProgramme(context, _project),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 customText("Breve descripción del proyecto:", 16,
                     textColor: Colors.grey),
                 space(height: 5),
                 customText(_project?.description, 16),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 customText("Convocatoria:", 16, textColor: Colors.grey),
                 space(height: 5),
                 customText(_project?.announcement, 16),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 customText("Ambito del proyecto:", 16, textColor: Colors.grey),
                 space(height: 5),
                 customText(_project?.ambit, 16),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 projectAuditEvaluation(context, _project),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 projectFinanciersHeader(context, _project),
                 projectFinanciers(context, _project),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 projectPartnersHeader(context, _project),
                 projectPartners(context, _project),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 projectInfoDates(context, _project),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 projectInfoLocation(context, _project),
               ],
@@ -460,10 +453,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       _ambit,
       _audit,
       _evaluation) async {
-    if (_project != null) {
+    /*if (_project != null) {
       await updateProject(
-              _project.id,
-              _project.uuid,
               _name,
               _desc,
               _type,
@@ -477,21 +468,35 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               _project.financiers,
               _project.partners)
           .then((value) async {
-        loadProject(_project.id);
+        loadProject(_project);
       });
     } else {
       await addProject(_name, _desc, _type, _budget, _manager, _programme,
               _announcement, _ambit, false, false)
           .then((value) async {
-        loadProject(_project.id);
+        loadProject(_project);
       });
-    }
+    }*/
+    if (_project == null) _project = SProject(_name);
+    _project.description = _desc;
+    _project.type = _type;
+    _project.budget = _budget;
+    _project.manager = _manager;
+    _project.programme = _programme;
+    _project.announcement = _announcement;
+    _project.ambit = _ambit;
+    _project.audit = _audit;
+    _project.evaluation = _evaluation;
+    _project.save();
     if (!_types.contains(_type)) await addProjectType(_type);
     if (!_contacts.contains(_manager)) {
       Contact _contact = Contact(_manager, "", "", "", "");
       _contact.save();
     }
-    if (!_programmes.contains(_programme)) await addProgramme(_programme);
+    if (!_programmes.contains(_programme)) {
+      Programme _prog = Programme(_programme);
+      _prog.save();
+    }
     Navigator.of(context).pop();
   }
 
@@ -671,19 +676,24 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   void _saveFinancier(context, _project, _name, _financiers) async {
     _project.financiers.add(_name);
-    await updateProjectFinanciers(_project.id, _project.financiers)
+    _project.updateProjectFinanciers();
+    if (!_financiers.contains(_name)) await addFinancier(_name);
+    loadProject(_project);
+    /*await updateProjectFinanciers(_project.id, _project.financiers)
         .then((value) async {
       if (!_financiers.contains(_name)) await addFinancier(_name);
-      loadProject(_project.id);
-    });
+      loadProject(_project);
+    });*/
     Navigator.of(context).pop();
   }
 
   void _removeFinancier(context, _project) async {
-    await updateProjectFinanciers(_project.id, _project.financiers)
+    _project.updateProjectFinanciers();
+    loadProject(_project);
+    /*await updateProjectFinanciers(_project.id, _project.financiers)
         .then((value) async {
-      loadProject(_project.id);
-    });
+      loadProject(_project);
+    });*/
   }
 
   void _callFinancierEditDialog(context, _project) async {
@@ -738,22 +748,32 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   void _savePartner(context, _project, _name, _contacts) async {
     _project.partners.add(_name);
-    await updateProjectPartners(_project.id, _project.partners)
+    _project.updateProjectPartners();
+
+    if (!_contacts.contains(_name)) {
+      Contact _contact = Contact(_name, "", "", "", "");
+      _contact.save();
+    }
+    loadProject(_project);
+
+    /* await updateProjectPartners(_project.id, _project.partners)
         .then((value) async {
       if (!_contacts.contains(_name)) {
         Contact _contact = Contact(_name, "", "", "", "");
         _contact.save();
       }
-      loadProject(_project.id);
-    });
+      loadProject(_project);
+    });*/
     Navigator.of(context).pop();
   }
 
   void _removePartner(context, _project) async {
-    await updateProjectPartners(_project.id, _project.partners)
+    _project.updateProjectPartners();
+    loadProject(_project);
+    /*await updateProjectPartners(_project.id, _project.partners)
         .then((value) async {
-      loadProject(_project.id);
-    });
+      loadProject(_project);
+    });*/
   }
 
   void _callPartnerEditDialog(context, _project) async {
@@ -810,7 +830,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     await updateProjectDates(_dates.id, _dates.uuid, _approved, _start, _end,
             _justification, _delivery, _project.uuid)
         .then((value) async {
-      loadProject(_project.id);
+      loadProject(_project);
     });
     Navigator.of(context).pop();
   }
@@ -953,7 +973,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     await updateProjectLocation(_loc.id, _loc.uuid, _country, _province,
             _region, _town, _project.uuid)
         .then((value) async {
-      loadProject(_project.id);
+      loadProject(_project);
     });
     if (!countries.contains(_country)) await addCountry(_country);
     if (!provinces.contains(_province)) await addProvince(_province);

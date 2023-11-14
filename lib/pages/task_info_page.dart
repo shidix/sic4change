@@ -641,7 +641,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   void _saveProgrammes(context, _task, _name, _programmes_list) async {
     _task.programmes.add(_name);
     _task.updateProgrammes();
-    if (!_programmes_list.contains(_name)) await addProgramme(_name);
+    if (!_programmes_list.contains(_name)) {
+      Programme _programme = Programme(_name);
+      _programme.save();
+    }
     loadTask(_task);
     Navigator.of(context).pop();
   }

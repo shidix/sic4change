@@ -2,42 +2,36 @@
 // import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
+//--------------------------------------------------------------
+//                           PROJECTS
+//--------------------------------------------------------------
+CollectionReference dbProject = db.collection("s4c_projects");
+
 class SProject {
-  final String id;
-  final String uuid;
-  final String name;
-  final String description;
-  final String type;
-  final String budget;
-  final String manager;
-  final String programme;
-  final String announcement;
-  final String ambit;
-  final bool audit;
-  final bool evaluation;
-  final List financiers;
-  final List partners;
+  String id = "";
+  String uuid = "";
+  String name = "";
+  String description = "";
+  String type = "";
+  String budget = "";
+  String manager = "";
+  String programme = "";
+  String announcement = "";
+  String ambit = "";
+  bool audit = false;
+  bool evaluation = false;
+  List financiers = [];
+  List partners = [];
 
   double dblbudget = 0;
 
   SProject(
-      this.id,
-      this.uuid,
-      this.name,
-      this.description,
-      this.type,
-      this.budget,
-      this.manager,
-      this.programme,
-      this.announcement,
-      this.ambit,
-      this.audit,
-      this.evaluation,
-      this.financiers,
-      this.partners);
+    this.name,
+  );
 
   SProject.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -55,7 +49,7 @@ class SProject {
         financiers = json['financiers'],
         partners = json['partners'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
@@ -76,6 +70,38 @@ class SProject {
         'key': uuid,
         'value': name,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbProject.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbProject.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbProject.doc(id).delete();
+  }
+
+  Future<SProject> reload() async {
+    DocumentSnapshot _doc = await dbProject.doc(id).get();
+    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+    data["id"] = _doc.id;
+    SProject.fromJson(data);
+    return this;
+  }
+
+  Future<void> updateProjectFinanciers() async {
+    await dbProject.doc(id).update({"financiers": financiers});
+  }
+
+  Future<void> updateProjectPartners() async {
+    await dbProject.doc(id).update({"partners": partners});
+  }
 
   String total_budget() {
     double aux = 24;
@@ -107,6 +133,36 @@ class SProject {
   }
 }
 
+Future<List> getProjects() async {
+  List items = [];
+  QuerySnapshot queryProject = await dbProject.get();
+  for (var doc in queryProject.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = SProject.fromJson(data);
+    items.add(_item);
+  }
+  return items;
+}
+
+Future<SProject> getProjectById(String id) async {
+  DocumentSnapshot _doc = await dbProject.doc(id).get();
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return SProject.fromJson(data);
+}
+
+Future<SProject?> getProjectByUuid(String _uuid) async {
+  QuerySnapshot query = await dbProject.where("uuid", isEqualTo: _uuid).get();
+  final _doc = query.docs.first;
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return SProject.fromJson(data);
+}
+
+//--------------------------------------------------------------
+//                       PROJECT TYPE
+//--------------------------------------------------------------
 class ProjectType {
   final String id;
   final String uuid;
@@ -126,6 +182,9 @@ class ProjectType {
       };
 }
 
+//--------------------------------------------------------------
+//                       PROJECT DATES
+//--------------------------------------------------------------
 class ProjectDates {
   final String id;
   final String uuid;
@@ -161,6 +220,9 @@ class ProjectDates {
       };
 }
 
+//--------------------------------------------------------------
+//                       PROJECT LOCATION
+//--------------------------------------------------------------
 class ProjectLocation {
   final String id;
   final String uuid;
@@ -193,12 +255,17 @@ class ProjectLocation {
       };
 }
 
-class Financier {
-  final String id;
-  final String uuid;
-  final String name;
+//--------------------------------------------------------------
+//                       PROJECT FINANCIER
+//--------------------------------------------------------------
+CollectionReference dbFinancier = db.collection("s4c_financier");
 
-  Financier(this.id, this.uuid, this.name);
+class Financier {
+  String id = "";
+  String uuid = "";
+  String name = "";
+
+  Financier(this.name);
 
   Financier.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -210,14 +277,36 @@ class Financier {
         'uuid': uuid,
         'name': name,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbFinancier.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbFinancier.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbProgramme.doc(id).delete();
+  }
 }
 
-class Programme {
-  final String id;
-  final String uuid;
-  final String name;
+//--------------------------------------------------------------
+//                       PROGRAMME
+//--------------------------------------------------------------
+CollectionReference dbProgramme = db.collection("s4c_programmes");
 
-  Programme(this.id, this.uuid, this.name);
+class Programme {
+  String id = "";
+  String uuid = "";
+  String name = "";
+  int projects = 0;
+
+  Programme(this.name);
 
   Programme.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -229,314 +318,39 @@ class Programme {
         'uuid': uuid,
         'name': name,
       };
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbProgramme.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbProgramme.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbProgramme.doc(id).delete();
+  }
+
+  Future<void> getProjects() async {
+    QuerySnapshot query =
+        await dbProject.where("programe", isEqualTo: uuid).get();
+    projects = query.docs.length;
+  }
 }
 
-/*class Folder {
-  final String id;
-  final String uuid;
-  final String name;
-  final String parent;
+Future<List> getProgrammes() async {
+  List items = [];
+  QuerySnapshot queryProgramme = await dbProgramme.get();
 
-  Folder(this.id, this.uuid, this.name, this.parent);
-
-  Folder.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        parent = json['parent'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'parent': parent,
-      };
+  for (var doc in queryProgramme.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Programme.fromJson(data);
+    _item.getProjects();
+    items.add(_item);
+  }
+  return items;
 }
-
-class SFile {
-  final String id;
-  final String uuid;
-  final String name;
-  final String folder;
-  final String link;
-
-  SFile(this.id, this.uuid, this.name, this.folder, this.link);
-
-  SFile.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        folder = json['folder'],
-        link = json['link'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'folder': folder,
-        'link': link,
-      };
-}*/
-
-/*class Contact {
-  final String id;
-  final String uuid;
-  final String name;
-  final String company;
-  final List<String> projects;
-  final String position;
-  final String email;
-  final String phone;
-
-  Contact(this.id, this.uuid, this.name, this.company, this.projects,
-      this.position, this.email, this.phone);
-
-  Contact.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        company = json['company'],
-        projects = List.from(json['projects']),
-        position = json["position"],
-        email = json["email"],
-        phone = json["phone"];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'company': company,
-        'projects': projects.join(","),
-        'position': position,
-        'email': email,
-        'phone': phone,
-      };
-}
-
-class Company {
-  final String id;
-  final String uuid;
-  final String name;
-
-  Company(this.id, this.uuid, this.name);
-
-  Company.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-      };
-}
-
-class Position {
-  final String id;
-  final String uuid;
-  final String name;
-
-  Position(this.id, this.uuid, this.name);
-
-  Position.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-      };
-}*/
-
-/*class Goal {
-  final String id;
-  final String uuid;
-  final String name;
-  final String description;
-  final bool main;
-  final String project;
-
-  Goal(
-      this.id, this.uuid, this.name, this.description, this.main, this.project);
-
-  Goal.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        main = json['main'],
-        project = json['project'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'description': description,
-        'main': main.toString(),
-        'project': project,
-      };
-}
-
-class Result {
-  final String id;
-  final String uuid;
-  final String name;
-  final String description;
-  final String indicator_text;
-  final String indicator_percent;
-  final String source;
-  final String goal;
-
-  Result(this.id, this.uuid, this.name, this.description, this.indicator_text,
-      this.indicator_percent, this.source, this.goal);
-
-  Result.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        indicator_text = json['indicator_text'],
-        indicator_percent = json['indicator_percent'],
-        source = json['source'],
-        goal = json['goal'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'description': description,
-        'indicator_text': indicator_text,
-        'indicator_percent': indicator_percent,
-        'source': source,
-        'goal': goal,
-      };
-}
-
-class Activity {
-  final String id;
-  final String uuid;
-  final String name;
-  final String result;
-
-  Activity(this.id, this.uuid, this.name, this.result);
-
-  Activity.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        result = json['result'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'result': result,
-      };
-}
-
-class ActivityIndicator {
-  final String id;
-  final String uuid;
-  final String name;
-  final String percent;
-  final String source;
-  final String activity;
-
-  ActivityIndicator(
-      this.id, this.uuid, this.name, this.percent, this.source, this.activity);
-
-  ActivityIndicator.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        percent = json['percent'],
-        source = json['source'],
-        activity = json['activity'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'percent': percent,
-        'source': source,
-        'activity': activity,
-      };
-}
-
-class Task {
-  final String id;
-  final String uuid;
-  final String name;
-  final String result;
-
-  Task(this.id, this.uuid, this.name, this.result);
-
-  Task.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        result = json['result'];
-
-  Map<String, String> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'result': result,
-      };
-}*/
-
-// Financiera
-
-// class SFinn {
-//   final String id;
-//   final String uuid;
-//   final String name;
-//   final String description;
-//   final String parent;
-//   final String project;
-
-//   SFinn(this.id, this.uuid, this.name, this.description, this.parent,
-//       this.project);
-
-//   SFinn.fromJson(Map<String, dynamic> json)
-//       : id = json["id"],
-//         uuid = json["uuid"],
-//         name = json['name'],
-//         description = json['description'],
-//         parent = json['parent'],
-//         project = json['project'];
-
-//   Map<String, String> toJson() => {
-//         'id': id,
-//         'uuid': uuid,
-//         'name': name,
-//         'description': description,
-//         'parent': parent,
-//         'project': project,
-//       };
-// }
-
-// class FinnContribution {
-//   final String id;
-//   final String owner;
-//   final double amount;
-//   final String finn;
-
-//   FinnContribution(this.id, this.owner, this.amount, this.finn);
-
-//   FinnContribution.fromJson(Map<String, dynamic> json)
-//       : id = json["id"],
-//         owner = json["owner"],
-//         amount = json["amout"],
-//         finn = json["finn"];
-
-//   Map<String, dynamic> toJson() => {
-//         'id': id,
-//         'owner': owner,
-//         'amount': amount,
-//         'finn': finn,
-//       };
-// }

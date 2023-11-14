@@ -9,7 +9,7 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                           PROJECTS
 //--------------------------------------------------------------
-CollectionReference _collectionProject = db.collection("s4c_projects");
+/*CollectionReference _collectionProject = db.collection("s4c_projects");
 
 Future<List> getProjects() async {
   List items = [];
@@ -120,7 +120,7 @@ Future<void> updateProjectFinanciers(String id, List financiers) async {
 
 Future<void> updateProjectPartners(String id, List partners) async {
   await _collectionProject.doc(id).update({"partners": partners});
-}
+}*/
 
 //--------------------------------------------------------------
 //                           PROJECT TYPES
@@ -189,7 +189,7 @@ Future<void> deleteFinancier(String id) async {
 //--------------------------------------------------------------
 //                           PROGRAMME
 //--------------------------------------------------------------
-CollectionReference _collectionProgramme = db.collection("s4c_programmes");
+/*CollectionReference _collectionProgramme = db.collection("s4c_programmes");
 
 Future<List> getProgrammes() async {
   List items = [];
@@ -216,7 +216,7 @@ Future<void> updateProgramme(String id, String uuid, String name) async {
 
 Future<void> deleteProgramme(String id) async {
   await _collectionProgramme.doc(id).delete();
-}
+}*/
 
 //--------------------------------------------------------------
 //                           PROJECT DATES

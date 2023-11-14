@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
-import 'package:sic4change/services/models_marco.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
+CollectionReference dbProject = db.collection("s4c_projects");
 
 //--------------------------------------------------------------
 //                           TASKS
@@ -29,8 +28,7 @@ class STask {
   List<String> assigned = [];
   List<String> programmes = [];
   bool public = false;
-  SProject projectObj =
-      SProject("", "", "", "", "", "", "", "", "", "", false, false, [], []);
+  SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("", "", "", "", "");
 
