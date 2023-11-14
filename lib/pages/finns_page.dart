@@ -447,7 +447,7 @@ class _FinnsPageState extends State<FinnsPage> {
             child: Column(children: [
               Row(mainAxisSize: MainAxisSize.max, children: [
                 Expanded(
-                    flex: 2,
+                    flex: 8,
                     child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
@@ -459,18 +459,31 @@ class _FinnsPageState extends State<FinnsPage> {
                         alignment: Alignment.centerRight,
                         child: Padding(
                             padding: const EdgeInsets.only(bottom: 10),
-                            child: Tooltip(
-                                message: 'Añadir factura',
-                                child: IconButton(
-                                    onPressed: () {
-                                      _addInvoiceDialog(context, finnSelected!)
-                                          .then((value) {
-                                        _loadInvoicesByFinn(
-                                            context, finnSelected!);
+                            child: Row(children: [
+                              Tooltip(
+                                  message: 'Añadir factura',
+                                  child: IconButton(
+                                      onPressed: () {
+                                        _addInvoiceDialog(
+                                                context, finnSelected!)
+                                            .then((value) {
+                                          _loadInvoicesByFinn(
+                                              context, finnSelected!);
+                                          setState(() {});
+                                        });
+                                      },
+                                      icon: const Icon(Icons.add))),
+                              Tooltip(
+                                  message: 'Cerrar listado',
+                                  child: IconButton(
+                                      onPressed: () {
+                                        finnSelected = null;
+                                        invoicesList = [];
                                         setState(() {});
-                                      });
-                                    },
-                                    icon: const Icon(Icons.add))))))
+                                      },
+                                      icon: const Icon(
+                                          Icons.arrow_circle_left_outlined))),
+                            ])))),
               ]),
               Row(
                 mainAxisSize: MainAxisSize.max,
