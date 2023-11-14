@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -19,6 +20,15 @@ SProject? _project;
 FirebaseFirestore db = FirebaseFirestore.instance;
 double totalBudgetProject = 1;
 double executedBudgetProject = 0;
+ListView invoicesList = ListView(
+  padding: EdgeInsets.zero,
+  shrinkWrap: true,
+  scrollDirection: Axis.vertical,
+  children: [
+    Expanded(flex: 1, child: Text('AUX')),
+    Expanded(flex: 3, child: Text('AUX'))
+  ],
+);
 
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
@@ -46,6 +56,9 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map<String, Text>> distrib_controllers = {};
   Map<String, double> distrib_amount = {};
   Map<String, double> aportes_amount = {};
+
+
+
   Text totalBudget = const Text(
     '0.00',
     textAlign: TextAlign.end,
@@ -66,6 +79,7 @@ class _FinnsPageState extends State<FinnsPage> {
     ),
   );
 
+  
   void loadFinns(value) async {
     // await getFinnsByProject(value).then((val) {
     //   finn_list = val;
@@ -579,6 +593,18 @@ class _FinnsPageState extends State<FinnsPage> {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: invoicesList,
+                    ),
+                  ],
+                ),
+              ),              
             ],
           ));
         }));
@@ -671,7 +697,7 @@ class _FinnsPageState extends State<FinnsPage> {
       for (SFinn finn in data.data) {
         List<Expanded> cells = [];
         IconButton buttonFinnInvoices =
-            IconButton(icon: const Icon(Icons.list), onPressed: () {});
+            IconButton(icon: const Icon(Icons.list), onPressed: () {_loadInvoicesByUuid(context, finn.uuid);},);
         IconButton buttonFinnEdit = IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -799,6 +825,32 @@ class _FinnsPageState extends State<FinnsPage> {
       }
       return [];
     }
+  }
+
+  Future<void> _loadInvoicesByUuid(context, uuid_finn) async {
+    List<Row> sourceRows = [];
+    for (int i in List.generate(0, (i) => 6)) {
+      sourceRows.add(
+        Row(
+          children:[
+            Expanded(flex:1,child: Text('Columna 1')),
+            Expanded(flex:3,child: Text('Columna 2'))
+            ]
+        )
+      );
+    }
+    print (invoicesList);
+    invoicesList =  ListView(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              children: sourceRows,
+                            );
+
+    print(invoicesList);
+    setState(() {
+      
+    });
   }
 
   Future<void> _editFinnContribDialog(context, finn, financier) {
