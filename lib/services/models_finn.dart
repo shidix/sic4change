@@ -290,16 +290,12 @@ class Invoice {
 
   void save() async {
     final collection = db.collection("s4c_invoices");
-    print("DBG001 $id");
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
       collection.add(data);
     } else {
-      print(id);
       final item = await collection.doc(id).get();
-      // print(query.docs.length);
-      // final item = query.docs.first;
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
     }
