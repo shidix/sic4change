@@ -138,7 +138,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   Widget projectList(context) {
     return Container(
-        padding: EdgeInsets.only(left: 20, right: 20),
+        padding: const EdgeInsets.only(left: 20, right: 20),
         child: FutureBuilder(
             future: getProjects(),
             builder: ((context, snapshot) {
@@ -147,10 +147,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 return SizedBox(
                     height: 900,
                     child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 15,
-                          mainAxisSpacing: 15,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
                           childAspectRatio: .9,
                         ),
                         itemCount: project_list.length,
@@ -167,12 +168,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   Widget projectCard(context, _project) {
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
           border: Border.all(
             color: Colors.grey,
           ),
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+          borderRadius: const BorderRadius.all(Radius.circular(10))),
       child: projectCardDatas(context, _project),
       /*child: SingleChildScrollView(
         child: projectCardDatas(context, _project),
@@ -189,11 +190,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
           children: [
             Text(
               _project.name,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             Text(
               _project.type.toUpperCase(),
-              style: TextStyle(fontSize: 15, color: Colors.blueGrey),
+              style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
             ),
 
             /*IconButton(
@@ -209,7 +210,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(
             _project.description,
-            style: TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 15),
           ),
         ]),
       ],
@@ -217,7 +218,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectCardDatasFinancier(_project) {
-    var _list = _project.financiers;
+    List _list = _project.financiers;
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Financiador/es:", 16, textColor: Colors.grey),
@@ -236,7 +237,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           itemCount: _list.length,
           itemBuilder: (BuildContext context, int index) {
             return Container(
-                padding: EdgeInsets.all(5),
+                padding: const EdgeInsets.all(5),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -258,7 +259,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectCardDatasPartners(_project) {
-    var _list = _project.partners;
+    List _list = _project.partners;
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),

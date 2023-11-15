@@ -109,31 +109,35 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FilledButton(
-              onPressed: () {
-                _editResultDialog(context, null, _goal);
-              },
-              style: FilledButton.styleFrom(
-                side: const BorderSide(width: 0, color: Color(0xffffffff)),
-                backgroundColor: Color(0xffffffff),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.add, color: Colors.black54),
-                  SizedBox(height: 5),
-                  Text(
-                    "Añadir",
-                    style: TextStyle(color: Colors.black54, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
+            addBtn(context, _goal),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
+  }
+
+  Widget addBtn(context, _goal) {
+    return FilledButton(
+      onPressed: () {
+        _editResultDialog(context, null, _goal);
+      },
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.add, color: Colors.black54),
+          SizedBox(height: 5),
+          Text(
+            "Añadir",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
   void _saveResult(context, _result, _name, _desc, _indicator_text,

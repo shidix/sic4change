@@ -85,31 +85,35 @@ class _GoalsPageState extends State<GoalsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FilledButton(
-              onPressed: () {
-                _editGoalDialog(context, null, _project);
-              },
-              style: FilledButton.styleFrom(
-                side: const BorderSide(width: 0, color: Color(0xffffffff)),
-                backgroundColor: Color(0xffffffff),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.add, color: Colors.black54),
-                  SizedBox(height: 5),
-                  Text(
-                    "Añadir",
-                    style: TextStyle(color: Colors.black54, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
+            addBtn(context, _project),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
+  }
+
+  Widget addBtn(context, _project) {
+    return FilledButton(
+      onPressed: () {
+        _editGoalDialog(context, null, _project);
+      },
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.add, color: Colors.black54),
+          SizedBox(height: 5),
+          Text(
+            "Añadir",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
   void _saveGoal(context, _goal, _name, _desc, _main, _project) async {

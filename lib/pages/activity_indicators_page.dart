@@ -5,6 +5,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -40,11 +41,11 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     if (_activity == null) return Page404();
 
     return Scaffold(
-      body: Column(children: [
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         activityIndicatorPath(context, _activity),
         activityIndicatorHeader(context, _activity),
-        //goalMenu(context, _goal),
+        goalMenu(context, _activity),
         Expanded(
             child: Container(
                 width: double.infinity,
@@ -52,8 +53,10 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Color(0xffdfdfdf),
+                      width: 2,
                     ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: activityIndicatorList(context, _activity),
                 )))
@@ -90,50 +93,35 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //activityIndicatorAddBtn(context, _activity),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Añadir indicador',
-              onPressed: () {
-                _editActivityIndicatorDialog(context, null, _activity);
-              },
-            ),
+            addBtn(context, _activity),
             returnBtn(context),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
   }
 
-  /*Widget activityIndicatorAddBtn(context, _activity) {
-    return ElevatedButton(
+  Widget addBtn(context, _activity) {
+    return FilledButton(
       onPressed: () {
         _editActivityIndicatorDialog(context, null, _activity);
       },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
       ),
-      child: Row(
+      child: const Column(
         children: [
-          Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
+          Icon(Icons.add, color: Colors.black54),
+          SizedBox(height: 5),
           Text(
-            "Add activity indicator",
-            style: TextStyle(color: Colors.black, fontSize: 14),
+            "Añadir",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
           ),
         ],
       ),
     );
-  }*/
+  }
 
   void _saveActivityIndicator(
       context, _indicator, _name, _percent, _source, _activity) async {
@@ -216,7 +204,24 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           if (snapshot.hasData) {
             ai_list = snapshot.data!;
             if (ai_list.length > 0) {
-              return Column(
+              return ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: ai_list.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    ActivityIndicator _indicator = ai_list[index];
+                    return Container(
+                      //height: 300,
+                      padding: EdgeInsets.only(top: 20, bottom: 10),
+                      decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Color(0xffdfdfdf))),
+                      ),
+                      child:
+                          activityIndicatorRow(context, _indicator, _activity),
+                    );
+                  });
+
+              /*return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +247,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                                 );
                               })))
                 ],
-              );
+              );*/
             } else
               return Text("");
           } else {

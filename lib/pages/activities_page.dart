@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -51,7 +52,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         mainMenu(context),
         activityPath(context, _result),
         activityHeader(context, _result),
-        //goalMenu(context, _goal),
+        goalMenu(context, _result),
         Expanded(
             child: Container(
                 width: double.infinity,
@@ -59,8 +60,10 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Color(0xffdfdfdf),
+                      width: 2,
                     ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: activityList(context, _result),
                 )))
@@ -90,14 +93,6 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   Widget activityHeader(context, _result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        /*Container(
-          padding: EdgeInsets.only(left: 40),
-          child: Text(
-            _result.name,
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-        space(height: 10),*/
         Container(
           padding: EdgeInsets.only(left: 40),
           child: Row(children: [
@@ -112,19 +107,34 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Añadir actividad',
-              onPressed: () {
-                _editActivityDialog(context, null, _result);
-              },
-            ),
+            addBtn(context, _result),
             returnBtn(context),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
+  }
+
+  Widget addBtn(context, _result) {
+    return FilledButton(
+      onPressed: () {
+        _editActivityDialog(context, null, _result);
+      },
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.add, color: Colors.black54),
+          SizedBox(height: 5),
+          Text(
+            "Añadir",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
   void _saveActivity(context, _activity, _name, _result) async {
@@ -212,7 +222,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
+                                        bottom: BorderSide(
+                                            color: Color(0xffdfdfdf))),
                                   ),
                                   child:
                                       activityRow(context, _activity, _result),

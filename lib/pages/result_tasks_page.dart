@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -43,7 +44,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         mainMenu(context),
         taskPath(context, _result),
         taskHeader(context, _result),
-        //goalMenu(context, _goal),
+        goalMenu(context, _result),
         Expanded(
             child: Container(
                 width: double.infinity,
@@ -51,8 +52,10 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Color(0xffdfdfdf),
+                      width: 2,
                     ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: taskList(context, _result),
                 )))
@@ -100,45 +103,30 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //taskAddBtn(context, _result),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Añadir tarea',
-              onPressed: () {
-                _editTaskDialog(context, null, _result);
-              },
-            ),
+            addBtn(context, _result),
             returnBtn(context),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
   }
 
-  Widget taskAddBtn(context, _result) {
-    return ElevatedButton(
+  Widget addBtn(context, _result) {
+    return FilledButton(
       onPressed: () {
         _editTaskDialog(context, null, _result);
       },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
       ),
-      child: Row(
+      child: const Column(
         children: [
-          Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
+          Icon(Icons.add, color: Colors.black54),
+          SizedBox(height: 5),
           Text(
-            "Add task",
-            style: TextStyle(color: Colors.black, fontSize: 14),
+            "Añadir",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
           ),
         ],
       ),
@@ -229,7 +217,8 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
+                                        bottom: BorderSide(
+                                            color: Color(0xffdfdfdf))),
                                   ),
                                   child: taskRow(context, _task, _result),
                                 );
