@@ -1,6 +1,6 @@
 //import 'dart:ffi';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -14,7 +14,7 @@ class InvoiceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
         width: MediaQuery.of(context).size.width * 0.5,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -78,7 +78,7 @@ class InvoiceDetail extends StatelessWidget {
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
 
-  InvoiceForm({Key? key, this.existingInvoice}) : super(key: key);
+  const InvoiceForm({Key? key, this.existingInvoice}) : super(key: key);
 
   @override
   _InvoiceFormState createState() => _InvoiceFormState();
