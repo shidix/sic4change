@@ -7,6 +7,74 @@ import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
 
+class InvoiceDetail extends StatelessWidget {
+  final Invoice invoice;
+
+  const InvoiceDetail({Key? key, required this.invoice}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(children: [
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Número', textToShow: invoice.number)),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Código', textToShow: invoice.code)),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Fecha', textToShow: invoice.date)),
+            ]),
+            const SizedBox(height: 16.0),
+            Row(children: [
+              Expanded(
+                  flex: 3,
+                  child: ReadOnlyTextField(
+                      label: 'Concepto', textToShow: invoice.concept)),
+            ]),
+            const SizedBox(height: 16.0),
+            Row(children: [
+              Expanded(
+                  flex: 3,
+                  child: ReadOnlyTextField(
+                      label: 'Proveedor', textToShow: invoice.provider)),
+            ]),
+            const SizedBox(height: 16.0),
+            Row(children: [
+              Expanded(
+                  flex: 3,
+                  child: ReadOnlyTextField(
+                      label: 'Desglose', textToShow: invoice.desglose)),
+            ]),
+            const SizedBox(height: 16.0),
+            Row(children: [
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Base', textToShow: invoice.base.toString())),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Impuestos',
+                      textToShow: invoice.taxes.toString())),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Total', textToShow: invoice.total.toString())),
+            ]),
+          ],
+        ));
+  }
+}
+
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
 
@@ -37,6 +105,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
           0.0,
           '',
           '',
+          '',
         );
   }
 
@@ -50,7 +119,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
         children: [
           TextFormField(
             initialValue: _invoice.number,
-            decoration: InputDecoration(labelText: 'Número'),
+            decoration: const InputDecoration(labelText: 'Número'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor, ingrese un valor';
@@ -61,17 +130,17 @@ class _InvoiceFormState extends State<InvoiceForm> {
           ),
           TextFormField(
             initialValue: _invoice.code,
-            decoration: InputDecoration(labelText: 'Código'),
+            decoration: const InputDecoration(labelText: 'Código'),
             onSaved: (value) => _invoice.code = value!,
           ),
           TextFormField(
             initialValue: _invoice.concept,
-            decoration: InputDecoration(labelText: 'Concepto'),
+            decoration: const InputDecoration(labelText: 'Concepto'),
             onSaved: (value) => _invoice.concept = value!,
           ),
           TextFormField(
             initialValue: _invoice.provider,
-            decoration: InputDecoration(labelText: 'Proveedor'),
+            decoration: const InputDecoration(labelText: 'Proveedor'),
             onSaved: (value) => _invoice.provider = value!,
           ),
           DateTimePicker(
@@ -84,9 +153,16 @@ class _InvoiceFormState extends State<InvoiceForm> {
             },
           ),
           TextFormField(
+            initialValue: _invoice.desglose,
+            keyboardType: TextInputType.multiline,
+            maxLines: null, // Permite un número ilimitado de líneas
+            decoration: const InputDecoration(labelText: 'Desglose'),
+            onSaved: (value) => _invoice.desglose = value!,
+          ),
+          TextFormField(
             initialValue: _invoice.base.toString(),
-            decoration: InputDecoration(labelText: 'Base'),
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Base'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor, ingrese la base';
@@ -110,8 +186,8 @@ class _InvoiceFormState extends State<InvoiceForm> {
           ),
           TextFormField(
             initialValue: _invoice.taxes.toString(),
-            decoration: InputDecoration(labelText: 'Impuestos'),
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Impuestos'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor, ingrese los impuestos';
@@ -137,7 +213,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
               label: 'Total', textToShow: _invoice.total.toString()),
           TextFormField(
             initialValue: _invoice.document,
-            decoration: InputDecoration(labelText: 'Documento'),
+            decoration: const InputDecoration(labelText: 'Documento'),
             onSaved: (value) => _invoice.document = value!,
           ),
           const SizedBox(height: 16.0),

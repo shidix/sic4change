@@ -238,6 +238,7 @@ class Invoice {
   double base;
   double taxes;
   double total;
+  String desglose;
   String provider;
   String document;
 
@@ -252,6 +253,7 @@ class Invoice {
       this.base,
       this.taxes,
       this.total,
+      this.desglose,
       this.provider,
       this.document);
 
@@ -266,6 +268,7 @@ class Invoice {
         base = json["base"],
         taxes = json["taxes"],
         total = json["total"],
+        desglose = json["desglose"],
         provider = json["provider"],
         document = json["document"];
 
@@ -280,20 +283,23 @@ class Invoice {
         'base': base,
         'taxes': taxes,
         'total': total,
+        'desglose': desglose,
         'provider': provider,
         'document': document,
       };
 
   void save() async {
     final collection = db.collection("s4c_invoices");
-
+    print("DBG001 $id");
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
       collection.add(data);
     } else {
-      final query = await collection.where("id", isEqualTo: id).limit(1).get();
-      final item = query.docs.first;
+      print(id);
+      final item = await collection.doc(id).get();
+      // print(query.docs.length);
+      // final item = query.docs.first;
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
     }

@@ -443,11 +443,11 @@ class _FinnsPageState extends State<FinnsPage> {
           width: double.infinity,
           child: Card(
               child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.only(left: 10, top: 10),
             child: Column(children: [
               Row(mainAxisSize: MainAxisSize.max, children: [
                 Expanded(
-                    flex: 8,
+                    flex: 16,
                     child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
@@ -456,7 +456,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 Expanded(
                     flex: 1,
                     child: Align(
-                        alignment: Alignment.centerRight,
+                        alignment: Alignment.topRight,
                         child: Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Row(children: [
@@ -472,7 +472,8 @@ class _FinnsPageState extends State<FinnsPage> {
                                           setState(() {});
                                         });
                                       },
-                                      icon: const Icon(Icons.add))),
+                                      icon: const Icon(
+                                          Icons.add_circle_outline))),
                               Tooltip(
                                   message: 'Cerrar listado',
                                   child: IconButton(
@@ -931,37 +932,57 @@ class _FinnsPageState extends State<FinnsPage> {
     invoicesList.add(header);
 
     for (Invoice invoice in items) {
-      invoicesList.add(Row(children: [
-        Expanded(flex: 2, child: Text(invoice.number)),
-        Expanded(flex: 2, child: Text(invoice.code)),
-        Expanded(flex: 2, child: Text(invoice.date)),
-        Expanded(flex: 4, child: Text(invoice.concept)),
-        Expanded(
-            flex: 2,
-            child: Text(
-              "${invoice.base.toStringAsFixed(2)} €",
-              textAlign: TextAlign.end,
-            )),
-        Expanded(
-            flex: 2,
-            child: Text(
-              "${invoice.taxes.toStringAsFixed(2)} €",
-              textAlign: TextAlign.end,
-            )),
-        Expanded(
-            flex: 2,
-            child: Text(
-              "${invoice.total.toStringAsFixed(2)} €",
-              textAlign: TextAlign.end,
-            )),
-        Expanded(
-            flex: 1,
-            child: IconButton(
-                onPressed: () {
-                  //_editInvoiceDialog(context, invoice);
-                },
-                icon: const Icon(Icons.edit))),
-      ]));
+      invoicesList.add(MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+              onTap: () {
+                _viewInvoiceDialog(context, invoice);
+              },
+              child: Row(children: [
+                Expanded(flex: 2, child: Text(invoice.number)),
+                Expanded(flex: 2, child: Text(invoice.code)),
+                Expanded(flex: 2, child: Text(invoice.date)),
+                Expanded(flex: 4, child: Text(invoice.concept)),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      "${invoice.base.toStringAsFixed(2)} €",
+                      textAlign: TextAlign.end,
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      "${invoice.taxes.toStringAsFixed(2)} €",
+                      textAlign: TextAlign.end,
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      "${invoice.total.toStringAsFixed(2)} €",
+                      textAlign: TextAlign.end,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(children: [
+                          IconButton(
+                              onPressed: () {
+                                _viewInvoiceDialog(context, invoice);
+                              },
+                              icon: const Icon(Icons.info_outline)),
+                          IconButton(
+                              onPressed: () {
+                                _editInvoiceDialog(context, invoice)
+                                    .then((value) {
+                                  _loadInvoicesByFinn(context, finnSelected!);
+                                  setState(() {});
+                                });
+                                ;
+                              },
+                              icon: const Icon(Icons.edit))
+                        ]))),
+              ]))));
     }
 
     setState(() {});
@@ -1187,6 +1208,19 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
+  Future<void> _viewInvoiceDialog(context, Invoice invoice) {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: true, // user must tap button!
+        builder: (BuildContext context) {
+          String title = "Factura ${invoice.number}";
+          return AlertDialog(
+              titlePadding: EdgeInsets.zero,
+              title: s4cTitleBar(title, context),
+              content: InvoiceDetail(key: null, invoice: invoice));
+        });
+  }
+
   Future<void> _addInvoiceDialog(context, SFinn finn) {
     return showDialog<void>(
       context: context,
@@ -1210,7 +1244,26 @@ class _FinnsPageState extends State<FinnsPage> {
               0,
               '',
               '',
+              '',
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _editInvoiceDialog(context, Invoice invoice) {
+    print(invoice.id);
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: EdgeInsets.zero,
+          title: s4cTitleBar('Editar factura'),
+          content: InvoiceForm(
+            key: null,
+            existingInvoice: invoice,
           ),
         );
       },
@@ -1218,16 +1271,32 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 }
 
-SizedBox s4cTitleBar(String title) {
+SizedBox s4cTitleBar(String title, [context]) {
+  Widget closeButton = const SizedBox(width: 0);
+  if (context != null) {
+    closeButton = IconButton(
+      icon: const Icon(Icons.close),
+      color: Colors.white,
+      iconSize: 20,
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
   return SizedBox(
       width: double.infinity,
       child: Card(
           color: Colors.blueGrey,
           child: Padding(
               padding: const EdgeInsets.all(10),
-              child: Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.white)))));
+              child: Row(children: [
+                Expanded(
+                    flex: 9,
+                    child: Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white))),
+                Expanded(flex: 1, child: closeButton)
+              ]))));
 }
