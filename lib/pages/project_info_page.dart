@@ -3,13 +3,12 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
-import 'package:sic4change/services/firebase_service_location.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/services/firebase_service.dart';
 
 const PROJECT_INFO_TITLE = "Detalles del Proyecto";
 SProject? _project;
@@ -23,17 +22,10 @@ class ProjectInfoPage extends StatefulWidget {
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void loadProject(_project) async {
-    _project.reload();
-    Navigator.popAndPushNamed(context, "/project_info",
-        arguments: {"project": _project});
-    /*await getProjectById(id).then((val) {
+    await _project.reload().then((val) {
       Navigator.popAndPushNamed(context, "/project_info",
           arguments: {"project": val});
-      /*setState(() {
-        _project = val;
-        print(_project?.announcement);
-      });*/
-    });*/
+    });
   }
 
   @override
@@ -120,7 +112,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           children: [
             menuTabSelect(context, "Datos generales", "/project_info",
                 {'project': _project}),
-            menuTab(context, "Reformulaciones", "/project_info",
+            menuTab(context, "Reformulaciones", "/project_reformulation",
                 {'project': _project}),
           ],
         ),
@@ -143,7 +135,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Responsable del proyecto:", 16,
                       textColor: Colors.grey),
                   space(height: 5),
-                  customText(_project.manager, 16),
+                  customText(_project.managerObj.name, 16),
                 ],
               )),
           VerticalDivider(
@@ -157,7 +149,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   children: [
                     customText("Programa:", 16, textColor: Colors.grey),
                     space(height: 5),
-                    customText(_project.programme, 16),
+                    customText(_project.programmeObj.name, 16),
                   ])),
           VerticalDivider(
             width: 10,
@@ -225,14 +217,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         physics: NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _project.financiers.length,
+        itemCount: _project.financiersObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_project.financiers[index]}'),
+                    Text('${_project.financiersObj[index].name}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -240,7 +232,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       ),
                       tooltip: 'Eliminar financiador',
                       onPressed: () async {
-                        _project.financiers.remove(_project.financiers[index]);
+                        _project.financiers
+                            .remove(_project.financiersObj[index].code);
                         _removeFinancier(context, _project);
                       },
                     )
@@ -266,14 +259,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         physics: NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _project.partners.length,
+        itemCount: _project.partnersObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_project.partners[index]}'),
+                    Text('${_project.partnersObj[index].name}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -281,7 +274,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       ),
                       tooltip: 'Eliminar financiador',
                       onPressed: () async {
-                        _project.partners.remove(_project.partners[index]);
+                        _project.partners
+                            .remove(_project.partnersObj[index].code);
                         _removePartner(context, _project);
                       },
                     )
@@ -453,30 +447,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       _ambit,
       _audit,
       _evaluation) async {
-    /*if (_project != null) {
-      await updateProject(
-              _name,
-              _desc,
-              _type,
-              _budget,
-              _manager,
-              _programme,
-              _announcement,
-              _ambit,
-              _audit,
-              _evaluation,
-              _project.financiers,
-              _project.partners)
-          .then((value) async {
-        loadProject(_project);
-      });
-    } else {
-      await addProject(_name, _desc, _type, _budget, _manager, _programme,
-              _announcement, _ambit, false, false)
-          .then((value) async {
-        loadProject(_project);
-      });
-    }*/
     if (_project == null) _project = SProject(_name);
     _project.description = _desc;
     _project.type = _type;
@@ -488,33 +458,25 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     _project.audit = _audit;
     _project.evaluation = _evaluation;
     _project.save();
-    if (!_types.contains(_type)) await addProjectType(_type);
-    if (!_contacts.contains(_manager)) {
-      Contact _contact = Contact(_manager, "", "", "", "");
-      _contact.save();
-    }
-    if (!_programmes.contains(_programme)) {
-      Programme _prog = Programme(_programme);
-      _prog.save();
-    }
-    Navigator.of(context).pop();
+    loadProject(_project);
+    //Navigator.of(context).pop();
   }
 
   void _callProjectEditDialog(context, _project) async {
-    List<String> types = [];
-    List<String> contacts = [];
-    List<String> programmes = [];
+    List<KeyValue> types = [];
+    List<KeyValue> contacts = [];
+    List<KeyValue> programmes = [];
     await getProjectTypes().then((value) async {
       for (ProjectType item in value) {
-        types.add(item.name);
+        types.add(item.toKeyValue());
       }
       await getContacts().then((value) async {
         for (Contact item2 in value) {
-          contacts.add(item2.name);
+          contacts.add(item2.toKeyValue());
         }
         await getProgrammes().then((value) async {
           for (Programme item3 in value) {
-            programmes.add(item3.name);
+            programmes.add(item3.toKeyValue());
           }
           _editProjectDialog(context, _project, types, contacts, programmes);
         });
@@ -572,8 +534,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Tipo de proyecto:", 16, textColor: Colors.blue),
-                  customAutocompleteField(typeController, _types,
-                      "Write or select project type..."),
+                  customDropdownField(
+                    typeController,
+                    _types,
+                    _project.typeObj.toKeyValue(),
+                    "Seleccione tipo",
+                  ),
+                  /*customAutocompleteField(typeController, _types,
+                      "Write or select project type..."),*/
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -585,14 +553,24 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Responsable:", 16, textColor: Colors.blue),
-                  customAutocompleteField(managerController, _contacts,
-                      "Write or select manager..."),
+                  customDropdownField(
+                      managerController,
+                      _contacts,
+                      _project.managerObj.toKeyValue(),
+                      "Seleccione responsable"),
+                  /*customAutocompleteField(managerController, _contacts,
+                      "Write or select manager..."),*/
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Programa:", 16, textColor: Colors.blue),
-                  customAutocompleteField(programmeController, _programmes,
-                      "Write or select programme..."),
+                  customDropdownField(
+                      programmeController,
+                      _programmes,
+                      _project.programmeObj.toKeyValue(),
+                      "Seleccione programa"),
+                  /*customAutocompleteField(programmeController, _programmes,
+                      "Write or select programme..."),*/
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -677,30 +655,24 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void _saveFinancier(context, _project, _name, _financiers) async {
     _project.financiers.add(_name);
     _project.updateProjectFinanciers();
-    if (!_financiers.contains(_name)) await addFinancier(_name);
+    if (!_financiers.contains(_name)) {
+      Financier _fin = Financier(_name);
+      _fin.save();
+    }
     loadProject(_project);
-    /*await updateProjectFinanciers(_project.id, _project.financiers)
-        .then((value) async {
-      if (!_financiers.contains(_name)) await addFinancier(_name);
-      loadProject(_project);
-    });*/
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   void _removeFinancier(context, _project) async {
     _project.updateProjectFinanciers();
     loadProject(_project);
-    /*await updateProjectFinanciers(_project.id, _project.financiers)
-        .then((value) async {
-      loadProject(_project);
-    });*/
   }
 
   void _callFinancierEditDialog(context, _project) async {
-    List<String> financiers = [];
+    List<KeyValue> financiers = [];
     await getFinanciers().then((value) async {
       for (Financier item in value) {
-        financiers.add(item.name);
+        financiers.add(item.toKeyValue());
       }
 
       _editProjectFinancierDialog(context, _project, financiers);
@@ -716,11 +688,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Add financier'),
+          title: const Text('Añadir financiador'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customAutocompleteField(
-                  nameController, _financiers, "Write or select financier..."),
+              customText("Financiador:", 16, textColor: Colors.blue),
+              customDropdownField(
+                  nameController, _financiers, null, "Seleccione programa"),
+              /*customAutocompleteField(
+                  nameController, _financiers, "Write or select financier..."),*/
             ]),
           ),
           actions: <Widget>[
@@ -756,31 +731,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     }
     loadProject(_project);
 
-    /* await updateProjectPartners(_project.id, _project.partners)
-        .then((value) async {
-      if (!_contacts.contains(_name)) {
-        Contact _contact = Contact(_name, "", "", "", "");
-        _contact.save();
-      }
-      loadProject(_project);
-    });*/
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   void _removePartner(context, _project) async {
     _project.updateProjectPartners();
     loadProject(_project);
-    /*await updateProjectPartners(_project.id, _project.partners)
-        .then((value) async {
-      loadProject(_project);
-    });*/
   }
 
   void _callPartnerEditDialog(context, _project) async {
-    List<String> contacts = [];
+    List<KeyValue> contacts = [];
     await getContacts().then((value) async {
       for (Contact item in value) {
-        contacts.add(item.name);
+        contacts.add(item.toKeyValue());
       }
 
       _editProjectPartnerDialog(context, _project, contacts);
@@ -799,8 +762,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           title: const Text('Add partner'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customAutocompleteField(
-                  nameController, _contacts, "Write or select contact..."),
+              customText("Financiador:", 16, textColor: Colors.blue),
+              customDropdownField(
+                  nameController, _contacts, null, "Seleccione programa"),
+
+              /*customAutocompleteField(
+                  nameController, _contacts, "Write or select contact..."),*/
             ]),
           ),
           actions: <Widget>[
@@ -827,19 +794,23 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   void _saveDates(context, _dates, _approved, _start, _end, _justification,
       _delivery, _project) async {
-    await updateProjectDates(_dates.id, _dates.uuid, _approved, _start, _end,
-            _justification, _delivery, _project.uuid)
-        .then((value) async {
-      loadProject(_project);
-    });
-    Navigator.of(context).pop();
+    _dates.approved = _approved;
+    _dates.start = _start;
+    _dates.end = _end;
+    _dates.justification = _justification;
+    _dates.delivery = _delivery;
+    _dates.save();
+    loadProject(_project);
+    //Navigator.of(context).pop();
   }
 
   void _callDatesEditDialog(context, _project) async {
     await getProjectDatesByProject(_project.uuid).then((value) async {
-      if (value != null)
+      /*if (value != null)
         _editProjectDatesDialog(context, value, _project);
       else {
+        ProjectDates _pd = ProjectDates(_project.uuid);
+        _pd.save();
         await addProjectDates("", "", "", "", "", _project.uuid)
             .then((valueAdd) async {
           await getProjectDatesByProject(_project.uuid)
@@ -847,7 +818,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             _editProjectDatesDialog(context, valueDates, _project);
           });
         });
+      }*/
+      if (value == null) {
+        value = ProjectDates(_project.uuid);
+        value.save();
       }
+      _editProjectDatesDialog(context, value, _project);
     });
   }
 
@@ -970,59 +946,66 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   void _saveLocation(context, _loc, _country, _province, _region, _town,
       _project, countries, provinces, regions, towns) async {
-    await updateProjectLocation(_loc.id, _loc.uuid, _country, _province,
-            _region, _town, _project.uuid)
-        .then((value) async {
-      loadProject(_project);
-    });
-    if (!countries.contains(_country)) await addCountry(_country);
-    if (!provinces.contains(_province)) await addProvince(_province);
-    if (!regions.contains(_region)) await addRegion(_region);
-    if (!towns.contains(_town)) await addTown(_town);
-    Navigator.of(context).pop();
+    _loc.country = _country;
+    _loc.province = _province;
+    _loc.region = _region;
+    _loc.town = _town;
+    _loc.save();
+    if (!countries.contains(_country)) {
+      Country _c = Country(_country);
+      _c.save();
+    }
+    if (!provinces.contains(_province)) {
+      Province _p = Province(_province);
+      _p.save();
+    }
+    if (!regions.contains(_region)) {
+      Region _r = Region(_region);
+      _r.save();
+    }
+    if (!towns.contains(_town)) {
+      Town _t = Town(_town);
+      _t.save();
+    }
+    loadProject(_project);
+    //Navigator.of(context).pop();
   }
 
   void _callLocationEditDialog(context, _project) async {
-    List<String> countries = [];
-    List<String> provinces = [];
-    List<String> regions = [];
-    List<String> towns = [];
+    List<KeyValue> countries = [];
+    List<KeyValue> provinces = [];
+    List<KeyValue> regions = [];
+    List<KeyValue> towns = [];
 
     await getCountries().then((valueCountries) async {
       for (Country item in valueCountries) {
-        countries.add(item.name);
+        countries.add(item.toKeyValue());
       }
 
       await getProvinces().then((valueProvinces) async {
         for (Province item in valueProvinces) {
-          provinces.add(item.name);
+          provinces.add(item.toKeyValue());
         }
 
         await getRegions().then((valueRegions) async {
           for (Region item in valueRegions) {
-            regions.add(item.name);
+            regions.add(item.toKeyValue());
           }
 
           await getTowns().then((valueTowns) async {
             for (Town item in valueTowns) {
-              towns.add(item.name);
+              towns.add(item.toKeyValue());
             }
 
             await getProjectLocationByProject(_project.uuid)
                 .then((value) async {
-              if (value != null)
-                _editProjectLocationDialog(context, value, _project, countries,
-                    provinces, regions, towns);
-              else {
-                await addProjectLocation("", "", "", "", _project.uuid)
-                    .then((valueAdd) async {
-                  await getProjectLocationByProject(_project.uuid)
-                      .then((valueLocation) async {
-                    _editProjectLocationDialog(context, valueLocation, _project,
-                        countries, provinces, regions, towns);
-                  });
-                });
+              if (value == null) {
+                value = ProjectLocation(_project.uuid);
+                value.save();
               }
+
+              _editProjectLocationDialog(context, value, _project, countries,
+                  provinces, regions, towns);
             });
           });
         });
@@ -1055,23 +1038,47 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             child: Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("País:", 16, textColor: Colors.blue),
-                customAutocompleteField(countryController, countries, "País")
+                customDropdownField(
+                  countryController,
+                  countries,
+                  _loc.countryObj.toKeyValue(),
+                  "Seleccione país",
+                ),
+                //customAutocompleteField(countryController, countries, "País")
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Provincia:", 16, textColor: Colors.blue),
-                customAutocompleteField(
-                    provinceController, provinces, "Provincia")
+                customDropdownField(
+                  provinceController,
+                  provinces,
+                  _loc.provinceObj.toKeyValue(),
+                  "Seleccione provincia",
+                ),
+                /*customAutocompleteField(
+                    provinceController, provinces, "Provincia")*/
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Comunidad:", 16, textColor: Colors.blue),
-                customAutocompleteField(regionController, regions, "Comunidad")
+                customDropdownField(
+                  regionController,
+                  regions,
+                  _loc.regionObj.toKeyValue(),
+                  "Seleccione provincia",
+                ),
+                //customAutocompleteField(regionController, regions, "Comunidad")
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Municipio:", 16, textColor: Colors.blue),
-                customAutocompleteField(townController, towns, "Municipio")
+                customDropdownField(
+                  townController,
+                  towns,
+                  _loc.townObj.toKeyValue(),
+                  "Seleccione provincia",
+                ),
+                //customAutocompleteField(townController, towns, "Municipio")
               ]),
               space(width: 20),
             ]),

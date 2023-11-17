@@ -2,6 +2,9 @@
 // import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -26,6 +29,11 @@ class SProject {
   bool evaluation = false;
   List financiers = [];
   List partners = [];
+  ProjectType typeObj = ProjectType("");
+  Contact managerObj = Contact("", "", "", "", "");
+  Programme programmeObj = Programme("");
+  List<Financier> financiersObj = [];
+  List<Contact> partnersObj = [];
 
   double dblbudget = 0;
 
@@ -60,16 +68,15 @@ class SProject {
         'programme': programme,
         'announcement': announcement,
         'ambit': ambit,
-        'audit': audit.toString(),
-        'evaluation': evaluation.toString(),
-        'financiers': financiers.join(""),
-        'partners': partners.join(""),
+        'audit': audit,
+        'evaluation': evaluation,
+        'financiers': financiers,
+        'partners': partners,
       };
 
-  Map<String, String> toKeyValue() => {
-        'key': uuid,
-        'value': name,
-      };
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {
@@ -91,7 +98,12 @@ class SProject {
     DocumentSnapshot _doc = await dbProject.doc(id).get();
     final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
     data["id"] = _doc.id;
-    SProject.fromJson(data);
+    SProject _project = SProject.fromJson(data);
+    typeObj = await getProjectType();
+    managerObj = await getManager();
+    programmeObj = await getProgramme();
+    financiersObj = await getFinanciers();
+    partnersObj = await getPartners();
     return this;
   }
 
@@ -131,6 +143,77 @@ class SProject {
     });
     return dblbudget;
   }
+
+  Future<ProjectType> getProjectType() async {
+    try {
+      QuerySnapshot query =
+          await dbProjectType.where("uuid", isEqualTo: type).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return ProjectType.fromJson(data);
+    } catch (e) {
+      return ProjectType("");
+    }
+  }
+
+  Future<Contact> getManager() async {
+    try {
+      QuerySnapshot query =
+          await dbContacts.where("uuid", isEqualTo: manager).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Contact.fromJson(data);
+    } catch (e) {
+      return Contact("", "", "", "", "");
+    }
+  }
+
+  Future<Programme> getProgramme() async {
+    try {
+      QuerySnapshot query =
+          await dbProgramme.where("uuid", isEqualTo: programme).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Programme.fromJson(data);
+    } catch (e) {
+      return Programme("");
+    }
+  }
+
+  Future<List<Financier>> getFinanciers() async {
+    List<Financier> _fin_list = [];
+    for (String fin in financiers) {
+      try {
+        QuerySnapshot query =
+            await dbFinancier.where("uuid", isEqualTo: fin).get();
+        final _doc = query.docs.first;
+        final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+        data["id"] = _doc.id;
+        Financier _financier = Financier.fromJson(data);
+        _fin_list.add(_financier);
+      } catch (e) {}
+    }
+    return _fin_list;
+  }
+
+  Future<List<Contact>> getPartners() async {
+    List<Contact> _par_list = [];
+    for (String par in partners) {
+      try {
+        QuerySnapshot query =
+            await dbContacts.where("uuid", isEqualTo: par).get();
+        final _doc = query.docs.first;
+        final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+        data["id"] = _doc.id;
+        Contact _contact = Contact.fromJson(data);
+        _par_list.add(_contact);
+      } catch (e) {}
+    }
+    return _par_list;
+  }
 }
 
 Future<List> getProjects() async {
@@ -140,6 +223,11 @@ Future<List> getProjects() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     final _item = SProject.fromJson(data);
+    _item.typeObj = await _item.getProjectType();
+    _item.managerObj = await _item.getManager();
+    _item.programmeObj = await _item.getProgramme();
+    _item.financiersObj = await _item.getFinanciers();
+    _item.partnersObj = await _item.getPartners();
     items.add(_item);
   }
   return items;
@@ -163,40 +251,81 @@ Future<SProject?> getProjectByUuid(String _uuid) async {
 //--------------------------------------------------------------
 //                       PROJECT TYPE
 //--------------------------------------------------------------
-class ProjectType {
-  final String id;
-  final String uuid;
-  final String name;
+CollectionReference dbProjectType = db.collection("s4c_project_type");
 
-  ProjectType(this.id, this.uuid, this.name);
+class ProjectType {
+  String id = "";
+  String uuid = "";
+  String name = "";
+
+  ProjectType(this.name);
 
   ProjectType.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
       };
+
+  /*Map<String, String> toKeyValue() => {
+        'key': uuid,
+        'value': name,
+      };*/
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbProjectType.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbProjectType.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbProjectType.doc(id).delete();
+  }
+}
+
+Future<List> getProjectTypes() async {
+  List items = [];
+  QuerySnapshot queryProjectType = await dbProjectType.get();
+
+  for (var doc in queryProjectType.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectType.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
 }
 
 //--------------------------------------------------------------
 //                       PROJECT DATES
 //--------------------------------------------------------------
-class ProjectDates {
-  final String id;
-  final String uuid;
-  final String approved;
-  final String start;
-  final String end;
-  final String justification;
-  final String delivery;
-  final String project;
+CollectionReference dbDates = db.collection("s4c_project_dates");
 
-  ProjectDates(this.id, this.uuid, this.approved, this.start, this.end,
-      this.justification, this.delivery, this.project);
+class ProjectDates {
+  String id = "";
+  String uuid = "";
+  String approved = "";
+  String start = "";
+  String end = "";
+  String justification = "";
+  String delivery = "";
+  String project = "";
+
+  ProjectDates(this.project);
 
   ProjectDates.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -208,7 +337,7 @@ class ProjectDates {
         delivery = json["delivery"],
         project = json["project"];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'approved': approved,
@@ -218,22 +347,79 @@ class ProjectDates {
         'delivery': delivery,
         'project': project,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbDates.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbDates.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbDates.doc(id).delete();
+  }
+}
+
+Future<List> getProjectDates() async {
+  List items = [];
+  QuerySnapshot query = await dbDates.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectDates.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<ProjectDates> getProjectDatesById(String id) async {
+  DocumentSnapshot _doc = await dbDates.doc(id).get();
+  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+  data["id"] = _doc.id;
+  return ProjectDates.fromJson(data);
+}
+
+Future<ProjectDates> getProjectDatesByProject(String _project) async {
+  QuerySnapshot query =
+      await dbDates.where("project", isEqualTo: _project).get();
+  if (query.docs.length == 0) {
+    ProjectDates _dates = ProjectDates(_project);
+    _dates.save();
+    return _dates;
+  }
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
+  data["id"] = _dbResult.id;
+  return ProjectDates.fromJson(data);
 }
 
 //--------------------------------------------------------------
 //                       PROJECT LOCATION
 //--------------------------------------------------------------
-class ProjectLocation {
-  final String id;
-  final String uuid;
-  final String country;
-  final String province;
-  final String region;
-  final String town;
-  final String project;
+CollectionReference dbLocation = db.collection("s4c_project_location");
 
-  ProjectLocation(this.id, this.uuid, this.country, this.province, this.region,
-      this.town, this.project);
+class ProjectLocation {
+  String id = "";
+  String uuid = "";
+
+  String country = "";
+  String province = "";
+  String region = "";
+  String town = "";
+  String project = "";
+  Country countryObj = Country("");
+  Province provinceObj = Province("");
+  Region regionObj = Region("");
+  Town townObj = Town("");
+
+  ProjectLocation(this.project);
 
   ProjectLocation.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -244,7 +430,7 @@ class ProjectLocation {
         town = json["town"],
         project = json["project"];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'country': country,
@@ -253,6 +439,108 @@ class ProjectLocation {
         'town': town,
         'project': project,
       };
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbLocation.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbLocation.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbLocation.doc(id).delete();
+  }
+
+  Future<Country> getCountry() async {
+    try {
+      QuerySnapshot query =
+          await dbCountry.where("uuid", isEqualTo: country).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Country.fromJson(data);
+    } catch (e) {
+      return Country("");
+    }
+  }
+
+  Future<Province> getProvince() async {
+    try {
+      QuerySnapshot query =
+          await dbProvince.where("uuid", isEqualTo: province).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Province.fromJson(data);
+    } catch (e) {
+      return Province("");
+    }
+  }
+
+  Future<Region> getRegion() async {
+    try {
+      QuerySnapshot query =
+          await dbRegion.where("uuid", isEqualTo: region).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Region.fromJson(data);
+    } catch (e) {
+      return Region("");
+    }
+  }
+
+  Future<Town> getTown() async {
+    try {
+      QuerySnapshot query = await dbTown.where("uuid", isEqualTo: town).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Town.fromJson(data);
+    } catch (e) {
+      return Town("");
+    }
+  }
+}
+
+Future<List> getProjectLocation() async {
+  List items = [];
+  QuerySnapshot query = await dbLocation.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = ProjectLocation.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<ProjectLocation> getProjectLocationByProject(String _project) async {
+  QuerySnapshot query =
+      await dbLocation.where("project", isEqualTo: _project).get();
+
+  if (query.docs.length == 0) {
+    ProjectLocation _loc = ProjectLocation(_project);
+    _loc.save();
+    return _loc;
+  }
+
+  final _dbResult = query.docs.first;
+  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
+  data["id"] = _dbResult.id;
+  ProjectLocation _pl = ProjectLocation.fromJson(data);
+  _pl.countryObj = await _pl.getCountry();
+  _pl.provinceObj = await _pl.getProvince();
+  _pl.regionObj = await _pl.getRegion();
+  _pl.townObj = await _pl.getTown();
+  return _pl;
 }
 
 //--------------------------------------------------------------
@@ -272,11 +560,15 @@ class Financier {
         uuid = json["uuid"],
         name = json['name'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
       };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {
@@ -291,8 +583,140 @@ class Financier {
   }
 
   Future<void> delete() async {
-    await dbProgramme.doc(id).delete();
+    await dbFinancier.doc(id).delete();
   }
+}
+
+Future<List> getFinanciers() async {
+  List items = [];
+  QuerySnapshot queryFinancier = await dbFinancier.get();
+
+  for (var doc in queryFinancier.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Financier.fromJson(data);
+    items.add(_item);
+  }
+
+  return items;
+}
+
+//--------------------------------------------------------------
+//                       PROJECT REFORMULATION
+//--------------------------------------------------------------
+CollectionReference dbReformulation =
+    db.collection("s4c_project_reformulation");
+
+class Reformulation {
+  String id = "";
+  String uuid = "";
+  String reformulation = "";
+  String correction = "";
+  String request = "";
+  String project = "";
+  String financier = "";
+  SProject projectObj = SProject("");
+  Financier financierObj = Financier("");
+
+  Reformulation(this.project);
+
+  Reformulation.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        reformulation = json['reformulation'],
+        correction = json['correction'],
+        request = json['request'],
+        project = json['project'],
+        financier = json['financier'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'reformulation': reformulation,
+        'correction': correction,
+        'request': request,
+        'project': project,
+        'financier': financier,
+      };
+
+  /*KeyValue toKeyValue() {
+    return KeyValue(uuid, reformulation);
+  }*/
+
+  Future<void> save() async {
+    if (id == "") {
+      var _uuid = Uuid();
+      uuid = _uuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbReformulation.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbReformulation.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbReformulation.doc(id).delete();
+  }
+
+  Future<SProject> getProject() async {
+    try {
+      QuerySnapshot query =
+          await dbProject.where("uuid", isEqualTo: project).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return SProject.fromJson(data);
+    } catch (e) {
+      return SProject("");
+    }
+  }
+
+  Future<Financier> getFinancier() async {
+    try {
+      QuerySnapshot query =
+          await dbFinancier.where("uuid", isEqualTo: financier).get();
+      final _doc = query.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return Financier.fromJson(data);
+    } catch (e) {
+      return Financier("");
+    }
+  }
+}
+
+Future<List> getReformulations() async {
+  List items = [];
+  QuerySnapshot query = await dbReformulation.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Reformulation.fromJson(data);
+    _item.projectObj = await _item.getProject();
+    _item.financierObj = await _item.getFinancier();
+    items.add(_item);
+  }
+
+  return items;
+}
+
+Future<List> getReformulationsByProject(uuid) async {
+  List items = [];
+  QuerySnapshot query =
+      await dbReformulation.where("project", isEqualTo: uuid).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final _item = Reformulation.fromJson(data);
+    _item.projectObj = await _item.getProject();
+    _item.financierObj = await _item.getFinancier();
+    items.add(_item);
+  }
+
+  return items;
 }
 
 //--------------------------------------------------------------
@@ -313,11 +737,16 @@ class Programme {
         uuid = json["uuid"],
         name = json['name'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
       };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
   Future<void> save() async {
     if (id == "") {
       var _uuid = Uuid();
