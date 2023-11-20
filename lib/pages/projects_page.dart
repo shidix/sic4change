@@ -193,7 +193,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             Text(
-              _project.type.toUpperCase(),
+              _project.typeObj.name.toUpperCase(),
               style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
             ),
 
@@ -335,7 +335,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("Responsable del proyecto:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(_project.manager, 16),
+        customText(_project.managerObj.name, 16),
         space(height: 5),
         Divider(color: Colors.grey),
         space(height: 5),
@@ -345,7 +345,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("Programa:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(_project.programme, 16),
+        customText(_project.programmeObj.name, 16),
         space(height: 5),
         Divider(color: Colors.grey),
         space(height: 5),

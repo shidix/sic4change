@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:uuid/uuid.dart';
 
@@ -175,10 +176,9 @@ class TasksStatus {
         'name': name,
       };
 
-  Map<String, dynamic> toKeyValue() => {
-        'key': uuid,
-        'value': name,
-      };
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {

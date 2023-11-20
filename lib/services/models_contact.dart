@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -41,10 +42,9 @@ class Contact {
         'phone': phone,
       };
 
-  Map<String, dynamic> toKeyValue() => {
-        'key': uuid,
-        'value': name,
-      };
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {

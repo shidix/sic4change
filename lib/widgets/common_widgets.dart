@@ -428,7 +428,8 @@ Widget customAutocompleteField(_controller, _options, _hint, {width = 220}) {
   ]);
 }
 
-Widget customDropdownField(_controller, _options, _hint, {width = 220}) {
+Widget customDropdownField(_controller, _options, _current, _hint,
+    {width = 220}) {
   return SizedBox(
       width: width,
       child: DropdownSearch<KeyValue>(
@@ -448,9 +449,9 @@ Widget customDropdownField(_controller, _options, _hint, {width = 220}) {
           ),
         ),
         onChanged: (val) {
-          _controller.text = val;
+          _controller.text = val?.key;
         },
-        selectedItem: _options.first,
+        selectedItem: _current,
       ));
 }
 

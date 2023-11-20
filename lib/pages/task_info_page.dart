@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
-import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -327,16 +326,16 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
     await getTasksStatus().then((value) async {
       for (TasksStatus item in value) {
-        status_list.add(KeyValue.fromJson(item.toKeyValue()));
+        status_list.add(item.toKeyValue());
       }
       await getContacts().then((value) async {
         for (Contact item in value) {
-          contact_list.add(KeyValue.fromJson(item.toKeyValue()));
+          contact_list.add(item.toKeyValue());
         }
 
         await getProjects().then((value) async {
           for (SProject item in value) {
-            project_list.add(KeyValue.fromJson(item.toKeyValue()));
+            project_list.add(item.toKeyValue());
           }
 
           _taskEditDialog(
@@ -481,8 +480,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: Colors.blue),
-                customDropdownField(
-                    projectController, _project_list, "Selecciona proyecto"),
+                customDropdownField(projectController, _project_list,
+                    _task.projectObj.toKeyValue(), "Selecciona proyecto"),
                 /*customAutocompleteField(projectController, _project_list,
                     "Write or select project...",
                     width: 700),*/
@@ -507,8 +506,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: Colors.blue),
-                customDropdownField(
-                    statusController, _status_list, "Selecciona estado"),
+                customDropdownField(statusController, _status_list,
+                    _task.statusObj.toKeyValue(), "Selecciona estado"),
                 /*customAutocompleteField(
                     statusController, _status_list, "Write or select status...",
                     width: 340),*/
@@ -516,8 +515,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: Colors.blue),
-                customDropdownField(
-                    senderController, _contact_list, "Selecciona contacto"),
+                customDropdownField(senderController, _contact_list,
+                    _task.senderObj.toKeyValue(), "Selecciona contacto"),
                 /*customAutocompleteField(senderController, _contact_list,
                     "Write or select contact...",
                     width: 340),*/
