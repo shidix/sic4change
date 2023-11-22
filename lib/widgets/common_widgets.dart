@@ -459,7 +459,7 @@ Widget customDropdownField(_controller, _options, _current, _hint,
 Widget customLinearPercent(context, _offset, _percent, _color) {
   var _percentText = _percent * 100;
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    new LinearPercentIndicator(
+    LinearPercentIndicator(
       width: MediaQuery.of(context).size.width / _offset,
       animation: true,
       lineHeight: 10.0,
@@ -473,8 +473,8 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
     Container(
         padding: EdgeInsets.only(left: 10),
         child: Text(
-          _percentText.toString() + " % Completado",
-          style: TextStyle(fontSize: 12),
+          "$_percentText % Completado",
+          style: const TextStyle(fontSize: 12),
         ))
   ]);
 }

@@ -10,6 +10,7 @@ import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -49,6 +50,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map<String, Text>> distrib_controllers = {};
   Map<String, double> distrib_amount = {};
   Map<String, double> aportes_amount = {};
+
   List<Widget> invoicesList = [];
   SFinn? finnSelected;
 
@@ -88,7 +90,7 @@ class _FinnsPageState extends State<FinnsPage> {
     // _project!.totalBudget().then((value) {totalBudgetProject = value;});
 
     totalBudget = Text(
-      totalBudgetProject.toStringAsFixed(2),
+      "${totalBudgetProject.toStringAsFixed(2)} €",
       textAlign: TextAlign.end,
       style: const TextStyle(
         fontFamily: 'Readex Pro',
@@ -141,7 +143,7 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     totalBudget = Text(
-      total.toStringAsFixed(2),
+      "${total.toStringAsFixed(2)} €",
       textAlign: TextAlign.end,
       style: const TextStyle(
         fontFamily: 'Readex Pro',
@@ -330,7 +332,8 @@ class _FinnsPageState extends State<FinnsPage> {
     List<Container> sourceRows = [];
     // double totalBudgetDouble = max(1, double.parse(totalBudget.data.toString()));
     TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
-    for (var financier in project.financiers) {
+    for (var financierObj in project.financiersObj) {
+      String financier = financierObj.uuid;
       if (!aportes_amount.containsKey(financier)) {
         aportes_amount[financier] = 0;
       }
@@ -351,7 +354,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    financier,
+                    financierObj.name,
                     textAlign: TextAlign.start,
                     style: ts,
                   ),
@@ -384,7 +387,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
     List<Container> distrRows = [];
 
-    for (var partner in project.partners) {
+    for (var partnerObj in project.partnersObj) {
+      String partner = partnerObj.uuid;
       if (!distrib_amount.containsKey(partner)) {
         distrib_amount[partner] = 0;
       }
@@ -406,7 +410,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    partner,
+                    partnerObj.name,
                     textAlign: TextAlign.start,
                     style: ts,
                   ),
@@ -483,7 +487,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                         setState(() {});
                                       },
                                       icon: const Icon(
-                                          Icons.arrow_circle_left_outlined))),
+                                          Icons.arrow_circle_up_outlined))),
                             ])))),
               ]),
               Row(
@@ -564,7 +568,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                               flex: 2,
                                               child: Padding(
                                                 padding: const EdgeInsets.only(
-                                                    top: 5, bottom: 10),
+                                                    top: 0, bottom: 0),
                                                 child: LinearPercentIndicator(
                                                   percent:
                                                       executedBudgetProject /
@@ -586,10 +590,13 @@ class _FinnsPageState extends State<FinnsPage> {
                                             ),
                                           ],
                                         ),
-                                        const Text(
-                                          'Origen del presupuesto',
-                                          style: secondaryText,
-                                        ),
+                                        // const Text(
+                                        //   'Origen del presupuesto',
+                                        //   style: secondaryText,
+                                        // ),
+                                        const Divider(
+                                            thickness: 1, color: Colors.grey),
+
                                         ListView(
                                           padding: EdgeInsets.zero,
                                           shrinkWrap: true,
@@ -624,6 +631,10 @@ class _FinnsPageState extends State<FinnsPage> {
                                         const Text(
                                           'Distribución Presupuesto',
                                           style: mainText,
+                                        ),
+                                        const Divider(
+                                          thickness: 1,
+                                          color: Colors.grey,
                                         ),
                                         ListView(
                                           padding: EdgeInsets.zero,
@@ -728,10 +739,10 @@ class _FinnsPageState extends State<FinnsPage> {
           child: const Text('Total',
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold))));
-      for (String financier in project.financiers) {
+      for (Financier financier in project.financiersObj) {
         subHeader.add(Expanded(
             flex: fAportes,
-            child: Text(financier,
+            child: Text(financier.name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.bold))));
       }
@@ -741,10 +752,10 @@ class _FinnsPageState extends State<FinnsPage> {
           child: const Text('Total',
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold))));
-      for (String partner in project.partners) {
+      for (Contact partner in project.partnersObj) {
         subHeader.add(Expanded(
             flex: fDist,
-            child: Text(partner,
+            child: Text(partner.name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.bold))));
       }
@@ -804,7 +815,8 @@ class _FinnsPageState extends State<FinnsPage> {
         }
         cells.add(Expanded(flex: fAportes, child: totalText));
         double total = 0;
-        for (String financier in project.financiers) {
+        for (Financier financierObj in project.financiersObj) {
+          String financier = financierObj.uuid;
           Text? labelButton = buttonEditableText("0.00");
           if (aportesControllers.containsKey(finn.uuid)) {
             if (aportesControllers[finn.uuid]!.containsKey(financier)) {
@@ -814,7 +826,7 @@ class _FinnsPageState extends State<FinnsPage> {
           }
           ElevatedButton button = ElevatedButton(
             onPressed: () {
-              _editFinnContribDialog(context, finn, financier);
+              _editFinnContribDialog(context, finn, financierObj);
             },
             style: buttonEditableTextStyle(),
             child: labelButton,
@@ -841,7 +853,8 @@ class _FinnsPageState extends State<FinnsPage> {
             style: TextStyle(fontWeight: FontWeight.bold));
         cells.add(Expanded(flex: fDist, child: totalDistText));
         total = 0;
-        for (String partner in project.partners) {
+        for (Contact partnerObj in project.partnersObj) {
+          String partner = partnerObj.uuid;
           Text? labelButton = buttonEditableText("0.00");
           if (distrib_controllers.containsKey(finn.uuid)) {
             if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
@@ -851,7 +864,7 @@ class _FinnsPageState extends State<FinnsPage> {
           }
           ElevatedButton button = ElevatedButton(
             onPressed: () {
-              _editFinnDistDialog(context, finn, partner);
+              _editFinnDistDialog(context, finn, partnerObj);
             },
             style: buttonEditableTextStyle(),
             child: labelButton,
@@ -930,7 +943,6 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
 
     invoicesList.add(header);
-
     for (Invoice invoice in items) {
       invoicesList.add(MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -988,18 +1000,18 @@ class _FinnsPageState extends State<FinnsPage> {
     setState(() {});
   }
 
-  Future<void> _editFinnContribDialog(context, finn, financier) {
+  Future<void> _editFinnContribDialog(context, finn, financierObj) {
     final database = db.collection("s4c_finncontrib");
     List<Row> rows = [];
     TextEditingController amount = TextEditingController(text: "0");
     TextEditingController comment = TextEditingController(text: "");
     FinnContribution item;
-    item = FinnContribution(
-        "", financier, double.parse(amount.text), finn.uuid, comment.text);
+    item = FinnContribution("", financierObj.uuid, double.parse(amount.text),
+        finn.uuid, comment.text);
 
     database
         .where("finn", isEqualTo: finn.uuid)
-        .where("financier", isEqualTo: financier)
+        .where("financier", isEqualTo: financierObj.uuid)
         .get()
         .then((querySnapshot) {
       if (querySnapshot.docs.isNotEmpty) {
@@ -1007,8 +1019,8 @@ class _FinnsPageState extends State<FinnsPage> {
         amount.text = item.amount.toStringAsFixed(2);
         comment.text = item.subject;
       } else {
-        item = FinnContribution(
-            "", financier, double.parse(amount.text), finn.uuid, comment.text);
+        item = FinnContribution("", financierObj.uuid,
+            double.parse(amount.text), finn.uuid, comment.text);
       }
     });
 
@@ -1031,7 +1043,8 @@ class _FinnsPageState extends State<FinnsPage> {
       Expanded(
           flex: 1,
           child: Padding(
-              padding: const EdgeInsets.all(10), child: Text(financier))),
+              padding: const EdgeInsets.all(10),
+              child: Text(financierObj.name))),
       Expanded(
           flex: 1,
           child: Padding(
@@ -1086,8 +1099,9 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Future<void> _editFinnDistDialog(context, finn, partner) {
+  Future<void> _editFinnDistDialog(context, finn, partnerObj) {
     final database = db.collection("s4c_finndistrib");
+    String partner = partnerObj.uuid;
     List<Row> rows = [];
     TextEditingController amount = TextEditingController(text: "0");
     TextEditingController comment = TextEditingController(text: "");
@@ -1126,8 +1140,8 @@ class _FinnsPageState extends State<FinnsPage> {
     rows.add(Row(children: [
       Expanded(
           flex: 1,
-          child:
-              Padding(padding: const EdgeInsets.all(10), child: Text(partner))),
+          child: Padding(
+              padding: const EdgeInsets.all(10), child: Text(partnerObj.name))),
       Expanded(
           flex: 1,
           child: Padding(
