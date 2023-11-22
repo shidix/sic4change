@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_contact_info.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -18,6 +20,8 @@ class Contact {
   String position;
   String email;
   String phone;
+  Company companyObj = Company("");
+  List<SProject> projectsObj = [];
 
   Contact(this.name, this.company, this.position, this.email, this.phone);
 
@@ -48,9 +52,8 @@ class Contact {
 
   Future<void> save() async {
     if (id == "") {
-      //id = uuid;
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContacts.add(data);
     } else {
@@ -62,6 +65,69 @@ class Contact {
   Future<void> delete() async {
     await dbContacts.doc(id).delete();
   }
+
+  Future<Company> getCompany() async {
+    try {
+      QuerySnapshot query =
+          await dbComp.where("uuid", isEqualTo: company).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Company.fromJson(data);
+    } catch (e) {
+      return Company("");
+    }
+  }
+
+  Future<List<SProject>> getProjects() async {
+    List<SProject> projectList = [];
+    for (String pr in projects) {
+      try {
+        QuerySnapshot query =
+            await dbProject.where("uuid", isEqualTo: pr).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        SProject projObj = SProject.fromJson(data);
+        projectList.add(projObj);
+      } catch (e) {}
+    }
+    return projectList;
+  }
+
+  Future<ContactInfo> getContactInfo() async {
+    ContactInfo contactInfo = ContactInfo(uuid);
+
+    print("--2--");
+    try {
+      QuerySnapshot query =
+          await dbContactInfo.where("contact", isEqualTo: uuid).get();
+      final dbResult = query.docs.first;
+      final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
+      if (data.isEmpty) {
+        //contactInfo = ContactInfo(uuid);
+        contactInfo.save();
+      } else {
+        data["id"] = dbResult.id;
+        contactInfo = ContactInfo.fromJson(data);
+        contactInfo.orgObj = await contactInfo.getOrganization();
+        contactInfo.chargeObj = await contactInfo.getCharge();
+        contactInfo.catObj = await contactInfo.getCategory();
+        contactInfo.subcatObj = await contactInfo.getSubcategory();
+        contactInfo.zoneObj = await contactInfo.getZone();
+        contactInfo.subzoneObj = await contactInfo.getSubzone();
+        contactInfo.ambitObj = await contactInfo.getAmbit();
+        contactInfo.sectorObj = await contactInfo.getSector();
+        contactInfo.skateholderObj = await contactInfo.getSkateholder();
+        contactInfo.decisionObj = await contactInfo.getDecision();
+        //contactInfo.projectsObj = await contactInfo.getProjects();
+      }
+    } catch (exc) {
+      print(exc);
+    }
+
+    return contactInfo;
+  }
 }
 
 Future<List> getContacts() async {
@@ -70,6 +136,9 @@ Future<List> getContacts() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
+    Contact item = Contact.fromJson(data);
+    item.companyObj = await item.getCompany();
+    item.projectsObj = await item.getProjects();
     items.add(Contact.fromJson(data));
   }
   return items;
@@ -77,25 +146,28 @@ Future<List> getContacts() async {
 
 Future<Contact> getContactByUuid(String uuid) async {
   QuerySnapshot query = await dbContacts.where("uuid", isEqualTo: uuid).get();
-  final _dbResult = query.docs.first;
-  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
-  data["id"] = _dbResult.id;
+  final dbResult = query.docs.first;
+  final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
+  data["id"] = dbResult.id;
   return Contact.fromJson(data);
 }
 
-Future<List> searchContacts(_name) async {
+Future<List> searchContacts(name) async {
   List<Contact> items = [];
   QuerySnapshot? query;
 
-  if (_name != "")
-    query = await dbContacts.where("name", isEqualTo: _name).get();
-  else
+  if (name != "") {
+    query = await dbContacts.where("name", isEqualTo: name).get();
+  } else {
     query = await dbContacts.get();
+  }
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Contact.fromJson(data);
-    items.add(_item);
+    final item = Contact.fromJson(data);
+    item.companyObj = await item.getCompany();
+    item.projectsObj = await item.getProjects();
+    items.add(item);
   }
   return items;
 }

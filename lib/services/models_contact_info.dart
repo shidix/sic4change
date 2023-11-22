@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -25,13 +27,25 @@ class ContactInfo {
   String networks = "";
   String organization = "";
   String phone = "";
-  String project = "";
   String sector = "";
   String skateholder = "";
   String subcategory = "";
   String subzone = "";
   String twitter = "";
   String zone = "";
+  List projects = [];
+
+  Organization orgObj = Organization("");
+  ContactCharge chargeObj = ContactCharge("");
+  ContactCategory catObj = ContactCategory("");
+  ContactCategory subcatObj = ContactCategory("");
+  ContactDecision decisionObj = ContactDecision("");
+  Zone zoneObj = Zone("");
+  Zone subzoneObj = Zone("");
+  Ambit ambitObj = Ambit("");
+  Sector sectorObj = Sector("");
+  ContactSkateholder skateholderObj = ContactSkateholder("");
+  List<SProject> projectsObj = [];
 
   ContactInfo(this.contact);
 
@@ -42,7 +56,7 @@ class ContactInfo {
         ambit = json['ambit'],
         category = json['category'],
         charge = json['charge'],
-        contactPerson = json['contact_person'],
+        contactPerson = json['contactPerson'],
         decision = json['decision'],
         email = json['email'],
         kol = json['kol'],
@@ -51,7 +65,7 @@ class ContactInfo {
         networks = json['networks'],
         organization = json['organization'],
         phone = json['phone'],
-        project = json['project'],
+        projects = json['projects'],
         sector = json['sector'],
         skateholder = json['skateholder'],
         subcategory = json['subcategory'],
@@ -75,7 +89,7 @@ class ContactInfo {
         'networks': networks,
         'organization': organization,
         'phone': phone,
-        'project': project,
+        'projects': projects,
         'sector': sector,
         'skateholder': skateholder,
         'subcategory': subcategory,
@@ -86,9 +100,8 @@ class ContactInfo {
 
   Future<void> save() async {
     if (id == "") {
-      //id = uuid;
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContactInfo.add(data);
     } else {
@@ -101,30 +114,204 @@ class ContactInfo {
     await dbContactInfo.doc(id).delete();
   }
 
-  Future<ContactInfo> reload() async {
-    DocumentSnapshot? _doc;
+  Future<void> updateProjects() async {
+    await dbContactInfo.doc(id).update({"projects": projects});
+  }
 
-    _doc = await dbContactInfo.doc(id).get();
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
-    return ContactInfo.fromJson(data);
+  Future<ContactInfo> reload() async {
+    DocumentSnapshot doc = await dbContactInfo.doc(id).get();
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    ContactInfo contactInfo = ContactInfo.fromJson(data);
+    contactInfo.orgObj = await contactInfo.getOrganization();
+    contactInfo.chargeObj = await contactInfo.getCharge();
+    contactInfo.catObj = await contactInfo.getCategory();
+    contactInfo.subcatObj = await contactInfo.getSubcategory();
+    contactInfo.zoneObj = await contactInfo.getZone();
+    contactInfo.subzoneObj = await contactInfo.getSubzone();
+    contactInfo.ambitObj = await contactInfo.getAmbit();
+    contactInfo.sectorObj = await contactInfo.getSector();
+    contactInfo.skateholderObj = await contactInfo.getSkateholder();
+    contactInfo.decisionObj = await contactInfo.getDecision();
+    //contactInfo.projectsObj = await contactInfo.getProjects();
+
+    return contactInfo;
+  }
+
+  Future<Organization> getOrganization() async {
+    try {
+      QuerySnapshot query =
+          await dbOrg.where("uuid", isEqualTo: organization).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Organization.fromJson(data);
+    } catch (e) {
+      return Organization("");
+    }
+  }
+
+  Future<ContactCharge> getCharge() async {
+    try {
+      QuerySnapshot query =
+          await dbContactCharge.where("uuid", isEqualTo: charge).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ContactCharge.fromJson(data);
+    } catch (e) {
+      return ContactCharge("");
+    }
+  }
+
+  Future<ContactCategory> getCategory() async {
+    try {
+      QuerySnapshot query =
+          await dbContactCategory.where("uuid", isEqualTo: category).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ContactCategory.fromJson(data);
+    } catch (e) {
+      return ContactCategory("");
+    }
+  }
+
+  Future<ContactCategory> getSubcategory() async {
+    try {
+      QuerySnapshot query =
+          await dbContactCategory.where("uuid", isEqualTo: subcategory).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ContactCategory.fromJson(data);
+    } catch (e) {
+      return ContactCategory("");
+    }
+  }
+
+  Future<ContactDecision> getDecision() async {
+    try {
+      QuerySnapshot query =
+          await dbContactDecision.where("uuid", isEqualTo: decision).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ContactDecision.fromJson(data);
+    } catch (e) {
+      return ContactDecision("");
+    }
+  }
+
+  Future<Zone> getZone() async {
+    try {
+      QuerySnapshot query = await dbZone.where("uuid", isEqualTo: zone).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Zone.fromJson(data);
+    } catch (e) {
+      return Zone("");
+    }
+  }
+
+  Future<Zone> getSubzone() async {
+    try {
+      QuerySnapshot query =
+          await dbZone.where("uuid", isEqualTo: subzone).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Zone.fromJson(data);
+    } catch (e) {
+      return Zone("");
+    }
+  }
+
+  Future<Ambit> getAmbit() async {
+    try {
+      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Ambit.fromJson(data);
+    } catch (e) {
+      return Ambit("");
+    }
+  }
+
+  Future<ContactSkateholder> getSkateholder() async {
+    try {
+      QuerySnapshot query =
+          await dbContactSkatehoder.where("uuid", isEqualTo: skateholder).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ContactSkateholder.fromJson(data);
+    } catch (e) {
+      return ContactSkateholder("");
+    }
+  }
+
+  Future<Sector> getSector() async {
+    try {
+      QuerySnapshot query =
+          await dbSector.where("uuid", isEqualTo: sector).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Sector.fromJson(data);
+    } catch (e) {
+      return Sector("");
+    }
+  }
+
+  Future<List<SProject>> getProjects() async {
+    List<SProject> prList = [];
+    for (String pr in projects) {
+      try {
+        QuerySnapshot query =
+            await dbProject.where("uuid", isEqualTo: pr).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        SProject project = SProject.fromJson(data);
+        prList.add(project);
+      } catch (e) {}
+    }
+    return prList;
   }
 }
 
 Future<ContactInfo> getContactInfoByContact(String uuid) async {
-  ContactInfo contactInfo;
-
+  ContactInfo contactInfo = ContactInfo(uuid);
   try {
     QuerySnapshot query =
         await dbContactInfo.where("contact", isEqualTo: uuid).get();
-    final _dbResult = query.docs.first;
-    final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
-    data["id"] = _dbResult.id;
-    contactInfo = ContactInfo.fromJson(data);
+    final dbResult = query.docs.first;
+    final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
+    if (data.isEmpty) {
+      //contactInfo = ContactInfo(uuid);
+      contactInfo.save();
+    } else {
+      data["id"] = dbResult.id;
+      contactInfo = ContactInfo.fromJson(data);
+      contactInfo.orgObj = await contactInfo.getOrganization();
+      contactInfo.chargeObj = await contactInfo.getCharge();
+      contactInfo.catObj = await contactInfo.getCategory();
+      contactInfo.subcatObj = await contactInfo.getSubcategory();
+      contactInfo.zoneObj = await contactInfo.getZone();
+      contactInfo.subzoneObj = await contactInfo.getSubzone();
+      contactInfo.ambitObj = await contactInfo.getAmbit();
+      contactInfo.sectorObj = await contactInfo.getSector();
+      contactInfo.skateholderObj = await contactInfo.getSkateholder();
+      contactInfo.decisionObj = await contactInfo.getDecision();
+      //contactInfo.projectsObj = await contactInfo.getProjects();
+    }
   } catch (exc) {
-    contactInfo = ContactInfo(uuid);
-    contactInfo.save();
+    print(exc);
   }
+
   return contactInfo;
 }
 
@@ -161,6 +348,10 @@ class ContactCharge {
         'uuid': uuid,
         'name': name,
       };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {
@@ -213,6 +404,10 @@ class ContactCategory {
         'name': name,
       };
 
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
   Future<void> save() async {
     if (id == "") {
       var _uuid = Uuid();
@@ -237,6 +432,117 @@ Future<List> getContactCategories() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(ContactCategory.fromJson(data));
+  }
+  return items;
+}
+
+//--------------------------------------------------------------
+//                           DECISION
+//--------------------------------------------------------------
+CollectionReference dbContactDecision = db.collection("s4c_contact_decision");
+
+class ContactDecision {
+  String id = "";
+  String uuid = "";
+  String name;
+
+  ContactDecision(this.name);
+
+  ContactDecision.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbContactDecision.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbContactDecision.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbContactDecision.doc(id).delete();
+  }
+}
+
+Future<List> getContactDecisions() async {
+  List<ContactDecision> items = [];
+  QuerySnapshot query = await dbContactDecision.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(ContactDecision.fromJson(data));
+  }
+  return items;
+}
+
+//--------------------------------------------------------------
+//                           SKATEHOLDER
+//--------------------------------------------------------------
+CollectionReference dbContactSkatehoder =
+    db.collection("s4c_contact_skateholder");
+
+class ContactSkateholder {
+  String id = "";
+  String uuid = "";
+  String name;
+
+  ContactSkateholder(this.name);
+
+  ContactSkateholder.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbContactSkatehoder.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbContactSkatehoder.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbContactSkatehoder.doc(id).delete();
+  }
+}
+
+Future<List> getContactSkateholders() async {
+  List<ContactSkateholder> items = [];
+  QuerySnapshot query = await dbContactSkatehoder.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(ContactSkateholder.fromJson(data));
   }
   return items;
 }

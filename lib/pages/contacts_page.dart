@@ -4,12 +4,8 @@ import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
-//final List<Map> contacts =
-//    List.generate(100, (index) => {"id": index, "name": "Contact $index"});
-
-const PAGE_CONTACT_TITLE = "Contactos";
-//List<dynamic>? contact_list;
-List contact_list = [];
+const pageContactTitle = "CRM Contactos de la organización";
+List contacts = [];
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -24,7 +20,7 @@ class _ContactsPageState extends State<ContactsPage> {
   void loadContacts(value) async {
     //print(value);
     await searchContacts(value).then((val) {
-      contact_list = val;
+      contacts = val;
       //print(contact_list);
     });
     setState(() {});
@@ -38,18 +34,13 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   Widget build(BuildContext context) {
-    //loadContacts("");
-
     return Scaffold(
-      /*appBar: AppBar(
-        title: const Text('Other Page'),
-      ),*/
       body: Column(children: [
         mainMenu(context),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
-            padding: EdgeInsets.only(left: 40),
-            child: Text(PAGE_CONTACT_TITLE, style: TextStyle(fontSize: 20)),
+            padding: const EdgeInsets.only(left: 40),
+            child: customText(pageContactTitle, 20),
           ),
           SearchBar(
             controller: searchController,
@@ -61,11 +52,11 @@ class _ContactsPageState extends State<ContactsPage> {
             leading: const Icon(Icons.search),
           ),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                contactAddBtn(context),
+                addBtn(context),
               ],
             ),
           ),
@@ -74,7 +65,7 @@ class _ContactsPageState extends State<ContactsPage> {
         Expanded(
             child: Container(
           child: contactList(context),
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
         ))
       ]),
     );
@@ -122,7 +113,29 @@ class _ContactsPageState extends State<ContactsPage> {
   );
 }*/
 
-Widget contactAddBtn(context) {
+Widget addBtn(context) {
+  return FilledButton(
+    onPressed: () {
+      callEditDialog(context, null);
+    },
+    style: FilledButton.styleFrom(
+      side: const BorderSide(width: 0, color: Color(0xffffffff)),
+      backgroundColor: const Color(0xffffffff),
+    ),
+    child: const Column(
+      children: [
+        Icon(Icons.add, color: Colors.black54),
+        SizedBox(height: 5),
+        Text(
+          "Añadir",
+          style: TextStyle(color: Colors.black54, fontSize: 12),
+        ),
+      ],
+    ),
+  );
+}
+
+/*Widget contactAddBtn(context) {
   return ElevatedButton(
     onPressed: () {
       _callEditDialog(context, null);
@@ -147,7 +160,7 @@ Widget contactAddBtn(context) {
       ],
     ),
   );
-}
+}*/
 
 Widget contactList(context) {
   return FutureBuilder(
@@ -161,8 +174,7 @@ Widget contactList(context) {
             children: <Widget>[
               Expanded(
                   child: Container(
-                padding: EdgeInsets.all(5),
-                //child: dataBody(context, snapshot.data),
+                padding: const EdgeInsets.all(5),
                 child: dataBody(context),
               ))
             ],
@@ -187,45 +199,63 @@ SingleChildScrollView dataBody(context) {
           sortColumnIndex: 0,
           showCheckboxColumn: false,
           columns: [
-            DataColumn(label: Text("Name"), tooltip: "Name"),
             DataColumn(
-              label: Text("Email"),
+                label: customText("Nombre", 16,
+                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
+                tooltip: "Name"),
+            DataColumn(
+              label: customText("Empresa", 16,
+                  textColor: const Color(0xff00809a), bold: FontWeight.bold),
               tooltip: "Email",
             ),
-            DataColumn(label: Text("Phone"), tooltip: "Phone"),
-            DataColumn(label: Text("Company"), tooltip: "Company"),
-            DataColumn(label: Text("Position"), tooltip: "Position"),
-            DataColumn(label: Text("Actions"), tooltip: "Actions"),
+            DataColumn(
+                label: customText("Proyecto", 16,
+                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
+                tooltip: "Phone"),
+            DataColumn(
+                label: customText("Posición", 16,
+                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
+                tooltip: "Company"),
+            DataColumn(
+                label: customText("Teléfono", 16,
+                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
+                tooltip: "Position"),
+            DataColumn(
+                label: customText("Actions", 16,
+                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
+                tooltip: "Actions"),
           ],
-          rows: contact_list
+          rows: contacts
               .map(
                 (contact) => DataRow(cells: [
                   DataCell(Text(contact.name)),
                   DataCell(
-                    Text(contact.email),
+                    Text(contact.company),
                   ),
-                  DataCell(Text(contact.phone)),
-                  DataCell(Text(contact.company)),
+                  DataCell(Text("")),
                   DataCell(Text(contact.position)),
+                  DataCell(Text(contact.phone)),
                   DataCell(Row(children: [
                     IconButton(
                         icon: const Icon(Icons.info),
                         tooltip: 'View',
                         onPressed: () async {
-                          await getContactInfoByContact(contact.uuid)
+                          Navigator.pushNamed(context, "/contact_info",
+                              arguments: {'contact': contact});
+                          /*await getContactInfoByContact(contact.uuid)
                               .then((contactInfo) {
                             Navigator.pushNamed(context, "/contact_info",
                                 arguments: {
                                   'contactInfo': contactInfo,
                                   'contact': contact
                                 });
-                          });
+                          });*/
                         }),
                     IconButton(
                         icon: const Icon(Icons.edit),
                         tooltip: 'Edit',
                         onPressed: () async {
-                          _callEditDialog(context, contact);
+                          callEditDialog(context, contact);
                         }),
                     IconButton(
                         icon: const Icon(Icons.remove_circle),
@@ -241,7 +271,7 @@ SingleChildScrollView dataBody(context) {
       ));
 }
 
-void _callEditDialog(context, contact) async {
+void callEditDialog(context, contact) async {
   List<String> companies = [];
   List<String> positions = [];
   await getCompanies().then((value) async {
