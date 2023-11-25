@@ -5,8 +5,9 @@ import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+
+Color titleColor = Color(0xff00809a);
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -508,7 +509,7 @@ Text buttonEditableText(String textButton) {
 }
 
 Widget customRowDivider() {
-  return Divider(
+  return const Divider(
     height: 1,
     color: Color(0xffdfdfdf),
   );
