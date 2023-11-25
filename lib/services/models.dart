@@ -8,7 +8,6 @@ import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           PROJECTS
 //--------------------------------------------------------------
