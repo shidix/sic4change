@@ -559,6 +559,91 @@ class DateTimePicker extends StatelessWidget {
   }
 }
 
+Widget addButton(context, String text, String route, args) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pushNamed(context, route, arguments: args);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+    ),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.add,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          text,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget backButton(context) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.pop(context);
+    },
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+    ),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.arrow_back,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        const Text(
+          "Volver",
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget actionButton(context, String text, Function action, args) {
+  return ElevatedButton(
+    onPressed: () {
+      if (args == null) {
+        action();
+      } else {
+        action(args);
+      }
+    },
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+    ),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.arrow_back,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          text,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
 class ReadOnlyTextField extends StatelessWidget {
   final String label;
   final String textToShow;
