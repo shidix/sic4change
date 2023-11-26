@@ -8,6 +8,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 Color titleColor = Color(0xff00809a);
+Color greyColor = Color(0xffdfdfdf);
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -59,18 +60,42 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
-Widget menuTab(context, btnName, btnRoute, args) {
-  return Container(
-      padding: EdgeInsets.all(5),
-      child: TextButton(
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
-        },
-        child: Text(
-          btnName,
-          style: TextStyle(color: Colors.black54, fontSize: 16),
-        ),
-      ));
+Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
+  if (selected) {
+    return Container(
+        padding: const EdgeInsets.all(5),
+        decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+              left: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+              right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+              bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
+            ),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+            color: Colors.white),
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+          },
+          child: Text(
+            btnName,
+            style: const TextStyle(color: Color(0xff00809a), fontSize: 16),
+          ),
+        ));
+  } else {
+    return Container(
+        padding: EdgeInsets.all(5),
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+          },
+          child: Text(
+            btnName,
+            style: TextStyle(color: Colors.black54, fontSize: 16),
+          ),
+        ));
+  }
 }
 
 Widget menuTabSelect(context, btnName, btnRoute, args) {
@@ -512,6 +537,13 @@ Widget customRowDivider() {
   return const Divider(
     height: 1,
     color: Color(0xffdfdfdf),
+  );
+}
+
+Widget customRowDividerBlue() {
+  return const Divider(
+    height: 1,
+    color: Color(0xff00809a),
   );
 }
 
