@@ -8,7 +8,6 @@ import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           PROJECTS
 //--------------------------------------------------------------
@@ -37,9 +36,19 @@ class SProject {
 
   double dblbudget = 0;
 
-  SProject(
-    this.name,
-  );
+  // SProject(
+  //   this.name,
+  // );
+  SProject(this.uuid, this.name,
+      [this.description = "",
+      this.type = "",
+      this.budget = "",
+      this.manager = "",
+      this.programme = "",
+      this.announcement = "",
+      this.ambit = "",
+      this.audit = false,
+      this.evaluation = false]);
 
   SProject.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -213,6 +222,17 @@ class SProject {
       } catch (e) {}
     }
     return _par_list;
+  }
+
+  static Future<SProject> getByUuid(String uuid) async {
+    SProject item = SProject("", "", "", "", "", "", "", "", "", false, false);
+    await dbProject.where("uuid", isEqualTo: uuid).get().then((value) {
+      final _doc = value.docs.first;
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      item = SProject.fromJson(data);
+    });
+    return item;
   }
 }
 
@@ -615,7 +635,7 @@ class Reformulation {
   String request = "";
   String project = "";
   String financier = "";
-  SProject projectObj = SProject("");
+  SProject projectObj = SProject("", "");
   Financier financierObj = Financier("");
 
   Reformulation(this.project);
@@ -668,7 +688,7 @@ class Reformulation {
       data["id"] = _doc.id;
       return SProject.fromJson(data);
     } catch (e) {
-      return SProject("");
+      return SProject("", "");
     }
   }
 

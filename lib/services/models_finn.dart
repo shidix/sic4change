@@ -334,3 +334,106 @@ class Invoice {
     }
   }
 }
+
+class BankTransfer {
+  String id;
+  String uuid;
+  String number;
+  String code;
+  String project;
+  String concept;
+  String date;
+  double amount;
+  double exchange;
+  double commission;
+  String document;
+
+  BankTransfer(
+    this.id,
+    this.uuid,
+    this.number,
+    this.code,
+    this.project,
+    this.concept,
+    this.date,
+    this.amount,
+    this.exchange,
+    this.commission,
+    this.document,
+  );
+
+  BankTransfer.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        number = json["number"],
+        code = json["code"],
+        project = json["project"],
+        concept = json["concept"],
+        date = json["date"],
+        amount = json["amount"],
+        exchange = json["exchange"],
+        commission = json["commission"],
+        document = json["document"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'number': number,
+        'code': code,
+        'project': project,
+        'concept': concept,
+        'date': date,
+        'amount': amount,
+        'exchange': exchange,
+        'commission': commission,
+        'document': document,
+      };
+
+  void save() async {
+    final collection = db.collection("s4c_banktransfers");
+    if (id == "") {
+      id = const Uuid().v4();
+      Map<String, dynamic> data = toJson();
+      collection.add(data);
+    } else {
+      final item = await collection.doc(id).get();
+      Map<String, dynamic> data = toJson();
+      collection.doc(item.id).set(data);
+    }
+  }
+
+  static Future<List<BankTransfer>> getByProject(project) async {
+    final collection = db.collection("s4c_banktransfers");
+    final query = await collection
+        .where("project", isEqualTo: project)
+        // .orderBy('date')
+        .get();
+    List<BankTransfer> items = [];
+    for (var element in query.docs) {
+      BankTransfer item = BankTransfer.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
+  static Future<BankTransfer> getByUuid(uuid) async {
+    final collection = db.collection("s4c_banktransfers");
+    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    BankTransfer item = BankTransfer.fromJson(query.docs.first.data());
+    item.id = query.docs.first.id;
+    return item;
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+
+  void delete() {
+    final collection = db.collection("s4c_banktransfers");
+    if (id != "") {
+      collection.doc(id).delete();
+    }
+  }
+}

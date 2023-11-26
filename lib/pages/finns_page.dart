@@ -211,6 +211,7 @@ class _FinnsPageState extends State<FinnsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            transferButton(context, _project),
             finnAddBtn(context, _project),
             customRowPopBtn(context, "Volver", Icons.arrow_back),
           ],
@@ -240,6 +241,39 @@ class _FinnsPageState extends State<FinnsPage> {
           space(height: 10),
           const Text(
             "Nueva partida",
+            style: TextStyle(color: Colors.black, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget transferButton(context, _project) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: ((context) => TransfersPage(
+                      project: _project,
+                    ))));
+      },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        backgroundColor: Colors.white,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.euro_outlined,
+            color: Colors.black54,
+            size: 30,
+          ),
+          space(height: 10),
+          const Text(
+            "Trasnferencias",
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
         ],

@@ -447,16 +447,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       _ambit,
       _audit,
       _evaluation) async {
-    if (_project == null) _project = SProject(_name);
-    _project.description = _desc;
-    _project.type = _type;
-    _project.budget = _budget;
-    _project.manager = _manager;
-    _project.programme = _programme;
-    _project.announcement = _announcement;
-    _project.ambit = _ambit;
-    _project.audit = _audit;
-    _project.evaluation = _evaluation;
+    _project ??= SProject("", _name, _desc, _type, _budget, _manager,
+        _programme, _announcement, _ambit, _audit, _evaluation);
+    // _project.description = _desc;
+    // _project.type = _type;
+    // _project.budget = _budget;
+    // _project.manager = _manager;
+    // _project.programme = _programme;
+    // _project.announcement = _announcement;
+    // _project.ambit = _ambit;
+    // _project.audit = _audit;
+    // _project.evaluation = _evaluation;
     _project.save();
     loadProject(_project);
     //Navigator.of(context).pop();
