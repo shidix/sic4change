@@ -645,7 +645,9 @@ Widget backButton(context) {
   );
 }
 
-Widget actionButton(context, String text, Function action, args) {
+Widget actionButton(context, String text, Function action, IconData? icon,
+    [dynamic args]) {
+  icon ??= Icons.settings;
   return ElevatedButton(
     onPressed: () {
       if (args == null) {
@@ -661,8 +663,8 @@ Widget actionButton(context, String text, Function action, args) {
     ),
     child: Row(
       children: [
-        const Icon(
-          Icons.arrow_back,
+        Icon(
+          icon,
           color: Colors.black54,
           size: 30,
         ),
@@ -704,4 +706,52 @@ class ReadOnlyTextField extends StatelessWidget {
       ],
     );
   }
+}
+
+SizedBox s4cTitleBar(String title, [context]) {
+  Widget closeButton = const SizedBox(width: 0);
+  if (context != null) {
+    closeButton = IconButton(
+      icon: const Icon(Icons.close),
+      color: Colors.white,
+      iconSize: 20,
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
+  return SizedBox(
+      width: double.infinity,
+      child: Card(
+          color: Colors.blueGrey,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: [
+                Expanded(
+                    flex: 9,
+                    child: Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white))),
+                Expanded(flex: 1, child: closeButton)
+              ]))));
+}
+
+const TextStyle mainText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xFF00809A),
+  fontSize: 18,
+  fontWeight: FontWeight.bold,
+);
+
+const TextStyle secondaryText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xFF00809A),
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
+
+Object getObject(List items, String uuid) {
+  return items.firstWhere((item) => item.uuid == uuid);
 }

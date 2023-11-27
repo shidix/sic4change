@@ -24,20 +24,6 @@ double totalBudgetProject = 1;
 double executedBudgetProject = 0;
 //List<Widget> invoicesList = [];
 
-const TextStyle mainText = TextStyle(
-  fontFamily: 'Readex Pro',
-  color: Color(0xFF00809A),
-  fontSize: 18,
-  fontWeight: FontWeight.bold,
-);
-
-const TextStyle secondaryText = TextStyle(
-  fontFamily: 'Readex Pro',
-  color: Color(0xFF00809A),
-  fontSize: 16,
-  fontWeight: FontWeight.bold,
-);
-
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key});
 
@@ -212,7 +198,9 @@ class _FinnsPageState extends State<FinnsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             transferButton(context, _project),
+            space(width: 10),
             finnAddBtn(context, _project),
+            space(width: 10),
             customRowPopBtn(context, "Volver", Icons.arrow_back),
           ],
         ),
@@ -273,7 +261,7 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
           space(height: 10),
           const Text(
-            "Trasnferencias",
+            "Transferencias",
             style: TextStyle(color: Colors.black, fontSize: 14),
           ),
         ],
@@ -1319,32 +1307,32 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 }
 
-SizedBox s4cTitleBar(String title, [context]) {
-  Widget closeButton = const SizedBox(width: 0);
-  if (context != null) {
-    closeButton = IconButton(
-      icon: const Icon(Icons.close),
-      color: Colors.white,
-      iconSize: 20,
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-  }
-  return SizedBox(
-      width: double.infinity,
-      child: Card(
-          color: Colors.blueGrey,
-          child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: [
-                Expanded(
-                    flex: 9,
-                    child: Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.white))),
-                Expanded(flex: 1, child: closeButton)
-              ]))));
-}
+// SizedBox s4cTitleBar(String title, [context]) {
+//   Widget closeButton = const SizedBox(width: 0);
+//   if (context != null) {
+//     closeButton = IconButton(
+//       icon: const Icon(Icons.close),
+//       color: Colors.white,
+//       iconSize: 20,
+//       onPressed: () {
+//         Navigator.of(context).pop();
+//       },
+//     );
+//   }
+//   return SizedBox(
+//       width: double.infinity,
+//       child: Card(
+//           color: Colors.blueGrey,
+//           child: Padding(
+//               padding: const EdgeInsets.all(10),
+//               child: Row(children: [
+//                 Expanded(
+//                     flex: 9,
+//                     child: Text(title,
+//                         style: const TextStyle(
+//                             fontWeight: FontWeight.bold,
+//                             fontSize: 18,
+//                             color: Colors.white))),
+//                 Expanded(flex: 1, child: closeButton)
+//               ]))));
+// }

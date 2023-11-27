@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -217,8 +218,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  Widget projectCardDatasFinancier(_project) {
+  Widget projectCardDatasFinancier(SProject _project) {
     List _list = _project.financiers;
+    List financiers = [];
+    for (var uuid in _list) {
+      financiers
+          .add((getObject(_project.financiersObj, uuid) as Financier).name);
+    }
+
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Financiador/es:", 16, textColor: Colors.grey),
@@ -230,36 +237,45 @@ class _ProjectsPageState extends State<ProjectsPage> {
           },
         )*/
       ]),
-      ListView.builder(
-          //padding: const EdgeInsets.all(8),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: _list.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${_list[index]}'),
-                      /*IconButton(
-                        icon: const Icon(
-                          Icons.remove,
-                          size: 12,
-                        ),
-                        tooltip: 'Eliminar financiador',
-                        onPressed: () async {
-                          _project.financiers.remove(_list[index]);
-                          _removeFinancier(context, _project);
-                        },
-                      )*/
-                    ]));
-          })
+      Row(
+        children: [Text(financiers.join(', '))],
+      )
+      // ListView.builder(
+      //     //padding: const EdgeInsets.all(8),
+      //     scrollDirection: Axis.vertical,
+      //     shrinkWrap: true,
+      //     itemCount: _list.length,
+      //     itemBuilder: (BuildContext context, int index) {
+      //       return Container(
+      //           padding: const EdgeInsets.all(5),
+      //           child: Row(
+      //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //               children: [
+      //                 Text((getObject(_project.financiersObj, _list[index])
+      //                         as Financier)
+      //                     .name),
+      //                 /*IconButton(
+      //                   icon: const Icon(
+      //                     Icons.remove,
+      //                     size: 12,
+      //                   ),
+      //                   tooltip: 'Eliminar financiador',
+      //                   onPressed: () async {
+      //                     _project.financiers.remove(_list[index]);
+      //                     _removeFinancier(context, _project);
+      //                   },
+      //                 )*/
+      //               ]));
+      //     })
     ]);
   }
 
-  Widget projectCardDatasPartners(_project) {
+  Widget projectCardDatasPartners(SProject _project) {
     List _list = _project.partners;
+    List partners = [];
+    for (var uuid in _list) {
+      partners.add((getObject(_project.partnersObj, uuid) as Contact).name);
+    }
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),
@@ -271,31 +287,38 @@ class _ProjectsPageState extends State<ProjectsPage> {
           },
         )*/
       ]),
-      ListView.builder(
-          //padding: const EdgeInsets.all(8),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: _list.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Container(
-                padding: EdgeInsets.all(5),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${_list[index]}'),
-                      /*IconButton(
-                        icon: const Icon(
-                          Icons.remove,
-                          size: 12,
-                        ),
-                        tooltip: 'Eliminar socio',
-                        onPressed: () async {
-                          _project.partners.remove(_list[index]);
-                          _removePartner(context, _project);
-                        },
-                      )*/
-                    ]));
-          })
+      Row(children: [
+        Text(
+          partners.join(", "),
+        )
+      ]),
+      // ListView.builder(
+      //     //padding: const EdgeInsets.all(8),
+      //     scrollDirection: Axis.vertical,
+      //     shrinkWrap: true,
+      //     itemCount: _list.length,
+      //     itemBuilder: (BuildContext context, int index) {
+      //       return Container(
+      //           padding: EdgeInsets.all(5),
+      //           child: Row(
+      //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //               children: [
+      //                 Text((getObject(_project.partnersObj, _list[index])
+      //                         as Contact)
+      //                     .name),
+      //                 /*IconButton(
+      //                   icon: const Icon(
+      //                     Icons.remove,
+      //                     size: 12,
+      //                   ),
+      //                   tooltip: 'Eliminar socio',
+      //                   onPressed: () async {
+      //                     _project.partners.remove(_list[index]);
+      //                     _removePartner(context, _project);
+      //                   },
+      //                 )*/
+      //               ]));
+      //     })
     ]);
   }
 

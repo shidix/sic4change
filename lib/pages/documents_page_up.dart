@@ -1,4 +1,4 @@
-import 'dart:math';
+// import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,8 +7,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:sic4change/pages/contacts_page.dart';
-import 'dart:io';
+// import 'package:sic4change/pages/contacts_page.dart';
+// import 'dart:io';
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
 
 class DocumentsUpPage extends StatefulWidget {
@@ -42,10 +42,9 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
   }
 
   Future uploadFile() async {
-    String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString() +
-        "_" +
-        pickedFile!.name;
-    final path = 'files/${uniqueFileName}';
+    String uniqueFileName =
+        "${DateTime.now().millisecondsSinceEpoch}_${pickedFile!.name}";
+    final path = 'files/$uniqueFileName';
 
     final ref = FirebaseStorage.instance.ref().child(path);
 
@@ -54,7 +53,7 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
         uploadTask = ref.putData(pickedFileBytes!);
       });
 
-      final snapshot = await uploadTask!.whenComplete(() => {});
+      // final snapshot = await uploadTask!.whenComplete(() => {});
 
       fileUrl = await ref.getDownloadURL();
       print(fileUrl);
@@ -70,6 +69,7 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
+    print(user.toString());
 
     return Scaffold(
       body: Column(
@@ -82,13 +82,13 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
           Text(fileUrl),
           space(height: 30),
           ElevatedButton(
-            child: const Text('Select file'),
             onPressed: selectFile,
+            child: const Text('Select file'),
           ),
           space(height: 30),
           ElevatedButton(
-            child: const Text('Upload file'),
             onPressed: uploadFile,
+            child: const Text('Upload file'),
           ),
           buildProgress(),
         ],

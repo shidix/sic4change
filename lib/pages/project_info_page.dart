@@ -820,10 +820,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           });
         });
       }*/
-      if (value == null) {
-        value = ProjectDates(_project.uuid);
-        value.save();
-      }
+      // if (value == null) {
+      //   value = ProjectDates(_project.uuid);
+      //   value.save();
+      // }
       _editProjectDatesDialog(context, value, _project);
     });
   }
@@ -1000,10 +1000,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
             await getProjectLocationByProject(_project.uuid)
                 .then((value) async {
-              if (value == null) {
-                value = ProjectLocation(_project.uuid);
-                value.save();
-              }
+              // if (value == null) {
+              //   value = ProjectLocation(_project.uuid);
+              //   value.save();
+              // }
 
               _editProjectLocationDialog(context, value, _project, countries,
                   provinces, regions, towns);
