@@ -44,6 +44,7 @@ class MyApp extends StatelessWidget {
           project: null,
         ),
     '/tasks': (context) => const TasksPage(),
+    '/tasks_user': (context) => const TasksUserPage(),
     '/task_info': (context) => const TaskInfoPage(),
   };
 

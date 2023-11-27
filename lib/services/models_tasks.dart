@@ -29,9 +29,11 @@ class STask {
   List<String> assigned = [];
   List<String> programmes = [];
   bool public = false;
+
   SProject projectObj = SProject("", "");
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("", "", "", "", "");
+  List<Contact> assignedObj = [];
 
   STask(
     this.name,
@@ -98,41 +100,73 @@ class STask {
   }
 
   Future<STask> reload() async {
-    DocumentSnapshot _doc = await dbTasks.doc(id).get();
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
+    DocumentSnapshot doc = await dbTasks.doc(id).get();
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
     STask.fromJson(data);
-    getProject();
-    getStatus();
-    getSender();
+    await getProject();
+    await getStatus();
+    await getSender();
+    await getAssigned();
     return this;
   }
 
   Future<void> getProject() async {
-    QuerySnapshot query =
-        await dbProject.where("uuid", isEqualTo: project).get();
-    final _doc = query.docs.first;
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
-    projectObj = SProject.fromJson(data);
+    if (project != "") {
+      QuerySnapshot query =
+          await dbProject.where("uuid", isEqualTo: project).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      projectObj = SProject.fromJson(data);
+    }
   }
 
   Future<void> getStatus() async {
-    QuerySnapshot query =
-        await dbTasksStatus.where("uuid", isEqualTo: status).get();
-    final _doc = query.docs.first;
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
-    statusObj = TasksStatus.fromJson(data);
+    if (status != "") {
+      QuerySnapshot query =
+          await dbTasksStatus.where("uuid", isEqualTo: status).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      statusObj = TasksStatus.fromJson(data);
+    }
   }
 
   Future<void> getSender() async {
-    QuerySnapshot query =
-        await dbContacts.where("uuid", isEqualTo: sender).get();
-    final _doc = query.docs.first;
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
-    senderObj = Contact.fromJson(data);
+    if (sender != "") {
+      QuerySnapshot query =
+          await dbContacts.where("uuid", isEqualTo: sender).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      senderObj = Contact.fromJson(data);
+    }
+  }
+
+  Future<void> getAssigned() async {
+    for (String item in assigned) {
+      try {
+        QuerySnapshot query =
+            await dbContacts.where("uuid", isEqualTo: item).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Contact contact = Contact.fromJson(data);
+        assignedObj.add(contact);
+      } catch (e) {}
+    }
+  }
+
+  String getAssignedStr() {
+    String assignedStr = "";
+    for (Contact item in assignedObj) {
+      assignedStr += "${item.name},";
+    }
+    assignedStr = (assignedStr.length > 0)
+        ? assignedStr.substring(0, assignedStr.length - 1)
+        : assignedStr;
+    return assignedStr;
   }
 }
 
@@ -143,17 +177,53 @@ Future<List> getTasks() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    STask _task = STask.fromJson(data);
-    _task.getProject();
-    _task.getStatus();
-    _task.getSender();
-    items.add(_task);
+    STask task = STask.fromJson(data);
+    await task.getProject();
+    await task.getStatus();
+    await task.getSender();
+    await task.getAssigned();
+    items.add(task);
+  }
+  return items;
+}
+
+Future<List> getTasksBySender(sender) async {
+  List<STask> items = [];
+  QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    STask task = STask.fromJson(data);
+    await task.getProject();
+    await task.getStatus();
+    await task.getSender();
+    await task.getAssigned();
+    items.add(task);
+  }
+  return items;
+}
+
+Future<List> getTasksByAssigned(user) async {
+  List<STask> items = [];
+  QuerySnapshot query =
+      await dbTasks.where("assigned", arrayContains: user).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    STask task = STask.fromJson(data);
+    await task.getProject();
+    await task.getStatus();
+    await task.getSender();
+    await task.getAssigned();
+    items.add(task);
   }
   return items;
 }
 
 //--------------------------------------------------------------
-//                           TASKS
+//                           TASKS STATUS
 //--------------------------------------------------------------
 final dbTasksStatus = db.collection("s4c_tasks_status");
 

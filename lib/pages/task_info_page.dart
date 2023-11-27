@@ -9,6 +9,7 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/task_widgets.dart';
 
 const TASK_INFO_TITLE = "Detalles de la tarea";
 STask? _task;
@@ -64,13 +65,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         ],
       ),
     );
-  }
-
-  Color getStatusColor(status) {
-    if (status == "Completado")
-      return Colors.green;
-    else if (status == "En proceso") return Colors.orange;
-    return Colors.black;
   }
 
   Widget projectTaskHeader(context, _task) {
