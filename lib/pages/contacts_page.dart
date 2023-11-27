@@ -15,7 +15,7 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
-  var searchController = new TextEditingController();
+  var searchController = TextEditingController();
 
   void loadContacts(value) async {
     //print(value);
@@ -64,8 +64,8 @@ class _ContactsPageState extends State<ContactsPage> {
         //contactsHeader(context),
         Expanded(
             child: Container(
-          child: contactList(context),
           padding: const EdgeInsets.all(10),
+          child: contactList(context),
         ))
       ]),
     );
@@ -232,7 +232,7 @@ SingleChildScrollView dataBody(context) {
                   DataCell(
                     Text(contact.company),
                   ),
-                  DataCell(Text("")),
+                  const DataCell(Text("")),
                   DataCell(Text(contact.position)),
                   DataCell(Text(contact.phone)),
                   DataCell(Row(children: [
@@ -282,7 +282,6 @@ void callEditDialog(context, contact) async {
       for (Position item in value2) {
         positions.add(item.name);
       }
-      ;
       _contactEditDialog(context, contact, companies, positions);
     });
   });

@@ -98,7 +98,6 @@ class Contact {
   Future<ContactInfo> getContactInfo() async {
     ContactInfo contactInfo = ContactInfo(uuid);
 
-    print("--2--");
     try {
       QuerySnapshot query =
           await dbContactInfo.where("contact", isEqualTo: uuid).get();
