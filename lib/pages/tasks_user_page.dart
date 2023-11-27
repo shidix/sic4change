@@ -1,25 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
 
-const pageTaskTitle = "Tareas";
-List tasks = [];
+const pageTaskUserTitle = "Tareas";
+List tasksUser = [];
 
-class TasksPage extends StatefulWidget {
-  const TasksPage({super.key});
+class TasksUserPage extends StatefulWidget {
+  const TasksUserPage({super.key});
 
   @override
-  State<TasksPage> createState() => _TasksPageState();
+  State<TasksUserPage> createState() => _TasksUserPageState();
 }
 
-class _TasksPageState extends State<TasksPage> {
+class _TasksUserPageState extends State<TasksUserPage> {
   var searchController = TextEditingController();
 
-  void loadTasks() async {
+  /*void loadTasks() async {
     await getTasks().then((val) {
-      tasks = val;
+      tasksUser = val;
     });
     setState(() {});
   }
@@ -28,17 +29,17 @@ class _TasksPageState extends State<TasksPage> {
   void initState() {
     loadTasks();
     super.initState();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
     return Scaffold(
       body: Column(children: [
         mainMenu(context),
         taskHeader(context),
         space(height: 20),
         taskMenu(context),
-        //contactsHeader(context),
         Expanded(
             child: Container(
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -50,7 +51,7 @@ class _TasksPageState extends State<TasksPage> {
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
-                  child: taskList(context),
+                  child: taskList(context, user),
                 ))),
       ]),
     );
@@ -63,14 +64,14 @@ class _TasksPageState extends State<TasksPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
-        child: customText(pageTaskTitle, 20),
+        child: customText(pageTaskUserTitle, 20),
       ),
       SearchBar(
         controller: searchController,
         padding: const MaterialStatePropertyAll<EdgeInsets>(
             EdgeInsets.symmetric(horizontal: 16.0)),
         onSubmitted: (value) {
-          loadTasks();
+          //loadTasks();
         },
         leading: const Icon(Icons.search),
       ),
@@ -79,7 +80,7 @@ class _TasksPageState extends State<TasksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            taskAddBtn(context),
+            //taskAddBtn(context),
           ],
         ),
       ),
@@ -91,58 +92,92 @@ class _TasksPageState extends State<TasksPage> {
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
         children: [
-          menuTab(context, "Mis tareas", "/tasks_user", {}),
-          menuTab(context, "Tareas generales", "/tasks", {}, selected: true),
+          menuTab(context, "Mis tareas", "/tasks_user", {}, selected: true),
+          menuTab(context, "Tareas generales", "/tasks", {}),
         ],
       ),
     );
   }
 
-  Widget taskAddBtn(context) {
-    return FilledButton(
+  /*Widget taskAddBtn(context) {
+    return ElevatedButton(
       onPressed: () {
         _callEditDialog(context, null);
       },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        backgroundColor: Colors.white,
       ),
-      child: const Column(
+      child: Row(
         children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
+          const Icon(
+            Icons.add,
+            color: Colors.black54,
+            size: 30,
           ),
+          space(height: 10),
+          customText("Añadir tarea", 14, textColor: Colors.black),
         ],
       ),
     );
-  }
+  }*/
 
-  Widget taskList(context) {
-    return FutureBuilder(
-        future: getTasks(),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              verticalDirection: VerticalDirection.down,
-              children: <Widget>[
-                Expanded(
-                    child: Container(
-                  padding: const EdgeInsets.all(5),
-                  child: dataBody(context),
-                ))
-              ],
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+  Widget taskList(context, user) {
+    return Column(
+      children: [
+        ExpansionTile(
+          title: customText("Para mi", 16, textColor: titleColor),
+          initiallyExpanded: true,
+          children: [
+            FutureBuilder(
+                future: getTasksByAssigned(user.uid),
+                builder: ((context, snapshot) {
+                  if (snapshot.hasData) {
+                    tasksUser = snapshot.data!;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      verticalDirection: VerticalDirection.down,
+                      children: <Widget>[
+                        dataBody(context),
+                      ],
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                }))
+          ],
+        ),
+        ExpansionTile(
+          title: customText("Creadas por mi", 16, textColor: titleColor),
+          children: [
+            FutureBuilder(
+                future: getTasksBySender(user.uid),
+                builder: ((context, snapshot) {
+                  if (snapshot.hasData) {
+                    tasksUser = snapshot.data!;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      verticalDirection: VerticalDirection.down,
+                      children: <Widget>[
+                        dataBody(context),
+                      ],
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                }))
+          ],
+        )
+      ],
+    );
   }
 
   SingleChildScrollView dataBody(context) {
@@ -163,40 +198,26 @@ class _TasksPageState extends State<TasksPage> {
                   tooltip: "Tarea"),
               DataColumn(
                 label: Text(
-                  "Acuerdo",
+                  "Inicio",
                   style: TextStyle(
                       color: Color(0xff008096), fontWeight: FontWeight.bold),
                 ),
-                tooltip: "Acuerdo",
+                tooltip: "Inicio",
               ),
               DataColumn(
                   label: Text(
-                    "Deadline",
+                    "Fin",
                     style: TextStyle(
                         color: Color(0xff008096), fontWeight: FontWeight.bold),
                   ),
-                  tooltip: "Deadline"),
+                  tooltip: "Fin"),
               DataColumn(
                   label: Text(
-                    "Nuevo deadline",
+                    "Eviada a",
                     style: TextStyle(
                         color: Color(0xff008096), fontWeight: FontWeight.bold),
                   ),
-                  tooltip: "Nuevo deadline"),
-              DataColumn(
-                  label: Text(
-                    "Devolución",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
-                  tooltip: "Devolución"),
-              DataColumn(
-                  label: Text(
-                    "Responsables",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
-                  tooltip: "Responsables"),
+                  tooltip: "Enviada a"),
               DataColumn(
                   label: Text(
                     "Estado",
@@ -206,7 +227,7 @@ class _TasksPageState extends State<TasksPage> {
                   tooltip: "Estado"),
               DataColumn(label: Text(""), tooltip: ""),
             ],
-            rows: tasks
+            rows: tasksUser
                 .map(
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
@@ -214,8 +235,7 @@ class _TasksPageState extends State<TasksPage> {
                       Text(task.deal_date),
                     ),
                     DataCell(Text(task.deadline_date)),
-                    DataCell(Text(task.new_deadline_date)),
-                    DataCell(Text(task.senderObj.name)),
+                    //DataCell(Text(task.assigned.join(","))),
                     DataCell(Text(task.getAssignedStr())),
                     DataCell(customTextStatus(task.statusObj.name, 14)),
                     DataCell(Row(children: [
@@ -230,7 +250,7 @@ class _TasksPageState extends State<TasksPage> {
                           icon: const Icon(Icons.remove_circle),
                           tooltip: 'Remove',
                           onPressed: () {
-                            _removeTaskDialog(context, task);
+                            //_removeTaskDialog(context, task);
                           }),
                     ]))
                   ]),
@@ -240,7 +260,7 @@ class _TasksPageState extends State<TasksPage> {
         ));
   }
 
-  void _callEditDialog(context, task) async {
+  /*void _callEditDialog(context, task) async {
     _taskEditDialog(context, task);
   }
 
@@ -324,5 +344,5 @@ class _TasksPageState extends State<TasksPage> {
         );
       },
     );
-  }
+  }*/
 }

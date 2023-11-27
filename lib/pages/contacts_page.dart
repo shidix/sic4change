@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
-import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
@@ -18,10 +17,8 @@ class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
 
   void loadContacts(value) async {
-    //print(value);
     await searchContacts(value).then((val) {
       contacts = val;
-      //print(contact_list);
     });
     setState(() {});
   }
@@ -61,7 +58,6 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
           ),
         ]),
-        //contactsHeader(context),
         Expanded(
             child: Container(
           padding: const EdgeInsets.all(10),
@@ -75,44 +71,6 @@ class _ContactsPageState extends State<ContactsPage> {
 /*-------------------------------------------------------------
                             CONTACTS
 -------------------------------------------------------------*/
-/*Widget contactsHeader(context) {
-  return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Container(
-      padding: EdgeInsets.only(left: 40),
-      child: Text(PAGE_CONTACT_TITLE, style: TextStyle(fontSize: 20)),
-    ),
-    Container(
-      padding: EdgeInsets.only(left: 40),
-      child: searchBar(context),
-    ),
-    Container(
-      padding: EdgeInsets.all(10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          contactAddBtn(context),
-        ],
-      ),
-    ),
-  ]);
-}*/
-
-/*Widget searchBar(context) {
-  var controller = new TextEditingController();
-  return SearchBar(
-    controller: controller,
-    padding: const MaterialStatePropertyAll<EdgeInsets>(
-        EdgeInsets.symmetric(horizontal: 16.0)),
-    onTap: () {
-      //controller.openView();
-    },
-    onChanged: (_) {
-      //contact_list = [];
-    },
-    leading: const Icon(Icons.search),
-  );
-}*/
-
 Widget addBtn(context) {
   return FilledButton(
     onPressed: () {
@@ -134,33 +92,6 @@ Widget addBtn(context) {
     ),
   );
 }
-
-/*Widget contactAddBtn(context) {
-  return ElevatedButton(
-    onPressed: () {
-      _callEditDialog(context, null);
-    },
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      backgroundColor: Colors.white,
-    ),
-    child: Row(
-      children: [
-        Icon(
-          Icons.add,
-          color: Colors.black54,
-          size: 30,
-        ),
-        space(height: 10),
-        Text(
-          "Add contact",
-          style: TextStyle(color: Colors.black, fontSize: 14),
-        ),
-      ],
-    ),
-  );
-}*/
 
 Widget contactList(context) {
   return FutureBuilder(
@@ -187,9 +118,6 @@ Widget contactList(context) {
       }));
 }
 
-/*SingleChildScrollView dataBody(context, List? listContact) {
-  List values = List.empty();
-  if (listContact != null) values = listContact;*/
 SingleChildScrollView dataBody(context) {
   return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -242,14 +170,6 @@ SingleChildScrollView dataBody(context) {
                         onPressed: () async {
                           Navigator.pushNamed(context, "/contact_info",
                               arguments: {'contact': contact});
-                          /*await getContactInfoByContact(contact.uuid)
-                              .then((contactInfo) {
-                            Navigator.pushNamed(context, "/contact_info",
-                                arguments: {
-                                  'contactInfo': contactInfo,
-                                  'contact': contact
-                                });
-                          });*/
                         }),
                     IconButton(
                         icon: const Icon(Icons.edit),
@@ -296,21 +216,8 @@ void _saveContact(context, _contact, _name, _comp, _pos, _email, _phone,
     _contact.email = _email;
     _contact.phone = _phone;
     _contact.save();
-    /*await updateContact(_contact.id, _contact.uuid, _name, _comp,
-            _contact.projects, _pos, _email, _phone)
-        .then((value) async {
-      if (!_companies.contains(_comp)) await addCompany(_comp);
-      if (!_positions.contains(_pos)) await addPosition(_pos);
-      Navigator.popAndPushNamed(context, "/contacts");
-    });*/
   } else {
     Contact _contact = Contact(_name, _comp, _pos, _email, _phone);
-    /*await addContact(_name, _comp, List.empty(), _pos, _email, _phone)
-        .then((value) async {
-      if (!_companies.contains(_comp)) await addCompany(_comp);
-      if (!_positions.contains(_pos)) await addPosition(_pos);
-      Navigator.popAndPushNamed(context, "/contacts");
-    });*/
   }
   if (!_companies.contains(_comp)) {
     Company _company = Company(_comp);
@@ -343,19 +250,40 @@ Future<void> _contactEditDialog(context, _contact, _companies, _positions) {
     builder: (BuildContext context) {
       return AlertDialog(
         // <-- SEE HERE
-        title: const Text('Contact edit'),
+        title: const Text('Editar contacto'),
         content: SingleChildScrollView(
-            child: Row(children: [
-          customTextField(nameController, "Enter name"),
-          space(width: 20),
-          customTextField(emailController, "Enter email"),
-          space(width: 20),
-          customTextField(phoneController, "Enter phone"),
-          space(width: 20),
-          customAutocompleteField(
-              compController, _companies, "Write or select company..."),
-          customAutocompleteField(
-              posController, _positions, "Write or select position...")
+            child: Column(children: [
+          Row(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Nombre:", 16, textColor: Colors.blue),
+              customTextField(nameController, "Nombre", size: 460),
+            ]),
+          ]),
+          space(height: 20),
+          Row(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Correo electrónico:", 16, textColor: Colors.blue),
+              customTextField(emailController, "Correo electrónico"),
+            ]),
+            space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Teléfono:", 16, textColor: Colors.blue),
+              customTextField(phoneController, "Teléfono"),
+            ]),
+            space(width: 20),
+          ]),
+          space(height: 20),
+          Row(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Empresa:", 16, textColor: Colors.blue),
+              customAutocompleteField(compController, _companies, "Empresa"),
+            ]),
+            space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Posición:", 16, textColor: Colors.blue),
+              customAutocompleteField(posController, _positions, "Posición")
+            ])
+          ]),
         ])),
         actions: <Widget>[
           TextButton(

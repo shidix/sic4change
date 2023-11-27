@@ -88,16 +88,43 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       style: TextStyle(
                           fontSize: 16,
                           color: getStatusColor(_task.statusObj.name))),
-                  IconButton(
+                  /*IconButton(
                       icon: const Icon(Icons.edit),
                       tooltip: 'Ver',
                       onPressed: () async {
                         _callEditDialog(context, _task);
-                      }),
+                      }),*/
+                  Container(
+                      padding: EdgeInsets.all(10),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [editBtn(context), returnBtn(context)]))
                 ]),
             //Divider(color: Colors.grey),
           )
         ]));
+  }
+
+  Widget editBtn(context) {
+    return FilledButton(
+      onPressed: () {
+        _callEditDialog(context, _task);
+      },
+      style: FilledButton.styleFrom(
+        side: const BorderSide(width: 0, color: Color(0xffffffff)),
+        backgroundColor: Color(0xffffffff),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.edit, color: Colors.black54),
+          SizedBox(height: 5),
+          Text(
+            "Editar",
+            style: TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
 /*--------------------------------------------------------------------*/
