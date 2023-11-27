@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -217,7 +218,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  Widget projectCardDatasFinancier(_project) {
+  Widget projectCardDatasFinancier(SProject _project) {
     List _list = _project.financiers;
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -241,7 +242,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${_list[index]}'),
+                      Text((getObject(_project.financiersObj, _list[index])
+                              as Financier)
+                          .name),
                       /*IconButton(
                         icon: const Icon(
                           Icons.remove,
@@ -258,7 +261,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ]);
   }
 
-  Widget projectCardDatasPartners(_project) {
+  Widget projectCardDatasPartners(SProject _project) {
     List _list = _project.partners;
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -282,7 +285,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${_list[index]}'),
+                      Text((getObject(_project.partnersObj, _list[index])
+                              as Contact)
+                          .name),
                       /*IconButton(
                         icon: const Icon(
                           Icons.remove,

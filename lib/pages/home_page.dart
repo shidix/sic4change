@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:sic4change/pages/contacts_page.dart';
+// import 'package:sic4change/pages/contacts_page.dart';
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
 
 class HomePage extends StatefulWidget {

@@ -107,7 +107,7 @@ class SProject {
     DocumentSnapshot _doc = await dbProject.doc(id).get();
     final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
     data["id"] = _doc.id;
-    SProject _project = SProject.fromJson(data);
+    // SProject _project = SProject.fromJson(data);
     typeObj = await getProjectType();
     managerObj = await getManager();
     programmeObj = await getProgramme();

@@ -272,7 +272,7 @@ Future<List> getActivities() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Activity.fromJson(data);
+    // final _item = Activity.fromJson(data);
     items.add(Activity.fromJson(data));
   }
   return items;
@@ -348,7 +348,7 @@ Future<List> getActivityIndicators() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = ActivityIndicator.fromJson(data);
+    // final _item = ActivityIndicator.fromJson(data);
     items.add(ActivityIndicator.fromJson(data));
   }
   return items;

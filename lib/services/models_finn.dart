@@ -1,3 +1,4 @@
+// import 'dart:collection';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -343,24 +344,43 @@ class BankTransfer {
   String project;
   String concept;
   String date;
-  double amount;
-  double exchange;
-  double commission;
+  String emissor;
+  String receiver;
+  double amountSource;
+  double exchangeSource;
+  double commissionSource;
+  double amountIntermediary;
+  double exchangeIntermediary;
+  double commissionIntermediary;
+  double amountDestination;
+  double commissionDestination;
+  String currencySource;
+  String currencyIntermediary;
+  String currencyDestination;
   String document;
 
   BankTransfer(
-    this.id,
-    this.uuid,
-    this.number,
-    this.code,
-    this.project,
-    this.concept,
-    this.date,
-    this.amount,
-    this.exchange,
-    this.commission,
-    this.document,
-  );
+      this.id,
+      this.uuid,
+      this.number,
+      this.code,
+      this.project,
+      this.concept,
+      this.date,
+      this.emissor,
+      this.receiver,
+      this.amountSource,
+      this.exchangeSource,
+      this.commissionSource,
+      this.amountIntermediary,
+      this.exchangeIntermediary,
+      this.commissionIntermediary,
+      this.amountDestination,
+      this.commissionDestination,
+      this.currencySource,
+      this.currencyIntermediary,
+      this.currencyDestination,
+      this.document);
 
   BankTransfer.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -370,9 +390,19 @@ class BankTransfer {
         project = json["project"],
         concept = json["concept"],
         date = json["date"],
-        amount = json["amount"],
-        exchange = json["exchange"],
-        commission = json["commission"],
+        emissor = json["emissor"],
+        receiver = json["receiver"],
+        amountSource = json["amountSource"],
+        exchangeSource = json["exchangeSource"],
+        commissionSource = json["commissionSource"],
+        amountIntermediary = json["amountIntermediary"],
+        exchangeIntermediary = json["exchangeIntermediary"],
+        commissionIntermediary = json["commissionIntermediary"],
+        amountDestination = json["amountDestination"],
+        commissionDestination = json["commissionDestination"],
+        currencySource = json["currencySource"],
+        currencyIntermediary = json["currencyIntermediary"],
+        currencyDestination = json["currencyDestination"],
         document = json["document"];
 
   Map<String, dynamic> toJson() => {
@@ -383,9 +413,19 @@ class BankTransfer {
         'project': project,
         'concept': concept,
         'date': date,
-        'amount': amount,
-        'exchange': exchange,
-        'commission': commission,
+        'emissor': emissor,
+        'receiver': receiver,
+        'amountSource': amountSource,
+        'exchangeSource': exchangeSource,
+        'commissionSource': commissionSource,
+        'amountIntermediary': amountIntermediary,
+        'exchangeIntermediary': exchangeIntermediary,
+        'commissionIntermediary': commissionIntermediary,
+        'amountDestination': amountDestination,
+        'commissionDestination': commissionDestination,
+        'currencySource': currencySource,
+        'currencyIntermediary': currencyIntermediary,
+        'currencyDestination': currencyDestination,
         'document': document,
       };
 
@@ -406,7 +446,7 @@ class BankTransfer {
     final collection = db.collection("s4c_banktransfers");
     final query = await collection
         .where("project", isEqualTo: project)
-        // .orderBy('date')
+        .orderBy('date')
         .get();
     List<BankTransfer> items = [];
     for (var element in query.docs) {

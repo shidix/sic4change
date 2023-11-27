@@ -1,10 +1,10 @@
 import 'dart:collection';
-import 'dart:html';
+// import 'dart:html';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+// import 'package:flutter/rendering.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -138,10 +138,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
       pickedFile = result.files.first;
       pickedFileBytes = result.files.first.bytes;
 
-      String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString() +
-          "_" +
-          pickedFile!.name;
-      final path = 'files/${uniqueFileName}';
+      String uniqueFileName =
+          "${DateTime.now().millisecondsSinceEpoch}_${pickedFile!.name}";
+      final path = 'files/$uniqueFileName';
       final ref = FirebaseStorage.instance.ref().child(path);
 
       try {
@@ -149,7 +148,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
           uploadTask = ref.putData(pickedFileBytes!);
         });
 
-        final snapshot = await uploadTask!.whenComplete(() => {});
+        // final snapshot = await uploadTask!.whenComplete(() => {});
 
         String fileUrl = await ref.getDownloadURL();
 
@@ -654,19 +653,19 @@ class _DocumentsPageState extends State<DocumentsPage> {
         return AlertDialog(
           // <-- SEE HERE
           title: const Text('Remove File'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: Text("Are you sure to remove this element?"),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                try {
-                  final ref =
-                      FirebaseStorage.instance.ref().child(_file.link).delete();
-                } catch (err) {
-                  print(err);
-                }
+                // try {
+                //   final ref =
+                //       FirebaseStorage.instance.ref().child(_file.link).delete();
+                // } catch (err) {
+                //   print(err);
+                // }
                 _file.delete();
                 String folderUuid =
                     (_currentFolder != null) ? _currentFolder.uuid : "";
