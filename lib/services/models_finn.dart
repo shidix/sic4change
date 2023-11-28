@@ -160,6 +160,20 @@ class FinnContribution {
     return items;
   }
 
+  static Future<List<FinnContribution>> getByProject(project) async {
+    final collection = db.collection("s4c_finncontrib");
+    List finnList = await SFinn.byProject(project);
+    List<FinnContribution> items = [];
+    for (var finn in finnList) {
+      final query = await collection.where("finn", isEqualTo: finn.uuid).get();
+      for (var element in query.docs) {
+        items.add(FinnContribution.fromJson(element.data()));
+      }
+    }
+
+    return items;
+  }
+
   String toString() {
     return jsonEncode(toJson());
   }

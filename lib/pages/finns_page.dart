@@ -737,7 +737,7 @@ class _FinnsPageState extends State<FinnsPage> {
         Expanded(
           flex: wDist,
           child: const Text(
-            'Distribución aporte CM',
+            'Distribución aportes',
             textAlign: TextAlign.center,
             style: headerList,
           ),

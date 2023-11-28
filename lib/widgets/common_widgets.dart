@@ -738,18 +738,29 @@ SizedBox s4cTitleBar(String title, [context]) {
               ]))));
 }
 
+const Color mainColor = Color(0xFF00809A);
+
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
-  color: Color(0xFF00809A),
+  color: mainColor,
   fontSize: 18,
   fontWeight: FontWeight.bold,
 );
 
+const Color secondaryColor = Color(0xFF00809A);
 const TextStyle secondaryText = TextStyle(
   fontFamily: 'Readex Pro',
   color: Color(0xFF00809A),
   fontSize: 16,
   fontWeight: FontWeight.bold,
+);
+
+const Color normalColor = Colors.black;
+const TextStyle normalText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: normalColor,
+  fontSize: 14,
+  fontWeight: FontWeight.normal,
 );
 
 Object getObject(List items, String uuid) {

@@ -1,7 +1,8 @@
-// import 'dart:async';
+import 'dart:core';
 
 import 'dart:math';
 
+// import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
@@ -36,9 +37,8 @@ class _TransfersPageState extends State<TransfersPage> {
       body: Column(children: [
         mainMenu(context),
         topButtons(context),
+        headerProjectInfo(context),
         contentContainer(context),
-        // ListHeaderBankTransfers(context),
-        // ListBankTransfers(context),
       ]),
     );
   }
@@ -148,6 +148,7 @@ class _TransfersPageState extends State<TransfersPage> {
                 child: Column(children: [
               listHeaderBankTransfers(context),
               listBankTransfers(context),
+              totalSummary(context),
             ]))));
   }
 
@@ -161,16 +162,19 @@ class _TransfersPageState extends State<TransfersPage> {
             Expanded(flex: 1, child: Text('Receptor')),
             Expanded(flex: 1, child: Text('Concepto')),
             Expanded(flex: 1, child: Text('Fecha')),
-            Expanded(flex: 1, child: Text('Enviado')),
-            Expanded(flex: 1, child: Text('Intermedio')),
-            Expanded(flex: 1, child: Text('Recibido')),
+            Expanded(
+                flex: 1, child: Text('Enviado', textAlign: TextAlign.right)),
+            Expanded(
+                flex: 1, child: Text('Intermedio', textAlign: TextAlign.right)),
+            Expanded(
+                flex: 1, child: Text('Recibido', textAlign: TextAlign.right)),
           ]),
           Divider(color: Colors.blueGrey),
         ]));
   }
 
   Widget listBankTransfers(BuildContext context) {
-    return FutureBuilder<List<BankTransfer>>(
+    Widget result = FutureBuilder<List<BankTransfer>>(
         future: BankTransfer.getByProject(widget.project!.uuid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -179,37 +183,45 @@ class _TransfersPageState extends State<TransfersPage> {
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Row(children: [
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                  getFinancier(snapshot.data![index].emissor)
-                                      .name)),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                  getContact(snapshot.data![index].receiver)
-                                      .name)),
-                          Expanded(
-                              flex: 1,
-                              child: Text(snapshot.data![index].concept)),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                  snapshot.data![index].date.substring(0, 10))),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "${snapshot.data![index].amountSource.toStringAsFixed(2)} ${snapshot.data![index].currencySource}",
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                  "${snapshot.data![index].amountIntermediary.toStringAsFixed(2)} ${snapshot.data![index].currencyIntermediary}")),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                  "${snapshot.data![index].amountDestination.toStringAsFixed(2)} ${snapshot.data![index].currencyDestination}")),
+                        title: Column(children: [
+                          Row(children: [
+                            Expanded(
+                                flex: 1,
+                                child: Text(
+                                    getFinancier(snapshot.data![index].emissor)
+                                        .name)),
+                            Expanded(
+                                flex: 1,
+                                child: Text(
+                                    getContact(snapshot.data![index].receiver)
+                                        .name)),
+                            Expanded(
+                                flex: 1,
+                                child: Text(snapshot.data![index].concept)),
+                            Expanded(
+                                flex: 1,
+                                child: Text(snapshot.data![index].date
+                                    .substring(0, 10))),
+                            Expanded(
+                                flex: 1,
+                                child: Text(
+                                  "${snapshot.data![index].amountSource.toStringAsFixed(2).padLeft(10)} ${snapshot.data![index].currencySource.padRight(7)}",
+                                  textAlign: TextAlign.right,
+                                )),
+                            Expanded(
+                                flex: 1,
+                                child: Text(
+                                  "${snapshot.data![index].amountIntermediary.toStringAsFixed(2).padLeft(10)} ${snapshot.data![index].currencyIntermediary.padRight(7)}",
+                                  textAlign: TextAlign.right,
+                                )),
+                            Expanded(
+                                flex: 1,
+                                child: Text(
+                                  "${snapshot.data![index].amountDestination.toStringAsFixed(2).padLeft(10)} ${snapshot.data![index].currencyDestination.padRight(7)}",
+                                  textAlign: TextAlign.right,
+                                )),
+                          ]),
+                          const Divider(color: Colors.blueGrey),
                         ]),
                         onTap: () {
                           currentTransfer = snapshot.data![index];
@@ -221,6 +233,178 @@ class _TransfersPageState extends State<TransfersPage> {
             return const Expanded(child: Text('No hay datos'));
             // return Center(child: CircularProgressIndicator());
           }
+        });
+    return result;
+  }
+
+  Widget totalSummary(BuildContext context) {
+    return FutureBuilder<List<BankTransfer>>(
+        future: BankTransfer.getByProject(widget.project!.uuid),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<String> currencies = [];
+            Map<String, double> fromSource = {};
+            Map<String, double> fromIntermediary = {};
+            Map<String, double> fromDestination = {};
+
+            for (var transfer in snapshot.data!) {
+              if (!currencies.contains(transfer.currencySource)) {
+                currencies.add(transfer.currencySource);
+              }
+              if (!currencies.contains(transfer.currencyIntermediary)) {
+                currencies.add(transfer.currencyIntermediary);
+              }
+              if (!currencies.contains(transfer.currencyDestination)) {
+                currencies.add(transfer.currencyDestination);
+              }
+              if (fromSource[transfer.currencySource] == null) {
+                fromSource[transfer.currencySource] = 0;
+              }
+              if (fromIntermediary[transfer.currencyIntermediary] == null) {
+                fromIntermediary[transfer.currencyIntermediary] = 0;
+              }
+              if (fromDestination[transfer.currencyDestination] == null) {
+                fromDestination[transfer.currencyDestination] = 0;
+              }
+              fromSource[transfer.currencySource] =
+                  fromSource[transfer.currencySource]! + transfer.amountSource;
+              fromIntermediary[transfer.currencyIntermediary] =
+                  fromIntermediary[transfer.currencyIntermediary]! +
+                      transfer.amountIntermediary;
+              fromDestination[transfer.currencyDestination] =
+                  fromDestination[transfer.currencyDestination]! +
+                      transfer.amountDestination;
+            }
+
+            for (var currency in currencies) {
+              if (!fromSource.containsKey(currency)) {
+                fromSource[currency] = 0;
+              }
+              if (!fromIntermediary.containsKey(currency)) {
+                fromIntermediary[currency] = 0;
+              }
+              if (!fromDestination.containsKey(currency)) {
+                fromDestination[currency] = 0;
+              }
+            }
+
+            List<Widget> rows = [];
+            List<Widget> headers = [];
+            headers.add(const Row(children: [
+              Expanded(flex: 1, child: Text('Moneda')),
+              Expanded(
+                  flex: 1, child: Text('Enviado', textAlign: TextAlign.right)),
+              Expanded(
+                  flex: 1,
+                  child: Text('Intermedio', textAlign: TextAlign.right)),
+              Expanded(
+                  flex: 1, child: Text('Recibido', textAlign: TextAlign.right)),
+            ]));
+            headers.add(const Divider(color: mainColor, thickness: 2));
+            for (var currency in currencies) {
+              rows.add(Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Text(
+                      currency,
+                      style: normalText,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Text(fromSource[currency]!.toStringAsFixed(2),
+                        style: normalText, textAlign: TextAlign.right)),
+                Expanded(
+                    flex: 1,
+                    child: Text(fromIntermediary[currency]!.toStringAsFixed(2),
+                        style: normalText, textAlign: TextAlign.right)),
+                Expanded(
+                    flex: 1,
+                    child: Text(fromDestination[currency]!.toStringAsFixed(2),
+                        style: normalText, textAlign: TextAlign.right)),
+              ]));
+            }
+            return Row(children: [
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                  flex: 2,
+                  child: Card(
+                      child: ListTile(
+                    tileColor: Colors.white,
+                    titleTextStyle: mainText,
+                    title: Column(children: headers),
+                    subtitleTextStyle: secondaryText,
+                    subtitle: Column(
+                      children: rows,
+                    ),
+                  ))),
+              Expanded(flex: 1, child: Container())
+            ]);
+          } else {
+            return const Expanded(child: Text('No hay datos'));
+          }
+        });
+  }
+
+  Widget headerProjectInfo(BuildContext context) {
+    return FutureBuilder<List<dynamic>>(
+        future: FinnContribution.getByProject(widget.project!.uuid),
+        builder: (context, snapshot) {
+          List<Widget> rows = [];
+          List<Widget> headers = [];
+          headers.add(const Row(children: [
+            Expanded(
+                flex: 1,
+                child: Text('Origen del presupuesto total', style: mainText)),
+          ]));
+          headers.add(const Divider(color: mainColor, thickness: 2));
+          Map<String, double> byFinancier = {};
+          List<String> financiers = [];
+          if (snapshot.hasData) {
+            for (var contribution in snapshot.data!) {
+              if (!financiers.contains(contribution.financier)) {
+                financiers.add(contribution.financier);
+              }
+              if (!byFinancier.containsKey(contribution.financier)) {
+                byFinancier[contribution.financier] = 0;
+              }
+              byFinancier[contribution.financier] =
+                  byFinancier[contribution.financier]! + contribution.amount;
+            }
+            for (var financier in financiers) {
+              rows.add(Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Text(
+                      getFinancier(financier).name,
+                      style: normalText,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Text(byFinancier[financier]!.toStringAsFixed(2),
+                        style: normalText, textAlign: TextAlign.right)),
+              ]));
+            }
+          } else {
+            rows.add(Row(
+              children: [Text("No hay datos")],
+            ));
+          }
+          return Card(
+              child: Row(children: [
+            Expanded(flex: 1, child: Card()),
+            Expanded(
+                flex: 1,
+                child: Card(
+                  child: ListTile(
+                      tileColor: Colors.white,
+                      titleTextStyle: mainText,
+                      title: Column(children: headers),
+                      subtitleTextStyle: secondaryText,
+                      subtitle: Column(
+                        children: rows,
+                      )),
+                ))
+          ]));
         });
   }
 }
