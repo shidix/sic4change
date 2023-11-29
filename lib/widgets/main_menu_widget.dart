@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget mainMenu(context) {
+Widget mainMenu(context, [user]) {
   return Container(
     /*decoration: BoxDecoration(
       image: DecorationImage(
@@ -25,6 +25,7 @@ Widget mainMenu(context) {
           menuBtn(context, "Documentos", Icons.folder, "/documents"),
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),
           logoutBtn(context, "Salir", Icons.arrow_back),
+          if (user != null) Text(user.email!),
         ],
       ),
     ),
