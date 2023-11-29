@@ -50,17 +50,16 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
           contactMenu(context, contactC, "claim"),
           Expanded(
               child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 10),
+                  padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color(0xffdfdfdf),
+                        color: const Color(0xffdfdfdf),
                         width: 2,
                       ),
                       borderRadius: const BorderRadius.all(Radius.circular(5)),
                     ),
                     child: contactClaimInfoDetails(context),
-                    //child: projectInfoDetails(context, _project),
                   )))
         ]));
   }
@@ -73,12 +72,12 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
+                  SizedBox(
                     width: MediaQuery.of(context).size.width - 300,
                     child: customText(claim!.name, 22),
                   ),
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -99,7 +98,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
       },
       style: FilledButton.styleFrom(
         side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
+        backgroundColor: const Color(0xffffffff),
       ),
       child: const Column(
         children: [
@@ -121,7 +120,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -210,10 +209,9 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
           title: const Text('Modificar información de contacto'),
           content: SingleChildScrollView(
             child: Column(children: [

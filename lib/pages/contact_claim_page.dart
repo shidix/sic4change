@@ -141,7 +141,10 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
     TextEditingController managerController = TextEditingController(text: "");
     TextEditingController dateController = TextEditingController(text: "");
 
-    if (tracking != null) {
+    print("--1--");
+    print(claim);
+    print(claim.name);
+    if (claim != null) {
       nameController = TextEditingController(text: claim.name);
       managerController = TextEditingController(text: claim.manager);
       dateController = TextEditingController(text: claim.date);
@@ -149,10 +152,9 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
           title: const Text('Editar reclamación'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
@@ -329,24 +331,23 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
           icon: const Icon(Icons.edit),
           tooltip: 'Editar',
           onPressed: () async {
-            _editDialog(context, tracking);
+            _editDialog(context, claim);
           }),
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Borrar',
           onPressed: () {
-            _removeDialog(context, tracking);
+            _removeDialog(context, claim);
           }),
     ]);
   }
 
-  Future<void> _removeDialog(context, tracking) async {
+  Future<void> _removeDialog(context, claim) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
           title: const Text('Borrar reclamación'),
           content: const SingleChildScrollView(
             child: Text("Está seguro/a de que desea borrar este elemento?"),
@@ -355,7 +356,7 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
             TextButton(
               child: const Text('Borrar'),
               onPressed: () async {
-                tracking.delete();
+                claim.delete();
                 loadContactClaim(contact?.uuid);
                 Navigator.of(context).pop();
               },
