@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_tracking.dart';
@@ -49,17 +50,16 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
           contactMenu(context, contactT, "tracking"),
           Expanded(
               child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 10),
+                  padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color(0xffdfdfdf),
+                        color: const Color(0xffdfdfdf),
                         width: 2,
                       ),
                       borderRadius: const BorderRadius.all(Radius.circular(5)),
                     ),
                     child: contactTrackingInfoDetails(context),
-                    //child: projectInfoDetails(context, _project),
                   )))
         ]));
   }
@@ -94,7 +94,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
   Widget editBtn(context) {
     return FilledButton(
       onPressed: () {
-        //callContactInfoEditDialog(context);
+        editDialog(context, tracking);
       },
       style: FilledButton.styleFrom(
         side: const BorderSide(width: 0, color: Color(0xffffffff)),
@@ -114,13 +114,170 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
   }
 
 /*--------------------------------------------------------------------*/
+/*                      CONTACT TRACKING EDIT                         */
+/*--------------------------------------------------------------------*/
+  void saveTracking(context, tracking, name, desc, date, manager, assistants,
+      topics, agreements, contact) async {
+    tracking ??= ContactTracking(contact.uuid);
+    tracking.name = name;
+    tracking.description = desc;
+    tracking.date = date;
+    tracking.manager = manager;
+    tracking.assistants = assistants;
+    tracking.topics = topics;
+    tracking.agreements = agreements;
+    tracking.save();
+    reloadContactTrackingInfo();
+    Navigator.of(context).pop();
+  }
+
+  Future<void> editDialog(context, tracking) {
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController descController = TextEditingController(text: "");
+    TextEditingController dateController = TextEditingController(text: "");
+    TextEditingController managerController = TextEditingController(text: "");
+    TextEditingController assistantsController =
+        TextEditingController(text: "");
+    TextEditingController topicsController = TextEditingController(text: "");
+    TextEditingController agreementsController =
+        TextEditingController(text: "");
+
+    if (tracking != null) {
+      nameController = TextEditingController(text: tracking.name);
+      descController = TextEditingController(text: tracking.description);
+      dateController = TextEditingController(text: tracking.date);
+      managerController = TextEditingController(text: tracking.manager);
+      assistantsController = TextEditingController(text: tracking.assistants);
+      topicsController = TextEditingController(text: tracking.topics);
+      agreementsController = TextEditingController(text: tracking.agreements);
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Editar seguimiento'),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),
+              ]),
+              space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Fecha:", 16, textColor: Colors.blue),
+                customDateField(context, dateController),
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Descripción:", 16, textColor: Colors.blue),
+                customTextField(descController, "Descripción...", size: 440),
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Responsable:", 16, textColor: Colors.blue),
+                customTextField(managerController, "Responsable...", size: 440),
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Asistentes:", 16, textColor: Colors.blue),
+                customTextField(assistantsController, "Asistentes...",
+                    size: 440),
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Temas tratados:", 16, textColor: Colors.blue),
+                customTextField(topicsController, "Temas tratados...",
+                    size: 440),
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Acuerdos:", 16, textColor: Colors.blue),
+                customTextField(agreementsController, "Acuerdos...", size: 440),
+              ]),
+            ]),
+          ])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Guardar'),
+              onPressed: () async {
+                saveTracking(
+                    context,
+                    tracking,
+                    nameController.text,
+                    descController.text,
+                    dateController.text,
+                    managerController.text,
+                    assistantsController.text,
+                    topicsController.text,
+                    agreementsController.text,
+                    contactT);
+              },
+            ),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget customDateField(context, dateController) {
+    return SizedBox(
+        width: 220,
+        child: TextField(
+          controller: dateController, //editing controller of this TextField
+          decoration: const InputDecoration(
+              icon: Icon(Icons.calendar_today), //icon of text field
+              labelText: "Introducir fecha" //label text of field
+              ),
+          readOnly: true, //set it true, so that user will not able to edit text
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(
+                    2000), //DateTime.now() - not to allow to choose before today.
+                lastDate: DateTime(2101));
+
+            if (pickedDate != null) {
+              String formattedDate =
+                  DateFormat('dd-MM-yyyy').format(pickedDate);
+
+              setState(() {
+                dateController.text = formattedDate;
+              });
+            } else {
+              //print("Date is not selected");
+            }
+          },
+        ));
+  }
+
+/*--------------------------------------------------------------------*/
 /*                      CONTACT TRACKING INFO                         */
 /*--------------------------------------------------------------------*/
   Widget contactTrackingInfoDetails(context) {
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -134,6 +291,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 customRowDividerBlue(),
                 space(height: 30),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     customText("Responsable", 16, textColor: titleColor),
                     space(height: 10),
@@ -142,6 +300,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 ),
                 space(height: 30),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     customText("Asistentes", 16, textColor: titleColor),
                     space(height: 10),
@@ -150,6 +309,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 ),
                 space(height: 30),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     customText("Temas tratados", 16, textColor: titleColor),
                     space(height: 10),
@@ -158,406 +318,14 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 ),
                 space(height: 30),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     customText("Acuerdos", 16, textColor: titleColor),
                     space(height: 10),
                     customText(tracking?.agreements, 16)
                   ],
                 ),
-
-                /*contactInfoProjectsHeader(context),
-                contactInfoProjects(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow0(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow1(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow2(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow3(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow4(context, tracking),
-                space(height: 10),
-                customRowDivider(),
-                space(height: 10),
-                contactInfoDetailsRow5(context, tracking),
-                space(height: 10),*/
-                /*customRowDivider(),
-                space(height: 5),
-                contactInfoDetailsRow6(context, _contactInfo),*/
               ],
             )));
   }
-
-/*--------------------------------------------------------------------*/
-/*                           EDIT TRACKING                            */
-/*--------------------------------------------------------------------*/
-  /*void callContactInfoEditDialog(context) async {
-    List<KeyValue> organizations = [];
-    List<KeyValue> charges = [];
-    List<KeyValue> categories = [];
-    List<KeyValue> zones = [];
-    List<KeyValue> decisions = [];
-    List<KeyValue> ambits = [];
-    List<KeyValue> skateholders = [];
-    List<KeyValue> sectors = [];
-
-    await getOrganizations().then((value) async {
-      for (Organization item in value) {
-        organizations.add(item.toKeyValue());
-      }
-      await getContactCharges().then((value) async {
-        for (ContactCharge item2 in value) {
-          charges.add(item2.toKeyValue());
-        }
-        await getContactCategories().then((value) async {
-          for (ContactCategory item3 in value) {
-            categories.add(item3.toKeyValue());
-          }
-          await getZones().then((value) async {
-            for (Zone item4 in value) {
-              zones.add(item4.toKeyValue());
-            }
-            await getContactDecisions().then((value) async {
-              for (ContactDecision item5 in value) {
-                decisions.add(item5.toKeyValue());
-              }
-              await getAmbits().then((value) async {
-                for (Ambit item6 in value) {
-                  ambits.add(item6.toKeyValue());
-                }
-                await getContactSkateholders().then((value) async {
-                  for (ContactSkateholder item6 in value) {
-                    skateholders.add(item6.toKeyValue());
-                  }
-                  await getSectors().then((value) async {
-                    for (Sector item7 in value) {
-                      sectors.add(item7.toKeyValue());
-                    }
-                    editContactInfoDialog(
-                        context,
-                        organizations,
-                        charges,
-                        categories,
-                        zones,
-                        decisions,
-                        ambits,
-                        skateholders,
-                        sectors);
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  }
-
-  Future<void> editContactInfoDialog(context, organizations, charges,
-      categories, zones, decisions, ambits, skateholders, sectors) {
-    TextEditingController orgController =
-        TextEditingController(text: tracking?.organization);
-    TextEditingController chargeController =
-        TextEditingController(text: tracking?.charge);
-    TextEditingController catController =
-        TextEditingController(text: tracking?.category);
-    TextEditingController subcatController =
-        TextEditingController(text: tracking?.subcategory);
-    TextEditingController zoneController =
-        TextEditingController(text: tracking?.zone);
-    TextEditingController subzoneController =
-        TextEditingController(text: tracking?.subzone);
-    TextEditingController emailController =
-        TextEditingController(text: tracking?.email);
-    TextEditingController phoneController =
-        TextEditingController(text: tracking?.phone);
-    TextEditingController mobileController =
-        TextEditingController(text: tracking?.mobile);
-    TextEditingController decisionController =
-        TextEditingController(text: tracking?.decision);
-    TextEditingController linkedinController =
-        TextEditingController(text: tracking?.linkedin);
-    TextEditingController twitterController =
-        TextEditingController(text: tracking?.twitter);
-    TextEditingController networksController =
-        TextEditingController(text: tracking?.networks);
-    TextEditingController kolController =
-        TextEditingController(text: tracking?.kol);
-    TextEditingController contactPersonController =
-        TextEditingController(text: tracking?.contactPerson);
-    TextEditingController ambitController =
-        TextEditingController(text: tracking?.ambit);
-    TextEditingController skateholderController =
-        TextEditingController(text: tracking?.skateholder);
-    TextEditingController sectorController =
-        TextEditingController(text: tracking?.sector);
-
-    List<KeyValue> kolDic = [KeyValue("Si", "Si"), KeyValue("No", "No")];
-    String kolVal = (tracking?.kol == "Si") ? "Si" : "No";
-    KeyValue currentKol = KeyValue(kolVal, kolVal);
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Modificar información de contacto'),
-          content: SingleChildScrollView(
-            child: Column(children: [
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Organización:", 16, textColor: titleColor),
-                  customDropdownField(
-                      orgController,
-                      organizations,
-                      tracking?.orgObj.toKeyValue(),
-                      "Selecciona una organización")
-                  /*customAutocompleteField(orgController, organizations,
-                      "Escribe o selecciona una organización..."),*/
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Cargo:", 16, textColor: titleColor),
-                  customDropdownField(chargeController, charges,
-                      tracking?.chargeObj.toKeyValue(), "Selecciona un cargo")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Grado de decisión:", 16, textColor: titleColor),
-                  customDropdownField(
-                      decisionController,
-                      decisions,
-                      tracking?.decisionObj.toKeyValue(),
-                      "Selecciona una sun zona")
-                ]),
-              ]),
-              space(height: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Categoría:", 16, textColor: titleColor),
-                  customDropdownField(catController, categories,
-                      tracking?.catObj.toKeyValue(), "Selecciona una categoría")
-                  /*customAutocompleteField(catController, _categories,
-                      "Escribe o selecciona una categoría..."),*/
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Subcategoría:", 16, textColor: titleColor),
-                  customDropdownField(
-                      subcatController,
-                      categories,
-                      tracking?.subcatObj.toKeyValue(),
-                      "Selecciona una subcategoría")
-                  /*customAutocompleteField(subcatController, _categories,
-                      "Escribe o selecciona una sub categoría..."),*/
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("¿Se considera un KOL?:", 16,
-                      textColor: titleColor),
-                  customDropdownField(
-                      kolController, kolDic, currentKol, "Si o No")
-                ]),
-              ]),
-              space(width: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Zona:", 16, textColor: titleColor),
-                  customDropdownField(zoneController, zones,
-                      tracking?.zoneObj.toKeyValue(), "Selecciona una zona")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Sub zona:", 16, textColor: titleColor),
-                  customDropdownField(
-                      subzoneController,
-                      zones,
-                      tracking?.subzoneObj.toKeyValue(),
-                      "Selecciona una sun zona")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Ambito:", 16, textColor: titleColor),
-                  customDropdownField(ambitController, ambits,
-                      tracking?.ambitObj.toKeyValue(), "Selecciona un ambito")
-                ]),
-              ]),
-              space(width: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Correo electrónico:", 16, textColor: titleColor),
-                  customTextField(emailController, "Correo electrónico")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Teléfono fijo:", 16, textColor: titleColor),
-                  customTextField(phoneController, "Teléfono fijo")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Teléfono móvil:", 16, textColor: titleColor),
-                  customTextField(mobileController, "Teléfono móvil")
-                ]),
-              ]),
-              space(width: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Linkedin:", 16, textColor: titleColor),
-                  customTextField(linkedinController, "Linkedin")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Twitter:", 16, textColor: titleColor),
-                  customTextField(twitterController, "Twitter")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Otras redes:", 16, textColor: titleColor),
-                  customTextField(networksController, "Otras redes")
-                ]),
-              ]),
-              space(width: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Persona de contacto:", 16, textColor: titleColor),
-                  customTextField(
-                      contactPersonController, "Persona de contacto")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Tipo de skateholder:", 16, textColor: titleColor),
-                  customDropdownField(
-                      skateholderController,
-                      skateholders,
-                      tracking?.skateholderObj.toKeyValue(),
-                      "Selecciona un skateholder")
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Tipo de sector:", 16, textColor: titleColor),
-                  customDropdownField(sectorController, sectors,
-                      tracking?.sectorObj.toKeyValue(), "Selecciona un sector")
-                ]),
-              ]),
-            ]),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                tracking?.organization = orgController.text;
-                tracking?.charge = chargeController.text;
-                tracking?.category = catController.text;
-                tracking?.subcategory = subcatController.text;
-                tracking?.zone = zoneController.text;
-                tracking?.subzone = subzoneController.text;
-                tracking?.email = emailController.text;
-                tracking?.decision = decisionController.text;
-                tracking?.linkedin = linkedinController.text;
-                tracking?.twitter = twitterController.text;
-                tracking?.networks = networksController.text;
-                tracking?.kol = kolController.text;
-                tracking?.ambit = ambitController.text;
-                tracking?.phone = phoneController.text;
-                tracking?.mobile = mobileController.text;
-                tracking?.contactPerson = contactPersonController.text;
-                tracking?.skateholder = skateholderController.text;
-                tracking?.sector = sectorController.text;
-                //_saveContactInfo(context, organizations, charges, categories);
-                _saveContactInfo(context);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _saveContactInfo(context) async {
-    tracking?.save();
-
-    Navigator.of(context).pop();
-    reloadContactTrackingInfo();
-  }*/
-
-  /*--------------------------------------------------------------------*/
-  /*                           PROJECTS                                 */
-  /*--------------------------------------------------------------------*/
-  /*void _saveProject(context, contactInfo, name, projects) async {
-    contactInfo.projects.add(name);
-    Navigator.of(context).pop();
-    await contactInfo.updateProjects();
-    reloadContactTrackingInfo();
-  }
-
-  void _removeProject(context, contactInfo) async {
-    await contactInfo.updateProjects();
-    reloadContactTrackingInfo();
-  }
-
-  void _callProjectEditDialog(context) async {
-    List<KeyValue> projects = [];
-    await getProjects().then((value) async {
-      for (SProject item in value) {
-        projects.add(item.toKeyValue());
-      }
-
-      _editDialog(context, projects);
-    });
-  }
-
-  Future<void> _editDialog(context, projects) {
-    TextEditingController nameController = TextEditingController(text: "");
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Añadir proyecto'),
-          content: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Proyecto:", 16, textColor: titleColor),
-              customDropdownField(
-                  nameController, projects, null, "Seleccione proyecto"),
-            ]),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveProject(context, tracking, nameController.text, projects);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
 }

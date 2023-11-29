@@ -86,11 +86,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           isLoading
               ? Expanded(
                   child: Container(
-                      padding: EdgeInsets.only(left: 10, right: 10),
+                      padding: const EdgeInsets.only(left: 10, right: 10),
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Color(0xffdfdfdf),
+                            color: const Color(0xffdfdfdf),
                             width: 2,
                           ),
                           borderRadius:
@@ -326,12 +326,12 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         children: [
           TableRow(children: [
             customText("Persona de contacto", 16, textColor: titleColor),
-            customText("Tipo de skateholder", 16, textColor: titleColor),
+            customText("Tipo de stakeholder", 16, textColor: titleColor),
             customText("Tipo de sector", 16, textColor: titleColor),
           ]),
           TableRow(children: [
             customText(_contactInfo.contactPerson, 16),
-            customText(_contactInfo.skateholder, 16),
+            customText(_contactInfo.stakeholder, 16),
             customText(_contactInfo.sector, 16),
           ])
         ]);
@@ -400,7 +400,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
     List<KeyValue> zones = [];
     List<KeyValue> decisions = [];
     List<KeyValue> ambits = [];
-    List<KeyValue> skateholders = [];
+    List<KeyValue> stakeholders = [];
     List<KeyValue> sectors = [];
 
     await getOrganizations().then((value) async {
@@ -427,9 +427,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                 for (Ambit item6 in value) {
                   ambits.add(item6.toKeyValue());
                 }
-                await getContactSkateholders().then((value) async {
-                  for (ContactSkateholder item6 in value) {
-                    skateholders.add(item6.toKeyValue());
+                await getContactStakeholders().then((value) async {
+                  for (ContactStakeholder item6 in value) {
+                    stakeholders.add(item6.toKeyValue());
                   }
                   await getSectors().then((value) async {
                     for (Sector item7 in value) {
@@ -443,7 +443,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                         zones,
                         decisions,
                         ambits,
-                        skateholders,
+                        stakeholders,
                         sectors);
                   });
                 });
@@ -456,7 +456,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
   }
 
   Future<void> editContactInfoDialog(context, organizations, charges,
-      categories, zones, decisions, ambits, skateholders, sectors) {
+      categories, zones, decisions, ambits, stakeholders, sectors) {
     TextEditingController orgController =
         TextEditingController(text: _contactInfo?.organization);
     TextEditingController chargeController =
@@ -489,8 +489,8 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         TextEditingController(text: _contactInfo?.contactPerson);
     TextEditingController ambitController =
         TextEditingController(text: _contactInfo?.ambit);
-    TextEditingController skateholderController =
-        TextEditingController(text: _contactInfo?.skateholder);
+    TextEditingController stakeholderController =
+        TextEditingController(text: _contactInfo?.stakeholder);
     TextEditingController sectorController =
         TextEditingController(text: _contactInfo?.sector);
 
@@ -637,12 +637,12 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Tipo de skateholder:", 16, textColor: titleColor),
+                  customText("Tipo de stakeholder:", 16, textColor: titleColor),
                   customDropdownField(
-                      skateholderController,
-                      skateholders,
-                      _contactInfo?.skateholderObj.toKeyValue(),
-                      "Selecciona un skateholder")
+                      stakeholderController,
+                      stakeholders,
+                      _contactInfo?.stakeholderObj.toKeyValue(),
+                      "Selecciona un stakeholder")
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -676,7 +676,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                 _contactInfo?.phone = phoneController.text;
                 _contactInfo?.mobile = mobileController.text;
                 _contactInfo?.contactPerson = contactPersonController.text;
-                _contactInfo?.skateholder = skateholderController.text;
+                _contactInfo?.stakeholder = stakeholderController.text;
                 _contactInfo?.sector = sectorController.text;
                 //_saveContactInfo(context, organizations, charges, categories);
                 _saveContactInfo(context);

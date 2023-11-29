@@ -117,7 +117,7 @@ class Contact {
         contactInfo.subzoneObj = await contactInfo.getSubzone();
         contactInfo.ambitObj = await contactInfo.getAmbit();
         contactInfo.sectorObj = await contactInfo.getSector();
-        contactInfo.skateholderObj = await contactInfo.getSkateholder();
+        contactInfo.stakeholderObj = await contactInfo.getSkateholder();
         contactInfo.decisionObj = await contactInfo.getDecision();
         //contactInfo.projectsObj = await contactInfo.getProjects();
       }

@@ -8,8 +8,8 @@ import 'package:sic4change/widgets/goal_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
-const PAGE_ACTIVITY_TITLE = "Actividades";
-List activity_list = [];
+const pageActivityTitle = "Actividades";
+List activities = [];
 
 class ActivitiesPage extends StatefulWidget {
   const ActivitiesPage({super.key});
@@ -19,17 +19,9 @@ class ActivitiesPage extends StatefulWidget {
 }
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
-  /*
-  void loadActivities(value) async {
-    await getActivitiesByResult(value).then((val) {
-      activity_list = val;
-    });
-    setState(() {});
-  }*/
-
   void loadActivities(_result) async {
     await _result.getActivitiesByResult().then((val) {
-      activity_list = val;
+      activities = val;
     });
     setState(() {});
   }
@@ -45,7 +37,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       _result = null;
     }
 
-    if (_result == null) return Page404();
+    if (_result == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -56,11 +48,11 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         Expanded(
             child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.only(left: 10, right: 10),
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Color(0xffdfdfdf),
+                      color: greyColor,
                       width: 2,
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -76,7 +68,6 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 -------------------------------------------------------------*/
   Widget activityPath(context, _result) {
     return FutureBuilder(
-        //future: getProjectByActivity(_result.uuid),
         future: _result.getProjectByActivity(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
@@ -96,14 +87,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         Container(
           padding: EdgeInsets.only(left: 40),
           child: Row(children: [
-            //Icon(Icons.chevron_right_rounded),
-            Text("Actividades",
-                style: TextStyle(fontSize: 18, color: Colors.blueGrey)),
+            customText("Actividades", 18, textColor: titleColor),
           ]),
         ),
       ]),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -122,7 +111,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       },
       style: FilledButton.styleFrom(
         side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
+        backgroundColor: const Color(0xffffffff),
       ),
       child: const Column(
         children: [
@@ -137,37 +126,26 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
   }
 
-  void _saveActivity(context, _activity, _name, _result) async {
-    /*if (_activity != null) {
-      await updateActivity(_activity.id, _activity.uuid, _name, _result.uuid)
-          .then((value) async {
-        loadActivities(_result.uuid);
-      });
-    } else {
-      await addActivity(_name, _result.uuid).then((value) async {
-        loadActivities(_result.uuid);
-      });
-    }*/
-    if (_activity == null) _activity = Activity(_result);
-    _activity.name = _name;
-    _activity.save();
-    loadActivities(_result);
+  void _saveActivity(context, activity, name, result) async {
+    activity ??= Activity(result);
+    activity.name = name;
+    activity.save();
+    loadActivities(result);
     Navigator.of(context).pop();
   }
 
-  Future<void> _editActivityDialog(context, _activity, _result) {
+  Future<void> _editActivityDialog(context, activity, result) {
     TextEditingController nameController = TextEditingController(text: "");
 
-    if (_activity != null) {
-      nameController = TextEditingController(text: _activity.name);
+    if (activity != null) {
+      nameController = TextEditingController(text: activity.name);
     }
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
           title: const Text('Activity edit'),
           content: SingleChildScrollView(
               child: Column(
@@ -180,7 +158,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveActivity(context, _activity, nameController.text, _result);
+                _saveActivity(context, activity, nameController.text, result);
               },
             ),
             TextButton(
@@ -195,14 +173,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
   }
 
-  Widget activityList(context, _result) {
+  Widget activityList(context, result) {
     return FutureBuilder(
-        //future: getActivitiesByResult(_result.uuid),
-        future: getActivitiesByResult(_result.uuid),
+        future: getActivitiesByResult(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            activity_list = snapshot.data!;
-            if (activity_list.length > 0) {
+            activities = snapshot.data!;
+            if (activities.isNotEmpty) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -211,22 +188,22 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                 children: <Widget>[
                   Expanded(
                       child: Container(
-                          padding: EdgeInsets.all(15),
+                          padding: const EdgeInsets.all(15),
                           child: ListView.builder(
                               padding: const EdgeInsets.all(8),
-                              itemCount: activity_list.length,
+                              itemCount: activities.length,
                               itemBuilder: (BuildContext context, int index) {
-                                Activity _activity = activity_list[index];
+                                Activity activity = activities[index];
                                 return Container(
                                   height: 100,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.only(
+                                      top: 20, bottom: 10),
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(
                                             color: Color(0xffdfdfdf))),
                                   ),
-                                  child:
-                                      activityRow(context, _activity, _result),
+                                  child: activityRow(context, activity, result),
                                 );
                               })))
                 ],
@@ -241,7 +218,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         }));
   }
 
-  Widget activityRow(context, _activity, _result) {
+  Widget activityRow(context, activity, result) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,67 +226,59 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '${_activity.name}',
-              style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-            ),
-            activityRowOptions(context, _activity, _result),
+            customText('${activity.name}', 16, textColor: titleColor),
+            activityRowOptions(context, activity, result),
           ],
         ),
       ],
     );
   }
 
-  Widget activityRowOptions(context, _activity, _result) {
+  Widget activityRowOptions(context, activity, result) {
     return Row(children: [
       IconButton(
           icon: const Icon(Icons.align_horizontal_left),
-          tooltip: 'Indicators',
+          tooltip: 'Indicadores',
           onPressed: () {
             Navigator.pushNamed(context, "/activity_indicators",
-                arguments: {'activity': _activity});
+                arguments: {'activity': activity});
           }),
       IconButton(
           icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
+          tooltip: 'Editar',
           onPressed: () async {
-            _editActivityDialog(context, _activity, _result);
+            _editActivityDialog(context, activity, result);
           }),
       IconButton(
           icon: const Icon(Icons.remove_circle),
-          tooltip: 'Remove',
+          tooltip: 'Borrar',
           onPressed: () {
-            _removeActivityDialog(context, _activity, _result);
+            _removeActivityDialog(context, activity, result);
           }),
     ]);
   }
 
-  Future<void> _removeActivityDialog(context, _activity, _result) async {
+  Future<void> _removeActivityDialog(context, activity, result) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Remove Activity'),
-          content: SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
+          title: const Text('Borrar actividad'),
+          content: const SingleChildScrollView(
+            child: Text("Esta seguro/a de que desea borrar este elemento?"),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Remove'),
+              child: const Text('Borrar'),
               onPressed: () async {
-                _activity.delete();
-                loadActivities(_result);
+                activity.delete();
+                loadActivities(result);
                 Navigator.of(context).pop();
-                /*await deleteActivity(id).then((value) {
-                  loadActivities(_result.uuid);
-                  Navigator.of(context).pop();
-                });*/
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },

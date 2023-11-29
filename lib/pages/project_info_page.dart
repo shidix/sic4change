@@ -37,7 +37,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       _project = null;
     }
 
-    if (_project == null) return Page404();
+    if (_project == null) return const Page404();
 
     return Scaffold(
       body: Column(
@@ -49,11 +49,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           projectInfoMenu(context, _project),
           Expanded(
               child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 10),
+                  padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color(0xffdfdfdf),
+                        color: const Color(0xffdfdfdf),
                         width: 2,
                       ),
                       borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -66,12 +66,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     );
   }
 
-  Widget projectInfoHeader(context, _project) {
+  Widget projectInfoHeader(context, project) {
     return Container(
-        padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+        padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(_project.name, style: TextStyle(fontSize: 20)),
+            customText(project.name, 20),
             returnBtn(context),
           ]),
           space(height: 20),
@@ -92,7 +92,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   color: Colors.grey,
                 ),*/
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto total:   ${_project.budget} €", 16),
+                  customText("Presupuesto total:   ${project.budget} €", 16),
                   space(height: 5),
                   customLinearPercent(context, 2.3, 0.8, Colors.blue),
                 ]),
@@ -107,7 +107,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   Widget projectInfoMenu(context, _project) {
     return Container(
       child: Container(
-        padding: EdgeInsets.only(left: 10, right: 10),
+        padding: const EdgeInsets.only(left: 10, right: 10),
         child: Row(
           children: [
             menuTabSelect(context, "Datos generales", "/project_info",

@@ -28,7 +28,7 @@ class ContactInfo {
   String organization = "";
   String phone = "";
   String sector = "";
-  String skateholder = "";
+  String stakeholder = "";
   String subcategory = "";
   String subzone = "";
   String twitter = "";
@@ -44,7 +44,7 @@ class ContactInfo {
   Zone subzoneObj = Zone("");
   Ambit ambitObj = Ambit("");
   Sector sectorObj = Sector("");
-  ContactSkateholder skateholderObj = ContactSkateholder("");
+  ContactStakeholder stakeholderObj = ContactStakeholder("");
   List<SProject> projectsObj = [];
 
   ContactInfo(this.contact);
@@ -67,7 +67,7 @@ class ContactInfo {
         phone = json['phone'],
         projects = json['projects'],
         sector = json['sector'],
-        skateholder = json['skateholder'],
+        stakeholder = json['stakeholder'],
         subcategory = json['subcategory'],
         subzone = json['subzone'],
         twitter = json['twitter'],
@@ -91,7 +91,7 @@ class ContactInfo {
         'phone': phone,
         'projects': projects,
         'sector': sector,
-        'skateholder': skateholder,
+        'stakeholder': stakeholder,
         'subcategory': subcategory,
         'subzone': subzone,
         'twitter': twitter,
@@ -131,7 +131,7 @@ class ContactInfo {
     contactInfo.subzoneObj = await contactInfo.getSubzone();
     contactInfo.ambitObj = await contactInfo.getAmbit();
     contactInfo.sectorObj = await contactInfo.getSector();
-    contactInfo.skateholderObj = await contactInfo.getSkateholder();
+    contactInfo.stakeholderObj = await contactInfo.getSkateholder();
     contactInfo.decisionObj = await contactInfo.getDecision();
     //contactInfo.projectsObj = await contactInfo.getProjects();
 
@@ -240,16 +240,16 @@ class ContactInfo {
     }
   }
 
-  Future<ContactSkateholder> getSkateholder() async {
+  Future<ContactStakeholder> getSkateholder() async {
     try {
       QuerySnapshot query =
-          await dbContactSkatehoder.where("uuid", isEqualTo: skateholder).get();
+          await dbContactSkatehoder.where("uuid", isEqualTo: stakeholder).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      return ContactSkateholder.fromJson(data);
+      return ContactStakeholder.fromJson(data);
     } catch (e) {
-      return ContactSkateholder("");
+      return ContactStakeholder("");
     }
   }
 
@@ -304,7 +304,7 @@ Future<ContactInfo> getContactInfoByContact(String uuid) async {
       contactInfo.subzoneObj = await contactInfo.getSubzone();
       contactInfo.ambitObj = await contactInfo.getAmbit();
       contactInfo.sectorObj = await contactInfo.getSector();
-      contactInfo.skateholderObj = await contactInfo.getSkateholder();
+      contactInfo.stakeholderObj = await contactInfo.getSkateholder();
       contactInfo.decisionObj = await contactInfo.getDecision();
       //contactInfo.projectsObj = await contactInfo.getProjects();
     }
@@ -497,14 +497,14 @@ Future<List> getContactDecisions() async {
 CollectionReference dbContactSkatehoder =
     db.collection("s4c_contact_skateholder");
 
-class ContactSkateholder {
+class ContactStakeholder {
   String id = "";
   String uuid = "";
   String name;
 
-  ContactSkateholder(this.name);
+  ContactStakeholder(this.name);
 
-  ContactSkateholder.fromJson(Map<String, dynamic> json)
+  ContactStakeholder.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'];
@@ -536,13 +536,13 @@ class ContactSkateholder {
   }
 }
 
-Future<List> getContactSkateholders() async {
-  List<ContactSkateholder> items = [];
+Future<List> getContactStakeholders() async {
+  List<ContactStakeholder> items = [];
   QuerySnapshot query = await dbContactSkatehoder.get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(ContactSkateholder.fromJson(data));
+    items.add(ContactStakeholder.fromJson(data));
   }
   return items;
 }
