@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +97,48 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  Future<List> worktimeItems( ) async {
+    List items = [];
+    int maxItems = Random().nextInt(10);
+    for (int i = 0; i < maxItems; i++) {
+      // TimeOfDay start = TimeOfDay(hour: Random().nextInt(3)+7, minute: Random().nextInt(60));
+      DateTime start = DateTime.now().subtract(Duration(days:1, hours:DateTime.now().hour, minutes: DateTime.now().minute, seconds: DateTime.now().second, milliseconds: DateTime.now().millisecond ));
+      start = start.add(Duration(hours: Random().nextInt(3)+7, minutes: Random().nextInt(60)));
+      items.add([
+        start,
+        start.add(Duration(hours: 6 + Random().nextInt(3), minutes: Random().nextInt(60))),
+      ]);
+    }
+    return items;
+  }
+
+  Widget worktimeList (BuildContext context) {
+    Widget result = FutureBuilder<List> (
+        future: worktimeItems(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Expanded(
+                child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Column(children: [
+                          Row(children: [ ]),
+
+                        ]),
+                        onTap: () {
+
+                        },
+                      );
+                    }));
+          } else {
+            return const Expanded(child: Text('No hay datos'));
+            // return Center(child: CircularProgressIndicator());
+          }
+        });
+    return result;
   }
 
   Widget workTimePanel(BuildContext context) {
@@ -208,8 +251,10 @@ class _HomePageState extends State<HomePage> {
                         const EdgeInsets.only(left: 10, right: 10, top: 10),
                     color: Colors.white,
                     child: ListView.builder(
+
                         shrinkWrap: true,
                         itemCount: 10,
+                        scrollDirection: Axis.vertical,
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
                               subtitle: Column(children: [
