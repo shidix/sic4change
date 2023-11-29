@@ -3,6 +3,7 @@ import 'dart:core';
 import 'dart:math';
 
 // import 'package:dropdown_search/dropdown_search.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
@@ -14,6 +15,7 @@ import 'package:uuid/uuid.dart';
 
 class TransfersPage extends StatefulWidget {
   final SProject? project;
+  final user = FirebaseAuth.instance.currentUser!;
 
   TransfersPage({Key? key, this.project}) : super(key: key);
 
@@ -35,7 +37,7 @@ class _TransfersPageState extends State<TransfersPage> {
     currentProject = widget.project;
     return Scaffold(
       body: Column(children: [
-        mainMenu(context),
+        mainMenu(context, widget.user),
         topButtons(context),
         headerProjectInfo(context),
         contentContainer(context),
@@ -351,16 +353,13 @@ class _TransfersPageState extends State<TransfersPage> {
         builder: (context, snapshot) {
           List<Widget> rows = [];
           List<Widget> headers = [];
-          headers.add(const Row(children: [
-            Expanded(
-                flex: 1,
-                child: Text('Origen del presupuesto total', style: mainText)),
-          ]));
-          headers.add(const Divider(color: mainColor, thickness: 2));
+
           Map<String, double> byFinancier = {};
           List<String> financiers = [];
+          double totalAmount = 0.0;
           if (snapshot.hasData) {
             for (var contribution in snapshot.data!) {
+              totalAmount += contribution.amount;
               if (!financiers.contains(contribution.financier)) {
                 financiers.add(contribution.financier);
               }
@@ -370,6 +369,16 @@ class _TransfersPageState extends State<TransfersPage> {
               byFinancier[contribution.financier] =
                   byFinancier[contribution.financier]! + contribution.amount;
             }
+            headers.add(Row(children: [
+              const Expanded(
+                  flex: 1,
+                  child: Text('Origen del presupuesto total', style: mainText)),
+              Expanded(
+                  flex: 1,
+                  child: Text("${totalAmount.toStringAsFixed(2)} €",
+                      style: mainText, textAlign: TextAlign.right)),
+            ]));
+            headers.add(const Divider(color: mainColor, thickness: 2));
             for (var financier in financiers) {
               rows.add(Row(children: [
                 Expanded(
@@ -380,20 +389,22 @@ class _TransfersPageState extends State<TransfersPage> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: Text(byFinancier[financier]!.toStringAsFixed(2),
-                        style: normalText, textAlign: TextAlign.right)),
+                    child: Text(
+                        "${byFinancier[financier]!.toStringAsFixed(2)} €",
+                        style: normalText,
+                        textAlign: TextAlign.right)),
               ]));
             }
           } else {
-            rows.add(Row(
+            rows.add(const Row(
               children: [Text("No hay datos")],
             ));
           }
           return Card(
               child: Row(children: [
-            Expanded(flex: 1, child: Card()),
+            const Expanded(flex: 1, child: Card()),
             Expanded(
-                flex: 1,
+                flex: 2,
                 child: Card(
                   child: ListTile(
                       tileColor: Colors.white,
@@ -403,7 +414,8 @@ class _TransfersPageState extends State<TransfersPage> {
                       subtitle: Column(
                         children: rows,
                       )),
-                ))
+                )),
+            const Expanded(flex: 1, child: Card()),
           ]));
         });
   }

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 // import 'package:sic4change/pages/contacts_page.dart';
@@ -20,214 +21,182 @@ class _HomePageState extends State<HomePage> {
     final user = FirebaseAuth.instance.currentUser!;
 
     return Scaffold(
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: Text('AppBar'),
-        leading: IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.home),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.call),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.more_vert),
-          ),
-        ],
-      ),*/
       body: Column(
         children: [
-          mainMenu(context),
+          mainMenu(context, user),
           Container(
-            padding: EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Usuario registrado como"),
-                space(height: 10),
-                Text(user.email!),
-
-                /*IconButton(
-                    icon: const Icon(Icons.edit),
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      testDialog(context);
-                    }),
-                IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      testDialog2(context);
-                    }),*/
-              ],
-            ),
+            height: 10,
+          ),
+          // topButtons(context),
+          Row(
+            children: [
+              Expanded(flex: 1, child: workTimeRecordering(context)),
+              Expanded(flex: 1, child: workTimeRecordering(context)),
+            ],
           )
         ],
       ),
     );
   }
 
-// Prueba de campo desplegable
-/*  Future<void> testDialog(context) {
-    var _currencies = [
-      "Food",
-      "Transport",
-      "Personal",
-      "Shopping",
-      "Medical",
-      "Rent",
-      "Movie",
-      "Salary"
+  Widget topButtons(BuildContext context) {
+    List<Widget> buttons = [
+      actionButton(context, "Imprimir", printSummary, Icons.print, context),
+      space(width: 10),
+      backButton(context),
     ];
-    String _cVal = "Food";
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: buttons));
+  }
+
+  Future<void> printSummary(context) {
+    print("printSummary");
     return showDialog<void>(
-        context: context,
-        barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            // <-- SEE HERE
-            title: const Text('Goal edit'),
-            content: SingleChildScrollView(
-              /*child: Checkbox(
-                value: _main,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _main = value!;
-                    print(_main);
-                  });
-                },
-              ),*/
-              child: FormField<String>(
-                builder: (FormFieldState<String> state) {
-                  return InputDecorator(
-                    decoration: InputDecoration(
-                        //labelStyle: textStyle,
-                        errorStyle:
-                            TextStyle(color: Colors.redAccent, fontSize: 16.0),
-                        hintText: 'Please select expense',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5.0))),
-                    isEmpty: _cVal == '',
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _cVal,
-                        isDense: true,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _cVal = newValue!;
-                            state.didChange(newValue);
-                          });
-                        },
-                        items: _currencies.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  );
-                },
-              ),
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Imprimir'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Imprimir resumen'),
+              ],
             ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        });
-  }*/
-
-// Prueba de campo checkbox
-/*  Future<void> testDialog2(context) {
-    return showDialog<void>(
-        context: context,
-        barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            // <-- SEE HERE
-            title: const Text('Goal edit'),
-            content: SingleChildScrollView(
-              child: FormField<bool>(
-                builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: _main,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _main = value!;
-                        state.didChange(_main);
-                      });
-                    },
-                  );
-                },
-              ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Imprimir'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        });
-  }*/
-}
-
-class AppBarExample extends StatelessWidget {
-  const AppBarExample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AppBar Demo'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add_alert),
-            tooltip: 'Show Snackbar',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('This is a snackbar')));
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.navigate_next),
-            tooltip: 'Go to the next page',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute<void>(
-                builder: (BuildContext context) {
-                  return Scaffold(
-                    appBar: AppBar(
-                      title: const Text('Next page'),
-                    ),
-                    body: const Center(
-                      child: Text(
-                        'This is the next page',
-                        style: TextStyle(fontSize: 24),
-                      ),
-                    ),
-                  );
-                },
-              ));
-            },
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text(
-          'This is the home page',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
+          ],
+        );
+      },
     );
+  }
+
+  Widget workTimeRecordering(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(10),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(2),
+            child: Column(
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.grey[100],
+                    child: Row(
+                      children: [
+                        const Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Card(
+                                  child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 5),
+                                child: Icon(Icons.access_time,
+                                    color: Colors.black),
+                              )),
+                            )),
+                        Expanded(
+                            flex: 5,
+                            child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            "Registro de jornada",
+                                            style: mainText,
+                                          )),
+                                      Text(
+                                          DateFormat('EEE, d/M/yyyy')
+                                              .format(DateTime.now()),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black45)),
+                                    ]))),
+                        Expanded(
+                            flex: 2,
+                            child: actionButton(
+                                context,
+                                "Iniciar jornada",
+                                printSummary,
+                                Icons.play_circle_outline_sharp,
+                                context)),
+                      ],
+                    )),
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.white,
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: 5,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      flex: 2,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 10),
+                                            child: Text(
+                                              DateFormat('EEE, d/M/yyyy')
+                                                  .format(DateTime.now().add(
+                                                      Duration(
+                                                          days: -1 * index))),
+                                              style: normalText,
+                                            )),
+                                      )),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "8:00",
+                                          style: normalText,
+                                          textAlign: TextAlign.center,
+                                        )),
+                                  ),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "16:00",
+                                          style: normalText,
+                                          textAlign: TextAlign.center,
+                                        )),
+                                  ),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "8",
+                                          style: normalText,
+                                          textAlign: TextAlign.center,
+                                        )),
+                                  ),
+                                ],
+                              ));
+                        })),
+              ],
+            )));
   }
 }
