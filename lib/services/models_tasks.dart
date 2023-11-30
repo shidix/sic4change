@@ -1,6 +1,7 @@
 // import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -35,9 +36,11 @@ class STask {
   Contact senderObj = Contact("", "", "", "", "");
   List<Contact> assignedObj = [];
 
-  STask(
-    this.name,
-  );
+  STask(this.name,
+      [this.description = "",
+      this.deal_date = "",
+      this.deadline_date = "",
+      this.status = ""]);
 
   STask.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -130,6 +133,8 @@ class STask {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       statusObj = TasksStatus.fromJson(data);
+    } else {
+      statusObj = TasksStatus("Sin estado");
     }
   }
 
@@ -167,6 +172,39 @@ class STask {
         ? assignedStr.substring(0, assignedStr.length - 1)
         : assignedStr;
     return assignedStr;
+  }
+
+  static Future<List<STask>> getByAssigned(uuid) async {
+    List<STask> items = [];
+    final query = await dbTasks.where("assigned", arrayContains: uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data();
+      data["id"] = doc.id;
+      STask task = STask.fromJson(data);
+      task.getProject();
+      await task.getStatus();
+      await task.getSender();
+      await task.getAssigned();
+      items.add(task);
+    }
+    return items;
+  }
+
+  static List<STask> getByAssigned2(uuid) {
+    List<STask> items = [];
+    dbTasks.where("assigned", arrayContains: uuid).snapshots().listen((event) {
+      for (var doc in event.docs) {
+        final Map<String, dynamic> data = doc.data();
+        data["id"] = doc.id;
+        STask task = STask.fromJson(data);
+        task.getProject();
+        task.getStatus();
+        task.getSender();
+        task.getAssigned();
+        items.add(task);
+      }
+    });
+    return items;
   }
 }
 
@@ -264,6 +302,35 @@ class TasksStatus {
 
   Future<void> delete() async {
     await dbTasksStatus.doc(id).delete();
+  }
+
+  String getName() {
+    if (name != "") {
+      return name;
+    } else {
+      return "Sin estado";
+    }
+  }
+
+  Color getColor() {
+    Color color = Colors.grey;
+    switch (name) {
+      case "En proceso":
+        color = Colors.orange;
+        break;
+      case "Completado":
+        color = Colors.green;
+        break;
+      case "Pendiente":
+        color = Colors.red;
+        break;
+      case "Sin estado":
+        color = Colors.grey;
+        break;
+      default:
+        color = Colors.grey;
+    }
+    return color;
   }
 }
 

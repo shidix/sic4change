@@ -783,3 +783,7 @@ const TextStyle subTitle =
 const Color dangerColor = Colors.red;
 const TextStyle danger =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dangerColor);
+
+const Color warningColor = Colors.orange;
+const TextStyle warningStyle =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
