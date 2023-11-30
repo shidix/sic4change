@@ -88,9 +88,11 @@ Widget loginBody(context, emailController, passwdController) {
 }
 
 Widget loginLogo() {
-  return Image(
+  return const Image(
     image: AssetImage('assets/images/logo.jpg'),
     alignment: Alignment.center,
+    height: 66,
+    fit: BoxFit.fitHeight,
   );
 }
 

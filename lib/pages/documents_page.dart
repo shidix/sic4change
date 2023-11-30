@@ -12,7 +12,7 @@ const pageTitle = "Documentos";
 List files = [];
 List folders = [];
 
-enum SampleItem { itemOne, itemTwo }
+enum SampleItem { itemOne, itemTwo, itemThree }
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -554,6 +554,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
           _fileEditDialog(context, nameController, file, currentFolder);
         }
         if (selectedMenu == SampleItem.itemTwo) {
+          _fileEditDialog(context, nameController, file, currentFolder);
+        }
+        if (selectedMenu == SampleItem.itemThree) {
           _confirmFileRemoveDialog(context, file, currentFolder);
         }
       },
@@ -561,15 +564,21 @@ class _DocumentsPageState extends State<DocumentsPage> {
         const PopupMenuItem<SampleItem>(
             value: SampleItem.itemOne,
             child: Row(children: [
-              Icon(Icons.edit),
-              Text('Change name'),
+              Icon(Icons.link),
+              Text('Ver enlace'),
             ])),
         const PopupMenuItem<SampleItem>(
-          value: SampleItem.itemTwo,
+            value: SampleItem.itemTwo,
+            child: Row(children: [
+              Icon(Icons.edit),
+              Text('Cambiar nombre'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+          value: SampleItem.itemThree,
           child: Row(
             children: [
               Icon(Icons.remove_circle),
-              Text('Remove'),
+              Text('Borrar'),
             ],
           ),
         ),

@@ -4,8 +4,8 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-const PROJECT_TITLE = "Proyectos";
-List project_list = [];
+const projectTitle = "Proyectos";
+List prList = [];
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -17,7 +17,7 @@ class ProjectsPage extends StatefulWidget {
 class _ProjectsPageState extends State<ProjectsPage> {
   void loadProjects() async {
     await getProjects().then((val) {
-      project_list = val;
+      prList = val;
     });
     setState(() {});
   }
@@ -25,9 +25,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        /*appBar: AppBar(
-        title: const Text('Service Page'),
-      ),*/
         body: SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -36,7 +33,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainMenu(context),
           projectSearch(),
           Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: customTitle(context, "PROGRAMAS")),
           programmeList(context),
           /*SizedBox(
@@ -44,7 +41,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             child: programmeList(context),
           ),*/
           Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: customTitle(context, "PROYECTOS")),
           projectList(context),
           /*space(height: 20),
@@ -85,7 +82,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(PROJECT_TITLE, style: TextStyle(fontSize: 20)),
+            Text(projectTitle, style: TextStyle(fontSize: 20)),
             /*Container(
           width: 500,
           child: SearchBar(
@@ -102,7 +99,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   Widget programmeList(context) {
     return Container(
-        padding: EdgeInsets.only(left: 30, right: 30),
+        padding: const EdgeInsets.only(left: 30, right: 30),
         child: FutureBuilder(
             future: getProgrammes(),
             builder: ((context, snapshot) {
@@ -112,20 +109,20 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
+                          crossAxisCount: 6,
                           //crossAxisSpacing: 20,
                           //mainAxisSpacing: 20,
                           childAspectRatio: 10,
                         ),
                         itemCount: snapshot.data!.length,
                         itemBuilder: (_, index) {
-                          Programme _programme = snapshot.data![index];
+                          Programme programme = snapshot.data![index];
                           return Row(
                             children: [
-                              customText(_programme.name, 15,
+                              customText(programme.name, 15,
                                   bold: FontWeight.bold),
                               customText(
-                                  " ('${_programme.projects}' proyectos)", 15),
+                                  " ('${programme.projects}' proyectos)", 15),
                             ],
                           );
                         }));
@@ -144,7 +141,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             future: getProjects(),
             builder: ((context, snapshot) {
               if (snapshot.hasData) {
-                project_list = snapshot.data!;
+                prList = snapshot.data!;
                 return SizedBox(
                     height: 900,
                     child: GridView.builder(
@@ -155,9 +152,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           mainAxisSpacing: 10,
                           childAspectRatio: .9,
                         ),
-                        itemCount: project_list.length,
+                        itemCount: prList.length,
                         itemBuilder: (_, index) {
-                          return projectCard(context, project_list[index]);
+                          return projectCard(context, prList[index]);
                         }));
               } else {
                 return const Center(
@@ -271,9 +268,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectCardDatasPartners(SProject _project) {
-    List _list = _project.partners;
+    List list = _project.partners;
     List partners = [];
-    for (var uuid in _list) {
+    for (var uuid in list) {
       partners.add((getObject(_project.partnersObj, uuid) as Contact).name);
     }
     return Column(children: [
@@ -328,7 +325,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       children: [
         projectCardDatasHeader(context, _project),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         IntrinsicHeight(
           child: Row(
@@ -341,7 +338,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   customLinearPercent(context, 4.5, 0.8, Colors.green),
                 ],
               ),
-              VerticalDivider(
+              const VerticalDivider(
                 width: 10,
                 color: Colors.grey,
               ),
@@ -354,13 +351,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
           ),
         ),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         customText("Responsable del proyecto:", 16, textColor: Colors.grey),
         space(height: 5),
         customText(_project.managerObj.name, 16),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         projectCardDatasFinancier(_project),
         space(height: 5),

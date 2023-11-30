@@ -9,6 +9,7 @@ import 'package:sic4change/services/models_commons.dart';
 
 Color titleColor = Color(0xff00809a);
 Color greyColor = Color(0xffdfdfdf);
+Color bgColor = Color(0xffe5f2d8);
 
 Widget space({width = 10, height = 10}) {
   return SizedBox(
@@ -44,8 +45,8 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xffedf7f9)),
-      backgroundColor: Color(0xffedf7f9),
+      side: const BorderSide(width: 0, color: Color(0xffe5f2d8)),
+      backgroundColor: bgColor,
       //primary: Colors.purple),
     ),
     child: Column(
@@ -128,9 +129,9 @@ Widget logoutBtn(context, btnName, btnIcon) {
       FirebaseAuth.instance.signOut();
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xffedf7f9)),
-      backgroundColor: Color(0xffedf7f9),
+      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+      side: const BorderSide(width: 0, color: Color(0xffe5f2d8)),
+      backgroundColor: bgColor,
       //primary: Colors.purple),
     ),
     child: Column(
@@ -138,7 +139,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
         Icon(btnIcon, color: Colors.black54),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black54, fontSize: 18),
+          style: const TextStyle(color: Colors.black54, fontSize: 18),
         ),
       ],
     ),

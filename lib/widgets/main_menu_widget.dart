@@ -14,7 +14,7 @@ Widget mainMenu(context, [user]) {
     child: Container(
       padding: const EdgeInsets.all(3),
       //margin: EdgeInsets.all(120.0),
-      color: Color(0xffedf7f9),
+      color: bgColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
