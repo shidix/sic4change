@@ -739,7 +739,8 @@ SizedBox s4cTitleBar(String title, [context]) {
               ]))));
 }
 
-const Color mainColor = Color(0xFF00809A);
+// const Color mainColor = Color(0xFF00809A);
+const Color mainColor = Color(0xffabf100);
 
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
@@ -767,3 +768,23 @@ const TextStyle normalText = TextStyle(
 Object getObject(List items, String uuid) {
   return items.firstWhere((item) => item.uuid == uuid);
 }
+
+const Color cardHeaderColor = Color(0xffabf100);
+const TextStyle cardHeaderTextStyle = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: cardHeaderColor,
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
+
+const Color subTitleColor = Colors.black45;
+const TextStyle subTitle =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: subTitleColor);
+
+const Color dangerColor = Colors.red;
+const TextStyle danger =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dangerColor);
+
+const Color warningColor = Colors.orange;
+const TextStyle warningStyle =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);

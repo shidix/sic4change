@@ -6,6 +6,7 @@ import 'package:sic4change/pages/index.dart';
 // Importaciones de firebase
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 //final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -16,7 +17,8 @@ void main() async {
     options: DefaultFirebaseOptions.web,
   );
 
-  runApp(MyApp());
+  initializeDateFormatting('es_ES', '').then((_) => runApp(MyApp()));
+  // runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,7 +26,7 @@ class MyApp extends StatelessWidget {
 
   final _routes = {
     '/': (context) => const LoginPage(),
-    '/home': (context) => const HomePage(),
+    '/home': (context) => HomePage(),
     '/projects': (context) => const ProjectsPage(),
     '/project_info': (context) => const ProjectInfoPage(),
     '/project_reformulation': (context) => const ReformulationPage(),
