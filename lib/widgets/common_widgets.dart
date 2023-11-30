@@ -770,7 +770,7 @@ Object getObject(List items, String uuid) {
 }
 
 const Color cardHeaderColor = Color(0xffabf100);
-const TextStyle cardHeaderTextStyle = TextStyle(
+const TextStyle cardHeaderText = TextStyle(
   fontFamily: 'Readex Pro',
   color: cardHeaderColor,
   fontSize: 16,
@@ -778,13 +778,13 @@ const TextStyle cardHeaderTextStyle = TextStyle(
 );
 
 const Color subTitleColor = Colors.black45;
-const TextStyle subTitle =
+const TextStyle subTitleText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: subTitleColor);
 
 const Color dangerColor = Colors.red;
-const TextStyle danger =
+const TextStyle dangerText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dangerColor);
 
 const Color warningColor = Colors.orange;
-const TextStyle warningStyle =
+const TextStyle warningText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
