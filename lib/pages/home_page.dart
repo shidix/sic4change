@@ -567,7 +567,7 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: EdgeInsets.all(10),
                                   child: Text(
-                                    task.statusObj.name,
+                                    task.statusObj.getName(),
                                     style: TextStyle(color: Colors.white),
                                     textAlign: TextAlign.center,
                                   )))),
