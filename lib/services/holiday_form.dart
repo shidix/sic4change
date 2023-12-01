@@ -84,7 +84,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
 
     Widget categorySelectField;
     List<DropdownMenuItem<String>>? categoryList = [];
-    for (String category in ['Vacaciones', 'Permiso', 'Licencia', 'Ausencia']) {
+    for (String category in ['Vacaciones', 'Permiso', 'Licencia', 'Ausencia', 'Asustos Propios', 'Enfermedad']) {
       categoryList.add(DropdownMenuItem(
           value: category, child: Text(category.toUpperCase())));
     }

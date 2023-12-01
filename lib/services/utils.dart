@@ -23,3 +23,14 @@ int getWorkingDaysBetween(DateTime date1, DateTime date2) {
   return workingDays;
 }
 
+String showException(dynamic e) {
+  try {
+    throw e; // Re-lanza la excepción para obtener la traza de la pila
+  } catch (error, stackTrace) {
+    if (error is Exception) {
+      return 'ERROR ===:> [$error in ${stackTrace.toString()}]';
+    } else {
+      return 'ERROR ===:> $error';
+    }
+  }
+}

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_tasks.dart';
@@ -30,6 +31,8 @@ class _HomePageState extends State<HomePage> {
   List<HolidayRequest>? myHolidays = [];
   int holidayDays = 0;
 
+  List<SProject>? myProjects = [];
+
   Future<void> loadMyTasks() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
@@ -55,11 +58,22 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> loadMyProjects() async {
+    await Contact.byEmail(user.email!).then((value) {
+      contact = value;
+      contact!.getProjects().then((value) {
+        myProjects = value;
+        setState(() {});
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     loadMyTasks();
     loadMyHolidays();
+    loadMyProjects();
   }
 
   @override
@@ -116,6 +130,7 @@ class _HomePageState extends State<HomePage> {
     print("printSummary");
   }
 
+/////////// WORKTIME ///////////
   List worktimeItems() {
     List items = [];
     int maxItems = Random().nextInt(10);
@@ -441,14 +456,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget holidayPanel(BuildContext context) {
-    // List holidayPeriods = [];
-    // for (int i = 0; i < 5; i++) {
-    //   DateTime from = DateTime(DateTime.now().year, 1, 1)
-    //       .add(Duration(days: Random().nextInt(300)));
-    //   DateTime to = from.add(Duration(days: Random().nextInt(10)));
-    //   holidayPeriods.add([from, to]);
-    // }
-    // holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -459,7 +466,7 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.grey.withOpacity(0.5),
                     spreadRadius: 0,
                     blurRadius: 10,
-                    offset: const Offset(0, 3), // changes position of shadow
+                    offset: const Offset(0, 3),
                   ),
                 ],
                 borderRadius: BorderRadius.circular(10)),
@@ -620,17 +627,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Expanded(
                       flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Card(
-                              color: task.statusObj.getColor(),
-                              child: Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    task.statusObj.getName(),
-                                    style: const TextStyle(color: Colors.white),
-                                    textAlign: TextAlign.center,
-                                  )))),
+                      child: statusCard(task.statusObj.getName()),
                     ),
                   ],
                 )
@@ -739,6 +736,7 @@ class _HomePageState extends State<HomePage> {
             )));
   }
 
+/////////// NOTIFICATIONS ///////////
   Widget notifyPanel(BuildContext context) {
     List holidayPeriods = [];
     for (int i = 0; i < 5; i++) {
@@ -932,15 +930,8 @@ class _HomePageState extends State<HomePage> {
             )));
   }
 
+/////////// PROJECTS ///////////
   Widget projectsPanel(BuildContext context) {
-    List holidayPeriods = [];
-    for (int i = 0; i < 5; i++) {
-      DateTime from = DateTime(DateTime.now().year, 1, 1)
-          .add(Duration(days: Random().nextInt(300)));
-      DateTime to = from.add(Duration(days: Random().nextInt(10)));
-      holidayPeriods.add([from, to]);
-    }
-    holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Container(
@@ -962,9 +953,9 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     color: Colors.grey[100],
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Expanded(
+                        const Expanded(
                             flex: 1,
                             child: Padding(
                               padding: EdgeInsets.all(10),
@@ -984,7 +975,7 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Padding(
+                                      const Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             "Mis proyectos",
@@ -992,10 +983,12 @@ class _HomePageState extends State<HomePage> {
                                           )),
                                       Row(
                                         children: [
-                                          Text("Actualmente participan en ",
+                                          const Text(
+                                              "Actualmente participan en ",
                                               style: subTitleText),
-                                          Text("3", style: warningText),
-                                          Text(" proyectos",
+                                          Text(myProjects!.length.toString(),
+                                              style: warningText),
+                                          const Text(" proyectos",
                                               style: subTitleText),
                                         ],
                                       ),
@@ -1010,30 +1003,30 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         children: [
                           Expanded(
-                              flex: 2,
+                              flex: 4,
                               child: Text(
-                                "Concepto",
+                                "Projecto",
+                                style: subTitleText,
+                                textAlign: TextAlign.left,
+                              )),
+                          Expanded(
+                              flex: 1,
+                              child: Text(
+                                "Fecha de Inicio",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
                               flex: 1,
                               child: Text(
-                                "Desde",
+                                "Fecha de Fin",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
                               flex: 1,
                               child: Text(
-                                "Hasta",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Días Totales",
+                                "Estado",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
@@ -1050,38 +1043,45 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white,
                     child: ListView.builder(
                         shrinkWrap: true,
-                        itemCount: 3,
+                        itemCount: myProjects!.length,
                         itemBuilder: (BuildContext context, int index) {
+                          SProject project = myProjects!.elementAt(index);
                           return ListTile(
                               subtitle: Column(children: [
                             Row(
                               children: [
                                 Expanded(
-                                    flex: 2,
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            ([
-                                              'Vacaciones',
-                                              'Asuntos propios',
-                                              'Enfermedad'
-                                            ]).elementAt(Random().nextInt(3)),
-                                            style: normalText,
-                                          )),
-                                    )),
+                                    flex: 4,
+                                    child: Column(children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 10),
+                                            child: Text(
+                                              project.name,
+                                              style: normalText,
+                                            )),
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 10),
+                                            child: Text(
+                                              project.description,
+                                              style: smallText,
+                                            )),
+                                      )
+                                    ])),
                                 Expanded(
                                   flex: 1,
                                   child: Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        DateFormat('yyyy-MM-dd').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(0)),
+                                        // DateFormat('yyyy-MM-dd').format((project.getDates() as ProjectDates).start),
+                                        project.datesObj.start,
                                         style: normalText,
                                         textAlign: TextAlign.center,
                                       )),
@@ -1092,35 +1092,18 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        DateFormat('yyyy-MM-dd').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(1)),
+                                        project.datesObj.end,
                                         style: normalText,
                                         textAlign: TextAlign.center,
                                       )),
                                 ),
                                 Expanded(
                                   flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        getWorkingDaysBetween(
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(0),
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(1))
-                                            .toString(),
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
+                                  child: statusCard(project.getStatus()),
                                 ),
                               ],
                             )
-                          ]));
+                          , Divider()]));
                         })),
               ],
             )));

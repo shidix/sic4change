@@ -33,6 +33,7 @@ class SProject {
   Programme programmeObj = Programme("");
   List<Financier> financiersObj = [];
   List<Contact> partnersObj = [];
+  ProjectDates datesObj = ProjectDates("");
 
   double dblbudget = 0;
 
@@ -83,6 +84,7 @@ class SProject {
         'partners': partners,
       };
 
+
   KeyValue toKeyValue() {
     return KeyValue(uuid, name);
   }
@@ -113,6 +115,7 @@ class SProject {
     programmeObj = await getProgramme();
     financiersObj = await getFinanciers();
     partnersObj = await getPartners();
+    datesObj = await getDates();
     return this;
   }
 
@@ -124,11 +127,23 @@ class SProject {
     await dbProject.doc(id).update({"partners": partners});
   }
 
-  String total_budget() {
-    double aux = 24;
-    return (aux.toString());
-  }
-
+  String getStatus()
+  {
+    if (datesObj.approved == "") return "Sin aprobar";
+    if (datesObj.start == "") return "Sin iniciar";
+    if (datesObj.end == "") return "En proceso";
+    try {
+      DateTime _start = DateTime.parse(datesObj.start);
+      DateTime _end = DateTime.parse(datesObj.end);
+      DateTime _approved = DateTime.parse(datesObj.approved);
+      DateTime _today = DateTime.now();
+      if (_today.isBefore(_start)) return "Sin iniciar";
+      if (_today.isBefore(_approved)) return "Sin aprobar";
+      if (_today.isAfter(_end)) return "Finalizado";
+      return "En proceso";
+    } catch (e) {
+    return "Finalizado";}
+}
   Future<double> totalBudget() async {
     final contribs = db.collection("s4c_finncontrib");
     final finns = db.collection("s4c_finns");
@@ -151,6 +166,13 @@ class SProject {
       ;
     });
     return dblbudget;
+  }
+
+  Future<ProjectDates> getDates() async {
+    if (datesObj.project == "") {
+      datesObj = await getProjectDatesByProject(uuid);
+    }
+    return datesObj;
   }
 
   Future<ProjectType> getProjectType() async {
@@ -248,6 +270,7 @@ Future<List> getProjects() async {
     _item.programmeObj = await _item.getProgramme();
     _item.financiersObj = await _item.getFinanciers();
     _item.partnersObj = await _item.getPartners();
+    _item.datesObj = await _item.getDates();
     items.add(_item);
   }
   return items;

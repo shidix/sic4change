@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -80,7 +81,22 @@ class Contact {
   }
 
   Future<List<SProject>> getProjects() async {
-    List<SProject> projectList = [];
+    if (projects.isEmpty) {
+      return [];
+    }
+    if (projectsObj.isNotEmpty) {
+      bool isSync = projects.length == projectsObj.length;
+      int id_prj = 0;
+      while ((isSync) && (id_prj < projectsObj.length)) {
+        isSync = (projects.contains(projectsObj[id_prj].uuid));
+        id_prj++;
+      }
+      if (isSync) {
+        return projectsObj;
+      }
+    }
+
+    // List<SProject> projectList = [];
     for (String pr in projects) {
       try {
         QuerySnapshot query =
@@ -89,10 +105,13 @@ class Contact {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
         SProject projObj = SProject.fromJson(data);
-        projectList.add(projObj);
-      } catch (e) {}
+        await projObj.reload();
+        projectsObj.add(projObj);
+      } catch (e) {
+        print(showException(e));
+      }
     }
-    return projectList;
+    return projectsObj;
   }
 
   Future<ContactInfo> getContactInfo() async {
@@ -130,7 +149,6 @@ class Contact {
 
   static Future<Contact> byEmail(String email) async {
     try {
-      print(email);
       QuerySnapshot query =
           await dbContacts.where("email", isEqualTo: email).get();
       final dbResult = query.docs.first;

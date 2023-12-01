@@ -651,7 +651,11 @@ class ReadOnlyTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    Color bgcolor = Colors.grey.shade100;
+    TextStyle? fgstyle = Theme.of(context).textTheme.titleMedium!.copyWith(backgroundColor: bgcolor);
+    return Container(
+      color: bgcolor,
+    child:Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
@@ -666,16 +670,14 @@ class ReadOnlyTextField extends StatelessWidget {
         Text(
           textToShow,
           textAlign: textAlign,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium, // Estilo similar al de un TextFormField
+          style: fgstyle, // Estilo similar al de un TextFormField
         ),
         const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
 
         const Divider(height: 1.0, color: Colors.black54),
         const SizedBox(height: 2.0), // Ajusta el espacio según sea necesario
       ],
-    );
+    ));
   }
 }
 
@@ -709,6 +711,53 @@ SizedBox s4cTitleBar(String title, [context]) {
               ]))));
 }
 
+Map StatusColors = {
+  "PENDIENTE": Colors.orange,
+  "EN PROCESO": Colors.blue,
+  "COMPLETADO": Colors.green,
+  "CANCELADO": Colors.red,
+  "RECHAZADO": Colors.red,
+  "ACEPTADO": Colors.green,
+  "ACTIVO": Colors.green,
+  "INACTIVO": Colors.red,
+  "SIN INICIAR": Colors.orange,
+  "SIN APROBAR": Colors.orange,
+  "FINALIZADO": Colors.green,
+  "" : Colors.grey,
+};
+
+TextStyle statusText(
+    [fontSize = 14, color = Colors.white, fontWeight = FontWeight.normal]) {
+  return TextStyle(fontWeight: fontWeight, fontSize: fontSize, color: color);
+}
+
+Padding statusCard(String text,
+    [TextStyle? fgstyle, Color? bgcolor]) {
+  fgstyle ??= statusText();
+  if (bgcolor == null) {
+    if (StatusColors.containsKey(text.toUpperCase())) {
+    bgcolor = StatusColors[text.toUpperCase()];
+    }
+    else {
+      bgcolor = Colors.grey;
+    } 
+  }
+  return Padding(
+      padding: const EdgeInsets.only(bottom: 0),
+      child: Card(
+          color: bgcolor,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Text(
+                text,
+                style: fgstyle,
+                textAlign: TextAlign.center,
+              ))));
+}
+
+Object getObject(List items, String uuid) {
+  return items.firstWhere((item) => item.uuid == uuid);
+}
 //--------------------------------------------------------------------------
 //                              STYLES
 //--------------------------------------------------------------------------
@@ -744,9 +793,13 @@ const TextStyle normalText = TextStyle(
   fontWeight: FontWeight.normal,
 );
 
-Object getObject(List items, String uuid) {
-  return items.firstWhere((item) => item.uuid == uuid);
-}
+const Color smallColor = Colors.grey;
+const TextStyle smallText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: smallColor,
+  fontSize: 12,
+  fontWeight: FontWeight.normal,
+);
 
 const Color cardHeaderColor = Color(0xffabf100);
 const TextStyle cardHeaderText = TextStyle(
@@ -771,6 +824,7 @@ const TextStyle warningText =
 const ButtonStyle btnStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
 );
+
 
 //--------------------------------------------------------------------------
 //                           COMMONS
