@@ -7,29 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-Widget space({width = 10, height = 10}) {
-  return SizedBox(
-    width: width,
-    height: height,
-  );
-}
-
-Widget customText(_text, _size,
-    {textColor = Colors.black, bold = FontWeight.normal}) {
-  return Text(
-    _text,
-    style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
-  );
-}
-
 Widget customTitle(context, _text) {
   return Container(
       width: MediaQuery.of(context).size.width,
-      color: Color(0xffd0dbe0),
-      padding: EdgeInsets.all(10),
+      color: const Color(0xffd0dbe0),
+      padding: const EdgeInsets.all(10),
       child: Text(
         _text,
-        style: TextStyle(fontSize: 16, color: Color(0xff00809a)),
+        style: const TextStyle(fontSize: 16, color: Color(0xff00809a)),
         textAlign: TextAlign.center,
       ));
 }
@@ -40,7 +25,7 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
       Navigator.pushReplacementNamed(context, btnRoute);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
       side: const BorderSide(width: 0, color: Color(0xffe5f2d8)),
       backgroundColor: bgColor,
       //primary: Colors.purple),
@@ -50,7 +35,7 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
         Icon(btnIcon, color: Colors.black54),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black54, fontSize: 14),
+          style: const TextStyle(color: Colors.black54, fontSize: 14),
         ),
       ],
     ),
@@ -83,14 +68,14 @@ Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
         ));
   } else {
     return Container(
-        padding: EdgeInsets.all(5),
+        padding: const EdgeInsets.all(5),
         child: TextButton(
           onPressed: () {
             Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
           },
           child: Text(
             btnName,
-            style: TextStyle(color: Colors.black54, fontSize: 16),
+            style: const TextStyle(color: Colors.black54, fontSize: 16),
           ),
         ));
   }
@@ -178,7 +163,7 @@ Widget customBtn(context, btnName, btnIcon, btnRoute, args) {
       Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -193,7 +178,7 @@ Widget customBtn(context, btnName, btnIcon, btnRoute, args) {
         space(height: 10),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -206,7 +191,7 @@ Widget customPushBtn(context, btnName, btnIcon, btnRoute, args) {
       Navigator.pushNamed(context, btnRoute, arguments: args);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -221,7 +206,7 @@ Widget customPushBtn(context, btnName, btnIcon, btnRoute, args) {
         space(height: 10),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -235,7 +220,7 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
       //Navigator.pushNamed(context, btnRoute, arguments: {"currentFolder": "1"});
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -250,7 +235,7 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
         space(height: 10),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -263,7 +248,7 @@ Widget customRowPopBtn(context, btnName, btnIcon) {
       Navigator.pop(context);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -278,7 +263,7 @@ Widget customRowPopBtn(context, btnName, btnIcon) {
         space(height: 10),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -291,7 +276,7 @@ Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
       js.context.callMethod('open', [btnRoute]);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -306,7 +291,7 @@ Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
         space(height: 10),
         Text(
           btnName,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -319,7 +304,7 @@ Widget customRowFileBtn(context, btnName, btnLoc, btnIcon, btnRoute) {
       js.context.callMethod('open', [btnRoute]);
     },
     style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
       //primary: Colors.purple),
@@ -336,12 +321,12 @@ Widget customRowFileBtn(context, btnName, btnLoc, btnIcon, btnRoute) {
         Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text(
             btnName,
-            style: TextStyle(color: Colors.black, fontSize: 14),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
           ),
           space(height: 5),
           Text(
             btnLoc,
-            style: TextStyle(color: Colors.black, fontSize: 14),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
           ),
         ])
       ],
@@ -434,7 +419,7 @@ Widget customDropdownField(_controller, _options, _current, _hint,
   return SizedBox(
       width: width,
       child: DropdownSearch<KeyValue>(
-        popupProps: PopupProps.menu(
+        popupProps: const PopupProps.menu(
           showSearchBox: true,
           showSelectedItems: true,
           //disabledItemFn: (String s) => s.startsWith('I'),
@@ -471,7 +456,7 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
     ),
     space(height: 5),
     Container(
-        padding: EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.only(left: 10),
         child: Text(
           "$_percentText % Completado",
           style: const TextStyle(fontSize: 12),
@@ -487,7 +472,7 @@ Widget customList(_list) {
       itemCount: _list.length,
       itemBuilder: (BuildContext context, int index) {
         return Container(
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           child: Text('Entry ${_list[index]}'),
         );
       });
@@ -558,7 +543,7 @@ class DateTimePicker extends StatelessWidget {
             Text(
               "${selectedDate.toLocal()}".split(' ')[0],
             ),
-            Icon(Icons.calendar_today),
+            const Icon(Icons.calendar_today),
           ],
         ),
       ),
@@ -656,28 +641,39 @@ Widget actionButton(context, String text, Function action, IconData? icon,
 class ReadOnlyTextField extends StatelessWidget {
   final String label;
   final String textToShow;
+  final TextAlign textAlign;
 
   const ReadOnlyTextField(
-      {super.key, required this.label, required this.textToShow});
+      {super.key,
+      required this.label,
+      required this.textToShow,
+      this.textAlign = TextAlign.left});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
         Text(
           label,
+          textAlign: textAlign,
           style: Theme.of(context)
               .textTheme
               .bodySmall, // Estilo similar al de un TextFormField
         ),
-        SizedBox(height: 8.0), // Ajusta el espacio según sea necesario
+        const SizedBox(height: 2.0), // Ajusta el espacio según sea necesario
         Text(
           textToShow,
+          textAlign: textAlign,
           style: Theme.of(context)
               .textTheme
               .titleMedium, // Estilo similar al de un TextFormField
         ),
+        const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
+
+        const Divider(height: 1.0, color: Colors.black54),
+        const SizedBox(height: 2.0), // Ajusta el espacio según sea necesario
       ],
     );
   }
@@ -753,7 +749,7 @@ Object getObject(List items, String uuid) {
 }
 
 const Color cardHeaderColor = Color(0xffabf100);
-const TextStyle cardHeaderTextStyle = TextStyle(
+const TextStyle cardHeaderText = TextStyle(
   fontFamily: 'Readex Pro',
   color: cardHeaderColor,
   fontSize: 16,
@@ -761,20 +757,41 @@ const TextStyle cardHeaderTextStyle = TextStyle(
 );
 
 const Color subTitleColor = Colors.black45;
-const TextStyle subTitle =
+const TextStyle subTitleText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: subTitleColor);
 
 const Color dangerColor = Colors.red;
-const TextStyle danger =
+const TextStyle dangerText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dangerColor);
 
 const Color warningColor = Colors.orange;
-const TextStyle warningStyle =
+const TextStyle warningText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
 
 const ButtonStyle btnStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
 );
+
+//--------------------------------------------------------------------------
+//                           COMMONS
+//--------------------------------------------------------------------------
+Widget space({width = 10, height = 10}) {
+  return SizedBox(
+    width: width,
+    height: height,
+  );
+}
+
+//--------------------------------------------------------------------------
+//                           TEXTS
+//--------------------------------------------------------------------------
+Widget customText(_text, _size,
+    {textColor = Colors.black, bold = FontWeight.normal}) {
+  return Text(
+    _text,
+    style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
+  );
+}
 
 //--------------------------------------------------------------------------
 //                           BUTTONS
