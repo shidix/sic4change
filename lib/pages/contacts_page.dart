@@ -129,29 +129,29 @@ SingleChildScrollView dataBody(context) {
           columns: [
             DataColumn(
                 label: customText("Nombre", 16,
-                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
-                tooltip: "Name"),
+                    textColor: titleColor, bold: FontWeight.bold),
+                tooltip: "Nombre"),
             DataColumn(
               label: customText("Empresa", 16,
-                  textColor: const Color(0xff00809a), bold: FontWeight.bold),
-              tooltip: "Email",
+                  textColor: titleColor, bold: FontWeight.bold),
+              tooltip: "Empresa",
             ),
             DataColumn(
                 label: customText("Proyecto", 16,
-                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
-                tooltip: "Phone"),
+                    textColor: titleColor, bold: FontWeight.bold),
+                tooltip: "Proyecto"),
             DataColumn(
                 label: customText("Posición", 16,
-                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
-                tooltip: "Company"),
+                    textColor: titleColor, bold: FontWeight.bold),
+                tooltip: "Posición"),
             DataColumn(
                 label: customText("Teléfono", 16,
-                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
-                tooltip: "Position"),
+                    textColor: titleColor, bold: FontWeight.bold),
+                tooltip: "Teléfono"),
             DataColumn(
-                label: customText("Actions", 16,
-                    textColor: const Color(0xff00809a), bold: FontWeight.bold),
-                tooltip: "Actions"),
+                label: customText("Acciones", 16,
+                    textColor: titleColor, bold: FontWeight.bold),
+                tooltip: "Acciones"),
           ],
           rows: contacts
               .map(

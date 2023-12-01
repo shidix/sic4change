@@ -153,58 +153,33 @@ class _TasksPageState extends State<TasksPage> {
           child: DataTable(
             sortColumnIndex: 0,
             showCheckboxColumn: false,
-            columns: const [
+            columns: [
               DataColumn(
-                  label: Text(
-                    "Tarea",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Tarea", 16, textColor: titleColor),
                   tooltip: "Tarea"),
               DataColumn(
-                label: Text(
-                  "Acuerdo",
-                  style: TextStyle(
-                      color: Color(0xff008096), fontWeight: FontWeight.bold),
-                ),
+                label: customText("Acuerdo", 16, textColor: titleColor),
                 tooltip: "Acuerdo",
               ),
               DataColumn(
-                  label: Text(
-                    "Deadline",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Deadline", 16, textColor: titleColor),
                   tooltip: "Deadline"),
               DataColumn(
-                  label: Text(
-                    "Nuevo deadline",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label:
+                      customText("Nuevo deadline", 16, textColor: titleColor),
                   tooltip: "Nuevo deadline"),
               DataColumn(
-                  label: Text(
-                    "Devolución",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Devolución", 16, textColor: titleColor),
                   tooltip: "Devolución"),
               DataColumn(
-                  label: Text(
-                    "Responsables",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Responsables", 16, textColor: titleColor),
                   tooltip: "Responsables"),
               DataColumn(
-                  label: Text(
-                    "Estado",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Estado", 16, textColor: titleColor),
                   tooltip: "Estado"),
-              DataColumn(label: Text(""), tooltip: ""),
+              DataColumn(
+                  label: customText("Acciones", 16, textColor: titleColor),
+                  tooltip: "Acciones"),
             ],
             rows: tasks
                 .map(

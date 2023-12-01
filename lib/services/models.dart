@@ -748,6 +748,7 @@ class Programme {
   String id = "";
   String uuid = "";
   String name = "";
+  String logo = "";
   int projects = 0;
 
   Programme(this.name);
@@ -755,12 +756,14 @@ class Programme {
   Programme.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        name = json['name'];
+        name = json['name'],
+        logo = json['logo'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'logo': logo,
       };
 
   KeyValue toKeyValue() {
@@ -769,8 +772,8 @@ class Programme {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProgramme.add(data);
     } else {

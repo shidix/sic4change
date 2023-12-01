@@ -129,12 +129,18 @@ class Contact {
   }
 
   static Future<Contact> byEmail(String email) async {
-    QuerySnapshot query =
-        await dbContacts.where("email", isEqualTo: email).get();
-    final dbResult = query.docs.first;
-    final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
-    data["id"] = dbResult.id;
-    return Contact.fromJson(data);
+    try {
+      print(email);
+      QuerySnapshot query =
+          await dbContacts.where("email", isEqualTo: email).get();
+      final dbResult = query.docs.first;
+      final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
+      data["id"] = dbResult.id;
+      return Contact.fromJson(data);
+    } catch (e) {
+      print(e);
+      return Contact("", "", "", "", "");
+    }
   }
 }
 

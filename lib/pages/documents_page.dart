@@ -551,7 +551,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
       onSelected: (SampleItem item) async {
         selectedMenu = item;
         if (selectedMenu == SampleItem.itemOne) {
-          _fileEditDialog(context, nameController, file, currentFolder);
+          _linkDialog(context, file);
         }
         if (selectedMenu == SampleItem.itemTwo) {
           _fileEditDialog(context, nameController, file, currentFolder);
@@ -589,6 +589,27 @@ class _DocumentsPageState extends State<DocumentsPage> {
 /*-------------------------------------------------------------
                         FILES Dialogs
 ---------------------------------------------------------------*/
+  Future<void> _linkDialog(context, file) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enlace del fichero'),
+          content: SingleChildScrollView(
+              child: Row(children: [SelectableText(file.link)])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _fileEditDialog(context, controller, file, currentFolder) async {
     String _folderUuid = "";

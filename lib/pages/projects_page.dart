@@ -6,6 +6,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectTitle = "Proyectos";
 List prList = [];
+List programList = [];
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -15,6 +16,13 @@ class ProjectsPage extends StatefulWidget {
 }
 
 class _ProjectsPageState extends State<ProjectsPage> {
+  void loadProgrammes() async {
+    await getProgrammes().then((val) {
+      programList = val;
+    });
+    setState(() {});
+  }
+
   void loadProjects() async {
     await getProjects().then((val) {
       prList = val;
@@ -79,10 +87,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Widget projectSearch() {
     return Container(
         padding: const EdgeInsets.only(left: 20, top: 20),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(projectTitle, style: TextStyle(fontSize: 20)),
+            customText(projectTitle, 20),
+            addBtn(context, callDialog),
             /*Container(
           width: 500,
           child: SearchBar(
@@ -97,6 +106,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
         ));
   }
 
+/*-------------------------------------------------------------
+                     PROGRAMMES
+-------------------------------------------------------------*/
   Widget programmeList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
@@ -104,25 +116,34 @@ class _ProjectsPageState extends State<ProjectsPage> {
             future: getProgrammes(),
             builder: ((context, snapshot) {
               if (snapshot.hasData) {
+                programList = snapshot.data!;
                 return SizedBox(
                     height: 80,
                     child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 6,
+                          crossAxisCount: 4,
                           //crossAxisSpacing: 20,
                           //mainAxisSpacing: 20,
                           childAspectRatio: 10,
                         ),
-                        itemCount: snapshot.data!.length,
+                        itemCount: programList.length,
                         itemBuilder: (_, index) {
-                          Programme programme = snapshot.data![index];
+                          Programme programme = programList[index];
                           return Row(
                             children: [
                               customText(programme.name, 15,
                                   bold: FontWeight.bold),
                               customText(
                                   " ('${programme.projects}' proyectos)", 15),
+                              editBtn(context, callDialog, programme)
+                              /*IconButton(
+                                icon: const Icon(Icons.edit),
+                                tooltip: 'Editar programa',
+                                onPressed: () {
+                                  programmeEditDialog(context, programme);
+                                },
+                              ),*/
                             ],
                           );
                         }));
@@ -134,6 +155,83 @@ class _ProjectsPageState extends State<ProjectsPage> {
             })));
   }
 
+  void callDialog(context, programme) {
+    programmeEditDialog(context, programme);
+  }
+
+  /*Widget addProgrammeBtn(context, programme) {
+    return FilledButton(
+      onPressed: () {
+        programmeEditDialog(context, programme);
+      },
+      style: btnStyle,
+      child: btnChild(btnText: "Añadir programa"),
+    );
+  }*/
+
+  void _saveProgramme(context, programme, name, logo) async {
+    programme ??= Programme(name);
+    programme.name = name;
+    programme.logo = logo;
+    programme.save();
+    loadProgrammes();
+    Navigator.pop(context);
+  }
+
+  Future<void> programmeEditDialog(context, programme) {
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController logoController = TextEditingController(text: "");
+
+    if (programme != null) {
+      nameController = TextEditingController(text: programme.name);
+      logoController = TextEditingController(text: programme.logo);
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Modificar programa'),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Nombre:", 16, textColor: titleColor),
+                customTextField(nameController, "Nombre", size: 600),
+              ]),
+            ]),
+            space(height: 20),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                customText("Logo:", 16, textColor: titleColor),
+                customTextField(logoController, "Logo", size: 600),
+              ]),
+            ]),
+          ])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Guardar'),
+              onPressed: () async {
+                _saveProgramme(context, programme, nameController.text,
+                    logoController.text);
+              },
+            ),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+/*-------------------------------------------------------------
+                     PROJECTS
+-------------------------------------------------------------*/
   Widget projectList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),

@@ -7,10 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-Color titleColor = Color(0xff00809a);
-Color greyColor = Color(0xffdfdfdf);
-Color bgColor = Color(0xffe5f2d8);
-
 Widget space({width = 10, height = 10}) {
   return SizedBox(
     width: width,
@@ -81,7 +77,8 @@ Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
           },
           child: Text(
             btnName,
-            style: const TextStyle(color: Color(0xff00809a), fontSize: 16),
+            style: const TextStyle(color: Color(0xffabf100), fontSize: 16),
+            //style: const TextStyle(color: Color(0xff00809a), fontSize: 16),
           ),
         ));
   } else {
@@ -140,29 +137,6 @@ Widget logoutBtn(context, btnName, btnIcon) {
         Text(
           btnName,
           style: const TextStyle(color: Colors.black54, fontSize: 18),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget returnBtn(context) {
-  return FilledButton(
-    onPressed: () {
-      Navigator.pop(context);
-    },
-    style: FilledButton.styleFrom(
-      //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xffffffff)),
-      backgroundColor: Color(0xffffffff),
-    ),
-    child: const Column(
-      children: [
-        Icon(Icons.arrow_circle_left_outlined, color: Colors.black54),
-        SizedBox(height: 5),
-        Text(
-          "Volver",
-          style: TextStyle(color: Colors.black54, fontSize: 12),
         ),
       ],
     ),
@@ -739,6 +713,15 @@ SizedBox s4cTitleBar(String title, [context]) {
               ]))));
 }
 
+//--------------------------------------------------------------------------
+//                              STYLES
+//--------------------------------------------------------------------------
+
+Color titleColor = const Color(0xffabf0ff);
+//Color titleColor = Color(0xff008099);
+Color greyColor = const Color(0xffdfdfde);
+Color bgColor = const Color(0xffe5f2d7);
+
 // const Color mainColor = Color(0xFF00809A);
 const Color mainColor = Color(0xffabf100);
 
@@ -788,3 +771,51 @@ const TextStyle danger =
 const Color warningColor = Colors.orange;
 const TextStyle warningStyle =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
+
+const ButtonStyle btnStyle = ButtonStyle(
+  backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
+);
+
+//--------------------------------------------------------------------------
+//                           BUTTONS
+//--------------------------------------------------------------------------
+Widget addBtn(context, action, {text = "Añadir", icon = Icons.add}) {
+  return FilledButton(
+      onPressed: () {
+        action(context, null);
+      },
+      style: btnStyle,
+      child: Column(
+        children: [
+          Icon(icon, color: subTitleColor),
+          space(height: 5),
+          customText(text, 12),
+        ],
+      ));
+}
+
+Widget editBtn(context, action, obj, {text = "Editar", icon = Icons.edit}) {
+  return IconButton(
+    icon: Icon(icon),
+    tooltip: text,
+    onPressed: () {
+      action(context, obj);
+    },
+  );
+}
+
+Widget returnBtn(context) {
+  return FilledButton(
+    onPressed: () {
+      Navigator.pop(context);
+    },
+    style: btnStyle,
+    child: Column(
+      children: [
+        const Icon(Icons.arrow_circle_left_outlined, color: subTitleColor),
+        space(height: 5),
+        customText("Volver", 12, textColor: subTitleColor)
+      ],
+    ),
+  );
+}
