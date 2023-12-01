@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
 
 class HomePage extends StatefulWidget {
+  final int HOLIDAY_DAYS = 30;
   const HomePage({super.key});
 
   @override
@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   Contact? contact;
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
+  int holidayDays = 0;
 
   Future<void> loadMyTasks() async {
     await Contact.byEmail(user.email!).then((value) {
@@ -44,6 +45,11 @@ class _HomePageState extends State<HomePage> {
       contact = value;
       HolidayRequest.byUser(value.uuid).then((value) {
         myHolidays = value;
+        holidayDays = widget.HOLIDAY_DAYS;
+        for (HolidayRequest holiday in myHolidays!) {
+          holidayDays -=
+              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
         setState(() {});
       });
     });
@@ -320,6 +326,11 @@ class _HomePageState extends State<HomePage> {
       currentHoliday = null;
       HolidayRequest.byUser(contact!.uuid).then((value) {
         myHolidays = value;
+        holidayDays = 30;
+        for (HolidayRequest holiday in myHolidays!) {
+          holidayDays -=
+              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
         setState(() {});
       });
     });
@@ -338,6 +349,7 @@ class _HomePageState extends State<HomePage> {
           content: HolidayRequestForm(
             key: null,
             currentRequest: currentHoliday,
+            contact: contact,
           ),
         );
       },
@@ -356,80 +368,87 @@ class _HomePageState extends State<HomePage> {
               HolidayRequest holiday = myHolidays!.elementAt(index);
               return ListTile(
                   subtitle: Column(children: [
-                Row(
-                  children: [
-                    Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.center,
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 2,
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    holiday.catetory,
+                                    style: normalText,
+                                  )),
+                            )),
+                        Expanded(
+                          flex: 1,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                holiday.catetory,
+                                DateFormat('yyyy-MM-dd')
+                                    .format(holiday.startDate),
                                 style: normalText,
+                                textAlign: TextAlign.center,
                               )),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            DateFormat('yyyy-MM-dd').format(holiday.startDate),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            DateFormat('yyyy-MM-dd').format(holiday.endDate),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            getWorkingDaysBetween(
-                                    holiday.startDate, holiday.endDate)
-                                .toString(),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Card(
-                              color: warningColor,
-                              child: Padding(
-                                  padding: EdgeInsets.all(10),
-                                  child: Text(
-                                    holiday.status,
-                                    style: TextStyle(color: Colors.white),
-                                    textAlign: TextAlign.center,
-                                  )))),
-                    ),
-                  ],
-                )
-              ]));
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                DateFormat('yyyy-MM-dd')
+                                    .format(holiday.endDate),
+                                style: normalText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                getWorkingDaysBetween(
+                                        holiday.startDate, holiday.endDate)
+                                    .toString(),
+                                style: normalText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Card(
+                                  color: warningColor,
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Text(
+                                        holiday.status,
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      )))),
+                        ),
+                      ],
+                    )
+                  ]),
+                  onTap: () {
+                    currentHoliday = holiday;
+                    addHolidayRequestDialog(context);
+                  });
             }));
   }
 
   Widget holidayPanel(BuildContext context) {
-    List holidayPeriods = [];
-    for (int i = 0; i < 5; i++) {
-      DateTime from = DateTime(DateTime.now().year, 1, 1)
-          .add(Duration(days: Random().nextInt(300)));
-      DateTime to = from.add(Duration(days: Random().nextInt(10)));
-      holidayPeriods.add([from, to]);
-    }
-    holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));
+    // List holidayPeriods = [];
+    // for (int i = 0; i < 5; i++) {
+    //   DateTime from = DateTime(DateTime.now().year, 1, 1)
+    //       .add(Duration(days: Random().nextInt(300)));
+    //   DateTime to = from.add(Duration(days: Random().nextInt(10)));
+    //   holidayPeriods.add([from, to]);
+    // }
+    // holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -464,7 +483,7 @@ class _HomePageState extends State<HomePage> {
                                     Icon(Icons.beach_access, color: mainColor),
                               )),
                             )),
-                        const Expanded(
+                        Expanded(
                             flex: 4,
                             child: Align(
                                 alignment: Alignment.centerLeft,
@@ -472,7 +491,7 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Padding(
+                                      const Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             "Solcitud de vacaciones",
@@ -480,10 +499,11 @@ class _HomePageState extends State<HomePage> {
                                           )),
                                       Row(
                                         children: [
-                                          Text("Me quedan ",
+                                          const Text("Me quedan ",
                                               style: subTitleText),
-                                          Text("20", style: mainText),
-                                          Text(" días libres",
+                                          Text(holidayDays.toString(),
+                                              style: mainText),
+                                          const Text(" días libres",
                                               style: subTitleText),
                                         ],
                                       )
@@ -605,10 +625,10 @@ class _HomePageState extends State<HomePage> {
                           child: Card(
                               color: task.statusObj.getColor(),
                               child: Padding(
-                                  padding: EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(10),
                                   child: Text(
                                     task.statusObj.getName(),
-                                    style: TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                     textAlign: TextAlign.center,
                                   )))),
                     ),

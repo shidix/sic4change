@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
+
 class HolidayRequest {
   String id;
   String uuid;
@@ -13,10 +14,9 @@ class HolidayRequest {
   DateTime approvalDate;
   String status;
   String approvedBy;
-  
+
   final database = db.collection("s4c_holidays");
 
- 
   HolidayRequest({
     required this.id,
     required this.uuid,
@@ -69,7 +69,6 @@ class HolidayRequest {
     return 'HolidayRequest{id: $id, uuid: $uuid, userId: $userId, catetory: $catetory, startDate: $startDate, endDate: $endDate, requestDate: $requestDate, approvalDate: $approvalDate, status: $status, approvedBy: $approvedBy}';
   }
 
-
   void save() {
     if (id == "") {
       id = uuid;
@@ -92,11 +91,11 @@ class HolidayRequest {
       id: '',
       uuid: Uuid().v4(),
       userId: '',
-      catetory: '',
+      catetory: 'Vacaciones',
       startDate: DateTime.now(),
       endDate: DateTime.now(),
       requestDate: DateTime.now(),
-      approvalDate: DateTime(2099,1,1),
+      approvalDate: DateTime(2099, 1, 1),
       status: 'Pendiente',
       approvedBy: '',
     );
@@ -105,11 +104,10 @@ class HolidayRequest {
   static Future<List<HolidayRequest>> byUser(String uuid) async {
     final database = db.collection("s4c_holidays");
     List<HolidayRequest> items = [];
-    final query = await database.where("userId", isEqualTo: uuid).get(); 
+    final query = await database.where("userId", isEqualTo: uuid).get();
     query.docs.forEach((result) {
-         items.add(HolidayRequest.fromFirestore(result));
-      });
+      items.add(HolidayRequest.fromFirestore(result));
+    });
     return items;
   }
 }
-
