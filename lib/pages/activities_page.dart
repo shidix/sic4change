@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/widgets/goal_menu_widget.dart';
+import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -44,7 +44,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         mainMenu(context),
         activityPath(context, _result),
         activityHeader(context, _result),
-        goalMenu(context, _result),
+        marcoMenu(context, _result, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,

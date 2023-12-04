@@ -53,7 +53,7 @@ class _ContactsPageState extends State<ContactsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                addBtn(context),
+                addCBtn(context),
               ],
             ),
           ),
@@ -71,7 +71,7 @@ class _ContactsPageState extends State<ContactsPage> {
 /*-------------------------------------------------------------
                             CONTACTS
 -------------------------------------------------------------*/
-Widget addBtn(context) {
+Widget addCBtn(context) {
   return FilledButton(
     onPressed: () {
       callEditDialog(context, null);

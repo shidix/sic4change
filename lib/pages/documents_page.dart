@@ -210,27 +210,30 @@ class _DocumentsPageState extends State<DocumentsPage> {
 /*-------------------------------------------------------------
                             FOLDERS
 -------------------------------------------------------------*/
-  Widget foldersHeader(context, _currentFolder) {
-    String title;
-    if (_currentFolder != null) {
-      title = _currentFolder.name;
-    } else {
-      title = "/";
-    }
+  Widget foldersHeader(context, currentFolder) {
+    String title = (currentFolder != null) ? currentFolder.name : "/";
+
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
         child: Row(children: [
           customText(title, 20),
-          if (_currentFolder != null)
+          if (currentFolder != null)
             IconButton(
               icon: const Icon(Icons.arrow_upward),
               tooltip: 'Up folder',
               onPressed: () {
-                getFolderByUuid(_currentFolder.parent).then((value) {
-                  Navigator.pushReplacementNamed(context, "/documents",
-                      arguments: value);
-                });
+                if (currentFolder.parent != "") {
+                  getFolderByUuid(currentFolder.parent).then((value) {
+                    Navigator.pushReplacementNamed(context, "/documents",
+                        arguments: value);
+                  });
+                } else {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    "/documents",
+                  );
+                }
               },
             ),
         ]),
@@ -240,7 +243,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            folderAddBtn(context, _currentFolder),
+            folderAddBtn(context, currentFolder),
           ],
         ),
       ),
@@ -440,8 +443,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
-  Future<void> _confirmRemoveDialog(context, _folder, _currentFolder) async {
-    String _folderUuid = (_currentFolder != null) ? _currentFolder.uuid : "";
+  Future<void> _confirmRemoveDialog(context, folder, currentFolder) async {
+    String _folderUuid = (currentFolder != null) ? currentFolder.uuid : "";
 
     return showDialog<void>(
       context: context,
@@ -457,7 +460,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
             TextButton(
               child: const Text('Borrar'),
               onPressed: () async {
-                _folder.delete();
+                folder.delete();
                 loadFolders(_folderUuid);
                 Navigator.pop(context);
               },
@@ -522,7 +525,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
                   String? name = file?.name;
                   String? loc = "(${file?.loc})";
 
-                  print(file?.link);
                   if (name != null && name.length > 6) {
                     name = '${name.substring(0, 6)}...';
                   }

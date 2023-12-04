@@ -41,8 +41,8 @@ class Folder {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbFolder.add(data);
     } else {
@@ -56,13 +56,12 @@ class Folder {
   }
 }
 
-Future<List> getFolders(String _parent_uuid) async {
+Future<List> getFolders(String parent_uuid) async {
   List folders = [];
   QuerySnapshot? queryFolders;
 
-  if (_parent_uuid != "") {
-    queryFolders =
-        await dbFolder.where("parent", isEqualTo: _parent_uuid).get();
+  if (parent_uuid != "") {
+    queryFolders = await dbFolder.where("parent", isEqualTo: parent_uuid).get();
   } else {
     queryFolders = await dbFolder.where("parent", isEqualTo: "").get();
   }
@@ -75,11 +74,11 @@ Future<List> getFolders(String _parent_uuid) async {
   return folders;
 }
 
-Future<Folder?> getFolderByUuid(String _uuid) async {
-  QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: _uuid).get();
-  final _doc = query.docs.first;
-  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-  data["id"] = _doc.id;
+Future<Folder?> getFolderByUuid(String uuid) async {
+  QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: uuid).get();
+  final doc = query.docs.first;
+  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  data["id"] = doc.id;
   return Folder.fromJson(data);
 }
 
@@ -117,8 +116,9 @@ class SFile {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      loc = await getLoc();
       Map<String, dynamic> data = toJson();
       dbFile.add(data);
     } else {
@@ -129,6 +129,17 @@ class SFile {
 
   Future<void> delete() async {
     await dbFile.doc(id).delete();
+  }
+
+  Future<String> getLoc() async {
+    QuerySnapshot? query;
+
+    var loc = "";
+    do {
+      loc = getRandomString(4);
+      query = await dbFile.where("loc", isEqualTo: loc).get();
+    } while (query.size > 0);
+    return loc;
   }
 }
 

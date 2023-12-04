@@ -42,45 +42,6 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
   );
 }
 
-Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
-  if (selected) {
-    return Container(
-        padding: const EdgeInsets.all(5),
-        decoration: const BoxDecoration(
-            border: Border(
-              top: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
-              left: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
-              right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
-              bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
-            ),
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(5), topRight: Radius.circular(5)),
-            color: Colors.white),
-        child: TextButton(
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
-          },
-          child: Text(
-            btnName,
-            style: const TextStyle(color: Color(0xffabf100), fontSize: 16),
-            //style: const TextStyle(color: Color(0xff00809a), fontSize: 16),
-          ),
-        ));
-  } else {
-    return Container(
-        padding: const EdgeInsets.all(5),
-        child: TextButton(
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
-          },
-          child: Text(
-            btnName,
-            style: const TextStyle(color: Colors.black54, fontSize: 16),
-          ),
-        ));
-  }
-}
-
 Widget menuTabSelect(context, btnName, btnRoute, args) {
   return Container(
       padding: const EdgeInsets.all(5),
@@ -652,32 +613,39 @@ class ReadOnlyTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color bgcolor = Colors.grey.shade100;
-    TextStyle? fgstyle = Theme.of(context).textTheme.titleMedium!.copyWith(backgroundColor: bgcolor);
+    TextStyle? fgstyle = Theme.of(context)
+        .textTheme
+        .titleMedium!
+        .copyWith(backgroundColor: bgcolor);
     return Container(
-      color: bgcolor,
-    child:Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
-        Text(
-          label,
-          textAlign: textAlign,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall, // Estilo similar al de un TextFormField
-        ),
-        const SizedBox(height: 2.0), // Ajusta el espacio según sea necesario
-        Text(
-          textToShow,
-          textAlign: textAlign,
-          style: fgstyle, // Estilo similar al de un TextFormField
-        ),
-        const SizedBox(height: 4.0), // Ajusta el espacio según sea necesario
+        color: bgcolor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+                height: 4.0), // Ajusta el espacio según sea necesario
+            Text(
+              label,
+              textAlign: textAlign,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall, // Estilo similar al de un TextFormField
+            ),
+            const SizedBox(
+                height: 2.0), // Ajusta el espacio según sea necesario
+            Text(
+              textToShow,
+              textAlign: textAlign,
+              style: fgstyle, // Estilo similar al de un TextFormField
+            ),
+            const SizedBox(
+                height: 4.0), // Ajusta el espacio según sea necesario
 
-        const Divider(height: 1.0, color: Colors.black54),
-        const SizedBox(height: 2.0), // Ajusta el espacio según sea necesario
-      ],
-    ));
+            const Divider(height: 1.0, color: Colors.black54),
+            const SizedBox(
+                height: 2.0), // Ajusta el espacio según sea necesario
+          ],
+        ));
   }
 }
 
@@ -723,7 +691,7 @@ Map StatusColors = {
   "SIN INICIAR": Colors.orange,
   "SIN APROBAR": Colors.orange,
   "FINALIZADO": Colors.green,
-  "" : Colors.grey,
+  "": Colors.grey,
 };
 
 TextStyle statusText(
@@ -731,16 +699,14 @@ TextStyle statusText(
   return TextStyle(fontWeight: fontWeight, fontSize: fontSize, color: color);
 }
 
-Padding statusCard(String text,
-    [TextStyle? fgstyle, Color? bgcolor]) {
+Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
   fgstyle ??= statusText();
   if (bgcolor == null) {
     if (StatusColors.containsKey(text.toUpperCase())) {
-    bgcolor = StatusColors[text.toUpperCase()];
-    }
-    else {
+      bgcolor = StatusColors[text.toUpperCase()];
+    } else {
       bgcolor = Colors.grey;
-    } 
+    }
   }
   return Padding(
       padding: const EdgeInsets.only(bottom: 0),
@@ -758,13 +724,29 @@ Padding statusCard(String text,
 Object getObject(List items, String uuid) {
   return items.firstWhere((item) => item.uuid == uuid);
 }
+
+//--------------------------------------------------------------------------
+//                              TEXTS
+//--------------------------------------------------------------------------
+const String addText = "Añadir";
+const String cancelText = "Cancelar";
+const String editText = "Modificar";
+const String removeConfirm =
+    "¿Está seguro/a de que desea borrar este elemento?";
+const String removeText = "Borrar";
+const String returnText = "Volver";
+const String saveText = "Guardar";
+
+const String nameText = "Nombre";
+const String descText = "Descripción";
+
 //--------------------------------------------------------------------------
 //                              STYLES
 //--------------------------------------------------------------------------
 
 Color titleColor = const Color(0xffabf0ff);
 //Color titleColor = Color(0xff008099);
-Color greyColor = const Color(0xffdfdfde);
+Color greyColor = const Color(0xffdfdfdf);
 Color bgColor = const Color(0xffe5f2d7);
 
 // const Color mainColor = Color(0xFF00809A);
@@ -825,7 +807,6 @@ const ButtonStyle btnStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
 );
 
-
 //--------------------------------------------------------------------------
 //                           COMMONS
 //--------------------------------------------------------------------------
@@ -850,27 +831,47 @@ Widget customText(_text, _size,
 //--------------------------------------------------------------------------
 //                           BUTTONS
 //--------------------------------------------------------------------------
-Widget addBtn(context, action, {text = "Añadir", icon = Icons.add}) {
+Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
   return FilledButton(
       onPressed: () {
-        action(context, null);
+        action(context, args);
       },
       style: btnStyle,
       child: Column(
         children: [
           Icon(icon, color: subTitleColor),
           space(height: 5),
-          customText(text, 12),
+          customText(text, 12, textColor: subTitleColor),
         ],
       ));
 }
 
-Widget editBtn(context, action, obj, {text = "Editar", icon = Icons.edit}) {
+Widget editBtn(context, action, args, {text = editText, icon = Icons.edit}) {
   return IconButton(
     icon: Icon(icon),
     tooltip: text,
     onPressed: () {
-      action(context, obj);
+      action(context, args);
+    },
+  );
+}
+
+Widget removeBtn(context, action, args,
+    {text = removeText, icon = Icons.remove_circle}) {
+  return IconButton(
+    icon: Icon(icon),
+    tooltip: text,
+    onPressed: () {
+      action(context, args);
+    },
+  );
+}
+
+Widget cancelBtn(context) {
+  return TextButton(
+    child: const Text(cancelText),
+    onPressed: () {
+      Navigator.of(context).pop();
     },
   );
 }
@@ -885,8 +886,95 @@ Widget returnBtn(context) {
       children: [
         const Icon(Icons.arrow_circle_left_outlined, color: subTitleColor),
         space(height: 5),
-        customText("Volver", 12, textColor: subTitleColor)
+        customText(returnText, 12, textColor: subTitleColor)
       ],
     ),
+  );
+}
+
+//--------------------------------------------------------------------------
+//                           TABS
+//--------------------------------------------------------------------------
+BoxDecoration tabDecoration = const BoxDecoration(
+    border: Border(
+      top: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+      left: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+      right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
+      bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
+    ),
+    borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+    color: Colors.white);
+
+Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
+  if (selected) {
+    return Container(
+        padding: const EdgeInsets.all(5),
+        decoration: tabDecoration,
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+          },
+          child: customText(btnName, 16, textColor: cardHeaderColor),
+        ));
+  } else {
+    return Container(
+        padding: const EdgeInsets.all(5),
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+          },
+          child: customText(btnName, 16, textColor: subTitleColor),
+        ));
+  }
+}
+
+Widget contentTab(context, action, obj) {
+  return Expanded(
+      child: Container(
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: const Color(0xffdfdfdf),
+                width: 2,
+              ),
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+            ),
+            child: action(context, obj),
+          )));
+}
+
+//--------------------------------------------------------------------------
+//                           DIALOGS
+//--------------------------------------------------------------------------
+Future<void> customRemoveDialog(context, obj, action, args) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text(removeText),
+        content: const SingleChildScrollView(
+          child: Text(removeConfirm),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text(removeText),
+            onPressed: () async {
+              obj.delete();
+              action(args);
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text(cancelText),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
   );
 }

@@ -5,6 +5,7 @@ import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sic4change/pages/risks_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
     '/result_tasks': (context) => const ResultTasksPage(),
+    '/risks': (context) => const RisksPage(),
     '/transfers': (context) => TransfersPage(
           project: null,
         ),

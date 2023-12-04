@@ -91,7 +91,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             customText(projectTitle, 20),
-            addBtn(context, callDialog),
+            addBtn(context, callDialog, [null]),
             /*Container(
           width: 500,
           child: SearchBar(
@@ -118,34 +118,50 @@ class _ProjectsPageState extends State<ProjectsPage> {
               if (snapshot.hasData) {
                 programList = snapshot.data!;
                 return SizedBox(
-                    height: 80,
+                    height: 150,
                     child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           //crossAxisSpacing: 20,
                           //mainAxisSpacing: 20,
-                          childAspectRatio: 10,
+                          childAspectRatio: 2,
                         ),
                         itemCount: programList.length,
                         itemBuilder: (_, index) {
                           Programme programme = programList[index];
-                          return Row(
-                            children: [
-                              customText(programme.name, 15,
-                                  bold: FontWeight.bold),
-                              customText(
-                                  " ('${programme.projects}' proyectos)", 15),
-                              editBtn(context, callDialog, programme)
-                              /*IconButton(
-                                icon: const Icon(Icons.edit),
-                                tooltip: 'Editar programa',
-                                onPressed: () {
-                                  programmeEditDialog(context, programme);
-                                },
-                              ),*/
-                            ],
-                          );
+                          if (programme.logo != "") {
+                            return Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Image.network(programme.logo),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      customText(programme.name, 15,
+                                          bold: FontWeight.bold),
+                                      customText(
+                                          " ('${programme.projects}' proyectos)",
+                                          15),
+                                      editBtn(context, callDialog, programme)
+                                    ],
+                                  )
+                                ]);
+                          } else {
+                            return Column(children: [
+                              Row(
+                                children: [
+                                  customText(programme.name, 15,
+                                      bold: FontWeight.bold),
+                                  customText(
+                                      " ('${programme.projects}' proyectos)",
+                                      15),
+                                  editBtn(context, callDialog, programme)
+                                ],
+                              )
+                            ]);
+                          }
                         }));
               } else {
                 return const Center(

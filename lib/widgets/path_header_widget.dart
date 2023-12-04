@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget pathHeader(context, _name) {
+Widget pathHeader(context, name) {
   return Container(
       padding: EdgeInsets.only(top: 20, left: 20),
       child: Column(
@@ -9,7 +9,7 @@ Widget pathHeader(context, _name) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _name,
+              name,
               style: TextStyle(fontSize: 20),
             ),
             /*space(height: 10),

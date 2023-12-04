@@ -5,7 +5,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/widgets/goal_menu_widget.dart';
+import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -45,7 +45,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         mainMenu(context),
         activityIndicatorPath(context, activity),
         activityIndicatorHeader(context, activity),
-        goalMenu(context, activity),
+        marcoMenu(context, activity, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,
