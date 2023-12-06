@@ -8,6 +8,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_tasks.dart';
+import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -30,6 +31,10 @@ class _HomePageState extends State<HomePage> {
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
   int holidayDays = 0;
+
+  Workday? currentWorkday;
+  Widget workdayButton = Container();
+  List<Workday>? myWorkdays = [];
 
   List<SProject>? myProjects = [];
 
@@ -68,12 +73,49 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> loadMyWorkdays() async {
+    await Contact.byEmail(user.email!).then((value) {
+      contact = value;
+      Workday.byUser(value.email).then((value) {
+        myWorkdays = value;
+        setState(() {});
+      });
+    });
+  }
+
+  Future loadMyData() async {
+    await Contact.byEmail(user.email!).then((value) {
+      contact = value;
+    });
+    await contact!.getProjects().then((value) {
+      myProjects = value;
+    });
+    await STask.getByAssigned(contact!.uuid).then((value) {
+      mytasks = value;
+    });
+    await HolidayRequest.byUser(contact!.uuid).then((value) {
+      myHolidays = value;
+      holidayDays = widget.HOLIDAY_DAYS;
+      for (HolidayRequest holiday in myHolidays!) {
+        holidayDays -=
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+      }
+    });
+    await Workday.byUser(contact!.email).then((value) {
+      myWorkdays = value;
+    });
+
+    await Workday.currentByUser(contact!.email).then((value) {
+      currentWorkday = value;
+    });
+
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
-    loadMyTasks();
-    loadMyHolidays();
-    loadMyProjects();
+    loadMyData();
   }
 
   @override
@@ -131,6 +173,28 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// WORKTIME ///////////
+
+  void workdayAction(context) {
+    _workdayAction(context);
+  }
+
+  void _workdayAction(context) async {
+    await Workday.currentByUser(contact!.email).then((value) {
+      currentWorkday = value;
+      if (currentWorkday!.open) {
+        currentWorkday!.endDate = DateTime.now();
+        currentWorkday!.open = false;
+        currentWorkday!.save();
+      } else {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = contact!.email;
+        currentWorkday!.open = true;
+        currentWorkday!.save();
+      }
+    });
+    loadMyWorkdays();
+  }
+
   List worktimeItems() {
     List items = [];
     int maxItems = Random().nextInt(10);
@@ -154,6 +218,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel(BuildContext context) {
+    workdayButton = actionButton(context, "(Re)Iniciar jornada", workdayAction,
+        Icons.play_circle_outline_sharp, context,
+        iconColor: successColor);
+    if (currentWorkday?.open == true) {
+      workdayButton = actionButton(context, "Finalizar jornada", workdayAction,
+          Icons.stop_circle_outlined, context,
+          iconColor: dangerColor);
+    }
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -206,13 +278,15 @@ class _HomePageState extends State<HomePage> {
                                           style: subTitleText),
                                     ]))),
                         Expanded(
-                            flex: 3,
-                            child: actionButton(
-                                context,
-                                "Empezar jornada",
-                                printSummary,
-                                Icons.play_circle_outline_sharp,
-                                context)),
+                          flex: 3,
+                          child: workdayButton,
+                        )
+                        // actionButton(
+                        //     context,
+                        //     "(re)Iniciar jornada",
+                        //     workdayAction,
+                        //     Icons.play_circle_outline_sharp,
+                        //     context)),
                       ],
                     )),
                 Container(
@@ -263,14 +337,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget worktimeRows(context) {
-    List myItems = worktimeItems();
+    // List myItems = worktimeItems();
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
         color: Colors.white,
         child: ListView.builder(
             shrinkWrap: true,
-            itemCount: myItems.length,
+            itemCount: myWorkdays!.length,
             scrollDirection: Axis.vertical,
             itemBuilder: (BuildContext context, int index) {
               return ListTile(
@@ -284,7 +358,8 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                dateToES(myItems.elementAt(index).elementAt(0)),
+                                dateToES(
+                                    myWorkdays!.elementAt(index).startDate),
                                 style: normalText,
                               )),
                         )),
@@ -294,7 +369,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
                             DateFormat('HH:mm')
-                                .format(myItems.elementAt(index).elementAt(0)),
+                                .format(myWorkdays!.elementAt(index).startDate),
                             style: normalText,
                             textAlign: TextAlign.center,
                           )),
@@ -305,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
                             DateFormat('HH:mm')
-                                .format(myItems.elementAt(index).elementAt(1)),
+                                .format(myWorkdays!.elementAt(index).endDate),
                             style: normalText,
                             textAlign: TextAlign.center,
                           )),
@@ -315,14 +390,14 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
-                            (((myItems
+                            (((myWorkdays!
                                         .elementAt(index)
-                                        .elementAt(1)
-                                        .difference(myItems
+                                        .endDate
+                                        .difference(myWorkdays!
                                             .elementAt(index)
-                                            .elementAt(0))
+                                            .startDate)
                                         .inMinutes) /
-                                    60) as double)
+                                    60))
                                 .toStringAsFixed(2),
                             style: normalText,
                             textAlign: TextAlign.center,
@@ -1102,8 +1177,9 @@ class _HomePageState extends State<HomePage> {
                                   child: statusCard(project.getStatus()),
                                 ),
                               ],
-                            )
-                          , Divider()]));
+                            ),
+                            Divider()
+                          ]));
                         })),
               ],
             )));

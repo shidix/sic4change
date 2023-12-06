@@ -566,8 +566,9 @@ Widget backButton(context) {
   );
 }
 
-Widget actionButton(context, String text, Function action, IconData? icon,
-    [dynamic args]) {
+Widget actionButton(
+    context, String text, Function action, IconData? icon, dynamic args,
+    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
   return ElevatedButton(
     onPressed: () {
@@ -586,13 +587,13 @@ Widget actionButton(context, String text, Function action, IconData? icon,
       children: [
         Icon(
           icon,
-          color: Colors.black54,
+          color: iconColor,
           size: 30,
         ),
         space(height: 10),
         Text(
           text,
-          style: const TextStyle(color: Colors.black, fontSize: 14),
+          style: TextStyle(color: textColor, fontSize: 14),
         ),
       ],
     ),
@@ -802,6 +803,10 @@ const TextStyle dangerText =
 const Color warningColor = Colors.orange;
 const TextStyle warningText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
+
+const Color successColor = Colors.green;
+const TextStyle successText =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: successColor);
 
 const ButtonStyle btnStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
