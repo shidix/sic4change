@@ -195,28 +195,6 @@ class _HomePageState extends State<HomePage> {
     loadMyWorkdays();
   }
 
-  List worktimeItems() {
-    List items = [];
-    int maxItems = Random().nextInt(10);
-    for (int i = 0; i < maxItems; i++) {
-      // TimeOfDay start = TimeOfDay(hour: Random().nextInt(3)+7, minute: Random().nextInt(60));
-      DateTime start = DateTime.now().subtract(Duration(
-          days: i,
-          hours: DateTime.now().hour,
-          minutes: DateTime.now().minute,
-          seconds: DateTime.now().second,
-          milliseconds: DateTime.now().millisecond));
-      start = start.add(Duration(
-          hours: Random().nextInt(3) + 7, minutes: Random().nextInt(60)));
-      items.add([
-        start,
-        start.add(Duration(
-            hours: 6 + Random().nextInt(3), minutes: Random().nextInt(60))),
-      ]);
-    }
-    return items;
-  }
-
   Widget workTimePanel(BuildContext context) {
     workdayButton = actionButton(context, "(Re)Iniciar jornada", workdayAction,
         Icons.play_circle_outline_sharp, context,
@@ -338,75 +316,81 @@ class _HomePageState extends State<HomePage> {
 
   Widget worktimeRows(context) {
     // List myItems = worktimeItems();
+
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
         color: Colors.white,
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: myWorkdays!.length,
-            scrollDirection: Axis.vertical,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                  subtitle: Column(children: [
-                Row(
-                  children: [
-                    Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+        child: contact != null
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: myWorkdays!.length,
+                scrollDirection: Axis.vertical,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                      subtitle: Column(children: [
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 2,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    dateToES(
+                                        myWorkdays!.elementAt(index).startDate),
+                                    style: normalText,
+                                  )),
+                            )),
+                        Expanded(
+                          flex: 1,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                dateToES(
+                                DateFormat('HH:mm').format(
                                     myWorkdays!.elementAt(index).startDate),
                                 style: normalText,
+                                textAlign: TextAlign.center,
                               )),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            DateFormat('HH:mm')
-                                .format(myWorkdays!.elementAt(index).startDate),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            DateFormat('HH:mm')
-                                .format(myWorkdays!.elementAt(index).endDate),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            (((myWorkdays!
-                                        .elementAt(index)
-                                        .endDate
-                                        .difference(myWorkdays!
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                DateFormat('HH:mm').format(
+                                    myWorkdays!.elementAt(index).endDate),
+                                style: normalText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                (((myWorkdays!
                                             .elementAt(index)
-                                            .startDate)
-                                        .inMinutes) /
-                                    60))
-                                .toStringAsFixed(2),
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                  ],
-                )
-              ]));
-            }));
+                                            .endDate
+                                            .difference(myWorkdays!
+                                                .elementAt(index)
+                                                .startDate)
+                                            .inMinutes) /
+                                        60))
+                                    .toStringAsFixed(2),
+                                style: normalText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ),
+                      ],
+                    )
+                  ]));
+                })
+            : Center(
+                child: CircularProgressIndicator(),
+              ));
+
     return result;
   }
 
@@ -451,83 +435,88 @@ class _HomePageState extends State<HomePage> {
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: myHolidays!.length,
-            itemBuilder: (BuildContext context, int index) {
-              HolidayRequest holiday = myHolidays!.elementAt(index);
-              return ListTile(
-                  subtitle: Column(children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            flex: 2,
-                            child: Align(
-                              alignment: Alignment.center,
+        child: contact != null
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: myHolidays!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  HolidayRequest holiday = myHolidays!.elementAt(index);
+                  return ListTile(
+                      subtitle: Column(children: [
+                        Row(
+                          children: [
+                            Expanded(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        holiday.catetory,
+                                        style: normalText,
+                                      )),
+                                )),
+                            Expanded(
+                              flex: 1,
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    holiday.catetory,
+                                    DateFormat('yyyy-MM-dd')
+                                        .format(holiday.startDate),
                                     style: normalText,
+                                    textAlign: TextAlign.center,
                                   )),
-                            )),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                DateFormat('yyyy-MM-dd')
-                                    .format(holiday.startDate),
-                                style: normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                DateFormat('yyyy-MM-dd')
-                                    .format(holiday.endDate),
-                                style: normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                getWorkingDaysBetween(
-                                        holiday.startDate, holiday.endDate)
-                                    .toString(),
-                                style: normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Card(
-                                  color: warningColor,
-                                  child: Padding(
-                                      padding: const EdgeInsets.all(10),
-                                      child: Text(
-                                        holiday.status,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      )))),
-                        ),
-                      ],
-                    )
-                  ]),
-                  onTap: () {
-                    currentHoliday = holiday;
-                    addHolidayRequestDialog(context);
-                  });
-            }));
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    DateFormat('yyyy-MM-dd')
+                                        .format(holiday.endDate),
+                                    style: normalText,
+                                    textAlign: TextAlign.center,
+                                  )),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    getWorkingDaysBetween(
+                                            holiday.startDate, holiday.endDate)
+                                        .toString(),
+                                    style: normalText,
+                                    textAlign: TextAlign.center,
+                                  )),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Card(
+                                      color: warningColor,
+                                      child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Text(
+                                            holiday.status,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          )))),
+                            ),
+                          ],
+                        )
+                      ]),
+                      onTap: () {
+                        currentHoliday = holiday;
+                        addHolidayRequestDialog(context);
+                      });
+                })
+            : Center(
+                child: CircularProgressIndicator(),
+              ));
   }
 
   Widget holidayPanel(BuildContext context) {
@@ -660,54 +649,58 @@ class _HomePageState extends State<HomePage> {
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: mytasks!.length,
-            itemBuilder: (BuildContext context, int index) {
-              STask task = mytasks!.elementAt(index);
-              return ListTile(
-                  subtitle: Column(children: [
-                Row(
-                  children: [
-                    Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+        child: contact != null
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: mytasks!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  STask task = mytasks!.elementAt(index);
+                  return ListTile(
+                      subtitle: Column(children: [
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 2,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    task.name,
+                                    style: normalText,
+                                  )),
+                            )),
+                        Expanded(
+                          flex: 1,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                task.name,
+                                task.deadline_date,
                                 style: normalText,
+                                textAlign: TextAlign.center,
                               )),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            task.deadline_date,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            task.deadline_date,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: statusCard(task.statusObj.getName()),
-                    ),
-                  ],
-                )
-              ]));
-            }));
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                task.deadline_date,
+                                style: normalText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: statusCard(task.statusObj.getName()),
+                        ),
+                      ],
+                    )
+                  ]));
+                })
+            : Center(
+                child: CircularProgressIndicator(),
+              ));
   }
 
   Widget tasksPanel(BuildContext context) {
@@ -1116,71 +1109,75 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.only(left: 10, right: 10, top: 10),
                     color: Colors.white,
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: myProjects!.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          SProject project = myProjects!.elementAt(index);
-                          return ListTile(
-                              subtitle: Column(children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                    flex: 4,
-                                    child: Column(children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 10),
-                                            child: Text(
-                                              project.name,
-                                              style: normalText,
-                                            )),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 10),
-                                            child: Text(
-                                              project.description,
-                                              style: smallText,
-                                            )),
-                                      )
-                                    ])),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        // DateFormat('yyyy-MM-dd').format((project.getDates() as ProjectDates).start),
-                                        project.datesObj.start,
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
+                    child: contact != null
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: myProjects!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              SProject project = myProjects!.elementAt(index);
+                              return ListTile(
+                                  subtitle: Column(children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        flex: 4,
+                                        child: Column(children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 10),
+                                                child: Text(
+                                                  project.name,
+                                                  style: normalText,
+                                                )),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 10),
+                                                child: Text(
+                                                  project.description,
+                                                  style: smallText,
+                                                )),
+                                          )
+                                        ])),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            // DateFormat('yyyy-MM-dd').format((project.getDates() as ProjectDates).start),
+                                            project.datesObj.start,
+                                            style: normalText,
+                                            textAlign: TextAlign.center,
+                                          )),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            project.datesObj.end,
+                                            style: normalText,
+                                            textAlign: TextAlign.center,
+                                          )),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: statusCard(project.getStatus()),
+                                    ),
+                                  ],
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        project.datesObj.end,
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: statusCard(project.getStatus()),
-                                ),
-                              ],
-                            ),
-                            Divider()
-                          ]));
-                        })),
+                                Divider()
+                              ]));
+                            })
+                        : Center(
+                            child: CircularProgressIndicator(),
+                          )),
               ],
             )));
   }
