@@ -6,7 +6,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 class Orgchart extends StatefulWidget {
-  final url = "/orgchart";
   const Orgchart({Key? key}) : super(key: key);
 
   @override
@@ -17,6 +16,7 @@ class _OrgchartState extends State<Orgchart> {
   User user = FirebaseAuth.instance.currentUser!;
   Profile? currentProfile;
   List<Profile> profiles = [];
+  List<Profile> filteredProfiles = [];
 
   void initState() {
     super.initState();
@@ -25,14 +25,15 @@ class _OrgchartState extends State<Orgchart> {
   }
 
   void getProfiles() async {
-    await Profile.getProfile(user.email!).then((value) {
-      setState(() {
-        currentProfile = value;
-      });
-    });
+    // await Profile.getProfile(user.email!).then((value) {
+    //   setState(() {
+    //     currentProfile = value;
+    //   });
+    // });
     await Profile.getProfiles().then((value) {
       setState(() {
         profiles = value;
+        filteredProfiles = value;
       });
     });
   }
@@ -43,6 +44,7 @@ class _OrgchartState extends State<Orgchart> {
 
   void addProfileDialog(context) {
     _addProfileDialog(context).then((value) {
+      currentProfile = null;
       getProfiles();
     });
   }
@@ -55,20 +57,40 @@ class _OrgchartState extends State<Orgchart> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('Añadir transferencia'),
-          content: ProfileForm(
-            key: null,
-            currentProfile: currentProfile,
-          ),
+          title: s4cTitleBar('$addText Perfil'),
+          content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: ProfileForm(
+                key: null,
+                currentProfile: currentProfile,
+              )),
         );
       },
     );
   }
 
+  void filterProfiles(String value) {
+    filteredProfiles = [];
+    value = value.toLowerCase();
+    for (var profile in profiles) {
+      if (profile.email.toLowerCase().contains(value)) {
+        filteredProfiles.add(profile);
+      } else if (profile.mainRole.toLowerCase().contains(value)) {
+        filteredProfiles.add(profile);
+      } else if (profile.holidaySupervisor
+          .join(', ')
+          .toLowerCase()
+          .contains(value)) {
+        filteredProfiles.add(profile);
+      }
+    }
+    setState(() {});
+  }
+
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
       actionButton(
-          context, "Nuevo perfil", addProfileDialog, Icons.add, context),
+          context, "$addText perfil", addProfileDialog, Icons.add, context),
       space(width: 10),
       backButton(context),
     ];
@@ -79,32 +101,40 @@ class _OrgchartState extends State<Orgchart> {
   }
 
   Widget buildProfileList() {
-    if (profiles.isEmpty) {
+    if (filteredProfiles.isEmpty) {
       return const Center(
         child: Text("No hay datos"),
       );
     } else {
-      return ListView.builder(
-        itemCount: profiles.length,
+      filteredProfiles.sort((a, b) => a.email.compareTo(b.email));
+      return ListView.separated(
+        separatorBuilder: (context, index) => const Divider(),
+        shrinkWrap: true,
+        itemCount: filteredProfiles.length,
         itemBuilder: (context, index) {
-          Profile item = profiles[index];
+          Profile item = filteredProfiles[index];
           return ListTile(
-              title: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(flex: 1, child: Text(item.email, style: normalText)),
-                  Expanded(
-                      flex: 1, child: Text(item.mainRole, style: normalText)),
-                  Expanded(
-                      flex: 2,
-                      child: Text(item.holidaySupervisor.join(', '),
-                          style: normalText)),
-                ],
-              ),
-              const Divider(),
-            ],
-          ));
+            title: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                        flex: 1, child: Text(item.email, style: normalText)),
+                    Expanded(
+                        flex: 1, child: Text(item.mainRole, style: normalText)),
+                    Expanded(
+                        flex: 2,
+                        child: Text(item.holidaySupervisor.join(', '),
+                            style: normalText)),
+                  ],
+                ),
+              ],
+            ),
+            onTap: () {
+              currentProfile = item;
+              addProfileDialog(context);
+            },
+          );
         },
       );
     }
@@ -137,9 +167,23 @@ class _OrgchartState extends State<Orgchart> {
           child: Column(
         children: [
           mainMenu(context, user, "/orgchart"),
-          topButtons(context),
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: [
+                const Expanded(flex: 1, child: Text("Roles", style: titleText)),
+                Expanded(
+                    flex: 2,
+                    child: SearchBar(
+                      controller: TextEditingController(),
+                      onSubmitted: (value) {
+                        filterProfiles(value);
+                      },
+                      leading: const Icon(Icons.search),
+                    )),
+                Expanded(flex: 1, child: topButtons(context))
+              ])),
           buildProfileHeader(),
-          Container(
+          SizedBox(
             height: 400,
             child: buildProfileList(),
           ),

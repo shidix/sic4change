@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenu(context, user),
+          mainMenu(context, user, "/home"),
           Container(
             height: 10,
           ),
@@ -264,12 +264,6 @@ class _HomePageState extends State<HomePage> {
                           flex: 3,
                           child: workdayButton,
                         )
-                        // actionButton(
-                        //     context,
-                        //     "(re)Iniciar jornada",
-                        //     workdayAction,
-                        //     Icons.play_circle_outline_sharp,
-                        //     context)),
                       ],
                     )),
                 Container(

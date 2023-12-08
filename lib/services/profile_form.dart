@@ -76,10 +76,14 @@ class _ProfileFormState extends State<ProfileForm> {
           child: Column(
             children: [
               TextFormField(
+                initialValue: (profile.email != "") ? profile.email : "",
                 decoration: const InputDecoration(labelText: 'Email'),
                 onSaved: (val) => setState(() => profile.email = val!),
               ),
               TextFormField(
+                initialValue: (profile.holidaySupervisor.isNotEmpty)
+                    ? profile.holidaySupervisor.join(",")
+                    : "",
                 decoration: const InputDecoration(
                     labelText:
                         'Supervisor de vacaciones (emails separados por ",")'),
@@ -112,7 +116,7 @@ class _ProfileFormState extends State<ProfileForm> {
                             flex: flex,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.of(context).pop(null);
+                                Navigator.of(context).pop(profile);
                               },
                               child: const Text('Cancelar'),
                             ))

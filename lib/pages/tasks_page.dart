@@ -34,7 +34,7 @@ class _TasksPageState extends State<TasksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(children: [
-        mainMenu(context),
+        mainMenu(context, null, "/tasks"),
         taskHeader(context),
         space(height: 20),
         taskMenu(context),

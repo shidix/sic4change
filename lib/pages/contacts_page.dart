@@ -33,7 +33,7 @@ class _ContactsPageState extends State<ContactsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(children: [
-        mainMenu(context),
+        mainMenu(context, null, "/contacts"),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
             padding: const EdgeInsets.only(left: 40),
@@ -217,7 +217,7 @@ void _saveContact(context, _contact, _name, _comp, _pos, _email, _phone,
     _contact.phone = _phone;
     _contact.save();
   } else {
-    Contact _contact = Contact(_name, _comp, _pos, _email, _phone);
+    _contact = Contact(_name, _comp, _pos, _email, _phone);
   }
   if (!_companies.contains(_comp)) {
     Company _company = Company(_comp);

@@ -594,7 +594,7 @@ Widget actionButton(
         space(height: 10),
         Text(
           text,
-          style: TextStyle(color: textColor, fontSize: 14),
+          style: TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -746,7 +746,14 @@ const String descText = "Descripción";
 //                              STYLES
 //--------------------------------------------------------------------------
 
-Color titleColor = const Color(0xffabf0ff);
+const Color titleColor = const Color(0xffabf0ff);
+const TextStyle titleText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xffabf0ff),
+  fontSize: 22,
+  fontWeight: FontWeight.bold,
+);
+
 //Color titleColor = Color(0xff008099);
 Color greyColor = const Color(0xffdfdfdf);
 Color bgColor = const Color(0xffe5f2d7);
