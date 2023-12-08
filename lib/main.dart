@@ -5,6 +5,7 @@ import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/risks_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
     '/tasks': (context) => const TasksPage(),
     '/tasks_user': (context) => const TasksUserPage(),
     '/task_info': (context) => const TaskInfoPage(),
+    '/orgchart': (context) => const Orgchart(),
   };
 
   @override

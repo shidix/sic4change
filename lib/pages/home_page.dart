@@ -38,6 +38,11 @@ class _HomePageState extends State<HomePage> {
 
   List<SProject>? myProjects = [];
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> loadMyTasks() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
@@ -109,7 +114,7 @@ class _HomePageState extends State<HomePage> {
       currentWorkday = value;
     });
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
@@ -327,6 +332,7 @@ class _HomePageState extends State<HomePage> {
                 itemCount: myWorkdays!.length,
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int index) {
+                  Workday item = myWorkdays!.elementAt(index);
                   return ListTile(
                       subtitle: Column(children: [
                     Row(
@@ -340,7 +346,8 @@ class _HomePageState extends State<HomePage> {
                                   child: Text(
                                     dateToES(
                                         myWorkdays!.elementAt(index).startDate),
-                                    style: normalText,
+                                    style:
+                                        (item.open) ? successText : normalText,
                                   )),
                             )),
                         Expanded(
@@ -350,7 +357,7 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 DateFormat('HH:mm').format(
                                     myWorkdays!.elementAt(index).startDate),
-                                style: normalText,
+                                style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
                         ),
@@ -361,7 +368,7 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 DateFormat('HH:mm').format(
                                     myWorkdays!.elementAt(index).endDate),
-                                style: normalText,
+                                style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
                         ),
@@ -379,7 +386,7 @@ class _HomePageState extends State<HomePage> {
                                             .inMinutes) /
                                         60))
                                     .toStringAsFixed(2),
-                                style: normalText,
+                                style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
                         ),

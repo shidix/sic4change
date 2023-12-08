@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget mainMenu(context, [user]) {
+Widget mainMenu(context, [user, url]) {
   return Container(
     /*decoration: BoxDecoration(
       image: DecorationImage(
@@ -19,11 +19,14 @@ Widget mainMenu(context, [user]) {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           logo(),
-          menuBtn(context, "Inicio", Icons.home, "/home"),
+          menuBtn(context, "Inicio", Icons.home, "/home",
+              (url == "/home") ? Colors.white : Colors.black45),
           menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks"),
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects"),
           menuBtn(context, "Documentos", Icons.folder, "/documents"),
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),
+          menuBtn(context, "Organigrama", Icons.group, "/orgchart",
+              (url == "/orgchart") ? Colors.black : Colors.black45),
           logoutBtn(context, "Salir", Icons.arrow_back),
           if (user != null) Text(user.email!),
         ],

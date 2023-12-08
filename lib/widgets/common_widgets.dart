@@ -19,7 +19,8 @@ Widget customTitle(context, _text) {
       ));
 }
 
-Widget menuBtn(context, btnName, btnIcon, btnRoute) {
+Widget menuBtn(context, btnName, btnIcon, btnRoute,
+    [Color color = Colors.black38]) {
   return FilledButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute);
@@ -32,10 +33,10 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
     ),
     child: Column(
       children: [
-        Icon(btnIcon, color: Colors.black54),
+        Icon(btnIcon, color: color),
         Text(
           btnName,
-          style: const TextStyle(color: Colors.black54, fontSize: 14),
+          style: TextStyle(color: color, fontSize: 14),
         ),
       ],
     ),
