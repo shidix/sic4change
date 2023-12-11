@@ -84,7 +84,6 @@ class SProject {
         'partners': partners,
       };
 
-
   KeyValue toKeyValue() {
     return KeyValue(uuid, name);
   }
@@ -127,8 +126,7 @@ class SProject {
     await dbProject.doc(id).update({"partners": partners});
   }
 
-  String getStatus()
-  {
+  String getStatus() {
     if (datesObj.approved == "") return "Sin aprobar";
     if (datesObj.start == "") return "Sin iniciar";
     if (datesObj.end == "") return "En proceso";
@@ -142,8 +140,10 @@ class SProject {
       if (_today.isAfter(_end)) return "Finalizado";
       return "En proceso";
     } catch (e) {
-    return "Finalizado";}
-}
+      return "Finalizado";
+    }
+  }
+
   Future<double> totalBudget() async {
     final contribs = db.collection("s4c_finncontrib");
     final finns = db.collection("s4c_finns");
@@ -272,6 +272,18 @@ Future<List> getProjects() async {
     _item.partnersObj = await _item.getPartners();
     _item.datesObj = await _item.getDates();
     items.add(_item);
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getProjectsHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot queryProject = await dbProject.get();
+  for (var doc in queryProject.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = SProject.fromJson(data);
+    items.add(item.toKeyValue());
   }
   return items;
 }

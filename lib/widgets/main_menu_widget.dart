@@ -26,8 +26,8 @@ Widget mainMenu(context, [user, url]) {
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),*/
           menuBtn(context, "Inicio", Icons.home, "/home",
               (url == "/home") ? Colors.black : Colors.black45),
-          menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks",
-              (url == "/tasks") ? Colors.black : Colors.black45),
+          menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks_user",
+              (url == "/tasks_user") ? Colors.black : Colors.black45),
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects",
               (url == "/projects") ? Colors.black : Colors.black45),
           menuBtn(context, "Documentos", Icons.folder, "/documents",

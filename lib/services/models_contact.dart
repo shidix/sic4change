@@ -176,6 +176,18 @@ Future<List> getContacts() async {
   return items;
 }
 
+Future<List<KeyValue>> getContactsHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbContacts.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Contact item = Contact.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+  return items;
+}
+
 Future<Contact> getContactByUuid(String uuid) async {
   QuerySnapshot query = await dbContacts.where("uuid", isEqualTo: uuid).get();
   final dbResult = query.docs.first;

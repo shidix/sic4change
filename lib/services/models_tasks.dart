@@ -77,6 +77,10 @@ class STask {
         'public': public,
       };
 
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
   Future<void> save() async {
     if (id == "") {
       //id = uuid;
@@ -225,6 +229,19 @@ Future<List> getTasks() async {
   return items;
 }
 
+Future<List<KeyValue>> getTasksHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbTasks.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    STask task = STask.fromJson(data);
+    items.add(task.toKeyValue());
+  }
+  return items;
+}
+
 Future<List> getTasksBySender(sender) async {
   List<STask> items = [];
   QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
@@ -341,6 +358,17 @@ Future<List> getTasksStatus() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(TasksStatus.fromJson(data));
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getTasksStatusHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbTasksStatus.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(TasksStatus.fromJson(data).toKeyValue());
   }
   return items;
 }

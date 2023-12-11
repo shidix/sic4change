@@ -45,7 +45,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context),
+          mainMenu(context, null, "/tasks_user"),
           projectTaskHeader(context, _task),
           space(height: 20),
           Expanded(
@@ -329,28 +329,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void _callEditDialog(context, task) async {
-    List<KeyValue> statusList = [];
-    List<KeyValue> contactList = [];
-    List<KeyValue> projectList = [];
-
-    await getTasksStatus().then((value) async {
-      for (TasksStatus item in value) {
-        statusList.add(item.toKeyValue());
-      }
-      await getContacts().then((value) async {
-        for (Contact item in value) {
-          contactList.add(item.toKeyValue());
-        }
-
-        await getProjects().then((value) async {
-          for (SProject item in value) {
-            projectList.add(item.toKeyValue());
-          }
-
-          _taskEditDialog(context, task, statusList, contactList, projectList);
-        });
-      });
-    });
+    List<KeyValue> statusList = await getTasksStatusHash();
+    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> projectList = await getProjectsHash();
+    _taskEditDialog(context, task, statusList, contactList, projectList);
   }
 
   void _saveTask(
@@ -360,21 +342,21 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       description,
       comments,
       status,
-      deal_date,
-      deadline_date,
-      new_deadline_date,
+      dealDate,
+      deadlineDate,
+      newDeadlineDate,
       sender,
       project,
       public,
-      status_list) async {
+      statusList) async {
     //if (_task != null) {
     task.name = name;
     task.description = description;
     task.comments = comments;
     task.status = status;
-    task.deal_date = deal_date;
-    task.deadline_date = deadline_date;
-    task.new_deadline_date = new_deadline_date;
+    task.deal_date = dealDate;
+    task.deadline_date = deadlineDate;
+    task.new_deadline_date = newDeadlineDate;
     task.sender = sender;
     task.project = project;
     task.public = public;
@@ -383,10 +365,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           _deadline_date, _new_deadline_date, _sender, _project, _public);
     }*/
     task.save();
-    if (!status_list.contains(status)) {
+    /*if (!statusList.contains(status)) {
       TasksStatus tasksStatus = TasksStatus(status);
       tasksStatus.save();
-    }
+    }*/
     loadTask(task);
     Navigator.pop(context);
   }
@@ -455,6 +437,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       _public = task.public;
     }
 
+    print("--3--");
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -607,7 +590,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     });
   }
 
-  Future<void> _editTaskAssignedDialog(context, _task, _contacts) {
+  Future<void> _editTaskAssignedDialog(context, task, contacts) {
     TextEditingController nameController = TextEditingController(text: "");
 
     return showDialog<void>(
@@ -620,14 +603,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           content: SingleChildScrollView(
             child: Column(children: [
               customAutocompleteField(
-                  nameController, _contacts, "Write or select contact..."),
+                  nameController, contacts, "Write or select contact..."),
             ]),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveAssigned(context, _task, nameController.text, _contacts);
+                _saveAssigned(context, task, nameController.text, contacts);
               },
             ),
             TextButton(
@@ -645,29 +628,29 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PROGRAMMES                               */
   /*--------------------------------------------------------------------*/
-  void _saveProgrammes(context, _task, _name, _programmes_list) async {
-    _task.programmes.add(_name);
-    _task.updateProgrammes();
-    if (!_programmes_list.contains(_name)) {
-      Programme _programme = Programme(_name);
-      _programme.save();
+  void _saveProgrammes(context, task, name, programmes_list) async {
+    task.programmes.add(name);
+    task.updateProgrammes();
+    if (!programmes_list.contains(name)) {
+      Programme programme = Programme(name);
+      programme.save();
     }
-    loadTask(_task);
+    loadTask(task);
     Navigator.of(context).pop();
   }
 
-  void _callProgrammesEditDialog(context, _task) async {
-    List<String> programme_list = [];
+  void _callProgrammesEditDialog(context, task) async {
+    List<String> programmeList = [];
     await getProgrammes().then((value) async {
       for (Programme item in value) {
-        programme_list.add(item.name);
+        programmeList.add(item.name);
       }
 
-      _editTaskProgrammesDialog(context, _task, programme_list);
+      _editTaskProgrammesDialog(context, task, programmeList);
     });
   }
 
-  Future<void> _editTaskProgrammesDialog(context, _task, _programme_list) {
+  Future<void> _editTaskProgrammesDialog(context, task, programmeList) {
     TextEditingController nameController = TextEditingController(text: "");
 
     return showDialog<void>(
@@ -679,8 +662,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           title: const Text('Añadir responsable'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customAutocompleteField(nameController, _programme_list,
-                  "Write or select contact..."),
+              customAutocompleteField(
+                  nameController, programmeList, "Write or select contact..."),
             ]),
           ),
           actions: <Widget>[
@@ -688,7 +671,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               child: const Text('Save'),
               onPressed: () async {
                 _saveProgrammes(
-                    context, _task, nameController.text, _programme_list);
+                    context, task, nameController.text, programmeList);
               },
             ),
             TextButton(
