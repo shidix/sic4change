@@ -1,14 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
-  final Contact? contact;
+  final User? user;
 
-  const HolidayRequestForm({Key? key, this.currentRequest, this.contact})
+  const HolidayRequestForm({Key? key, this.currentRequest, this.user})
       : super(key: key);
 
   @override
@@ -18,21 +18,22 @@ class HolidayRequestForm extends StatefulWidget {
 class _HolidayRequestFormState extends State<HolidayRequestForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidayRequest holidayRequest;
-  late Contact contact;
+  late User user;
   bool isNewItem = false;
 
   @override
   void initState() {
     super.initState();
-    contact = widget.contact!;
+    user = widget.user!;
     isNewItem = (widget.currentRequest!.id == "");
     holidayRequest = widget.currentRequest!;
-    // if (isNewItem) {
-    //   holidayRequest = widget.currentRequest!;
-    // } else {
-    //   isNewItem = true;
-    //   // holidayRequest = HolidayRequest.getEmpty();
-    // }
+    if (isNewItem) {
+      holidayRequest.userId = user.email!;
+      holidayRequest.requestDate = DateTime.now();
+      holidayRequest.approvalDate = DateTime(2099, 12, 31);
+      holidayRequest.status = "Pendiente";
+      holidayRequest.approvedBy = "";
+    }
   }
 
   void saveItem(List args) {
@@ -72,26 +73,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         Expanded(
             flex: flex,
             child: actionButton(context, "Eliminar", removeItem, Icons.delete,
-                [context, holidayRequest, _formKey])
-            // ElevatedButton(
-            //   style: ButtonStyle(
-            //     backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-            //   ),
-            //   onPressed: () {
-            //     if (_formKey.currentState!.validate()) {
-            //       _formKey.currentState!.save();
-            //       holidayRequest.delete();
-            //       Navigator.of(context).pop(holidayRequest);
-            //     }
-            //   },
-            //   child: const Text('Eliminar'),
-            // )
-            )
+                [context, holidayRequest, _formKey]))
       ];
     }
     Widget statusField;
 
-    if (contact.uuid == holidayRequest.userId) {
+    if (user.email == holidayRequest.userId) {
       statusField = Row(children: [
         Expanded(
             flex: 1,
@@ -142,17 +129,13 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              ReadOnlyTextField(label: 'Usuario', textToShow: contact.name),
+              ReadOnlyTextField(
+                  label: 'Usuario', textToShow: holidayRequest.userId),
               ReadOnlyTextField(
                   label: 'Fecha de Solicitud',
-                  textToShow: DateFormat('yyyy-MM-dd')
+                  textToShow: DateFormat('dd-MM-yyyy')
                       .format(holidayRequest.requestDate)),
-              // TextFormField(
-              //   initialValue: holidayRequest.catetory,
-              //   decoration: const InputDecoration(labelText: 'Categoría'),
-              //   onSaved: (val) =>
-              //       setState(() => holidayRequest.catetory = val!),
-              // ),
+
               categorySelectField,
               DateTimePicker(
                 labelText: 'Fecha de inicio',
@@ -173,12 +156,14 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                 },
               ),
               statusField,
-              TextFormField(
-                initialValue: holidayRequest.approvedBy,
-                decoration: const InputDecoration(labelText: 'Aprobado por'),
-                onSaved: (val) =>
-                    setState(() => holidayRequest.approvedBy = val!),
-              ),
+              ReadOnlyTextField(
+                  label: "Aprobado por", textToShow: holidayRequest.approvedBy),
+              // TextFormField(
+              //   initialValue: holidayRequest.approvedBy,
+              //   decoration: const InputDecoration(labelText: 'Aprobado por'),
+              //   onSaved: (val) =>
+              //       setState(() => holidayRequest.approvedBy = val!),
+              // ),
 
               const SizedBox(height: 16.0),
               Row(

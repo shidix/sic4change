@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
     await STask.getByAssigned(contact!.uuid).then((value) {
       mytasks = value;
     });
-    await HolidayRequest.byUser(contact!.uuid).then((value) {
+    await HolidayRequest.byUser(user.email!).then((value) {
       myHolidays = value;
       holidayDays = widget.HOLIDAY_DAYS;
       for (HolidayRequest holiday in myHolidays!) {
@@ -106,11 +106,11 @@ class _HomePageState extends State<HomePage> {
             getWorkingDaysBetween(holiday.startDate, holiday.endDate);
       }
     });
-    await Workday.byUser(contact!.email).then((value) {
+    await Workday.byUser(user.email!).then((value) {
       myWorkdays = value;
     });
 
-    await Workday.currentByUser(contact!.email).then((value) {
+    await Workday.currentByUser(user.email!).then((value) {
       currentWorkday = value;
     });
 
@@ -333,11 +333,13 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                             flex: 2,
                             child: Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: Alignment.center,
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    dateToES(
+                                    // dateToES(
+                                    //     myWorkdays!.elementAt(index).startDate),
+                                    DateFormat('dd-MM-yyyy').format(
                                         myWorkdays!.elementAt(index).startDate),
                                     style:
                                         (item.open) ? successText : normalText,
@@ -398,7 +400,7 @@ class _HomePageState extends State<HomePage> {
   void addHolidayRequestDialog(context) {
     _addHolidayRequestDialog(context).then((value) {
       currentHoliday = null;
-      HolidayRequest.byUser(contact!.uuid).then((value) {
+      HolidayRequest.byUser(user.email!).then((value) {
         myHolidays = value;
         holidayDays = 30;
         for (HolidayRequest holiday in myHolidays!) {
@@ -413,8 +415,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _addHolidayRequestDialog(context) {
-    currentHoliday ??= HolidayRequest.getEmpty();
-    currentHoliday!.userId = contact!.uuid;
+    if (currentHoliday == null) {
+      currentHoliday = HolidayRequest.getEmpty();
+      currentHoliday!.userId = user.email!;
+    }
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -425,7 +429,7 @@ class _HomePageState extends State<HomePage> {
           content: HolidayRequestForm(
             key: null,
             currentRequest: currentHoliday,
-            contact: contact,
+            user: user,
           ),
         );
       },
@@ -464,7 +468,7 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    DateFormat('yyyy-MM-dd')
+                                    DateFormat('dd-MM-yyyy')
                                         .format(holiday.startDate),
                                     style: normalText,
                                     textAlign: TextAlign.center,
@@ -475,7 +479,7 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    DateFormat('yyyy-MM-dd')
+                                    DateFormat('dd-MM-yyyy')
                                         .format(holiday.endDate),
                                     style: normalText,
                                     textAlign: TextAlign.center,
@@ -952,7 +956,7 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        DateFormat('yyyy-MM-dd').format(
+                                        DateFormat('dd-MM-yyyy').format(
                                             holidayPeriods
                                                 .elementAt(index)
                                                 .elementAt(0)),
@@ -966,7 +970,7 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        DateFormat('yyyy-MM-dd').format(
+                                        DateFormat('dd-MM-yyyy').format(
                                             holidayPeriods
                                                 .elementAt(index)
                                                 .elementAt(1)),
@@ -1151,7 +1155,7 @@ class _HomePageState extends State<HomePage> {
                                           padding:
                                               const EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            // DateFormat('yyyy-MM-dd').format((project.getDates() as ProjectDates).start),
+                                            // DateFormat('dd-MM-yyyy').format((project.getDates() as ProjectDates).start),
                                             project.datesObj.start,
                                             style: normalText,
                                             textAlign: TextAlign.center,

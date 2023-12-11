@@ -666,7 +666,7 @@ SizedBox s4cTitleBar(String title, [context]) {
   return SizedBox(
       width: double.infinity,
       child: Card(
-          color: Colors.grey.shade100,
+          color: mainColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
@@ -676,7 +676,7 @@ SizedBox s4cTitleBar(String title, [context]) {
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: subTitleColor))),
+                            color: Colors.white))),
                 Expanded(flex: 1, child: closeButton)
               ]))));
 }
