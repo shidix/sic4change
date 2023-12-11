@@ -5,6 +5,7 @@ import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 Widget customTitle(context, _text) {
@@ -936,6 +937,31 @@ Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
         child: TextButton(
           onPressed: () {
             Navigator.pushReplacementNamed(context, btnRoute, arguments: args);
+          },
+          child: customText(btnName, 16, textColor: subTitleColor),
+        ));
+  }
+}
+
+Widget menuTab2(context, btnName, newContext, {selected = false}) {
+  if (selected) {
+    return Container(
+        padding: const EdgeInsets.all(5),
+        decoration: tabDecoration,
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: ((context) => newContext)));
+          },
+          child: customText(btnName, 16, textColor: cardHeaderColor),
+        ));
+  } else {
+    return Container(
+        padding: const EdgeInsets.all(5),
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: ((context) => newContext)));
           },
           child: customText(btnName, 16, textColor: subTitleColor),
         ));
