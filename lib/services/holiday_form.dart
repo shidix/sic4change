@@ -19,41 +19,74 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidayRequest holidayRequest;
   late Contact contact;
+  bool isNewItem = false;
 
   @override
   void initState() {
     super.initState();
     contact = widget.contact!;
-    if (widget.currentRequest != null) {
-      holidayRequest = widget.currentRequest!;
-    } else {
-      holidayRequest = HolidayRequest.getEmpty();
+    isNewItem = (widget.currentRequest!.id == "");
+    holidayRequest = widget.currentRequest!;
+    // if (isNewItem) {
+    //   holidayRequest = widget.currentRequest!;
+    // } else {
+    //   isNewItem = true;
+    //   // holidayRequest = HolidayRequest.getEmpty();
+    // }
+  }
+
+  void saveItem(List args) {
+    BuildContext context = args[0];
+    HolidayRequest holidayRequest = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      holidayRequest.save();
+      Navigator.of(context).pop(holidayRequest);
     }
+  }
+
+  void removeItem(List args) {
+    BuildContext context = args[0];
+    HolidayRequest holidayRequest = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      holidayRequest.delete();
+      Navigator.of(context).pop(holidayRequest);
+    }
+  }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     List<Expanded> deleteButton = [];
     int flex = 5;
-    if (widget.currentRequest != null) {
+    if (!isNewItem) {
       flex = 3;
       deleteButton = [
         Expanded(flex: 1, child: Container()),
         Expanded(
             flex: flex,
-            child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-              ),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  holidayRequest.delete();
-                  Navigator.of(context).pop(holidayRequest);
-                }
-              },
-              child: const Text('Eliminar'),
-            ))
+            child: actionButton(context, "Eliminar", removeItem, Icons.delete,
+                [context, holidayRequest, _formKey])
+            // ElevatedButton(
+            //   style: ButtonStyle(
+            //     backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+            //   ),
+            //   onPressed: () {
+            //     if (_formKey.currentState!.validate()) {
+            //       _formKey.currentState!.save();
+            //       holidayRequest.delete();
+            //       Navigator.of(context).pop(holidayRequest);
+            //     }
+            //   },
+            //   child: const Text('Eliminar'),
+            // )
+            )
       ];
     }
     Widget statusField;
@@ -147,44 +180,22 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                     setState(() => holidayRequest.approvedBy = val!),
               ),
 
-              // DateTimePicker(
-              //   labelText: 'Fecha de solicitud',
-              //   selectedDate: holidayRequest.requestDate,
-              //   onSelectedDate: (DateTime date) {
-              //     setState(() {
-              //       holidayRequest.requestDate = date;
-              //     });
-              //   },
-              // ),
               const SizedBox(height: 16.0),
               Row(
                   children: [
                         Expanded(
                             flex: flex,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.blueGrey),
-                              ),
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  holidayRequest.save();
-                                  Navigator.of(context).pop(holidayRequest);
-                                }
-                              },
-                              child: const Text('Enviar'),
-                            )),
+                            child: actionButton(
+                                context,
+                                "Enviar",
+                                saveItem,
+                                Icons.save_outlined,
+                                [context, holidayRequest, _formKey])),
                         Expanded(flex: 1, child: Container()),
                         Expanded(
                             flex: flex,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(null);
-                              },
-                              child: const Text('Cancelar'),
-                            ))
+                            child: actionButton(context, "Cancelar", cancelItem,
+                                Icons.cancel, context))
                       ] +
                       deleteButton),
             ],
