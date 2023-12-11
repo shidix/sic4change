@@ -74,7 +74,6 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   void callRiskDialog(context, HashMap args) {
-    print("--1--");
     riskEditDialog(context, args["risk"], args["project"]);
   }
 

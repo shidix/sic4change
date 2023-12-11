@@ -4,6 +4,7 @@ import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
+import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageTaskUserTitle = "Tareas";
 List tasksUser = [];
@@ -18,19 +19,6 @@ class TasksUserPage extends StatefulWidget {
 class _TasksUserPageState extends State<TasksUserPage> {
   var searchController = TextEditingController();
 
-  /*void loadTasks() async {
-    await getTasks().then((val) {
-      tasksUser = val;
-    });
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    loadTasks();
-    super.initState();
-  }*/
-
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
@@ -39,20 +27,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
         mainMenu(context),
         taskHeader(context),
         space(height: 20),
-        taskMenu(context),
-        Expanded(
-            child: Container(
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: taskList(context, user),
-                ))),
+        taskMenu(context, "taskUser"),
+        contentTab(context, taskList, user)
       ]),
     );
   }
@@ -77,7 +53,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       ),
       Container(
         padding: EdgeInsets.all(10),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //taskAddBtn(context),
@@ -87,7 +63,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     ]);
   }
 
-  Widget taskMenu(context) {
+  /*Widget taskMenu(context) {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
@@ -97,7 +73,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
         ],
       ),
     );
-  }
+  }*/
 
   /*Widget taskAddBtn(context) {
     return ElevatedButton(
@@ -128,7 +104,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     return Column(
       children: [
         ExpansionTile(
-          title: customText("Para mi", 16, textColor: titleColor),
+          title: customText("Para mi", 16, textColor: mainColor),
           initiallyExpanded: true,
           children: [
             FutureBuilder(
@@ -153,7 +129,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
           ],
         ),
         ExpansionTile(
-          title: customText("Creadas por mi", 16, textColor: titleColor),
+          title: customText("Creadas por mi", 16, textColor: mainColor),
           children: [
             FutureBuilder(
                 future: getTasksBySender(user.uid),
@@ -188,44 +164,25 @@ class _TasksUserPageState extends State<TasksUserPage> {
           child: DataTable(
             sortColumnIndex: 0,
             showCheckboxColumn: false,
-            columns: const [
+            columns: [
               DataColumn(
-                  label: Text(
-                    "Tarea",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
-                  tooltip: "Tarea"),
+                label: customText("Tarea", 14, bold: FontWeight.bold),
+                tooltip: "Tarea",
+              ),
               DataColumn(
-                label: Text(
-                  "Inicio",
-                  style: TextStyle(
-                      color: Color(0xff008096), fontWeight: FontWeight.bold),
-                ),
+                label: customText("Inicio", 14, bold: FontWeight.bold),
                 tooltip: "Inicio",
               ),
               DataColumn(
-                  label: Text(
-                    "Fin",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Fin", 14, bold: FontWeight.bold),
                   tooltip: "Fin"),
               DataColumn(
-                  label: Text(
-                    "Eviada a",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Eviada a", 14, bold: FontWeight.bold),
                   tooltip: "Enviada a"),
               DataColumn(
-                  label: Text(
-                    "Estado",
-                    style: TextStyle(
-                        color: Color(0xff008096), fontWeight: FontWeight.bold),
-                  ),
+                  label: customText("Estado", 14, bold: FontWeight.bold),
                   tooltip: "Estado"),
-              DataColumn(label: Text(""), tooltip: ""),
+              const DataColumn(label: Text(""), tooltip: ""),
             ],
             rows: tasksUser
                 .map(

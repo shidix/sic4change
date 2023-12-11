@@ -20,7 +20,7 @@ Widget mainMenu(context, [user]) {
         children: [
           logo(),
           menuBtn(context, "Inicio", Icons.home, "/home"),
-          menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks"),
+          menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks_user"),
           menuBtn(context, "Proyectos", Icons.list_alt, "/projects"),
           menuBtn(context, "Documentos", Icons.folder, "/documents"),
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),

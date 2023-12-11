@@ -3,6 +3,7 @@ import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
+import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageTaskTitle = "Tareas";
 List tasks = [];
@@ -37,21 +38,9 @@ class _TasksPageState extends State<TasksPage> {
         mainMenu(context),
         taskHeader(context),
         space(height: 20),
-        taskMenu(context),
+        taskMenu(context, "tasks"),
         //contactsHeader(context),
-        Expanded(
-            child: Container(
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: taskList(context),
-                ))),
+        contentTab(context, taskList, null)
       ]),
     );
   }
@@ -75,18 +64,19 @@ class _TasksPageState extends State<TasksPage> {
         leading: const Icon(Icons.search),
       ),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            taskAddBtn(context),
+            addBtn(context, _callEditDialog, {"task": null}),
+            //taskAddBtn(context),
           ],
         ),
       ),
     ]);
   }
 
-  Widget taskMenu(context) {
+  /*Widget taskMenu(context) {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
@@ -96,9 +86,9 @@ class _TasksPageState extends State<TasksPage> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget taskAddBtn(context) {
+  /*Widget taskAddBtn(context) {
     return FilledButton(
       onPressed: () {
         _callEditDialog(context, null);
@@ -107,20 +97,17 @@ class _TasksPageState extends State<TasksPage> {
         side: const BorderSide(width: 0, color: Color(0xffffffff)),
         backgroundColor: const Color(0xffffffff),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
+          const Icon(Icons.add, color: Colors.black54),
+          space(height: 5),
+          customText("Añadir", 12),
         ],
       ),
     );
-  }
+  }*/
 
-  Widget taskList(context) {
+  Widget taskList(context, param) {
     return FutureBuilder(
         future: getTasks(),
         builder: ((context, snapshot) {
@@ -155,30 +142,30 @@ class _TasksPageState extends State<TasksPage> {
             showCheckboxColumn: false,
             columns: [
               DataColumn(
-                  label: customText("Tarea", 16, textColor: titleColor),
+                  label: customText("Tarea", 14, bold: FontWeight.bold),
                   tooltip: "Tarea"),
               DataColumn(
-                label: customText("Acuerdo", 16, textColor: titleColor),
+                label: customText("Acuerdo", 14, bold: FontWeight.bold),
                 tooltip: "Acuerdo",
               ),
               DataColumn(
-                  label: customText("Deadline", 16, textColor: titleColor),
+                  label: customText("Deadline", 14, bold: FontWeight.bold),
                   tooltip: "Deadline"),
               DataColumn(
                   label:
-                      customText("Nuevo deadline", 16, textColor: titleColor),
+                      customText("Nuevo deadline", 14, bold: FontWeight.bold),
                   tooltip: "Nuevo deadline"),
               DataColumn(
-                  label: customText("Devolución", 16, textColor: titleColor),
+                  label: customText("Devolución", 14, bold: FontWeight.bold),
                   tooltip: "Devolución"),
               DataColumn(
-                  label: customText("Responsables", 16, textColor: titleColor),
+                  label: customText("Responsables", 14, bold: FontWeight.bold),
                   tooltip: "Responsables"),
               DataColumn(
-                  label: customText("Estado", 16, textColor: titleColor),
+                  label: customText("Estado", 14, bold: FontWeight.bold),
                   tooltip: "Estado"),
               DataColumn(
-                  label: customText("Acciones", 16, textColor: titleColor),
+                  label: customText("Acciones", 14, bold: FontWeight.bold),
                   tooltip: "Acciones"),
             ],
             rows: tasks

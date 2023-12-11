@@ -61,28 +61,25 @@ Widget loginBody(context, emailController, passwdController) {
     ),*/
     child: Container(
       margin: const EdgeInsets.all(20.0),
-      child: Container(
-        //margin: EdgeInsets.all(120.0),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [loginLogo()],
-              ),
-              space(height: 29),
-              usernameText(),
-              usernameField(emailController),
-              space(height: 29),
-              passsowdText(),
-              passwordField(passwdController),
-              space(height: 29),
-              forgotText(),
-              space(height: 29),
-              loginBtn(context, emailController, passwdController)
-            ]),
-      ),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [loginLogo()],
+            ),
+            space(height: 29),
+            usernameText(),
+            usernameField(emailController),
+            space(height: 29),
+            passsowdText(),
+            passwordField(passwdController),
+            space(height: 29),
+            forgotText(),
+            space(height: 29),
+            loginBtn(context, emailController, passwdController)
+          ]),
     ),
   );
 }
@@ -98,22 +95,17 @@ Widget loginLogo() {
 
 Widget usernameText() {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
-    child: Text(
-      "Correo electrónico",
-      style: TextStyle(
-        fontSize: 20.0,
-      ),
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
+    child: customText("Correo electrónico", 20),
   );
 }
 
 Widget usernameField(emailController) {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
     child: TextField(
       controller: emailController,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
           hintText: "Introduce un correo electrónico válido",
           fillColor: Colors.white,
           filled: true),
@@ -123,23 +115,18 @@ Widget usernameField(emailController) {
 
 Widget passsowdText() {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
-    child: Text(
-      "Contraseña",
-      style: TextStyle(
-        fontSize: 20.0,
-      ),
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
+    child: customText("Contraseña", 20),
   );
 }
 
 Widget passwordField(passwdController) {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
     child: TextField(
       controller: passwdController,
       obscureText: true,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
           hintText: "Introduce contraseña",
           fillColor: Colors.white,
           filled: true),
@@ -149,33 +136,24 @@ Widget passwordField(passwdController) {
 
 Widget forgotText() {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
-    child: Text(
-      "He olvidado mi contraseña",
-      style: TextStyle(
-        fontSize: 16.0,
-        color: const Color(0xFF1BC3C0),
-      ),
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
+    child: customText("He olvidado mi contraseña", 16, textColor: mainColor),
   );
 }
 
 Widget loginBtn(context, emailController, passwdController) {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 95),
+    padding: const EdgeInsets.symmetric(horizontal: 95),
     child: ElevatedButton(
       onPressed: () {
         //Navigator.pushReplacementNamed(context, "/home");
         signIn(context, emailController, passwdController);
       },
-      child: Text(
-        "Entrar",
-        style: TextStyle(fontSize: 20),
-      ),
       style: ElevatedButton.styleFrom(
-        primary: Color(0xFF1BC3C0),
+        backgroundColor: mainColor,
         minimumSize: const Size.fromHeight(50),
       ),
+      child: customText("Entrar", 20, textColor: Colors.white),
     ),
   );
 }

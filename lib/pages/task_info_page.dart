@@ -11,7 +11,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
 
-const TASK_INFO_TITLE = "Detalles de la tarea";
+const taskInfoTitle = "Detalles de la tarea";
 STask? _task;
 
 class TaskInfoPage extends StatefulWidget {
@@ -26,9 +26,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     await task.reload().then((val) {
       Navigator.popAndPushNamed(context, "/task_info",
           arguments: {"task": val});
-      /*setState(() {
-        _task = val;
-      });*/
     });
   }
 
@@ -41,7 +38,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       _task = null;
     }
 
-    if (_task == null) return Page404();
+    if (_task == null) return const Page404();
 
     return Scaffold(
       body: Column(
@@ -53,7 +50,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           space(height: 20),
           Expanded(
               child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 10),
+                  padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -69,14 +66,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   Widget projectTaskHeader(context, _task) {
     return Container(
-        padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+        padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           IntrinsicHeight(
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   //Text(_task.name, style: TextStyle(fontSize: 20)),
-                  Container(
+                  SizedBox(
                     width: MediaQuery.of(context).size.width - 300,
                     child: customText(_task.name, 22),
                   ),
@@ -95,17 +92,22 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                         _callEditDialog(context, _task);
                       }),*/
                   Container(
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
-                          children: [editBtn(context), returnBtn(context)]))
+                          children: [
+                            //editBtn(context),
+                            addBtn(context, _callEditDialog, _task,
+                                icon: Icons.edit, text: "Editar"),
+                            returnBtn(context)
+                          ]))
                 ]),
             //Divider(color: Colors.grey),
           )
         ]));
   }
 
-  Widget editBtn(context) {
+  /*Widget editBtn(context) {
     return FilledButton(
       onPressed: () {
         _callEditDialog(context, _task);
@@ -125,54 +127,44 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         ],
       ),
     );
-  }
+  }*/
 
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget taskInfoDetails(context) {
     return SingleChildScrollView(
-        physics: ScrollPhysics(),
+        physics: const ScrollPhysics(),
         child: Container(
             width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 //customText(_task?.sender, 16),
                 taskInfoSenderPublic(context, _task),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 customText("Descripción de la tarea:", 16,
-                    textColor: Colors.grey),
+                    textColor: smallColor),
                 space(height: 5),
                 customText(_task?.description, 16),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
-                customText("Comentarios:", 16, textColor: Colors.grey),
+                customRowDivider(),
+                customText("Comentarios:", 16, textColor: smallColor),
                 space(height: 5),
                 customText(_task?.comments, 16),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 taskInfoDates(context, _task),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 taskAssignedHeader(context, _task),
                 taskAssigned(context, _task),
                 space(height: 5),
-                Divider(
-                  color: Colors.grey,
-                ),
+                customRowDivider(),
                 space(height: 5),
                 taskProgrammesHeader(context, _task),
                 taskProgrammes(context, _task),
@@ -181,56 +173,52 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             )));
   }
 
-  Widget taskInfoSenderPublic(context, _task) {
-    String _public = "Privada";
-    if (_task.public) _public = "Pública";
+  Widget taskInfoSenderPublic(context, task) {
+    String public = "Privada";
+    if (task.public) public = "Pública";
 
     return IntrinsicHeight(
       child: Row(
         children: [
-          Container(
+          SizedBox(
               width: MediaQuery.of(context).size.width / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   customText("Devolución a:", 16, textColor: Colors.grey),
                   space(height: 5),
-                  customText(_task.senderObj.name, 16),
+                  customText(task.senderObj.name, 16),
                 ],
               )),
-          VerticalDivider(
+          const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
-          Container(
+          SizedBox(
               width: MediaQuery.of(context).size.width / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   customText("Proyecto:", 16, textColor: Colors.grey),
                   space(height: 5),
-                  customText(_task.projectObj.name, 16),
+                  customText(task.projectObj.name, 16),
                 ],
               )),
-          VerticalDivider(
+          const VerticalDivider(
             width: 10,
-            color: Colors.grey,
+            color: smallColor,
           ),
-          Container(
-              //width: MediaQuery.of(context).size.width / 2.2,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                customText("Pública / Privada:", 16, textColor: Colors.grey),
-                space(height: 5),
-                customText(_public, 16),
-              ])),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Pública / Privada:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(public, 16),
+          ]),
         ],
       ),
     );
   }
 
-  Widget taskInfoDates(context, _task) {
+  Widget taskInfoDates(context, task) {
     return Column(children: [
       Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -241,9 +229,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               customText("Nuevo deadline", 16, textColor: Colors.grey),
             ]),
             TableRow(children: [
-              customText(_task.deal_date, 16),
-              customText(_task.deadline_date, 16),
-              customText(_task.new_deadline_date, 16),
+              customText(task.deal_date, 16),
+              customText(task.deadline_date, 16),
+              customText(task.new_deadline_date, 16),
             ])
           ])
     ]);
@@ -262,20 +250,20 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     ]);
   }
 
-  Widget taskAssigned(context, _task) {
+  Widget taskAssigned(context, task) {
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _task.assigned.length,
+        itemCount: task.assigned.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_task.assigned[index]}'),
+                    Text('${task.assigned[index]}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -283,9 +271,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       ),
                       tooltip: 'Eliminar responsable',
                       onPressed: () async {
-                        _task.assigned.remove(_task.assigned[index]);
-                        _task.updateAssigned();
-                        loadTask(_task);
+                        task.assigned.remove(task.assigned[index]);
+                        task.updateAssigned();
+                        loadTask(task);
                         //_removeAssigned(context, _task);
                       },
                     )
@@ -293,33 +281,33 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         });
   }
 
-  Widget taskProgrammesHeader(context, _task) {
+  Widget taskProgrammesHeader(context, task) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Programas:", 16, textColor: Colors.grey),
+      customText("Programas:", 16, textColor: smallColor),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir programa',
         onPressed: () {
-          _callProgrammesEditDialog(context, _task);
+          _callProgrammesEditDialog(context, task);
         },
       )
     ]);
   }
 
-  Widget taskProgrammes(context, _task) {
+  Widget taskProgrammes(context, task) {
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _task.programmes.length,
+        itemCount: task.programmes.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_task.programmes[index]}'),
+                    Text('${task.programmes[index]}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -327,10 +315,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       ),
                       tooltip: 'Eliminar programa',
                       onPressed: () async {
-                        _task.programmes.remove(_task.programmes[index]);
+                        task.programmes.remove(task.programmes[index]);
                         //_removeProgrammes(context, _task);
-                        _task.updateProgrammes();
-                        loadTask(_task);
+                        task.updateProgrammes();
+                        loadTask(task);
                       },
                     )
                   ]));
@@ -341,26 +329,25 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void _callEditDialog(context, task) async {
-    List<KeyValue> status_list = [];
-    List<KeyValue> contact_list = [];
-    List<KeyValue> project_list = [];
+    List<KeyValue> statusList = [];
+    List<KeyValue> contactList = [];
+    List<KeyValue> projectList = [];
 
     await getTasksStatus().then((value) async {
       for (TasksStatus item in value) {
-        status_list.add(item.toKeyValue());
+        statusList.add(item.toKeyValue());
       }
       await getContacts().then((value) async {
         for (Contact item in value) {
-          contact_list.add(item.toKeyValue());
+          contactList.add(item.toKeyValue());
         }
 
         await getProjects().then((value) async {
           for (SProject item in value) {
-            project_list.add(item.toKeyValue());
+            projectList.add(item.toKeyValue());
           }
 
-          _taskEditDialog(
-              context, task, status_list, contact_list, project_list);
+          _taskEditDialog(context, task, statusList, contactList, projectList);
         });
       });
     });
@@ -368,39 +355,39 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   void _saveTask(
       context,
-      _task,
-      _name,
-      _description,
-      _comments,
-      _status,
-      _deal_date,
-      _deadline_date,
-      _new_deadline_date,
-      _sender,
-      _project,
-      _public,
-      _status_list) async {
+      task,
+      name,
+      description,
+      comments,
+      status,
+      deal_date,
+      deadline_date,
+      new_deadline_date,
+      sender,
+      project,
+      public,
+      status_list) async {
     //if (_task != null) {
-    _task.name = _name;
-    _task.description = _description;
-    _task.comments = _comments;
-    _task.status = _status;
-    _task.deal_date = _deal_date;
-    _task.deadline_date = _deadline_date;
-    _task.new_deadline_date = _new_deadline_date;
-    _task.sender = _sender;
-    _task.project = _project;
-    _task.public = _public;
+    task.name = name;
+    task.description = description;
+    task.comments = comments;
+    task.status = status;
+    task.deal_date = deal_date;
+    task.deadline_date = deadline_date;
+    task.new_deadline_date = new_deadline_date;
+    task.sender = sender;
+    task.project = project;
+    task.public = public;
     /*} else {
       _task = STask("", "", _name, _description, _comments, _status, _deal_date,
           _deadline_date, _new_deadline_date, _sender, _project, _public);
     }*/
-    _task.save();
-    if (!_status_list.contains(_status)) {
-      TasksStatus _tasksStatus = TasksStatus(_status);
-      _tasksStatus.save();
+    task.save();
+    if (!status_list.contains(status)) {
+      TasksStatus tasksStatus = TasksStatus(status);
+      tasksStatus.save();
     }
-    loadTask(_task);
+    loadTask(task);
     Navigator.pop(context);
   }
 
@@ -409,7 +396,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         width: 220,
         child: TextField(
           controller: dateController, //editing controller of this TextField
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
               icon: Icon(Icons.calendar_today), //icon of text field
               labelText: "Enter Date" //label text of field
               ),
@@ -439,7 +426,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   Future<void> _taskEditDialog(
-      context, _task, _status_list, _contact_list, _project_list) {
+      context, task, status_list, contact_list, project_list) {
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descriptionController =
         TextEditingController(text: "");
@@ -454,18 +441,18 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     TextEditingController projectController = TextEditingController(text: "");
     bool _public = false;
 
-    if (_task != null) {
-      nameController = TextEditingController(text: _task.name);
-      descriptionController = TextEditingController(text: _task.description);
-      commentsController = TextEditingController(text: _task.comments);
-      statusController = TextEditingController(text: _task.status);
-      dealDateController = TextEditingController(text: _task.deal_date);
-      deadlineDateController = TextEditingController(text: _task.deadline_date);
+    if (task != null) {
+      nameController = TextEditingController(text: task.name);
+      descriptionController = TextEditingController(text: task.description);
+      commentsController = TextEditingController(text: task.comments);
+      statusController = TextEditingController(text: task.status);
+      dealDateController = TextEditingController(text: task.deal_date);
+      deadlineDateController = TextEditingController(text: task.deadline_date);
       newDeadlineDateController =
-          TextEditingController(text: _task.new_deadline_date);
-      senderController = TextEditingController(text: _task.sender);
-      projectController = TextEditingController(text: _task.project);
-      _public = _task.public;
+          TextEditingController(text: task.new_deadline_date);
+      senderController = TextEditingController(text: task.sender);
+      projectController = TextEditingController(text: task.project);
+      _public = task.public;
     }
 
     return showDialog<void>(
@@ -501,8 +488,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: Colors.blue),
-                customDropdownField(projectController, _project_list,
-                    _task.projectObj.toKeyValue(), "Selecciona proyecto"),
+                customDropdownField(projectController, project_list,
+                    task.projectObj.toKeyValue(), "Selecciona proyecto"),
                 /*customAutocompleteField(projectController, _project_list,
                     "Write or select project...",
                     width: 700),*/
@@ -527,8 +514,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: Colors.blue),
-                customDropdownField(statusController, _status_list,
-                    _task.statusObj.toKeyValue(), "Selecciona estado"),
+                customDropdownField(statusController, status_list,
+                    task.statusObj.toKeyValue(), "Selecciona estado"),
                 /*customAutocompleteField(
                     statusController, _status_list, "Write or select status...",
                     width: 340),*/
@@ -536,8 +523,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: Colors.blue),
-                customDropdownField(senderController, _contact_list,
-                    _task.senderObj.toKeyValue(), "Selecciona contacto"),
+                customDropdownField(senderController, contact_list,
+                    task.senderObj.toKeyValue(), "Selecciona contacto"),
                 /*customAutocompleteField(senderController, _contact_list,
                     "Write or select contact...",
                     width: 340),*/
@@ -568,7 +555,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               onPressed: () async {
                 _saveTask(
                     context,
-                    _task,
+                    task,
                     nameController.text,
                     descriptionController.text,
                     commentsController.text,
@@ -579,7 +566,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     senderController.text,
                     projectController.text,
                     _public,
-                    _status_list);
+                    status_list);
               },
             ),
             TextButton(
@@ -597,15 +584,15 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           ASSIGNED                                 */
   /*--------------------------------------------------------------------*/
-  void _saveAssigned(context, _task, _name, _contacts) async {
-    _task.assigned.add(_name);
-    _task.updateAssigned();
+  void _saveAssigned(context, task, name, contacts) async {
+    task.assigned.add(name);
+    task.updateAssigned();
 
-    if (!_contacts.contains(_name)) {
-      Contact _contact = Contact(_name, "", "", "", "");
+    if (!contacts.contains(name)) {
+      Contact _contact = Contact(name, "", "", "", "");
       _contact.save();
     }
-    loadTask(_task);
+    loadTask(task);
     Navigator.of(context).pop();
   }
 
