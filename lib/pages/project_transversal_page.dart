@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_util';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +10,38 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
 
 const PROJECT_INFO_TITLE = "Detalles del Proyecto";
+
+Widget indicatorButton(
+    context, String upperText, String text, Function action, dynamic args,
+    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
+  return ElevatedButton(
+    onPressed: () {
+      if (args == null) {
+        action();
+      } else {
+        action(args);
+      }
+    },
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+    ),
+    child: Column(
+      children: [
+        Text(
+          upperText,
+          style: mainText.copyWith(fontSize: 14),
+        ),
+        space(height: 10),
+        Text(
+          text,
+          style: mainText.copyWith(fontSize: 30),
+        ),
+      ],
+    ),
+  );
+}
 
 class ProjectTransversalPage extends StatefulWidget {
   final SProject? currentProject;
@@ -140,11 +173,52 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 ),
                 const Divider(height: 10),
                 // topButtons(context))
-                marcoMenu(context, currentProject, "transversal")
+                marcoMenu(context, currentProject, "transversal"),
+                multiplesIndicators(),
               ]))
         ],
       );
     }
+  }
+
+  Widget indicator(String title, String value, Function action,
+      [List args = const []]) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        color: Colors.white,
+        child: Column(children: [
+          Container(
+              child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          flex: 8,
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(title,
+                                  style: normalText.copyWith(fontSize: 20)))),
+                      Expanded(
+                          flex: 2,
+                          child: indicatorButton(context, "TOTAL EVALUACIÓN",
+                              value, action, args)),
+                    ],
+                  ))),
+          Divider(height: 1),
+        ]));
+  }
+
+  Widget multiplesIndicators() {
+    return Card(
+        elevation: 5,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            child: Column(children: [
+              indicator("Calidad", "9/10", print),
+              indicator("Transparencia", "8/10", print),
+              indicator("Género", "9/10", print),
+              indicator("Medio Ambiente", "9/10", print),
+            ])));
   }
 
   @override
