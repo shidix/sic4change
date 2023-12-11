@@ -173,7 +173,6 @@ class _HomePageState extends State<HomePage> {
 
   void printSummary(context) {
     setState(() {});
-
     print("printSummary");
   }
 
@@ -406,7 +405,9 @@ class _HomePageState extends State<HomePage> {
           holidayDays -=
               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
         }
-        setState(() {});
+        setState(() {
+          myHolidays = value;
+        });
       });
     });
   }
@@ -515,7 +516,7 @@ class _HomePageState extends State<HomePage> {
                         addHolidayRequestDialog(context);
                       });
                 })
-            : Center(
+            : const Center(
                 child: CircularProgressIndicator(),
               ));
   }
@@ -566,7 +567,7 @@ class _HomePageState extends State<HomePage> {
                                       const Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Solcitud de vacaciones",
+                                            "Solicitud de vacaciones",
                                             style: cardHeaderText,
                                           )),
                                       Row(
