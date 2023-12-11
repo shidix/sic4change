@@ -19,7 +19,8 @@ Widget customTitle(context, _text) {
       ));
 }
 
-Widget menuBtn(context, btnName, btnIcon, btnRoute) {
+Widget menuBtn(context, btnName, btnIcon, btnRoute,
+    [Color color = Colors.black38]) {
   return FilledButton(
     onPressed: () {
       Navigator.pushReplacementNamed(context, btnRoute);
@@ -32,10 +33,10 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute) {
     ),
     child: Column(
       children: [
-        Icon(btnIcon, color: Colors.black54),
+        Icon(btnIcon, color: color),
         Text(
           btnName,
-          style: const TextStyle(color: Colors.black54, fontSize: 14),
+          style: TextStyle(color: color, fontSize: 14),
         ),
       ],
     ),
@@ -566,8 +567,9 @@ Widget backButton(context) {
   );
 }
 
-Widget actionButton(context, String text, Function action, IconData? icon,
-    [dynamic args]) {
+Widget actionButton(
+    context, String text, Function action, IconData? icon, dynamic args,
+    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
   return ElevatedButton(
     onPressed: () {
@@ -586,13 +588,13 @@ Widget actionButton(context, String text, Function action, IconData? icon,
       children: [
         Icon(
           icon,
-          color: Colors.black54,
+          color: iconColor,
           size: 30,
         ),
         space(height: 10),
         Text(
           text,
-          style: const TextStyle(color: Colors.black, fontSize: 14),
+          style: TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -744,7 +746,14 @@ const String descText = "Descripción";
 //                              STYLES
 //--------------------------------------------------------------------------
 
-Color titleColor = const Color(0xffabf0ff);
+const Color titleColor = const Color(0xffabf0ff);
+const TextStyle titleText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: Color(0xffabf0ff),
+  fontSize: 22,
+  fontWeight: FontWeight.bold,
+);
+
 //Color titleColor = Color(0xff008099);
 Color greyColor = const Color(0xffdfdfdf);
 Color bgColor = const Color(0xffe5f2d7);
@@ -802,6 +811,10 @@ const TextStyle dangerText =
 const Color warningColor = Colors.orange;
 const TextStyle warningText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: warningColor);
+
+const Color successColor = Colors.green;
+const TextStyle successText =
+    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: successColor);
 
 const ButtonStyle btnStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),

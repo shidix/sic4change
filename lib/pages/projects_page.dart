@@ -38,7 +38,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context),
+          mainMenu(context, null, "/projects"),
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),
