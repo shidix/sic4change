@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -58,6 +59,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
+    String budget_in_euros = toCurrency(double.parse(project.budget));
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         child: Column(children: [
@@ -72,7 +74,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 flex: 1,
                 child: Align(
                     alignment: Alignment.centerRight,
-                    child: Text("${project.budget} €", style: subTitleText))),
+                    child: Text(budget_in_euros, style: subTitleText))),
           ]),
           space(height: 10),
           Row(children: [
