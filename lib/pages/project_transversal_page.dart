@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'dart:js_util';
+// ignore_for_file: avoid_unnecessary_containers
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
 
-const PROJECT_INFO_TITLE = "Detalles del Proyecto";
+// const PROJECT_INFO_TITLE = "Detalles del Proyecto";
 
 Widget indicatorButton(
     context, String upperText, String text, Function action, dynamic args,
@@ -189,7 +188,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         child: Column(children: [
           Container(
               child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   child: Row(
                     children: [
                       Expanded(
@@ -204,7 +204,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                               value, action, args)),
                     ],
                   ))),
-          Divider(height: 1),
+          const Divider(height: 1),
         ]));
   }
 
