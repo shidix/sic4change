@@ -46,10 +46,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadMyTasks() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
-      STask.getByAssigned(value.uuid).then((value) {
-        mytasks = value;
-        setState(() {});
-      });
+      // STask.getByAssigned(value.uuid).then((value) {
+      //   mytasks = value;
+      //   setState(() {});
+      // });
     });
   }
 
@@ -95,9 +95,9 @@ class _HomePageState extends State<HomePage> {
     await contact!.getProjects().then((value) {
       myProjects = value;
     });
-    await STask.getByAssigned(contact!.uuid).then((value) {
-      mytasks = value;
-    });
+    // await STask.getByAssigned(contact!.uuid).then((value) {
+    //   mytasks = value;
+    // });
     await HolidayRequest.byUser(user.email!).then((value) {
       myHolidays = value;
       holidayDays = widget.HOLIDAY_DAYS;

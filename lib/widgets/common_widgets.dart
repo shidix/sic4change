@@ -669,10 +669,10 @@ SizedBox s4cTitleBar(String title, [context]) {
       child: Card(
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50),
-                  topRight: Radius.circular(50),
-                  bottomLeft: Radius.circular(10),
-                  bottomRight: Radius.circular(10))),
+                  topLeft: Radius.circular(5),
+                  topRight: Radius.circular(5),
+                  bottomLeft: Radius.circular(5),
+                  bottomRight: Radius.circular(5))),
           color: mainColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
