@@ -236,6 +236,14 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     ]);
   }
 
+  Widget statusProject() {
+    return Container(
+        child: Row(children: [
+      Expanded(flex: 1, child: statusEjecucion(context, currentProject!)),
+      Expanded(flex: 1, child: totalBudget(context, currentProject!)),
+    ]));
+  }
+
   Widget content(context) {
     if (currentProject == null) {
       return Column(children: [
@@ -248,13 +256,13 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         children: [
           mainMenu(context, user, "/projects"),
           Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               child: Column(children: [
                 Container(
                   height: 20,
                 ),
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.only(left: 10),
                   child: Row(
                     children: [
                       Text(currentProject!.name,
@@ -262,18 +270,12 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     ],
                   ),
                 ),
-                Container(
-                    child: Row(children: [
-                  Expanded(
-                      flex: 1,
-                      child: statusEjecucion(context, currentProject!)),
-                  Expanded(
-                      flex: 1, child: totalBudget(context, currentProject!)),
-                ])),
-                Container(
-                  height: 20,
-                ),
-                const Divider(height: 10),
+                // statusProject(),
+                // Container(
+                //   height: 20,
+                // ),
+                // const Divider(height: 1),
+
                 // topButtons(context))
                 marcoMenu(context, currentProject, "transversal"),
                 multiplesIndicators(),
