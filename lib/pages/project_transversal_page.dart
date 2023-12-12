@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/utils.dart';
@@ -33,11 +34,13 @@ Widget indicatorButton(
       children: [
         Text(
           upperText,
+          textAlign: TextAlign.center,
           style: mainText.copyWith(fontSize: 14),
         ),
         space(height: 10),
         Text(
           text,
+          textAlign: TextAlign.center,
           style: mainText.copyWith(fontSize: 30),
         ),
       ],
@@ -60,10 +63,14 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   SProject? currentProject;
   Widget? qualityPanelWidget;
   List<QualityQuestion>? qualityQuestions;
+  int qaQuestionsCompleted = 0;
+  int qualityQuestionsCounter = 0;
+  List<int> qualityCounters = [];
+  bool collapsedQuality = false;
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
-    String budget_in_euros = toCurrency(double.parse(project.budget));
+    String budgetInEuros = toCurrency(double.parse(project.budget));
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         child: Column(children: [
@@ -78,7 +85,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 flex: 1,
                 child: Align(
                     alignment: Alignment.centerRight,
-                    child: Text(budget_in_euros, style: subTitleText))),
+                    child: Text(budgetInEuros, style: subTitleText))),
           ]),
           space(height: 10),
           Row(children: [
@@ -125,6 +132,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   @override
   void initState() {
     super.initState();
+    qualityPanel();
     if (widget.currentProject == null) {
       SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
           .then((project) {
@@ -141,7 +149,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
   void addQualityPanel(args) {
     setState(() {
-      if (qualityPanelWidget == null) {
+      collapsedQuality = !collapsedQuality;
+      if (collapsedQuality) {
         qualityPanelWidget = qualityPanel();
       } else {
         qualityPanelWidget = null;
@@ -151,10 +160,11 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
   Widget qualityPanel() {
     qualityQuestions = [];
+
     qualityQuestions!.add(QualityQuestion(
         code: "1",
         subject: "Cumplimiento de requisitos",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
@@ -168,7 +178,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         code: "1.2",
         subject:
             "¿El proyecto se está ejecutando dentro del presupuesto establecido?",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
@@ -182,20 +192,20 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         code: "1.4",
         subject:
             "¿Los requisitos del proyecto están claramente definidos y acordados?",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
         code: "1.5",
         subject: "¿Se está alcanzando a los usarios establecidos?",
         completed: false,
-        comments: "",
+        comments: "Actualmente estamos a un 80% del objetivo fijado",
         docs: []));
 
     qualityQuestions!.add(QualityQuestion(
         code: "2",
         subject: "Gestión de procesos",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
 
@@ -203,14 +213,14 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         code: "2.1",
         subject:
             "¿Los procesos del proyecto están documentados y se siguen de manera efectiva?",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
         code: "2.2",
         subject:
             "¿La comunicación entre las partes interesadas del proyecto es efectiva?",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
@@ -238,127 +248,125 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         code: "3.1",
         subject:
             "¿Se están aplicando las lecciones aprendidas de proyectos anteriores?",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
     qualityQuestions!.add(QualityQuestion(
         code: "3.2",
         subject:
             "¿Se están implementando acciones para mejorar la gestión de calidad del proyecto",
-        completed: false,
+        completed: true,
         comments: "",
         docs: []));
 
-    List<dynamic> rows = [
-      [
-        [
-          'Quiénes son los clientes finales (personas destinatarias) y otras partes interesadas en la intervención',
-          4,
-          TextAlign.left
-        ],
-        ['Sí', 1, TextAlign.center],
-        ['Niños menores de 12 años de entornos rurales', 4, TextAlign.left],
-        ['', 2, TextAlign.center],
-      ],
-      [
-        [
-          '¿Los materiales y recursos del proyecto son adecuados para los usuarios?',
-          4,
-          TextAlign.left
-        ],
-        ['Sí', 1, TextAlign.center],
-        ['', 4, TextAlign.left],
-        ['', 2, TextAlign.center],
-      ],
-      [
-        [
-          '¿Los métodos de enseñanza y aprendizaje del proyecto son eficaces?',
-          4,
-          TextAlign.left
-        ],
-        ['Sí', 1, TextAlign.center],
-        ['', 4, TextAlign.left],
-        ['', 2, TextAlign.center],
-      ],
-      [
-        [
-          '¿El número de usuarios se corresponde con lo esperado?',
-          4,
-          TextAlign.left
-        ],
-        ['No', 1, TextAlign.center],
-        ['', 4, TextAlign.left],
-        ['', 2, TextAlign.center],
-      ],
-    ];
+    qualityQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    qualityCounters = [];
+    QualityQuestion? lastMain;
+    qaQuestionsCompleted = 0;
+    qualityQuestionsCounter = 0;
+    int questionsInMain = 0;
+    for (var question in qualityQuestions!) {
+      if (!question.isMain()) {
+        qualityQuestionsCounter++;
+        questionsInMain++;
+        if (question.completed) {
+          qaQuestionsCompleted++;
+          qualityCounters.last++;
+        }
+      } else {
+        if (lastMain != null) {
+          lastMain.subject += " (${qualityCounters.last}/$questionsInMain)";
+        }
+        questionsInMain = 0;
+        lastMain = question;
+        qualityCounters.add(0);
+      }
+    }
+
+    if (lastMain != null) {
+      lastMain.subject += " (${qualityCounters.last}/$questionsInMain)";
+    }
+
+    setState(() {
+      qualityQuestions = qualityQuestions;
+      qaQuestionsCompleted = qaQuestionsCompleted;
+    });
 
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        height: 150,
+        // height: 150,
         color: Colors.white,
         child: currentProject != null
             ? ListView.builder(
                 shrinkWrap: true,
                 itemCount: qualityQuestions!.length,
-                scrollDirection: Axis.vertical,
+                //scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int index) {
                   QualityQuestion item = qualityQuestions!.elementAt(index);
-                  TextStyle style = (item.isMain() ? successText : normalText);
+                  TextStyle style = (item.isMain()
+                      ? successText.copyWith(color: Colors.white)
+                      : normalText);
+                  Color bgColor = (item.isMain() ? successColor : Colors.white);
                   return ListTile(
                       subtitle: Container(
+                          color: bgColor,
                           child: Row(
-                    children: [
-                      Expanded(
-                          flex: 4,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Text(
-                                  item.subject,
-                                  style: style,
-                                )),
-                          )),
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              (item.isMain()
-                                  ? "Completado"
-                                  : item.completed
-                                      ? "Sí"
-                                      : "No"),
-                              style: style,
-                              textAlign: TextAlign.center,
-                            )),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              item.isMain() ? "Comentarios" : item.comments,
-                              style: style,
-                              textAlign: TextAlign.center,
-                            )),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              item.isMain()
-                                  ? "Documentos"
-                                  : item.docs.toString(),
-                              style: style,
-                              textAlign: TextAlign.center,
-                            )),
-                      ),
-                    ],
-                  )));
+                            children: [
+                              Expanded(
+                                  flex: 4,
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          item.subject,
+                                          style: style,
+                                        )),
+                                  )),
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Text(
+                                      (item.isMain()
+                                          ? "Completado"
+                                          : item.completed
+                                              ? "Sí"
+                                              : "No"),
+                                      style: style,
+                                      textAlign: TextAlign.center,
+                                    )),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Text(
+                                      item.isMain()
+                                          ? "Comentarios"
+                                          : item.comments,
+                                      style: style,
+                                      textAlign: TextAlign.center,
+                                    )),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Text(
+                                      item.isMain()
+                                          ? "Documentos"
+                                          : item.docs.isNotEmpty
+                                              ? item.docs.toString()
+                                              : '',
+                                      style: style,
+                                      textAlign: TextAlign.center,
+                                    )),
+                              ),
+                            ],
+                          )));
                 })
-            : Center(
+            : const Center(
                 child: CircularProgressIndicator(),
               ));
 
@@ -448,7 +456,10 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             child: Column(children: [
-              indicator("Calidad", "3/4", addQualityPanel),
+              indicator(
+                  "Calidad",
+                  "$qaQuestionsCompleted/$qualityQuestionsCounter",
+                  addQualityPanel),
               qualityPanelWidget ?? Container(height: 0),
               indicator("Transparencia", "8/10", print),
               indicator("Género", "7/9", print),
