@@ -329,7 +329,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
                                       (item.isMain()
-                                          ? "Completado"
+                                          ? "Sí/No"
                                           : item.completed
                                               ? "Sí"
                                               : "No"),
@@ -338,7 +338,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                     )),
                               ),
                               Expanded(
-                                flex: 1,
+                                flex: 3,
                                 child: Padding(
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
@@ -355,7 +355,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
                                       item.isMain()
-                                          ? "Documentos"
+                                          ? "Docs."
                                           : item.docs.isNotEmpty
                                               ? item.docs.toString()
                                               : '',
