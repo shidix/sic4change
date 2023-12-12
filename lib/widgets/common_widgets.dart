@@ -595,7 +595,7 @@ Widget actionButton(
         space(height: 10),
         Text(
           text,
-          style: TextStyle(color: Colors.black, fontSize: 14),
+          style: const TextStyle(color: Colors.black, fontSize: 14),
         ),
       ],
     ),
@@ -667,6 +667,12 @@ SizedBox s4cTitleBar(String title, [context]) {
   return SizedBox(
       width: double.infinity,
       child: Card(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(50),
+                  topRight: Radius.circular(50),
+                  bottomLeft: Radius.circular(10),
+                  bottomRight: Radius.circular(10))),
           color: mainColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
@@ -747,7 +753,7 @@ const String descText = "Descripción";
 //                              STYLES
 //--------------------------------------------------------------------------
 
-const Color titleColor = const Color(0xffabf0ff);
+const Color titleColor = Color(0xffabf0ff);
 const TextStyle titleText = TextStyle(
   fontFamily: 'Readex Pro',
   color: Color(0xffabf0ff),
