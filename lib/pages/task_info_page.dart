@@ -408,7 +408,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   Future<void> _taskEditDialog(
-      context, task, status_list, contact_list, project_list) {
+      context, task, statusList, contactList, projectList) {
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descriptionController =
         TextEditingController(text: "");
@@ -421,7 +421,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         TextEditingController(text: "");
     TextEditingController senderController = TextEditingController(text: "");
     TextEditingController projectController = TextEditingController(text: "");
-    bool _public = false;
+    bool public = false;
 
     if (task != null) {
       nameController = TextEditingController(text: task.name);
@@ -434,33 +434,33 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           TextEditingController(text: task.new_deadline_date);
       senderController = TextEditingController(text: task.sender);
       projectController = TextEditingController(text: task.project);
-      _public = task.public;
+      public = task.public;
     }
 
-    print("--3--");
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Modificar tarea'),
+          //title: const Text('Modificar tarea'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar tarea'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
+                customText("Nombre:", 16, textColor: mainColor),
                 customTextField(nameController, "Nombre", size: 600),
               ]),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Pública:", 16, textColor: Colors.blue),
+                customText("Pública:", 16, textColor: mainColor),
                 FormField<bool>(builder: (FormFieldState<bool> state) {
                   return Checkbox(
-                    value: _public,
+                    value: public,
                     onChanged: (bool? value) {
                       setState(() {
-                        _public = value!;
-                        state.didChange(_public);
+                        public = value!;
+                        state.didChange(public);
                       });
                     },
                   );
@@ -470,8 +470,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Proyecto:", 16, textColor: Colors.blue),
-                customDropdownField(projectController, project_list,
+                customText("Proyecto:", 16, textColor: mainColor),
+                customDropdownField(projectController, projectList,
                     task.projectObj.toKeyValue(), "Selecciona proyecto"),
                 /*customAutocompleteField(projectController, _project_list,
                     "Write or select project...",
@@ -481,7 +481,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Descripción:", 16, textColor: Colors.blue),
+                customText("Descripción:", 16, textColor: mainColor),
                 customTextField(descriptionController, "Descripción",
                     size: 700),
               ]),
@@ -489,15 +489,15 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Comentarios:", 16, textColor: Colors.blue),
+                customText("Comentarios:", 16, textColor: mainColor),
                 customTextField(commentsController, "Comentarios", size: 700),
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Estado:", 16, textColor: Colors.blue),
-                customDropdownField(statusController, status_list,
+                customText("Estado:", 16, textColor: mainColor),
+                customDropdownField(statusController, statusList,
                     task.statusObj.toKeyValue(), "Selecciona estado"),
                 /*customAutocompleteField(
                     statusController, _status_list, "Write or select status...",
@@ -505,8 +505,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Devolución:", 16, textColor: Colors.blue),
-                customDropdownField(senderController, contact_list,
+                customText("Devolución:", 16, textColor: mainColor),
+                customDropdownField(senderController, contactList,
                     task.senderObj.toKeyValue(), "Selecciona contacto"),
                 /*customAutocompleteField(senderController, _contact_list,
                     "Write or select contact...",
@@ -516,23 +516,41 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Acuerdo:", 16, textColor: Colors.blue),
+                customText("Acuerdo:", 16, textColor: mainColor),
                 customDateField(context, dealDateController),
+                /*DateTimePicker(
+                  labelText: 'Fecha de inicio',
+                  selectedDate: task.deal_date,
+                  onSelectedDate: (DateTime date) {
+                    setState(() {
+                      task.deal_date = date;
+                    });
+                  },
+                ),*/
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Deadline:", 16, textColor: Colors.blue),
+                customText("Deadline:", 16, textColor: mainColor),
                 customDateField(context, deadlineDateController),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nuevo Deadline:", 16, textColor: Colors.blue),
+                customText("Nuevo Deadline:", 16, textColor: mainColor),
                 customDateField(context, newDeadlineDateController),
               ]),
               space(width: 20),
             ])
           ])),
           actions: <Widget>[
+            /*Row(children: [
+              Expanded(
+                  child: actionButton(context, "Enviar", _saveTask,
+                      Icons.save_outlined, [context, task, null])),
+              space(width: 10),
+              Expanded(
+                  child: actionButton(
+                      context, "Cancelar", _saveTask, Icons.cancel, context))
+            ]),*/
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
@@ -548,8 +566,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     newDeadlineDateController.text,
                     senderController.text,
                     projectController.text,
-                    _public,
-                    status_list);
+                    public,
+                    statusList);
               },
             ),
             TextButton(

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -202,8 +204,8 @@ class _TasksPageState extends State<TasksPage> {
         ));
   }
 
-  void _callEditDialog(context, task) async {
-    _taskEditDialog(context, task);
+  void _callEditDialog(context, HashMap args) async {
+    _taskEditDialog(context, args["task"]);
   }
 
   void _saveTask(
@@ -228,7 +230,9 @@ class _TasksPageState extends State<TasksPage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Contact edit'),
+          //title: const Text('Contact edit'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nueva tarea'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [
