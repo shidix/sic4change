@@ -1,10 +1,10 @@
 // ignore_for_file: avoid_unnecessary_containers
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:sic4change/pages/index.dart';
+// import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/utils.dart';
@@ -128,6 +128,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
           ]),
         ]));
   }
+
+  void test() {}
 
   @override
   void initState() {
@@ -461,9 +463,9 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                   "$qaQuestionsCompleted/$qualityQuestionsCounter",
                   addQualityPanel),
               qualityPanelWidget ?? Container(height: 0),
-              indicator("Transparencia", "8/10", print),
-              indicator("Género", "7/9", print),
-              indicator("Medio Ambiente", "5/8", print),
+              indicator("Transparencia", "8/10", test),
+              indicator("Género", "7/9", test),
+              indicator("Medio Ambiente", "5/8", test),
             ])));
   }
 
