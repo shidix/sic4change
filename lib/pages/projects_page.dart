@@ -123,7 +123,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     child: GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
+                          crossAxisCount: 5,
                           //crossAxisSpacing: 20,
                           //mainAxisSpacing: 20,
                           childAspectRatio: 2,

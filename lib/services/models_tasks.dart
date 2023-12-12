@@ -22,7 +22,7 @@ class STask {
   String description = "";
   String comments = "";
   String status = "";
-  String deal_date = "";
+  DateTime dealDate = DateTime.now();
   String deadline_date = "";
   String new_deadline_date = "";
   String sender = "";
@@ -36,11 +36,7 @@ class STask {
   Contact senderObj = Contact("", "", "", "", "");
   List<Contact> assignedObj = [];
 
-  STask(this.name,
-      [this.description = "",
-      this.deal_date = "",
-      this.deadline_date = "",
-      this.status = ""]);
+  STask(this.name);
 
   STask.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -49,7 +45,7 @@ class STask {
         description = json['description'],
         comments = json['comments'],
         status = json['status'],
-        deal_date = json['deal_date'],
+        dealDate = json['dealDate'].toDate(),
         deadline_date = json['deadline_date'],
         new_deadline_date = json['new_deadline_date'],
         sender = json['sender'],
@@ -67,7 +63,7 @@ class STask {
         'description': description,
         'comments': comments,
         'status': status,
-        'deal_date': deal_date,
+        'dealDate': dealDate,
         'deadline_date': deadline_date,
         'new_deadline_date': new_deadline_date,
         'sender': sender,

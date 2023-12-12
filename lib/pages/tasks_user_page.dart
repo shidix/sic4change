@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -189,7 +190,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
                     DataCell(
-                      Text(task.deal_date),
+                      Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
                     ),
                     DataCell(Text(task.deadline_date)),
                     //DataCell(Text(task.assigned.join(","))),

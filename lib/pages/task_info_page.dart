@@ -229,7 +229,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               customText("Nuevo deadline", 16, textColor: Colors.grey),
             ]),
             TableRow(children: [
-              customText(task.deal_date, 16),
+              customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
               customText(task.deadline_date, 16),
               customText(task.new_deadline_date, 16),
             ])
@@ -335,42 +335,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     _taskEditDialog(context, task, statusList, contactList, projectList);
   }
 
-  /*void _saveTask(
-      context,
-      task,
-      name,
-      description,
-      comments,
-      status,
-      dealDate,
-      deadlineDate,
-      newDeadlineDate,
-      sender,
-      project,
-      public,
-      statusList) async {*/
   void _saveTask(List args) async {
-    //if (_task != null) {
     STask task = args[1];
-    //task.name = args[2];
-    task.description = args[3];
-    task.comments = args[4];
-    task.status = args[5];
-    task.deal_date = args[6];
-    task.deadline_date = args[7];
-    task.new_deadline_date = args[8];
-    task.sender = args[9];
-    task.project = args[10];
-    task.public = args[11];
-    /*} else {
-      _task = STask("", "", _name, _description, _comments, _status, _deal_date,
-          _deadline_date, _new_deadline_date, _sender, _project, _public);
-    }*/
     task.save();
-    /*if (!statusList.contains(status)) {
-      TasksStatus tasksStatus = TasksStatus(status);
-      tasksStatus.save();
-    }*/
     loadTask(task);
     Navigator.pop(context);
   }
@@ -415,33 +382,26 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   Future<void> _taskEditDialog(
       context, task, statusList, contactList, projectList) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descriptionController =
-        TextEditingController(text: "");
-    TextEditingController commentsController = TextEditingController(text: "");
+    print("--0--");
     TextEditingController statusController = TextEditingController(text: "");
-    TextEditingController dealDateController = TextEditingController(text: "");
+    //TextEditingController dealDateController = TextEditingController(text: "");
     TextEditingController deadlineDateController =
         TextEditingController(text: "");
     TextEditingController newDeadlineDateController =
         TextEditingController(text: "");
     TextEditingController senderController = TextEditingController(text: "");
     TextEditingController projectController = TextEditingController(text: "");
-    bool public = false;
 
     if (task != null) {
-      nameController = TextEditingController(text: task.name);
-      descriptionController = TextEditingController(text: task.description);
-      commentsController = TextEditingController(text: task.comments);
       statusController = TextEditingController(text: task.status);
-      dealDateController = TextEditingController(text: task.deal_date);
+      //dealDateController = TextEditingController(text: task.deal_date);
       deadlineDateController = TextEditingController(text: task.deadline_date);
       newDeadlineDateController =
           TextEditingController(text: task.new_deadline_date);
       senderController = TextEditingController(text: task.sender);
       projectController = TextEditingController(text: task.project);
-      public = task.public;
     }
+    print("--1--");
 
     return showDialog<void>(
       context: context,
@@ -455,18 +415,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: mainColor),
-                //customTextField(nameController, "Nombre", size: 600),
                 SizedBox(
                   width: 600,
                   child: TextFormField(
                     initialValue: (task.name != "") ? task.name : "",
                     decoration: const InputDecoration(labelText: 'Nombre'),
-                    onChanged: (val) => setState(() {
-                      print("--z--");
-                      print(val);
-                      task.name = val;
-                    }),
+                    onChanged: (val) => setState(() => task.name = val),
                   ),
                 ),
               ]),
@@ -474,11 +428,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customText("Pública:", 16, textColor: mainColor),
                 FormField<bool>(builder: (FormFieldState<bool> state) {
                   return Checkbox(
-                    value: public,
+                    value: task.public,
                     onChanged: (bool? value) {
                       setState(() {
-                        public = value!;
-                        state.didChange(public);
+                        task.public = value!;
+                        state.didChange(task.public);
                       });
                     },
                   );
@@ -492,24 +446,33 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customDropdownField(projectController, projectList,
                     task.projectObj.toKeyValue(), "Selecciona proyecto",
                     width: 700),
-                /*customAutocompleteField(projectController, _project_list,
-                    "Write or select project...",
-                    width: 700),*/
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Descripción:", 16, textColor: mainColor),
-                customTextField(descriptionController, "Descripción",
-                    size: 700),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue:
+                        (task.description != "") ? task.description : "",
+                    decoration: const InputDecoration(labelText: 'Descripción'),
+                    onChanged: (val) => setState(() => task.description = val),
+                  ),
+                ),
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Comentarios:", 16, textColor: mainColor),
-                customTextField(commentsController, "Comentarios", size: 700),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (task.comments != "") ? task.comments : "",
+                    decoration: const InputDecoration(labelText: 'Comentarios'),
+                    onChanged: (val) => setState(() => task.comments = val),
+                  ),
+                ),
               ]),
             ]),
             space(height: 20),
@@ -519,9 +482,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customDropdownField(statusController, statusList,
                     task.statusObj.toKeyValue(), "Selecciona estado",
                     width: 340),
-                /*customAutocompleteField(
-                    statusController, _status_list, "Write or select status...",
-                    width: 340),*/
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -529,25 +489,22 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customDropdownField(senderController, contactList,
                     task.senderObj.toKeyValue(), "Selecciona devolución",
                     width: 340),
-                /*customAutocompleteField(senderController, _contact_list,
-                    "Write or select contact...",
-                    width: 340),*/
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Acuerdo:", 16, textColor: mainColor),
-                customDateField(context, dealDateController),
-                /*DateTimePicker(
-                  labelText: 'Fecha de inicio',
-                  selectedDate: task.deal_date,
+                /*customText("Acuerdo:", 16, textColor: mainColor),
+                customDateField(context, dealDateController),*/
+                DateTimePicker(
+                  labelText: 'Acuerdo',
+                  selectedDate: task.dealDate,
                   onSelectedDate: (DateTime date) {
                     setState(() {
-                      task.deal_date = date;
+                      task.dealDate = date;
                     });
                   },
-                ),*/
+                ),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -597,16 +554,13 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 _saveTask([
                   context,
                   task,
-                  nameController.text,
-                  descriptionController.text,
-                  commentsController.text,
+                  //commentsController.text,
                   statusController.text,
-                  dealDateController.text,
+                  //dealDateController.text,
                   deadlineDateController.text,
                   newDeadlineDateController.text,
                   senderController.text,
                   projectController.text,
-                  public,
                   statusList
                 ]);
               },
