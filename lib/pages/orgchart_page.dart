@@ -170,9 +170,12 @@ class _OrgchartState extends State<Orgchart> {
           Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
-                const Expanded(flex: 1, child: Text("Roles", style: titleText)),
                 Expanded(
-                    flex: 2,
+                    flex: 1,
+                    child: Text("Roles",
+                        style: titleText.copyWith(color: normalColor))),
+                Expanded(
+                    flex: 4,
                     child: SearchBar(
                       controller: TextEditingController(),
                       onSubmitted: (value) {
@@ -180,7 +183,7 @@ class _OrgchartState extends State<Orgchart> {
                       },
                       leading: const Icon(Icons.search),
                     )),
-                Expanded(flex: 1, child: topButtons(context))
+                Expanded(flex: 2, child: topButtons(context))
               ])),
           buildProfileHeader(),
           SizedBox(

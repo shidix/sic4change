@@ -148,14 +148,18 @@ class _FinnsPageState extends State<FinnsPage> {
       ),
     );
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void loadProjects() async {
     await getProjects().then((value) {
       projects = value;
     });
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -496,7 +500,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                             .then((value) {
                                           _loadInvoicesByFinn(
                                               context, finnSelected!);
-                                          setState(() {});
+                                          if (mounted) {
+                                            setState(() {});
+                                          }
                                         });
                                       },
                                       icon: const Icon(
@@ -507,7 +513,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                       onPressed: () {
                                         finnSelected = null;
                                         invoicesList = [];
-                                        setState(() {});
+                                        if (mounted) {
+                                          setState(() {});
+                                        }
                                       },
                                       icon: const Icon(
                                           Icons.arrow_circle_up_outlined))),
@@ -1011,7 +1019,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                 _editInvoiceDialog(context, invoice)
                                     .then((value) {
                                   _loadInvoicesByFinn(context, finnSelected!);
-                                  setState(() {});
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
                                 });
                                 ;
                               },
@@ -1020,7 +1030,9 @@ class _FinnsPageState extends State<FinnsPage> {
               ]))));
     }
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _editFinnContribDialog(context, finn, financierObj) {
