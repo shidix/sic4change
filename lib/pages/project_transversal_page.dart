@@ -56,6 +56,7 @@ class ProjectTransversalPage extends StatefulWidget {
 class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
+  Widget? qualityPanelWidget;
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
@@ -133,6 +134,106 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         currentProject = widget.currentProject;
       });
     }
+  }
+
+  void addQualityPanel(args) {
+    setState(() {
+      if (qualityPanelWidget == null) {
+        qualityPanelWidget = qualityPanel();
+      } else {
+        qualityPanelWidget = null;
+      }
+    });
+  }
+
+  Widget qualityPanel() {
+    List<dynamic> headers = [
+      [
+        "Necesidades del conjunto de clientes y otras partes interesadas",
+        4,
+        TextAlign.left
+      ],
+      ["Cumplido", 1, TextAlign.center],
+      ["Comentarios", 4, TextAlign.left],
+      ["Documentos", 1, TextAlign.center],
+      ["Puntuación (3/4)", 1, TextAlign.center]
+    ];
+
+    List<dynamic> rows = [
+      [
+        [
+          'Quiénes son los clientes finales (personas destinatarias) y otras partes interesadas en la intervención',
+          4,
+          TextAlign.left
+        ],
+        ['Sí', 1, TextAlign.center],
+        ['Niños menores de 12 años de entornos rurales', 4, TextAlign.left],
+        ['', 2, TextAlign.center],
+      ],
+      [
+        [
+          '¿Los materiales y recursos del proyecto son adecuados para los usuarios?',
+          4,
+          TextAlign.left
+        ],
+        ['Sí', 1, TextAlign.center],
+        ['', 4, TextAlign.left],
+        ['', 2, TextAlign.center],
+      ],
+      [
+        [
+          '¿Los métodos de enseñanza y aprendizaje del proyecto son eficaces?',
+          4,
+          TextAlign.left
+        ],
+        ['Sí', 1, TextAlign.center],
+        ['', 4, TextAlign.left],
+        ['', 2, TextAlign.center],
+      ],
+      [
+        [
+          '¿El número de usuarios se corresponde con lo esperado?',
+          4,
+          TextAlign.left
+        ],
+        ['No', 1, TextAlign.center],
+        ['', 4, TextAlign.left],
+        ['', 2, TextAlign.center],
+      ],
+    ];
+    return Column(children: [
+      Container(
+          color: mainColor,
+          child: Row(children: [
+            for (var header in headers)
+              Expanded(
+                flex: header[1],
+                child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Text(header[0],
+                            textAlign: header[2],
+                            style: mainText.copyWith(color: Colors.white)))),
+              ),
+          ])),
+      for (var row in rows)
+        Column(children: [
+          Container(
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                child: Row(children: [
+                  for (var col in row)
+                    Expanded(
+                        flex: col[1],
+                        child:
+                            Text(col[0], textAlign: col[2], style: normalText)),
+                ]),
+              )),
+          const Divider(height: 1),
+        ])
+    ]);
   }
 
   Widget content(context) {
@@ -216,10 +317,11 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             child: Column(children: [
-              indicator("Calidad", "9/10", print),
+              indicator("Calidad", "3/4", addQualityPanel),
+              qualityPanelWidget ?? Container(height: 0),
               indicator("Transparencia", "8/10", print),
-              indicator("Género", "9/10", print),
-              indicator("Medio Ambiente", "9/10", print),
+              indicator("Género", "7/9", print),
+              indicator("Medio Ambiente", "5/8", print),
             ])));
   }
 
