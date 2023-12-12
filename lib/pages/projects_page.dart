@@ -333,9 +333,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Widget projectCardDatasFinancier(SProject _project) {
     List _list = _project.financiers;
     List financiers = [];
-    for (var uuid in _list) {
-      financiers
-          .add((getObject(_project.financiersObj, uuid) as Financier).name);
+    if (_project.financiersObj.isNotEmpty) {
+      for (var uuid in _list) {
+        financiers
+            .add((getObject(_project.financiersObj, uuid) as Financier).name);
+      }
     }
 
     return Column(children: [
@@ -385,9 +387,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Widget projectCardDatasPartners(SProject _project) {
     List list = _project.partners;
     List partners = [];
-    for (var uuid in list) {
-      partners.add((getObject(_project.partnersObj, uuid) as Contact).name);
+    if (_project.partnersObj.isNotEmpty) {
+      for (var uuid in list) {
+        partners.add((getObject(_project.partnersObj, uuid) as Contact).name);
+      }
     }
+
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),
