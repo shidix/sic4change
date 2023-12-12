@@ -206,7 +206,9 @@ class _FinnsPageState extends State<FinnsPage> {
             space(width: 10),
             finnAddBtn(context, _project),
             space(width: 10),
-            customRowPopBtn(context, "Volver", Icons.arrow_back),
+
+            // customRowPopBtn(context, "Volver", Icons.arrow_back),
+            finnBackButton(context),
           ],
         ),
       ),
@@ -214,64 +216,28 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnAddBtn(context, _project) {
-    return ElevatedButton(
-      onPressed: () {
-        _editFinnDialog(context, null, _project);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          const Text(
-            "Nueva partida",
-            style: TextStyle(color: Colors.black, fontSize: 14),
-          ),
-        ],
-      ),
-    );
+    return actionButtonVertical(context, 'Nueva partida', _editFinnDialog,
+        Icons.add, [context, null, _project]);
+  }
+
+  Widget finnBackButton(context) {
+    return actionButtonVertical(context, 'Volver', () {
+      Navigator.pop(context);
+    }, Icons.arrow_circle_left_outlined, null);
   }
 
   Widget transferButton(context, _project) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: ((context) => TransfersPage(
-                      project: _project,
-                    ))));
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.euro_outlined,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          const Text(
-            "Transferencias",
-            style: TextStyle(color: Colors.black, fontSize: 14),
-          ),
-        ],
-      ),
-    );
+    void goTransfer(project) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: ((context) => TransfersPage(
+                    project: project,
+                  ))));
+    }
+
+    return actionButtonVertical(
+        context, 'Transferencias', goTransfer, Icons.euro_outlined, _project);
   }
 
   void _saveFinn(context, _finn, _name, _desc, _parent, _project) {
@@ -285,7 +251,11 @@ class _FinnsPageState extends State<FinnsPage> {
     loadFinns(_project);
   }
 
-  Future<void> _editFinnDialog(context, _finn, _project) {
+  Future<void> _editFinnDialog(args) {
+    //context, _finn, _project
+    SFinn? _finn = args[1];
+    SProject _project = args[2];
+
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
     String _parent = "";
@@ -803,7 +773,7 @@ class _FinnsPageState extends State<FinnsPage> {
         IconButton buttonFinnEdit = IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              _editFinnDialog(context, finn, project);
+              _editFinnDialog([context, finn, project]);
             });
         IconButton buttonFinnRemove = IconButton(
           icon: const Icon(Icons.delete),
@@ -1302,7 +1272,6 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Future<void> _editInvoiceDialog(context, Invoice invoice) {
-    print(invoice.id);
     return showDialog<void>(
       context: context,
       barrierDismissible: false,

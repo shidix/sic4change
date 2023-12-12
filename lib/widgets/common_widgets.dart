@@ -5,7 +5,7 @@ import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:sic4change/pages/project_transversal_page.dart';
+// import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 Widget customTitle(context, _text) {
@@ -602,6 +602,36 @@ Widget actionButton(
   );
 }
 
+Widget actionButtonVertical(
+    context, String text, Function action, IconData? icon, dynamic args,
+    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
+  icon ??= Icons.settings;
+  return ElevatedButton(
+    onPressed: () {
+      if (args == null) {
+        action();
+      } else {
+        action(args);
+      }
+    },
+    style: btnStyle,
+    // ElevatedButton.styleFrom(
+    //   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    //   backgroundColor: Colors.white,
+    // ),
+    child: Column(
+      children: [
+        space(height: 5),
+        Icon(icon, color: subTitleColor),
+        space(height: 5),
+        customText(text, 12, textColor: subTitleColor),
+        space(height: 5),
+      ],
+    ),
+  );
+}
+
 class ReadOnlyTextField extends StatelessWidget {
   final String label;
   final String textToShow;
@@ -826,8 +856,11 @@ const Color successColor = Colors.green;
 const TextStyle successText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: successColor);
 
-const ButtonStyle btnStyle = ButtonStyle(
-  backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
+ButtonStyle btnStyle = ButtonStyle(
+  backgroundColor: const MaterialStatePropertyAll<Color>(Colors.white),
+  shape: MaterialStatePropertyAll<RoundedRectangleBorder>(
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0))),
+  elevation: const MaterialStatePropertyAll<double>(5),
 );
 
 //--------------------------------------------------------------------------

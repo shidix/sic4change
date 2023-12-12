@@ -131,10 +131,12 @@ class _TransfersPageState extends State<TransfersPage> {
 
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
-      actionButton(context, "Nueva transferencia", addBankTransferDialog,
-          Icons.add, context),
+      actionButtonVertical(context, "Nueva transferencia",
+          addBankTransferDialog, Icons.add, context),
       space(width: 10),
-      backButton(context),
+      actionButtonVertical(context, 'Volver', () {
+        Navigator.pop(context);
+      }, Icons.arrow_circle_left_outlined, null)
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
