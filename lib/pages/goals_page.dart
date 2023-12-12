@@ -208,11 +208,12 @@ class _GoalsPageState extends State<GoalsPage> {
                             itemCount: goal_list.length,
                             itemBuilder: (BuildContext context, int index) {
                               Goal _goal = goal_list[index];
-                              if (_goal.main)
+                              if (_goal.main) {
                                 return Container(
                                   height: 120,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.only(
+                                      top: 20, bottom: 10),
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(
                                             color: Color(0xffdfdfdf),
@@ -220,11 +221,12 @@ class _GoalsPageState extends State<GoalsPage> {
                                   ),
                                   child: goalRowMain(context, _goal, _project),
                                 );
-                              else
+                              } else {
                                 return Container(
                                   height: 100,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.only(
+                                      top: 20, bottom: 10),
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(
                                             color: Color(0xffdfdfdf),
@@ -232,6 +234,7 @@ class _GoalsPageState extends State<GoalsPage> {
                                   ),
                                   child: goalRow(context, _goal, _project),
                                 );
+                              }
                             }))),
               ],
             );
@@ -243,7 +246,7 @@ class _GoalsPageState extends State<GoalsPage> {
         }));
   }
 
-  Widget goalRowMain(context, _goal, _project) {
+  Widget goalRowMain(context, goal, project) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -251,19 +254,19 @@ class _GoalsPageState extends State<GoalsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${_goal.name}'),
+            Text('${goal.name}'),
             space(height: 10),
             customLinearPercent(context, 2, 0.8, Colors.green),
             space(height: 10),
-            Text(_goal.description),
+            Text(goal.description),
           ],
         ),
-        goalRowOptions(context, _goal, _project),
+        goalRowOptions(context, goal, project),
       ],
     );
   }
 
-  Widget goalRow(context, _goal, _project) {
+  Widget goalRow(context, goal, project) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -271,36 +274,35 @@ class _GoalsPageState extends State<GoalsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${_goal.name}'),
+            Text('${goal.name}'),
             space(height: 10),
             customLinearPercent(context, 2, 0.8, Colors.blue),
           ],
         ),
-        goalRowOptions(context, _goal, _project),
+        goalRowOptions(context, goal, project),
       ],
     );
   }
 
-  Widget goalRowOptions(context, _goal, _project) {
+  Widget goalRowOptions(context, goal, project) {
     return Row(children: [
       IconButton(
           icon: const Icon(Icons.list_alt),
           tooltip: 'Results',
           onPressed: () {
-            Navigator.pushNamed(context, "/results",
-                arguments: {'goal': _goal});
+            Navigator.pushNamed(context, "/results", arguments: {'goal': goal});
           }),
       IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
           onPressed: () async {
-            _editGoalDialog(context, _goal, _project);
+            _editGoalDialog(context, goal, project);
           }),
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeGoalDialog(context, _goal, _project);
+            _removeGoalDialog(context, goal, project);
           }),
     ]);
   }

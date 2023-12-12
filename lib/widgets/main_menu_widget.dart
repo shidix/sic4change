@@ -25,19 +25,50 @@ Widget mainMenu(context, [user, url]) {
           menuBtn(context, "Documentos", Icons.folder, "/documents"),
           menuBtn(context, "Contactos", Icons.handshake, "/contacts"),*/
           menuBtn(context, "Inicio", Icons.home, "/home",
-              (url == "/home") ? Colors.black : Colors.black45),
-          menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks_user",
-              (url == "/tasks_user") ? Colors.black : Colors.black45),
-          menuBtn(context, "Proyectos", Icons.list_alt, "/projects",
-              (url == "/projects") ? Colors.black : Colors.black45),
-          menuBtn(context, "Documentos", Icons.folder, "/documents",
-              (url == "/documents") ? Colors.black : Colors.black45),
-          menuBtn(context, "Contactos", Icons.handshake, "/contacts",
-              (url == "/contacts") ? Colors.black : Colors.black45),
-          menuBtn(context, "Roles", Icons.group, "/orgchart",
-              (url == "/orgchart") ? Colors.black : Colors.black45),
+              (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+          menuBtn(
+              context,
+              "Tareas",
+              Icons.grading_sharp,
+              "/tasks_user",
+              (url == "/tasks_user")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
+          menuBtn(
+              context,
+              "Proyectos",
+              Icons.list_alt,
+              "/projects",
+              (url == "/projects")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
+          menuBtn(
+              context,
+              "Documentos",
+              Icons.folder,
+              "/documents",
+              (url == "/documents")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
+          menuBtn(
+              context,
+              "Contactos",
+              Icons.handshake,
+              "/contacts",
+              (url == "/contacts")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
+          menuBtn(
+              context,
+              "Roles",
+              Icons.group,
+              "/orgchart",
+              (url == "/orgchart")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
           logoutBtn(context, "Salir", Icons.arrow_back),
-          if (user != null) Text(user.email!),
+          if (user != null)
+            customText(user.email!, 14, textColor: Colors.white54),
         ],
       ),
     ),

@@ -11,11 +11,11 @@ import 'package:sic4change/services/models_commons.dart';
 Widget customTitle(context, _text) {
   return Container(
       width: MediaQuery.of(context).size.width,
-      color: const Color(0xffd0dbe0),
+      color: const Color(0xffe5f2d7),
       padding: const EdgeInsets.all(10),
       child: Text(
         _text,
-        style: const TextStyle(fontSize: 16, color: Color(0xff00809a)),
+        style: const TextStyle(fontSize: 16, color: Color(0xff00594f)),
         textAlign: TextAlign.center,
       ));
 }
@@ -28,7 +28,7 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute,
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xffe5f2d8)),
+      side: const BorderSide(width: 0, color: Color(0xff00594f)),
       backgroundColor: bgColor,
       //primary: Colors.purple),
     ),
@@ -75,16 +75,16 @@ Widget logoutBtn(context, btnName, btnIcon) {
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xffe5f2d8)),
+      side: const BorderSide(width: 0, color: Color(0xff00594f)),
       backgroundColor: bgColor,
       //primary: Colors.purple),
     ),
     child: Column(
       children: [
-        Icon(btnIcon, color: Colors.black54),
+        Icon(btnIcon, color: Colors.white54),
         Text(
           btnName,
-          style: const TextStyle(color: Colors.black54, fontSize: 18),
+          style: const TextStyle(color: Colors.white54, fontSize: 16),
         ),
       ],
     ),
@@ -757,7 +757,10 @@ const TextStyle titleText = TextStyle(
 
 //Color titleColor = Color(0xff008099);
 Color greyColor = const Color(0xffdfdfdf);
-Color bgColor = const Color(0xffe5f2d7);
+//Color bgColor = const Color(0xffe5f2d7);
+Color bgColor = const Color(0xff00594f);
+Color mainMenuBtnSelectedColor = Colors.white;
+Color mainMenuBtnColor = Colors.white54;
 
 // const Color mainColor = Color(0xFF00809A);
 const Color mainColor = Color(0xffabf100);

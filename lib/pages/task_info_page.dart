@@ -352,7 +352,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   void _saveTask(List args) async {
     //if (_task != null) {
     STask task = args[1];
-    task.name = args[2];
+    //task.name = args[2];
     task.description = args[3];
     task.comments = args[4];
     task.status = args[5];
@@ -456,7 +456,19 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Nombre:", 16, textColor: mainColor),
-                customTextField(nameController, "Nombre", size: 600),
+                //customTextField(nameController, "Nombre", size: 600),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (task.name != "") ? task.name : "",
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    onChanged: (val) => setState(() {
+                      print("--z--");
+                      print(val);
+                      task.name = val;
+                    }),
+                  ),
+                ),
               ]),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Pública:", 16, textColor: mainColor),
@@ -580,6 +592,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
+                print("--n--");
+                print(task.name);
                 _saveTask([
                   context,
                   task,

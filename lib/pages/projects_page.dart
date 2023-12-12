@@ -91,7 +91,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             customText(projectTitle, 20),
-            addBtn(context, callDialog, [null]),
+            addBtn(context, callDialog, {"programme": null}),
+
             /*Container(
           width: 500,
           child: SearchBar(
@@ -139,11 +140,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      customText(programme.name, 15,
+                                      /*customText(programme.name, 15,
                                           bold: FontWeight.bold),
                                       customText(
                                           " ('${programme.projects}' proyectos)",
-                                          15),
+                                          15),*/
                                       editBtn(context, callDialog, programme)
                                     ],
                                   )
@@ -171,8 +172,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
             })));
   }
 
-  void callDialog(context, programme) {
-    programmeEditDialog(context, programme);
+  void callDialog(context, args) {
+    programmeEditDialog(context, args["programme"]);
   }
 
   /*Widget addProgrammeBtn(context, programme) {
