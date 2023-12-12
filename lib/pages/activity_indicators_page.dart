@@ -45,7 +45,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         mainMenu(context),
         activityIndicatorPath(context, activity),
         activityIndicatorHeader(context, activity),
-        marcoMenu(context, activity, "marco"),
+        //marcoMenu(context, activity, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,

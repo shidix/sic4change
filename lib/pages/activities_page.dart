@@ -44,7 +44,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         mainMenu(context),
         activityPath(context, _result),
         activityHeader(context, _result),
-        marcoMenu(context, _result, "marco"),
+        //marcoMenu(context, _result, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,

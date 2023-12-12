@@ -10,7 +10,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
 const pageResultTitle = "Resultados";
-List result_list = [];
+List results = [];
 
 class ResultsPage extends StatefulWidget {
   const ResultsPage({super.key});
@@ -22,7 +22,7 @@ class ResultsPage extends StatefulWidget {
 class _ResultsPageState extends State<ResultsPage> {
   void loadResults(value) async {
     await getGoalsByProject(value).then((val) {
-      result_list = val;
+      results = val;
       //print(contact_list);
     });
     setState(() {});
@@ -36,37 +36,37 @@ class _ResultsPageState extends State<ResultsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Goal? _goal;
+    final Goal? goal;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _goal = args["goal"];
+      goal = args["goal"];
     } else {
-      _goal = null;
+      goal = null;
     }
 
-    if (_goal == null) return Page404();
+    if (goal == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        resultPath(context, _goal),
+        resultPath(context, goal),
         space(height: 20),
-        resultHeader(context, _goal),
-        marcoMenu(context, _goal, "marco"),
+        resultHeader(context, goal),
+        //marcoMenu(context, goal, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.only(left: 10, right: 10),
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Color(0xffdfdfdf),
+                      color: const Color(0xffdfdfdf),
                       width: 2,
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
-                  child: resultList(context, _goal),
+                  child: resultList(context, goal),
                 )))
       ]),
     );
@@ -255,13 +255,13 @@ class _ResultsPageState extends State<ResultsPage> {
         future: getResultsByGoal(_goal.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            result_list = snapshot.data!;
-            if (result_list.length > 0) {
+            results = snapshot.data!;
+            if (results.length > 0) {
               return ListView.builder(
                   padding: const EdgeInsets.all(8),
-                  itemCount: result_list.length,
+                  itemCount: results.length,
                   itemBuilder: (BuildContext context, int index) {
-                    Result _result = result_list[index];
+                    Result _result = results[index];
                     return Container(
                       //height: 400,
                       padding: EdgeInsets.only(top: 10, bottom: 10),

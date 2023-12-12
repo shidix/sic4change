@@ -44,7 +44,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         mainMenu(context),
         taskPath(context, _result),
         taskHeader(context, _result),
-        marcoMenu(context, _result, "marco"),
+        //marcoMenu(context, _result, "marco"),
         Expanded(
             child: Container(
                 width: double.infinity,

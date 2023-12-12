@@ -218,6 +218,10 @@ class _TasksPageState extends State<TasksPage> {
     Navigator.pushNamed(context, "/task_info", arguments: {'task': task});
   }
 
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
   Future<void> _taskEditDialog(context, task) {
     TextEditingController nameController = TextEditingController(text: "");
 
@@ -237,13 +241,25 @@ class _TasksPageState extends State<TasksPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
+                customText("Nombre:", 16, textColor: mainColor),
                 customTextField(nameController, "Nombre", size: 700),
               ])
             ]),
           ])),
           actions: <Widget>[
-            TextButton(
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", _saveTask,
+                    Icons.save_outlined, [context, nameController.text]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
+            /*TextButton(
               child: const Text('Save'),
               onPressed: () async {
                 _saveTask(context, nameController.text);
@@ -254,7 +270,7 @@ class _TasksPageState extends State<TasksPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-            ),
+            ),*/
           ],
         );
       },

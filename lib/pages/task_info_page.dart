@@ -335,7 +335,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     _taskEditDialog(context, task, statusList, contactList, projectList);
   }
 
-  void _saveTask(
+  /*void _saveTask(
       context,
       task,
       name,
@@ -348,18 +348,20 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       sender,
       project,
       public,
-      statusList) async {
+      statusList) async {*/
+  void _saveTask(List args) async {
     //if (_task != null) {
-    task.name = name;
-    task.description = description;
-    task.comments = comments;
-    task.status = status;
-    task.deal_date = dealDate;
-    task.deadline_date = deadlineDate;
-    task.new_deadline_date = newDeadlineDate;
-    task.sender = sender;
-    task.project = project;
-    task.public = public;
+    STask task = args[1];
+    task.name = args[2];
+    task.description = args[3];
+    task.comments = args[4];
+    task.status = args[5];
+    task.deal_date = args[6];
+    task.deadline_date = args[7];
+    task.new_deadline_date = args[8];
+    task.sender = args[9];
+    task.project = args[10];
+    task.public = args[11];
     /*} else {
       _task = STask("", "", _name, _description, _comments, _status, _deal_date,
           _deadline_date, _new_deadline_date, _sender, _project, _public);
@@ -405,6 +407,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             }
           },
         ));
+  }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
   }
 
   Future<void> _taskEditDialog(
@@ -472,7 +478,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: mainColor),
                 customDropdownField(projectController, projectList,
-                    task.projectObj.toKeyValue(), "Selecciona proyecto"),
+                    task.projectObj.toKeyValue(), "Selecciona proyecto",
+                    width: 700),
                 /*customAutocompleteField(projectController, _project_list,
                     "Write or select project...",
                     width: 700),*/
@@ -498,7 +505,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: mainColor),
                 customDropdownField(statusController, statusList,
-                    task.statusObj.toKeyValue(), "Selecciona estado"),
+                    task.statusObj.toKeyValue(), "Selecciona estado",
+                    width: 340),
                 /*customAutocompleteField(
                     statusController, _status_list, "Write or select status...",
                     width: 340),*/
@@ -507,7 +515,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: mainColor),
                 customDropdownField(senderController, contactList,
-                    task.senderObj.toKeyValue(), "Selecciona contacto"),
+                    task.senderObj.toKeyValue(), "Selecciona devolución",
+                    width: 340),
                 /*customAutocompleteField(senderController, _contact_list,
                     "Write or select contact...",
                     width: 340),*/
@@ -544,30 +553,48 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           actions: <Widget>[
             /*Row(children: [
               Expanded(
-                  child: actionButton(context, "Enviar", _saveTask,
-                      Icons.save_outlined, [context, task, null])),
+                flex: 5,
+                child: actionButton(
+                    context, "Enviar", _saveTask, Icons.save_outlined, [
+                  context,
+                  task,
+                  nameController.text,
+                  descriptionController.text,
+                  commentsController.text,
+                  statusController.text,
+                  dealDateController.text,
+                  deadlineDateController.text,
+                  newDeadlineDateController.text,
+                  senderController.text,
+                  projectController.text,
+                  public,
+                  statusList
+                ]),
+              ),
               space(width: 10),
               Expanded(
+                  flex: 5,
                   child: actionButton(
-                      context, "Cancelar", _saveTask, Icons.cancel, context))
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
             ]),*/
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveTask(
-                    context,
-                    task,
-                    nameController.text,
-                    descriptionController.text,
-                    commentsController.text,
-                    statusController.text,
-                    dealDateController.text,
-                    deadlineDateController.text,
-                    newDeadlineDateController.text,
-                    senderController.text,
-                    projectController.text,
-                    public,
-                    statusList);
+                _saveTask([
+                  context,
+                  task,
+                  nameController.text,
+                  descriptionController.text,
+                  commentsController.text,
+                  statusController.text,
+                  dealDateController.text,
+                  deadlineDateController.text,
+                  newDeadlineDateController.text,
+                  senderController.text,
+                  projectController.text,
+                  public,
+                  statusList
+                ]);
               },
             ),
             TextButton(
