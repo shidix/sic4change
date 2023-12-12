@@ -89,15 +89,21 @@ class ModelsQuality {
 }
 
 class QualityQuestion {
+  String code;
   String subject;
   bool completed;
   String comments;
   List<String> docs;
 
   QualityQuestion({
+    required this.code,
     required this.subject,
     required this.completed,
     required this.comments,
     required this.docs,
   });
+
+  bool isMain() {
+    return (!code.contains("."));
+  }
 }

@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_unnecessary_containers
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -57,6 +59,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
   Widget? qualityPanelWidget;
+  List<QualityQuestion>? qualityQuestions;
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
@@ -147,17 +150,104 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
   Widget qualityPanel() {
-    List<dynamic> headers = [
-      [
-        "Necesidades del conjunto de clientes y otras partes interesadas",
-        4,
-        TextAlign.left
-      ],
-      ["Cumplido", 1, TextAlign.center],
-      ["Comentarios", 4, TextAlign.left],
-      ["Documentos", 1, TextAlign.center],
-      ["Puntuación (3/4)", 1, TextAlign.center]
-    ];
+    qualityQuestions = [];
+    qualityQuestions!.add(QualityQuestion(
+        code: "1",
+        subject: "Cumplimiento de requisitos",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "1.1",
+        subject:
+            "¿El proyecto cumple con los requisitos del alcance establecidos?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "1.2",
+        subject:
+            "¿El proyecto se está ejecutando dentro del presupuesto establecido?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "1.3",
+        subject:
+            "¿El proyecto se está ejecutando dentro del cronograma establecido?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "1.4",
+        subject:
+            "¿Los requisitos del proyecto están claramente definidos y acordados?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "1.5",
+        subject: "¿Se está alcanzando a los usarios establecidos?",
+        completed: false,
+        comments: "",
+        docs: []));
+
+    qualityQuestions!.add(QualityQuestion(
+        code: "2",
+        subject: "Gestión de procesos",
+        completed: false,
+        comments: "",
+        docs: []));
+
+    qualityQuestions!.add(QualityQuestion(
+        code: "2.1",
+        subject:
+            "¿Los procesos del proyecto están documentados y se siguen de manera efectiva?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "2.2",
+        subject:
+            "¿La comunicación entre las partes interesadas del proyecto es efectiva?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "2.3",
+        subject:
+            "¿Los riesgos del proyecto se han identificado y se están mitigando de manera efectiva?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "2.4",
+        subject: "¿Los cambios al proyecto se gestionan de manera efectiva?",
+        completed: false,
+        comments: "",
+        docs: []));
+
+    qualityQuestions!.add(QualityQuestion(
+        code: "3",
+        subject: "Mejora Continua",
+        completed: false,
+        comments: "",
+        docs: []));
+
+    qualityQuestions!.add(QualityQuestion(
+        code: "3.1",
+        subject:
+            "¿Se están aplicando las lecciones aprendidas de proyectos anteriores?",
+        completed: false,
+        comments: "",
+        docs: []));
+    qualityQuestions!.add(QualityQuestion(
+        code: "3.2",
+        subject:
+            "¿Se están implementando acciones para mejorar la gestión de calidad del proyecto",
+        completed: false,
+        comments: "",
+        docs: []));
 
     List<dynamic> rows = [
       [
@@ -201,39 +291,78 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         ['', 2, TextAlign.center],
       ],
     ];
-    return Column(children: [
-      Container(
-          color: mainColor,
-          child: Row(children: [
-            for (var header in headers)
-              Expanded(
-                flex: header[1],
-                child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                    child: Align(
-                        alignment: Alignment.topCenter,
-                        child: Text(header[0],
-                            textAlign: header[2],
-                            style: mainText.copyWith(color: Colors.white)))),
-              ),
-          ])),
-      for (var row in rows)
-        Column(children: [
-          Container(
-              color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                child: Row(children: [
-                  for (var col in row)
-                    Expanded(
-                        flex: col[1],
-                        child:
-                            Text(col[0], textAlign: col[2], style: normalText)),
-                ]),
-              )),
-          const Divider(height: 1),
-        ])
-    ]);
+
+    Widget result = Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        height: 150,
+        color: Colors.white,
+        child: currentProject != null
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: qualityQuestions!.length,
+                scrollDirection: Axis.vertical,
+                itemBuilder: (BuildContext context, int index) {
+                  QualityQuestion item = qualityQuestions!.elementAt(index);
+                  TextStyle style = (item.isMain() ? successText : normalText);
+                  return ListTile(
+                      subtitle: Container(
+                          child: Row(
+                    children: [
+                      Expanded(
+                          flex: 4,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  item.subject,
+                                  style: style,
+                                )),
+                          )),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              (item.isMain()
+                                  ? "Completado"
+                                  : item.completed
+                                      ? "Sí"
+                                      : "No"),
+                              style: style,
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              item.isMain() ? "Comentarios" : item.comments,
+                              style: style,
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              item.isMain()
+                                  ? "Documentos"
+                                  : item.docs.toString(),
+                              style: style,
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                    ],
+                  )));
+                })
+            : Center(
+                child: CircularProgressIndicator(),
+              ));
+
+    return result;
   }
 
   Widget statusProject() {

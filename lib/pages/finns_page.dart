@@ -174,12 +174,13 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     return Scaffold(
-      body: Column(children: [
+        body: SingleChildScrollView(
+      child: Column(children: [
         mainMenu(context),
         finnHeader(context, _project),
         finnFullPage(context, _project),
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------
@@ -466,21 +467,21 @@ class _FinnsPageState extends State<FinnsPage> {
 
     if (finnSelected != null) {
       invoicesContainer = SizedBox(
-          width: double.infinity,
+          width: MediaQuery.of(context).size.width,
           child: Card(
               child: Padding(
             padding: const EdgeInsets.only(left: 10, top: 10),
             child: Column(children: [
-              Row(mainAxisSize: MainAxisSize.max, children: [
+              Row(children: [
                 Expanded(
-                    flex: 16,
+                    flex: 18,
                     child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
                             'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
                             style: secondaryText))),
                 Expanded(
-                    flex: 1,
+                    flex: 2,
                     child: Align(
                         alignment: Alignment.topRight,
                         child: Padding(
@@ -937,7 +938,7 @@ class _FinnsPageState extends State<FinnsPage> {
           )),
       Expanded(flex: 2, child: Text('Código', style: secondaryText)),
       Expanded(flex: 2, child: Text('Fecha', style: secondaryText)),
-      Expanded(flex: 4, child: Text('Concepto', style: secondaryText)),
+      Expanded(flex: 5, child: Text('Concepto', style: secondaryText)),
       Expanded(
           flex: 2,
           child: Text(
@@ -960,7 +961,7 @@ class _FinnsPageState extends State<FinnsPage> {
             textAlign: TextAlign.end,
           )),
       Expanded(
-          flex: 1,
+          flex: 3,
           child: Text('', textAlign: TextAlign.end, style: secondaryText)),
     ]);
 
@@ -976,7 +977,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 Expanded(flex: 2, child: Text(invoice.number)),
                 Expanded(flex: 2, child: Text(invoice.code)),
                 Expanded(flex: 2, child: Text(invoice.date)),
-                Expanded(flex: 4, child: Text(invoice.concept)),
+                Expanded(flex: 5, child: Text(invoice.concept)),
                 Expanded(
                     flex: 2,
                     child: Text(
@@ -996,7 +997,7 @@ class _FinnsPageState extends State<FinnsPage> {
                       textAlign: TextAlign.end,
                     )),
                 Expanded(
-                    flex: 1,
+                    flex: 3,
                     child: Align(
                         alignment: Alignment.centerRight,
                         child: Row(children: [
@@ -1295,13 +1296,15 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('Editar factura'),
-          content: InvoiceForm(
-            key: null,
-            existingInvoice: invoice,
-          ),
-        );
+            titlePadding: EdgeInsets.zero,
+            title: s4cTitleBar('Editar factura'),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.75,
+              child: InvoiceForm(
+                key: null,
+                existingInvoice: invoice,
+              ),
+            ));
       },
     );
   }
