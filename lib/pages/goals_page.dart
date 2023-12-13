@@ -85,7 +85,9 @@ class _GoalsPageState extends State<GoalsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _project),
+            addBtn(context, _editGoalDialog,
+                {'_goal': null, '_project': _project}),
+            space(width: 10),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
@@ -94,27 +96,28 @@ class _GoalsPageState extends State<GoalsPage> {
     ]);
   }
 
-  Widget addBtn(context, _project) {
-    return FilledButton(
-      onPressed: () {
-        _editGoalDialog(context, null, _project);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget addBtn2(context, _project) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editGoalDialog(
+  //           context, {'_goal': null, '_project': _project} as HashMap);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _saveGoal(context, _goal, _name, _desc, _main, _project) async {
     if (_goal == null) _goal = Goal(_project);
@@ -126,7 +129,9 @@ class _GoalsPageState extends State<GoalsPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _editGoalDialog(context, _goal, _project) {
+  Future<void> _editGoalDialog(context, HashMap args) {
+    Goal? _goal = args["_goal"];
+    SProject _project = args["_project"];
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
     bool _main = false;
@@ -144,7 +149,9 @@ class _GoalsPageState extends State<GoalsPage> {
         //bool _main = false;
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Goal edit'),
+          title: (_goal != null)
+              ? const Text('Editando Objetivo')
+              : const Text('Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -296,7 +303,8 @@ class _GoalsPageState extends State<GoalsPage> {
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
           onPressed: () async {
-            _editGoalDialog(context, goal, project);
+            _editGoalDialog(
+                context, {'_goal': goal, '_project': project} as HashMap);
           }),
       IconButton(
           icon: const Icon(Icons.remove_circle),
