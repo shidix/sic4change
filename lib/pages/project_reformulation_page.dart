@@ -72,7 +72,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
             Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  addBtn(context),
+                  addBtn(context, callEditDialog, null),
+                  space(width: 10),
                   returnBtn(context),
                 ]))
           ]),
@@ -217,7 +218,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
 /*-------------------------------------------------------------
                        EDIT REFORMULATION
 -------------------------------------------------------------*/
-  Widget addBtn(context) {
+  Widget addBtn2(context) {
     return FilledButton(
       onPressed: () {
         callEditDialog(context, null);
@@ -274,7 +275,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           // <-- SEE HERE
-          title: const Text('Editar reformulación'),
+          title: (ref != null)
+              ? const Text('Editar reformulación')
+              : const Text('Añadir reformulación'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [

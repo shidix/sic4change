@@ -71,7 +71,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              fileAddBtn(context, currentFolder),
+              Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
+                  child: fileAddBtn(context, currentFolder)),
             ],
           ),
           buildProgress(),
@@ -93,16 +96,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
       onPressed: () {
         selectFile(currentFolder);
       },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
+      style: btnStyle,
+      // FilledButton.styleFrom(
+      //   side: const BorderSide(width: 0, color: Color(0xffffffff)),
+      //   backgroundColor: const Color(0xffffffff),
+      // ),
       child: const Column(
         children: [
           Icon(Icons.add, color: Colors.black54),
           SizedBox(height: 5),
           Text(
-            "Añadir",
+            "Archivo",
             style: TextStyle(color: Colors.black54, fontSize: 12),
           ),
         ],
@@ -243,7 +247,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            folderAddBtn(context, currentFolder),
+            Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
+                child: folderAddBtn(context, currentFolder)),
           ],
         ),
       ),
@@ -257,47 +264,18 @@ class _DocumentsPageState extends State<DocumentsPage> {
       onPressed: () {
         _folderEditDialog(context, nameController, null, currentFolder);
       },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
+      style: btnStyle,
       child: const Column(
         children: [
           Icon(Icons.add, color: Colors.black54),
           SizedBox(height: 5),
           Text(
-            "Añadir",
+            "Carpeta",
             style: TextStyle(color: Colors.black54, fontSize: 12),
           ),
         ],
       ),
     );
-    /*return ElevatedButton(
-      onPressed: () {
-        _folderEditDialog(context, nameController, null, currentFolder);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          customText(
-            "Add Folder",
-            14,
-            textColor: Colors.black,
-          ),
-        ],
-      ),
-    );*/
   }
 
   Widget folderList(context, currentFolder) {
@@ -402,7 +380,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Editar carpeta'),
+          title: Text(
+              (currentFolder != null) ? 'Editar carpeta' : 'Nueva carpeta'),
           content: SingleChildScrollView(
             child: SizedBox(
               width: 250,

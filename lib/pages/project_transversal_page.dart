@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_unnecessary_containers
 
 // import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:js_util';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -303,6 +305,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 shrinkWrap: true,
                 itemCount: qualityQuestions!.length,
                 //scrollDirection: Axis.vertical,
+
                 itemBuilder: (BuildContext context, int index) {
                   QualityQuestion item = qualityQuestions!.elementAt(index);
                   TextStyle style = (item.isMain()
@@ -372,7 +375,12 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 child: CircularProgressIndicator(),
               ));
 
-    return result;
+    return Column(children: [
+      result,
+      Divider(
+        height: 1,
+      ),
+    ]);
   }
 
   Widget statusProject() {
@@ -430,6 +438,9 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         color: Colors.white,
         child: Column(children: [
+          (title != "Calidad")
+              ? const Divider(height: 1)
+              : Container(height: 0),
           Container(
               child: Padding(
                   padding:
@@ -448,7 +459,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                               value, action, args)),
                     ],
                   ))),
-          const Divider(height: 1),
         ]));
   }
 
