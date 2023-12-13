@@ -45,7 +45,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         activityPath(context, _result),
         activityHeader(context, _result),
         //marcoMenu(context, _result, "marco"),
-        Expanded(
+        contentTab(context, activityList, _result),
+        /*Expanded(
             child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -58,7 +59,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: activityList(context, _result),
-                )))
+                )))*/
       ]),
     );
   }
@@ -66,13 +67,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 /*-------------------------------------------------------------
                             ACTIVITY
 -------------------------------------------------------------*/
-  Widget activityPath(context, _result) {
+  Widget activityPath(context, result) {
     return FutureBuilder(
-        future: _result.getProjectByActivity(),
+        future: result.getProjectByActivity(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            final _path = snapshot.data!;
-            return pathHeader(context, _path);
+            final path = snapshot.data!;
+            return pathHeader(context, path);
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -81,13 +82,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         }));
   }
 
-  Widget activityHeader(context, _result) {
+  Widget activityHeader(context, result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          padding: EdgeInsets.only(left: 40),
+          padding: const EdgeInsets.only(left: 40),
           child: Row(children: [
-            customText("Actividades", 18, textColor: titleColor),
+            customText("Actividades", 18),
           ]),
         ),
       ]),
@@ -96,7 +97,10 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _result),
+            //addBtn(context, result),
+            addBtn(context, _editActivityDialog,
+                {"activity": null, "result": result}),
+            space(width: 10),
             returnBtn(context),
           ],
         ),
@@ -104,7 +108,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     ]);
   }
 
-  Widget addBtn(context, _result) {
+  /*Widget addBtn(context, _result) {
     return FilledButton(
       onPressed: () {
         _editActivityDialog(context, null, _result);
@@ -124,7 +128,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveActivity(context, activity, name, result) async {
     activity ??= Activity(result);
@@ -134,11 +138,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _editActivityDialog(context, activity, result) {
+  Future<void> _editActivityDialog(context, HashMap args) {
+    Result result = args["result"];
     TextEditingController nameController = TextEditingController(text: "");
 
-    if (activity != null) {
-      nameController = TextEditingController(text: activity.name);
+    if (args["activity"] != null) {
+      nameController = TextEditingController(text: args["activity"].name);
     }
 
     return showDialog<void>(
@@ -158,7 +163,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveActivity(context, activity, nameController.text, result);
+                _saveActivity(
+                    context, args["activity"], nameController.text, result);
               },
             ),
             TextButton(
@@ -226,7 +232,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            customText('${activity.name}', 16, textColor: titleColor),
+            customText('${activity.name}', 16),
             activityRowOptions(context, activity, result),
           ],
         ),
@@ -243,12 +249,14 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             Navigator.pushNamed(context, "/activity_indicators",
                 arguments: {'activity': activity});
           }),
-      IconButton(
+      editBtn(context, _editActivityDialog,
+          {"activity": activity, "result": result}),
+      /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Editar',
           onPressed: () async {
             _editActivityDialog(context, activity, result);
-          }),
+          }),*/
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Borrar',

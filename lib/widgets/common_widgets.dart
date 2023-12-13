@@ -896,7 +896,11 @@ Widget customText(_text, _size,
 Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
   return FilledButton(
       onPressed: () {
-        action(context, args);
+        if (args.isEmpty) {
+          action(context);
+        } else {
+          action(context, args);
+        }
       },
       style: btnStyle,
       child: Column(

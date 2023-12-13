@@ -124,7 +124,10 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        editBtn(context),
+                        //editBtn(context),
+                        addBtn(context, callContactInfoEditDialog, {},
+                            text: "Editar", icon: Icons.edit),
+                        space(width: 10),
                         returnBtn(context),
                         //customRowPopBtn(context, "Volver", Icons.arrow_back)
                       ],
@@ -135,7 +138,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         ]));
   }
 
-  Widget editBtn(context) {
+  /*Widget editBtn(context) {
     return FilledButton(
       onPressed: () {
         callContactInfoEditDialog(context);
@@ -155,7 +158,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget contactInfoMenu(context) {
     return Container(
@@ -222,9 +225,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Organización", 16, textColor: titleColor),
-            customText("Cargo", 16, textColor: titleColor),
-            customText("Grado de decisión", 16, textColor: titleColor),
+            customText("Organización", 14, bold: FontWeight.bold),
+            customText("Cargo", 14, bold: FontWeight.bold),
+            customText("Grado de decisión", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(contactInfo.orgObj.name, 16),
@@ -239,9 +242,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Categoría", 16, textColor: titleColor),
-            customText("Subcategoría", 16, textColor: titleColor),
-            customText("KOL", 16, textColor: titleColor),
+            customText("Categoría", 14, bold: FontWeight.bold),
+            customText("Subcategoría", 14, bold: FontWeight.bold),
+            customText("KOL", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(contactInfo.catObj.name, 16),
@@ -256,11 +259,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Zona greográfica de influencia", 16,
-                textColor: titleColor),
-            customText("Sub Zona geográfica de influencia", 16,
-                textColor: titleColor),
-            customText("Ambito", 16, textColor: titleColor),
+            customText("Zona greográfica de influencia", 14,
+                bold: FontWeight.bold),
+            customText("Sub Zona geográfica de influencia", 14,
+                bold: FontWeight.bold),
+            customText("Ambito", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(_contactInfo.zoneObj.name, 16),
@@ -275,9 +278,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Correo electrónico", 16, textColor: titleColor),
-            customText("Teléfono fijo", 16, textColor: titleColor),
-            customText("Móvil", 16, textColor: titleColor),
+            customText("Correo electrónico", 14, bold: FontWeight.bold),
+            customText("Teléfono fijo", 14, bold: FontWeight.bold),
+            customText("Móvil", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(_contactInfo.email, 16),
@@ -292,9 +295,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Linkedin", 16, textColor: titleColor),
-            customText("Twitter", 16, textColor: titleColor),
-            customText("Otras redes sociales", 16, textColor: titleColor),
+            customText("Linkedin", 14, bold: FontWeight.bold),
+            customText("Twitter", 14, bold: FontWeight.bold),
+            customText("Otras redes sociales", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(_contactInfo.linkedin, 16),
@@ -325,9 +328,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
-            customText("Persona de contacto", 16, textColor: titleColor),
-            customText("Tipo de stakeholder", 16, textColor: titleColor),
-            customText("Tipo de sector", 16, textColor: titleColor),
+            customText("Persona de contacto", 14, bold: FontWeight.bold),
+            customText("Tipo de stakeholder", 14, bold: FontWeight.bold),
+            customText("Tipo de sector", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             customText(_contactInfo.contactPerson, 16),
@@ -339,7 +342,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 
   Widget contactInfoProjectsHeader(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Proyectos:", 16, textColor: titleColor),
+      customText("Proyectos:", 14, bold: FontWeight.bold),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir financiador',

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -46,7 +47,9 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         activityIndicatorPath(context, activity),
         activityIndicatorHeader(context, activity),
         //marcoMenu(context, activity, "marco"),
-        Expanded(
+        contentTab(context, activityIndicatorList, activity),
+
+        /*Expanded(
             child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -59,7 +62,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: activityIndicatorList(context, activity),
-                )))
+                )))*/
       ]),
     );
   }
@@ -93,7 +96,10 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, activity),
+            //addBtn(context, activity),
+            addBtn(context, _editActivityIndicatorDialog,
+                {"indicator": null, "activity": activity}),
+            space(width: 10),
             returnBtn(context),
           ],
         ),
@@ -101,7 +107,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     ]);
   }
 
-  Widget addBtn(context, activity) {
+  /*Widget addBtn(context, activity) {
     return FilledButton(
       onPressed: () {
         _editActivityIndicatorDialog(context, null, activity);
@@ -121,7 +127,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveActivityIndicator(
       context, indicator, name, percent, source, activity) async {
@@ -134,12 +140,14 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _editActivityIndicatorDialog(context, indicator, activity) {
+  Future<void> _editActivityIndicatorDialog(context, HashMap args) {
+    Activity activity = args["activity"];
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController percentController = TextEditingController(text: "");
     TextEditingController sourceController = TextEditingController(text: "");
 
-    if (indicator != null) {
+    if (args["indicator"] != null) {
+      ActivityIndicator indicator = args["indicator"];
       nameController = TextEditingController(text: indicator.name);
       percentController = TextEditingController(text: indicator.percent);
       sourceController = TextEditingController(text: indicator.source);
@@ -168,8 +176,13 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveActivityIndicator(context, indicator, nameController.text,
-                    percentController.text, sourceController.text, activity);
+                _saveActivityIndicator(
+                    context,
+                    args["indicator"],
+                    nameController.text,
+                    percentController.text,
+                    sourceController.text,
+                    activity);
               },
             ),
             TextButton(
@@ -227,7 +240,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          customText('Indicador de actividad', 16, textColor: titleColor),
+          customText('Indicador de actividad', 14, bold: FontWeight.bold),
           activityIndicatorRowOptions(context, indicator, activity),
         ]),
         space(height: 10),
@@ -240,7 +253,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                 children: [
                   Text('${indicator.name}'),
                   space(height: 20),
-                  customText('Fuente', 16, textColor: titleColor),
+                  customText('Fuente', 14, bold: FontWeight.bold),
                   space(height: 10),
                   Text('${indicator.source}'),
                 ]),
@@ -259,12 +272,14 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorRowOptions(context, indicator, activity) {
     return Row(children: [
-      IconButton(
+      editBtn(context, _editActivityIndicatorDialog,
+          {"indicator": indicator, "activity": activity}),
+      /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Editar',
           onPressed: () async {
             _editActivityIndicatorDialog(context, indicator, activity);
-          }),
+          }),*/
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Borrar',

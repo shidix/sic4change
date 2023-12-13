@@ -9,8 +9,8 @@ import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
-const PAGE_GOAL_TITLE = "Marco Lógico";
-List goal_list = [];
+const goalPageTitle = "Marco Lógico";
+List goals = [];
 
 class GoalsPage extends StatefulWidget {
   const GoalsPage({super.key});
@@ -22,7 +22,7 @@ class GoalsPage extends StatefulWidget {
 class _GoalsPageState extends State<GoalsPage> {
   void loadGoals(value) async {
     await getGoalsByProject(value).then((val) {
-      goal_list = val;
+      goals = val;
       //print(contact_list);
     });
     setState(() {});
@@ -30,25 +30,26 @@ class _GoalsPageState extends State<GoalsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final SProject? _project;
+    final SProject? project;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _project = args["project"];
+      project = args["project"];
     } else {
-      _project = null;
+      project = null;
     }
 
-    if (_project == null) return Page404();
+    if (project == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         //pathHeader(context, _project.name),
-        goalPath(context, _project),
-        goalHeader(context, _project),
-        marcoMenu(context, _project, "marco"),
-        Expanded(
+        goalPath(context, project),
+        goalHeader(context, project),
+        marcoMenu(context, project, "marco"),
+        contentTab(context, goalList, project),
+        /*Expanded(
             child: Container(
                 padding: EdgeInsets.only(left: 10, right: 10),
                 child: Container(
@@ -59,8 +60,8 @@ class _GoalsPageState extends State<GoalsPage> {
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
-                  child: goalList(context, _project),
-                )))
+                  child: goalList(context, project),
+                )))*/
       ]),
     );
   }
@@ -68,29 +69,25 @@ class _GoalsPageState extends State<GoalsPage> {
 /*-------------------------------------------------------------
                             GOALS
 -------------------------------------------------------------*/
-  Widget goalPath(context, _project) {
-    return pathHeader(context, _project.name);
+  Widget goalPath(context, project) {
+    return pathHeader(context, project.name);
   }
 
-  Widget goalHeader(context, _project) {
+  Widget goalHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
-        padding: EdgeInsets.only(left: 40),
-        child: customText(PAGE_GOAL_TITLE, 20),
-        //Text(PAGE_GOAL_TITLE, style: headerTitleText),
-        /*child: Text(PAGE_GOAL_TITLE + " de " + _project.name,
-            style: TextStyle(fontSize: 20)),*/
+        padding: const EdgeInsets.only(left: 40),
+        child: customText(goalPageTitle, 20),
       ),
       Container(
         padding: EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _editGoalDialog,
-                {'_goal': null, '_project': _project}),
+            addBtn(
+                context, _editGoalDialog, {'_goal': null, '_project': project}),
             space(width: 10),
             returnBtn(context),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
@@ -201,7 +198,7 @@ class _GoalsPageState extends State<GoalsPage> {
         future: getGoalsByProject(_project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            goal_list = snapshot.data!;
+            goals = snapshot.data!;
             return Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -213,9 +210,9 @@ class _GoalsPageState extends State<GoalsPage> {
                         padding: EdgeInsets.all(15),
                         child: ListView.builder(
                             padding: const EdgeInsets.all(8),
-                            itemCount: goal_list.length,
+                            itemCount: goals.length,
                             itemBuilder: (BuildContext context, int index) {
-                              Goal _goal = goal_list[index];
+                              Goal _goal = goals[index];
                               if (_goal.main) {
                                 return Container(
                                   height: 120,

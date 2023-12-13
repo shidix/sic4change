@@ -54,7 +54,8 @@ class _ResultsPageState extends State<ResultsPage> {
         space(height: 20),
         resultHeader(context, goal),
         //marcoMenu(context, goal, "marco"),
-        Expanded(
+        contentTab(context, resultList, goal),
+        /*Expanded(
             child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -67,7 +68,7 @@ class _ResultsPageState extends State<ResultsPage> {
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: resultList(context, goal),
-                )))
+                )))*/
       ]),
     );
   }
@@ -109,7 +110,9 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _goal),
+            //addBtn(context, _goal),
+            addBtn(context, _editResultDialog, {"goal": _goal, "result": null}),
+            space(width: 10),
             returnBtn(context),
             //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
@@ -118,7 +121,7 @@ class _ResultsPageState extends State<ResultsPage> {
     ]);
   }
 
-  Widget addBtn(context, _goal) {
+  /*Widget addBtn(context, _goal) {
     return FilledButton(
       onPressed: () {
         _editResultDialog(context, null, _goal);
@@ -138,7 +141,7 @@ class _ResultsPageState extends State<ResultsPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveResult(context, _result, _name, _desc, _indicator_text,
       _indicator_percent, _source, _goal) async {
@@ -166,20 +169,22 @@ class _ResultsPageState extends State<ResultsPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _editResultDialog(context, _result, _goal) {
+  Future<void> _editResultDialog(context, HashMap args) {
+    Goal goal = args["goal"];
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
     TextEditingController iTextController = TextEditingController(text: "");
     TextEditingController iPercentController = TextEditingController(text: "");
     TextEditingController sourceController = TextEditingController(text: "");
 
-    if (_result != null) {
-      nameController = TextEditingController(text: _result.name);
-      descController = TextEditingController(text: _result.description);
-      iTextController = TextEditingController(text: _result.indicator_text);
+    if (args["result"] != null) {
+      Result result = args["result"];
+      nameController = TextEditingController(text: result.name);
+      descController = TextEditingController(text: result.description);
+      iTextController = TextEditingController(text: result.indicator_text);
       iPercentController =
-          TextEditingController(text: _result.indicator_percent.toString());
-      sourceController = TextEditingController(text: _result.source);
+          TextEditingController(text: result.indicator_percent.toString());
+      sourceController = TextEditingController(text: result.source);
     }
 
     return showDialog<void>(
@@ -229,13 +234,13 @@ class _ResultsPageState extends State<ResultsPage> {
               onPressed: () async {
                 _saveResult(
                     context,
-                    _goal,
+                    goal,
                     nameController.text,
                     descController.text,
                     iTextController.text,
                     iPercentController.text,
                     sourceController.text,
-                    _goal);
+                    goal);
               },
             ),
             TextButton(
@@ -323,10 +328,7 @@ class _ResultsPageState extends State<ResultsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '${_result.name}',
-              style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-            ),
+            customText('${_result.name}', 14, bold: FontWeight.bold),
             resultRowOptions(context, _result, _goal),
           ],
         ),
@@ -335,10 +337,7 @@ class _ResultsPageState extends State<ResultsPage> {
         space(height: 10),
         customRowDivider(),
         space(height: 10),
-        Text(
-          'Indicador del resultado',
-          style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-        ),
+        customText('Indicador del resultado', 14, bold: FontWeight.bold),
         space(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -356,10 +355,7 @@ class _ResultsPageState extends State<ResultsPage> {
         space(height: 10),
         customRowDivider(),
         space(height: 10),
-        Text(
-          'Fuente',
-          style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-        ),
+        customText('Fuente', 14, bold: FontWeight.bold),
         space(height: 10),
         Text('${_result.source}'),
       ],
@@ -382,12 +378,13 @@ class _ResultsPageState extends State<ResultsPage> {
             Navigator.pushNamed(context, "/result_tasks",
                 arguments: {'result': _result});
           }),
-      IconButton(
+      editBtn(context, _editResultDialog, {"goal": _goal, "result": _result}),
+      /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
           onPressed: () async {
-            _editResultDialog(context, _result, _goal);
-          }),
+            _editResultDialog(context, {"goal": _goal, "result": _result);
+          }),*/
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',

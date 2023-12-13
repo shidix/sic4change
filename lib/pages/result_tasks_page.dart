@@ -45,7 +45,9 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         taskPath(context, _result),
         taskHeader(context, _result),
         //marcoMenu(context, _result, "marco"),
-        Expanded(
+        contentTab(context, taskList, _result),
+
+        /*Expanded(
             child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -58,7 +60,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: taskList(context, _result),
-                )))
+                )))*/
       ]),
     );
   }
@@ -101,7 +103,9 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _result),
+            //addBtn(context, _result),
+            addBtn(context, _editTaskDialog, {"task": null, "result": _result}),
+            space(width: 10),
             returnBtn(context),
           ],
         ),
@@ -109,7 +113,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     ]);
   }
 
-  Widget addBtn(context, _result) {
+  /*Widget addBtn(context, _result) {
     return FilledButton(
       onPressed: () {
         _editTaskDialog(context, null, _result);
@@ -129,7 +133,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         ],
       ),
     );
-  }
+  }*/
 
   void _saveTask(context, _task, _name, _result) async {
     /*if (_task != null) {
@@ -149,11 +153,12 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _editTaskDialog(context, _task, _result) {
+  Future<void> _editTaskDialog(context, HashMap args) {
+    Result _result = args["result"];
     TextEditingController nameController = TextEditingController(text: "");
 
-    if (_task != null) {
-      nameController = TextEditingController(text: _task.name);
+    if (args["_task"] != null) {
+      nameController = TextEditingController(text: args["_task"].name);
     }
 
     return showDialog<void>(
@@ -174,7 +179,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveTask(context, _task, nameController.text, _result);
+                _saveTask(context, args["_task"], nameController.text, _result);
               },
             ),
             TextButton(
@@ -242,10 +247,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '${_task.name}',
-              style: const TextStyle(color: Colors.blueGrey, fontSize: 16),
-            ),
+            customText('${_task.name}', 16),
             taskRowOptions(context, _task, _result),
           ],
         ),
@@ -255,12 +257,13 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Widget taskRowOptions(context, _task, _result) {
     return Row(children: [
-      IconButton(
+      editBtn(context, _editTaskDialog, {"task": _task, "result": _result}),
+      /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
           onPressed: () async {
             _editTaskDialog(context, _task, _result);
-          }),
+          }),*/
       IconButton(
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
