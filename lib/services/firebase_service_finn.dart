@@ -117,139 +117,143 @@ class _InvoiceFormState extends State<InvoiceForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            initialValue: _invoice.number,
-            decoration: const InputDecoration(labelText: 'Número'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, ingrese un valor';
-              }
-              return null;
-            },
-            onSaved: (value) => _invoice.number = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.code,
-            decoration: const InputDecoration(labelText: 'Código'),
-            onSaved: (value) => _invoice.code = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.concept,
-            decoration: const InputDecoration(labelText: 'Concepto'),
-            onSaved: (value) => _invoice.concept = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.provider,
-            decoration: const InputDecoration(labelText: 'Proveedor'),
-            onSaved: (value) => _invoice.provider = value!,
-          ),
-          DateTimePicker(
-            labelText: 'Fecha',
-            selectedDate: DateTime.parse(_invoice.date),
-            onSelectedDate: (DateTime value) {
-              setState(() {
-                _invoice.date = DateFormat('yyyy-MM-dd').format(value);
-              });
-            },
-          ),
-          TextFormField(
-            initialValue: _invoice.desglose,
-            keyboardType: TextInputType.multiline,
-            maxLines: null, // Permite un número ilimitado de líneas
-            decoration: const InputDecoration(labelText: 'Desglose'),
-            onSaved: (value) => _invoice.desglose = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.base.toString(),
-            decoration: const InputDecoration(labelText: 'Base'),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, ingrese la base';
-              }
-              return null;
-            },
-            onChanged: (value) {
-              if (value == "") {
-                value = "0.0";
-              }
-              try {
-                _invoice.base = double.parse(value);
-              } catch (e) {
-                _invoice.base = 0.0;
-              }
-              setState(() {
-                _invoice.total = _invoice.base + _invoice.taxes;
-              });
-            },
-            onSaved: (value) => _invoice.base = double.parse(value!),
-          ),
-          TextFormField(
-            initialValue: _invoice.taxes.toString(),
-            decoration: const InputDecoration(labelText: 'Impuestos'),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, ingrese los impuestos';
-              }
-              return null;
-            },
-            onChanged: (value) {
-              if (value == "") {
-                value = "0.0";
-              }
-              try {
-                _invoice.taxes = double.parse(value);
-              } catch (e) {
-                _invoice.taxes = 0.0;
-              }
-              setState(() {
-                _invoice.total = _invoice.base + _invoice.taxes;
-              });
-            },
-            onSaved: (value) => _invoice.taxes = double.parse(value!),
-          ),
-          ReadOnlyTextField(
-              label: 'Total', textToShow: _invoice.total.toString()),
-          TextFormField(
-            initialValue: _invoice.document,
-            decoration: const InputDecoration(labelText: 'Documento'),
-            onSaved: (value) => _invoice.document = value!,
-          ),
-          const SizedBox(height: 16.0),
-          Row(children: [
-            Expanded(
-                flex: 5,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.blueGrey),
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      _invoice.save();
-                      Navigator.of(context).pop(_invoice);
-                    }
-                  },
-                  child: const Text('Enviar'),
-                )),
-            Expanded(flex: 1, child: Container()),
-            Expanded(
-                flex: 5,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(null);
-                  },
-                  child: const Text('Cancelar'),
-                ))
-          ]),
-        ],
-      ),
+      child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                initialValue: _invoice.number,
+                decoration: const InputDecoration(labelText: 'Número'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese un valor';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _invoice.number = value!,
+              ),
+              TextFormField(
+                initialValue: _invoice.code,
+                decoration: const InputDecoration(labelText: 'Código'),
+                onSaved: (value) => _invoice.code = value!,
+              ),
+              TextFormField(
+                initialValue: _invoice.concept,
+                decoration: const InputDecoration(labelText: 'Concepto'),
+                onSaved: (value) => _invoice.concept = value!,
+              ),
+              TextFormField(
+                initialValue: _invoice.provider,
+                decoration: const InputDecoration(labelText: 'Proveedor'),
+                onSaved: (value) => _invoice.provider = value!,
+              ),
+              DateTimePicker(
+                labelText: 'Fecha',
+                selectedDate: DateTime.parse(_invoice.date),
+                onSelectedDate: (DateTime value) {
+                  setState(() {
+                    _invoice.date = DateFormat('yyyy-MM-dd').format(value);
+                  });
+                },
+              ),
+              TextFormField(
+                initialValue: _invoice.desglose,
+                keyboardType: TextInputType.multiline,
+                maxLines: null, // Permite un número ilimitado de líneas
+                decoration: const InputDecoration(labelText: 'Desglose'),
+                onSaved: (value) => _invoice.desglose = value!,
+              ),
+              TextFormField(
+                initialValue: _invoice.base.toString(),
+                decoration: const InputDecoration(labelText: 'Base'),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese la base';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  if (value == "") {
+                    value = "0.0";
+                  }
+                  try {
+                    _invoice.base = double.parse(value);
+                  } catch (e) {
+                    _invoice.base = 0.0;
+                  }
+                  setState(() {
+                    _invoice.total = _invoice.base + _invoice.taxes;
+                  });
+                },
+                onSaved: (value) => _invoice.base = double.parse(value!),
+              ),
+              TextFormField(
+                initialValue: _invoice.taxes.toString(),
+                decoration: const InputDecoration(labelText: 'Impuestos'),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese los impuestos';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  if (value == "") {
+                    value = "0.0";
+                  }
+                  try {
+                    _invoice.taxes = double.parse(value);
+                  } catch (e) {
+                    _invoice.taxes = 0.0;
+                  }
+                  setState(() {
+                    _invoice.total = _invoice.base + _invoice.taxes;
+                  });
+                },
+                onSaved: (value) => _invoice.taxes = double.parse(value!),
+              ),
+              ReadOnlyTextField(
+                  label: 'Total', textToShow: _invoice.total.toString()),
+              TextFormField(
+                initialValue: _invoice.document,
+                decoration: const InputDecoration(labelText: 'Documento'),
+                onSaved: (value) => _invoice.document = value!,
+              ),
+              const SizedBox(height: 16.0),
+              Row(children: [
+                Expanded(
+                    flex: 5,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.blueGrey),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          _invoice.save();
+                          Navigator.of(context).pop(_invoice);
+                        }
+                      },
+                      child: const Text('Enviar'),
+                    )),
+                Expanded(flex: 1, child: Container()),
+                Expanded(
+                    flex: 5,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(null);
+                      },
+                      child: const Text('Cancelar'),
+                    ))
+              ]),
+            ],
+          )),
     );
   }
 }

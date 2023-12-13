@@ -453,7 +453,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
                             'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
-                            style: secondaryText))),
+                            style: mainText))),
                 Expanded(
                     flex: 2,
                     child: Align(

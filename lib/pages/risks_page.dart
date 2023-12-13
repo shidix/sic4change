@@ -66,6 +66,7 @@ class _RisksPageState extends State<RisksPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(context, callRiskDialog, {"risk": null, "project": project}),
+            space(width: 10),
             returnBtn(context),
           ],
         ),

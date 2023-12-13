@@ -67,7 +67,7 @@ class _TasksPageState extends State<TasksPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
-        child: customText(pageTaskTitle, 20),
+        child: const Text(pageTaskTitle, style: headerTitleText),
       ),
       SearchBar(
         controller: searchController,

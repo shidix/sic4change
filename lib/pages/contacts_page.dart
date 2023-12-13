@@ -39,7 +39,7 @@ class _ContactsPageState extends State<ContactsPage> {
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
             padding: const EdgeInsets.only(left: 40),
-            child: customText(pageContactTitle, 20),
+            child: const Text(pageContactTitle, style: headerTitleText),
           ),
           SearchBar(
             controller: searchController,
@@ -192,7 +192,10 @@ SingleChildScrollView dataBody(context) {
 }
 
 void callEditDialog(context, HashMap args) async {
-  Contact contact = args["contact"];
+  Contact? contact;
+  if (args["contact"] != null) {
+    contact = args["contact"];
+  }
   List<String> companies = [];
   List<String> positions = [];
   await getCompanies().then((value) async {
@@ -256,19 +259,19 @@ Future<void> _contactEditDialog(context, _contact, _companies, _positions) {
             child: Column(children: [
           Row(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Nombre:", 16, textColor: Colors.blue),
+              customText("Nombre:", 16, textColor: successColor),
               customTextField(nameController, "Nombre", size: 460),
             ]),
           ]),
           space(height: 20),
           Row(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Correo electrónico:", 16, textColor: Colors.blue),
+              customText("Correo electrónico:", 16, textColor: successColor),
               customTextField(emailController, "Correo electrónico"),
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Teléfono:", 16, textColor: Colors.blue),
+              customText("Teléfono:", 16, textColor: successColor),
               customTextField(phoneController, "Teléfono"),
             ]),
             space(width: 20),
@@ -276,12 +279,12 @@ Future<void> _contactEditDialog(context, _contact, _companies, _positions) {
           space(height: 20),
           Row(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Empresa:", 16, textColor: Colors.blue),
+              customText("Empresa:", 16, textColor: successColor),
               customAutocompleteField(compController, _companies, "Empresa"),
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Posición:", 16, textColor: Colors.blue),
+              customText("Posición:", 16, textColor: successColor),
               customAutocompleteField(posController, _positions, "Posición")
             ])
           ]),
@@ -322,7 +325,7 @@ Future<void> _removeContactDialog(context, _contact) async {
       return AlertDialog(
         // <-- SEE HERE
         title: const Text('Remove Contact'),
-        content: SingleChildScrollView(
+        content: const SingleChildScrollView(
           child: Text("Are you sure to remove this element?"),
         ),
         actions: <Widget>[
