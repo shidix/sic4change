@@ -1021,6 +1021,7 @@ Widget contentTab(context, action, obj) {
                 width: 2,
               ),
               borderRadius: const BorderRadius.all(Radius.circular(5)),
+              color: Colors.white,
             ),
             child: action(context, obj),
           )));
