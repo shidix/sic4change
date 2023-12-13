@@ -48,7 +48,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           mainMenu(context, null, "/tasks_user"),
           projectTaskHeader(context, _task),
           space(height: 20),
-          Expanded(
+          contentTab(context, taskInfoDetails, null)
+          /*Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
@@ -58,7 +59,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       ),
                     ),
                     child: taskInfoDetails(context),
-                  ))),
+                  ))),*/
         ],
       ),
     );
@@ -99,7 +100,22 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                             //editBtn(context),
                             addBtn(context, _callEditDialog, _task,
                                 icon: Icons.edit, text: "Editar"),
-                            returnBtn(context)
+                            //returnBtn(context)
+                            FilledButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, "/tasks");
+                              },
+                              style: btnStyle,
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.arrow_circle_left_outlined,
+                                      color: subTitleColor),
+                                  space(height: 5),
+                                  customText(returnText, 12,
+                                      textColor: subTitleColor)
+                                ],
+                              ),
+                            )
                           ]))
                 ]),
             //Divider(color: Colors.grey),
@@ -132,7 +148,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
-  Widget taskInfoDetails(context) {
+  Widget taskInfoDetails(context, param) {
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -145,18 +161,20 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 taskInfoSenderPublic(context, _task),
                 space(height: 5),
                 customRowDivider(),
+                space(height: 10),
                 customText("Descripción de la tarea:", 16,
                     textColor: smallColor),
                 space(height: 5),
                 customText(_task?.description, 16),
                 space(height: 5),
                 customRowDivider(),
+                space(height: 10),
                 customText("Comentarios:", 16, textColor: smallColor),
                 space(height: 5),
                 customText(_task?.comments, 16),
                 space(height: 5),
                 customRowDivider(),
-                space(height: 5),
+                space(height: 10),
                 taskInfoDates(context, _task),
                 space(height: 5),
                 customRowDivider(),
@@ -549,8 +567,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                print("--n--");
-                print(task.name);
                 _saveTask([
                   context,
                   task,

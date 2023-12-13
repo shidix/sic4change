@@ -10,6 +10,7 @@ import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageTaskTitle = "Tareas";
 List tasks = [];
+bool taskLoading = false;
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -22,10 +23,17 @@ class _TasksPageState extends State<TasksPage> {
   var searchController = TextEditingController();
 
   void loadTasks() async {
+    setState(() {
+      taskLoading = false;
+    });
+
     await getTasks().then((val) {
       tasks = val;
+      setState(() {
+        taskLoading = true;
+      });
     });
-    setState(() {});
+    //setState(() {});
   }
 
   @override
@@ -43,7 +51,11 @@ class _TasksPageState extends State<TasksPage> {
         space(height: 20),
         taskMenu(context, "tasks"),
         //contactsHeader(context),
-        contentTab(context, taskList, null)
+        taskLoading
+            ? contentTab(context, taskList, null)
+            : const Center(
+                child: CircularProgressIndicator(),
+              ),
       ]),
     );
   }
@@ -111,7 +123,13 @@ class _TasksPageState extends State<TasksPage> {
   }*/
 
   Widget taskList(context, param) {
-    return FutureBuilder(
+    return Expanded(
+        child: Container(
+      padding: const EdgeInsets.all(5),
+      child: dataBody(context),
+    ));
+
+    /*return FutureBuilder(
         future: getTasks(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
@@ -132,7 +150,7 @@ class _TasksPageState extends State<TasksPage> {
               child: CircularProgressIndicator(),
             );
           }
-        }));
+        }));*/
   }
 
   SingleChildScrollView dataBody(context) {
@@ -191,12 +209,13 @@ class _TasksPageState extends State<TasksPage> {
                             Navigator.pushNamed(context, "/task_info",
                                 arguments: {'task': task});
                           }),
-                      IconButton(
+                      /*IconButton(
                           icon: const Icon(Icons.remove_circle),
                           tooltip: 'Remove',
                           onPressed: () {
                             _removeTaskDialog(context, task);
-                          }),
+                          }),*/
+                      removeBtn(context, removeTaskDialog, {"task": task})
                     ]))
                   ]),
                 )
@@ -209,13 +228,15 @@ class _TasksPageState extends State<TasksPage> {
     _taskEditDialog(context, args["task"]);
   }
 
-  void _saveTask(
+  /*void _saveTask(
     context,
     name,
-  ) async {
-    STask task = STask(name);
+  ) async {*/
+  void _saveTask(List args) async {
+    STask task = args[0];
     task.save();
 
+    Navigator.pop(context);
     Navigator.pushNamed(context, "/task_info", arguments: {'task': task});
   }
 
@@ -224,11 +245,7 @@ class _TasksPageState extends State<TasksPage> {
   }
 
   Future<void> _taskEditDialog(context, task) {
-    TextEditingController nameController = TextEditingController(text: "");
-
-    if (task != null) {
-      nameController = TextEditingController(text: task.name);
-    }
+    STask task = STask("");
 
     return showDialog<void>(
       context: context,
@@ -242,8 +259,16 @@ class _TasksPageState extends State<TasksPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: mainColor),
-                customTextField(nameController, "Nombre", size: 700),
+                //customText("Nombre:", 16, textColor: mainColor),
+                //customTextField(nameController, "Nombre", size: 700),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (task.name != "") ? task.name : "",
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    onChanged: (val) => setState(() => task.name = val),
+                  ),
+                ),
               ])
             ]),
           ])),
@@ -251,8 +276,8 @@ class _TasksPageState extends State<TasksPage> {
             Row(children: [
               Expanded(
                 flex: 5,
-                child: actionButton(context, "Enviar", _saveTask,
-                    Icons.save_outlined, [context, nameController.text]),
+                child: actionButton(
+                    context, "Enviar", _saveTask, Icons.save_outlined, [task]),
               ),
               space(width: 10),
               Expanded(
@@ -278,7 +303,11 @@ class _TasksPageState extends State<TasksPage> {
     );
   }
 
-  Future<void> _removeTaskDialog(context, _task) async {
+  void removeTaskDialog(context, args) {
+    customRemoveDialog(context, args["task"], loadTasks);
+  }
+
+  /*Future<void> _removeTaskDialog(context, _task) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -307,5 +336,5 @@ class _TasksPageState extends State<TasksPage> {
         );
       },
     );
-  }
+  }*/
 }

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -53,7 +55,8 @@ class _ContactsPageState extends State<ContactsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                addCBtn(context),
+                //addCBtn(context),
+                addBtn(context, callEditDialog, {"contact": null}),
               ],
             ),
           ),
@@ -71,7 +74,7 @@ class _ContactsPageState extends State<ContactsPage> {
 /*-------------------------------------------------------------
                             CONTACTS
 -------------------------------------------------------------*/
-Widget addCBtn(context) {
+/*Widget addCBtn(context) {
   return FilledButton(
     onPressed: () {
       callEditDialog(context, null);
@@ -91,7 +94,7 @@ Widget addCBtn(context) {
       ],
     ),
   );
-}
+}*/
 
 Widget contactList(context) {
   return FutureBuilder(
@@ -128,29 +131,23 @@ SingleChildScrollView dataBody(context) {
           showCheckboxColumn: false,
           columns: [
             DataColumn(
-                label: customText("Nombre", 16,
-                    textColor: titleColor, bold: FontWeight.bold),
+                label: customText("Nombre", 14, bold: FontWeight.bold),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText("Empresa", 16,
-                  textColor: titleColor, bold: FontWeight.bold),
+              label: customText("Empresa", 14, bold: FontWeight.bold),
               tooltip: "Empresa",
             ),
             DataColumn(
-                label: customText("Proyecto", 16,
-                    textColor: titleColor, bold: FontWeight.bold),
+                label: customText("Proyecto", 14, bold: FontWeight.bold),
                 tooltip: "Proyecto"),
             DataColumn(
-                label: customText("Posición", 16,
-                    textColor: titleColor, bold: FontWeight.bold),
+                label: customText("Posición", 14, bold: FontWeight.bold),
                 tooltip: "Posición"),
             DataColumn(
-                label: customText("Teléfono", 16,
-                    textColor: titleColor, bold: FontWeight.bold),
+                label: customText("Teléfono", 14, bold: FontWeight.bold),
                 tooltip: "Teléfono"),
             DataColumn(
-                label: customText("Acciones", 16,
-                    textColor: titleColor, bold: FontWeight.bold),
+                label: customText("Acciones", 14, bold: FontWeight.bold),
                 tooltip: "Acciones"),
           ],
           rows: contacts
@@ -171,18 +168,21 @@ SingleChildScrollView dataBody(context) {
                           Navigator.pushNamed(context, "/contact_info",
                               arguments: {'contact': contact});
                         }),
-                    IconButton(
+                    editBtn(context, callEditDialog, {"contact": contact}),
+                    removeBtn(
+                        context, _removeContactDialog, {"contact": contact})
+                    /*IconButton(
                         icon: const Icon(Icons.edit),
                         tooltip: 'Edit',
                         onPressed: () async {
                           callEditDialog(context, contact);
-                        }),
-                    IconButton(
+                        }),*/
+                    /*IconButton(
                         icon: const Icon(Icons.remove_circle),
                         tooltip: 'Remove',
                         onPressed: () {
                           _removeContactDialog(context, contact);
-                        }),
+                        }),*/
                   ]))
                 ]),
               )
@@ -191,7 +191,8 @@ SingleChildScrollView dataBody(context) {
       ));
 }
 
-void callEditDialog(context, contact) async {
+void callEditDialog(context, HashMap args) async {
+  Contact contact = args["contact"];
   List<String> companies = [];
   List<String> positions = [];
   await getCompanies().then((value) async {

@@ -459,7 +459,7 @@ Text buttonEditableText(String textButton) {
 Widget customRowDivider() {
   return const Divider(
     height: 1,
-    color: Color(0xffdfdfdf),
+    color: Colors.grey,
   );
 }
 
@@ -1029,7 +1029,7 @@ Widget contentTab(context, action, obj) {
 //--------------------------------------------------------------------------
 //                           DIALOGS
 //--------------------------------------------------------------------------
-Future<void> customRemoveDialog(context, obj, action, args) async {
+Future<void> customRemoveDialog(context, obj, action, [args]) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -1044,7 +1044,11 @@ Future<void> customRemoveDialog(context, obj, action, args) async {
             child: const Text(removeText),
             onPressed: () async {
               obj.delete();
-              action(args);
+              if (args == null) {
+                action();
+              } else {
+                action(args);
+              }
               Navigator.of(context).pop();
             },
           ),
