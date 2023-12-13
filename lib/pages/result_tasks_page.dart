@@ -37,7 +37,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
       _result = null;
     }
 
-    if (_result == null) return Page404();
+    if (_result == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -48,11 +48,11 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         Expanded(
             child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.only(left: 10, right: 10),
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Color(0xffdfdfdf),
+                      color: const Color(0xffdfdfdf),
                       width: 2,
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -90,16 +90,14 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         ),
         space(height: 10),*/
         Container(
-          padding: EdgeInsets.only(left: 40),
-          child: Row(children: [
-            //Icon(Icons.chevron_right_rounded),
-            Text("Tareas",
-                style: TextStyle(fontSize: 20, color: Colors.blueGrey))
+          padding: const EdgeInsets.only(left: 40),
+          child: const Row(children: [
+            Text(PAGE_TASKS_TITLE, style: headerTitleText),
           ]),
         ),
       ]),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -118,7 +116,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
       },
       style: FilledButton.styleFrom(
         side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
+        backgroundColor: const Color(0xffffffff),
       ),
       child: const Column(
         children: [
@@ -206,7 +204,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                 children: <Widget>[
                   Expanded(
                       child: Container(
-                          padding: EdgeInsets.all(15),
+                          padding: const EdgeInsets.all(15),
                           child: ListView.builder(
                               padding: const EdgeInsets.all(8),
                               itemCount: result_task_list.length,
@@ -214,8 +212,9 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                                 ResultTask _task = result_task_list[index];
                                 return Container(
                                   height: 80,
-                                  padding: EdgeInsets.only(top: 20, bottom: 10),
-                                  decoration: BoxDecoration(
+                                  padding: const EdgeInsets.only(
+                                      top: 20, bottom: 10),
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                         bottom: BorderSide(
                                             color: Color(0xffdfdfdf))),
@@ -226,7 +225,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                 ],
               );
             } else
-              return Text("");
+              return const Text("");
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -245,7 +244,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           children: [
             Text(
               '${_task.name}',
-              style: TextStyle(color: Colors.blueGrey, fontSize: 16),
+              style: const TextStyle(color: Colors.blueGrey, fontSize: 16),
             ),
             taskRowOptions(context, _task, _result),
           ],
@@ -279,7 +278,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         return AlertDialog(
           // <-- SEE HERE
           title: const Text('Remove Task'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: Text("Are you sure to remove this element?"),
           ),
           actions: <Widget>[

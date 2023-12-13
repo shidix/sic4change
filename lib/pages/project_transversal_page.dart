@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_unnecessary_containers
 
 // import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:js_util';
+// import 'dart:js_util';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -377,7 +377,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
     return Column(children: [
       result,
-      Divider(
+      const Divider(
         height: 1,
       ),
     ]);
@@ -412,8 +412,15 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                   padding: const EdgeInsets.only(left: 10),
                   child: Row(
                     children: [
-                      Text(currentProject!.name,
-                          style: titleText.copyWith(color: normalColor)),
+                      Text(currentProject!.name, style: headerTitleText),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(left: 35, top: 20, bottom: 15),
+                  child: Row(
+                    children: [
+                      customText("Transversal", 20),
                     ],
                   ),
                 ),

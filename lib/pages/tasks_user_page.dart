@@ -41,7 +41,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
-        child: customText(pageTaskUserTitle, 20),
+        child: const Text(pageTaskUserTitle, style: headerTitleText),
       ),
       SearchBar(
         controller: searchController,
@@ -53,7 +53,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
         leading: const Icon(Icons.search),
       ),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [

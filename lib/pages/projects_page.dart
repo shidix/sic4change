@@ -90,7 +90,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            customText(projectTitle, 20),
+            const Text(projectTitle, style: headerTitleText),
             addBtn(context, callDialog, {"programme": null}),
 
             /*Container(
@@ -481,23 +481,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         projectCardDatasFinancier(_project),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         customText("Programa:", 16, textColor: Colors.grey),
         space(height: 5),
         customText(_project.programmeObj.name, 16),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         projectCardDatasPartners(_project),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         customText("País de ejecución:", 16, textColor: Colors.grey),
         space(height: 5),
         //customText(_project.country, 16),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
         space(height: 5),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -515,7 +515,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           ],
         ),
         space(height: 5),
-        Divider(color: Colors.grey),
+        const Divider(color: Colors.grey),
       ],
     );
   }

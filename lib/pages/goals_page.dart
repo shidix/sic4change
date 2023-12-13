@@ -76,7 +76,8 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: EdgeInsets.only(left: 40),
-        child: Text(PAGE_GOAL_TITLE, style: TextStyle(fontSize: 20)),
+        child: customText(PAGE_GOAL_TITLE, 20),
+        //Text(PAGE_GOAL_TITLE, style: headerTitleText),
         /*child: Text(PAGE_GOAL_TITLE + " de " + _project.name,
             style: TextStyle(fontSize: 20)),*/
       ),

@@ -800,7 +800,6 @@ Color mainMenuBtnColor = Colors.white54;
 
 // const Color mainColor = Color(0xFF00809A);
 const Color mainColor = Color(0xffabf100);
-
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
   color: mainColor,
@@ -808,10 +807,10 @@ const TextStyle mainText = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
-const Color secondaryColor = Color(0xFF00809A);
+const Color secondaryColor = successColor;
 const TextStyle secondaryText = TextStyle(
   fontFamily: 'Readex Pro',
-  color: Color(0xFF00809A),
+  color: secondaryColor,
   fontSize: 16,
   fontWeight: FontWeight.bold,
 );
@@ -822,6 +821,13 @@ const TextStyle normalText = TextStyle(
   color: normalColor,
   fontSize: 14,
   fontWeight: FontWeight.normal,
+);
+
+const TextStyle headerTitleText = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: normalColor,
+  fontSize: 22,
+  fontWeight: FontWeight.bold,
 );
 
 const Color smallColor = Colors.grey;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 // import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget pathHeader(context, name) {
@@ -10,7 +11,7 @@ Widget pathHeader(context, name) {
           children: [
             Text(
               name,
-              style: TextStyle(fontSize: 20),
+              style: headerTitleText,
             ),
             /*space(height: 10),
             Row(children: [
