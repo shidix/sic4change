@@ -632,6 +632,20 @@ Widget actionButtonVertical(
   );
 }
 
+Widget customCheckBox ( label, state, action ) {
+  return Row(
+    children: [
+      Checkbox(
+        value: state,
+        onChanged: (bool? value) {
+          action(value);
+        },
+      ),
+      Text(label)
+    ],
+  );
+}
+
 class ReadOnlyTextField extends StatelessWidget {
   final String label;
   final String textToShow;
@@ -703,7 +717,7 @@ SizedBox s4cTitleBar(String title, [context]) {
                   topRight: Radius.circular(5),
                   bottomLeft: Radius.circular(5),
                   bottomRight: Radius.circular(5))),
-          color: mainColor,
+          color: successColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [

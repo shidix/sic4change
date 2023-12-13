@@ -9,6 +9,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_quality.dart';
+import 'package:sic4change/services/quality_question_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -19,7 +20,10 @@ import 'package:sic4change/widgets/marco_menu_widget.dart';
 Widget indicatorButton(
     context, String upperText, String text, Function action, dynamic args,
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
-  return ElevatedButton(
+  return Tooltip(
+    message: 'Click para ver / ocultar detalles',
+    showDuration: const Duration(seconds: 0),
+    child:  ElevatedButton(
     onPressed: () {
       if (args == null) {
         action();
@@ -47,7 +51,7 @@ Widget indicatorButton(
         ),
       ],
     ),
-  );
+  ));
 }
 
 class ProjectTransversalPage extends StatefulWidget {
@@ -61,14 +65,16 @@ class ProjectTransversalPage extends StatefulWidget {
 }
 
 class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
+  Quality? quality;
   User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
   Widget? qualityPanelWidget;
-  List<QualityQuestion>? qualityQuestions;
+  List? qualityQuestions;
   int qaQuestionsCompleted = 0;
   int qualityQuestionsCounter = 0;
   List<int> qualityCounters = [];
   bool collapsedQuality = false;
+  QualityQuestion? currentQualityQuestion;
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
@@ -136,17 +142,27 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   @override
   void initState() {
     super.initState();
-    qualityPanel();
     if (widget.currentProject == null) {
       SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
           .then((project) {
-        setState(() {
-          currentProject = project;
+        Quality.byProject(project.uuid).then((value) {
+          setState(() {
+            currentProject = project;
+            quality = value;
+            qualityPanel();
+
+          });
         });
       });
     } else {
-      setState(() {
-        currentProject = widget.currentProject;
+      Quality.byProject(widget.currentProject!.uuid).then((value) {
+        setState(() {
+
+          currentProject = widget.currentProject;
+          quality = value;
+          qualityPanel();
+
+        });
       });
     }
   }
@@ -163,105 +179,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
   Widget qualityPanel() {
-    qualityQuestions = [];
-
-    qualityQuestions!.add(QualityQuestion(
-        code: "1",
-        subject: "Cumplimiento de requisitos",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "1.1",
-        subject:
-            "¿El proyecto cumple con los requisitos del alcance establecidos?",
-        completed: false,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "1.2",
-        subject:
-            "¿El proyecto se está ejecutando dentro del presupuesto establecido?",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "1.3",
-        subject:
-            "¿El proyecto se está ejecutando dentro del cronograma establecido?",
-        completed: false,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "1.4",
-        subject:
-            "¿Los requisitos del proyecto están claramente definidos y acordados?",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "1.5",
-        subject: "¿Se está alcanzando a los usarios establecidos?",
-        completed: false,
-        comments: "Actualmente estamos a un 80% del objetivo fijado",
-        docs: []));
-
-    qualityQuestions!.add(QualityQuestion(
-        code: "2",
-        subject: "Gestión de procesos",
-        completed: true,
-        comments: "",
-        docs: []));
-
-    qualityQuestions!.add(QualityQuestion(
-        code: "2.1",
-        subject:
-            "¿Los procesos del proyecto están documentados y se siguen de manera efectiva?",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "2.2",
-        subject:
-            "¿La comunicación entre las partes interesadas del proyecto es efectiva?",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "2.3",
-        subject:
-            "¿Los riesgos del proyecto se han identificado y se están mitigando de manera efectiva?",
-        completed: false,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "2.4",
-        subject: "¿Los cambios al proyecto se gestionan de manera efectiva?",
-        completed: false,
-        comments: "",
-        docs: []));
-
-    qualityQuestions!.add(QualityQuestion(
-        code: "3",
-        subject: "Mejora Continua",
-        completed: false,
-        comments: "",
-        docs: []));
-
-    qualityQuestions!.add(QualityQuestion(
-        code: "3.1",
-        subject:
-            "¿Se están aplicando las lecciones aprendidas de proyectos anteriores?",
-        completed: true,
-        comments: "",
-        docs: []));
-    qualityQuestions!.add(QualityQuestion(
-        code: "3.2",
-        subject:
-            "¿Se están implementando acciones para mejorar la gestión de calidad del proyecto",
-        completed: true,
-        comments: "",
-        docs: []));
+    Map<String,String>? califications = {}; 
+    qualityQuestions = quality!.qualityQuestions;
 
     qualityQuestions!.sort((a, b) => a.code.compareTo(b.code));
     qualityCounters = [];
@@ -279,7 +198,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         }
       } else {
         if (lastMain != null) {
-          lastMain.subject += " (${qualityCounters.last}/$questionsInMain)";
+          califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
         }
         questionsInMain = 0;
         lastMain = question;
@@ -288,48 +207,58 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
 
     if (lastMain != null) {
-      lastMain.subject += " (${qualityCounters.last}/$questionsInMain)";
+                califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
+
     }
 
-    setState(() {
-      qualityQuestions = qualityQuestions;
-      qaQuestionsCompleted = qaQuestionsCompleted;
-    });
-
-    Widget result = Container(
+    Widget panel = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         // height: 150,
         color: Colors.white,
         child: currentProject != null
-            ? ListView.builder(
+            ? Column(children:[
+            Align( alignment: Alignment.topRight, child: Padding( padding:EdgeInsets.symmetric(horizontal:20, vertical:10), child:
+              actionButtonVertical(context, 'Nuevo ítem', qualityQuestionDialog, Icons.add, {'context':context, 'item':null}))),
+            ListView.builder(
+              
                 shrinkWrap: true,
                 itemCount: qualityQuestions!.length,
-                //scrollDirection: Axis.vertical,
-
                 itemBuilder: (BuildContext context, int index) {
                   QualityQuestion item = qualityQuestions!.elementAt(index);
                   TextStyle style = (item.isMain()
                       ? successText.copyWith(color: Colors.white)
                       : normalText);
                   Color bgColor = (item.isMain() ? successColor : Colors.white);
-                  return ListTile(
+                  return Tooltip ( 
+                    message: 'Click para editar',
+                    showDuration: const Duration(seconds: 0),
+                    child:ListTile(
                       subtitle: Container(
                           color: bgColor,
                           child: Row(
                             children: [
+                              Expanded( flex:1, child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Text(
+                                      item.code,
+                                      style: style,
+                                    )),
+                              )),
                               Expanded(
-                                  flex: 4,
+                                  flex: 8,
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Padding(
                                         padding: const EdgeInsets.all(10),
                                         child: Text(
-                                          item.subject,
+                                          (item.isMain())?"${item.subject} (${califications[item.code]})":item.subject,
                                           style: style,
                                         )),
                                   )),
                               Expanded(
-                                flex: 1,
+                                flex: 2,
                                 child: Padding(
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
@@ -343,7 +272,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                     )),
                               ),
                               Expanded(
-                                flex: 3,
+                                flex: 6,
                                 child: Padding(
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
@@ -351,11 +280,11 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                           ? "Comentarios"
                                           : item.comments,
                                       style: style,
-                                      textAlign: TextAlign.center,
+                                      textAlign: TextAlign.left,
                                     )),
                               ),
                               Expanded(
-                                flex: 1,
+                                flex: 2,
                                 child: Padding(
                                     padding: const EdgeInsets.all(10),
                                     child: Text(
@@ -369,18 +298,62 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                                     )),
                               ),
                             ],
-                          )));
+                          ))
+                          ,
+                          onTap: () {
+                            qualityQuestionDialog( {'context': context, 'item':item});
+                          }
+                          ));
                 })
-            : const Center(
+            ]): const Center(
                 child: CircularProgressIndicator(),
               ));
 
     return Column(children: [
-      result,
+      panel,
       const Divider(
         height: 1,
       ),
     ]);
+  }
+
+  void qualityQuestionDialog(args) {
+    BuildContext context = args['context'];
+    currentQualityQuestion= args['item'];
+
+    _qualityQuestionDialog(context).then((value) {
+      if (value != null) {
+        setState(() {
+          quality = value;
+          qualityQuestions = quality!.qualityQuestions;
+          qualityPanelWidget = qualityPanel();
+        });
+      }
+      });
+
+  }
+
+  Future<Quality?> _qualityQuestionDialog(context) {
+    currentQualityQuestion ??= QualityQuestion.getEmpty();
+  
+    return showDialog<Quality>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Item de calidad'),
+          content: Wrap(
+            children:[
+            QualityQuestionForm(
+            key: null,
+            currentQuestion: currentQualityQuestion,
+            currentQuality: quality,
+          )]),
+        );
+      },
+    );
+
   }
 
   Widget statusProject() {
