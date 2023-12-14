@@ -377,8 +377,7 @@ Widget customAutocompleteField(_controller, _options, _hint, {width = 220}) {
   ]);
 }
 
-Widget customDropdownField(_controller, _options, _current, _hint,
-    {width = 220}) {
+Widget customDropdownField(controller, options, current, hint, {width = 220}) {
   return SizedBox(
       width: width,
       child: DropdownSearch<KeyValue>(
@@ -388,19 +387,19 @@ Widget customDropdownField(_controller, _options, _current, _hint,
           //disabledItemFn: (String s) => s.startsWith('I'),
         ),
         //items: ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
-        items: _options,
+        items: options,
         itemAsString: (KeyValue p) => p.value,
         compareFn: (i1, i2) => i1.key == i2.key,
         dropdownDecoratorProps: DropDownDecoratorProps(
           dropdownSearchDecoration: InputDecoration(
             //labelText: "Menu mode",
-            hintText: _hint,
+            hintText: hint,
           ),
         ),
         onChanged: (val) {
-          _controller.text = val?.key;
+          controller.text = val?.key;
         },
-        selectedItem: _current,
+        selectedItem: current,
       ));
 }
 
@@ -510,6 +509,44 @@ class DateTimePicker extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CustomDropdown extends StatelessWidget {
+  const CustomDropdown({
+    Key? key,
+    required this.labelText,
+    required this.options,
+    required this.selected,
+    required this.onSelectedOpt,
+  }) : super(key: key);
+
+  final String labelText;
+  final KeyValue selected;
+  final List<KeyValue> options;
+  final ValueChanged<String> onSelectedOpt;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownSearch<KeyValue>(
+      popupProps: const PopupProps.menu(
+        showSearchBox: true,
+        showSelectedItems: true,
+      ),
+      items: options,
+      itemAsString: (KeyValue p) => p.value,
+      compareFn: (i1, i2) => i1.key == i2.key,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          //labelText: "Menu mode",
+          hintText: labelText,
+        ),
+      ),
+      onChanged: (val) {
+        onSelectedOpt(val!.key);
+      },
+      selectedItem: selected,
     );
   }
 }
@@ -632,7 +669,7 @@ Widget actionButtonVertical(
   );
 }
 
-Widget customCheckBox ( label, state, action ) {
+Widget customCheckBox(label, state, action) {
   return Row(
     children: [
       Checkbox(

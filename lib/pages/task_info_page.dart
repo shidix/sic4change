@@ -323,45 +323,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     _taskEditDialog(context, task, statusList, contactList, projectList);
   }
 
-  void _saveTask(List args) async {
+  /*void _saveTask(List args) async {
     STask task = args[1];
     task.save();
     loadTask(task);
     Navigator.pop(context);
-  }
-
-  /*Widget customDateField(context, dateController) {
-    return SizedBox(
-        width: 220,
-        child: TextField(
-          controller: dateController, //editing controller of this TextField
-          decoration: const InputDecoration(
-              icon: Icon(Icons.calendar_today), //icon of text field
-              labelText: "Enter Date" //label text of field
-              ),
-          readOnly: true, //set it true, so that user will not able to edit text
-          onTap: () async {
-            DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(
-                    2000), //DateTime.now() - not to allow to choose before today.
-                lastDate: DateTime(2101));
-
-            if (pickedDate != null) {
-              //print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-              String formattedDate =
-                  DateFormat('dd-MM-yyyy').format(pickedDate);
-              //print(formattedDate); //formatted date output using intl package =>  2021-03-16
-
-              setState(() {
-                dateController.text = formattedDate;
-              });
-            } else {
-              print("Date is not selected");
-            }
-          },
-        ));
   }*/
 
   void cancelItem(BuildContext context) {
@@ -370,16 +336,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   Future<void> _taskEditDialog(
       context, task, statusList, contactList, projectList) {
-    TextEditingController statusController = TextEditingController(text: "");
-    TextEditingController senderController = TextEditingController(text: "");
-    TextEditingController projectController = TextEditingController(text: "");
-
-    if (task != null) {
-      statusController = TextEditingController(text: task.status);
-      senderController = TextEditingController(text: task.sender);
-      projectController = TextEditingController(text: task.project);
-    }
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -420,9 +376,18 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: mainColor),
-                customDropdownField(projectController, projectList,
-                    task.projectObj.toKeyValue(), "Selecciona proyecto",
-                    width: 700),
+                SizedBox(
+                    width: 700,
+                    child: CustomDropdown(
+                      labelText: 'Proyecto',
+                      selected: task.projectObj.toKeyValue(),
+                      options: projectList,
+                      onSelectedOpt: (String val) {
+                        setState(() {
+                          task.project = val;
+                        });
+                      },
+                    )),
               ]),
             ]),
             space(height: 20),
@@ -456,23 +421,39 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: mainColor),
-                customDropdownField(statusController, statusList,
-                    task.statusObj.toKeyValue(), "Selecciona estado",
-                    width: 340),
+                SizedBox(
+                    width: 340,
+                    child: CustomDropdown(
+                      labelText: 'Estado',
+                      selected: task.statusObj.toKeyValue(),
+                      options: statusList,
+                      onSelectedOpt: (String val) {
+                        setState(() {
+                          task.status = val;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: mainColor),
-                customDropdownField(senderController, contactList,
-                    task.senderObj.toKeyValue(), "Selecciona devolución",
-                    width: 340),
+                SizedBox(
+                    width: 340,
+                    child: CustomDropdown(
+                      labelText: 'Devolución',
+                      selected: task.senderObj.toKeyValue(),
+                      options: contactList,
+                      onSelectedOpt: (String val) {
+                        setState(() {
+                          task.sender = val;
+                        });
+                      },
+                    )),
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Acuerdo:", 16, textColor: mainColor),
-                customDateField(context, dealDateController),*/
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
@@ -487,8 +468,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Deadline:", 16, textColor: mainColor),
-                customDateField(context, deadlineDateController),*/
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
@@ -503,8 +482,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Nuevo Deadline:", 16, textColor: mainColor),
-                customDateField(context, newDeadlineDateController),*/
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
@@ -521,47 +498,13 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             ])
           ])),
           actions: <Widget>[
-            /*Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(
-                    context, "Enviar", _saveTask, Icons.save_outlined, [
-                  context,
-                  task,
-                  nameController.text,
-                  descriptionController.text,
-                  commentsController.text,
-                  statusController.text,
-                  dealDateController.text,
-                  deadlineDateController.text,
-                  newDeadlineDateController.text,
-                  senderController.text,
-                  projectController.text,
-                  public,
-                  statusList
-                ]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),*/
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveTask([
-                  context,
-                  task,
-                  //commentsController.text,
-                  statusController.text,
-                  //dealDateController.text,
-                  //deadlineDateController.text,
-                  //newDeadlineDateController.text,
-                  senderController.text,
-                  projectController.text,
-                  statusList
-                ]);
+                task.save();
+                loadTask(task);
+                Navigator.pop(context);
+                //_saveTask([context, task, statusList]);
               },
             ),
             TextButton(
@@ -640,10 +583,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PROGRAMMES                               */
   /*--------------------------------------------------------------------*/
-  void _saveProgrammes(context, task, name, programmes_list) async {
+  void _saveProgrammes(context, task, name, programmesList) async {
     task.programmes.add(name);
     task.updateProgrammes();
-    if (!programmes_list.contains(name)) {
+    if (!programmesList.contains(name)) {
       Programme programme = Programme(name);
       programme.save();
     }
