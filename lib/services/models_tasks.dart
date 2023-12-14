@@ -23,8 +23,8 @@ class STask {
   String comments = "";
   String status = "";
   DateTime dealDate = DateTime.now();
-  String deadline_date = "";
-  String new_deadline_date = "";
+  DateTime deadLineDate = DateTime.now();
+  DateTime newDeadLineDate = DateTime.now();
   String sender = "";
   String project = "";
   List<String> assigned = [];
@@ -46,8 +46,8 @@ class STask {
         comments = json['comments'],
         status = json['status'],
         dealDate = json['dealDate'].toDate(),
-        deadline_date = json['deadline_date'],
-        new_deadline_date = json['new_deadline_date'],
+        deadLineDate = json['deadLineDate'].toDate(),
+        newDeadLineDate = json['newDeadLineDate'].toDate(),
         sender = json['sender'],
         project = json['project'],
         assigned =
@@ -64,8 +64,8 @@ class STask {
         'comments': comments,
         'status': status,
         'dealDate': dealDate,
-        'deadline_date': deadline_date,
-        'new_deadline_date': new_deadline_date,
+        'deadLineDate': deadLineDate,
+        'newDeadLineDate': newDeadLineDate,
         'sender': sender,
         'project': project,
         'assigned': assigned,
@@ -79,9 +79,8 @@ class STask {
 
   Future<void> save() async {
     if (id == "") {
-      //id = uuid;
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbTasks.add(data);
     } else {

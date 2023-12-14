@@ -896,7 +896,7 @@ Widget customText(_text, _size,
 Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
   return FilledButton(
       onPressed: () {
-        if (args.isEmpty) {
+        if (args == null) {
           action(context);
         } else {
           action(context, args);

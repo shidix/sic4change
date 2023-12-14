@@ -681,7 +681,8 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                task.deadline_date,
+                                DateFormat('yyyy-MM-dd')
+                                    .format(task.deadLineDate),
                                 style: normalText,
                                 textAlign: TextAlign.center,
                               )),
@@ -691,7 +692,8 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                task.deadline_date,
+                                DateFormat('yyyy-MM-dd')
+                                    .format(task.deadLineDate),
                                 style: normalText,
                                 textAlign: TextAlign.center,
                               )),

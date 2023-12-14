@@ -49,17 +49,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           projectTaskHeader(context, _task),
           space(height: 20),
           contentTab(context, taskInfoDetails, null)
-          /*Expanded(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                      ),
-                    ),
-                    child: taskInfoDetails(context),
-                  ))),*/
         ],
       ),
     );
@@ -101,6 +90,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                             addBtn(context, _callEditDialog, _task,
                                 icon: Icons.edit, text: "Editar"),
                             //returnBtn(context)
+                            space(width: 10),
                             FilledButton(
                               onPressed: () {
                                 Navigator.pushNamed(context, "/tasks");
@@ -122,28 +112,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           )
         ]));
   }
-
-  /*Widget editBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        _callEditDialog(context, _task);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.edit, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Editar",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
 
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
@@ -248,8 +216,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             ]),
             TableRow(children: [
               customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
-              customText(task.deadline_date, 16),
-              customText(task.new_deadline_date, 16),
+              customText(
+                  DateFormat('yyyy-MM-dd').format(task.deadLineDate), 16),
+              customText(
+                  DateFormat('yyyy-MM-dd').format(task.newDeadLineDate), 16),
             ])
           ])
     ]);
@@ -360,7 +330,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     Navigator.pop(context);
   }
 
-  Widget customDateField(context, dateController) {
+  /*Widget customDateField(context, dateController) {
     return SizedBox(
         width: 220,
         child: TextField(
@@ -392,7 +362,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             }
           },
         ));
-  }
+  }*/
 
   void cancelItem(BuildContext context) {
     Navigator.of(context).pop();
@@ -400,26 +370,15 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   Future<void> _taskEditDialog(
       context, task, statusList, contactList, projectList) {
-    print("--0--");
     TextEditingController statusController = TextEditingController(text: "");
-    //TextEditingController dealDateController = TextEditingController(text: "");
-    TextEditingController deadlineDateController =
-        TextEditingController(text: "");
-    TextEditingController newDeadlineDateController =
-        TextEditingController(text: "");
     TextEditingController senderController = TextEditingController(text: "");
     TextEditingController projectController = TextEditingController(text: "");
 
     if (task != null) {
       statusController = TextEditingController(text: task.status);
-      //dealDateController = TextEditingController(text: task.deal_date);
-      deadlineDateController = TextEditingController(text: task.deadline_date);
-      newDeadlineDateController =
-          TextEditingController(text: task.new_deadline_date);
       senderController = TextEditingController(text: task.sender);
       projectController = TextEditingController(text: task.project);
     }
-    print("--1--");
 
     return showDialog<void>(
       context: context,
@@ -514,25 +473,49 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 /*customText("Acuerdo:", 16, textColor: mainColor),
                 customDateField(context, dealDateController),*/
-                DateTimePicker(
-                  labelText: 'Acuerdo',
-                  selectedDate: task.dealDate,
-                  onSelectedDate: (DateTime date) {
-                    setState(() {
-                      task.dealDate = date;
-                    });
-                  },
-                ),
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Acuerdo',
+                      selectedDate: task.dealDate,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          task.dealDate = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Deadline:", 16, textColor: mainColor),
-                customDateField(context, deadlineDateController),
+                /*customText("Deadline:", 16, textColor: mainColor),
+                customDateField(context, deadlineDateController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Deadline',
+                      selectedDate: task.deadLineDate,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          task.deadLineDate = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nuevo Deadline:", 16, textColor: mainColor),
-                customDateField(context, newDeadlineDateController),
+                /*customText("Nuevo Deadline:", 16, textColor: mainColor),
+                customDateField(context, newDeadlineDateController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Nuevo deadline',
+                      selectedDate: task.newDeadLineDate,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          task.newDeadLineDate = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
             ])
@@ -573,8 +556,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   //commentsController.text,
                   statusController.text,
                   //dealDateController.text,
-                  deadlineDateController.text,
-                  newDeadlineDateController.text,
+                  //deadlineDateController.text,
+                  //newDeadlineDateController.text,
                   senderController.text,
                   projectController.text,
                   statusList

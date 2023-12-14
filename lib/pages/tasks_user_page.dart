@@ -192,7 +192,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     DataCell(
                       Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
                     ),
-                    DataCell(Text(task.deadline_date)),
+                    DataCell(Text(
+                        DateFormat('yyyy-MM-dd').format(task.deadLineDate))),
                     //DataCell(Text(task.assigned.join(","))),
                     DataCell(Text(task.getAssignedStr())),
                     DataCell(customTextStatus(task.statusObj.name, 14)),

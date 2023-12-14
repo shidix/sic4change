@@ -125,7 +125,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         //editBtn(context),
-                        addBtn(context, callContactInfoEditDialog, {},
+                        addBtn(context, callContactInfoEditDialog, null,
                             text: "Editar", icon: Icons.edit),
                         space(width: 10),
                         returnBtn(context),
