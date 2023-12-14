@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
 
-class ModelsQuality {
+class Quality {
   String id;
   String uuid;
   String project;
@@ -11,7 +12,7 @@ class ModelsQuality {
 
   final database = db.collection("s4c_quality");
 
-  ModelsQuality({
+  Quality({
     required this.id,
     required this.uuid,
     required this.project,
@@ -19,39 +20,54 @@ class ModelsQuality {
     required this.qualityQuestions,
   });
 
-  factory ModelsQuality.fromJson(Map data) {
-    return ModelsQuality(
+  factory Quality.fromJson(Map data) {
+    Quality item = Quality(
       id: data['id'],
       uuid: data['uuid'],
       project: data['project'],
       calification: data['calification'],
-      qualityQuestions: data['qualityQuestions'],
+      qualityQuestions: List<QualityQuestion>.empty(growable: true),
     );
+    data['qualityQuestions'].forEach((element) {
+      item.qualityQuestions.add(QualityQuestion.fromJson(element));
+    });
+
+    return item;
+
   }
 
-  factory ModelsQuality.fromFirestore(DocumentSnapshot doc) {
+  factory Quality.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     data['id'] = doc.id;
-    return ModelsQuality.fromJson(data);
+    return Quality.fromJson(data);
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'project': project,
-        'calification': calification,
-        'qualityQuestions': qualityQuestions,
-      };
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> data = {
+      'id': id,
+      'uuid': uuid,
+      'project': project,
+      'calification': calification,
+      'qualityQuestions': [],
+    };
+    for (var element in qualityQuestions) {
+      if (element.code != "") {
+        data['qualityQuestions'].add(element.toJson());
+      }
+    }
+    return data;
+
+  }
 
   @override
   String toString() {
-    return 'ModelsQuality{id: $id, uuid: $uuid, project: $project, calification: $calification, qualityQuestions: $qualityQuestions}';
+    return 'Quality{id: $id, uuid: $uuid, project: $project, calification: $calification, qualityQuestions: $qualityQuestions}';
   }
 
-  factory ModelsQuality.getEmpty() {
-    return ModelsQuality(
+  factory Quality.getEmpty() {
+    return Quality(
       id: "",
-      uuid: "",
+      uuid: const Uuid().v4(),
       project: "",
       calification: "",
       qualityQuestions: [],
@@ -83,8 +99,16 @@ class ModelsQuality {
         qualityQuestion;
   }
 
-  static byProject(String project) {
-    return db.collection("s4c_quality").where("project", isEqualTo: project);
+  static Future<Quality> byProject(String project) {
+    return db.collection("s4c_quality").where("project", isEqualTo: project).get().then((value) {
+      return Quality.fromFirestore(value.docs.first);
+    }).catchError((error) {
+      print("Quality.byProject :=> $error");
+      Quality item = Quality.getEmpty();
+      item.project = project;
+      // item.save();
+      return item;
+    });
   }
 }
 
@@ -93,7 +117,7 @@ class QualityQuestion {
   String subject;
   bool completed;
   String comments;
-  List<String> docs;
+  List docs;
 
   QualityQuestion({
     required this.code,
@@ -105,5 +129,38 @@ class QualityQuestion {
 
   bool isMain() {
     return (!code.contains("."));
+  }
+
+  factory QualityQuestion.fromJson(Map data) {
+    return QualityQuestion(
+      code: data['code'],
+      subject: data['subject'],
+      completed: data['completed'],
+      comments: data['comments'],
+      docs: data['docs'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'subject': subject,
+        'completed': completed,
+        'comments': comments,
+        'docs': docs,
+      };
+
+  @override
+  String toString() {
+    return 'QualityQuestion{code: $code, subject: $subject, completed: $completed, comments: $comments, docs: $docs}';
+  }
+
+  factory QualityQuestion.getEmpty() {
+    return QualityQuestion(
+      code: "",
+      subject: "",
+      completed: false,
+      comments: "",
+      docs: [],
+    );
   }
 }
