@@ -9,7 +9,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_quality.dart';
-import 'package:sic4change/services/quality_question_form.dart';
+import 'package:sic4change/services/transversal_question_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -21,37 +21,38 @@ Widget indicatorButton(
     context, String upperText, String text, Function action, dynamic args,
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   return Tooltip(
-    message: 'Click para ver / ocultar detalles',
-    showDuration: const Duration(seconds: 0),
-    child:  ElevatedButton(
-    onPressed: () {
-      if (args == null) {
-        action();
-      } else {
-        action(args);
-      }
-    },
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      backgroundColor: Colors.white,
-    ),
-    child: Column(
-      children: [
-        Text(
-          upperText,
-          textAlign: TextAlign.center,
-          style: mainText.copyWith(fontSize: 14),
+      message: 'Click para ver / ocultar detalles',
+      showDuration: const Duration(seconds: 0),
+      child: ElevatedButton(
+        onPressed: () {
+          if (args == null) {
+            action();
+          } else {
+            action(args);
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          backgroundColor: Colors.white,
         ),
-        space(height: 10),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: mainText.copyWith(fontSize: 30),
+        child: Column(
+          children: [
+            Text(
+              upperText,
+              textAlign: TextAlign.center,
+              style: mainText.copyWith(fontSize: 14),
+            ),
+            space(height: 10),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: mainText.copyWith(fontSize: 30),
+            ),
+          ],
         ),
-      ],
-    ),
-  ));
+      ));
 }
 
 class ProjectTransversalPage extends StatefulWidget {
@@ -65,16 +66,25 @@ class ProjectTransversalPage extends StatefulWidget {
 }
 
 class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
-  Quality? quality;
+  TransversalQuestion? currentQuestion;
   User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
+
+  Quality? quality;
   Widget? qualityPanelWidget;
   List? qualityQuestions;
   int qaQuestionsCompleted = 0;
   int qualityQuestionsCounter = 0;
   List<int> qualityCounters = [];
   bool collapsedQuality = false;
-  QualityQuestion? currentQualityQuestion;
+
+  Transparency? transparency;
+  Widget? transparencyPanelWidget;
+  List? transparencyQuestions;
+  int transparencyQuestionsCompleted = 0;
+  int transparencyQuestionsCounter = 0;
+  List<int> transparencyCounters = [];
+  bool collapsedTransparency = false;
 
   Widget totalBudget(context, SProject project) {
     double percent = 50;
@@ -145,27 +155,42 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     if (widget.currentProject == null) {
       SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
           .then((project) {
+        currentProject = project;
+
         Quality.byProject(project.uuid).then((value) {
           setState(() {
-            currentProject = project;
             quality = value;
             qualityPanel();
+          });
+        });
 
+        Transparency.byProject(project.uuid).then((value) {
+          setState(() {
+            transparency = value;
+            transparencyPanel();
           });
         });
       });
     } else {
       Quality.byProject(widget.currentProject!.uuid).then((value) {
         setState(() {
-
           currentProject = widget.currentProject;
           quality = value;
           qualityPanel();
+        });
+      });
 
+      Transparency.byProject(widget.currentProject!.uuid).then((value) {
+        setState(() {
+          currentProject = widget.currentProject;
+          transparency = value;
+          transparencyPanel();
         });
       });
     }
   }
+
+////// QUALITY QUESTIONS
 
   void addQualityPanel(args) {
     setState(() {
@@ -179,12 +204,12 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
   Widget qualityPanel() {
-    Map<String,String>? califications = {}; 
-    qualityQuestions = quality!.qualityQuestions;
+    Map<String, String>? califications = {};
+    qualityQuestions = quality!.questions;
 
     qualityQuestions!.sort((a, b) => a.code.compareTo(b.code));
     qualityCounters = [];
-    QualityQuestion? lastMain;
+    TransversalQuestion? lastMain;
     qaQuestionsCompleted = 0;
     qualityQuestionsCounter = 0;
     int questionsInMain = 0;
@@ -198,7 +223,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         }
       } else {
         if (lastMain != null) {
-          califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
+          califications[lastMain.code] =
+              "${qualityCounters.last}/$questionsInMain";
         }
         questionsInMain = 0;
         lastMain = question;
@@ -207,8 +233,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
 
     if (lastMain != null) {
-                califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
-
+      califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
     }
 
     Widget panel = Container(
@@ -216,96 +241,112 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         // height: 150,
         color: Colors.white,
         child: currentProject != null
-            ? Column(children:[
-            Align( alignment: Alignment.topRight, child: Padding( padding:EdgeInsets.symmetric(horizontal:20, vertical:10), child:
-              actionButtonVertical(context, 'Nuevo ítem', qualityQuestionDialog, Icons.add, {'context':context, 'item':null}))),
-            ListView.builder(
-              
-                shrinkWrap: true,
-                itemCount: qualityQuestions!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  QualityQuestion item = qualityQuestions!.elementAt(index);
-                  TextStyle style = (item.isMain()
-                      ? successText.copyWith(color: Colors.white)
-                      : normalText);
-                  Color bgColor = (item.isMain() ? successColor : Colors.white);
-                  return Tooltip ( 
-                    message: 'Click para editar',
-                    showDuration: const Duration(seconds: 0),
-                    child:ListTile(
-                      subtitle: Container(
-                          color: bgColor,
-                          child: Row(
-                            children: [
-                              Expanded( flex:1, child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      item.code,
-                                      style: style,
-                                    )),
-                              )),
-                              Expanded(
-                                  flex: 8,
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Padding(
-                                        padding: const EdgeInsets.all(10),
-                                        child: Text(
-                                          (item.isMain())?"${item.subject} (${califications[item.code]})":item.subject,
-                                          style: style,
-                                        )),
+            ? Column(children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: actionButtonVertical(
+                            context,
+                            'Nuevo ítem',
+                            qualityQuestionDialog,
+                            Icons.add,
+                            {'context': context, 'item': null}))),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: qualityQuestions!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      TransversalQuestion item =
+                          qualityQuestions!.elementAt(index);
+                      TextStyle style = (item.isMain()
+                          ? successText.copyWith(color: Colors.white)
+                          : normalText);
+                      Color bgColor =
+                          (item.isMain() ? mainColor : Colors.white);
+                      return Tooltip(
+                          message: 'Click para editar',
+                          showDuration: const Duration(seconds: 0),
+                          child: ListTile(
+                              subtitle: Container(
+                                  color: bgColor,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 1,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                child: Text(
+                                                  item.code,
+                                                  style: style,
+                                                )),
+                                          )),
+                                      Expanded(
+                                          flex: 8,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                child: Text(
+                                                  (item.isMain())
+                                                      ? "${item.subject} (${califications[item.code]})"
+                                                      : item.subject,
+                                                  style: style,
+                                                )),
+                                          )),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              (item.isMain()
+                                                  ? "Sí/No"
+                                                  : item.completed
+                                                      ? "Sí"
+                                                      : "No"),
+                                              style: style,
+                                              textAlign: TextAlign.center,
+                                            )),
+                                      ),
+                                      Expanded(
+                                        flex: 6,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              item.isMain()
+                                                  ? "Comentarios"
+                                                  : item.comments,
+                                              style: style,
+                                              textAlign: TextAlign.left,
+                                            )),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              item.isMain()
+                                                  ? "Docs."
+                                                  : item.docs.isNotEmpty
+                                                      ? item.docs.toString()
+                                                      : '',
+                                              style: style,
+                                              textAlign: TextAlign.center,
+                                            )),
+                                      ),
+                                    ],
                                   )),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      (item.isMain()
-                                          ? "Sí/No"
-                                          : item.completed
-                                              ? "Sí"
-                                              : "No"),
-                                      style: style,
-                                      textAlign: TextAlign.center,
-                                    )),
-                              ),
-                              Expanded(
-                                flex: 6,
-                                child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      item.isMain()
-                                          ? "Comentarios"
-                                          : item.comments,
-                                      style: style,
-                                      textAlign: TextAlign.left,
-                                    )),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      item.isMain()
-                                          ? "Docs."
-                                          : item.docs.isNotEmpty
-                                              ? item.docs.toString()
-                                              : '',
-                                      style: style,
-                                      textAlign: TextAlign.center,
-                                    )),
-                              ),
-                            ],
-                          ))
-                          ,
-                          onTap: () {
-                            qualityQuestionDialog( {'context': context, 'item':item});
-                          }
-                          ));
-                })
-            ]): const Center(
+                              onTap: () {
+                                qualityQuestionDialog(
+                                    {'context': context, 'item': item});
+                              }));
+                    })
+              ])
+            : const Center(
                 child: CircularProgressIndicator(),
               ));
 
@@ -319,23 +360,22 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
   void qualityQuestionDialog(args) {
     BuildContext context = args['context'];
-    currentQualityQuestion= args['item'];
+    currentQuestion = args['item'];
 
     _qualityQuestionDialog(context).then((value) {
       if (value != null) {
         setState(() {
           quality = value;
-          qualityQuestions = quality!.qualityQuestions;
+          qualityQuestions = quality!.questions;
           qualityPanelWidget = qualityPanel();
         });
       }
-      });
-
+    });
   }
 
   Future<Quality?> _qualityQuestionDialog(context) {
-    currentQualityQuestion ??= QualityQuestion.getEmpty();
-  
+    currentQuestion ??= TransversalQuestion.getEmpty();
+
     return showDialog<Quality>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -343,19 +383,225 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Item de calidad'),
-          content: Wrap(
-            children:[
-            QualityQuestionForm(
-            key: null,
-            currentQuestion: currentQualityQuestion,
-            currentQuality: quality,
-          )]),
+          content: Wrap(children: [
+            TransversalQuestionForm(
+              key: null,
+              currentQuestion: currentQuestion,
+              currentTransversal: quality as Transversal,
+            )
+          ]),
         );
       },
     );
-
   }
 
+////// TRANSPARENCY QUESTIONS
+
+  void addTransparencyPanel(args) {
+    setState(() {
+      collapsedTransparency = !collapsedTransparency;
+      if (collapsedTransparency) {
+        transparencyPanelWidget = transparencyPanel();
+      } else {
+        transparencyPanelWidget = null;
+      }
+    });
+  }
+
+  Widget transparencyPanel() {
+    transparencyQuestions = transparency!.questions;
+
+    transparencyQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    transparencyCounters = [];
+    transparencyQuestionsCompleted = 0;
+    transparencyQuestionsCounter = 0;
+    Map<String, String>? califications = {};
+
+    TransversalQuestion? lastMain;
+
+    int questionsInMain = 0;
+    for (var question in transparencyQuestions!) {
+      if (!question.isMain()) {
+        transparencyQuestionsCounter++;
+        questionsInMain++;
+        if (question.completed) {
+          transparencyQuestionsCompleted++;
+          transparencyCounters.last++;
+        }
+      } else {
+        if (lastMain != null) {
+          califications[lastMain.code] =
+              "${transparencyCounters.last}/$questionsInMain";
+        }
+        questionsInMain = 0;
+        lastMain = question;
+        transparencyCounters.add(0);
+      }
+    }
+
+    if (lastMain != null) {
+      califications[lastMain.code] =
+          "${transparencyCounters.last}/$questionsInMain";
+    }
+
+    Widget panel = Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        // height: 150,
+        color: Colors.white,
+        child: currentProject != null
+            ? Column(children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: actionButtonVertical(
+                            context,
+                            'Nuevo ítem',
+                            transparencyQuestionDialog,
+                            Icons.add,
+                            {'context': context, 'item': null}))),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: transparencyQuestions!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      TransversalQuestion item =
+                          transparencyQuestions!.elementAt(index);
+                      TextStyle style = (item.isMain()
+                          ? successText.copyWith(color: Colors.white)
+                          : normalText);
+                      Color bgColor =
+                          (item.isMain() ? mainColor : Colors.white);
+                      return Tooltip(
+                          message: 'Click para editar',
+                          showDuration: const Duration(seconds: 0),
+                          child: ListTile(
+                              subtitle: Container(
+                                  color: bgColor,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 1,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                child: Text(
+                                                  item.code,
+                                                  style: style,
+                                                )),
+                                          )),
+                                      Expanded(
+                                          flex: 8,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                child: Text(
+                                                  (item.isMain())
+                                                      ? "${item.subject} (${califications[item.code]})"
+                                                      : item.subject,
+                                                  style: style,
+                                                )),
+                                          )),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              (item.isMain()
+                                                  ? "Sí/No"
+                                                  : item.completed
+                                                      ? "Sí"
+                                                      : "No"),
+                                              style: style,
+                                              textAlign: TextAlign.center,
+                                            )),
+                                      ),
+                                      Expanded(
+                                        flex: 6,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              item.isMain()
+                                                  ? "Comentarios"
+                                                  : item.comments,
+                                              style: style,
+                                              textAlign: TextAlign.left,
+                                            )),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              item.isMain()
+                                                  ? "Docs."
+                                                  : item.docs.isNotEmpty
+                                                      ? item.docs.toString()
+                                                      : '',
+                                              style: style,
+                                              textAlign: TextAlign.center,
+                                            )),
+                                      ),
+                                    ],
+                                  )),
+                              onTap: () {
+                                transparencyQuestionDialog(
+                                    {'context': context, 'item': item});
+                              }));
+                    })
+              ])
+            : const Center(
+                child: CircularProgressIndicator(),
+              ));
+
+    return Column(children: [
+      panel,
+      const Divider(
+        height: 1,
+      ),
+    ]);
+  }
+
+  void transparencyQuestionDialog(args) {
+    BuildContext context = args['context'];
+    currentQuestion = args['item'];
+    _transparencyQuestionDialog(context).then((value) {
+      if (value != null) {
+        setState(() {
+          transparency = value;
+          transparencyQuestions = transparency!.questions;
+          transparencyPanelWidget = transparencyPanel();
+        });
+      }
+    });
+  }
+
+  Future<Transparency?> _transparencyQuestionDialog(context) {
+    currentQuestion ??= TransversalQuestion.getEmpty();
+    return showDialog<Transparency>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Item de transparencia'),
+          content: Wrap(children: [
+            TransversalQuestionForm(
+              key: null,
+              currentQuestion: currentQuestion,
+              currentTransversal: transparency as Transversal,
+            )
+          ]),
+        );
+      },
+    );
+  }
+
+////// GENERAL
   Widget statusProject() {
     return Container(
         child: Row(children: [
@@ -453,7 +699,11 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                   "$qaQuestionsCompleted/$qualityQuestionsCounter",
                   addQualityPanel),
               qualityPanelWidget ?? Container(height: 0),
-              indicator("Transparencia", "8/10", test),
+              indicator(
+                  "Transparencia",
+                  "$transparencyQuestionsCompleted/$transparencyQuestionsCounter",
+                  addTransparencyPanel),
+              transparencyPanelWidget ?? Container(height: 0),
               indicator("Género", "7/9", test),
               indicator("Medio Ambiente", "5/8", test),
             ])));

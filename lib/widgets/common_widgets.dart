@@ -754,7 +754,7 @@ SizedBox s4cTitleBar(String title, [context]) {
                   topRight: Radius.circular(5),
                   bottomLeft: Radius.circular(5),
                   bottomRight: Radius.circular(5))),
-          color: successColor,
+          color: mainColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
