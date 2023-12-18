@@ -44,45 +44,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "PROGRAMAS")),
           programmeList(context),
-          /*SizedBox(
-            height: 100,
-            child: programmeList(context),
-          ),*/
           Container(
               padding: const EdgeInsets.all(10),
-              child: customTitle(context, "PROYECTOS")),
+              child: customTitle(context, "INICIATIVAS")),
           projectList(context),
-          /*space(height: 20),
-
-          //projectsHeader(context),
-          Expanded(
-              child: Container(
-            child: projectList(context),
-          )),*/
         ],
       ),
     ));
   }
-
-  /*Widget projectsHeader(context) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          projectSearch(),
-          space(height: 30),
-          customTitle(context, "PROGRAMAS"),
-          SizedBox(
-            height: 100,
-            child: programmeList(context),
-          ),
-          customTitle(context, "PROYECTOS"),
-          space(height: 30),
-        ],
-      ),
-    );
-  }*/
 
   Widget projectSearch() {
     return Container(
@@ -91,8 +60,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(projectTitle, style: headerTitleText),
-            addBtn(context, callDialog, {"programme": null}),
-
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              addBtn(context, callDialog, {"programme": null},
+                  text: "Añadir Programa"),
+              space(width: 10),
+              addBtn(context, callProjectDialog, {"programme": null},
+                  text: "Añadir Iniciativa"),
+            ])
             /*Container(
           width: 500,
           child: SearchBar(
@@ -137,17 +111,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Image.network(programme.logo),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      /*customText(programme.name, 15,
-                                          bold: FontWeight.bold),
-                                      customText(
-                                          " ('${programme.projects}' proyectos)",
-                                          15),*/
-                                      editBtn(context, callDialog, programme)
-                                    ],
-                                  )
+                                  editBtn(context, callDialog,
+                                      {'programme': programme}),
                                 ]);
                           } else {
                             return Column(children: [
@@ -158,7 +123,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                   customText(
                                       " ('${programme.projects}' proyectos)",
                                       15),
-                                  editBtn(context, callDialog, programme)
+                                  editBtn(context, callDialog,
+                                      {'programme': programme})
                                 ],
                               )
                             ]);
@@ -176,70 +142,73 @@ class _ProjectsPageState extends State<ProjectsPage> {
     programmeEditDialog(context, args["programme"]);
   }
 
-  /*Widget addProgrammeBtn(context, programme) {
-    return FilledButton(
-      onPressed: () {
-        programmeEditDialog(context, programme);
-      },
-      style: btnStyle,
-      child: btnChild(btnText: "Añadir programa"),
-    );
-  }*/
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
 
-  void _saveProgramme(context, programme, name, logo) async {
-    programme ??= Programme(name);
-    programme.name = name;
-    programme.logo = logo;
+  void saveProgramme(List args) async {
+    Programme programme = args[0];
     programme.save();
     loadProgrammes();
     Navigator.pop(context);
   }
 
   Future<void> programmeEditDialog(context, programme) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController logoController = TextEditingController(text: "");
-
-    if (programme != null) {
-      nameController = TextEditingController(text: programme.name);
-      logoController = TextEditingController(text: programme.logo);
-    }
+    programme ??= Programme("");
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Modificar programa'),
+          //title: const Text('Modificar programa'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar programa'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: titleColor),
-                customTextField(nameController, "Nombre", size: 600),
+                //customText("Nombre:", 16, textColor: titleColor),
+                //customTextField(nameController, "Nombre", size: 600),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (programme.name != "") ? programme.name : "",
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    onChanged: (val) => setState(() => programme.name = val),
+                  ),
+                ),
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Logo:", 16, textColor: titleColor),
-                customTextField(logoController, "Logo", size: 600),
+                //customText("Logo:", 16, textColor: titleColor),
+                //customTextField(logoController, "Logo", size: 600),
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (programme.logo != "") ? programme.logo : "",
+                    decoration: const InputDecoration(labelText: 'Logo'),
+                    onChanged: (val) => setState(() => programme.logo = val),
+                  ),
+                ),
               ]),
             ]),
           ])),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                _saveProgramme(context, programme, nameController.text,
-                    logoController.text);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", saveProgramme,
+                    Icons.save_outlined, [programme]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
           ],
         );
       },
@@ -520,6 +489,62 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
+  void callProjectDialog(context, args) {
+    projectEditDialog(context, args["project"]);
+  }
+
+  void saveProject(List args) async {
+    SProject project = args[0];
+    project.save();
+
+    Navigator.pop(context);
+    Navigator.pushNamed(context, "/project_info",
+        arguments: {'project': project});
+  }
+
+  Future<void> projectEditDialog(context, project) {
+    project ??= SProject("");
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nuevo proyecto'),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SizedBox(
+                  width: 600,
+                  child: TextFormField(
+                    initialValue: (project.name != "") ? project.name : "",
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    onChanged: (val) => setState(() => project.name = val),
+                  ),
+                ),
+              ]),
+            ]),
+            space(height: 20),
+          ])),
+          actions: <Widget>[
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", saveProject,
+                    Icons.save_outlined, [project]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
+          ],
+        );
+      },
+    );
+  }
   /*void _saveProject(
       context,
       _project,

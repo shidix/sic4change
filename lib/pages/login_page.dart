@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -52,35 +53,27 @@ class _LoginPageState extends State<LoginPage> {
 
 Widget loginBody(context, emailController, passwdController) {
   return Container(
-    /*decoration: BoxDecoration(
-      image: DecorationImage(
-        image: NetworkImage(
-            "https://www.freecodecamp.org/news/content/images/size/w2000/2022/09/jonatan-pie-3l3RwQdHRHg-unsplash.jpg"),
-        fit: BoxFit.cover,
-      ),
-    ),*/
-    child: Container(
-      margin: const EdgeInsets.all(20.0),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [loginLogo()],
-            ),
-            space(height: 29),
-            usernameText(),
-            usernameField(emailController),
-            space(height: 29),
-            passsowdText(),
-            passwordField(passwdController),
-            space(height: 29),
-            forgotText(),
-            space(height: 29),
-            loginBtn(context, emailController, passwdController)
-          ]),
-    ),
+    margin: const EdgeInsets.all(20.0),
+    child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [loginLogo()],
+          ),
+          space(height: 29),
+          usernameText(),
+          usernameField(emailController),
+          space(height: 29),
+          passsowdText(),
+          passwordField(passwdController),
+          space(height: 29),
+          forgotText(),
+          space(height: 29),
+          loginBtn(context, emailController, passwdController),
+          footer(context),
+        ]),
   );
 }
 

@@ -31,7 +31,7 @@ class STask {
   List<String> programmes = [];
   bool public = false;
 
-  SProject projectObj = SProject("", "");
+  SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("", "", "", "", "");
   List<Contact> assignedObj = [];

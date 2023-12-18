@@ -37,10 +37,10 @@ class SProject {
 
   double dblbudget = 0;
 
-  // SProject(
-  //   this.name,
-  // );
-  SProject(this.uuid, this.name,
+  SProject(
+    this.name,
+  );
+  /*SProject(this.uuid, this.name,
       [this.description = "",
       this.type = "",
       this.budget = "",
@@ -49,7 +49,7 @@ class SProject {
       this.announcement = "",
       this.ambit = "",
       this.audit = false,
-      this.evaluation = false]);
+      this.evaluation = false]);*/
 
   SProject.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -90,8 +90,8 @@ class SProject {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProject.add(data);
     } else {
@@ -247,7 +247,8 @@ class SProject {
   }
 
   static Future<SProject> getByUuid(String uuid) async {
-    SProject item = SProject("", "", "", "", "", "", "", "", "", false, false);
+    //SProject item = SProject("", "", "", "", "", "", "", "", "", false, false);
+    SProject item = SProject("");
     await dbProject.where("uuid", isEqualTo: uuid).get().then((value) {
       final _doc = value.docs.first;
       final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
@@ -264,14 +265,16 @@ Future<List> getProjects() async {
   for (var doc in queryProject.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = SProject.fromJson(data);
-    _item.typeObj = await _item.getProjectType();
-    _item.managerObj = await _item.getManager();
-    _item.programmeObj = await _item.getProgramme();
-    _item.financiersObj = await _item.getFinanciers();
-    _item.partnersObj = await _item.getPartners();
-    _item.datesObj = await _item.getDates();
-    items.add(_item);
+    final item = SProject.fromJson(data);
+    try {
+      item.typeObj = await item.getProjectType();
+      item.managerObj = await item.getManager();
+      item.programmeObj = await item.getProgramme();
+      item.financiersObj = await item.getFinanciers();
+      item.partnersObj = await item.getPartners();
+      item.datesObj = await item.getDates();
+    } catch (e) {}
+    items.add(item);
   }
   return items;
 }
@@ -670,7 +673,8 @@ class Reformulation {
   String request = "";
   String project = "";
   String financier = "";
-  SProject projectObj = SProject("", "");
+  //SProject projectObj = SProject("", "");
+  SProject projectObj = SProject("");
   Financier financierObj = Financier("");
 
   Reformulation(this.project);
@@ -700,8 +704,8 @@ class Reformulation {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbReformulation.add(data);
     } else {
@@ -723,7 +727,7 @@ class Reformulation {
       data["id"] = _doc.id;
       return SProject.fromJson(data);
     } catch (e) {
-      return SProject("", "");
+      return SProject("");
     }
   }
 
