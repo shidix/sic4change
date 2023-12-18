@@ -2,54 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-class QualityQuestionForm extends StatefulWidget {
-  final Quality? currentQuality;
-  final QualityQuestion? currentQuestion;
+class TransversalQuestionForm extends StatefulWidget {
+  final Transversal? currentTransversal;
+  final TransversalQuestion? currentQuestion;
 
-  const QualityQuestionForm(
-      {Key? key, this.currentQuality, this.currentQuestion})
+  const TransversalQuestionForm(
+      {Key? key, this.currentTransversal, this.currentQuestion})
       : super(key: key);
   @override
-  _QualityQuestionFormState createState() => _QualityQuestionFormState();
+  _TransversalQuestionFormState createState() => _TransversalQuestionFormState();
 }
 
-class _QualityQuestionFormState extends State<QualityQuestionForm> {
+class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
   final _formKey = GlobalKey<FormState>();
-  late QualityQuestion qualityQuestion;
-  late Quality quality;
+  late TransversalQuestion transversalQuestion;
+  late Transversal transversal;
   bool isNewItem = false;
 
   @override
   void initState() {
     super.initState();
     isNewItem = (widget.currentQuestion!.code == "");
-    qualityQuestion = widget.currentQuestion!;
-    quality = widget.currentQuality!;
+    transversalQuestion = widget.currentQuestion!;
+    transversal = widget.currentTransversal!;
   }
 
   void saveItem(Map<String, dynamic> args) {
     BuildContext context = args["context"];
-    //QualityQuestion qualityQuestion = args["qualityQuestion"];
     GlobalKey<FormState> formKey = args["formKey"];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
       if (isNewItem) {
-        quality.qualityQuestions.add(qualityQuestion);
+        transversal.questions.add(transversalQuestion);
       }
-      quality.save();
-      Navigator.of(context).pop(quality);
+      transversal.save();
+      Navigator.of(context).pop(transversal);
     }
   }
 
   void removeItem(Map<String, dynamic> args) {
     BuildContext context = args['context'];
-    QualityQuestion qualityQuestion = args['qualityQuestion'];
+    TransversalQuestion transversalQuestion = args['transversalQuestion'];
     GlobalKey<FormState> formKey = args['formKey'];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
-      quality.qualityQuestions.remove(qualityQuestion);
-      quality.save();
-      Navigator.of(context).pop(quality);
+      transversal.questions.remove(transversalQuestion);
+      transversal.save();
+      Navigator.of(context).pop(transversal);
     }
   }
 
@@ -57,9 +56,9 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
     Navigator.of(context).pop();
   }
 
-  void toogleQualityQuestion(bool? value) {
+  void toogletransversalQuestion(bool? value) {
     setState(() {
-      qualityQuestion.completed = value!;
+      transversalQuestion.completed = value!;
     });
   }
 
@@ -75,7 +74,7 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
             flex: flex,
             child: actionButton(context, "Eliminar", removeItem, Icons.delete, {
               'context': context,
-              'qualityQuestion': qualityQuestion,
+              'transversalQuestion': transversalQuestion,
               'formKey': _formKey
             }))
       ];
@@ -86,7 +85,7 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
         children: [
           Row(children: [
             Expanded(flex:1, child:          TextFormField(
-            initialValue: qualityQuestion.code,
+            initialValue: transversalQuestion.code,
             decoration: const InputDecoration(
               labelText: 'Código',
             ),
@@ -97,17 +96,17 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
               return null;
             },
             onSaved: (value) {
-              qualityQuestion.code = value!;
+              transversalQuestion.code = value!;
             },
           )),
           Expanded(flex:2, child: Container(),),
           Expanded(flex:1, child: 
           customCheckBox(
-              'Completado', qualityQuestion.completed, toogleQualityQuestion)),
+              'Completado', transversalQuestion.completed, toogletransversalQuestion)),
           ],)
 ,
           TextFormField(
-            initialValue: qualityQuestion.subject,
+            initialValue: transversalQuestion.subject,
             decoration: const InputDecoration(
               labelText: 'Pregunta',
             ),
@@ -118,12 +117,12 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
               return null;
             },
             onSaved: (value) {
-              qualityQuestion.subject = value!;
+              transversalQuestion.subject = value!;
             },
           ),
 
           TextFormField(
-            initialValue: qualityQuestion.comments,
+            initialValue: transversalQuestion.comments,
             keyboardType: TextInputType.multiline,
             maxLines: null,
             decoration: const InputDecoration(
@@ -131,7 +130,7 @@ class _QualityQuestionFormState extends State<QualityQuestionForm> {
             ),
 
             onSaved: (value) {
-              qualityQuestion.comments = value!;
+              transversalQuestion.comments = value!;
             },
           ),
 

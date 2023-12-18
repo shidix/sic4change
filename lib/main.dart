@@ -14,10 +14,13 @@ import 'package:intl/date_symbol_data_local.dart';
 //final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(
+    
+  );
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.web,
+    
   );
 
   initializeDateFormatting('es_ES', '').then((_) => runApp(MyApp()));
@@ -79,6 +82,7 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
+      
     );
   }
 }
