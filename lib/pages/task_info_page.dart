@@ -499,7 +499,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           ])),
           actions: <Widget>[
             TextButton(
-              child: const Text('Save'),
+              child: const Text('Guardar'),
               onPressed: () async {
                 task.save();
                 loadTask(task);
@@ -508,7 +508,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
