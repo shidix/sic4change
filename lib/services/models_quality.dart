@@ -11,17 +11,14 @@ class Transversal {
   String calification;
   List<TransversalQuestion> questions;
 
-
-  Transversal( 
-      {
-      required this.database,
+  Transversal(
+      {required this.database,
       required this.id,
       required this.uuid,
       required this.project,
       required this.calification,
       required this.questions});
 
-  
   void save() {
     if (id == "") {
       id = database.doc().id;
@@ -43,8 +40,7 @@ class Transversal {
 
   void updateTransversalQuestion(TransversalQuestion question) {
     questions[questions.indexWhere(
-            (element) => element.subject == question.subject)] =
-        question;
+        (element) => element.subject == question.subject)] = question;
   }
 
   Map<String, dynamic> toJson() {
@@ -61,9 +57,7 @@ class Transversal {
       }
     }
     return data;
-
   }
-
 }
 
 class Quality extends Transversal {
@@ -103,7 +97,6 @@ class Quality extends Transversal {
     });
 
     return item;
-
   }
 
   factory Quality.fromFirestore(DocumentSnapshot doc) {
@@ -111,7 +104,6 @@ class Quality extends Transversal {
     data['id'] = doc.id;
     return Quality.fromJson(data);
   }
-
 
   @override
   String toString() {
@@ -127,7 +119,6 @@ class Quality extends Transversal {
       questions: [],
     );
   }
-
 
   static Future<Quality> byProject(String project) {
     return collection.where("project", isEqualTo: project).get().then((value) {
@@ -145,7 +136,7 @@ class Quality extends Transversal {
 class Transparency extends Transversal {
   static final collection = db.collection("s4c_transparency");
 
-  Transparency ({
+  Transparency({
     required String id,
     required String uuid,
     required String project,
@@ -158,7 +149,7 @@ class Transparency extends Transversal {
           project: project,
           calification: calification,
           questions: questions,
-        ); 
+        );
 
   factory Transparency.fromJson(Map data) {
     Transparency item = Transparency(
@@ -196,8 +187,7 @@ class Transparency extends Transversal {
     );
   }
 
-  static Future<Transparency> byProject (String project) 
-  {
+  static Future<Transparency> byProject(String project) {
     return collection.where("project", isEqualTo: project).get().then((value) {
       return Transparency.fromFirestore(value.docs.first);
     }).catchError((error) {
@@ -208,7 +198,150 @@ class Transparency extends Transversal {
       return item;
     });
   }
+}
 
+class Gender extends Transversal {
+  static const tableDB = "s4c_gender";
+  final collection = db.collection(tableDB);
+
+  Gender({
+    required String id,
+    required String uuid,
+    required String project,
+    required String calification,
+    required List<TransversalQuestion> questions,
+  }) : super(
+          database: db.collection(tableDB),
+          id: id,
+          uuid: uuid,
+          project: project,
+          calification: calification,
+          questions: questions,
+        );
+
+  factory Gender.fromJson(Map data) {
+    Gender item = Gender(
+      id: data['id'],
+      uuid: data['uuid'],
+      project: data['project'],
+      calification: data['calification'],
+      questions: List<TransversalQuestion>.empty(growable: true),
+    );
+    data['questions'].forEach((element) {
+      item.questions.add(TransversalQuestion.fromJson(element));
+    });
+
+    return item;
+  }
+
+  factory Gender.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return Gender.fromJson(data);
+  }
+
+  @override
+  String toString() {
+    return 'Gender{id: $id, uuid: $uuid, project: $project, calification: $calification, questions: $questions}';
+  }
+
+  factory Gender.getEmpty() {
+    return Gender(
+      id: "",
+      uuid: const Uuid().v4(),
+      project: "",
+      calification: "",
+      questions: [],
+    );
+  }
+
+  static Future<Gender> byProject(String project) {
+    return db
+        .collection(tableDB)
+        .where("project", isEqualTo: project)
+        .get()
+        .then((value) {
+      return Gender.fromFirestore(value.docs.first);
+    }).catchError((error) {
+      print("Gender.byProject :=> $error");
+      Gender item = Gender.getEmpty();
+      item.project = project;
+      // item.save();
+      return item;
+    });
+  }
+}
+
+class Environment extends Transversal {
+  static const tableDB = "s4c_environment";
+  final collection = db.collection(tableDB);
+
+  Environment({
+    required String id,
+    required String uuid,
+    required String project,
+    required String calification,
+    required List<TransversalQuestion> questions,
+  }) : super(
+          database: db.collection(tableDB),
+          id: id,
+          uuid: uuid,
+          project: project,
+          calification: calification,
+          questions: questions,
+        );
+
+  factory Environment.fromJson(Map data) {
+    Environment item = Environment(
+      id: data['id'],
+      uuid: data['uuid'],
+      project: data['project'],
+      calification: data['calification'],
+      questions: List<TransversalQuestion>.empty(growable: true),
+    );
+    data['questions'].forEach((element) {
+      item.questions.add(TransversalQuestion.fromJson(element));
+    });
+
+    return item;
+  }
+
+  factory Environment.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return Environment.fromJson(data);
+  }
+
+  @override
+  String toString() {
+    return 'Environment{id: $id, uuid: $uuid, project: $project, calification: $calification, questions: $questions}';
+  }
+
+  factory Environment.getEmpty() {
+    return Environment(
+      id: "",
+      uuid: const Uuid().v4(),
+      project: "",
+      calification: "",
+      questions: [],
+    );
+  }
+
+  static Future<Environment> byProject(String project) {
+    return db
+        .collection(tableDB)
+        .where("project", isEqualTo: project)
+        .get()
+        .then((value) {
+      return Environment.fromFirestore(value.docs.first);
+    }).catchError((error) {
+      print("Environment.byProject :=> $error");
+      Environment item = Environment.getEmpty();
+      item.project = project;
+      // item.save();
+      return item;
+    });
+  }
 }
 
 class TransversalQuestion {

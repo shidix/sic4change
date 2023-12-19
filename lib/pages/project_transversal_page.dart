@@ -86,6 +86,22 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   List<int> transparencyCounters = [];
   bool collapsedTransparency = false;
 
+  Gender? gender;
+  Widget? genderPanelWidget;
+  List? genderQuestions;
+  int genderQuestionsCompleted = 0;
+  int genderQuestionsCounter = 0;
+  List<int> genderCounters = [];
+  bool collapsedGender = false;
+
+  Environment? environment;
+  Widget? environmentPanelWidget;
+  List? environmentQuestions;
+  int environmentQuestionsCompleted = 0;
+  int environmentQuestionsCounter = 0;
+  List<int> environmentCounters = [];
+  bool collapsedEnvironment = false;
+
   Widget totalBudget(context, SProject project) {
     double percent = 50;
     String budgetInEuros = toCurrency(double.parse(project.budget));
@@ -170,6 +186,24 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
             transparencyPanel();
           });
         });
+
+        Gender.byProject(project.uuid).then(
+          (value) {
+            setState(() {
+              gender = value;
+              genderPanel();
+            });
+          },
+        );
+
+        Environment.byProject(project.uuid).then(
+          (value) {
+            setState(() {
+              environment = value;
+              environmentPanel();
+            });
+          },
+        );
       });
     } else {
       Quality.byProject(widget.currentProject!.uuid).then((value) {
@@ -185,6 +219,22 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
           currentProject = widget.currentProject;
           transparency = value;
           transparencyPanel();
+        });
+      });
+
+      Gender.byProject(widget.currentProject!.uuid).then((value) {
+        setState(() {
+          currentProject = widget.currentProject;
+          gender = value;
+          genderPanel();
+        });
+      });
+
+      Environment.byProject(widget.currentProject!.uuid).then((value) {
+        setState(() {
+          currentProject = widget.currentProject;
+          environment = value;
+          environmentPanel();
         });
       });
     }
@@ -395,6 +445,137 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     );
   }
 
+//// GENDER QUESTIONS ////
+  void addGenderPanel(args) {
+    setState(() {
+      collapsedGender = !collapsedGender;
+      if (collapsedGender) {
+        genderPanelWidget = genderPanel();
+      } else {
+        genderPanelWidget = null;
+      }
+    });
+  }
+
+  void genderQuestionDialog(args) {
+    BuildContext context = args['context'];
+    currentQuestion = args['item'];
+
+    _genderQuestionDialog(context).then((value) {
+      if (value != null) {
+        setState(() {
+          gender = value;
+          genderQuestions = gender!.questions;
+          genderPanelWidget = genderPanel();
+        });
+      }
+    });
+  }
+
+  Future<Gender?> _genderQuestionDialog(context) {
+    currentQuestion ??= TransversalQuestion.getEmpty();
+    return showDialog<Gender>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Item de Género'),
+          content: Wrap(children: [
+            TransversalQuestionForm(
+              key: null,
+              currentQuestion: currentQuestion,
+              currentTransversal: gender as Transversal,
+            )
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget genderPanel() {
+    genderQuestions = gender!.questions;
+
+    genderQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    genderCounters = [];
+    genderQuestionsCompleted = 0;
+    genderQuestionsCounter = 0;
+    Map<String, String>? califications = {};
+
+    TransversalQuestion? lastMain;
+
+    int questionsInMain = 0;
+    for (var question in genderQuestions!) {
+      if (!question.isMain()) {
+        genderQuestionsCounter++;
+        questionsInMain++;
+        if (question.completed) {
+          // transparencyQuestionsCompleted++;
+          // transparencyCounters.last++;
+          genderQuestionsCompleted++;
+          genderCounters.last++;
+        }
+      } else {
+        if (lastMain != null) {
+          califications[lastMain.code] =
+              "${genderCounters.last}/$questionsInMain";
+        }
+        questionsInMain = 0;
+        lastMain = question;
+        genderCounters.add(0);
+      }
+    }
+
+    if (lastMain != null) {
+      califications[lastMain.code] = "${genderCounters.last}/$questionsInMain";
+    }
+
+    Widget panel = Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        // height: 150,
+        color: Colors.white,
+        child: currentProject != null
+            ? Column(children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        child: actionButtonVertical(
+                            context,
+                            'Nuevo ítem',
+                            genderQuestionDialog,
+                            Icons.add,
+                            {'context': context, 'item': null}))),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: genderQuestions!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      TransversalQuestion item =
+                          genderQuestions!.elementAt(index);
+                      return Tooltip(
+                          message: 'Click para editar',
+                          showDuration: const Duration(seconds: 0),
+                          child: ListTile(
+                              subtitle: headerTransversals(item, califications),
+                              onTap: () {
+                                genderQuestionDialog(
+                                    {'context': context, 'item': item});
+                              }));
+                    })
+              ])
+            : const Center(
+                child: CircularProgressIndicator(),
+              ));
+
+    return Column(children: [
+      panel,
+      const Divider(
+        height: 1,
+      ),
+    ]);
+  }
+
 ////// TRANSPARENCY QUESTIONS
 
   void addTransparencyPanel(args) {
@@ -453,8 +634,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 Align(
                     alignment: Alignment.topRight,
                     child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
                         child: actionButtonVertical(
                             context,
                             'Nuevo ítem',
@@ -467,87 +648,11 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     itemBuilder: (BuildContext context, int index) {
                       TransversalQuestion item =
                           transparencyQuestions!.elementAt(index);
-                      TextStyle style = (item.isMain()
-                          ? successText.copyWith(color: Colors.white)
-                          : normalText);
-                      Color bgColor =
-                          (item.isMain() ? mainColor : Colors.white);
                       return Tooltip(
                           message: 'Click para editar',
                           showDuration: const Duration(seconds: 0),
                           child: ListTile(
-                              subtitle: Container(
-                                  color: bgColor,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                          flex: 1,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                child: Text(
-                                                  item.code,
-                                                  style: style,
-                                                )),
-                                          )),
-                                      Expanded(
-                                          flex: 8,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                child: Text(
-                                                  (item.isMain())
-                                                      ? "${item.subject} (${califications[item.code]})"
-                                                      : item.subject,
-                                                  style: style,
-                                                )),
-                                          )),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              (item.isMain()
-                                                  ? "Sí/No"
-                                                  : item.completed
-                                                      ? "Sí"
-                                                      : "No"),
-                                              style: style,
-                                              textAlign: TextAlign.center,
-                                            )),
-                                      ),
-                                      Expanded(
-                                        flex: 6,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              item.isMain()
-                                                  ? "Comentarios"
-                                                  : item.comments,
-                                              style: style,
-                                              textAlign: TextAlign.left,
-                                            )),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              item.isMain()
-                                                  ? "Docs."
-                                                  : item.docs.isNotEmpty
-                                                      ? item.docs.toString()
-                                                      : '',
-                                              style: style,
-                                              textAlign: TextAlign.center,
-                                            )),
-                                      ),
-                                    ],
-                                  )),
+                              subtitle: headerTransversals(item, califications),
                               onTap: () {
                                 transparencyQuestionDialog(
                                     {'context': context, 'item': item});
@@ -601,7 +706,212 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     );
   }
 
+////// Environment
+  void addEnvironmentPanel(args) {
+    setState(() {
+      collapsedEnvironment = !collapsedEnvironment;
+      if (collapsedEnvironment) {
+        environmentPanelWidget = environmentPanel();
+      } else {
+        environmentPanelWidget = null;
+      }
+    });
+  }
+
+  Widget environmentPanel() {
+    environmentQuestions = environment!.questions;
+
+    environmentQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    environmentCounters = [];
+    environmentQuestionsCompleted = 0;
+    environmentQuestionsCounter = 0;
+    Map<String, String>? califications = {};
+
+    TransversalQuestion? lastMain;
+
+    int questionsInMain = 0;
+    for (var question in environmentQuestions!) {
+      if (!question.isMain()) {
+        environmentQuestionsCounter++;
+        questionsInMain++;
+        if (question.completed) {
+          environmentQuestionsCompleted++;
+          environmentCounters.last++;
+        }
+      } else {
+        if (lastMain != null) {
+          califications[lastMain.code] =
+              "${environmentCounters.last}/$questionsInMain";
+        }
+        questionsInMain = 0;
+        lastMain = question;
+        environmentCounters.add(0);
+      }
+    }
+
+    if (lastMain != null) {
+      califications[lastMain.code] =
+          "${environmentCounters.last}/$questionsInMain";
+    }
+
+    Widget panel = Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        // height: 150,
+        color: Colors.white,
+        child: currentProject != null
+            ? Column(children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        child: actionButtonVertical(
+                            context,
+                            'Nuevo ítem',
+                            environmentQuestionDialog,
+                            Icons.add,
+                            {'context': context, 'item': null}))),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: environmentQuestions!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      TransversalQuestion item =
+                          environmentQuestions!.elementAt(index);
+                      return Tooltip(
+                          message: 'Click para editar',
+                          showDuration: const Duration(seconds: 0),
+                          child: ListTile(
+                              subtitle: headerTransversals(item, califications),
+                              onTap: () {
+                                environmentQuestionDialog(
+                                    {'context': context, 'item': item});
+                              }));
+                    })
+              ])
+            : const Center(
+                child: CircularProgressIndicator(),
+              ));
+
+    return Column(children: [
+      panel,
+      const Divider(
+        height: 1,
+      ),
+    ]);
+  }
+
+  void environmentQuestionDialog(args) {
+    BuildContext context = args['context'];
+    currentQuestion = args['item'];
+    _environmentQuestionDialog(context).then((value) {
+      if (value != null) {
+        setState(() {
+          environment = value;
+          environmentQuestions = environment!.questions;
+          environmentPanelWidget = environmentPanel();
+        });
+      }
+    });
+  }
+
+  Future<Environment?> _environmentQuestionDialog(context) {
+    currentQuestion ??= TransversalQuestion.getEmpty();
+    return showDialog<Environment>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Item de transparencia'),
+          content: Wrap(children: [
+            TransversalQuestionForm(
+              key: null,
+              currentQuestion: currentQuestion,
+              currentTransversal: environment as Transversal,
+            )
+          ]),
+        );
+      },
+    );
+  }
+
 ////// GENERAL
+
+  Container headerTransversals(item, califications) {
+    TextStyle style = (item.isMain()
+        ? successText.copyWith(color: Colors.white)
+        : normalText);
+    Color bgColor = (item.isMain() ? mainColor : Colors.white);
+    return Container(
+        color: bgColor,
+        child: Row(
+          children: [
+            Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        item.code,
+                        style: style,
+                      )),
+                )),
+            Expanded(
+                flex: 8,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        (item.isMain())
+                            ? "${item.subject} (${califications[item.code]})"
+                            : item.subject,
+                        style: style,
+                      )),
+                )),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    (item.isMain()
+                        ? "Sí/No"
+                        : item.completed
+                            ? "Sí"
+                            : "No"),
+                    style: style,
+                    textAlign: TextAlign.center,
+                  )),
+            ),
+            Expanded(
+              flex: 6,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    item.isMain() ? "Comentarios" : item.comments,
+                    style: style,
+                    textAlign: TextAlign.left,
+                  )),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    item.isMain()
+                        ? "Docs."
+                        : item.docs.isNotEmpty
+                            ? item.docs.toString()
+                            : '',
+                    style: style,
+                    textAlign: TextAlign.center,
+                  )),
+            ),
+          ],
+        ));
+  }
+
   Widget statusProject() {
     return Container(
         child: Row(children: [
@@ -704,8 +1014,16 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                   "$transparencyQuestionsCompleted/$transparencyQuestionsCounter",
                   addTransparencyPanel),
               transparencyPanelWidget ?? Container(height: 0),
-              indicator("Género", "7/9", test),
-              indicator("Medio Ambiente", "5/8", test),
+              indicator(
+                  "Género",
+                  "$genderQuestionsCompleted/$genderQuestionsCounter",
+                  addGenderPanel),
+              genderPanelWidget ?? Container(height: 0),
+              indicator(
+                  "Medio Ambiente",
+                  "$environmentQuestionsCompleted/$environmentQuestionsCounter",
+                  addEnvironmentPanel),
+              environmentPanelWidget ?? Container(height: 0),
             ])));
   }
 
