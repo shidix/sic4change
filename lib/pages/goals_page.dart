@@ -147,9 +147,9 @@ class _GoalsPageState extends State<GoalsPage> {
         //bool _main = false;
         return AlertDialog(
           // <-- SEE HERE
-          title: (_goal != null)
-              ? const Text('Editando Objetivo')
-              : const Text('Añadiendo Objetivo'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar(
+              (_goal != null) ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -263,7 +263,12 @@ class _GoalsPageState extends State<GoalsPage> {
             space(height: 10),
             customLinearPercent(context, 2, 0.8, Colors.green),
             space(height: 10),
-            Text(goal.description),
+            Container(
+                width: MediaQuery.of(context).size.width * 0.80,
+                child: Text(
+                  goal.description,
+                  overflow: TextOverflow.ellipsis,
+                )),
           ],
         ),
         goalRowOptions(context, goal, project),
