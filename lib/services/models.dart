@@ -131,13 +131,13 @@ class SProject {
     if (datesObj.start == "") return "Sin iniciar";
     if (datesObj.end == "") return "En proceso";
     try {
-      DateTime _start = DateTime.parse(datesObj.start);
+      /*DateTime _start = DateTime.parse(datesObj.start);
       DateTime _end = DateTime.parse(datesObj.end);
-      DateTime _approved = DateTime.parse(datesObj.approved);
+      DateTime _approved = DateTime.parse(datesObj.approved);*/
       DateTime _today = DateTime.now();
-      if (_today.isBefore(_start)) return "Sin iniciar";
-      if (_today.isBefore(_approved)) return "Sin aprobar";
-      if (_today.isAfter(_end)) return "Finalizado";
+      if (_today.isBefore(datesObj.start)) return "Sin iniciar";
+      if (_today.isBefore(datesObj.approved)) return "Sin aprobar";
+      if (_today.isAfter(datesObj.end)) return "Finalizado";
       return "En proceso";
     } catch (e) {
       return "Finalizado";
@@ -179,9 +179,9 @@ class SProject {
     try {
       QuerySnapshot query =
           await dbProjectType.where("uuid", isEqualTo: type).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return ProjectType.fromJson(data);
     } catch (e) {
       return ProjectType("");
@@ -368,6 +368,20 @@ Future<List> getProjectTypes() async {
   return items;
 }
 
+Future<List<KeyValue>> getProjectTypesHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot queryProjectType = await dbProjectType.get();
+
+  for (var doc in queryProjectType.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectType.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+
+  return items;
+}
+
 //--------------------------------------------------------------
 //                       PROJECT DATES
 //--------------------------------------------------------------
@@ -376,11 +390,11 @@ CollectionReference dbDates = db.collection("s4c_project_dates");
 class ProjectDates {
   String id = "";
   String uuid = "";
-  String approved = "";
-  String start = "";
-  String end = "";
-  String justification = "";
-  String delivery = "";
+  DateTime approved = DateTime.now();
+  DateTime start = DateTime.now();
+  DateTime end = DateTime.now();
+  DateTime justification = DateTime.now();
+  DateTime delivery = DateTime.now();
   String project = "";
 
   ProjectDates(this.project);
@@ -388,11 +402,11 @@ class ProjectDates {
   ProjectDates.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        approved = json["approved"],
-        start = json["start"],
-        end = json["end"],
-        justification = json["justification"],
-        delivery = json["delivery"],
+        approved = json["approved"].toDate(),
+        start = json["start"].toDate(),
+        end = json["end"].toDate(),
+        justification = json["justification"].toDate(),
+        delivery = json["delivery"].toDate(),
         project = json["project"];
 
   Map<String, dynamic> toJson() => {
@@ -408,8 +422,8 @@ class ProjectDates {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbDates.add(data);
     } else {
@@ -659,6 +673,20 @@ Future<List> getFinanciers() async {
   return items;
 }
 
+Future<List<KeyValue>> getFinanciersHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot queryFinancier = await dbFinancier.get();
+
+  for (var doc in queryFinancier.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = Financier.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+
+  return items;
+}
+
 //--------------------------------------------------------------
 //                       PROJECT REFORMULATION
 //--------------------------------------------------------------
@@ -842,6 +870,20 @@ Future<List> getProgrammes() async {
     final _item = Programme.fromJson(data);
     _item.getProjects();
     items.add(_item);
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getProgrammesHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot queryProgramme = await dbProgramme.get();
+
+  for (var doc in queryProgramme.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = Programme.fromJson(data);
+    item.getProjects();
+    items.add(item.toKeyValue());
   }
   return items;
 }

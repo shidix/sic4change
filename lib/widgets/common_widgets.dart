@@ -517,11 +517,13 @@ class CustomDropdown extends StatelessWidget {
   const CustomDropdown({
     Key? key,
     required this.labelText,
+    required this.size,
     required this.options,
     required this.selected,
     required this.onSelectedOpt,
   }) : super(key: key);
 
+  final double size;
   final String labelText;
   final KeyValue selected;
   final List<KeyValue> options;
@@ -529,24 +531,55 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownSearch<KeyValue>(
-      popupProps: const PopupProps.menu(
-        showSearchBox: true,
-        showSelectedItems: true,
+    return SizedBox(
+        width: size,
+        child: DropdownSearch<KeyValue>(
+          popupProps: const PopupProps.menu(
+            showSearchBox: true,
+            showSelectedItems: true,
+          ),
+          items: options,
+          itemAsString: (KeyValue p) => p.value,
+          compareFn: (i1, i2) => i1.key == i2.key,
+          dropdownDecoratorProps: DropDownDecoratorProps(
+            dropdownSearchDecoration: InputDecoration(
+              labelText: labelText,
+              hintText: labelText,
+            ),
+          ),
+          onChanged: (val) {
+            onSelectedOpt(val!.key);
+          },
+          selectedItem: selected,
+        ));
+  }
+}
+
+class CustomTextField extends StatelessWidget {
+  const CustomTextField({
+    Key? key,
+    required this.labelText,
+    required this.initial,
+    required this.size,
+    required this.fieldValue,
+  }) : super(key: key);
+
+  final String labelText;
+  final String initial;
+  final double size;
+  final ValueChanged<String> fieldValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      child: TextFormField(
+        initialValue: (initial != "") ? initial : "",
+        decoration: InputDecoration(labelText: labelText),
+        onChanged: (val) {
+          fieldValue(val);
+        },
       ),
-      items: options,
-      itemAsString: (KeyValue p) => p.value,
-      compareFn: (i1, i2) => i1.key == i2.key,
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(
-          //labelText: "Menu mode",
-          hintText: labelText,
-        ),
-      ),
-      onChanged: (val) {
-        onSelectedOpt(val!.key);
-      },
-      selectedItem: selected,
     );
   }
 }

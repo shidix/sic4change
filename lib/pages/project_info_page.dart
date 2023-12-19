@@ -10,8 +10,8 @@ import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-const PROJECT_INFO_TITLE = "Detalles del Proyecto";
-SProject? _project;
+const projectInfoTitle = "Detalles del Proyecto";
+SProject? project;
 
 class ProjectInfoPage extends StatefulWidget {
   const ProjectInfoPage({super.key});
@@ -21,8 +21,8 @@ class ProjectInfoPage extends StatefulWidget {
 }
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
-  void loadProject(_project) async {
-    await _project.reload().then((val) {
+  void loadProject(project) async {
+    await project.reload().then((val) {
       Navigator.popAndPushNamed(context, "/project_info",
           arguments: {"project": val});
     });
@@ -32,12 +32,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   Widget build(BuildContext context) {
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _project = args["project"];
+      project = args["project"];
     } else {
-      _project = null;
+      project = null;
     }
 
-    if (_project == null) return const Page404();
+    if (project == null) return const Page404();
 
     return Scaffold(
       body: Column(
@@ -45,9 +45,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context),
-          projectInfoHeader(context, _project),
-          projectInfoMenu(context, _project),
-          Expanded(
+          projectInfoHeader(context, project),
+          projectInfoMenu(context, project),
+          contentTab(context, projectInfoDetails, null),
+
+/*          Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
@@ -60,7 +62,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     ),
                     child: projectInfoDetails(context),
                     //child: projectInfoDetails(context, _project),
-                  ))),
+                  ))),*/
         ],
       ),
     );
@@ -72,7 +74,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             customText(project.name, 20),
-            returnBtn(context),
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              addBtn(context, _callProjectEditDialog, project,
+                  icon: Icons.edit, text: "Editar"),
+              space(width: 10),
+              returnBtn(context),
+            ])
           ]),
           space(height: 20),
           IntrinsicHeight(
@@ -87,10 +94,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   ],
                 ),
                 space(width: 50),
-                /* VerticalDivider(
-                  width: 10,
-                  color: Colors.grey,
-                ),*/
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Presupuesto total:   ${project.budget} €", 16),
                   space(height: 5),
@@ -99,23 +102,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ],
             ),
           ),
-          //Divider(color: Colors.grey),
           space(height: 20)
         ]));
   }
 
   Widget projectInfoMenu(context, _project) {
     return Container(
-      child: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        child: Row(
-          children: [
-            menuTabSelect(context, "Datos generales", "/project_info",
-                {'project': _project}),
-            menuTab(context, "Reformulaciones", "/project_reformulation",
-                {'project': _project}),
-          ],
-        ),
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Row(
+        children: [
+          menuTabSelect(context, "Datos generales", "/project_info",
+              {'project': _project}),
+          menuTab(context, "Reformulaciones", "/project_reformulation",
+              {'project': _project}),
+        ],
       ),
     );
   }
@@ -127,7 +127,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return IntrinsicHeight(
       child: Row(
         children: [
-          Container(
+          SizedBox(
               width: MediaQuery.of(context).size.width / 2.2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,11 +138,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText(_project.managerObj.name, 16),
                 ],
               )),
-          VerticalDivider(
+          const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
-          Container(
+          SizedBox(
               width: MediaQuery.of(context).size.width / 2.2,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +151,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     space(height: 5),
                     customText(_project.programmeObj.name, 16),
                   ])),
-          VerticalDivider(
+          /*const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
@@ -162,7 +162,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             onPressed: () {
               _callProjectEditDialog(context, _project);
             },
-          )
+          )*/
         ],
       ),
     );
@@ -174,7 +174,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return IntrinsicHeight(
       child: Row(
         children: [
-          Container(
+          SizedBox(
               width: MediaQuery.of(context).size.width / 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +184,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText(audit, 16),
                 ],
               )),
-          VerticalDivider(
+          const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
@@ -214,13 +214,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   Widget projectFinanciers(context, _project) {
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
         itemCount: _project.financiersObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -241,14 +241,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         });
   }
 
-  Widget projectPartnersHeader(context, _project) {
+  Widget projectPartnersHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Socios:", 16, textColor: Colors.grey),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir socio',
         onPressed: () {
-          _callPartnerEditDialog(context, _project);
+          _callPartnerEditDialog(context, project);
         },
       )
     ]);
@@ -256,13 +256,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectPartners(context, _project) {
     return ListView.builder(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
         itemCount: _project.partnersObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -283,12 +283,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         });
   }
 
-  Widget projectInfoDates(context, _project) {
+  Widget projectInfoDates(context, project) {
     return FutureBuilder(
-        future: getProjectDatesByProject(_project.uuid),
+        future: getProjectDatesByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            var _dates = snapshot.data!;
+            var dates = snapshot.data!;
             return Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 customText("Fechas", 16, textColor: Colors.grey),
@@ -296,7 +296,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   icon: const Icon(Icons.edit),
                   tooltip: 'Editar fechas',
                   onPressed: () {
-                    _callDatesEditDialog(context, _project);
+                    _callDatesEditDialog(context, project);
                   },
                 )
               ]),
@@ -316,11 +316,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                           textColor: Colors.grey),
                     ]),
                     TableRow(children: [
-                      customText(_dates.approved, 16),
-                      customText(_dates.start, 16),
-                      customText(_dates.end, 16),
-                      customText(_dates.justification, 16),
-                      customText(_dates.delivery, 16),
+                      customText(dates.approved, 16),
+                      customText(dates.start, 16),
+                      customText(dates.end, 16),
+                      customText(dates.justification, 16),
+                      customText(dates.delivery, 16),
                     ])
                   ]),
             ]);
@@ -332,12 +332,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         }));
   }
 
-  Widget projectInfoLocation(context, _project) {
+  Widget projectInfoLocation(context, project) {
     return FutureBuilder(
-        future: getProjectLocationByProject(_project.uuid),
+        future: getProjectLocationByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            var _loc = snapshot.data!;
+            var loc = snapshot.data!;
             return Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 customText("Fechas", 16, textColor: Colors.grey),
@@ -345,7 +345,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   icon: const Icon(Icons.edit),
                   tooltip: 'Editar ubicación',
                   onPressed: () {
-                    _callLocationEditDialog(context, _project);
+                    _callLocationEditDialog(context, project);
                   },
                 )
               ]),
@@ -359,10 +359,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       customText("Municipio", 16, textColor: Colors.grey),
                     ]),
                     TableRow(children: [
-                      customText(_loc.country, 16),
-                      customText(_loc.province, 16),
-                      customText(_loc.region, 16),
-                      customText(_loc.town, 16),
+                      customText(loc.country, 16),
+                      customText(loc.province, 16),
+                      customText(loc.region, 16),
+                      customText(loc.town, 16),
                     ])
                   ])
             ]);
@@ -374,56 +374,56 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         }));
   }
 
-  Widget projectInfoDetails(context) {
+  Widget projectInfoDetails(context, args) {
     return SingleChildScrollView(
-        physics: ScrollPhysics(),
+        physics: const ScrollPhysics(),
         child: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                projectManagerProgramme(context, _project),
+                projectManagerProgramme(context, project),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Breve descripción del proyecto:", 16,
                     textColor: Colors.grey),
                 space(height: 5),
-                customText(_project?.description, 16),
+                customText(project?.description, 16),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Convocatoria:", 16, textColor: Colors.grey),
                 space(height: 5),
-                customText(_project?.announcement, 16),
+                customText(project?.announcement, 16),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Ambito del proyecto:", 16, textColor: Colors.grey),
                 space(height: 5),
-                customText(_project?.ambit, 16),
+                customText(project?.ambit, 16),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectAuditEvaluation(context, _project),
+                projectAuditEvaluation(context, project),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectFinanciersHeader(context, _project),
-                projectFinanciers(context, _project),
+                projectFinanciersHeader(context, project),
+                projectFinanciers(context, project),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectPartnersHeader(context, _project),
-                projectPartners(context, _project),
+                projectPartnersHeader(context, project),
+                projectPartners(context, project),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoDates(context, _project),
+                projectInfoDates(context, project),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoLocation(context, _project),
+                projectInfoLocation(context, project),
               ],
             )));
   }
@@ -431,158 +431,152 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT PROJECT                             */
 /*--------------------------------------------------------------------*/
-  void _saveProject(
-      context,
-      _project,
-      _types,
-      _contacts,
-      _programmes,
-      _name,
-      _desc,
-      _type,
-      _budget,
-      _manager,
-      _programme,
-      _announcement,
-      _ambit,
-      _audit,
-      _evaluation) async {
+  void _saveProject(context, project, _announcement, _ambit) async {
     //_project ??= SProject("", _name, _desc, _type, _budget, _manager,
     //    _programme, _announcement, _ambit, _audit, _evaluation);
 
-    _project.description = _desc;
-    _project.type = _type;
-    _project.budget = _budget;
-    _project.manager = _manager;
-    _project.programme = _programme;
-    _project.announcement = _announcement;
-    _project.ambit = _ambit;
-    _project.audit = _audit;
-    _project.evaluation = _evaluation;
-    _project.save();
-    loadProject(_project);
-    //Navigator.of(context).pop();
+    project.save();
+    loadProject(project);
   }
 
-  void _callProjectEditDialog(context, _project) async {
-    List<KeyValue> types = [];
-    List<KeyValue> contacts = [];
-    List<KeyValue> programmes = [];
-    await getProjectTypes().then((value) async {
-      for (ProjectType item in value) {
-        types.add(item.toKeyValue());
-      }
-      await getContacts().then((value) async {
-        for (Contact item2 in value) {
-          contacts.add(item2.toKeyValue());
-        }
-        await getProgrammes().then((value) async {
-          for (Programme item3 in value) {
-            programmes.add(item3.toKeyValue());
-          }
-          _editProjectDialog(context, _project, types, contacts, programmes);
-        });
-      });
-    });
+  void saveProject(List args) async {
+    SProject project = args[0];
+    project.save();
+
+    Navigator.pop(context);
   }
 
-  Future<void> _editProjectDialog(
-      context, _project, _types, _contacts, _programmes) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    TextEditingController typeController = TextEditingController(text: "");
-    TextEditingController budgetController = TextEditingController(text: "");
-    TextEditingController managerController = TextEditingController(text: "");
-    TextEditingController programmeController = TextEditingController(text: "");
-    TextEditingController announcementController =
-        TextEditingController(text: "");
-    TextEditingController ambitController = TextEditingController(text: "");
-    bool _audit = false;
-    bool _evaluation = false;
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
 
-    if (_project != null) {
-      nameController = TextEditingController(text: _project.name);
-      descController = TextEditingController(text: _project.description);
-      typeController = TextEditingController(text: _project.type);
-      budgetController = TextEditingController(text: _project.budget);
-      managerController = TextEditingController(text: _project.manager);
-      programmeController = TextEditingController(text: _project.programme);
-      announcementController =
-          TextEditingController(text: _project.announcement);
-      ambitController = TextEditingController(text: _project.ambit);
-      _audit = _project.audit;
-      _evaluation = _project.evaluation;
-    }
+  void _callProjectEditDialog(context, roject) async {
+    List<KeyValue> types = await getProjectTypesHash();
+    List<KeyValue> contacts = await getContactsHash();
+    List<KeyValue> programmes = await getProgrammesHash();
+    editProjectDialog(context, project, types, contacts, programmes);
+  }
 
+  Future<void> editProjectDialog(
+      context, project, types, contacts, programmes) {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Project edit'),
+          //title: const Text('Project edit'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar proyecto'),
           content: SingleChildScrollView(
             child: Column(children: [
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Nombre:", 16, textColor: Colors.blue),
-                  customTextField(nameController, "Enter name"),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Descripción:", 16, textColor: Colors.blue),
-                  customTextField(descController, "Enter description"),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Tipo de proyecto:", 16, textColor: Colors.blue),
-                  customDropdownField(
-                    typeController,
-                    _types,
-                    _project.typeObj.toKeyValue(),
-                    "Seleccione tipo",
+                  CustomTextField(
+                    labelText: 'Nombre',
+                    size: 220,
+                    initial: project.name,
+                    fieldValue: (String val) {
+                      setState(() {
+                        project.name = val;
+                      });
+                    },
                   ),
-                  /*customAutocompleteField(typeController, _types,
-                      "Write or select project type..."),*/
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto:", 16, textColor: Colors.blue),
-                  customTextField(budgetController, "Enter budget"),
+                  CustomTextField(
+                    labelText: 'Descripción',
+                    size: 220,
+                    initial: project.description,
+                    fieldValue: (String val) {
+                      setState(() {
+                        project.description = val;
+                      });
+                    },
+                  ),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomDropdown(
+                    labelText: 'Tipo de proyecto',
+                    size: 220,
+                    selected: project.typeObj.toKeyValue(),
+                    options: types,
+                    onSelectedOpt: (String val) {
+                      setState(() {
+                        project.type = val;
+                      });
+                    },
+                  ),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: 'Presupuesto',
+                    size: 220,
+                    initial: project.budget,
+                    fieldValue: (String val) {
+                      setState(() {
+                        project.budget = val;
+                      });
+                    },
+                  ),
                 ]),
               ]),
               space(height: 20),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Responsable:", 16, textColor: Colors.blue),
-                  customDropdownField(
-                      managerController,
-                      _contacts,
-                      _project.managerObj.toKeyValue(),
-                      "Seleccione responsable"),
-                  /*customAutocompleteField(managerController, _contacts,
-                      "Write or select manager..."),*/
+                  CustomDropdown(
+                    labelText: 'Responsable',
+                    size: 220,
+                    selected: project.managerObj.toKeyValue(),
+                    options: contacts,
+                    onSelectedOpt: (String val) {
+                      setState(() {
+                        project.manager = val;
+                      });
+                    },
+                  ),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Programa:", 16, textColor: Colors.blue),
-                  customDropdownField(
-                      programmeController,
-                      _programmes,
-                      _project.programmeObj.toKeyValue(),
-                      "Seleccione programa"),
-                  /*customAutocompleteField(programmeController, _programmes,
-                      "Write or select programme..."),*/
+                  CustomDropdown(
+                    labelText: 'Programa',
+                    size: 220,
+                    selected: project.programmeObj.toKeyValue(),
+                    options: programmes,
+                    onSelectedOpt: (String val) {
+                      setState(() {
+                        project.programme = val;
+                      });
+                    },
+                  ),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Convocatoria:", 16, textColor: Colors.blue),
-                  customTextField(announcementController, "Enter country"),
+                  CustomTextField(
+                    labelText: 'Convocatoria',
+                    size: 220,
+                    initial: project.announcement,
+                    fieldValue: (String val) {
+                      setState(() {
+                        project.announcement = val;
+                      });
+                    },
+                  ),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Ámbito:", 16, textColor: Colors.blue),
-                  customTextField(ambitController, "Enter ambit"),
+                  CustomTextField(
+                    labelText: 'Ámbito',
+                    size: 220,
+                    initial: project.ambit,
+                    fieldValue: (String val) {
+                      setState(() {
+                        project.ambit = val;
+                      });
+                    },
+                  ),
                 ]),
               ]),
               space(height: 20),
@@ -591,11 +585,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Auditoría:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(
-                      value: _audit,
+                      value: project.audit,
                       onChanged: (bool? value) {
                         setState(() {
-                          _audit = value!;
-                          state.didChange(_audit);
+                          project.audit = value!;
+                          state.didChange(project.audit);
                         });
                       },
                     );
@@ -604,11 +598,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Evaluación:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(
-                      value: _evaluation,
+                      value: project.evaluation,
                       onChanged: (bool? value) {
                         setState(() {
-                          _evaluation = value!;
-                          state.didChange(_evaluation);
+                          project.evaluation = value!;
+                          state.didChange(project.evaluation);
                         });
                       },
                     );
@@ -618,33 +612,18 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ]),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveProject(
-                    context,
-                    _project,
-                    _types,
-                    _contacts,
-                    _programmes,
-                    nameController.text,
-                    descController.text,
-                    typeController.text,
-                    budgetController.text,
-                    managerController.text,
-                    programmeController.text,
-                    announcementController.text,
-                    ambitController.text,
-                    _audit,
-                    _evaluation);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", saveProject,
+                    Icons.save_outlined, [project]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
           ],
         );
       },
@@ -654,66 +633,58 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           FINACIERS                                */
   /*--------------------------------------------------------------------*/
-  void _saveFinancier(context, _project, _name, _financiers) async {
-    _project.financiers.add(_name);
-    _project.updateProjectFinanciers();
-    if (!_financiers.contains(_name)) {
-      Financier _fin = Financier(_name);
-      _fin.save();
-    }
-    loadProject(_project);
-    //Navigator.of(context).pop();
+  void saveFinancier(List args) async {
+    SProject project = args[0];
+    project.updateProjectFinanciers();
+    loadProject(project);
   }
 
-  void _removeFinancier(context, _project) async {
-    _project.updateProjectFinanciers();
-    loadProject(_project);
+  void _removeFinancier(context, project) async {
+    project.updateProjectFinanciers();
+    loadProject(project);
   }
 
-  void _callFinancierEditDialog(context, _project) async {
-    List<KeyValue> financiers = [];
-    await getFinanciers().then((value) async {
-      for (Financier item in value) {
-        financiers.add(item.toKeyValue());
-      }
-
-      _editProjectFinancierDialog(context, _project, financiers);
-    });
+  void _callFinancierEditDialog(context, project) async {
+    List<KeyValue> financiers = await getFinanciersHash();
+    editProjectFinancierDialog(context, project, financiers);
   }
 
-  Future<void> _editProjectFinancierDialog(context, _project, _financiers) {
-    TextEditingController nameController = TextEditingController(text: "");
-
+  Future<void> editProjectFinancierDialog(context, project, financiers) {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Añadir financiador'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir financiador'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customText("Financiador:", 16, textColor: Colors.blue),
-              customDropdownField(
-                  nameController, _financiers, null, "Seleccione programa"),
-              /*customAutocompleteField(
-                  nameController, _financiers, "Write or select financier..."),*/
+              CustomDropdown(
+                labelText: 'Financiador',
+                size: 220,
+                selected: KeyValue("", ""),
+                options: financiers,
+                onSelectedOpt: (String val) {
+                  setState(() {
+                    project?.financiers.add(val);
+                  });
+                },
+              ),
             ]),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveFinancier(
-                    context, _project, nameController.text, _financiers);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", saveFinancier,
+                    Icons.save_outlined, [project]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
           ],
         );
       },
@@ -723,68 +694,60 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PARTNERS                                 */
   /*--------------------------------------------------------------------*/
-  void _savePartner(context, _project, _name, _contacts) async {
-    _project.partners.add(_name);
-    _project.updateProjectPartners();
-
-    if (!_contacts.contains(_name)) {
-      Contact _contact = Contact(_name, "", "", "", "");
-      _contact.save();
-    }
-    loadProject(_project);
-
-    //Navigator.of(context).pop();
+  void savePartner(List args) async {
+    SProject project = args[0];
+    project.updateProjectPartners();
+    loadProject(project);
   }
 
-  void _removePartner(context, _project) async {
-    _project.updateProjectPartners();
-    loadProject(_project);
+  void _removePartner(context, project) async {
+    project.updateProjectPartners();
+    loadProject(project);
   }
 
-  void _callPartnerEditDialog(context, _project) async {
-    List<KeyValue> contacts = [];
-    await getContacts().then((value) async {
-      for (Contact item in value) {
-        contacts.add(item.toKeyValue());
-      }
-
-      _editProjectPartnerDialog(context, _project, contacts);
-    });
+  void _callPartnerEditDialog(context, project) async {
+    List<KeyValue> contacts = await getContactsHash();
+    editProjectPartnerDialog(context, project, contacts);
   }
 
-  Future<void> _editProjectPartnerDialog(context, _project, _contacts) {
+  Future<void> editProjectPartnerDialog(context, project, contacts) {
     TextEditingController nameController = TextEditingController(text: "");
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Add partner'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir socio'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customText("Financiador:", 16, textColor: Colors.blue),
-              customDropdownField(
-                  nameController, _contacts, null, "Seleccione programa"),
-
-              /*customAutocompleteField(
-                  nameController, _contacts, "Write or select contact..."),*/
+              CustomDropdown(
+                labelText: 'Socio',
+                size: 220,
+                selected: KeyValue("", ""),
+                options: contacts,
+                onSelectedOpt: (String val) {
+                  setState(() {
+                    project?.partners.add(val);
+                  });
+                },
+              ),
             ]),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _savePartner(context, _project, nameController.text, _contacts);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(
+                flex: 5,
+                child: actionButton(context, "Enviar", savePartner,
+                    Icons.save_outlined, [project]),
+              ),
+              space(width: 10),
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cancelar", cancelItem, Icons.cancel, context))
+            ]),
           ],
         );
       },
@@ -881,37 +844,92 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Add partner'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar fechas'),
           content: SingleChildScrollView(
             child: Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha de aprobación:", 16, textColor: Colors.blue),
-                customDateField(context, approvedController),
+                /*customText("Fecha de aprobación:", 16, textColor: Colors.blue),
+                customDateField(context, approvedController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de aprobación',
+                      selectedDate: _dates.approved,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          _dates.approved = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha de inicio:", 16, textColor: Colors.blue),
-                customDateField(context, startController),
+                /*customText("Fecha de inicio:", 16, textColor: Colors.blue),
+                customDateField(context, startController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de inicio',
+                      selectedDate: _dates.start,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          _dates.start = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha de fin:", 16, textColor: Colors.blue),
-                customDateField(context, endController),
+                /*customText("Fecha de fin:", 16, textColor: Colors.blue),
+                customDateField(context, endController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de fin',
+                      selectedDate: _dates.end,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          _dates.end = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha de justificación:", 16,
+                /*customText("Fecha de justificación:", 16,
                     textColor: Colors.blue),
-                customDateField(context, justificationController),
+                customDateField(context, justificationController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de justificación',
+                      selectedDate: _dates.justification,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          _dates.justification = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha de entrega:", 16, textColor: Colors.blue),
-                customDateField(context, deliveryController),
+                /*customText("Fecha de entrega:", 16, textColor: Colors.blue),
+                customDateField(context, deliveryController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de entrega',
+                      selectedDate: _dates.delivery,
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          _dates.delivery = date;
+                        });
+                      },
+                    )),
               ]),
               space(width: 20),
             ]),

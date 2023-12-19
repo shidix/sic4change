@@ -376,18 +376,17 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Proyecto:", 16, textColor: mainColor),
-                SizedBox(
-                    width: 700,
-                    child: CustomDropdown(
-                      labelText: 'Proyecto',
-                      selected: task.projectObj.toKeyValue(),
-                      options: projectList,
-                      onSelectedOpt: (String val) {
-                        setState(() {
-                          task.project = val;
-                        });
-                      },
-                    )),
+                CustomDropdown(
+                  labelText: 'Proyecto',
+                  size: 700,
+                  selected: task.projectObj.toKeyValue(),
+                  options: projectList,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      task.project = val;
+                    });
+                  },
+                ),
               ]),
             ]),
             space(height: 20),
@@ -421,34 +420,32 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Estado:", 16, textColor: mainColor),
-                SizedBox(
-                    width: 340,
-                    child: CustomDropdown(
-                      labelText: 'Estado',
-                      selected: task.statusObj.toKeyValue(),
-                      options: statusList,
-                      onSelectedOpt: (String val) {
-                        setState(() {
-                          task.status = val;
-                        });
-                      },
-                    )),
+                CustomDropdown(
+                  labelText: 'Estado',
+                  size: 340,
+                  selected: task.statusObj.toKeyValue(),
+                  options: statusList,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      task.status = val;
+                    });
+                  },
+                ),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Devolución:", 16, textColor: mainColor),
-                SizedBox(
-                    width: 340,
-                    child: CustomDropdown(
-                      labelText: 'Devolución',
-                      selected: task.senderObj.toKeyValue(),
-                      options: contactList,
-                      onSelectedOpt: (String val) {
-                        setState(() {
-                          task.sender = val;
-                        });
-                      },
-                    )),
+                CustomDropdown(
+                  labelText: 'Devolución',
+                  size: 340,
+                  selected: task.senderObj.toKeyValue(),
+                  options: contactList,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      task.sender = val;
+                    });
+                  },
+                ),
               ]),
             ]),
             space(height: 20),
