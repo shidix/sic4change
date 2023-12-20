@@ -1,5 +1,3 @@
-import 'dart:js_util';
-
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -13,8 +11,7 @@ class TransversalQuestionForm extends StatefulWidget {
       {Key? key, this.currentTransversal, this.currentQuestion})
       : super(key: key);
   @override
-  _TransversalQuestionFormState createState() =>
-      _TransversalQuestionFormState();
+  createState() => _TransversalQuestionFormState();
 }
 
 class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
@@ -86,23 +83,28 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
 
     Widget docPanel = Container();
     if (transversalQuestion.files.isNotEmpty) {
-          List<Widget> iconFiles = [];
+      List<Widget> iconFiles = [];
       for (SFile file in transversalQuestion.files) {
-        iconFiles.add(Padding(padding:const EdgeInsets.symmetric(horizontal:5, vertical:0), child: customRowFileBtn(
-            context, file.name, file.loc, Icons.picture_as_pdf, file.link)));
+        iconFiles.add(Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+            child: customRowFileBtn(context, file.name, file.loc,
+                Icons.picture_as_pdf, file.link)));
       }
 
-      docPanel =  Column(children:         [
-          const Row(children:[Expanded(flex:1, child: Text('Lista de archivos', style: normalText, textAlign: TextAlign.left))]),
-          const Divider(),
-          Row(
-            children: iconFiles,
-          ),
-          const Divider(),
-          ]);
+      docPanel = Column(children: [
+        const Row(children: [
+          Expanded(
+              flex: 1,
+              child: Text('Lista de archivos',
+                  style: normalText, textAlign: TextAlign.left))
+        ]),
+        const Divider(),
+        Row(
+          children: iconFiles,
+        ),
+        const Divider(),
+      ]);
     }
-
-
 
     return Form(
       key: _formKey,

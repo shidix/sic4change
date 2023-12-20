@@ -72,6 +72,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () {
       FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/');
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
