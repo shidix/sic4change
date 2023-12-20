@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -214,8 +216,9 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                               })))
                 ],
               );
-            } else
-              return Text("");
+            } else {
+              return const Text("");
+            }
           } else {
             return const Center(
               child: CircularProgressIndicator(),

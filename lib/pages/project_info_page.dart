@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -431,13 +433,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT PROJECT                             */
 /*--------------------------------------------------------------------*/
-  void _saveProject(context, project, _announcement, _ambit) async {
-    //_project ??= SProject("", _name, _desc, _type, _budget, _manager,
-    //    _programme, _announcement, _ambit, _audit, _evaluation);
+  // void _saveProject(context, project, _announcement, _ambit) async {
+  //   //_project ??= SProject("", _name, _desc, _type, _budget, _manager,
+  //   //    _programme, _announcement, _ambit, _audit, _evaluation);
 
-    project.save();
-    loadProject(project);
-  }
+  //   project.save();
+  //   loadProject(project);
+  // }
 
   void saveProject(List args) async {
     SProject project = args[0];
@@ -797,7 +799,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         width: 220,
         child: TextField(
           controller: dateController, //editing controller of this TextField
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
               icon: Icon(Icons.calendar_today), //icon of text field
               labelText: "Enter Date" //label text of field
               ),

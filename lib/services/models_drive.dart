@@ -141,6 +141,23 @@ class SFile {
     } while (query.size > 0);
     return loc;
   }
+
+
+  static Future<SFile> byLoc(String loc) async {
+    QuerySnapshot? query;
+
+    query = await dbFile.where("loc", isEqualTo: loc).get();
+    if (query.size == 0) {
+      return SFile("", "", "");
+    }
+    else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return SFile.fromJson(data);
+    }
+  }
+
 }
 
 Future<List> getFiles(String _folder) async {

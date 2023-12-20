@@ -1,5 +1,8 @@
+import 'dart:js_util';
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_quality.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 class TransversalQuestionForm extends StatefulWidget {
@@ -10,7 +13,8 @@ class TransversalQuestionForm extends StatefulWidget {
       {Key? key, this.currentTransversal, this.currentQuestion})
       : super(key: key);
   @override
-  _TransversalQuestionFormState createState() => _TransversalQuestionFormState();
+  _TransversalQuestionFormState createState() =>
+      _TransversalQuestionFormState();
 }
 
 class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
@@ -79,32 +83,63 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
             }))
       ];
     }
+
+    Widget docPanel = Container();
+    if (transversalQuestion.files.isNotEmpty) {
+          List<Widget> iconFiles = [];
+      for (SFile file in transversalQuestion.files) {
+        iconFiles.add(Padding(padding:const EdgeInsets.symmetric(horizontal:5, vertical:0), child: customRowFileBtn(
+            context, file.name, file.loc, Icons.picture_as_pdf, file.link)));
+      }
+
+      docPanel =  Column(children:         [
+          const Row(children:[Expanded(flex:1, child: Text('Lista de archivos', style: normalText, textAlign: TextAlign.left))]),
+          const Divider(),
+          Row(
+            children: iconFiles,
+          ),
+          const Divider(),
+          ]);
+    }
+
+
+
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          Row(children: [
-            Expanded(flex:1, child:          TextFormField(
-            initialValue: transversalQuestion.code,
-            decoration: const InputDecoration(
-              labelText: 'Código',
-            ),
-            validator: (value) {
-              if (value!.isEmpty) {
-                return '1, 1.1, 2, etc.';
-              }
-              return null;
-            },
-            onSaved: (value) {
-              transversalQuestion.code = value!;
-            },
-          )),
-          Expanded(flex:2, child: Container(),),
-          Expanded(flex:1, child: 
-          customCheckBox(
-              'Completado', transversalQuestion.completed, toogletransversalQuestion)),
-          ],)
-,
+          docPanel,
+          Row(
+            children: [
+              Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: transversalQuestion.code,
+                    decoration: const InputDecoration(
+                      labelText: 'Código',
+                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return '1, 1.1, 2, etc.';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      transversalQuestion.code = value!;
+                    },
+                  )),
+              Expanded(
+                flex: 2,
+                child: Container(),
+              ),
+              Expanded(
+                  flex: 1,
+                  child: customCheckBox(
+                      'Completado',
+                      transversalQuestion.completed,
+                      toogletransversalQuestion)),
+            ],
+          ),
           TextFormField(
             initialValue: transversalQuestion.subject,
             decoration: const InputDecoration(
@@ -120,7 +155,6 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
               transversalQuestion.subject = value!;
             },
           ),
-
           TextFormField(
             initialValue: transversalQuestion.comments,
             keyboardType: TextInputType.multiline,
@@ -128,12 +162,21 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
             decoration: const InputDecoration(
               labelText: 'Comentarios',
             ),
-
             onSaved: (value) {
               transversalQuestion.comments = value!;
             },
           ),
-
+          TextFormField(
+            initialValue: transversalQuestion.docs.join(","),
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            decoration: const InputDecoration(
+              labelText: 'Documentos',
+            ),
+            onSaved: (value) {
+              transversalQuestion.docs = value!.split(",");
+            },
+          ),
           const SizedBox(height: 16.0),
           Row(
               children: [
