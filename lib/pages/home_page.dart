@@ -429,7 +429,7 @@ class _HomePageState extends State<HomePage> {
         buttonsRow.add(Expanded(
             flex: 1,
             child: Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: actionButton(
                   context,
                   "${MONTHS[date.month - 1]} ${date.year}",
@@ -466,28 +466,189 @@ class _HomePageState extends State<HomePage> {
 
     workdays.sort((a, b) => a.startDate.compareTo(b.startDate));
     workdays = workdays.reversed.toList();
-    Map<String, double> datesDict = {};
+    Map<String, double> hoursDict = {};
+    Map<String, DateTime> inDict = {};
+    Map<String, DateTime> outDict = {};
 
     for (Workday workday in workdays) {
       if (workday.startDate.month == month.month &&
           workday.startDate.year == month.year) {
-        String key = DateFormat('dd-MM-yyyy').format(workday.startDate);
-        if (datesDict.containsKey(key)) {
-          datesDict[key] = datesDict[key]! + workday.hours();
+        String key = DateFormat('yyyy-MM-dd').format(workday.startDate);
+        if (hoursDict.containsKey(key)) {
+          hoursDict[key] = hoursDict[key]! + workday.hours();
         } else {
-          datesDict[key] = workday.hours();
+          hoursDict[key] = workday.hours();
+        }
+        if (inDict.containsKey(key)) {
+          if (workday.startDate.isBefore(inDict[key]!)) {
+            inDict[key] = workday.startDate;
+          }
+        } else {
+          inDict[key] = workday.startDate;
+        }
+        if (outDict.containsKey(key)) {
+          if (workday.endDate.isAfter(outDict[key]!)) {
+            outDict[key] = workday.endDate;
+          }
+        } else {
+          outDict[key] = workday.endDate;
         }
       }
     }
 
-    print(datesDict);
+    // Crea un nuevo documento PDF
+    pw.TextStyle headerPdf = pw.TextStyle(
+        fontSize: 10, color: PdfColors.black, fontWeight: pw.FontWeight.bold);
+    pw.TextStyle normalPdf =
+        const pw.TextStyle(fontSize: 10, color: PdfColors.black);
+
+    List<pw.TableRow> rows = [];
+
+    List<String> keysSorted = hoursDict.keys.toList();
+    keysSorted.sort((a, b) => a.compareTo(b));
+
+    for (var keyDate in keysSorted) {
+      double normalHours = min(hoursDict[keyDate]!, 8);
+      double extraHours = max(hoursDict[keyDate]! - 8, 0);
+      rows.add(pw.TableRow(children: [
+        pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            child: pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(
+                    DateFormat("dd-MM-yyyy").format(inDict[keyDate]!),
+                    style: normalPdf,
+                    textAlign: pw.TextAlign.center))),
+        pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            child: pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(DateFormat('HH:mm').format(inDict[keyDate]!),
+                    style: normalPdf, textAlign: pw.TextAlign.center))),
+        pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            child: pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(DateFormat('HH:mm').format(outDict[keyDate]!),
+                    style: normalPdf, textAlign: pw.TextAlign.center))),
+        pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            child: pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(normalHours.toStringAsFixed(2),
+                    style: normalPdf, textAlign: pw.TextAlign.center))),
+        pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            child: pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(extraHours.toStringAsFixed(2),
+                    style: normalPdf, textAlign: pw.TextAlign.center))),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: pw.SizedBox(width: 60, height: 5, child: pw.Container()),
+        )
+      ]));
+    }
 
     final pdf = pw.Document();
+    // Añade una cabecera al documento
     pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(20),
         build: (pw.Context context) {
-          return pw.Center(
-              child: pw.Text("Hello World", style: pw.TextStyle(fontSize: 40)));
+          return pw.Container(
+            child: pw.Column(
+              children: [
+                pw.Text(
+                  'Hoja de control horario',
+                  style: const pw.TextStyle(fontSize: 20),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.Table(
+                  border: pw.TableBorder.all(),
+                  children: [
+                    pw.TableRow(
+                      children: [
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text('Empresa', style: headerPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text(contact!.company, style: normalPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text('Año', style: headerPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text(month.year.toString(),
+                                style: normalPdf)),
+                        // pw.Text('Empresa', style: headerPdf),
+                        // pw.Text(contact!.company, style: normalPdf),
+                        // pw.Text('Año', style: headerPdf),
+                        // pw.Text(month.year.toString(), style: normalPdf),
+                      ],
+                    ),
+                    pw.TableRow(
+                      children: [
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text('Trabajador', style: headerPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text(contact!.name, style: normalPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text('Mes', style: headerPdf)),
+                        pw.Padding(
+                            padding: pw.EdgeInsets.all(5),
+                            child: pw.Text(MONTHS[month.month - 1],
+                                style: normalPdf)),
+                      ],
+                    ),
+                    pw.TableRow(
+                        //decoration: pw.BoxDecoration(color: PdfColors.grey300),
+                        children: [
+                          pw.Padding(
+                              padding: pw.EdgeInsets.all(5),
+                              child: pw.Text('Cargo', style: headerPdf)),
+                          pw.Padding(
+                              padding: pw.EdgeInsets.all(5),
+                              child:
+                                  pw.Text(contact!.position, style: normalPdf)),
+                          pw.Padding(
+                              padding: pw.EdgeInsets.all(5),
+                              child: pw.Text('Centro', style: headerPdf)),
+                          pw.Padding(
+                              padding: pw.EdgeInsets.all(5),
+                              child: pw.Text('--', style: normalPdf)),
+                        ])
+                  ],
+                ),
+                pw.Table(
+                  border: pw.TableBorder.all(),
+                  children: [
+                    pw.TableRow(
+                      children: [
+                        pw.Text('Fecha',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                        pw.Text('Hora de entrada',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                        pw.Text('Hora de salida',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                        pw.Text('Horas normales',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                        pw.Text('Extraordinarias',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                        pw.Text('Firma',
+                            style: headerPdf, textAlign: pw.TextAlign.center),
+                      ],
+                    ),
+                    ...rows,
+                  ],
+                ),
+              ],
+            ),
+          );
         }));
 
     final List<int> savedFile = await pdf.save();
@@ -495,7 +656,8 @@ class _HomePageState extends State<HomePage> {
     html.AnchorElement(
         href:
             "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
-      ..setAttribute("download", "${DateTime.now().millisecondsSinceEpoch}.pdf")
+      ..setAttribute("download",
+          "Hoja_horario_${DateTime.now().millisecondsSinceEpoch}.pdf")
       ..click();
   }
 
