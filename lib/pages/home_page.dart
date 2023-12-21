@@ -270,9 +270,18 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Expanded(
                             flex: 1,
-                            child: actionButton(context, null,
-                                dialogPrintWorkday, Icons.print, context,
-                                iconColor: warningColor)),
+                            child: Tooltip(
+                                message: "Imprimir hoja de registro",
+                                child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 0),
+                                    child: actionButton(
+                                      context,
+                                      null,
+                                      dialogPrintWorkday,
+                                      Icons.print,
+                                      context,
+                                    )))),
                       ],
                     )),
                 Container(
@@ -553,33 +562,28 @@ class _HomePageState extends State<HomePage> {
     final pdf = pw.Document();
     // Añade una cabecera al documento
     pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4.landscape,
-        margin: const pw.EdgeInsets.all(20),
+        pageFormat: PdfPageFormat.a4,
+        //margin: const pw.EdgeInsets.all(5),
         build: (pw.Context context) {
           return pw.Container(
             child: pw.Column(
               children: [
-                pw.Text(
-                  'Hoja de control horario',
-                  style: const pw.TextStyle(fontSize: 20),
-                  textAlign: pw.TextAlign.center,
-                ),
                 pw.Table(
                   border: pw.TableBorder.all(),
                   children: [
                     pw.TableRow(
                       children: [
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text('Empresa', style: headerPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text(contact!.company, style: normalPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text('Año', style: headerPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text(month.year.toString(),
                                 style: normalPdf)),
                         // pw.Text('Empresa', style: headerPdf),
@@ -591,16 +595,16 @@ class _HomePageState extends State<HomePage> {
                     pw.TableRow(
                       children: [
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text('Trabajador', style: headerPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text(contact!.name, style: normalPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text('Mes', style: headerPdf)),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(5),
+                            padding: const pw.EdgeInsets.all(5),
                             child: pw.Text(MONTHS[month.month - 1],
                                 style: normalPdf)),
                       ],
@@ -609,21 +613,22 @@ class _HomePageState extends State<HomePage> {
                         //decoration: pw.BoxDecoration(color: PdfColors.grey300),
                         children: [
                           pw.Padding(
-                              padding: pw.EdgeInsets.all(5),
+                              padding: const pw.EdgeInsets.all(5),
                               child: pw.Text('Cargo', style: headerPdf)),
                           pw.Padding(
-                              padding: pw.EdgeInsets.all(5),
+                              padding: const pw.EdgeInsets.all(5),
                               child:
                                   pw.Text(contact!.position, style: normalPdf)),
                           pw.Padding(
-                              padding: pw.EdgeInsets.all(5),
+                              padding: const pw.EdgeInsets.all(5),
                               child: pw.Text('Centro', style: headerPdf)),
                           pw.Padding(
-                              padding: pw.EdgeInsets.all(5),
+                              padding: const pw.EdgeInsets.all(5),
                               child: pw.Text('--', style: normalPdf)),
                         ])
                   ],
                 ),
+                pw.SizedBox(height: 5),
                 pw.Table(
                   border: pw.TableBorder.all(),
                   children: [
@@ -631,13 +636,13 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         pw.Text('Fecha',
                             style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Hora de entrada',
+                        pw.Text('Hora\nentrada',
                             style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Hora de salida',
+                        pw.Text('Hora\nsalida',
                             style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Horas normales',
+                        pw.Text('Horas\nnormales',
                             style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Extraordinarias',
+                        pw.Text('Horas\nExtraordinarias',
                             style: headerPdf, textAlign: pw.TextAlign.center),
                         pw.Text('Firma',
                             style: headerPdf, textAlign: pw.TextAlign.center),
