@@ -640,9 +640,32 @@ Widget backButton(context) {
 }
 
 Widget actionButton(
-    context, String text, Function action, IconData? icon, dynamic args,
+    context, String? text, Function action, IconData? icon, dynamic args,
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
+  Widget? row;
+  if (text != null) {
+    List<Widget> children = [];
+    children.add(Icon(
+      icon,
+      color: iconColor,
+      size: 30,
+    ));
+
+    children.add(space(width: 10));
+    children.add(Text(
+      text,
+      style: TextStyle(color: textColor, fontSize: 14),
+    ));
+    row = Row(children: children);
+  } else {
+    row = Icon(
+      icon,
+      color: iconColor,
+      size: 30,
+    );
+  }
+
   return ElevatedButton(
     onPressed: () {
       if (args == null) {
@@ -656,25 +679,12 @@ Widget actionButton(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
     ),
-    child: Row(
-      children: [
-        Icon(
-          icon,
-          color: iconColor,
-          size: 30,
-        ),
-        space(height: 10),
-        Text(
-          text,
-          style: const TextStyle(color: Colors.black, fontSize: 14),
-        ),
-      ],
-    ),
+    child: row,
   );
 }
 
 Widget actionButtonVertical(
-    context, String text, Function action, IconData? icon, dynamic args,
+    context, String? text, Function action, IconData? icon, dynamic args,
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
   return ElevatedButton(
@@ -696,7 +706,9 @@ Widget actionButtonVertical(
         space(height: 5),
         Icon(icon, color: subTitleColor),
         space(height: 5),
-        customText(text, 12, textColor: subTitleColor),
+        text != null
+            ? customText(text, 12, textColor: subTitleColor)
+            : const SizedBox(width: 0),
         space(height: 5),
       ],
     ),

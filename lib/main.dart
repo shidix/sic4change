@@ -7,20 +7,16 @@ import 'package:sic4change/pages/index.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
-import 'package:sic4change/pages/risks_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 //final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(
-    
-  );
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.web,
-    
   );
 
   initializeDateFormatting('es_ES', '').then((_) => runApp(MyApp()));
@@ -32,7 +28,7 @@ class MyApp extends StatelessWidget {
 
   final _routes = {
     '/': (context) => const LoginPage(),
-    '/home': (context) => HomePage(),
+    '/home': (context) => const HomePage(),
     '/projects': (context) => const ProjectsPage(),
     '/project_info': (context) => const ProjectInfoPage(),
     '/project_reformulation': (context) => const ReformulationPage(),
@@ -82,7 +78,6 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
-      
     );
   }
 }

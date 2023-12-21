@@ -1,7 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sic4change/pages/contact_tracking_info_page.dart';
-import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -53,7 +50,7 @@ class ContactTracking {
 
   Future<void> save() async {
     if (id == "") {
-      var newUuid = Uuid();
+      var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContactTracking.add(data);

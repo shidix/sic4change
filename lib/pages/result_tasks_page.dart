@@ -1,10 +1,11 @@
+// ignore_for_file: constant_identifier_names, non_constant_identifier_names
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
@@ -28,24 +29,24 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Result? _result;
+    final Result? result;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _result = args["result"];
+      result = args["result"];
     } else {
-      _result = null;
+      result = null;
     }
 
-    if (_result == null) return const Page404();
+    if (result == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        taskPath(context, _result),
-        taskHeader(context, _result),
+        taskPath(context, result),
+        taskHeader(context, result),
         //marcoMenu(context, _result, "marco"),
-        contentTab(context, taskList, _result),
+        contentTab(context, taskList, result),
 
         /*Expanded(
             child: Container(
@@ -68,13 +69,13 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 /*-------------------------------------------------------------
                             ACTIVITY
 -------------------------------------------------------------*/
-  Widget taskPath(context, _result) {
+  Widget taskPath(context, result) {
     return FutureBuilder(
-        future: getProjectByResultTask(_result.uuid),
+        future: getProjectByResultTask(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            final _path = snapshot.data!;
-            return pathHeader(context, _path);
+            final path = snapshot.data!;
+            return pathHeader(context, path);
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -83,7 +84,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         }));
   }
 
-  Widget taskHeader(context, _result) {
+  Widget taskHeader(context, result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         /*Container(
@@ -104,7 +105,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, _result),
-            addBtn(context, _editTaskDialog, {"task": null, "result": _result}),
+            addBtn(context, _editTaskDialog, {"task": null, "result": result}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -135,7 +136,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     );
   }*/
 
-  void _saveTask(context, _task, _name, _result) async {
+  void _saveTask(context, task, name, result) async {
     /*if (_task != null) {
       await updateResultTask(_task.id, _task.uuid, _name, _result.uuid)
           .then((value) async {
@@ -146,15 +147,15 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         loadTasks(_result.uuid);
       });
     }*/
-    if (_task != null) _task = ResultTask(_result);
-    _task.name = _name;
-    _task.save();
-    loadTasks(_result.uuid);
+    if (task != null) task = ResultTask(result);
+    task.name = name;
+    task.save();
+    loadTasks(result.uuid);
     Navigator.of(context).pop();
   }
 
   Future<void> _editTaskDialog(context, HashMap args) {
-    Result _result = args["result"];
+    Result result = args["result"];
     TextEditingController nameController = TextEditingController(text: "");
 
     if (args["_task"] != null) {
@@ -179,7 +180,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
-                _saveTask(context, args["_task"], nameController.text, _result);
+                _saveTask(context, args["_task"], nameController.text, result);
               },
             ),
             TextButton(
@@ -194,13 +195,13 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     );
   }
 
-  Widget taskList(context, _result) {
+  Widget taskList(context, result) {
     return FutureBuilder(
-        future: getResultTasksByResult(_result.uuid),
+        future: getResultTasksByResult(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             result_task_list = snapshot.data!;
-            if (result_task_list.length > 0) {
+            if (result_task_list.isNotEmpty) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -214,7 +215,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                               padding: const EdgeInsets.all(8),
                               itemCount: result_task_list.length,
                               itemBuilder: (BuildContext context, int index) {
-                                ResultTask _task = result_task_list[index];
+                                ResultTask task = result_task_list[index];
                                 return Container(
                                   height: 80,
                                   padding: const EdgeInsets.only(
@@ -224,13 +225,14 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
                                         bottom: BorderSide(
                                             color: Color(0xffdfdfdf))),
                                   ),
-                                  child: taskRow(context, _task, _result),
+                                  child: taskRow(context, task, result),
                                 );
                               })))
                 ],
               );
-            } else
+            } else {
               return const Text("");
+            }
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -239,7 +241,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         }));
   }
 
-  Widget taskRow(context, _task, _result) {
+  Widget taskRow(context, task, result) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,17 +249,17 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            customText('${_task.name}', 16),
-            taskRowOptions(context, _task, _result),
+            customText('${task.name}', 16),
+            taskRowOptions(context, task, result),
           ],
         ),
       ],
     );
   }
 
-  Widget taskRowOptions(context, _task, _result) {
+  Widget taskRowOptions(context, task, result) {
     return Row(children: [
-      editBtn(context, _editTaskDialog, {"task": _task, "result": _result}),
+      editBtn(context, _editTaskDialog, {"task": task, "result": result}),
       /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Edit',
@@ -268,12 +270,12 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           icon: const Icon(Icons.remove_circle),
           tooltip: 'Remove',
           onPressed: () {
-            _removeTaskDialog(context, _task, _result);
+            _removeTaskDialog(context, task, result);
           }),
     ]);
   }
 
-  Future<void> _removeTaskDialog(context, _task, _result) async {
+  Future<void> _removeTaskDialog(context, task, result) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -288,8 +290,8 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                _task.delete();
-                loadTasks(_result.uuid);
+                task.delete();
+                loadTasks(result.uuid);
                 Navigator.of(context).pop();
                 /*await deleteResultTask(id).then((value) {
                   loadTasks(_result.uuid);

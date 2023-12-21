@@ -1,5 +1,6 @@
 import 'dart:math';
-
+import 'dart:html' as html;
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +13,8 @@ import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 // import 'package:sic4change/pages/contacts_page.dart';
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
 
@@ -202,11 +205,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel(BuildContext context) {
-    workdayButton = actionButton(context, "(Re)Iniciar jornada", workdayAction,
+    workdayButton = actionButton(context, "(Re)Iniciar", workdayAction,
         Icons.play_circle_outline_sharp, context,
         iconColor: successColor);
     if (currentWorkday?.open == true) {
-      workdayButton = actionButton(context, "Finalizar jornada", workdayAction,
+      workdayButton = actionButton(context, "Finalizar", workdayAction,
           Icons.stop_circle_outlined, context,
           iconColor: dangerColor);
     }
@@ -262,9 +265,14 @@ class _HomePageState extends State<HomePage> {
                                           style: subTitleText),
                                     ]))),
                         Expanded(
-                          flex: 3,
+                          flex: 2,
                           child: workdayButton,
-                        )
+                        ),
+                        Expanded(
+                            flex: 1,
+                            child: actionButton(context, null,
+                                dialogPrintWorkday, Icons.print, context,
+                                iconColor: warningColor)),
                       ],
                     )),
                 Container(
@@ -391,11 +399,118 @@ class _HomePageState extends State<HomePage> {
                     )
                   ]));
                 })
-            : Center(
+            : const Center(
                 child: CircularProgressIndicator(),
               ));
 
     return result;
+  }
+
+  void dialogPrintWorkday(context) {
+    _dialogPrintWorkday(context);
+  }
+
+  Widget printWorkdaysButtons(context) {
+    List<DateTime> dates = [];
+    DateTime currentMonth =
+        DateTime(DateTime.now().year, DateTime.now().month, 1);
+    for (int i = 0; i < 12; i++) {
+      dates.add(DateTime(currentMonth.year, currentMonth.month - i, 1));
+    }
+
+    dates = dates.reversed.toList();
+
+    List<dynamic> matrix = reshape(dates, 3, 4) as List<dynamic>;
+
+    List<Widget> buttonsMonth = [];
+    for (var row in matrix) {
+      List<Widget> buttonsRow = [];
+      for (var date in row) {
+        buttonsRow.add(Expanded(
+            flex: 1,
+            child: Padding(
+                padding: EdgeInsets.all(10),
+                child: actionButton(
+                  context,
+                  "${MONTHS[date.month - 1]} ${date.year}",
+                  printWorkday,
+                  Icons.print,
+                  {'month': date},
+                ))));
+      }
+      buttonsMonth.add(Row(
+        children: buttonsRow,
+      ));
+      buttonsMonth.add(space(height: 5));
+    }
+
+    return Column(mainAxisSize: MainAxisSize.min, children: buttonsMonth);
+  }
+
+  void printWorkday(Map<String, dynamic> args) {
+    _printWorkday(args);
+  }
+
+  Future<void> _printWorkday(Map<String, dynamic> args) async {
+    DateTime month = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    try {
+      month = args['month'];
+    } catch (e) {
+      print(e);
+    }
+
+    List<Workday> workdays = [];
+    await Workday.byUser(user.email!, month).then((value) {
+      workdays = value;
+    });
+
+    workdays.sort((a, b) => a.startDate.compareTo(b.startDate));
+    workdays = workdays.reversed.toList();
+    Map<String, double> datesDict = {};
+
+    for (Workday workday in workdays) {
+      if (workday.startDate.month == month.month &&
+          workday.startDate.year == month.year) {
+        String key = DateFormat('dd-MM-yyyy').format(workday.startDate);
+        if (datesDict.containsKey(key)) {
+          datesDict[key] = datesDict[key]! + workday.hours();
+        } else {
+          datesDict[key] = workday.hours();
+        }
+      }
+    }
+
+    print(datesDict);
+
+    final pdf = pw.Document();
+    pdf.addPage(pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+              child: pw.Text("Hello World", style: pw.TextStyle(fontSize: 40)));
+        }));
+
+    final List<int> savedFile = await pdf.save();
+    List<int> fileInts = List.from(savedFile);
+    html.AnchorElement(
+        href:
+            "data:application/octet-stream;charset=utf-16le;base64,${base64.encode(fileInts)}")
+      ..setAttribute("download", "${DateTime.now().millisecondsSinceEpoch}.pdf")
+      ..click();
+  }
+
+  Future<void> _dialogPrintWorkday(context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Imprimir hojas de registro', context),
+          content: printWorkdaysButtons(context),
+        );
+      },
+    );
   }
 
 /////////// HOLIDAYS ///////////
@@ -708,7 +823,7 @@ class _HomePageState extends State<HomePage> {
                     )
                   ]));
                 })
-            : Center(
+            : const Center(
                 child: CircularProgressIndicator(),
               ));
   }
@@ -1185,10 +1300,10 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 ),
-                                Divider()
+                                const Divider()
                               ]));
                             })
-                        : Center(
+                        : const Center(
                             child: CircularProgressIndicator(),
                           )),
               ],

@@ -821,9 +821,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               setState(() {
                 dateController.text = formattedDate;
               });
-            } else {
-              print("Date is not selected");
-            }
+            } else {}
           },
         ));
   }
@@ -1048,7 +1046,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       townController = TextEditingController(text: _loc.town);
     }
 
-    print(countries);
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
