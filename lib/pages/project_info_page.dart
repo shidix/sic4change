@@ -12,6 +12,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectInfoTitle = "Detalles del Proyecto";
 SProject? project;
+bool projLoading = true;
 
 class ProjectInfoPage extends StatefulWidget {
   const ProjectInfoPage({super.key});
@@ -22,9 +23,16 @@ class ProjectInfoPage extends StatefulWidget {
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void loadProject(project) async {
+    setState(() {
+      projLoading = false;
+    });
+
     await project.reload().then((val) {
       Navigator.popAndPushNamed(context, "/project_info",
           arguments: {"project": val});
+      setState(() {
+        projLoading = true;
+      });
     });
   }
 
@@ -47,22 +55,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           mainMenu(context),
           projectInfoHeader(context, project),
           projectInfoMenu(context, project),
-          contentTab(context, projectInfoDetails, null),
-
-/*          Expanded(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xffdfdfdf),
-                        width: 2,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                    ),
-                    child: projectInfoDetails(context),
-                    //child: projectInfoDetails(context, _project),
-                  ))),*/
+          projLoading
+              ? contentTab(context, projectInfoDetails, null)
+              : const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
@@ -132,10 +127,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Responsable del proyecto:", 16,
-                      textColor: Colors.grey),
+                  customText("Responsable del proyecto:", 14,
+                      bold: FontWeight.bold),
                   space(height: 5),
-                  customText(_project.managerObj.name, 16),
+                  customText(_project.managerObj.name, 14),
                 ],
               )),
           const VerticalDivider(
@@ -147,9 +142,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    customText("Programa:", 16, textColor: Colors.grey),
+                    customText("Programa:", 14, bold: FontWeight.bold),
                     space(height: 5),
-                    customText(_project.programmeObj.name, 16),
+                    customText(_project.programmeObj.name, 14),
                   ])),
           /*const VerticalDivider(
             width: 10,
@@ -179,9 +174,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Necesita auditoría:", 16, textColor: Colors.grey),
+                  customText("Necesita auditoría:", 14, bold: FontWeight.bold),
                   space(height: 5),
-                  customText(audit, 16),
+                  customText(audit, 14),
                 ],
               )),
           const VerticalDivider(
@@ -189,9 +184,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             color: Colors.grey,
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Necesita evaluación:", 16, textColor: Colors.grey),
+            customText("Necesita evaluación:", 14, bold: FontWeight.bold),
             space(height: 5),
-            customText(evaluation, 16),
+            customText(evaluation, 14),
           ]),
         ],
       ),
@@ -200,31 +195,31 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectFinanciersHeader(context, _project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Financiador/es:", 16, textColor: Colors.grey),
+      customText("Financiador/es:", 15, bold: FontWeight.bold),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir financiador',
         onPressed: () {
-          _callFinancierEditDialog(context, _project);
+          callFinancierEditDialog(context, _project);
         },
       )
     ]);
   }
 
-  Widget projectFinanciers(context, _project) {
+  Widget projectFinanciers(context, project) {
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _project.financiersObj.length,
+        itemCount: project.financiersObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_project.financiersObj[index].name}'),
+                    customText('${project.financiersObj[index].name}', 14),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -232,9 +227,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       ),
                       tooltip: 'Eliminar financiador',
                       onPressed: () async {
-                        _project.financiers
-                            .remove(_project.financiersObj[index].code);
-                        _removeFinancier(context, _project);
+                        project.financiers
+                            .remove(project.financiersObj[index].uuid);
+                        project.updateProjectFinanciers();
+                        loadProject(project);
+                        //                    _removeFinancier(context, _project);
                       },
                     )
                   ]));
@@ -243,43 +240,41 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectPartnersHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Socios:", 16, textColor: Colors.grey),
+      customText("Socios:", 15, bold: FontWeight.bold),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir socio',
         onPressed: () {
-          _callPartnerEditDialog(context, project);
+          callPartnerEditDialog(context, project);
         },
       )
     ]);
   }
 
-  Widget projectPartners(context, _project) {
+  Widget projectPartners(context, project) {
     return ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: _project.partnersObj.length,
+        itemCount: project.partnersObj.length,
         itemBuilder: (BuildContext context, int index) {
-          return Container(
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${_project.partnersObj[index].name}'),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.remove,
-                        size: 12,
-                      ),
-                      tooltip: 'Eliminar financiador',
-                      onPressed: () async {
-                        _project.partners
-                            .remove(_project.partnersObj[index].code);
-                        _removePartner(context, _project);
-                      },
-                    )
-                  ]));
+          return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                customText('${project.partnersObj[index].name}', 14),
+                IconButton(
+                  icon: const Icon(
+                    Icons.remove,
+                    size: 12,
+                  ),
+                  tooltip: 'Eliminar financiador',
+                  onPressed: () async {
+                    project.partners.remove(project.partnersObj[index].uuid);
+                    project.updateProjectPartners();
+                    loadProject(project);
+                  },
+                )
+              ]);
         });
   }
 
@@ -291,12 +286,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             var dates = snapshot.data!;
             return Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Fechas", 16, textColor: Colors.grey),
+                customText("Fechas", 15, bold: FontWeight.bold),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   tooltip: 'Editar fechas',
                   onPressed: () {
-                    _callDatesEditDialog(context, project);
+                    callDatesEditDialog(context, project);
                   },
                 )
               ]),
@@ -304,23 +299,29 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     TableRow(children: [
-                      customText("Fecha de aprobación", 16,
-                          textColor: Colors.grey),
-                      customText("Fecha de inicio", 16, textColor: Colors.grey),
-                      customText("Fecha de finalización", 16,
-                          textColor: Colors.grey),
-                      customText("Fecha de Justificación", 16,
-                          textColor: Colors.grey),
+                      customText("Fecha de aprobación", 14,
+                          bold: FontWeight.bold),
+                      customText("Fecha de inicio", 14, bold: FontWeight.bold),
+                      customText("Fecha de finalización", 14,
+                          bold: FontWeight.bold),
+                      customText("Fecha de Justificación", 14,
+                          bold: FontWeight.bold),
                       customText(
-                          "Fecha de entrega de informes y seguimiento", 16,
-                          textColor: Colors.grey),
+                          "Fecha de entrega de informes y seguimiento", 14,
+                          bold: FontWeight.bold),
                     ]),
                     TableRow(children: [
-                      customText(dates.approved, 16),
-                      customText(dates.start, 16),
-                      customText(dates.end, 16),
-                      customText(dates.justification, 16),
-                      customText(dates.delivery, 16),
+                      customText(
+                          DateFormat("yyyy-MM-dd").format(dates.approved), 14),
+                      customText(
+                          DateFormat("yyyy-MM-dd").format(dates.start), 14),
+                      customText(
+                          DateFormat("yyyy-MM-dd").format(dates.end), 14),
+                      customText(
+                          DateFormat("yyyy-MM-dd").format(dates.justification),
+                          14),
+                      customText(
+                          DateFormat("yyyy-MM-dd").format(dates.delivery), 14),
                     ])
                   ]),
             ]);
@@ -340,7 +341,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             var loc = snapshot.data!;
             return Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Fechas", 16, textColor: Colors.grey),
+                customText("Ubicación", 15, bold: FontWeight.bold),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   tooltip: 'Editar ubicación',
@@ -353,16 +354,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     TableRow(children: [
-                      customText("Pais", 16, textColor: Colors.grey),
-                      customText("Provincia", 16, textColor: Colors.grey),
-                      customText("Comunidad", 16, textColor: Colors.grey),
-                      customText("Municipio", 16, textColor: Colors.grey),
+                      customText("Pais", 14, bold: FontWeight.bold),
+                      customText("Provincia", 14, bold: FontWeight.bold),
+                      customText("Comunidad", 14, bold: FontWeight.bold),
+                      customText("Municipio", 14, bold: FontWeight.bold),
                     ]),
                     TableRow(children: [
-                      customText(loc.country, 16),
-                      customText(loc.province, 16),
-                      customText(loc.region, 16),
-                      customText(loc.town, 16),
+                      customText(loc.countryObj.name, 14),
+                      customText(loc.provinceObj.name, 14),
+                      customText(loc.regionObj.name, 14),
+                      customText(loc.townObj.name, 14),
                     ])
                   ])
             ]);
@@ -386,22 +387,22 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Breve descripción del proyecto:", 16,
-                    textColor: Colors.grey),
+                customText("Breve descripción del proyecto:", 14,
+                    bold: FontWeight.bold),
                 space(height: 5),
-                customText(project?.description, 16),
-                space(height: 5),
-                customRowDivider(),
-                space(height: 5),
-                customText("Convocatoria:", 16, textColor: Colors.grey),
-                space(height: 5),
-                customText(project?.announcement, 16),
+                customText(project?.description, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Ambito del proyecto:", 16, textColor: Colors.grey),
+                customText("Convocatoria:", 14, bold: FontWeight.bold),
                 space(height: 5),
-                customText(project?.ambit, 16),
+                customText(project?.announcement, 14),
+                space(height: 5),
+                customRowDivider(),
+                space(height: 5),
+                customText("Ambito del proyecto:", 14, bold: FontWeight.bold),
+                space(height: 5),
+                customText(project?.ambit, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
@@ -431,23 +432,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT PROJECT                             */
 /*--------------------------------------------------------------------*/
-  void _saveProject(context, project, _announcement, _ambit) async {
-    //_project ??= SProject("", _name, _desc, _type, _budget, _manager,
-    //    _programme, _announcement, _ambit, _audit, _evaluation);
-
-    project.save();
-    loadProject(project);
-  }
-
   void saveProject(List args) async {
     SProject project = args[0];
     project.save();
 
     Navigator.pop(context);
-  }
-
-  void cancelItem(BuildContext context) {
-    Navigator.of(context).pop();
   }
 
   void _callProjectEditDialog(context, roject) async {
@@ -611,20 +600,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               )
             ]),
           ),
-          actions: <Widget>[
-            Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(context, "Enviar", saveProject,
-                    Icons.save_outlined, [project]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveProject, project)],
         );
       },
     );
@@ -639,12 +615,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     loadProject(project);
   }
 
-  void _removeFinancier(context, project) async {
+  /*void _removeFinancier(context, project) async {
     project.updateProjectFinanciers();
     loadProject(project);
-  }
+  }*/
 
-  void _callFinancierEditDialog(context, project) async {
+  void callFinancierEditDialog(context, project) async {
     List<KeyValue> financiers = await getFinanciersHash();
     editProjectFinancierDialog(context, project, financiers);
   }
@@ -672,20 +648,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ),
             ]),
           ),
-          actions: <Widget>[
-            Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(context, "Enviar", saveFinancier,
-                    Icons.save_outlined, [project]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveFinancier, project)],
         );
       },
     );
@@ -700,19 +663,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     loadProject(project);
   }
 
-  void _removePartner(context, project) async {
+  /*void _removePartner(context, project) async {
     project.updateProjectPartners();
     loadProject(project);
-  }
+  }*/
 
-  void _callPartnerEditDialog(context, project) async {
+  void callPartnerEditDialog(context, project) async {
     List<KeyValue> contacts = await getContactsHash();
     editProjectPartnerDialog(context, project, contacts);
   }
 
   Future<void> editProjectPartnerDialog(context, project, contacts) {
-    TextEditingController nameController = TextEditingController(text: "");
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -735,20 +696,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ),
             ]),
           ),
-          actions: <Widget>[
-            Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(context, "Enviar", savePartner,
-                    Icons.save_outlined, [project]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),
-          ],
+          actions: <Widget>[dialogsBtns(context, savePartner, project)],
         );
       },
     );
@@ -757,91 +705,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           DATES                                    */
   /*--------------------------------------------------------------------*/
-  void _saveDates(context, _dates, _approved, _start, _end, _justification,
-      _delivery, _project) async {
-    _dates.approved = _approved;
-    _dates.start = _start;
-    _dates.end = _end;
-    _dates.justification = _justification;
-    _dates.delivery = _delivery;
-    _dates.save();
-    loadProject(_project);
-    //Navigator.of(context).pop();
+  void saveDates(List args) async {
+    ProjectDates dates = args[0];
+    dates.save();
+    loadProject(project);
   }
 
-  void _callDatesEditDialog(context, _project) async {
-    await getProjectDatesByProject(_project.uuid).then((value) async {
-      /*if (value != null)
-        _editProjectDatesDialog(context, value, _project);
-      else {
-        ProjectDates _pd = ProjectDates(_project.uuid);
-        _pd.save();
-        await addProjectDates("", "", "", "", "", _project.uuid)
-            .then((valueAdd) async {
-          await getProjectDatesByProject(_project.uuid)
-              .then((valueDates) async {
-            _editProjectDatesDialog(context, valueDates, _project);
-          });
-        });
-      }*/
-      // if (value == null) {
-      //   value = ProjectDates(_project.uuid);
-      //   value.save();
-      // }
-      _editProjectDatesDialog(context, value, _project);
+  void callDatesEditDialog(context, project) async {
+    await getProjectDatesByProject(project.uuid).then((value) async {
+      editProjectDatesDialog(context, value);
     });
   }
 
-  Widget customDateField(context, dateController) {
-    return SizedBox(
-        width: 220,
-        child: TextField(
-          controller: dateController, //editing controller of this TextField
-          decoration: InputDecoration(
-              icon: Icon(Icons.calendar_today), //icon of text field
-              labelText: "Enter Date" //label text of field
-              ),
-          readOnly: true, //set it true, so that user will not able to edit text
-          onTap: () async {
-            DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(
-                    2000), //DateTime.now() - not to allow to choose before today.
-                lastDate: DateTime(2101));
-
-            if (pickedDate != null) {
-              //print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-              String formattedDate =
-                  DateFormat('dd-MM-yyyy').format(pickedDate);
-              //print(formattedDate); //formatted date output using intl package =>  2021-03-16
-
-              setState(() {
-                dateController.text = formattedDate;
-              });
-            } else {
-              print("Date is not selected");
-            }
-          },
-        ));
-  }
-
-  Future<void> _editProjectDatesDialog(context, _dates, _project) {
-    TextEditingController approvedController = TextEditingController(text: "");
-    TextEditingController startController = TextEditingController(text: "");
-    TextEditingController endController = TextEditingController(text: "");
-    TextEditingController justificationController =
-        TextEditingController(text: "");
-    TextEditingController deliveryController = TextEditingController(text: "");
-    if (_dates != null) {
-      approvedController = TextEditingController(text: _dates.approved);
-      startController = TextEditingController(text: _dates.start);
-      endController = TextEditingController(text: _dates.end);
-      justificationController =
-          TextEditingController(text: _dates.justification);
-      deliveryController = TextEditingController(text: _dates.delivery);
-    }
-
+  Future<void> editProjectDatesDialog(context, dates) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -858,10 +734,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     width: 220,
                     child: DateTimePicker(
                       labelText: 'Fecha de aprobación',
-                      selectedDate: _dates.approved,
+                      selectedDate: dates.approved,
                       onSelectedDate: (DateTime date) {
                         setState(() {
-                          _dates.approved = date;
+                          dates.approved = date;
                         });
                       },
                     )),
@@ -874,10 +750,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     width: 220,
                     child: DateTimePicker(
                       labelText: 'Fecha de inicio',
-                      selectedDate: _dates.start,
+                      selectedDate: dates.start,
                       onSelectedDate: (DateTime date) {
                         setState(() {
-                          _dates.start = date;
+                          dates.start = date;
                         });
                       },
                     )),
@@ -890,10 +766,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     width: 220,
                     child: DateTimePicker(
                       labelText: 'Fecha de fin',
-                      selectedDate: _dates.end,
+                      selectedDate: dates.end,
                       onSelectedDate: (DateTime date) {
                         setState(() {
-                          _dates.end = date;
+                          dates.end = date;
                         });
                       },
                     )),
@@ -907,10 +783,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     width: 220,
                     child: DateTimePicker(
                       labelText: 'Fecha de justificación',
-                      selectedDate: _dates.justification,
+                      selectedDate: dates.justification,
                       onSelectedDate: (DateTime date) {
                         setState(() {
-                          _dates.justification = date;
+                          dates.justification = date;
                         });
                       },
                     )),
@@ -923,10 +799,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     width: 220,
                     child: DateTimePicker(
                       labelText: 'Fecha de entrega',
-                      selectedDate: _dates.delivery,
+                      selectedDate: dates.delivery,
                       onSelectedDate: (DateTime date) {
                         setState(() {
-                          _dates.delivery = date;
+                          dates.delivery = date;
                         });
                       },
                     )),
@@ -934,28 +810,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               space(width: 20),
             ]),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveDates(
-                    context,
-                    _dates,
-                    approvedController.text,
-                    startController.text,
-                    endController.text,
-                    justificationController.text,
-                    deliveryController.text,
-                    _project);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveDates, dates)],
         );
       },
     );
@@ -964,7 +819,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           LOCATION                                 */
   /*--------------------------------------------------------------------*/
-  void _saveLocation(context, _loc, _country, _province, _region, _town,
+  /*void _saveLocation(context, _loc, _country, _province, _region, _town,
       _project, countries, provinces, regions, towns) async {
     _loc.country = _country;
     _loc.province = _province;
@@ -989,15 +844,24 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     }
     loadProject(_project);
     //Navigator.of(context).pop();
+  }*/
+  void saveLocation(List args) async {
+    ProjectLocation loc = args[0];
+    loc.save();
+    loadProject(project);
   }
 
-  void _callLocationEditDialog(context, _project) async {
-    List<KeyValue> countries = [];
-    List<KeyValue> provinces = [];
-    List<KeyValue> regions = [];
-    List<KeyValue> towns = [];
+  void _callLocationEditDialog(context, project) async {
+    List<KeyValue> countries = await getCountriesHash();
+    List<KeyValue> provinces = await getProvincesHash();
+    List<KeyValue> regions = await getRegionsHash();
+    List<KeyValue> towns = await getTownsHash();
+    await getProjectLocationByProject(project.uuid).then((value) async {
+      editProjectLocationDialog(
+          context, value, project, countries, provinces, regions, towns);
+    });
 
-    await getCountries().then((valueCountries) async {
+    /*await getCountries().then((valueCountries) async {
       for (Country item in valueCountries) {
         countries.add(item.toKeyValue());
       }
@@ -1030,91 +894,139 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           });
         });
       });
-    });
+    });*/
   }
 
-  Future<void> _editProjectLocationDialog(
-      context, _loc, _project, countries, provinces, regions, towns) {
-    TextEditingController countryController = TextEditingController(text: "");
+  Future<void> editProjectLocationDialog(
+      context, loc, project, countries, provinces, regions, towns) {
+    /*TextEditingController countryController = TextEditingController(text: "");
     TextEditingController provinceController = TextEditingController(text: "");
     TextEditingController regionController = TextEditingController(text: "");
     TextEditingController townController = TextEditingController(text: "");
-    if (_loc != null) {
-      countryController = TextEditingController(text: _loc.country);
-      provinceController = TextEditingController(text: _loc.province);
-      regionController = TextEditingController(text: _loc.region);
-      townController = TextEditingController(text: _loc.town);
-    }
+    if (loc != null) {
+      countryController = TextEditingController(text: loc.country);
+      provinceController = TextEditingController(text: loc.province);
+      regionController = TextEditingController(text: loc.region);
+      townController = TextEditingController(text: loc.town);
+    }*/
 
-    print(countries);
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Add location'),
+          //title: const Text('Add location'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir localización'),
           content: SingleChildScrollView(
             child: Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("País:", 16, textColor: Colors.blue),
+                CustomDropdown(
+                  labelText: 'País',
+                  size: 220,
+                  selected: loc.countryObj.toKeyValue(),
+                  options: countries,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.country = val;
+                    });
+                  },
+                ),
+                /*customText("País:", 16, textColor: Colors.blue),
                 customDropdownField(
                   countryController,
                   countries,
-                  _loc.countryObj.toKeyValue(),
+                  loc.countryObj.toKeyValue(),
                   "Seleccione país",
-                ),
+                ),*/
                 //customAutocompleteField(countryController, countries, "País")
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Provincia:", 16, textColor: Colors.blue),
+                CustomDropdown(
+                  labelText: 'Provincia',
+                  size: 220,
+                  selected: loc.provinceObj.toKeyValue(),
+                  options: provinces,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.province = val;
+                    });
+                  },
+                ),
+
+                /*customText("Provincia:", 16, textColor: Colors.blue),
                 customDropdownField(
                   provinceController,
                   provinces,
-                  _loc.provinceObj.toKeyValue(),
+                  loc.provinceObj.toKeyValue(),
                   "Seleccione provincia",
-                ),
+                ),*/
                 /*customAutocompleteField(
                     provinceController, provinces, "Provincia")*/
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Comunidad:", 16, textColor: Colors.blue),
+                CustomDropdown(
+                  labelText: 'Comunidad',
+                  size: 220,
+                  selected: loc.regionObj.toKeyValue(),
+                  options: regions,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.region = val;
+                    });
+                  },
+                ),
+
+                /*customText("Comunidad:", 16, textColor: Colors.blue),
                 customDropdownField(
                   regionController,
                   regions,
-                  _loc.regionObj.toKeyValue(),
+                  loc.regionObj.toKeyValue(),
                   "Seleccione provincia",
-                ),
+                ),*/
                 //customAutocompleteField(regionController, regions, "Comunidad")
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Municipio:", 16, textColor: Colors.blue),
+                CustomDropdown(
+                  labelText: 'Municipio',
+                  size: 220,
+                  selected: loc.townObj.toKeyValue(),
+                  options: towns,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.town = val;
+                    });
+                  },
+                ),
+
+                /*customText("Municipio:", 16, textColor: Colors.blue),
                 customDropdownField(
                   townController,
                   towns,
-                  _loc.townObj.toKeyValue(),
+                  loc.townObj.toKeyValue(),
                   "Seleccione provincia",
-                ),
+                ),*/
                 //customAutocompleteField(townController, towns, "Municipio")
               ]),
               space(width: 20),
             ]),
           ),
           actions: <Widget>[
-            TextButton(
+            dialogsBtns(context, saveLocation, loc)
+            /*TextButton(
               child: const Text('Save'),
               onPressed: () async {
                 _saveLocation(
                     context,
-                    _loc,
+                    loc,
                     countryController.text,
                     provinceController.text,
                     regionController.text,
                     townController.text,
-                    _project,
+                    project,
                     countries,
                     provinces,
                     regions,
@@ -1126,7 +1038,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-            ),
+            ),*/
           ],
         );
       },

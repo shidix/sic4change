@@ -1042,6 +1042,21 @@ Widget returnBtn(context) {
   );
 }
 
+Widget dialogsBtns(context, action, obj) {
+  return Row(children: [
+    Expanded(
+      flex: 5,
+      child:
+          actionButton(context, "Enviar", action, Icons.save_outlined, [obj]),
+    ),
+    space(width: 10),
+    Expanded(
+        flex: 5,
+        child: actionButton(
+            context, "Cancelar", cancelItem, Icons.cancel, context))
+  ]);
+}
+
 //--------------------------------------------------------------------------
 //                           TABS
 //--------------------------------------------------------------------------
@@ -1157,4 +1172,11 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
       );
     },
   );
+}
+
+//--------------------------------------------------------------------------
+//                           ACTIONS
+//--------------------------------------------------------------------------
+void cancelItem(BuildContext context) {
+  Navigator.of(context).pop();
 }

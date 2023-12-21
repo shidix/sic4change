@@ -60,6 +60,18 @@ Future<List> getCountries() async {
   return items;
 }
 
+Future<List<KeyValue>> getCountriesHash() async {
+  List<KeyValue> items = [];
+
+  QuerySnapshot query = await dbCountry.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(Country.fromJson(data).toKeyValue());
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                           PROVINCE
 //--------------------------------------------------------------
@@ -112,6 +124,18 @@ Future<List> getProvinces() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(Province.fromJson(data));
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getProvincesHash() async {
+  List<KeyValue> items = [];
+
+  QuerySnapshot query = await dbProvince.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(Province.fromJson(data).toKeyValue());
   }
   return items;
 }
@@ -172,6 +196,18 @@ Future<List> getRegions() async {
   return items;
 }
 
+Future<List<KeyValue>> getRegionsHash() async {
+  List<KeyValue> items = [];
+
+  QuerySnapshot query = await dbRegion.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(Region.fromJson(data).toKeyValue());
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                      TOWN
 //--------------------------------------------------------------
@@ -224,6 +260,18 @@ Future<List> getTowns() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(Town.fromJson(data));
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getTownsHash() async {
+  List<KeyValue> items = [];
+
+  QuerySnapshot query = await dbTown.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(Town.fromJson(data).toKeyValue());
   }
   return items;
 }

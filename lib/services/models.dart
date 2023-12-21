@@ -105,9 +105,9 @@ class SProject {
   }
 
   Future<SProject> reload() async {
-    DocumentSnapshot _doc = await dbProject.doc(id).get();
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
+    DocumentSnapshot doc = await dbProject.doc(id).get();
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
     // SProject _project = SProject.fromJson(data);
     typeObj = await getProjectType();
     managerObj = await getManager();
@@ -231,19 +231,19 @@ class SProject {
   }
 
   Future<List<Contact>> getPartners() async {
-    List<Contact> _par_list = [];
+    List<Contact> parList = [];
     for (String par in partners) {
       try {
         QuerySnapshot query =
             await dbContacts.where("uuid", isEqualTo: par).get();
-        final _doc = query.docs.first;
-        final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-        data["id"] = _doc.id;
-        Contact _contact = Contact.fromJson(data);
-        _par_list.add(_contact);
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Contact contact = Contact.fromJson(data);
+        parList.add(contact);
       } catch (e) {}
     }
-    return _par_list;
+    return parList;
   }
 
   static Future<SProject> getByUuid(String uuid) async {
