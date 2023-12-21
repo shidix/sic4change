@@ -240,6 +240,47 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
   }
 
+
+  Widget generalPanel(context, questions, califications, dialog) {
+    return Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        // height: 150,
+        color: Colors.white,
+        child: currentProject != null
+            ? Column(children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        child: actionButtonVertical(
+                            context,
+                            'Nuevo ítem',
+                            dialog,
+                            Icons.add,
+                            {'context': context, 'item': null}))),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: questions!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      TransversalQuestion item =
+                          questions!.elementAt(index);
+                      return Tooltip(
+                          message: 'Click para editar',
+                          showDuration: const Duration(seconds: 0),
+                          child: ListTile(
+                              subtitle: rowTransversal(item, califications),
+                              onTap: () {
+                                dialog(
+                                    {'context': context, 'item': item});
+                              }));
+                    })
+              ])
+            : const Center(
+                child: CircularProgressIndicator(),
+              ));
+  }
+
 ////// QUALITY QUESTIONS
 
   void addQualityPanel(args) {
@@ -286,120 +327,123 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
     }
 
-    Widget panel = Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        // height: 150,
-        color: Colors.white,
-        child: currentProject != null
-            ? Column(children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: actionButtonVertical(
-                            context,
-                            'Nuevo ítem',
-                            qualityQuestionDialog,
-                            Icons.add,
-                            {'context': context, 'item': null}))),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: qualityQuestions!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      TransversalQuestion item =
-                          qualityQuestions!.elementAt(index);
-                      TextStyle style = (item.isMain()
-                          ? successText.copyWith(color: Colors.white)
-                          : normalText);
-                      Color bgColor =
-                          (item.isMain() ? mainColor : Colors.white);
-                      return Tooltip(
-                          message: 'Click para editar',
-                          showDuration: const Duration(seconds: 0),
-                          child: ListTile(
-                              subtitle: Container(
-                                  color: bgColor,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                          flex: 1,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                child: Text(
-                                                  item.code,
-                                                  style: style,
-                                                )),
-                                          )),
-                                      Expanded(
-                                          flex: 8,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                child: Text(
-                                                  (item.isMain())
-                                                      ? "${item.subject} (${califications[item.code]})"
-                                                      : item.subject,
-                                                  style: style,
-                                                )),
-                                          )),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              (item.isMain()
-                                                  ? "Sí/No"
-                                                  : item.completed
-                                                      ? "Sí"
-                                                      : "No"),
-                                              style: style,
-                                              textAlign: TextAlign.center,
-                                            )),
-                                      ),
-                                      Expanded(
-                                        flex: 6,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              item.isMain()
-                                                  ? "Comentarios"
-                                                  : item.comments,
-                                              style: style,
-                                              textAlign: TextAlign.left,
-                                            )),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Text(
-                                              item.isMain()
-                                                  ? "Docs."
-                                                  : item.docs.isNotEmpty
-                                                      ? item.docs.toString()
-                                                      : '',
-                                              style: style,
-                                              textAlign: TextAlign.center,
-                                            )),
-                                      ),
-                                    ],
-                                  )),
-                              onTap: () {
-                                qualityQuestionDialog(
-                                    {'context': context, 'item': item});
-                              }));
-                    })
-              ])
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+    // Widget panel = Container(
+    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+    //     // height: 150,
+    //     color: Colors.white,
+    //     child: currentProject != null
+    //         ? Column(children: [
+    //             Align(
+    //                 alignment: Alignment.topRight,
+    //                 child: Padding(
+    //                     padding:
+    //                         EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    //                     child: actionButtonVertical(
+    //                         context,
+    //                         'Nuevo ítem',
+    //                         qualityQuestionDialog,
+    //                         Icons.add,
+    //                         {'context': context, 'item': null}))),
+    //             ListView.builder(
+    //                 shrinkWrap: true,
+    //                 itemCount: qualityQuestions!.length,
+    //                 itemBuilder: (BuildContext context, int index) {
+    //                   TransversalQuestion item =
+    //                       qualityQuestions!.elementAt(index);
+    //                   TextStyle style = (item.isMain()
+    //                       ? successText.copyWith(color: Colors.white)
+    //                       : normalText);
+    //                   Color bgColor =
+    //                       (item.isMain() ? mainColor : Colors.white);
+    //                   return Tooltip(
+    //                       message: 'Click para editar',
+    //                       showDuration: const Duration(seconds: 0),
+    //                       child: ListTile(
+    //                           subtitle: Container(
+    //                               color: bgColor,
+    //                               child: Row(
+    //                                 children: [
+    //                                   Expanded(
+    //                                       flex: 1,
+    //                                       child: Align(
+    //                                         alignment: Alignment.centerLeft,
+    //                                         child: Padding(
+    //                                             padding:
+    //                                                 const EdgeInsets.all(10),
+    //                                             child: Text(
+    //                                               item.code,
+    //                                               style: style,
+    //                                             )),
+    //                                       )),
+    //                                   Expanded(
+    //                                       flex: 8,
+    //                                       child: Align(
+    //                                         alignment: Alignment.centerLeft,
+    //                                         child: Padding(
+    //                                             padding:
+    //                                                 const EdgeInsets.all(10),
+    //                                             child: Text(
+    //                                               (item.isMain())
+    //                                                   ? "${item.subject} (${califications[item.code]})"
+    //                                                   : item.subject,
+    //                                               style: style,
+    //                                             )),
+    //                                       )),
+    //                                   Expanded(
+    //                                     flex: 2,
+    //                                     child: Padding(
+    //                                         padding: const EdgeInsets.all(10),
+    //                                         child: Text(
+    //                                           (item.isMain()
+    //                                               ? "Sí/No"
+    //                                               : item.completed
+    //                                                   ? "Sí"
+    //                                                   : "No"),
+    //                                           style: style,
+    //                                           textAlign: TextAlign.center,
+    //                                         )),
+    //                                   ),
+    //                                   Expanded(
+    //                                     flex: 6,
+    //                                     child: Padding(
+    //                                         padding: const EdgeInsets.all(10),
+    //                                         child: Text(
+    //                                           item.isMain()
+    //                                               ? "Comentarios"
+    //                                               : item.comments,
+    //                                           style: style,
+    //                                           textAlign: TextAlign.left,
+    //                                         )),
+    //                                   ),
+    //                                   Expanded(
+    //                                     flex: 2,
+    //                                     child: Padding(
+    //                                         padding: const EdgeInsets.all(10),
+    //                                         child: Text(
+    //                                           item.isMain()
+    //                                               ? "Docs."
+    //                                               : item.docs.isNotEmpty
+    //                                                   ? item.docs.toString()
+    //                                                   : '',
+    //                                           style: style,
+    //                                           textAlign: TextAlign.center,
+    //                                         )),
+    //                                   ),
+    //                                 ],
+    //                               )),
+    //                           onTap: () {
+    //                             qualityQuestionDialog(
+    //                                 {'context': context, 'item': item});
+    //                           }));
+    //                 })
+    //           ])
+    //         : const Center(
+    //             child: CircularProgressIndicator(),
+    //           ));
 
+    Widget panel = generalPanel(context, qualityQuestions, califications,
+        qualityQuestionDialog);
+        
     return Column(children: [
       panel,
       const Divider(
@@ -530,44 +574,46 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${genderCounters.last}/$questionsInMain";
     }
 
-    Widget panel = Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        // height: 150,
-        color: Colors.white,
-        child: currentProject != null
-            ? Column(children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: actionButtonVertical(
-                            context,
-                            'Nuevo ítem',
-                            genderQuestionDialog,
-                            Icons.add,
-                            {'context': context, 'item': null}))),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: genderQuestions!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      TransversalQuestion item =
-                          genderQuestions!.elementAt(index);
-                      return Tooltip(
-                          message: 'Click para editar',
-                          showDuration: const Duration(seconds: 0),
-                          child: ListTile(
-                              subtitle: headerTransversals(item, califications),
-                              onTap: () {
-                                genderQuestionDialog(
-                                    {'context': context, 'item': item});
-                              }));
-                    })
-              ])
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+    // Widget panel = Container(
+    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+    //     // height: 150,
+    //     color: Colors.white,
+    //     child: currentProject != null
+    //         ? Column(children: [
+    //             Align(
+    //                 alignment: Alignment.topRight,
+    //                 child: Padding(
+    //                     padding: const EdgeInsets.symmetric(
+    //                         horizontal: 20, vertical: 10),
+    //                     child: actionButtonVertical(
+    //                         context,
+    //                         'Nuevo ítem',
+    //                         genderQuestionDialog,
+    //                         Icons.add,
+    //                         {'context': context, 'item': null}))),
+    //             ListView.builder(
+    //                 shrinkWrap: true,
+    //                 itemCount: genderQuestions!.length,
+    //                 itemBuilder: (BuildContext context, int index) {
+    //                   TransversalQuestion item =
+    //                       genderQuestions!.elementAt(index);
+    //                   return Tooltip(
+    //                       message: 'Click para editar',
+    //                       showDuration: const Duration(seconds: 0),
+    //                       child: ListTile(
+    //                           subtitle: headerTransversals(item, califications),
+    //                           onTap: () {
+    //                             genderQuestionDialog(
+    //                                 {'context': context, 'item': item});
+    //                           }));
+    //                 })
+    //           ])
+    //         : const Center(
+    //             child: CircularProgressIndicator(),
+    //           ));
 
+    Widget panel = generalPanel(context, genderQuestions, califications,
+        genderQuestionDialog);
     return Column(children: [
       panel,
       const Divider(
@@ -588,6 +634,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       }
     });
   }
+
 
   Widget transparencyPanel() {
     transparencyQuestions = transparency!.questions;
@@ -625,43 +672,46 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
           "${transparencyCounters.last}/$questionsInMain";
     }
 
-    Widget panel = Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        // height: 150,
-        color: Colors.white,
-        child: currentProject != null
-            ? Column(children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: actionButtonVertical(
-                            context,
-                            'Nuevo ítem',
-                            transparencyQuestionDialog,
-                            Icons.add,
-                            {'context': context, 'item': null}))),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: transparencyQuestions!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      TransversalQuestion item =
-                          transparencyQuestions!.elementAt(index);
-                      return Tooltip(
-                          message: 'Click para editar',
-                          showDuration: const Duration(seconds: 0),
-                          child: ListTile(
-                              subtitle: headerTransversals(item, califications),
-                              onTap: () {
-                                transparencyQuestionDialog(
-                                    {'context': context, 'item': item});
-                              }));
-                    })
-              ])
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+    Widget panel = generalPanel(context, transparencyQuestions, califications,
+        transparencyQuestionDialog);
+
+    // Widget panel = Container(
+    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+    //     // height: 150,
+    //     color: Colors.white,
+    //     child: currentProject != null
+    //         ? Column(children: [
+    //             Align(
+    //                 alignment: Alignment.topRight,
+    //                 child: Padding(
+    //                     padding: const EdgeInsets.symmetric(
+    //                         horizontal: 20, vertical: 10),
+    //                     child: actionButtonVertical(
+    //                         context,
+    //                         'Nuevo ítem',
+    //                         transparencyQuestionDialog,
+    //                         Icons.add,
+    //                         {'context': context, 'item': null}))),
+    //             ListView.builder(
+    //                 shrinkWrap: true,
+    //                 itemCount: transparencyQuestions!.length,
+    //                 itemBuilder: (BuildContext context, int index) {
+    //                   TransversalQuestion item =
+    //                       transparencyQuestions!.elementAt(index);
+    //                   return Tooltip(
+    //                       message: 'Click para editar',
+    //                       showDuration: const Duration(seconds: 0),
+    //                       child: ListTile(
+    //                           subtitle: headerTransversals(item, califications),
+    //                           onTap: () {
+    //                             transparencyQuestionDialog(
+    //                                 {'context': context, 'item': item});
+    //                           }));
+    //                 })
+    //           ])
+    //         : const Center(
+    //             child: CircularProgressIndicator(),
+    //           ));
 
     return Column(children: [
       panel,
@@ -754,44 +804,46 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
           "${environmentCounters.last}/$questionsInMain";
     }
 
-    Widget panel = Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        // height: 150,
-        color: Colors.white,
-        child: currentProject != null
-            ? Column(children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: actionButtonVertical(
-                            context,
-                            'Nuevo ítem',
-                            environmentQuestionDialog,
-                            Icons.add,
-                            {'context': context, 'item': null}))),
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: environmentQuestions!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      TransversalQuestion item =
-                          environmentQuestions!.elementAt(index);
-                      return Tooltip(
-                          message: 'Click para editar',
-                          showDuration: const Duration(seconds: 0),
-                          child: ListTile(
-                              subtitle: headerTransversals(item, califications),
-                              onTap: () {
-                                environmentQuestionDialog(
-                                    {'context': context, 'item': item});
-                              }));
-                    })
-              ])
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+    // Widget panel = Container(
+    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+    //     // height: 150,
+    //     color: Colors.white,
+    //     child: currentProject != null
+    //         ? Column(children: [
+    //             Align(
+    //                 alignment: Alignment.topRight,
+    //                 child: Padding(
+    //                     padding: const EdgeInsets.symmetric(
+    //                         horizontal: 20, vertical: 10),
+    //                     child: actionButtonVertical(
+    //                         context,
+    //                         'Nuevo ítem',
+    //                         environmentQuestionDialog,
+    //                         Icons.add,
+    //                         {'context': context, 'item': null}))),
+    //             ListView.builder(
+    //                 shrinkWrap: true,
+    //                 itemCount: environmentQuestions!.length,
+    //                 itemBuilder: (BuildContext context, int index) {
+    //                   TransversalQuestion item =
+    //                       environmentQuestions!.elementAt(index);
+    //                   return Tooltip(
+    //                       message: 'Click para editar',
+    //                       showDuration: const Duration(seconds: 0),
+    //                       child: ListTile(
+    //                           subtitle: headerTransversals(item, califications),
+    //                           onTap: () {
+    //                             environmentQuestionDialog(
+    //                                 {'context': context, 'item': item});
+    //                           }));
+    //                 })
+    //           ])
+    //         : const Center(
+    //             child: CircularProgressIndicator(),
+    //           ));
 
+    Widget panel = generalPanel(context, environmentQuestions, califications,
+        environmentQuestionDialog);
     return Column(children: [
       panel,
       const Divider(
@@ -837,7 +889,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
 ////// GENERAL
 
-  Container headerTransversals(item, califications) {
+  Container rowTransversal(item, califications) {
     TextStyle style = (item.isMain()
         ? successText.copyWith(color: Colors.white)
         : normalText);
@@ -902,7 +954,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     item.isMain()
                         ? "Docs."
                         : item.docs.isNotEmpty
-                            ? item.docs.toString()
+                            ? item.docs.join(",")
                             : '',
                     style: style,
                     textAlign: TextAlign.center,

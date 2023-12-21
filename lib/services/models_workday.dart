@@ -72,6 +72,10 @@ class Workday {
     }
   }
 
+  double hours() {
+    return endDate.difference(startDate).inMinutes / 60;
+  }
+
   static Workday getEmpty() {
     DateTime today = DateTime.now();
     return Workday(

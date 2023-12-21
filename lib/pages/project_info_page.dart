@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -174,7 +176,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Necesita auditoría:", 14, bold: FontWeight.bold),
+                  customText("Auditoría:", 14, bold: FontWeight.bold),
                   space(height: 5),
                   customText(audit, 14),
                 ],
@@ -184,7 +186,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             color: Colors.grey,
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Necesita evaluación:", 14, bold: FontWeight.bold),
+            customText("Evaluación:", 14, bold: FontWeight.bold),
             space(height: 5),
             customText(evaluation, 14),
           ]),
@@ -299,15 +301,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     TableRow(children: [
-                      customText("Fecha de aprobación", 14,
-                          bold: FontWeight.bold),
-                      customText("Fecha de inicio", 14, bold: FontWeight.bold),
-                      customText("Fecha de finalización", 14,
-                          bold: FontWeight.bold),
-                      customText("Fecha de Justificación", 14,
-                          bold: FontWeight.bold),
-                      customText(
-                          "Fecha de entrega de informes y seguimiento", 14,
+                      customText("Aprobación", 14, bold: FontWeight.bold),
+                      customText("Inicio", 14, bold: FontWeight.bold),
+                      customText("Finalización", 14, bold: FontWeight.bold),
+                      customText("Justificación", 14, bold: FontWeight.bold),
+                      customText("Informes de seguimiento", 14,
                           bold: FontWeight.bold),
                     ]),
                     TableRow(children: [
@@ -432,6 +430,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT PROJECT                             */
 /*--------------------------------------------------------------------*/
+  // void _saveProject(context, project, _announcement, _ambit) async {
+  //   //_project ??= SProject("", _name, _desc, _type, _budget, _manager,
+  //   //    _programme, _announcement, _ambit, _audit, _evaluation);
+
+  //   project.save();
+  //   loadProject(project);
+  // }
+
   void saveProject(List args) async {
     SProject project = args[0];
     project.save();
@@ -717,6 +723,38 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     });
   }
 
+  /*Widget customDateField(context, dateController) {
+    return SizedBox(
+        width: 220,
+        child: TextField(
+          controller: dateController, //editing controller of this TextField
+          decoration: const InputDecoration(
+              icon: Icon(Icons.calendar_today), //icon of text field
+              labelText: "Enter Date" //label text of field
+              ),
+          readOnly: true, //set it true, so that user will not able to edit text
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(
+                    2000), //DateTime.now() - not to allow to choose before today.
+                lastDate: DateTime(2101));
+
+            if (pickedDate != null) {
+              //print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+              String formattedDate =
+                  DateFormat('dd-MM-yyyy').format(pickedDate);
+              //print(formattedDate); //formatted date output using intl package =>  2021-03-16
+
+              setState(() {
+                dateController.text = formattedDate;
+              });
+            } else {}
+          },
+        ));
+  }*/
+
   Future<void> editProjectDatesDialog(context, dates) {
     return showDialog<void>(
       context: context,
@@ -733,7 +771,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
-                      labelText: 'Fecha de aprobación',
+                      labelText: 'Aprobación',
                       selectedDate: dates.approved,
                       onSelectedDate: (DateTime date) {
                         setState(() {
@@ -749,7 +787,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
-                      labelText: 'Fecha de inicio',
+                      labelText: 'Inicio',
                       selectedDate: dates.start,
                       onSelectedDate: (DateTime date) {
                         setState(() {
@@ -765,7 +803,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
-                      labelText: 'Fecha de fin',
+                      labelText: 'Fin',
                       selectedDate: dates.end,
                       onSelectedDate: (DateTime date) {
                         setState(() {
@@ -782,7 +820,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
-                      labelText: 'Fecha de justificación',
+                      labelText: 'Justificación',
                       selectedDate: dates.justification,
                       onSelectedDate: (DateTime date) {
                         setState(() {
@@ -798,7 +836,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 SizedBox(
                     width: 220,
                     child: DateTimePicker(
-                      labelText: 'Fecha de entrega',
+                      labelText: 'Informe de seguimiento',
                       selectedDate: dates.delivery,
                       onSelectedDate: (DateTime date) {
                         setState(() {

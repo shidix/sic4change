@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -350,6 +351,7 @@ class TransversalQuestion {
   bool completed;
   String comments;
   List docs;
+  List<SFile> files = [];
 
   TransversalQuestion({
     required this.code,
@@ -364,13 +366,19 @@ class TransversalQuestion {
   }
 
   factory TransversalQuestion.fromJson(Map data) {
-    return TransversalQuestion(
+    TransversalQuestion item = TransversalQuestion(
       code: data['code'],
       subject: data['subject'],
       completed: data['completed'],
       comments: data['comments'],
       docs: data['docs'],
     );
+    for (var loc in item.docs) {
+      SFile.byLoc(loc).then((value) {
+        item.files.add(value);
+      });
+    }
+    return item;
   }
 
   Map<String, dynamic> toJson() => {

@@ -1,6 +1,33 @@
 import 'package:intl/intl.dart';
 
-String dateToES(DateTime date, {bool withTime = false}) {
+const List<String> MONTHS = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio ",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre "
+];
+
+List reshape(List list, int m, int n) {
+  List result = [];
+  for (int i = 0; i < m; i++) {
+    List row = [];
+    for (int j = 0; j < n; j++) {
+      row.add(list[i * n + j]);
+    }
+    result.add(row);
+  }
+  return result;
+}
+
+String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
   List days = [
     "Lunes",
     "Martes",
@@ -10,20 +37,7 @@ String dateToES(DateTime date, {bool withTime = false}) {
     "Sabado",
     "Domingo",
   ];
-  List months = [
-    "Enero",
-    "Febrero",
-    "Marzo",
-    "Abril",
-    "Mayo",
-    "Junio ",
-    "Julio",
-    "Agosto",
-    "Septiembre",
-    "Octubre",
-    "Noviembre",
-    "Diciembre "
-  ];
+  List months = MONTHS;
 
   final dateFormatted =
       "${days[date.weekday - 1]}, ${date.day} de ${months[date.month - 1]} de ${date.year}";

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, non_constant_identifier_names
+
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -94,19 +96,19 @@ class _ResultsPageState extends State<ResultsPage> {
   Widget resultHeader(context, _goal) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
-        padding: EdgeInsets.only(left: 40),
+        padding: const EdgeInsets.only(left: 40),
         child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_goal.name, style: TextStyle(fontSize: 20)),
+              Text(_goal.name, style: const TextStyle(fontSize: 20)),
               space(height: 20),
               customLinearPercent(context, 1.5, 0.8, Colors.blue),
               space(height: 20)
             ]),
       ),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -261,7 +263,7 @@ class _ResultsPageState extends State<ResultsPage> {
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             results = snapshot.data!;
-            if (results.length > 0) {
+            if (results.isNotEmpty) {
               return ListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: results.length,
@@ -269,8 +271,8 @@ class _ResultsPageState extends State<ResultsPage> {
                     Result _result = results[index];
                     return Container(
                       //height: 400,
-                      padding: EdgeInsets.only(top: 10, bottom: 10),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.only(top: 10, bottom: 10),
+                      decoration: const BoxDecoration(
                         border: Border(
                             bottom:
                                 BorderSide(color: Color(0xffdfdfdf), width: 2)),
@@ -305,8 +307,9 @@ class _ResultsPageState extends State<ResultsPage> {
                               })))
                 ],
               );*/
-            } else
-              return Text("");
+            } else {
+              return const Text("");
+            }
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -343,11 +346,11 @@ class _ResultsPageState extends State<ResultsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${_result.indicator_text}'),
-            new CircularPercentIndicator(
+            CircularPercentIndicator(
               radius: 30.0,
               lineWidth: 8.0,
               percent: _percent,
-              center: new Text(_percent.toString() + " %"),
+              center: Text("$_percent %"),
               progressColor: Colors.lightGreen,
             ),
           ],
@@ -402,7 +405,7 @@ class _ResultsPageState extends State<ResultsPage> {
         return AlertDialog(
           // <-- SEE HERE
           title: const Text('Remove Result'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: Text("Are you sure to remove this element?"),
           ),
           actions: <Widget>[
