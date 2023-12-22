@@ -9,6 +9,7 @@ import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 //final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -75,6 +76,10 @@ class MyApp extends StatelessWidget {
       title: 'Material App',
       initialRoute: '/',
       routes: _routes,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('es', ''),
+      
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
