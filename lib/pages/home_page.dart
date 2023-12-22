@@ -14,6 +14,7 @@ import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -160,7 +161,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(flex: 1, child: projectsPanel(context)),
             ],
-          )
+          ),
+          footer(context),
         ],
       ),
     ));
@@ -431,7 +433,7 @@ class _HomePageState extends State<HomePage> {
 
     dates = dates.reversed.toList();
 
-    List<dynamic> matrix = reshape(dates, 3, 4) as List<dynamic>;
+    List<dynamic> matrix = reshape(dates, 3, 4);
 
     List<Widget> buttonsMonth = [];
     for (var row in matrix) {
@@ -711,7 +713,7 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context2) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Solicitud de vacaciones'),
+          title: s4cTitleBar('Solicitud de días libres', context),
           content: HolidayRequestForm(
             key: null,
             currentRequest: currentHoliday,

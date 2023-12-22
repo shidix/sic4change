@@ -6,6 +6,7 @@ import 'dart:js' as js;
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 Widget customTitle(context, _text) {
@@ -470,6 +471,70 @@ Widget customRowDividerBlue() {
   );
 }
 
+class DateTimeRangePicker extends StatelessWidget {
+  const DateTimeRangePicker({
+    Key? key,
+    required DateTimeRange this.calendarRangeDate,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+  }) : super(key: key);
+
+  final DateTimeRange calendarRangeDate;
+  final String labelText;
+  final DateTimeRange selectedDate;
+  final ValueChanged<DateTimeRange> onSelectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+      final DateTimeRange? picked = await showDateRangePicker(
+          context: context,
+          firstDate: calendarRangeDate.start,
+          lastDate: calendarRangeDate.end,
+          initialDateRange: DateTimeRange(
+            end: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 13),
+            start: DateTime.now(),
+          ),
+          builder: (context, child) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 400.0,
+                    maxHeight: 500.0,
+                  ),
+                  child: child,
+                )
+              ],
+            );
+          });
+
+    if (picked != null && picked != selectedDate) onSelectedDate(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
+            ),
+            const Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+    );
+  }
+
+}
+
 class DateTimePicker extends StatelessWidget {
   const DateTimePicker({
     Key? key,
@@ -919,6 +984,8 @@ const TextStyle normalText = TextStyle(
   fontSize: 14,
   fontWeight: FontWeight.normal,
 );
+
+TextStyle sloganText = normalText.copyWith(fontSize: 20, fontWeight: FontWeight.bold);
 
 const TextStyle headerTitleText = TextStyle(
   fontFamily: 'Readex Pro',
