@@ -31,6 +31,21 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    getProjects().then((val) {
+      setState(() {
+        prList = val;
+      });
+      for (SProject item in prList) {
+        item.loadObjs().then((value) {
+          setState(() {});
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: SingleChildScrollView(
@@ -219,6 +234,33 @@ class _ProjectsPageState extends State<ProjectsPage> {
                      PROJECTS
 -------------------------------------------------------------*/
   Widget projectList(context) {
+    return Container(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Builder(builder: ((context) {
+          if (prList.isNotEmpty) {
+            return SizedBox(
+                height: 900,
+                child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: .9,
+                    ),
+                    itemCount: prList.length,
+                    itemBuilder: (_, index) {
+                      return projectCard(context, prList[index]);
+                    }));
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        })));
+  }
+
+  Widget projectList2(context) {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: FutureBuilder(

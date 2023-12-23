@@ -176,74 +176,107 @@ class SProject {
   }
 
   Future<ProjectType> getProjectType() async {
-    try {
-      QuerySnapshot query =
-          await dbProjectType.where("uuid", isEqualTo: type).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ProjectType.fromJson(data);
-    } catch (e) {
-      return ProjectType("");
+    if (typeObj.name == "") {
+      try {
+        QuerySnapshot query =
+            await dbProjectType.where("uuid", isEqualTo: type).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        return ProjectType.fromJson(data);
+      } catch (e) {
+        return ProjectType("");
+      }
+    } else {
+      return typeObj;
     }
   }
 
   Future<Contact> getManager() async {
-    try {
-      QuerySnapshot query =
-          await dbContacts.where("uuid", isEqualTo: manager).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
-      return Contact.fromJson(data);
-    } catch (e) {
-      return Contact("", "", "", "", "");
+    if (managerObj.name == "") {
+      try {
+        QuerySnapshot query =
+            await dbContacts.where("uuid", isEqualTo: manager).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        return Contact.fromJson(data);
+      } catch (e) {
+        return Contact("", "", "", "", "");
+      }
+    } else {
+      return managerObj;
     }
   }
 
   Future<Programme> getProgramme() async {
-    try {
-      QuerySnapshot query =
-          await dbProgramme.where("uuid", isEqualTo: programme).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
-      return Programme.fromJson(data);
-    } catch (e) {
-      return Programme("");
+    if (programmeObj.name == "") {
+      try {
+        QuerySnapshot query =
+            await dbProgramme.where("uuid", isEqualTo: programme).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        return Programme.fromJson(data);
+      } catch (e) {
+        return Programme("");
+      }
+    } else {
+      return programmeObj;
     }
   }
 
   Future<List<Financier>> getFinanciers() async {
-    List<Financier> _fin_list = [];
-    for (String fin in financiers) {
-      try {
-        QuerySnapshot query =
-            await dbFinancier.where("uuid", isEqualTo: fin).get();
-        final _doc = query.docs.first;
-        final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-        data["id"] = _doc.id;
-        Financier _financier = Financier.fromJson(data);
-        _fin_list.add(_financier);
-      } catch (e) {}
+    if (financiersObj.isEmpty) {
+      List<Financier> _fin_list = [];
+      for (String fin in financiers) {
+        try {
+          QuerySnapshot query =
+              await dbFinancier.where("uuid", isEqualTo: fin).get();
+          final _doc = query.docs.first;
+          final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+          data["id"] = _doc.id;
+          Financier _financier = Financier.fromJson(data);
+          _fin_list.add(_financier);
+        } catch (e) {}
+      }
+      return _fin_list;
+    } else {
+      return financiersObj;
     }
-    return _fin_list;
   }
 
   Future<List<Contact>> getPartners() async {
-    List<Contact> parList = [];
-    for (String par in partners) {
-      try {
-        QuerySnapshot query =
-            await dbContacts.where("uuid", isEqualTo: par).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        Contact contact = Contact.fromJson(data);
-        parList.add(contact);
-      } catch (e) {}
+    if (partnersObj.isEmpty) {
+      List<Contact> _par_list = [];
+      for (String par in partners) {
+        try {
+          QuerySnapshot query =
+              await dbContacts.where("uuid", isEqualTo: par).get();
+          final _doc = query.docs.first;
+          final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+          data["id"] = _doc.id;
+          Contact _contact = Contact.fromJson(data);
+          _par_list.add(_contact);
+        } catch (e) {}
+      }
+      return _par_list;
+    } else {
+      return partnersObj;
     }
-    return parList;
+    // List<Contact> parList = [];
+    // for (String par in partners) {
+    //   try {
+    //     QuerySnapshot query =
+    //         await dbContacts.where("uuid", isEqualTo: par).get();
+    //     final doc = query.docs.first;
+    //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //     data["id"] = doc.id;
+    //     Contact contact = Contact.fromJson(data);
+    //     parList.add(contact);
+    //   } catch (e) {}
+    // }
+    // return parList;
   }
 
   static Future<SProject> getByUuid(String uuid) async {
@@ -257,6 +290,15 @@ class SProject {
     });
     return item;
   }
+
+  Future<void> loadObjs() async {
+    typeObj = await getProjectType();
+    managerObj = await getManager();
+    programmeObj = await getProgramme();
+    financiersObj = await getFinanciers();
+    partnersObj = await getPartners();
+    datesObj = await getDates();
+  }
 }
 
 Future<List> getProjects() async {
@@ -267,12 +309,12 @@ Future<List> getProjects() async {
     data["id"] = doc.id;
     final item = SProject.fromJson(data);
     try {
-      item.typeObj = await item.getProjectType();
-      item.managerObj = await item.getManager();
-      item.programmeObj = await item.getProgramme();
-      item.financiersObj = await item.getFinanciers();
-      item.partnersObj = await item.getPartners();
-      item.datesObj = await item.getDates();
+      // item.typeObj = await item.getProjectType();
+      // item.managerObj = await item.getManager();
+      // item.programmeObj = await item.getProgramme();
+      // item.financiersObj = await item.getFinanciers();
+      // item.partnersObj = await item.getPartners();
+      // item.datesObj = await item.getDates();
     } catch (e) {}
     items.add(item);
   }
