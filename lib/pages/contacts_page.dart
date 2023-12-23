@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -17,12 +18,15 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
+  User user = FirebaseAuth.instance.currentUser!;
 
   void loadContacts(value) async {
     await searchContacts(value).then((val) {
       contacts = val;
     });
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -35,7 +39,7 @@ class _ContactsPageState extends State<ContactsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(children: [
-        mainMenu(context, null, "/contacts"),
+        mainMenu(context, user, "/contacts"),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
             padding: const EdgeInsets.only(left: 40),
@@ -97,6 +101,29 @@ class _ContactsPageState extends State<ContactsPage> {
 }*/
 
 Widget contactList(context) {
+  return Builder(builder: ((context) {
+    if (contacts.isNotEmpty) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[
+          Expanded(
+              child: Container(
+            padding: const EdgeInsets.all(5),
+            child: dataBody(context),
+          ))
+        ],
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+  }));
+}
+
+Widget contactList2(context) {
   return FutureBuilder(
       future: getContacts(),
       builder: ((context, snapshot) {

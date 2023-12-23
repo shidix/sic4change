@@ -209,8 +209,11 @@ Future<List> searchContacts(name) async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     final item = Contact.fromJson(data);
-    item.companyObj = await item.getCompany();
-    item.projectsObj = await item.getProjects();
+    item.getCompany();
+    item.getProjects();
+    // item.companyObj = await item.getCompany();
+
+    //item.projectsObj = item.getProjects();
     items.add(item);
   }
   return items;
