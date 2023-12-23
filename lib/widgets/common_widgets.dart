@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -486,28 +488,29 @@ class DateTimeRangePicker extends StatelessWidget {
   final ValueChanged<DateTimeRange> onSelectedDate;
 
   Future<void> _selectDate(BuildContext context) async {
-      final DateTimeRange? picked = await showDateRangePicker(
-          context: context,
-          firstDate: calendarRangeDate.start,
-          lastDate: calendarRangeDate.end,
-          initialDateRange: DateTimeRange(
-            end: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 13),
-            start: DateTime.now(),
-          ),
-          builder: (context, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 400.0,
-                    maxHeight: 500.0,
-                  ),
-                  child: child,
-                )
-              ],
-            );
-          });
+    final DateTimeRange? picked = await showDateRangePicker(
+        context: context,
+        firstDate: calendarRangeDate.start,
+        lastDate: calendarRangeDate.end,
+        initialDateRange: DateTimeRange(
+          end: DateTime(DateTime.now().year, DateTime.now().month,
+              DateTime.now().day + 13),
+          start: DateTime.now(),
+        ),
+        builder: (context, child) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 400.0,
+                  maxHeight: 500.0,
+                ),
+                child: child,
+              )
+            ],
+          );
+        });
 
     if (picked != null && picked != selectedDate) onSelectedDate(picked);
   }
@@ -532,7 +535,6 @@ class DateTimeRangePicker extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class DateTimePicker extends StatelessWidget {
@@ -985,7 +987,8 @@ const TextStyle normalText = TextStyle(
   fontWeight: FontWeight.normal,
 );
 
-TextStyle sloganText = normalText.copyWith(fontSize: 20, fontWeight: FontWeight.bold);
+TextStyle sloganText =
+    normalText.copyWith(fontSize: 20, fontWeight: FontWeight.bold);
 
 const TextStyle headerTitleText = TextStyle(
   fontFamily: 'Readex Pro',

@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
 
-  List<SProject>? myProjects = [];
+  List<SProject>? myProjects;
 
   @override
   void dispose() {
@@ -96,7 +96,52 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future loadMyData() async {
+  Future<void> loadMyData() async {
+    await Contact.byEmail(user.email!).then((value) {
+      contact = value;
+    });
+    contact!.getProjects().then((value) {
+      if (mounted) {
+        setState(() {
+          myProjects = value;
+        });
+      }
+    });
+    STask.getByAssigned(contact!.uuid).then((value) {
+      if (mounted) {
+        setState(() {
+          mytasks = value;
+        });
+      }
+    });
+    HolidayRequest.byUser(user.email!).then((value) {
+      myHolidays = value;
+      holidayDays = widget.HOLIDAY_DAYS;
+      for (HolidayRequest holiday in myHolidays!) {
+        holidayDays -=
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    Workday.byUser(user.email!).then((value) {
+      if (mounted) {
+        setState(() {
+          myWorkdays = value;
+        });
+      }
+    });
+    Workday.currentByUser(user.email!).then((value) {
+      if (mounted) {
+        setState(() {
+          currentWorkday = value;
+        });
+      }
+    });
+  }
+
+  Future loadMyData2() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
     });
@@ -1350,7 +1395,11 @@ class _HomePageState extends State<HomePage> {
                                           const Text(
                                               "Actualmente participan en ",
                                               style: subTitleText),
-                                          Text(myProjects!.length.toString(),
+                                          Text(
+                                              (myProjects == null)
+                                                  ? "0"
+                                                  : myProjects!.length
+                                                      .toString(),
                                               style: warningText),
                                           const Text(" proyectos",
                                               style: subTitleText),
@@ -1405,7 +1454,7 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.only(left: 10, right: 10, top: 10),
                     color: Colors.white,
-                    child: contact != null
+                    child: myProjects != null
                         ? ListView.builder(
                             shrinkWrap: true,
                             itemCount: myProjects!.length,

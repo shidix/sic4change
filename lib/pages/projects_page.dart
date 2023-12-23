@@ -34,13 +34,17 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void initState() {
     super.initState();
     getProjects().then((val) {
-      setState(() {
-        prList = val;
-      });
-      for (SProject item in prList) {
-        item.loadObjs().then((value) {
-          setState(() {});
+      if (mounted) {
+        setState(() {
+          prList = val;
         });
+        for (SProject item in prList) {
+          item.loadObjs().then((value) {
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        }
       }
     });
   }

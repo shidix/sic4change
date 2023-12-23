@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +15,7 @@ class HolidayRequestForm extends StatefulWidget {
       : super(key: key);
 
   @override
-  _HolidayRequestFormState createState() => _HolidayRequestFormState();
+  createState() => _HolidayRequestFormState();
 }
 
 class _HolidayRequestFormState extends State<HolidayRequestForm> {
@@ -126,7 +128,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal:0, vertical:5),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -141,9 +143,13 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               categorySelectField,
               space(),
               DateTimeRangePicker(
-                labelText: 'Período', 
-                calendarRangeDate: DateTimeRange(start: DateTime.now(), end: DateTime.now().add(Duration(days: 365))),
-                selectedDate: DateTimeRange(start: holidayRequest.startDate, end: holidayRequest.endDate), 
+                labelText: 'Período',
+                calendarRangeDate: DateTimeRange(
+                    start: DateTime.now(),
+                    end: DateTime.now().add(Duration(days: 365))),
+                selectedDate: DateTimeRange(
+                    start: holidayRequest.startDate,
+                    end: holidayRequest.endDate),
                 onSelectedDate: (DateTimeRange date) {
                   setState(() {
                     holidayRequest.startDate = date.start;
