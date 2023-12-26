@@ -25,6 +25,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+
+  double elapsedTime = 0.0;
   MyApp({super.key});
 
   final _routes = {
@@ -86,7 +88,8 @@ class MyApp extends StatelessWidget {
       },
     );
     double t1 = DateTime.now().millisecondsSinceEpoch / 1000;
-    print("Tiempo de carga de la app: " + (t1 - t0).toString());
+    elapsedTime = t1 - t0;
+    debugPrint("Elapsed time: $elapsedTime");
     return app;
   }
 }
