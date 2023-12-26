@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -42,9 +44,10 @@ dependencies:
   firebase_auth: ^4.9.0
   firebase_storage: ^11.2.6
   ffi: ^2.1.0
-  intl: ^0.17.0
+  intl: ^0.18.1
   dropdown_search: ^5.0.6
   pdf: ^3.6.0
+  syncfusion_flutter_datepicker: ^20.3.30  # Asegúrate de usar la última versión disponible
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +77,8 @@ flutter:
     - assets/images/logo_s4c.png
     - assets/images/logo_ministerio.png
   #   - images/a_dot_ham.jpeg
+
+  generate: true
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

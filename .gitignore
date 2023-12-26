@@ -48,3 +48,4 @@ app.*.map.json
 **Podfile
 
 web/start.sh
+pubspec.lock

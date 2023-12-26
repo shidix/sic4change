@@ -14,6 +14,7 @@ import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -41,7 +42,7 @@ class _HomePageState extends State<HomePage> {
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
 
-  List<SProject>? myProjects = [];
+  List<SProject>? myProjects;
 
   @override
   void dispose() {
@@ -95,7 +96,52 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future loadMyData() async {
+  Future<void> loadMyData() async {
+    await Contact.byEmail(user.email!).then((value) {
+      contact = value;
+    });
+    contact!.getProjects().then((value) {
+      if (mounted) {
+        setState(() {
+          myProjects = value;
+        });
+      }
+    });
+    STask.getByAssigned(contact!.uuid).then((value) {
+      if (mounted) {
+        setState(() {
+          mytasks = value;
+        });
+      }
+    });
+    HolidayRequest.byUser(user.email!).then((value) {
+      myHolidays = value;
+      holidayDays = widget.HOLIDAY_DAYS;
+      for (HolidayRequest holiday in myHolidays!) {
+        holidayDays -=
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    Workday.byUser(user.email!).then((value) {
+      if (mounted) {
+        setState(() {
+          myWorkdays = value;
+        });
+      }
+    });
+    Workday.currentByUser(user.email!).then((value) {
+      if (mounted) {
+        setState(() {
+          currentWorkday = value;
+        });
+      }
+    });
+  }
+
+  Future loadMyData2() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
     });
@@ -160,7 +206,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(flex: 1, child: projectsPanel(context)),
             ],
-          )
+          ),
+          footer(context),
         ],
       ),
     ));
@@ -431,7 +478,7 @@ class _HomePageState extends State<HomePage> {
 
     dates = dates.reversed.toList();
 
-    List<dynamic> matrix = reshape(dates, 3, 4) as List<dynamic>;
+    List<dynamic> matrix = reshape(dates, 3, 4);
 
     List<Widget> buttonsMonth = [];
     for (var row in matrix) {
@@ -711,7 +758,7 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context2) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Solicitud de vacaciones'),
+          title: s4cTitleBar('Solicitud de días libres', context),
           content: HolidayRequestForm(
             key: null,
             currentRequest: currentHoliday,
@@ -1348,7 +1395,11 @@ class _HomePageState extends State<HomePage> {
                                           const Text(
                                               "Actualmente participan en ",
                                               style: subTitleText),
-                                          Text(myProjects!.length.toString(),
+                                          Text(
+                                              (myProjects == null)
+                                                  ? "0"
+                                                  : myProjects!.length
+                                                      .toString(),
                                               style: warningText),
                                           const Text(" proyectos",
                                               style: subTitleText),
@@ -1403,7 +1454,7 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.only(left: 10, right: 10, top: 10),
                     color: Colors.white,
-                    child: contact != null
+                    child: myProjects != null
                         ? ListView.builder(
                             shrinkWrap: true,
                             itemCount: myProjects!.length,

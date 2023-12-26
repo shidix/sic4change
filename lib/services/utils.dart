@@ -75,3 +75,12 @@ String showException(dynamic e) {
     }
   }
 }
+
+double currencyToDouble(String value) {
+  print (value);
+  value = value.replaceAll(' €', '');
+  value = value.replaceAll('.', '');
+  value = value.replaceAll(',', '.');
+  print (value);
+  return double.parse(value);
+}

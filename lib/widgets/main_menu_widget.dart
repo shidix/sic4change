@@ -26,7 +26,7 @@ Widget mainMenu(context, [user, url]) {
             (url == "/tasks_user")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtn(context, "Proyectos", Icons.list_alt, "/projects",
+        menuBtn(context, "Programas", Icons.list_alt, "/projects",
             (url == "/projects") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         menuBtn(
             context,

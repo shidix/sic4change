@@ -1,4 +1,7 @@
+// ignore_for_file: unused_import, prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -12,7 +15,7 @@ class HolidayRequestForm extends StatefulWidget {
       : super(key: key);
 
   @override
-  _HolidayRequestFormState createState() => _HolidayRequestFormState();
+  createState() => _HolidayRequestFormState();
 }
 
 class _HolidayRequestFormState extends State<HolidayRequestForm> {
@@ -125,37 +128,38 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         child: SingleChildScrollView(
           child: Column(
             children: [
               ReadOnlyTextField(
                   label: 'Usuario', textToShow: holidayRequest.userId),
+              space(),
               ReadOnlyTextField(
                   label: 'Fecha de Solicitud',
                   textToShow: DateFormat('dd-MM-yyyy')
                       .format(holidayRequest.requestDate)),
-
+              space(),
               categorySelectField,
-              DateTimePicker(
-                labelText: 'Fecha de inicio',
-                selectedDate: holidayRequest.startDate,
-                onSelectedDate: (DateTime date) {
+              space(),
+              DateTimeRangePicker(
+                labelText: 'Período',
+                calendarRangeDate: DateTimeRange(
+                    start: DateTime.now(),
+                    end: DateTime.now().add(Duration(days: 365))),
+                selectedDate: DateTimeRange(
+                    start: holidayRequest.startDate,
+                    end: holidayRequest.endDate),
+                onSelectedDate: (DateTimeRange date) {
                   setState(() {
-                    holidayRequest.startDate = date;
+                    holidayRequest.startDate = date.start;
+                    holidayRequest.endDate = date.end;
                   });
                 },
               ),
-              DateTimePicker(
-                labelText: 'Fecha de fin',
-                selectedDate: holidayRequest.endDate,
-                onSelectedDate: (DateTime date) {
-                  setState(() {
-                    holidayRequest.endDate = date;
-                  });
-                },
-              ),
+              space(),
               statusField,
+              space(),
               ReadOnlyTextField(
                   label: "Aprobado por", textToShow: holidayRequest.approvedBy),
               // TextFormField(
@@ -164,8 +168,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               //   onSaved: (val) =>
               //       setState(() => holidayRequest.approvedBy = val!),
               // ),
-
-              const SizedBox(height: 16.0),
+              space(height: 16),
               Row(
                   children: [
                         Expanded(
