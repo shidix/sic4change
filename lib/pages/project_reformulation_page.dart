@@ -113,8 +113,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
         children: [
           menuTab(context, "Datos generales", "/project_info",
               {'project': project}),
-          menuTabSelect(context, "Reformulaciones", "/project_reformulation",
-              {'project': project}),
+          menuTabSelect(context, "Comunicación con el financiador",
+              "/project_reformulation", {'project': project}),
         ],
       ),
     );
@@ -167,7 +167,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 customText(
-                    'Comunicación con financiador: ${ref.financierObj.name}',
+                    'Comunicación con el financiador: ${ref.financierObj.name}',
                     16,
                     textColor: const Color(0xff00809a)),
                 reformulationRowOptions(context, ref),

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -489,7 +490,9 @@ class DateTimePicker extends StatelessWidget {
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) onSelectedDate(picked);
+    if (picked != null && picked != selectedDate) {
+      onSelectedDate(picked);
+    }
   }
 
   @override
@@ -506,6 +509,7 @@ class DateTimePicker extends StatelessWidget {
             Text(
               "${selectedDate.toLocal()}".split(' ')[0],
             ),
+            //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
             const Icon(Icons.calendar_today),
           ],
         ),
@@ -894,6 +898,7 @@ Color greyColor = const Color(0xffdfdfdf);
 Color bgColor = const Color(0xff00594f);
 Color mainMenuBtnSelectedColor = Colors.white;
 Color mainMenuBtnColor = Colors.white54;
+Color blueColor = const Color(0Xff00809a);
 
 // const Color mainColor = Color(0xFF00809A);
 const Color mainColor = Color(0xffabf100);

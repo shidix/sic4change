@@ -28,6 +28,7 @@ class SProject {
   bool evaluation = false;
   List financiers = [];
   List partners = [];
+  Ambit ambitObj = Ambit("");
   ProjectType typeObj = ProjectType("");
   Contact managerObj = Contact("", "", "", "", "");
   Programme programmeObj = Programme("");
@@ -175,6 +176,18 @@ class SProject {
     return datesObj;
   }
 
+  Future<Ambit> getAmbit() async {
+    try {
+      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Ambit.fromJson(data);
+    } catch (e) {
+      return Ambit("");
+    }
+  }
+
   Future<ProjectType> getProjectType() async {
     try {
       QuerySnapshot query =
@@ -192,9 +205,9 @@ class SProject {
     try {
       QuerySnapshot query =
           await dbContacts.where("uuid", isEqualTo: manager).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Contact.fromJson(data);
     } catch (e) {
       return Contact("", "", "", "", "");
@@ -205,9 +218,9 @@ class SProject {
     try {
       QuerySnapshot query =
           await dbProgramme.where("uuid", isEqualTo: programme).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Programme.fromJson(data);
     } catch (e) {
       return Programme("");
@@ -215,7 +228,7 @@ class SProject {
   }
 
   Future<List<Financier>> getFinanciers() async {
-    List<Financier> _fin_list = [];
+    List<Financier> finList = [];
     for (String fin in financiers) {
       try {
         QuerySnapshot query =
@@ -223,11 +236,11 @@ class SProject {
         final _doc = query.docs.first;
         final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
         data["id"] = _doc.id;
-        Financier _financier = Financier.fromJson(data);
-        _fin_list.add(_financier);
+        Financier financier = Financier.fromJson(data);
+        finList.add(financier);
       } catch (e) {}
     }
-    return _fin_list;
+    return finList;
   }
 
   Future<List<Contact>> getPartners() async {
@@ -267,6 +280,7 @@ Future<List> getProjects() async {
     data["id"] = doc.id;
     final item = SProject.fromJson(data);
     try {
+      item.ambitObj = await item.getAmbit();
       item.typeObj = await item.getProjectType();
       item.managerObj = await item.getManager();
       item.programmeObj = await item.getProgramme();

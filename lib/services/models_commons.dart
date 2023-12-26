@@ -161,7 +161,7 @@ class Ambit {
 
   Future<void> save() async {
     if (id == "") {
-      var newUuid = Uuid();
+      var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbAmbit.add(data);
@@ -183,6 +183,17 @@ Future<List> getAmbits() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(Ambit.fromJson(data));
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getAmbitsHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbAmbit.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(Ambit.fromJson(data).toKeyValue());
   }
   return items;
 }
