@@ -1,5 +1,9 @@
 {
+    "add" : "Add",
     "appTitle": "Workout Tracker",
+    "click_to_edit": "Click to edit",
+    "company" : "Company",
     "sloganFooter": "Plan de Recuperación, Transformación y Resiliencia financiado por la Unión Europea – NextGenerationUE"
+
 
 }

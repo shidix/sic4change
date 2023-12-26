@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 
 class ProfileForm extends StatefulWidget {
   final Profile? currentProfile;
@@ -34,19 +35,13 @@ class _ProfileFormState extends State<ProfileForm> {
         Expanded(flex: 1, child: Container()),
         Expanded(
             flex: flex,
-            child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-              ),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  profile.delete();
-                  Navigator.of(context).pop(profile);
-                }
-              },
-              child: const Text('Eliminar'),
-            ))
+            child: actionButton(context, "Eliminar", (context) {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                profile.delete();
+                Navigator.of(context).pop(profile);
+              }
+            }, Icons.delete, context))
       ];
     }
 
@@ -96,30 +91,21 @@ class _ProfileFormState extends State<ProfileForm> {
                   children: [
                         Expanded(
                             flex: flex,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.blueGrey),
-                              ),
-                              onPressed: () {
+                            child: 
+                            actionButton(context, "Guardar", (context) {
                                 if (_formKey.currentState!.validate()) {
                                   _formKey.currentState!.save();
                                   profile.save();
                                   Navigator.of(context).pop(profile);
                                 }
-                              },
-                              child: const Text('Enviar'),
-                            )),
+                              }, Icons.save, context)
+                            ),
                         Expanded(flex: 1, child: Container()),
                         Expanded(
                             flex: flex,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(profile);
-                              },
-                              child: const Text('Cancelar'),
-                            ))
+                            child: actionButton(context, "Cancelar", (context) {
+                              Navigator.of(context).pop(); }, Icons.cancel, context)
+                              )
                       ] +
                       deleteButton),
             ],

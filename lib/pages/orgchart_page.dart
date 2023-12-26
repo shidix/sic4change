@@ -4,6 +4,7 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/profile_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Orgchart extends StatefulWidget {
   const Orgchart({Key? key}) : super(key: key);
@@ -42,7 +43,8 @@ class _OrgchartState extends State<Orgchart> {
     print("testAction");
   }
 
-  void addProfileDialog(context) {
+  void addProfileDialog(Map<String, dynamic> args) {
+    BuildContext context = args['context'];
     _addProfileDialog(context).then((value) {
       currentProfile = null;
       getProfiles();
@@ -57,7 +59,7 @@ class _OrgchartState extends State<Orgchart> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('$addText Perfil'),
+          title: s4cTitleBar('${AppLocalizations.of(context)!.add} Perfil', context),
           content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
               child: ProfileForm(
@@ -89,10 +91,10 @@ class _OrgchartState extends State<Orgchart> {
 
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
-      actionButton(
-          context, "$addText perfil", addProfileDialog, Icons.add, context),
-      space(width: 10),
-      backButton(context),
+      actionButtonVertical(
+          context, AppLocalizations.of(context)!.add, addProfileDialog, Icons.add, {'context':context}),
+      // space(width: 10),
+      // backButton(context),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -103,7 +105,7 @@ class _OrgchartState extends State<Orgchart> {
   Widget buildProfileList() {
     if (filteredProfiles.isEmpty) {
       return const Center(
-        child: Text("No hay datos"),
+        child: CircularProgressIndicator(),
       );
     } else {
       filteredProfiles.sort((a, b) => a.email.compareTo(b.email));
@@ -113,7 +115,7 @@ class _OrgchartState extends State<Orgchart> {
         itemCount: filteredProfiles.length,
         itemBuilder: (context, index) {
           Profile item = filteredProfiles[index];
-          return ListTile(
+          return Tooltip(message: AppLocalizations.of(context)!.click_to_edit, child: ListTile(
             title: Column(
               children: [
                 Row(
@@ -132,9 +134,9 @@ class _OrgchartState extends State<Orgchart> {
             ),
             onTap: () {
               currentProfile = item;
-              addProfileDialog(context);
+              addProfileDialog({'context':context});
             },
-          );
+          ));
         },
       );
     }
@@ -142,19 +144,19 @@ class _OrgchartState extends State<Orgchart> {
 
   Widget buildProfileHeader() {
     return Container(
-        child: const ListTile(
+        child:  ListTile(
             title: Column(
       children: [
         Row(
           children: [
-            Expanded(flex: 1, child: Text("Usuario", style: subTitleText)),
-            Expanded(flex: 1, child: Text("Rol", style: subTitleText)),
+            Expanded(flex: 1, child: Text("Usuario", style: headerListText)),
+            Expanded(flex: 1, child: Text("Rol", style: headerListText)),
             Expanded(
                 flex: 2,
-                child: Text("Supervisores vacaciones", style: subTitleText)),
+                child: Text("Supervisores vacaciones", style: headerListText)),
           ],
         ),
-        Divider(),
+        const Divider(),
       ],
     )));
   }
@@ -185,11 +187,15 @@ class _OrgchartState extends State<Orgchart> {
                     )),
                 Expanded(flex: 2, child: topButtons(context))
               ])),
-          buildProfileHeader(),
-          SizedBox(
-            height: 400,
-            child: buildProfileList(),
-          ),
+          CardRounded(child: Column(children: [
+            buildProfileHeader(),
+            buildProfileList()
+          ])),
+          // buildProfileHeader(),
+          // SizedBox(
+          //   height: 400,
+          //   child: buildProfileList(),
+          // ),
         ],
       )),
     ));
