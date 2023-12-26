@@ -71,7 +71,8 @@ class MyApp extends StatelessWidget {
             })),
       );*/
   Widget build(BuildContext context) {
-    return MaterialApp(
+    double t0 = DateTime.now().millisecondsSinceEpoch / 1000;
+    Widget app = MaterialApp(
       //navigatorKey: navigatorKey,
       title: 'Material App',
       initialRoute: '/',
@@ -84,5 +85,8 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
     );
+    double t1 = DateTime.now().millisecondsSinceEpoch / 1000;
+    print("Tiempo de carga de la app: " + (t1 - t0).toString());
+    return app;
   }
 }

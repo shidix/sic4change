@@ -105,8 +105,9 @@ class Contact {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
         SProject projObj = SProject.fromJson(data);
-        await projObj.reload();
+        // await projObj.reload();
         projectsObj.add(projObj);
+        projObj.reload();
       } catch (e) {
         print(showException(e));
       }
