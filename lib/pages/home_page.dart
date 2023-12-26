@@ -22,9 +22,8 @@ import 'package:pdf/widgets.dart' as pw;
 //import 'package:sic4change/custom_widgets/custom_appbar.dart';
 
 class HomePage extends StatefulWidget {
-  final double elapsedTime;
   final int HOLIDAY_DAYS = 30;
-  const HomePage({super.key, this.elapsedTime = 0.0});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
