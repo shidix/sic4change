@@ -25,6 +25,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+
+  double elapsedTime = 0.0;
   MyApp({super.key});
 
   final _routes = {
@@ -71,7 +73,8 @@ class MyApp extends StatelessWidget {
             })),
       );*/
   Widget build(BuildContext context) {
-    return MaterialApp(
+    double t0 = DateTime.now().millisecondsSinceEpoch / 1000;
+    Widget app = MaterialApp(
       //navigatorKey: navigatorKey,
       title: 'Material App',
       initialRoute: '/',
@@ -84,5 +87,9 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
     );
+    double t1 = DateTime.now().millisecondsSinceEpoch / 1000;
+    elapsedTime = t1 - t0;
+    debugPrint("Elapsed time: $elapsedTime");
+    return app;
   }
 }
