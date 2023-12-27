@@ -30,7 +30,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final SProject? project;
+    SProject? project;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       Map args = ModalRoute.of(context)!.settings.arguments as Map;
