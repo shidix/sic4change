@@ -92,7 +92,8 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context),
+                        addBtn(context, editDialog, {'claim': ContactClaim(widget.contact!.uuid)}),
+                        space(width: 10),
                         returnBtn(context),
                       ],
                     ),
@@ -117,27 +118,27 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
     );
   }*/
 
-  Widget addBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        _editDialog(context, null);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget addBtn(context) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editDialog(context, null);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: const Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void saveClaim(context, claim, name, manager, date, contact) async {
     claim ??= ContactClaim(contact.uuid);
@@ -147,6 +148,11 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
     claim.save();
     loadContactClaim(contact.uuid);
     Navigator.of(context).pop();
+  }
+
+  void editDialog(context, Map<String, dynamic> args) {
+    ContactClaim claim = args["claim"];
+    _editDialog(context, claim);
   }
 
   Future<void> _editDialog(context, claim) {

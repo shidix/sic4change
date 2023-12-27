@@ -93,7 +93,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context),
+                        addBtn(context, editDialog, {'tracking': ContactTracking(widget.contact!.uuid)}),
+                        space(width: 10),
                         returnBtn(context),
                       ],
                     ),
@@ -118,27 +119,27 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     );
   }*/
 
-  Widget addBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        _editDialog(context, null);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget addBtn(context) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editDialog(context, null);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: const Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void saveTracking(context, tracking, name, desc, contact) async {
     tracking ??= ContactTracking(contact.uuid);
@@ -147,6 +148,11 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     tracking.save();
     loadContactTracking(contact.uuid);
     Navigator.of(context).pop();
+  }
+
+  void editDialog(context, args) {
+    ContactTracking? tracking = args["tracking"];
+    _editDialog(context, tracking);
   }
 
   Future<void> _editDialog(context, tracking) {
