@@ -20,7 +20,7 @@ Widget contactMenu(context, contact, contactInfo, tabSelected) {
             //     menuTab(
             // context, "Reclamaciones", "/contact_claims", {'contact': contact},
             // selected: claim),
-        menuTab2(context, "Info", ContactInfoPage(contact: contact, contactInfo: contactInfo),
+        menuTab2(context, "Información", ContactInfoPage(contact: contact, contactInfo: contactInfo),
             selected: (tabSelected == "info")),
         menuTab2(context, "Seguimiento", ContactTrackingPage(contact: contact, contactInfo: contactInfo),
             selected: (tabSelected == "tracking")),
