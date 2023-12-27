@@ -1,7 +1,7 @@
-import 'dart:collection';
+//import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/404_page.dart';
+//import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -11,7 +11,6 @@ import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactInfoTitle = "Detalles del Contacto";
-ContactInfo? _contactInfo;
 bool isLoading = false;
 
 class ContactInfoPage extends StatefulWidget {
@@ -26,26 +25,35 @@ class ContactInfoPage extends StatefulWidget {
 class _ContactInfoPageState extends State<ContactInfoPage> {
 
   Contact? contact;
+  ContactInfo? _contactInfo;
+  Widget? contactInfoDetailsPanel;
+
   @override
   void initState() {
+    super.initState();
+    contactInfoDetailsPanel = contactInfoDetails(context);
     contact = widget.contact;
-    loadContactInfo(contact).then((val) {
+    contact!.getContactInfo().then((val) {
+      _contactInfo = val;
       setState(() {
+        isLoading = true;
+        contactInfoDetailsPanel = contactInfoDetails(context);
       });
     });
-    super.initState();
 
   }
   
-  void reloadContactInfo() async {
+  Future<void> reloadContactInfo() async {
     setState(() {
       isLoading = false;
     });
 
     _contactInfo?.reload().then((val) {
       _contactInfo = val;
+      contactInfoDetailsPanel = contactInfoDetails(context);
       setState(() {
         isLoading = true;
+
       });
     });
   }
@@ -56,7 +64,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           arguments: {"contactInfo": val, "contact": _contact});
     });
   }*/
-  Future<void> loadContactInfo(contact) async {
+  Future<ContactInfo?> loadContactInfo(contact) async {
     if (_contactInfo == null) {
       await contact.getContactInfo().then((val) {
         _contactInfo = val;
@@ -65,22 +73,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         });
       });
     }
+    return _contactInfo;
   }
 
   @override
   Widget build(BuildContext context) {
-    // if (ModalRoute.of(context)!.settings.arguments != null) {
-    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-    //   contact = args["contact"];
-    //   loadContactInfo(contact);
-    // } else {
-    //   _contactInfo = null;
-    //   contact = null;
-    // }
-
-    // if (contact == null) return Page404();
-
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -111,7 +108,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                           borderRadius:
                               const BorderRadius.all(Radius.circular(5)),
                         ),
-                        child: contactInfoDetails(context),
+                        child: contactInfoDetailsPanel??Container(),
                         //child: projectInfoDetails(context, _project),
                       )))
               : const Center(
@@ -135,7 +132,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                     child: customText(contact!.name, 22),
                   ),
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -194,10 +191,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget contactInfoDetails(context) {
+    if (_contactInfo == null) return const Center(child: CircularProgressIndicator(),);
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
