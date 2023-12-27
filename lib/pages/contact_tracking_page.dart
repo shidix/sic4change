@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
@@ -95,7 +96,7 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
                       children: [
                         addBtn(context, editDialog, {'tracking': ContactTracking(widget.contact!.uuid)}),
                         space(width: 10),
-                        returnBtn(context),
+                        goPage(context, "Volver", const ContactsPage(), Icons.arrow_circle_left_outlined),
                       ],
                     ),
                   ),

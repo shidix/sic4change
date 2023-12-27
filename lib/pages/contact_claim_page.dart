@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_claim.dart';
@@ -92,9 +93,14 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context, editDialog, {'claim': ContactClaim(widget.contact!.uuid)}),
+                        addBtn(context, editDialog,
+                            {'claim': ContactClaim(widget.contact!.uuid)}),
                         space(width: 10),
-                        returnBtn(context),
+                        goPage(
+                            context,
+                            "Volver",
+                            const ContactsPage(),
+                            Icons.arrow_circle_left_outlined),
                       ],
                     ),
                   ),

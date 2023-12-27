@@ -1033,6 +1033,23 @@ Widget customText(_text, _size,
 //--------------------------------------------------------------------------
 //                           BUTTONS
 //--------------------------------------------------------------------------
+
+Widget goPage(context, btnName, newContext, icon) {
+  return FilledButton(
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: ((context) => newContext)));
+      },
+      style: btnStyle,
+      child: Column(
+        children: [
+          Icon(icon, color: subTitleColor),
+          space(height: 5),
+          customText(btnName, 12, textColor: subTitleColor),
+        ],
+      ));
+}
+
 Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
   return FilledButton(
       onPressed: () {

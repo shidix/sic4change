@@ -1,6 +1,7 @@
 //import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
 //import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
@@ -139,7 +140,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                         addBtn(context, callContactInfoEditDialog, null,
                             text: "Editar", icon: Icons.edit),
                         space(width: 10),
-                        returnBtn(context),
+                        goPage(
+                            context,
+                            "Volver",
+                            const ContactsPage(),
+                            Icons.arrow_circle_left_outlined),
                         //customRowPopBtn(context, "Volver", Icons.arrow_back)
                       ],
                     ),
