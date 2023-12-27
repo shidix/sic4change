@@ -33,7 +33,7 @@ class _GoalsPageState extends State<GoalsPage> {
     final SProject? project;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+      Map args = ModalRoute.of(context)!.settings.arguments as Map;
       project = args["project"];
     } else {
       project = null;
