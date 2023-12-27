@@ -45,7 +45,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
           mainMenu(context),
           projectInfoHeader(context, _project),
           projectInfoMenu(context, _project),
-          Expanded(
+          contentTab(context, reformulationList, null)
+          /*Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
@@ -57,7 +58,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
                       borderRadius: const BorderRadius.all(Radius.circular(5)),
                     ),
                     child: reformulationList(context),
-                  ))),
+                  ))),*/
         ],
       ),
     );
@@ -123,7 +124,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
 /*-------------------------------------------------------------
                        REFORMULATION
 -------------------------------------------------------------*/
-  Widget reformulationList(context) {
+  Widget reformulationList(context, args) {
     return FutureBuilder(
         future: getReformulationsByProject(_project!.uuid),
         builder: ((context, snapshot) {

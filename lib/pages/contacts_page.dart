@@ -70,9 +70,8 @@ class _ContactsPageState extends State<ContactsPage> {
             child: Container(
           padding: const EdgeInsets.all(10),
           // color: Colors.white,
-          
 
-            child:CardRounded(
+          child: CardRounded(
             child: contactList(context),
           ),
           // contactList(context),
@@ -168,7 +167,8 @@ SingleChildScrollView dataBody(context) {
                 label: customText("Nombre", 14, bold: FontWeight.bold),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText(AppLocalizations.of(context)!.company, 14, bold: FontWeight.bold),
+              label: customText(AppLocalizations.of(context)!.company, 14,
+                  bold: FontWeight.bold),
               tooltip: AppLocalizations.of(context)!.company,
             ),
             DataColumn(
