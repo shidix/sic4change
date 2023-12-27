@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('es', ''),
-      
+
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Page404());
       },

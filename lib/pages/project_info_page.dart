@@ -14,7 +14,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectInfoTitle = "Detalles del Proyecto";
 SProject? project;
-ProjectDates? dates;
 bool projLoading = true;
 
 class ProjectInfoPage extends StatefulWidget {
@@ -732,7 +731,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void callDatesEditDialog(context, project) async {
-    dates = await getProjectDatesByProject(project.uuid);
+    ProjectDates dates = await getProjectDatesByProject(project.uuid);
     editProjectDatesDialog(context, dates);
     /*await getProjectDatesByProject(project.uuid).then((value) async {
       editProjectDatesDialog(context, value);
@@ -747,91 +746,83 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Modificar fechas'),
-          content: SingleChildScrollView(
-            child: Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de aprobación:", 16, textColor: Colors.blue),
-                customDateField(context, approvedController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Aprobación',
-                      selectedDate: dates.approved,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.approved = date;
-                        });
-                      },
-                    )),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Aprobación',
+                        selectedDate: dates.approved,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates.approved = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Inicio',
+                        selectedDate: dates!.start,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.start = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Fin',
+                        selectedDate: dates!.end,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.end = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Justificación',
+                        selectedDate: dates!.justification,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.justification = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Informe de seguimiento',
+                        selectedDate: dates!.delivery,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.delivery = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
               ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de inicio:", 16, textColor: Colors.blue),
-                customDateField(context, startController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Inicio',
-                      selectedDate: dates!.start,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates!.start = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de fin:", 16, textColor: Colors.blue),
-                customDateField(context, endController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Fin',
-                      selectedDate: dates!.end,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates!.end = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de justificación:", 16,
-                    textColor: Colors.blue),
-                customDateField(context, justificationController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Justificación',
-                      selectedDate: dates!.justification,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates!.justification = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de entrega:", 16, textColor: Colors.blue),
-                customDateField(context, deliveryController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Informe de seguimiento',
-                      selectedDate: dates!.delivery,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates!.delivery = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-            ]),
-          ),
+            );
+          }),
           actions: <Widget>[dialogsBtns(context, saveDates, dates)],
         );
       },
