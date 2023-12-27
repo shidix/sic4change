@@ -653,66 +653,6 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-Widget addButton2(context, String text, String route, args) {
-  return ElevatedButton(
-    onPressed: () {
-      Navigator.pushNamed(context, route, arguments: args);
-    },
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      backgroundColor: Colors.white,
-    ),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.add,
-          color: Colors.black54,
-          size: 30,
-        ),
-        space(height: 10),
-        Text(
-          text,
-          style: const TextStyle(color: Colors.black, fontSize: 14),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget addButton(context, String? text, action, args)
-{
-  text ?? "Añadir";
-  return actionButtonVertical(context, text, action, Icons.add, args);
-}
-
-Widget backButton2(context) {
-  return ElevatedButton(
-    onPressed: () {
-      Navigator.pop(context);
-    },
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-      backgroundColor: Colors.white,
-    ),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.arrow_back,
-          color: Colors.black54,
-          size: 30,
-        ),
-        space(height: 10),
-        const Text(
-          "Volver",
-          style: TextStyle(color: Colors.black, fontSize: 14),
-        ),
-      ],
-    ),
-  );
-}
-
 Widget backButton (context) {
   return actionButtonVertical(context, "Volver", (context) { Navigator.pop(context);}, Icons.arrow_circle_left_outlined, context);
 }
