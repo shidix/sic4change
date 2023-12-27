@@ -1,8 +1,10 @@
-import 'dart:collection';
+// import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/index.dart';
+// import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_contact_tracking.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
@@ -13,13 +15,24 @@ List trackingList = [];
 //Contact? contact;
 
 class ContactTrackingPage extends StatefulWidget {
-  const ContactTrackingPage({super.key});
+  final Contact? contact;
+  final ContactInfo? contactInfo;
+  const ContactTrackingPage({super.key, required this.contact, this.contactInfo});
 
   @override
   State<ContactTrackingPage> createState() => _ContactTrackingPageState();
 }
 
 class _ContactTrackingPageState extends State<ContactTrackingPage> {
+  Contact? contact;
+
+  @override
+  void initState() {
+    super.initState();
+    contact = widget.contact;
+    loadContactTracking(contact?.uuid);
+  }
+  
   void loadContactTracking(value) async {
     await getTrakingsByContact(value).then((val) {
       trackingList = val;
@@ -29,20 +42,20 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      contact = args["contact"];
-    } else {
-      contact = null;
-    }
+    // if (ModalRoute.of(context)!.settings.arguments != null) {
+    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+    //   contact = args["contact"];
+    // } else {
+    //   contact = null;
+    // }
 
-    if (contact == null) return const Page404();
+    // if (contact == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         contactTrackingHeader(context),
-        contactMenu(context, contact, "tracking"),
+        contactMenu(context, widget.contact, widget.contactInfo, "tracking"),
         Expanded(
             child: Container(
                 padding: const EdgeInsets.only(left: 10, right: 10),

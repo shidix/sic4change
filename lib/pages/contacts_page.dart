@@ -206,9 +206,6 @@ SingleChildScrollView dataBody(context) {
                                   builder: ((context) => ContactInfoPage(
                                         contact: contact,
                                       ))));
-
-                          // Navigator.pushNamed(context, "/contact_info",
-                          // arguments: {'contact': contact});
                         }),
                     editBtn(context, callEditDialog, {"contact": contact}),
                     removeBtn(
