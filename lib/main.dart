@@ -25,6 +25,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+
   MyApp({super.key});
 
   final _routes = {
@@ -71,7 +72,7 @@ class MyApp extends StatelessWidget {
             })),
       );*/
   Widget build(BuildContext context) {
-    return MaterialApp(
+    Widget app = MaterialApp(
       //navigatorKey: navigatorKey,
       title: 'Material App',
       initialRoute: '/',
@@ -84,5 +85,7 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (context) => const Page404());
       },
     );
+
+    return app;
   }
 }

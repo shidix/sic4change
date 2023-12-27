@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
 import 'package:sic4change/widgets/tasks_menu_widget.dart';
@@ -29,7 +30,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
         taskHeader(context),
         space(height: 20),
         taskMenu(context, "taskUser"),
-        contentTab(context, taskList, user)
+        contentTab(context, taskList, user),
+        footer(context)
       ]),
     );
   }

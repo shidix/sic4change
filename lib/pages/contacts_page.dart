@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const pageContactTitle = "CRM Contactos de la organización";
 List contacts = [];
@@ -68,7 +69,13 @@ class _ContactsPageState extends State<ContactsPage> {
         Expanded(
             child: Container(
           padding: const EdgeInsets.all(10),
-          child: contactList(context),
+          // color: Colors.white,
+          
+
+            child:CardRounded(
+            child: contactList(context),
+          ),
+          // contactList(context),
         ))
       ]),
     );
@@ -161,8 +168,8 @@ SingleChildScrollView dataBody(context) {
                 label: customText("Nombre", 14, bold: FontWeight.bold),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText("Empresa", 14, bold: FontWeight.bold),
-              tooltip: "Empresa",
+              label: customText(AppLocalizations.of(context)!.company, 14, bold: FontWeight.bold),
+              tooltip: AppLocalizations.of(context)!.company,
             ),
             DataColumn(
                 label: customText("Proyecto", 14, bold: FontWeight.bold),

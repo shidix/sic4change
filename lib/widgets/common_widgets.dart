@@ -12,6 +12,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
 
+
 Widget customTitle(context, _text) {
   return Container(
       width: MediaQuery.of(context).size.width,
@@ -656,7 +657,7 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-Widget addButton(context, String text, String route, args) {
+Widget addButton2(context, String text, String route, args) {
   return ElevatedButton(
     onPressed: () {
       Navigator.pushNamed(context, route, arguments: args);
@@ -683,7 +684,13 @@ Widget addButton(context, String text, String route, args) {
   );
 }
 
-Widget backButton(context) {
+Widget addButton(context, String? text, action, args)
+{
+  text ?? "Añadir";
+  return actionButtonVertical(context, text, action, Icons.add, args);
+}
+
+Widget backButton2(context) {
   return ElevatedButton(
     onPressed: () {
       Navigator.pop(context);
@@ -708,6 +715,10 @@ Widget backButton(context) {
       ],
     ),
   );
+}
+
+Widget backButton (context) {
+  return actionButtonVertical(context, "Volver", (context) { Navigator.pop(context);}, Icons.arrow_circle_left_outlined, context);
 }
 
 Widget actionButton(
@@ -886,6 +897,21 @@ SizedBox s4cTitleBar(String title, [context]) {
               ]))));
 }
 
+
+class CardRounded extends Card {
+  CardRounded({super.key, Widget? child, Color? color, EdgeInsets? padding})
+      : super(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
+                    bottomLeft: Radius.circular(5),
+                    bottomRight: Radius.circular(5))),
+            color: color ?? Colors.white,
+            child: Padding(
+                padding: padding ?? const EdgeInsets.all(10), child: child));
+}
+
 Map StatusColors = {
   "PENDIENTE": Colors.orange,
   "EN PROCESO": Colors.blue,
@@ -1017,6 +1043,8 @@ const TextStyle cardHeaderText = TextStyle(
   fontSize: 16,
   fontWeight: FontWeight.bold,
 );
+
+TextStyle headerListText = headerTitleText.copyWith(fontSize: 14);
 
 const Color subTitleColor = Colors.black45;
 const TextStyle subTitleText =

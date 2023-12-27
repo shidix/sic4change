@@ -12,6 +12,7 @@ import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/transversal_question_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
 
@@ -977,7 +978,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       return Column(children: [
         mainMenu(context, user, "/projects"),
         Container(height: 10),
-        const Center(child: CircularProgressIndicator())
+        const Center(child: CircularProgressIndicator()),
+        footer(context),
       ]);
     } else {
       return Column(
@@ -1014,6 +1016,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                 // topButtons(context))
                 marcoMenu(context, currentProject, "transversal"),
                 multiplesIndicators(),
+                footer(context),
               ]))
         ],
       );
