@@ -85,16 +85,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    customText("En ejecución:", 16, textColor: Colors.green),
+                    customText("En ejecución:", 16),
                     space(height: 5),
-                    customLinearPercent(context, 2.3, 0.8, Colors.green),
+                    customLinearPercent(context, 2.3, 0.8, mainColor),
                   ],
                 ),
                 space(width: 50),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Presupuesto total:   ${project.budget} €", 16),
                   space(height: 5),
-                  customLinearPercent(context, 2.3, 0.8, Colors.blue),
+                  customLinearPercent(context, 2.3, 0.8, blueColor),
                 ]),
               ],
             ),
@@ -110,8 +110,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           menuTabSelect(context, "Datos generales", "/project_info",
               {'project': _project}),
-          menuTab(context, "Reformulaciones", "/project_reformulation",
-              {'project': _project}),
+          menuTab(context, "Comunicación con el financiador",
+              "/project_reformulation", {'project': _project}),
         ],
       ),
     );
@@ -129,7 +129,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Responsable del proyecto:", 14,
+                  customText("Responsable del proyecto", 14,
                       bold: FontWeight.bold),
                   space(height: 5),
                   customText(_project.managerObj.name, 14),
@@ -144,7 +144,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    customText("Programa:", 14, bold: FontWeight.bold),
+                    customText("Programa", 14, bold: FontWeight.bold),
                     space(height: 5),
                     customText(_project.programmeObj.name, 14),
                   ])),
@@ -176,7 +176,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Auditoría:", 14, bold: FontWeight.bold),
+                  customText("Auditoría", 14, bold: FontWeight.bold),
                   space(height: 5),
                   customText(audit, 14),
                 ],
@@ -186,7 +186,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             color: Colors.grey,
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Evaluación:", 14, bold: FontWeight.bold),
+            customText("Evaluación", 14, bold: FontWeight.bold),
             space(height: 5),
             customText(evaluation, 14),
           ]),
@@ -197,7 +197,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectFinanciersHeader(context, _project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Financiador/es:", 15, bold: FontWeight.bold),
+      customText("Financiador/es", 15, bold: FontWeight.bold),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir financiador',
@@ -242,7 +242,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectPartnersHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Socios:", 15, bold: FontWeight.bold),
+      customText("Socios", 15, bold: FontWeight.bold),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir socio',
@@ -310,16 +310,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     ]),
                     TableRow(children: [
                       customText(
-                          DateFormat("yyyy-MM-dd").format(dates.approved), 14),
+                          DateFormat("dd-MM-yyyy").format(dates.approved), 14),
                       customText(
-                          DateFormat("yyyy-MM-dd").format(dates.start), 14),
+                          DateFormat("dd-MM-yyyy").format(dates.start), 14),
                       customText(
-                          DateFormat("yyyy-MM-dd").format(dates.end), 14),
+                          DateFormat("dd-MM-yyyy").format(dates.end), 14),
                       customText(
-                          DateFormat("yyyy-MM-dd").format(dates.justification),
+                          DateFormat("dd-MM-yyyy").format(dates.justification),
                           14),
                       customText(
-                          DateFormat("yyyy-MM-dd").format(dates.delivery), 14),
+                          DateFormat("dd-MM-yyyy").format(dates.delivery), 14),
                     ])
                   ]),
             ]);
@@ -352,7 +352,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     TableRow(children: [
-                      customText("Pais", 14, bold: FontWeight.bold),
+                      customText("País", 14, bold: FontWeight.bold),
                       customText("Provincia", 14, bold: FontWeight.bold),
                       customText("Comunidad", 14, bold: FontWeight.bold),
                       customText("Municipio", 14, bold: FontWeight.bold),
@@ -385,20 +385,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Breve descripción del proyecto:", 14,
+                customText("Breve descripción del proyecto", 14,
                     bold: FontWeight.bold),
                 space(height: 5),
                 customText(project?.description, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Convocatoria:", 14, bold: FontWeight.bold),
+                customText("Convocatoria", 14, bold: FontWeight.bold),
                 space(height: 5),
                 customText(project?.announcement, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Ambito del proyecto:", 14, bold: FontWeight.bold),
+                customText("Ambito del proyecto", 14, bold: FontWeight.bold),
                 space(height: 5),
                 customText(project?.ambit, 14),
                 space(height: 5),
@@ -446,14 +446,15 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callProjectEditDialog(context, roject) async {
+    List<KeyValue> ambits = await getAmbitsHash();
     List<KeyValue> types = await getProjectTypesHash();
     List<KeyValue> contacts = await getContactsHash();
     List<KeyValue> programmes = await getProgrammesHash();
-    editProjectDialog(context, project, types, contacts, programmes);
+    editProjectDialog(context, project, ambits, types, contacts, programmes);
   }
 
   Future<void> editProjectDialog(
-      context, project, types, contacts, programmes) {
+      context, project, ambits, types, contacts, programmes) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -493,7 +494,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
-                    labelText: 'Tipo de proyecto',
+                    labelText: 'Tipología',
                     size: 220,
                     selected: project.typeObj.toKeyValue(),
                     options: types,
@@ -562,7 +563,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
+                  CustomDropdown(
+                    labelText: 'Ámbito',
+                    size: 220,
+                    selected: project.ambitObj.toKeyValue(),
+                    options: ambits,
+                    onSelectedOpt: (String val) {
+                      setState(() {
+                        project.ambit = val;
+                      });
+                    },
+                  ),
+
+                  /*CustomTextField(
                     labelText: 'Ámbito',
                     size: 220,
                     initial: project.ambit,
@@ -571,7 +584,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                         project.ambit = val;
                       });
                     },
-                  ),
+                  ),*/
                 ]),
               ]),
               space(height: 20),
@@ -718,10 +731,200 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void callDatesEditDialog(context, project) async {
-    await getProjectDatesByProject(project.uuid).then((value) async {
+    ProjectDates dates = await getProjectDatesByProject(project.uuid);
+    editProjectDatesDialog(context, dates);
+    /*await getProjectDatesByProject(project.uuid).then((value) async {
       editProjectDatesDialog(context, value);
+    });*/
+  }
+
+  Future<void> editProjectDatesDialog(context, dates) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar fechas'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Aprobación',
+                        selectedDate: dates.approved,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates.approved = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Inicio',
+                        selectedDate: dates!.start,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.start = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Fin',
+                        selectedDate: dates!.end,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.end = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Justificación',
+                        selectedDate: dates!.justification,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.justification = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Informe de seguimiento',
+                        selectedDate: dates!.delivery,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dates!.delivery = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+              ]),
+            );
+          }),
+          actions: <Widget>[dialogsBtns(context, saveDates, dates)],
+        );
+      },
+    );
+  }
+
+  /*--------------------------------------------------------------------*/
+  /*                           LOCATION                                 */
+  /*--------------------------------------------------------------------*/
+  void saveLocation(List args) async {
+    ProjectLocation loc = args[0];
+    loc.save();
+    loadProject(project);
+  }
+
+  void _callLocationEditDialog(context, project) async {
+    List<KeyValue> countries = await getCountriesHash();
+    List<KeyValue> provinces = await getProvincesHash();
+    List<KeyValue> regions = await getRegionsHash();
+    List<KeyValue> towns = await getTownsHash();
+    await getProjectLocationByProject(project.uuid).then((value) async {
+      editProjectLocationDialog(
+          context, value, project, countries, provinces, regions, towns);
     });
   }
+
+  Future<void> editProjectLocationDialog(
+      context, loc, project, countries, provinces, regions, towns) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          //title: const Text('Add location'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir localización'),
+          content: SingleChildScrollView(
+            child: Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'País',
+                  size: 220,
+                  selected: loc.countryObj.toKeyValue(),
+                  options: countries,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.country = val;
+                    });
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'Provincia',
+                  size: 220,
+                  selected: loc.provinceObj.toKeyValue(),
+                  options: provinces,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.province = val;
+                    });
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'Comunidad',
+                  size: 220,
+                  selected: loc.regionObj.toKeyValue(),
+                  options: regions,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.region = val;
+                    });
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'Municipio',
+                  size: 220,
+                  selected: loc.townObj.toKeyValue(),
+                  options: towns,
+                  onSelectedOpt: (String val) {
+                    setState(() {
+                      loc.town = val;
+                    });
+                  },
+                ),
+              ]),
+              space(width: 20),
+            ]),
+          ),
+          actions: <Widget>[dialogsBtns(context, saveLocation, loc)],
+        );
+      },
+    );
+  }
+}
 
   /*Widget customDateField(context, dateController) {
     return SizedBox(
@@ -755,331 +958,3 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         ));
   }*/
 
-  Future<void> editProjectDatesDialog(context, dates) {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Modificar fechas'),
-          content: SingleChildScrollView(
-            child: Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de aprobación:", 16, textColor: Colors.blue),
-                customDateField(context, approvedController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Aprobación',
-                      selectedDate: dates.approved,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.approved = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de inicio:", 16, textColor: Colors.blue),
-                customDateField(context, startController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Inicio',
-                      selectedDate: dates.start,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.start = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de fin:", 16, textColor: Colors.blue),
-                customDateField(context, endController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Fin',
-                      selectedDate: dates.end,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.end = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de justificación:", 16,
-                    textColor: Colors.blue),
-                customDateField(context, justificationController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Justificación',
-                      selectedDate: dates.justification,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.justification = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Fecha de entrega:", 16, textColor: Colors.blue),
-                customDateField(context, deliveryController),*/
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Informe de seguimiento',
-                      selectedDate: dates.delivery,
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          dates.delivery = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-            ]),
-          ),
-          actions: <Widget>[dialogsBtns(context, saveDates, dates)],
-        );
-      },
-    );
-  }
-
-  /*--------------------------------------------------------------------*/
-  /*                           LOCATION                                 */
-  /*--------------------------------------------------------------------*/
-  /*void _saveLocation(context, _loc, _country, _province, _region, _town,
-      _project, countries, provinces, regions, towns) async {
-    _loc.country = _country;
-    _loc.province = _province;
-    _loc.region = _region;
-    _loc.town = _town;
-    _loc.save();
-    if (!countries.contains(_country)) {
-      Country _c = Country(_country);
-      _c.save();
-    }
-    if (!provinces.contains(_province)) {
-      Province _p = Province(_province);
-      _p.save();
-    }
-    if (!regions.contains(_region)) {
-      Region _r = Region(_region);
-      _r.save();
-    }
-    if (!towns.contains(_town)) {
-      Town _t = Town(_town);
-      _t.save();
-    }
-    loadProject(_project);
-    //Navigator.of(context).pop();
-  }*/
-  void saveLocation(List args) async {
-    ProjectLocation loc = args[0];
-    loc.save();
-    loadProject(project);
-  }
-
-  void _callLocationEditDialog(context, project) async {
-    List<KeyValue> countries = await getCountriesHash();
-    List<KeyValue> provinces = await getProvincesHash();
-    List<KeyValue> regions = await getRegionsHash();
-    List<KeyValue> towns = await getTownsHash();
-    await getProjectLocationByProject(project.uuid).then((value) async {
-      editProjectLocationDialog(
-          context, value, project, countries, provinces, regions, towns);
-    });
-
-    /*await getCountries().then((valueCountries) async {
-      for (Country item in valueCountries) {
-        countries.add(item.toKeyValue());
-      }
-
-      await getProvinces().then((valueProvinces) async {
-        for (Province item in valueProvinces) {
-          provinces.add(item.toKeyValue());
-        }
-
-        await getRegions().then((valueRegions) async {
-          for (Region item in valueRegions) {
-            regions.add(item.toKeyValue());
-          }
-
-          await getTowns().then((valueTowns) async {
-            for (Town item in valueTowns) {
-              towns.add(item.toKeyValue());
-            }
-
-            await getProjectLocationByProject(_project.uuid)
-                .then((value) async {
-              // if (value == null) {
-              //   value = ProjectLocation(_project.uuid);
-              //   value.save();
-              // }
-
-              _editProjectLocationDialog(context, value, _project, countries,
-                  provinces, regions, towns);
-            });
-          });
-        });
-      });
-    });*/
-  }
-
-  Future<void> editProjectLocationDialog(
-      context, loc, project, countries, provinces, regions, towns) {
-    /*TextEditingController countryController = TextEditingController(text: "");
-    TextEditingController provinceController = TextEditingController(text: "");
-    TextEditingController regionController = TextEditingController(text: "");
-    TextEditingController townController = TextEditingController(text: "");
-    if (loc != null) {
-      countryController = TextEditingController(text: loc.country);
-      provinceController = TextEditingController(text: loc.province);
-      regionController = TextEditingController(text: loc.region);
-      townController = TextEditingController(text: loc.town);
-    }*/
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          //title: const Text('Add location'),
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Añadir localización'),
-          content: SingleChildScrollView(
-            child: Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'País',
-                  size: 220,
-                  selected: loc.countryObj.toKeyValue(),
-                  options: countries,
-                  onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.country = val;
-                    });
-                  },
-                ),
-                /*customText("País:", 16, textColor: Colors.blue),
-                customDropdownField(
-                  countryController,
-                  countries,
-                  loc.countryObj.toKeyValue(),
-                  "Seleccione país",
-                ),*/
-                //customAutocompleteField(countryController, countries, "País")
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Provincia',
-                  size: 220,
-                  selected: loc.provinceObj.toKeyValue(),
-                  options: provinces,
-                  onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.province = val;
-                    });
-                  },
-                ),
-
-                /*customText("Provincia:", 16, textColor: Colors.blue),
-                customDropdownField(
-                  provinceController,
-                  provinces,
-                  loc.provinceObj.toKeyValue(),
-                  "Seleccione provincia",
-                ),*/
-                /*customAutocompleteField(
-                    provinceController, provinces, "Provincia")*/
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Comunidad',
-                  size: 220,
-                  selected: loc.regionObj.toKeyValue(),
-                  options: regions,
-                  onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.region = val;
-                    });
-                  },
-                ),
-
-                /*customText("Comunidad:", 16, textColor: Colors.blue),
-                customDropdownField(
-                  regionController,
-                  regions,
-                  loc.regionObj.toKeyValue(),
-                  "Seleccione provincia",
-                ),*/
-                //customAutocompleteField(regionController, regions, "Comunidad")
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Municipio',
-                  size: 220,
-                  selected: loc.townObj.toKeyValue(),
-                  options: towns,
-                  onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.town = val;
-                    });
-                  },
-                ),
-
-                /*customText("Municipio:", 16, textColor: Colors.blue),
-                customDropdownField(
-                  townController,
-                  towns,
-                  loc.townObj.toKeyValue(),
-                  "Seleccione provincia",
-                ),*/
-                //customAutocompleteField(townController, towns, "Municipio")
-              ]),
-              space(width: 20),
-            ]),
-          ),
-          actions: <Widget>[
-            dialogsBtns(context, saveLocation, loc)
-            /*TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveLocation(
-                    context,
-                    loc,
-                    countryController.text,
-                    provinceController.text,
-                    regionController.text,
-                    townController.text,
-                    project,
-                    countries,
-                    provinces,
-                    regions,
-                    towns);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),*/
-          ],
-        );
-      },
-    );
-  }
-}

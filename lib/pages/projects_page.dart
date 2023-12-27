@@ -468,9 +468,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("En ejecución:", 16, textColor: Colors.green),
+                  customText("En ejecución:", 16),
                   space(height: 5),
-                  customLinearPercent(context, 4.5, 0.8, Colors.green),
+                  customLinearPercent(context, 4.5, 0.8, mainColor),
                 ],
               ),
               const VerticalDivider(
@@ -480,7 +480,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Presupuesto total:   ${_project.budget} €", 16),
                 space(height: 5),
-                customLinearPercent(context, 4.5, 0.8, Colors.blue),
+                customLinearPercent(context, 4.5, 0.8, blueColor),
               ]),
             ],
           ),
