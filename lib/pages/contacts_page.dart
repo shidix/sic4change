@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -199,8 +200,15 @@ SingleChildScrollView dataBody(context) {
                         icon: const Icon(Icons.info),
                         tooltip: 'View',
                         onPressed: () async {
-                          Navigator.pushNamed(context, "/contact_info",
-                              arguments: {'contact': contact});
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: ((context) => ContactInfoPage(
+                                        contact: contact,
+                                      ))));
+
+                          // Navigator.pushNamed(context, "/contact_info",
+                          // arguments: {'contact': contact});
                         }),
                     editBtn(context, callEditDialog, {"contact": contact}),
                     removeBtn(

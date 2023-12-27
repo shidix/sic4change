@@ -12,17 +12,31 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactInfoTitle = "Detalles del Contacto";
 ContactInfo? _contactInfo;
-Contact? contact;
 bool isLoading = false;
 
 class ContactInfoPage extends StatefulWidget {
-  const ContactInfoPage({super.key});
+  final Contact? contact;
+
+  const ContactInfoPage({super.key, this.contact});
 
   @override
   State<ContactInfoPage> createState() => _ContactInfoPageState();
 }
 
 class _ContactInfoPageState extends State<ContactInfoPage> {
+
+  Contact? contact;
+  @override
+  void initState() {
+    contact = widget.contact;
+    loadContactInfo(contact).then((val) {
+      setState(() {
+      });
+    });
+    super.initState();
+
+  }
+  
   void reloadContactInfo() async {
     setState(() {
       isLoading = false;
@@ -42,7 +56,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           arguments: {"contactInfo": val, "contact": _contact});
     });
   }*/
-  void loadContactInfo(contact) async {
+  Future<void> loadContactInfo(contact) async {
     if (_contactInfo == null) {
       await contact.getContactInfo().then((val) {
         _contactInfo = val;
@@ -55,16 +69,17 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      contact = args["contact"];
-      loadContactInfo(contact);
-    } else {
-      _contactInfo = null;
-      contact = null;
-    }
+    // if (ModalRoute.of(context)!.settings.arguments != null) {
+    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+    //   contact = args["contact"];
+    //   loadContactInfo(contact);
+    // } else {
+    //   _contactInfo = null;
+    //   contact = null;
+    // }
 
-    if (contact == null) return Page404();
+    // if (contact == null) return Page404();
+
 
     return Scaffold(
       body: Column(

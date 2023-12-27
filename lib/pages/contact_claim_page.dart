@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_claim.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
@@ -10,7 +11,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactClaimPageTitle = "Seguimiento";
 List claimList = [];
-//Contact? contactC;
+Contact? contact;
 
 class ContactClaimPage extends StatefulWidget {
   const ContactClaimPage({super.key});

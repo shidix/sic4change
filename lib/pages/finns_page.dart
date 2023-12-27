@@ -60,10 +60,25 @@ class _FinnsPageState extends State<FinnsPage> {
     ),
   );
 
-  void loadFinns(value) async {
-    // await getFinnsByProject(value).then((val) {
-    //   finn_list = val;
-    // });
+  @override
+  void initState() {
+    super.initState();
+    if (_project == null) {
+      SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
+          .then((project) {
+        _project = project;
+        loadFinns(project.uuid).then( (value) {
+          if (mounted) {
+                        setState(() {
+            });
+          }
+        });
+      });
+    }
+  }
+
+  Future<void> loadFinns(value) async {
+
     await SFinn.byProject(value).then((val) {
       finn_list = val;
     });
@@ -73,7 +88,6 @@ class _FinnsPageState extends State<FinnsPage> {
     for (var financier in _project!.financiers) {
       aportes_amount[financier] = 0;
     }
-    // _project!.totalBudget().then((value) {totalBudgetProject = value;});
 
     totalBudget = Text(
       "${totalBudgetProject.toStringAsFixed(2)} €",
@@ -164,27 +178,28 @@ class _FinnsPageState extends State<FinnsPage> {
 
   @override
   Widget build(BuildContext context) {
-    _project = null;
     if (ModalRoute.of(context)!.settings.arguments != null) {
       Map args = ModalRoute.of(context)!.settings.arguments as Map;
       _project = args["project"];
+      return Scaffold(
+          body: SingleChildScrollView(
+        child: Column(children: [
+          mainMenu(context),
+          finnHeader(context, _project),
+          finnFullPage(context, _project),
+        ]),
+      ));
     } else {
-      _project = null;
-    }
-
-    if (_project == null) {
-      return const ProjectsPage();
+      return Scaffold(
+          body: SingleChildScrollView(
+        child: Column(children: [
+          mainMenu(context),
+          finnHeader(context, _project),
+          finnFullPage(context, _project),
+        ]),
+      ));
       //return const Page404();
     }
-
-    return Scaffold(
-        body: SingleChildScrollView(
-      child: Column(children: [
-        mainMenu(context),
-        finnHeader(context, _project),
-        finnFullPage(context, _project),
-      ]),
-    ));
   }
 
 /*-------------------------------------------------------------
@@ -194,7 +209,7 @@ class _FinnsPageState extends State<FinnsPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
-        child: Text("$PAGE_FINN_TITLE de ${_project.name}.",
+        child: Text((_project != null)?"$PAGE_FINN_TITLE de ${_project!.name}.":"Esperando datos...",
             style: const TextStyle(fontSize: 20)),
       ),
       Container(
@@ -324,11 +339,12 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Widget finnFullPage(context, project) {
-    project = project as SProject;
+  Widget finnFullPage(context, SProject? project) {
     List<Container> sourceRows = [];
-    // double totalBudgetDouble = max(1, double.parse(totalBudget.data.toString()));
     TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
+    if (project == null) {
+      return const Text("Esperando datos...");
+    }
     for (var financierObj in project.financiersObj) {
       String financier = financierObj.uuid;
       if (!aportes_amount.containsKey(financier)) {
