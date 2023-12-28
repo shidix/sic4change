@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -294,54 +295,24 @@ class Invoice {
       json["document"],
       json["partner"],
     );
-    // id = json["id"];
-    // uuid = json["uuid"];
-    // number = json["number"];
-    // code = json["code"];
-    // finn = json["finn"];
-    // concept = json["concept"];
-    // date = json["date"];
-    // base = json["base"];
-    // taxes = json["taxes"];
-    // total = json["total"];
-    // desglose = json["desglose"];
-    // provider = json["provider"];
-    // document = json["document"];
-    // partner = json["partner"];
   }
-
-  // Invoice.fromJson(Map<String, dynamic> json)
-  //     : id = json["id"],
-  //       uuid = json["uuid"],
-  //       number = json["number"],
-  //       code = json["code"],
-  //       finn = json["finn"],
-  //       concept = json["concept"],
-  //       date = json["date"],
-  //       base = json["base"],
-  //       taxes = json["taxes"],
-  //       total = json["total"],
-  //       desglose = json["desglose"],
-  //       provider = json["provider"],
-  //       partner = json["partner"],
-  // document = json["document"];
 
   factory Invoice.getEmpty() {
     return Invoice(
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      "",
+      "", // id
+      const Uuid().v4(), // uuid
+      "", // number
+      "", // code
+      "", // finn
+      "", // concept
+      DateFormat('yyyy-MM-dd').format(DateTime.now()), // date
+      0, // base
+      0, // taxes 
+      0, // total
+      "", // desglose
+      "", // provider
+      "", // document
+      "", // partner
     );
   }
 
@@ -365,7 +336,7 @@ class Invoice {
   void save() async {
     final collection = db.collection("s4c_invoices");
     if (id == "") {
-      id = const Uuid().v4();
+      id = uuid;
       Map<String, dynamic> data = toJson();
       collection.add(data);
     } else {

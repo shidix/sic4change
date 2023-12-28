@@ -1,12 +1,8 @@
-// import 'dart:html';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-//import 'package:sic4change/services/firebase_service.dart';
 import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -204,8 +200,6 @@ class _FinnsPageState extends State<FinnsPage> {
             space(width: 10),
             finnAddBtn(context, _project),
             space(width: 10),
-
-            // customRowPopBtn(context, "Volver", Icons.arrow_back),
             finnBackButton(context),
           ],
         ),
@@ -943,6 +937,7 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
 
     invoicesList.add(header);
+    items.sort((a, b) => (a.date).compareTo(b.date));
     for (Invoice invoice in items) {
       invoicesList.add(MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -1211,7 +1206,6 @@ class _FinnsPageState extends State<FinnsPage> {
                 finn.delete();
                 loadFinns(projectUuid);
                 Navigator.of(context).pop();
-                //Navigator.popAndPushNamed(context, "/finns", arguments: {});
               },
             ),
             TextButton(
@@ -1246,29 +1240,11 @@ class _FinnsPageState extends State<FinnsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('Añadir factura a la partida'),
+          title: s4cTitleBar('Añadir factura a la partida', context),
           content: InvoiceForm(
             key: null,
             partners: _project!.partnersObj,
-            existingInvoice: Invoice.getEmpty()
-              ..uuid = const Uuid().v4()
-              ..finn = finn.uuid
-              ..date = DateFormat('yyyy-MM-dd').format(DateTime.now()),
-            // Invoice(
-            //   '',
-            //   const Uuid().v4(),
-            //   '',
-            //   '',
-            //   finn.uuid,
-            //   '',
-            //   DateFormat('yyyy-MM-dd').format(DateTime.now()),
-            //   0,
-            //   0,
-            //   0,
-            //   '',
-            //   '',
-            //   '',
-            // ),
+            existingInvoice: Invoice.getEmpty()..finn = finn.uuid,
           ),
         );
       },
@@ -1282,46 +1258,10 @@ class _FinnsPageState extends State<FinnsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             titlePadding: EdgeInsets.zero,
-            title: s4cTitleBar('Editar factura'),
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.75,
-              child: InvoiceForm(
-                key: null,
-                partners: _project!.partnersObj,
-                existingInvoice: invoice,
-              ),
-            ));
+            title: s4cTitleBar('Editar factura', context),
+            content: InvoiceForm(existingInvoice: invoice, partners: _project!.partnersObj)
+            );
       },
     );
   }
 }
-
-// SizedBox s4cTitleBar(String title, [context]) {
-//   Widget closeButton = const SizedBox(width: 0);
-//   if (context != null) {
-//     closeButton = IconButton(
-//       icon: const Icon(Icons.close),
-//       color: Colors.white,
-//       iconSize: 20,
-//       onPressed: () {
-//         Navigator.of(context).pop();
-//       },
-//     );
-//   }
-//   return SizedBox(
-//       width: double.infinity,
-//       child: Card(
-//           color: Colors.blueGrey,
-//           child: Padding(
-//               padding: const EdgeInsets.all(10),
-//               child: Row(children: [
-//                 Expanded(
-//                     flex: 9,
-//                     child: Text(title,
-//                         style: const TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 18,
-//                             color: Colors.white))),
-//                 Expanded(flex: 1, child: closeButton)
-//               ]))));
-// }

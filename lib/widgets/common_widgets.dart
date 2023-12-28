@@ -890,6 +890,36 @@ Widget returnBtn(context) {
   );
 }
 
+Widget saveBtn(context, action, [args]) {
+  return FilledButton(
+    onPressed: () {
+      if (args == null) {
+        action();
+      } else {
+        action(args);
+      }
+    },
+    style: btnStyle,
+    child: Column(
+      children: [
+        const Icon(Icons.save_outlined, color: subTitleColor),
+        space(height: 5),
+        customText(saveText, 12, textColor: subTitleColor)
+      ],
+    ),
+  );
+}
+
+Widget saveBtnForm(context, action, [args]) {
+  return actionButton(context, saveText, action, Icons.save_outlined, args);
+}
+
+Widget cancelBtnForm(context) {
+  return actionButton(context, cancelText, () {
+    Navigator.pop(context);
+  }, Icons.cancel, null);
+}
+
 Widget dialogsBtns(context, action, obj) {
   return Row(children: [
     Expanded(
@@ -1118,33 +1148,39 @@ class ReadOnlyTextField extends StatelessWidget {
         .copyWith(backgroundColor: bgcolor);
     return Container(
         color: bgcolor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
-            Text(
-              label,
-              textAlign: textAlign,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-            Text(
-              textToShow,
-              textAlign: textAlign,
-              style: fgstyle, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
+        child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                    height: 5.0), // Ajusta el espacio según sea necesario
+                Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: Text(
+                      label,
+                      textAlign: textAlign,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall, // Estilo similar al de un TextFormField
+                    )),
+                const SizedBox(
+                    height: 2.0), // Ajusta el espacio según sea necesario
+                Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: Text(
+                      textToShow,
+                      textAlign: textAlign,
+                      style: fgstyle, // Estilo similar al de un TextFormField
+                    )),
+                const SizedBox(
+                    height: 4.0), // Ajusta el espacio según sea necesario
 
-            const Divider(height: 1.0, color: Colors.black54),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-          ],
-        ));
+                const Divider(height: 1.0, color: Colors.black54),
+                const SizedBox(
+                    height: 2.0), // Ajusta el espacio según sea necesario
+              ],
+            )));
   }
 }
 
@@ -1326,6 +1362,51 @@ class CustomTextField extends StatelessWidget {
           fieldValue(val);
         },
       ),
+    );
+  }
+}
+
+class CustomSelectFormField extends StatelessWidget {
+  const CustomSelectFormField({
+    Key? key,
+    required this.labelText,
+    required this.initial,
+    required this.options,
+    required this.onSelectedOpt,
+    this.required = false,
+  }) : super(key: key);
+
+  final String labelText;
+  final String initial;
+  final List<KeyValue> options;
+  final ValueChanged<String> onSelectedOpt;
+  final bool required;
+
+  @override
+  Widget build(BuildContext context) {
+    if (initial == "") {
+      options.insert(0, KeyValue("", "Seleccione una opción"));
+    }
+    List<DropdownMenuItem<String>> optionsDrop = options.map((e) {
+      return DropdownMenuItem<String>(
+        value: e.key,
+        child: Text(e.value),
+      );
+    }).toList();
+
+    return DropdownButtonFormField(
+      value: initial,
+      decoration: const InputDecoration(labelText: 'Socio'),
+      items: optionsDrop,
+      onChanged: (value) {
+        onSelectedOpt(value.toString());
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty || (required && value == "")) {
+          return 'Por favor seleccione una opción';
+        }
+        return null;
+      },
     );
   }
 }
