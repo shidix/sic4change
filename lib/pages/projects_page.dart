@@ -345,13 +345,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  Widget projectCardDatasFinancier(SProject _project) {
-    List _list = _project.financiers;
+  Widget projectCardDatasFinancier(SProject project) {
+    List list = project.financiers;
     List financiers = [];
-    if (_project.financiersObj.isNotEmpty) {
-      for (var uuid in _list) {
+    if (project.financiersObj.isNotEmpty) {
+      for (var uuid in list) {
         financiers
-            .add((getObject(_project.financiersObj, uuid) as Financier).name);
+            .add((getObject(project.financiersObj, uuid) as Financier).name);
       }
     }
 
@@ -454,11 +454,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ]);
   }
 
-  Widget projectCardDatas(context, _project) {
+  Widget projectCardDatas(context, project) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        projectCardDatasHeader(context, _project),
+        projectCardDatasHeader(context, project),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
@@ -478,7 +478,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 color: Colors.grey,
               ),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Presupuesto total:   ${_project.budget} €", 16),
+                customText("Presupuesto total:   ${project.budget} €", 16),
                 space(height: 5),
                 customLinearPercent(context, 4.5, 0.8, blueColor),
               ]),
@@ -490,21 +490,21 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("Responsable del proyecto:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(_project.managerObj.name, 16),
+        customText(project.managerObj.name, 16),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
-        projectCardDatasFinancier(_project),
+        projectCardDatasFinancier(project),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
         customText("Programa:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(_project.programmeObj.name, 16),
+        customText(project.programmeObj.name, 16),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
-        projectCardDatasPartners(_project),
+        projectCardDatasPartners(project),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
@@ -518,11 +518,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             customPushBtn(context, "+ Info", Icons.info, "/project_info",
-                {"project": _project}),
+                {"project": project}),
             customPushBtn(context, "Marco técnico", Icons.task, "/goals",
-                {"project": _project}),
+                {"project": project}),
             customPushBtn(context, "Presupuesto", Icons.euro, "/finns",
-                {"project": _project}),
+                {"project": project}),
             customBtn(context, "Personal", Icons.people, "/projects", {}),
             /*customBtn(context, "Editar", Icons.edit, "/projects", {}),
             customBtn(
