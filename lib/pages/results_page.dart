@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
+//import 'package:sic4change/pages/results_page.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -15,13 +16,16 @@ const pageResultTitle = "Resultados";
 List results = [];
 
 class ResultsPage extends StatefulWidget {
-  const ResultsPage({super.key});
+  final Goal? goal;
+  const ResultsPage({super.key, this.goal});
 
   @override
   State<ResultsPage> createState() => _ResultsPageState();
 }
 
 class _ResultsPageState extends State<ResultsPage> {
+  Goal? goal;
+
   void loadResults(value) async {
     await getGoalsByProject(value).then((val) {
       results = val;
@@ -30,15 +34,16 @@ class _ResultsPageState extends State<ResultsPage> {
     setState(() {});
   }
 
-  /*@override
+  @override
   initState() {
-    print("initState Called");
-    //await getProjectByGoal
-  }*/
+    print("--2--");
+    super.initState();
+    goal = widget.goal;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Goal? goal;
+    /*final Goal? goal;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
@@ -47,7 +52,7 @@ class _ResultsPageState extends State<ResultsPage> {
       goal = null;
     }
 
-    if (goal == null) return const Page404();
+    if (goal == null) return const Page404();*/
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

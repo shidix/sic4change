@@ -474,188 +474,6 @@ Widget customRowDividerBlue() {
   );
 }
 
-class DateTimeRangePicker extends StatelessWidget {
-  const DateTimeRangePicker({
-    Key? key,
-    required DateTimeRange this.calendarRangeDate,
-    required this.labelText,
-    required this.selectedDate,
-    required this.onSelectedDate,
-  }) : super(key: key);
-
-  final DateTimeRange calendarRangeDate;
-  final String labelText;
-  final DateTimeRange selectedDate;
-  final ValueChanged<DateTimeRange> onSelectedDate;
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-        context: context,
-        firstDate: calendarRangeDate.start,
-        lastDate: calendarRangeDate.end,
-        initialDateRange: DateTimeRange(
-          end: DateTime(DateTime.now().year, DateTime.now().month,
-              DateTime.now().day + 13),
-          start: DateTime.now(),
-        ),
-        builder: (context, child) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 400.0,
-                  maxHeight: 500.0,
-                ),
-                child: child,
-              )
-            ],
-          );
-        });
-
-    if (picked != null && picked != selectedDate) onSelectedDate(picked);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: labelText,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
-            ),
-            const Icon(Icons.calendar_today),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DateTimePicker extends StatelessWidget {
-  const DateTimePicker({
-    Key? key,
-    required this.labelText,
-    required this.selectedDate,
-    required this.onSelectedDate,
-  }) : super(key: key);
-
-  final String labelText;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onSelectedDate;
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != selectedDate) {
-      onSelectedDate(picked);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: labelText,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "${selectedDate.toLocal()}".split(' ')[0],
-            ),
-            //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
-            const Icon(Icons.calendar_today),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CustomDropdown extends StatelessWidget {
-  const CustomDropdown({
-    Key? key,
-    required this.labelText,
-    required this.size,
-    required this.options,
-    required this.selected,
-    required this.onSelectedOpt,
-  }) : super(key: key);
-
-  final double size;
-  final String labelText;
-  final KeyValue selected;
-  final List<KeyValue> options;
-  final ValueChanged<String> onSelectedOpt;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: size,
-        child: DropdownSearch<KeyValue>(
-          popupProps: const PopupProps.menu(
-            showSearchBox: true,
-            showSelectedItems: true,
-          ),
-          items: options,
-          itemAsString: (KeyValue p) => p.value,
-          compareFn: (i1, i2) => i1.key == i2.key,
-          dropdownDecoratorProps: DropDownDecoratorProps(
-            dropdownSearchDecoration: InputDecoration(
-              labelText: labelText,
-              hintText: labelText,
-            ),
-          ),
-          onChanged: (val) {
-            onSelectedOpt(val!.key);
-          },
-          selectedItem: selected,
-        ));
-  }
-}
-
-class CustomTextField extends StatelessWidget {
-  const CustomTextField({
-    Key? key,
-    required this.labelText,
-    required this.initial,
-    required this.size,
-    required this.fieldValue,
-  }) : super(key: key);
-
-  final String labelText;
-  final String initial;
-  final double size;
-  final ValueChanged<String> fieldValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      child: TextFormField(
-        initialValue: (initial != "") ? initial : "",
-        decoration: InputDecoration(labelText: labelText),
-        onChanged: (val) {
-          fieldValue(val);
-        },
-      ),
-    );
-  }
-}
-
 Widget backButton(context) {
   return actionButtonVertical(context, "Volver", (context) {
     Navigator.pop(context);
@@ -750,92 +568,6 @@ Widget customCheckBox(label, state, action) {
       Text(label)
     ],
   );
-}
-
-class ReadOnlyTextField extends StatelessWidget {
-  final String label;
-  final String textToShow;
-  final TextAlign textAlign;
-
-  const ReadOnlyTextField(
-      {super.key,
-      required this.label,
-      required this.textToShow,
-      this.textAlign = TextAlign.left});
-
-  @override
-  Widget build(BuildContext context) {
-    Color bgcolor = Colors.grey.shade100;
-    TextStyle? fgstyle = Theme.of(context)
-        .textTheme
-        .titleMedium!
-        .copyWith(backgroundColor: bgcolor);
-    return Container(
-        color: bgcolor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
-            Text(
-              label,
-              textAlign: textAlign,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-            Text(
-              textToShow,
-              textAlign: textAlign,
-              style: fgstyle, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
-
-            const Divider(height: 1.0, color: Colors.black54),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-          ],
-        ));
-  }
-}
-
-SizedBox s4cTitleBar(String title, [context]) {
-  Widget closeButton = const SizedBox(width: 0);
-  if (context != null) {
-    closeButton = IconButton(
-      icon: const Icon(Icons.close),
-      color: Colors.white,
-      iconSize: 20,
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-  }
-  return SizedBox(
-      width: double.infinity,
-      child: Card(
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  topRight: Radius.circular(5),
-                  bottomLeft: Radius.circular(5),
-                  bottomRight: Radius.circular(5))),
-          color: mainColor,
-          child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: [
-                Expanded(
-                    flex: 9,
-                    child: Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.white))),
-                Expanded(flex: 1, child: closeButton)
-              ]))));
 }
 
 class CardRounded extends Card {
@@ -1019,15 +751,48 @@ Widget space({width = 10, height = 10}) {
   );
 }
 
-//--------------------------------------------------------------------------
-//                           TEXTS
-//--------------------------------------------------------------------------
 Widget customText(_text, _size,
     {textColor = Colors.black, bold = FontWeight.normal}) {
   return Text(
     _text,
     style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
+}
+
+SizedBox s4cTitleBar(String title, [context]) {
+  Widget closeButton = const SizedBox(width: 0);
+  if (context != null) {
+    closeButton = IconButton(
+      icon: const Icon(Icons.close),
+      color: Colors.white,
+      iconSize: 20,
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
+  return SizedBox(
+      width: double.infinity,
+      child: Card(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(5),
+                  topRight: Radius.circular(5),
+                  bottomLeft: Radius.circular(5),
+                  bottomRight: Radius.circular(5))),
+          color: mainColor,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: [
+                Expanded(
+                    flex: 9,
+                    child: Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white))),
+                Expanded(flex: 1, child: closeButton)
+              ]))));
 }
 
 //--------------------------------------------------------------------------
@@ -1048,6 +813,16 @@ Widget goPage(context, btnName, newContext, icon) {
           customText(btnName, 12, textColor: subTitleColor),
         ],
       ));
+}
+
+Widget goPageIcon(context, btnText, icon, newContext) {
+  return IconButton(
+      icon: Icon(icon),
+      tooltip: btnText,
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: ((context) => newContext)));
+      });
 }
 
 Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
@@ -1218,12 +993,73 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
     barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text(removeText),
+        titlePadding: const EdgeInsets.all(0),
+        title: s4cTitleBar(removeText),
         content: const SingleChildScrollView(
           child: Text(removeConfirm),
         ),
         actions: <Widget>[
-          TextButton(
+          Row(children: [
+            Expanded(
+                flex: 5,
+                child: ElevatedButton(
+                  onPressed: () {
+                    obj.delete();
+                    if (args == null) {
+                      action();
+                    } else {
+                      action(args);
+                    }
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 20.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    backgroundColor: Colors.white,
+                  ),
+                  child: Row(children: [
+                    const Icon(
+                      Icons.remove_circle_outline,
+                      color: Colors.black54,
+                      size: 30,
+                    ),
+                    space(width: 10),
+                    customText(removeText, 14)
+                  ]),
+                )),
+            space(width: 10),
+            Expanded(
+                flex: 5,
+                child: actionButton(
+                    context, "Cancelar", cancelItem, Icons.cancel, context))
+          ])
+          /*Expanded(
+              flex: 5,
+              child: ElevatedButton(
+                onPressed: () {
+                  obj.delete();
+                  if (args == null) {
+                    action();
+                  } else {
+                    action(args);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 20.0),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                  backgroundColor: Colors.white,
+                ),
+                child: Row(children: [
+                  const Icon(Icons.remove),
+                  space(width: 10),
+                  customText(removeText, 14)
+                ]),
+              )),*/
+          /*TextButton(
             child: const Text(removeText),
             onPressed: () async {
               obj.delete();
@@ -1234,13 +1070,18 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
               }
               Navigator.of(context).pop();
             },
-          ),
-          TextButton(
+          ),*/
+          /*space(width: 10),
+          Expanded(
+              flex: 5,
+              child: actionButton(
+                  context, "Cancelar", cancelItem, Icons.cancel, context))*/
+          /*TextButton(
             child: const Text(cancelText),
             onPressed: () {
               Navigator.of(context).pop();
             },
-          ),
+          ),*/
         ],
       );
     },
@@ -1252,4 +1093,239 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
 //--------------------------------------------------------------------------
 void cancelItem(BuildContext context) {
   Navigator.of(context).pop();
+}
+
+//--------------------------------------------------------------------------
+//                           FORMS FIELDS
+//--------------------------------------------------------------------------
+class ReadOnlyTextField extends StatelessWidget {
+  final String label;
+  final String textToShow;
+  final TextAlign textAlign;
+
+  const ReadOnlyTextField(
+      {super.key,
+      required this.label,
+      required this.textToShow,
+      this.textAlign = TextAlign.left});
+
+  @override
+  Widget build(BuildContext context) {
+    Color bgcolor = Colors.grey.shade100;
+    TextStyle? fgstyle = Theme.of(context)
+        .textTheme
+        .titleMedium!
+        .copyWith(backgroundColor: bgcolor);
+    return Container(
+        color: bgcolor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+                height: 4.0), // Ajusta el espacio según sea necesario
+            Text(
+              label,
+              textAlign: textAlign,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall, // Estilo similar al de un TextFormField
+            ),
+            const SizedBox(
+                height: 2.0), // Ajusta el espacio según sea necesario
+            Text(
+              textToShow,
+              textAlign: textAlign,
+              style: fgstyle, // Estilo similar al de un TextFormField
+            ),
+            const SizedBox(
+                height: 4.0), // Ajusta el espacio según sea necesario
+
+            const Divider(height: 1.0, color: Colors.black54),
+            const SizedBox(
+                height: 2.0), // Ajusta el espacio según sea necesario
+          ],
+        ));
+  }
+}
+
+class DateTimeRangePicker extends StatelessWidget {
+  const DateTimeRangePicker({
+    Key? key,
+    required DateTimeRange this.calendarRangeDate,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+  }) : super(key: key);
+
+  final DateTimeRange calendarRangeDate;
+  final String labelText;
+  final DateTimeRange selectedDate;
+  final ValueChanged<DateTimeRange> onSelectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+        context: context,
+        firstDate: calendarRangeDate.start,
+        lastDate: calendarRangeDate.end,
+        initialDateRange: DateTimeRange(
+          end: DateTime(DateTime.now().year, DateTime.now().month,
+              DateTime.now().day + 13),
+          start: DateTime.now(),
+        ),
+        builder: (context, child) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 400.0,
+                  maxHeight: 500.0,
+                ),
+                child: child,
+              )
+            ],
+          );
+        });
+
+    if (picked != null && picked != selectedDate) onSelectedDate(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
+            ),
+            const Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DateTimePicker extends StatelessWidget {
+  const DateTimePicker({
+    Key? key,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+  }) : super(key: key);
+
+  final String labelText;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate) {
+      onSelectedDate(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              "${selectedDate.toLocal()}".split(' ')[0],
+            ),
+            //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
+            const Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomDropdown extends StatelessWidget {
+  const CustomDropdown({
+    Key? key,
+    required this.labelText,
+    required this.size,
+    required this.options,
+    required this.selected,
+    required this.onSelectedOpt,
+  }) : super(key: key);
+
+  final double size;
+  final String labelText;
+  final KeyValue selected;
+  final List<KeyValue> options;
+  final ValueChanged<String> onSelectedOpt;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        width: size,
+        child: DropdownSearch<KeyValue>(
+          popupProps: const PopupProps.menu(
+            showSearchBox: true,
+            showSelectedItems: true,
+          ),
+          items: options,
+          itemAsString: (KeyValue p) => p.value,
+          compareFn: (i1, i2) => i1.key == i2.key,
+          dropdownDecoratorProps: DropDownDecoratorProps(
+            dropdownSearchDecoration: InputDecoration(
+              labelText: labelText,
+              hintText: labelText,
+            ),
+          ),
+          onChanged: (val) {
+            onSelectedOpt(val!.key);
+          },
+          selectedItem: selected,
+        ));
+  }
+}
+
+class CustomTextField extends StatelessWidget {
+  const CustomTextField({
+    Key? key,
+    required this.labelText,
+    required this.initial,
+    required this.size,
+    required this.fieldValue,
+  }) : super(key: key);
+
+  final String labelText;
+  final String initial;
+  final double size;
+  final ValueChanged<String> fieldValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      child: TextFormField(
+        initialValue: (initial != "") ? initial : "",
+        decoration: InputDecoration(labelText: labelText),
+        onChanged: (val) {
+          fieldValue(val);
+        },
+      ),
+    );
+  }
 }

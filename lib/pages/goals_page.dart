@@ -24,7 +24,6 @@ class _GoalsPageState extends State<GoalsPage> {
   void loadGoals(value) async {
     await getGoalsByProject(value).then((val) {
       goals = val;
-      //print(contact_list);
     });
     setState(() {});
   }
@@ -69,12 +68,13 @@ class _GoalsPageState extends State<GoalsPage> {
         child: customText(goalPageTitle, 20),
       ),
       Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(
-                context, _editGoalDialog, {'_goal': null, '_project': project}),
+            /*addBtn(
+                context, editGoalDialog, {'_goal': null, '_project': project}),*/
+            addBtn(context, editGoalDialog, {'goal': Goal(project.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -83,100 +83,61 @@ class _GoalsPageState extends State<GoalsPage> {
     ]);
   }
 
-  // Widget addBtn2(context, _project) {
-  //   return FilledButton(
-  //     onPressed: () {
-  //       _editGoalDialog(
-  //           context, {'_goal': null, '_project': _project} as HashMap);
-  //     },
-  //     style: FilledButton.styleFrom(
-  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
-  //       backgroundColor: Color(0xffffffff),
-  //     ),
-  //     child: const Column(
-  //       children: [
-  //         Icon(Icons.add, color: Colors.black54),
-  //         SizedBox(height: 5),
-  //         Text(
-  //           "Añadir",
-  //           style: TextStyle(color: Colors.black54, fontSize: 12),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  void saveGoal(List args) async {
+    Goal goal = args[0];
+    goal.save();
+    loadGoals(goal.project);
 
-  void _saveGoal(context, _goal, _name, _desc, _main, _project) async {
-    if (_goal == null) _goal = Goal(_project);
-    _goal.name = _name;
-    _goal.description = _desc;
-    _goal.main = _main;
-    _goal.save();
-    loadGoals(_project.uuid);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
   }
 
-  Future<void> _editGoalDialog(context, HashMap args) {
-    Goal? _goal = args["_goal"];
-    SProject _project = args["_project"];
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    bool _main = false;
-
-    if (_goal != null) {
-      nameController = TextEditingController(text: _goal.name);
-      descController = TextEditingController(text: _goal.description);
-      _main = _goal.main;
-    }
+  Future<void> editGoalDialog(context, HashMap args) {
+    Goal goal = args["goal"];
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        //bool _main = false;
         return AlertDialog(
-          // <-- SEE HERE
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar(
-              (_goal != null) ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
+              (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Nombre:", 16, textColor: Colors.blue),
-              customTextField(nameController, "Nombre..."),
+              CustomTextField(
+                labelText: "Nombre",
+                initial: goal.name,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => goal.name = val);
+                },
+              )
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Descripción:", 16, textColor: Colors.blue),
-              customTextField(descController, "Descripción..."),
+              CustomTextField(
+                labelText: "Descripción",
+                initial: goal.description,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => goal.description = val);
+                },
+              )
             ]),
             FormField<bool>(builder: (FormFieldState<bool> state) {
               return Checkbox(
-                value: _main,
+                value: goal.main,
                 onChanged: (bool? value) {
                   setState(() {
-                    _main = value!;
-                    state.didChange(_main);
+                    goal.main = value!;
+                    state.didChange(goal.main);
                   });
                 },
               );
             })
           ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveGoal(context, _goal, nameController.text,
-                    descController.text, _main, _project);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveGoal, goal)],
         );
       },
     );
@@ -252,7 +213,7 @@ class _GoalsPageState extends State<GoalsPage> {
             space(height: 10),
             customLinearPercent(context, 2, 0.8, Colors.green),
             space(height: 10),
-            Container(
+            SizedBox(
                 width: MediaQuery.of(context).size.width * 0.80,
                 child: Text(
                   goal.description,
@@ -285,62 +246,15 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Widget goalRowOptions(context, goal, project) {
     return Row(children: [
-      IconButton(
-          icon: const Icon(Icons.list_alt),
-          tooltip: 'Results',
-          onPressed: () {
-            Navigator.pushNamed(context, "/results", arguments: {'goal': goal});
-          }),
-      IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: () async {
-            _editGoalDialog(
-                context, {'_goal': goal, '_project': project} as HashMap);
-          }),
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Remove',
-          onPressed: () {
-            _removeGoalDialog(context, goal, project);
-          }),
+      goPageIcon(
+          context, "Resultados", Icons.list_alt, ResultsPage(goal: goal)),
+      editBtn(context, editGoalDialog, {'goal': goal}),
+      removeBtn(
+          context, removeGoalDialog, {"goal": goal, "project": project.uuid})
     ]);
   }
 
-  Future<void> _removeGoalDialog(context, _goal, _project) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Remove Goal'),
-          content: SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Remove'),
-              onPressed: () async {
-                _goal.delete();
-                loadGoals(_project.uuid);
-                Navigator.of(context).pop();
-                /*await deleteGoal(id).then((value) {
-                  loadGoals(_project.uuid);
-                  Navigator.of(context).pop();
-                  //Navigator.popAndPushNamed(context, "/goals", arguments: {});
-                });*/
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void removeGoalDialog(context, args) {
+    customRemoveDialog(context, args["goal"], loadGoals, args["project"]);
   }
 }
