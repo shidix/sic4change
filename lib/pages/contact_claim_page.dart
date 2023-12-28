@@ -1,26 +1,39 @@
-import 'dart:collection';
+// import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/contacts_page.dart';
+// import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_claim.dart';
+import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactClaimPageTitle = "Seguimiento";
 List claimList = [];
-Contact? contact;
+// Contact? contact;
 
 class ContactClaimPage extends StatefulWidget {
-  const ContactClaimPage({super.key});
+  final Contact? contact;
+  final ContactInfo? contactInfo;
+  const ContactClaimPage({super.key, this.contact, this.contactInfo});
 
   @override
   State<ContactClaimPage> createState() => _ContactClaimPageState();
 }
 
 class _ContactClaimPageState extends State<ContactClaimPage> {
+  Contact? contact;
+
+  @override
+  void initState() {
+    super.initState();
+    contact = widget.contact;
+    loadContactClaim(contact?.uuid);
+  }
+
   void loadContactClaim(value) async {
     await getClaimsByContact(value).then((val) {
       claimList = val;
@@ -30,20 +43,20 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      contact = args["contact"];
-    } else {
-      contact = null;
-    }
+    // if (ModalRoute.of(context)!.settings.arguments != null) {
+    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+    //   contact = args["contact"];
+    // } else {
+    //   contact = null;
+    // }
 
-    if (contact == null) return const Page404();
+    // if (contact == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         contactClaimHeader(context),
-        contactMenu(context, contact, "claim"),
+        contactMenu(context, contact, widget.contactInfo, "claim"),
         Expanded(
             child: Container(
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -80,8 +93,14 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context),
-                        returnBtn(context),
+                        addBtn(context, editDialog,
+                            {'claim': ContactClaim(widget.contact!.uuid)}),
+                        space(width: 10),
+                        goPage(
+                            context,
+                            "Volver",
+                            const ContactsPage(),
+                            Icons.arrow_circle_left_outlined),
                       ],
                     ),
                   ),
@@ -105,27 +124,27 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
     );
   }*/
 
-  Widget addBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        _editDialog(context, null);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget addBtn(context) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editDialog(context, null);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: const Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void saveClaim(context, claim, name, manager, date, contact) async {
     claim ??= ContactClaim(contact.uuid);
@@ -135,6 +154,11 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
     claim.save();
     loadContactClaim(contact.uuid);
     Navigator.of(context).pop();
+  }
+
+  void editDialog(context, Map<String, dynamic> args) {
+    ContactClaim claim = args["claim"];
+    _editDialog(context, claim);
   }
 
   Future<void> _editDialog(context, claim) {

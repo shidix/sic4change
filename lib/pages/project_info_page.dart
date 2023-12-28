@@ -1,7 +1,5 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
@@ -41,7 +39,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   @override
   Widget build(BuildContext context) {
     if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+      Map args = ModalRoute.of(context)!.settings.arguments as Map;
       project = args["project"];
     } else {
       project = null;

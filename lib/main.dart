@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
     '/contact_info': (context) => const ContactInfoPage(),
     '/contact_claims': (context) => const ContactClaimPage(),
     '/contact_claim_info': (context) => const ContactClaimInfoPage(),
-    '/contact_trackings': (context) => const ContactTrackingPage(),
+    '/contact_trackings': (context) => const ContactTrackingPage(contact:null),
     '/contact_tracking_info': (context) => const ContactTrackingInfoPage(),
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),

@@ -1,7 +1,9 @@
-import 'dart:collection';
+//import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/404_page.dart';
+import 'package:sic4change/pages/contacts_page.dart';
+// import 'package:sic4change/pages/contact_tracking_page.dart';
+//import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -11,52 +13,58 @@ import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactInfoTitle = "Detalles del Contacto";
-ContactInfo? _contactInfo;
 bool isLoading = false;
 
 class ContactInfoPage extends StatefulWidget {
   final Contact? contact;
+  final ContactInfo? contactInfo;
 
-  const ContactInfoPage({super.key, this.contact});
+  const ContactInfoPage({super.key, this.contact, this.contactInfo});
 
   @override
   State<ContactInfoPage> createState() => _ContactInfoPageState();
 }
 
 class _ContactInfoPageState extends State<ContactInfoPage> {
-
   Contact? contact;
+  ContactInfo? _contactInfo;
+  Widget? contactInfoDetailsPanel;
+
   @override
   void initState() {
-    contact = widget.contact;
-    loadContactInfo(contact).then((val) {
-      setState(() {
-      });
-    });
     super.initState();
+    contact = widget.contact;
+    _contactInfo = widget.contactInfo;
+    contactInfoDetailsPanel = contactInfoDetails(context);
+    print(_contactInfo);
 
+    if (_contactInfo == null) {
+      contact!.getContactInfo().then((val) {
+        _contactInfo = val;
+        setState(() {
+          isLoading = true;
+          contactInfoDetailsPanel = contactInfoDetails(context);
+        });
+      });
+    }
   }
-  
-  void reloadContactInfo() async {
+
+  Future<void> reloadContactInfo() async {
     setState(() {
       isLoading = false;
     });
 
     _contactInfo?.reload().then((val) {
       _contactInfo = val;
+      contactInfoDetailsPanel = contactInfoDetails(context);
       setState(() {
         isLoading = true;
       });
     });
   }
 
-  /*void loadContactInfo(contactInfo) async {
-    await contactInfo.reload.then((val) {
-      Navigator.popAndPushNamed(context, "/contact_info",
-          arguments: {"contactInfo": val, "contact": _contact});
-    });
-  }*/
-  Future<void> loadContactInfo(contact) async {
+
+  Future<ContactInfo?> loadContactInfo(contact) async {
     if (_contactInfo == null) {
       await contact.getContactInfo().then((val) {
         _contactInfo = val;
@@ -65,22 +73,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         });
       });
     }
+    return _contactInfo;
   }
 
   @override
   Widget build(BuildContext context) {
-    // if (ModalRoute.of(context)!.settings.arguments != null) {
-    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-    //   contact = args["contact"];
-    //   loadContactInfo(contact);
-    // } else {
-    //   _contactInfo = null;
-    //   contact = null;
-    // }
-
-    // if (contact == null) return Page404();
-
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -94,7 +91,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                 ),
           isLoading
               //? contactInfoMenu(context)
-              ? contactMenu(context, contact, "info")
+              ? contactMenu(context, widget.contact, _contactInfo, "info")
               : const Center(
                   child: Text(""),
                 ),
@@ -111,7 +108,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                           borderRadius:
                               const BorderRadius.all(Radius.circular(5)),
                         ),
-                        child: contactInfoDetails(context),
+                        child: contactInfoDetailsPanel ?? Container(),
                         //child: projectInfoDetails(context, _project),
                       )))
               : const Center(
@@ -135,7 +132,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                     child: customText(contact!.name, 22),
                   ),
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -143,7 +140,11 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                         addBtn(context, callContactInfoEditDialog, null,
                             text: "Editar", icon: Icons.edit),
                         space(width: 10),
-                        returnBtn(context),
+                        goPage(
+                            context,
+                            "Volver",
+                            const ContactsPage(),
+                            Icons.arrow_circle_left_outlined),
                         //customRowPopBtn(context, "Volver", Icons.arrow_back)
                       ],
                     ),
@@ -175,29 +176,37 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
     );
   }*/
 
-  Widget contactInfoMenu(context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Row(
-        children: [
-          menuTabSelect(context, "Info", "/contact_info", {'contact': contact}),
-          menuTab(context, "Seguimiento", "/contact_trackings",
-              {'contact': contact}),
-          menuTab(context, "Reclamaciones", "/project_info",
-              {'contactInfo': _contactInfo, 'contact': contact}),
-        ],
-      ),
-    );
-  }
+  // Widget contactInfoMenu(context) {
+  //   return Container(
+  //     padding: const EdgeInsets.only(left: 10, right: 10),
+  //     child: Row(
+  //       children: [
+  //         menuTabSelect(context, "Info", "/contact_info", {'contact': contact}),
+  //         menuTab2(context, "Seguimiento-n",
+  //           ContactTrackingPage(contact: contact),
+  //           selected: false),
+  //         // menuTab(context, "Seguimiento", "/contact_trackings",
+  //         //     {'contact': contact}),
+  //         menuTab(context, "Reclamaciones", "/project_info",
+  //             {'contactInfo': _contactInfo, 'contact': contact}),
+  //       ],
+  //     ),
+  //   );
+  // }
 
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget contactInfoDetails(context) {
+    if (_contactInfo == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

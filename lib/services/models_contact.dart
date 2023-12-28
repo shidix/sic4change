@@ -129,6 +129,16 @@ class Contact {
       } else {
         data["id"] = dbResult.id;
         contactInfo = ContactInfo.fromJson(data);
+        // contactInfo.getOrganization().then((value) => contactInfo.orgObj = value);
+        // contactInfo.getCharge().then((value) => contactInfo.chargeObj = value);
+        // contactInfo.getCategory().then((value) => contactInfo.catObj = value);
+        // contactInfo.getSubcategory().then((value) => contactInfo.subcatObj = value);
+        // contactInfo.getZone().then((value) => contactInfo.zoneObj = value);
+        // contactInfo.getSubzone().then((value) => contactInfo.subzoneObj = value);
+        // contactInfo.getAmbit().then((value) => contactInfo.ambitObj = value);
+        // contactInfo.getSector().then((value) => contactInfo.sectorObj = value);
+        // contactInfo.getSkateholder().then((value) => contactInfo.stakeholderObj = value);
+        // contactInfo.getDecision().then((value) => contactInfo.decisionObj = value);
         contactInfo.orgObj = await contactInfo.getOrganization();
         contactInfo.chargeObj = await contactInfo.getCharge();
         contactInfo.catObj = await contactInfo.getCategory();

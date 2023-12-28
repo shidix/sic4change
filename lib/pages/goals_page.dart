@@ -5,6 +5,7 @@ import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
@@ -30,10 +31,10 @@ class _GoalsPageState extends State<GoalsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final SProject? project;
+    SProject? project;
 
     if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+      Map args = ModalRoute.of(context)!.settings.arguments as Map;
       project = args["project"];
     } else {
       project = null;
@@ -49,19 +50,7 @@ class _GoalsPageState extends State<GoalsPage> {
         goalHeader(context, project),
         marcoMenu(context, project, "marco"),
         contentTab(context, goalList, project),
-        /*Expanded(
-            child: Container(
-                padding: EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: goalList(context, project),
-                )))*/
+        footer(context),
       ]),
     );
   }

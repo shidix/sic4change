@@ -47,7 +47,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
             children: [
           mainMenu(context),
           contactClaimInfoHeader(context),
-          contactMenu(context, contactC, "claim"),
+          contactMenu(context, contactC, null,"claim"),
           Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),

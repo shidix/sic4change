@@ -47,7 +47,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
             children: [
           mainMenu(context),
           contactTrackingInfoHeader(context),
-          contactMenu(context, contactT, "tracking"),
+          contactMenu(context, contactT, null, "tracking"),
           Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),

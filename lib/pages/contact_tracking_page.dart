@@ -1,8 +1,11 @@
-import 'dart:collection';
+// import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/contacts_page.dart';
+// import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_contact_tracking.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
@@ -13,13 +16,24 @@ List trackingList = [];
 //Contact? contact;
 
 class ContactTrackingPage extends StatefulWidget {
-  const ContactTrackingPage({super.key});
+  final Contact? contact;
+  final ContactInfo? contactInfo;
+  const ContactTrackingPage({super.key, required this.contact, this.contactInfo});
 
   @override
   State<ContactTrackingPage> createState() => _ContactTrackingPageState();
 }
 
 class _ContactTrackingPageState extends State<ContactTrackingPage> {
+  Contact? contact;
+
+  @override
+  void initState() {
+    super.initState();
+    contact = widget.contact;
+    loadContactTracking(contact?.uuid);
+  }
+  
   void loadContactTracking(value) async {
     await getTrakingsByContact(value).then((val) {
       trackingList = val;
@@ -29,20 +43,20 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      contact = args["contact"];
-    } else {
-      contact = null;
-    }
+    // if (ModalRoute.of(context)!.settings.arguments != null) {
+    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
+    //   contact = args["contact"];
+    // } else {
+    //   contact = null;
+    // }
 
-    if (contact == null) return const Page404();
+    // if (contact == null) return const Page404();
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         contactTrackingHeader(context),
-        contactMenu(context, contact, "tracking"),
+        contactMenu(context, widget.contact, widget.contactInfo, "tracking"),
         Expanded(
             child: Container(
                 padding: const EdgeInsets.only(left: 10, right: 10),
@@ -80,8 +94,9 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context),
-                        returnBtn(context),
+                        addBtn(context, editDialog, {'tracking': ContactTracking(widget.contact!.uuid)}),
+                        space(width: 10),
+                        goPage(context, "Volver", const ContactsPage(), Icons.arrow_circle_left_outlined),
                       ],
                     ),
                   ),
@@ -105,27 +120,27 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     );
   }*/
 
-  Widget addBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        _editDialog(context, null);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget addBtn(context) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editDialog(context, null);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: const Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void saveTracking(context, tracking, name, desc, contact) async {
     tracking ??= ContactTracking(contact.uuid);
@@ -134,6 +149,11 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     tracking.save();
     loadContactTracking(contact.uuid);
     Navigator.of(context).pop();
+  }
+
+  void editDialog(context, args) {
+    ContactTracking? tracking = args["tracking"];
+    _editDialog(context, tracking);
   }
 
   Future<void> _editDialog(context, tracking) {
