@@ -81,11 +81,13 @@ class InvoiceDetail extends StatelessWidget {
 
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
+  final List<Contact>? partners;
 
-  const InvoiceForm({Key? key, this.existingInvoice}) : super(key: key);
+  const InvoiceForm({Key? key, this.existingInvoice, this.partners})
+      : super(key: key);
 
   @override
-  _InvoiceFormState createState() => _InvoiceFormState();
+  createState() => _InvoiceFormState();
 }
 
 class _InvoiceFormState extends State<InvoiceForm> {
@@ -95,26 +97,36 @@ class _InvoiceFormState extends State<InvoiceForm> {
   @override
   void initState() {
     super.initState();
-    _invoice = widget.existingInvoice ??
-        Invoice(
-          '',
-          const Uuid().v4(),
-          '',
-          '',
-          '',
-          '',
-          DateFormat('yyyy-MM-dd').format(DateTime.now()),
-          0.0,
-          0.0,
-          0.0,
-          '',
-          '',
-          '',
-        );
+    _invoice = widget.existingInvoice ?? Invoice.getEmpty()
+      ..uuid = const Uuid().v4()
+      ..date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // Invoice(
+    //   '',
+    //   const Uuid().v4(),
+    //   '',
+    //   '',
+    //   '',
+    //   '',
+    //   DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    //   0.0,
+    //   0.0,
+    //   0.0,
+    //   '',
+    //   '',
+    //   '',
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
+    List<DropdownMenuItem<Object>>? partnersItems = [];
+    partnersItems.add(const DropdownMenuItem(
+        value: "", child: Text("--  Selecciona un socio  --")));
+    for (Contact partner in widget.partners!) {
+      partnersItems.add(
+          DropdownMenuItem(value: partner.uuid, child: Text(partner.name)));
+    }
+
     return Form(
       key: _formKey,
       child: SizedBox(
@@ -139,6 +151,13 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 decoration: const InputDecoration(labelText: 'Código'),
                 onSaved: (value) => _invoice.code = value!,
               ),
+              DropdownButtonFormField(
+                  value: _invoice.partner,
+                  decoration: const InputDecoration(labelText: 'Socio'),
+                  items: partnersItems,
+                  onChanged: (value) {
+                    _invoice.partner = value.toString();
+                  }),
               TextFormField(
                 initialValue: _invoice.concept,
                 decoration: const InputDecoration(labelText: 'Concepto'),

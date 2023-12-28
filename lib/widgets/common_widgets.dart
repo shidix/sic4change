@@ -12,7 +12,6 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-
 Widget customTitle(context, _text) {
   return Container(
       width: MediaQuery.of(context).size.width,
@@ -657,8 +656,10 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-Widget backButton (context) {
-  return actionButtonVertical(context, "Volver", (context) { Navigator.pop(context);}, Icons.arrow_circle_left_outlined, context);
+Widget backButton(context) {
+  return actionButtonVertical(context, "Volver", (context) {
+    Navigator.pop(context);
+  }, Icons.arrow_circle_left_outlined, context);
 }
 
 Widget actionButton(
@@ -836,7 +837,6 @@ SizedBox s4cTitleBar(String title, [context]) {
                 Expanded(flex: 1, child: closeButton)
               ]))));
 }
-
 
 class CardRounded extends Card {
   CardRounded({super.key, Widget? child, Color? color, EdgeInsets? padding})

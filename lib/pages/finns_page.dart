@@ -16,9 +16,9 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
-List finn_list = [];
-List projects = [];
-SProject? _project;
+// List finn_list = [];
+// List projects = [];
+// SProject? _project;
 FirebaseFirestore db = FirebaseFirestore.instance;
 double totalBudgetProject = 1;
 double executedBudgetProject = 0;
@@ -32,6 +32,10 @@ class FinnsPage extends StatefulWidget {
 }
 
 class _FinnsPageState extends State<FinnsPage> {
+  //List projects = [];
+  List finn_list = [];
+  SProject? _project;
+
   Map<String, Map<String, Text>> aportesControllers = {};
   Map<String, Map<String, Text>> distrib_controllers = {};
   Map<String, double> distrib_amount = {};
@@ -63,21 +67,14 @@ class _FinnsPageState extends State<FinnsPage> {
   @override
   void initState() {
     super.initState();
-    if (_project == null) {
-      SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
-          .then((project) {
-        _project = project;
-        loadFinns(project.uuid).then( (value) {
-          if (mounted) {
-                        setState(() {
-            });
-          }
-        });
-      });
-    }
   }
 
   Future<void> loadFinns(value) async {
+    finn_list = [];
+    aportesControllers = {};
+    distrib_controllers = {};
+    distrib_amount = {};
+    aportes_amount = {};
 
     await SFinn.byProject(value).then((val) {
       finn_list = val;
@@ -167,15 +164,6 @@ class _FinnsPageState extends State<FinnsPage> {
     }
   }
 
-  void loadProjects() async {
-    await getProjects().then((value) {
-      projects = value;
-    });
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (ModalRoute.of(context)!.settings.arguments != null) {
@@ -190,15 +178,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]),
       ));
     } else {
-      return Scaffold(
-          body: SingleChildScrollView(
-        child: Column(children: [
-          mainMenu(context),
-          finnHeader(context, _project),
-          finnFullPage(context, _project),
-        ]),
-      ));
-      //return const Page404();
+      return const ProjectsPage();
     }
   }
 
@@ -209,7 +189,10 @@ class _FinnsPageState extends State<FinnsPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
-        child: Text((_project != null)?"$PAGE_FINN_TITLE de ${_project!.name}.":"Esperando datos...",
+        child: Text(
+            (_project != null)
+                ? "$PAGE_FINN_TITLE de ${_project!.name}."
+                : "Esperando datos...",
             style: const TextStyle(fontSize: 20)),
       ),
       Container(
@@ -1266,21 +1249,26 @@ class _FinnsPageState extends State<FinnsPage> {
           title: s4cTitleBar('Añadir factura a la partida'),
           content: InvoiceForm(
             key: null,
-            existingInvoice: Invoice(
-              '',
-              const Uuid().v4(),
-              '',
-              '',
-              finn.uuid,
-              '',
-              DateFormat('yyyy-MM-dd').format(DateTime.now()),
-              0,
-              0,
-              0,
-              '',
-              '',
-              '',
-            ),
+            partners: _project!.partnersObj,
+            existingInvoice: Invoice.getEmpty()
+              ..uuid = const Uuid().v4()
+              ..finn = finn.uuid
+              ..date = DateFormat('yyyy-MM-dd').format(DateTime.now()),
+            // Invoice(
+            //   '',
+            //   const Uuid().v4(),
+            //   '',
+            //   '',
+            //   finn.uuid,
+            //   '',
+            //   DateFormat('yyyy-MM-dd').format(DateTime.now()),
+            //   0,
+            //   0,
+            //   0,
+            //   '',
+            //   '',
+            //   '',
+            // ),
           ),
         );
       },
@@ -1299,6 +1287,7 @@ class _FinnsPageState extends State<FinnsPage> {
               width: MediaQuery.of(context).size.width * 0.75,
               child: InvoiceForm(
                 key: null,
+                partners: _project!.partnersObj,
                 existingInvoice: invoice,
               ),
             ));

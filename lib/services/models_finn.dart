@@ -256,6 +256,7 @@ class Invoice {
   String desglose;
   String provider;
   String document;
+  String partner;
 
   Invoice(
       this.id,
@@ -270,22 +271,79 @@ class Invoice {
       this.total,
       this.desglose,
       this.provider,
-      this.document);
+      this.document,
+      this.partner);
 
-  Invoice.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        number = json["number"],
-        code = json["code"],
-        finn = json["finn"],
-        concept = json["concept"],
-        date = json["date"],
-        base = json["base"],
-        taxes = json["taxes"],
-        total = json["total"],
-        desglose = json["desglose"],
-        provider = json["provider"],
-        document = json["document"];
+  factory Invoice.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("partner")) {
+      json["partner"] = "";
+    }
+    return Invoice(
+      json["id"],
+      json["uuid"],
+      json["number"],
+      json["code"],
+      json["finn"],
+      json["concept"],
+      json["date"],
+      json["base"],
+      json["taxes"],
+      json["total"],
+      json["desglose"],
+      json["provider"],
+      json["document"],
+      json["partner"],
+    );
+    // id = json["id"];
+    // uuid = json["uuid"];
+    // number = json["number"];
+    // code = json["code"];
+    // finn = json["finn"];
+    // concept = json["concept"];
+    // date = json["date"];
+    // base = json["base"];
+    // taxes = json["taxes"];
+    // total = json["total"];
+    // desglose = json["desglose"];
+    // provider = json["provider"];
+    // document = json["document"];
+    // partner = json["partner"];
+  }
+
+  // Invoice.fromJson(Map<String, dynamic> json)
+  //     : id = json["id"],
+  //       uuid = json["uuid"],
+  //       number = json["number"],
+  //       code = json["code"],
+  //       finn = json["finn"],
+  //       concept = json["concept"],
+  //       date = json["date"],
+  //       base = json["base"],
+  //       taxes = json["taxes"],
+  //       total = json["total"],
+  //       desglose = json["desglose"],
+  //       provider = json["provider"],
+  //       partner = json["partner"],
+  // document = json["document"];
+
+  factory Invoice.getEmpty() {
+    return Invoice(
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      "",
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -301,6 +359,7 @@ class Invoice {
         'desglose': desglose,
         'provider': provider,
         'document': document,
+        'partner': partner,
       };
 
   void save() async {
