@@ -418,8 +418,7 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('HH:mm').format(
-                                    myWorkdays!.elementAt(index).startDate),
+                                DateFormat('HH:mm').format(item.startDate),
                                 style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
@@ -429,8 +428,9 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('HH:mm').format(
-                                    myWorkdays!.elementAt(index).endDate),
+                                DateFormat('HH:mm').format(item.open
+                                    ? DateTime.now()
+                                    : myWorkdays!.elementAt(index).endDate),
                                 style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
@@ -440,15 +440,17 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                (((myWorkdays!
-                                            .elementAt(index)
-                                            .endDate
-                                            .difference(myWorkdays!
+                                item.open
+                                    ? "En curso"
+                                    : (((myWorkdays!
                                                 .elementAt(index)
-                                                .startDate)
-                                            .inMinutes) /
-                                        60))
-                                    .toStringAsFixed(2),
+                                                .endDate
+                                                .difference(myWorkdays!
+                                                    .elementAt(index)
+                                                    .startDate)
+                                                .inMinutes) /
+                                            60))
+                                        .toStringAsFixed(2),
                                 style: (item.open) ? successText : normalText,
                                 textAlign: TextAlign.center,
                               )),
@@ -1014,7 +1016,7 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('yyyy-MM-dd')
+                                DateFormat('dd-MM-yyyy')
                                     .format(task.deadLineDate),
                                 style: normalText,
                                 textAlign: TextAlign.center,
@@ -1025,7 +1027,7 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('yyyy-MM-dd')
+                                DateFormat('dd-MM-yyyy')
                                     .format(task.deadLineDate),
                                 style: normalText,
                                 textAlign: TextAlign.center,

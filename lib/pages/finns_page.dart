@@ -7,21 +7,19 @@ import 'package:sic4change/services/firebase_service_finn.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
-// List finn_list = [];
-// List projects = [];
-// SProject? _project;
 FirebaseFirestore db = FirebaseFirestore.instance;
-double totalBudgetProject = 1;
 double executedBudgetProject = 0;
-//List<Widget> invoicesList = [];
 
 class FinnsPage extends StatefulWidget {
-  const FinnsPage({super.key});
+  const FinnsPage({super.key, required this.project});
+
+  final SProject? project;
 
   @override
   State<FinnsPage> createState() => _FinnsPageState();
@@ -29,78 +27,114 @@ class FinnsPage extends StatefulWidget {
 
 class _FinnsPageState extends State<FinnsPage> {
   //List projects = [];
-  List finn_list = [];
+  List finnList = [];
   SProject? _project;
 
   Map<String, Map<String, Text>> aportesControllers = {};
   Map<String, Map<String, Text>> distrib_controllers = {};
   Map<String, double> distrib_amount = {};
   Map<String, double> aportes_amount = {};
+  Map<String, Map> distribSummary = {};
+  Map<String, Map> invoicesSummary = {};
+  Map<String, Map> aportesSummary = {};
 
   List<Widget> invoicesList = [];
   SFinn? finnSelected;
-
-  Text totalBudget = const Text(
-    '0.00',
-    textAlign: TextAlign.end,
-    style: TextStyle(
-      fontFamily: 'Readex Pro',
-      fontSize: 18,
-    ),
-  );
-
-  Text totalExecuted = const Text(
-    '0 %',
-    textAlign: TextAlign.end,
-    style: TextStyle(
-      fontFamily: 'Readex Pro',
-      fontSize: 14,
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  );
+  double totalBudgetProject = 0;
 
   @override
   void initState() {
     super.initState();
+    _project = widget.project;
+    totalBudgetProject = 0;
+    executedBudgetProject = 0;
+    aportesByFinnancier().then((value) {
+      if (mounted) {
+        setState(() {
+          totalBudgetProject = totalBudgetProject;
+        });
+      }
+    });
+    distribByPartner().then((value) {
+      invoicesByPartner().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  Future<Map> aportesByFinnancier() async {
+    for (String financierUuid in _project!.financiers) {
+      await FinnContribution.getSummaryByFinancierAndProject(
+              financierUuid, _project!.uuid)
+          .then((value) {
+        aportesSummary[financierUuid] = value;
+      });
+    }
+    totalBudgetProject = 0;
+    for (var item in aportesSummary.values) {
+      totalBudgetProject += item['total']!;
+    }
+    _project!.budget = toCurrency(totalBudgetProject).replaceAll("€", "");
+    _project!.save();
+    return aportesSummary;
+  }
+
+  Future<double> invoicesByPartner() async {
+    for (String partnerUuid in _project!.partners) {
+      await Invoice.getSummaryByPartner(partnerUuid, project: _project!.uuid)
+          .then((value) {
+        invoicesSummary[partnerUuid] = value;
+      });
+    }
+    for (var item in invoicesSummary.values) {
+      executedBudgetProject += item['total']!;
+    }
+    return executedBudgetProject;
+  }
+
+  Future<void> distribByPartner() async {
+    for (String partnerUuid in _project!.partners) {
+      await FinnDistribution.getSummaryByPartner(partnerUuid,
+              project: _project!.uuid)
+          .then((value) {
+        distribSummary[partnerUuid] = value;
+      });
+    }
   }
 
   Future<void> loadFinns(value) async {
-    finn_list = [];
+    finnList = [];
     aportesControllers = {};
     distrib_controllers = {};
     distrib_amount = {};
     aportes_amount = {};
 
     await SFinn.byProject(value).then((val) {
-      finn_list = val;
+      finnList = val;
     });
-    for (var partner in _project!.partners) {
-      distrib_amount[partner] = 0;
-    }
+
+    // for (var partner in _project!.partners) {
+    //   distrib_amount[partner] = 0;
+    // }
     for (var financier in _project!.financiers) {
-      aportes_amount[financier] = 0;
+      if (aportesSummary.containsKey(financier)) {
+        aportes_amount[financier] = aportesSummary[financier]!['total']!;
+      } else {
+        aportes_amount[financier] = 0;
+      }
     }
 
-    totalBudget = Text(
-      "${totalBudgetProject.toStringAsFixed(2)} €",
-      textAlign: TextAlign.end,
-      style: const TextStyle(
-        fontFamily: 'Readex Pro',
-        fontSize: 18,
-      ),
-    );
+    for (var partner in _project!.partners) {
+      if (distribSummary.containsKey(partner)) {
+        distrib_amount[partner] = distribSummary[partner]!['total']!;
+      } else {
+        distrib_amount[partner] = 0;
+      }
+    }
 
-    // totalBudgetProject = max(1,total);
-    // executedBudgetProject = totalBudgetProject * 0.75;
-    await _project!.totalBudget().then((value) {
-      totalBudgetProject = max(1, value);
-      executedBudgetProject = value * 0.75;
-    });
-
-    double total = 0;
-    for (SFinn finn in finn_list) {
-      //await getContribByFinn(finn.uuid).then((items)
+    for (SFinn finn in finnList) {
       await finn.getContrib().then((items) {
         aportesControllers[finn.uuid] = {};
         aportesControllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
@@ -108,13 +142,6 @@ class _FinnsPageState extends State<FinnsPage> {
           Text labelButton =
               buttonEditableText((item.amount).toStringAsFixed(2));
           aportesControllers[finn.uuid]![item.financier] = labelButton;
-          total += item.amount;
-          if (aportes_amount.containsKey(item.financier)) {
-            aportes_amount[item.financier] =
-                (aportes_amount[item.financier]! + item.amount);
-          } else {
-            aportes_amount[item.financier] = item.amount;
-          }
         }
       });
 
@@ -125,35 +152,9 @@ class _FinnsPageState extends State<FinnsPage> {
           Text labelButton =
               buttonEditableText((item.amount).toStringAsFixed(2));
           distrib_controllers[finn.uuid]![item.partner] = labelButton;
-          if (distrib_amount.containsKey(item.partner)) {
-            distrib_amount[item.partner] =
-                (distrib_amount[item.partner]! + item.amount);
-          } else {
-            distrib_amount[item.partner] = item.amount;
-          }
         }
       });
     }
-
-    totalBudget = Text(
-      "${total.toStringAsFixed(2)} €",
-      textAlign: TextAlign.end,
-      style: const TextStyle(
-        fontFamily: 'Readex Pro',
-        fontSize: 18,
-      ),
-    );
-
-    totalExecuted = Text(
-      "${(executedBudgetProject / totalBudgetProject * 100).toStringAsFixed(0)}%",
-      textAlign: TextAlign.end,
-      style: const TextStyle(
-        fontFamily: 'Readex Pro',
-        fontWeight: FontWeight.bold,
-        fontSize: 14,
-        color: Colors.white,
-      ),
-    );
 
     if (mounted) {
       setState(() {});
@@ -162,9 +163,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      Map args = ModalRoute.of(context)!.settings.arguments as Map;
-      _project = args["project"];
+    if (_project != null) {
       return Scaffold(
           body: SingleChildScrollView(
         child: Column(children: [
@@ -200,7 +199,9 @@ class _FinnsPageState extends State<FinnsPage> {
             space(width: 10),
             finnAddBtn(context, _project),
             space(width: 10),
-            finnBackButton(context),
+            goPage(context, 'Volver', const ProjectsPage(),
+                Icons.arrow_circle_left_outlined),
+//            finnBackButton(context),
           ],
         ),
       ),
@@ -318,357 +319,397 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget finnFullPage(context, SProject? project) {
     List<Container> sourceRows = [];
-    TextStyle ts = const TextStyle(backgroundColor: Color(0xffffffff));
+    TextStyle ts = const TextStyle(backgroundColor: Colors.white);
     if (project == null) {
       return const Text("Esperando datos...");
-    }
-    for (var financierObj in project.financiersObj) {
-      String financier = financierObj.uuid;
-      if (!aportes_amount.containsKey(financier)) {
-        aportes_amount[financier] = 0;
-      }
-      double percent =
-          min(aportes_amount[financier]! / totalBudgetProject * 100, 100);
-      Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, color: Colors.white));
-      sourceRows.add(Container(
-        decoration: const BoxDecoration(
-          color: Color(0xffffffff),
-        ),
-        child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    financierObj.name,
-                    textAlign: TextAlign.start,
-                    style: ts,
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: LinearPercentIndicator(
-                    percent: percent * 0.01,
-                    center: labelIndicator,
-                    lineHeight: 15,
-                    animation: true,
-                    animateFromLastPercent: true,
-                    progressColor: Colors.blueGrey,
-                    backgroundColor: Colors.grey,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    "${aportes_amount[financier]!.toStringAsFixed(2)} €",
-                    textAlign: TextAlign.end,
-                    style: ts,
-                  ),
-                ),
-              ],
-            )),
-      ));
-    }
-
-    List<Container> distrRows = [];
-
-    for (var partnerObj in project.partnersObj) {
-      String partner = partnerObj.uuid;
-      if (!distrib_amount.containsKey(partner)) {
-        distrib_amount[partner] = 0;
-      }
-      double percent =
-          min(distrib_amount[partner]! / totalBudgetProject * 100, 100);
-
-      Text labelIndicator = Text("${(percent).toStringAsFixed(0)} %",
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, color: Colors.white));
-      distrRows.add(Container(
-        decoration: const BoxDecoration(
-          color: Color(0xffffffff),
-        ),
-        child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    partnerObj.name,
-                    textAlign: TextAlign.start,
-                    style: ts,
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: LinearPercentIndicator(
-                    percent: percent * 0.01,
-                    center: labelIndicator,
-                    lineHeight: 15,
-                    animation: true,
-                    animateFromLastPercent: true,
-                    progressColor: Colors.blueGrey,
-                    backgroundColor: Colors.grey,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    "${distrib_amount[partner]!.toStringAsFixed(2)} €",
-                    textAlign: TextAlign.end,
-                    style: ts,
-                  ),
-                ),
-              ],
-            )),
-      ));
-    }
-    Widget invoicesContainer = Container(width: double.infinity);
-
-    if (finnSelected != null) {
-      invoicesContainer = SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Card(
-              child: Padding(
-            padding: const EdgeInsets.only(left: 10, top: 10),
-            child: Column(children: [
-              Row(children: [
-                Expanded(
-                    flex: 18,
-                    child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                            'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
-                            style: mainText))),
-                Expanded(
-                    flex: 2,
-                    child: Align(
-                        alignment: Alignment.topRight,
-                        child: Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(children: [
-                              Tooltip(
-                                  message: 'Añadir factura',
-                                  child: IconButton(
-                                      onPressed: () {
-                                        _addInvoiceDialog(
-                                                context, finnSelected!)
-                                            .then((value) {
-                                          _loadInvoicesByFinn(
-                                              context, finnSelected!);
-                                          if (mounted) {
-                                            setState(() {});
-                                          }
-                                        });
-                                      },
-                                      icon: const Icon(
-                                          Icons.add_circle_outline))),
-                              Tooltip(
-                                  message: 'Cerrar listado',
-                                  child: IconButton(
-                                      onPressed: () {
-                                        finnSelected = null;
-                                        invoicesList = [];
-                                        if (mounted) {
-                                          setState(() {});
-                                        }
-                                      },
-                                      icon: const Icon(
-                                          Icons.arrow_circle_up_outlined))),
-                            ])))),
-              ]),
-              Row(
+    } else {
+      for (var financierObj in project.financiersObj) {
+        String financier = financierObj.uuid;
+        if (!aportesSummary.containsKey(financier)) {
+          aportes_amount[financier] = 0;
+        } else {
+          aportes_amount[financier] = aportesSummary[financier]!['total']!;
+        }
+        double realPercent = totalBudgetProject > 0
+            ? aportes_amount[financier]! / totalBudgetProject * 100
+            : 0;
+        double percent = min(realPercent, 100);
+        Text labelIndicator = Text("${realPercent.toStringAsFixed(0)} %",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.white));
+        sourceRows.add(Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Expanded(
                     flex: 1,
-                    child: ListView(
+                    child: Text(
+                      "${financierObj.name} aporta",
+                      textAlign: TextAlign.start,
+                      style: ts,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: LinearPercentIndicator(
+                      percent: percent > 0 ? percent * 0.01 : 0,
+                      center: labelIndicator,
+                      lineHeight: 15,
+                      animation: true,
+                      animateFromLastPercent: true,
+                      progressColor: Colors.blueGrey,
+                      backgroundColor: Colors.grey,
                       padding: EdgeInsets.zero,
-                      physics: const BouncingScrollPhysics(),
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      children: invoicesList,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      toCurrency(aportes_amount[financier]!),
+                      textAlign: TextAlign.end,
+                      style: ts,
                     ),
                   ),
                 ],
-              )
-            ]),
-          )));
-    }
+              )),
+        ));
+      }
 
-    return FutureBuilder(
-        initialData: SFinn.byProject(project.uuid),
-        future: SFinn.byProject(project.uuid),
-        builder: ((context, snapshot) {
-          return Column(children: [
-            Card(
-                child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
+      List<Container> distrRows = [];
+
+      for (var partnerObj in project.partnersObj) {
+        String partner = partnerObj.uuid;
+        if (!distrib_amount.containsKey(partner)) {
+          distrib_amount[partner] = 0;
+        }
+
+        double percent = 0;
+        double executed = 0;
+        double assigned = 0;
+        double realPercent = 0;
+        if (invoicesSummary.containsKey(partner)) {
+          executed = invoicesSummary[partner]!['total']!;
+          assigned = distribSummary[partner]!['total'];
+          realPercent = assigned > 0 ? executed / assigned * 100 : 0;
+          percent = min(realPercent, 100);
+        }
+
+        Text labelIndicator = Text("${(realPercent).toStringAsFixed(0)} %",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.white));
+        distrRows.add(Container(
+          decoration: const BoxDecoration(
+            color: Color(0xffffffff),
+          ),
+          child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      partnerObj.name,
+                      textAlign: TextAlign.start,
+                      style: ts,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: LinearPercentIndicator(
+                      percent: percent > 0 ? percent * 0.01 : 0,
+                      center: labelIndicator,
+                      lineHeight: 15,
+                      animation: true,
+                      animateFromLastPercent: true,
+                      progressColor:
+                          (percent < 100) ? Colors.blueGrey : dangerColor,
+                      backgroundColor: Colors.grey,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      executed > 0
+                          ? "${toCurrency(executed)} de ${toCurrency(assigned)}"
+                          : "0.00 € de ${toCurrency(assigned)}",
+                      textAlign: TextAlign.end,
+                      style: ts,
+                    ),
+                  ),
+                ],
+              )),
+        ));
+      }
+      Widget invoicesContainer = Container(width: double.infinity);
+
+      if (finnSelected != null) {
+        invoicesContainer = SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Card(
+                child: Padding(
+              padding: const EdgeInsets.only(left: 10, top: 10),
+              child: Column(children: [
+                Row(children: [
+                  Expanded(
+                      flex: 18,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                              'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
+                              style: mainText))),
+                  Expanded(
+                      flex: 2,
+                      child: Align(
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(children: [
+                                Tooltip(
+                                    message: 'Añadir factura',
+                                    child: IconButton(
+                                        onPressed: () {
+                                          _addInvoiceDialog(
+                                                  context, finnSelected!)
+                                              .then((value) {
+                                            _loadInvoicesByFinn(
+                                                context, finnSelected!);
+                                            if (mounted) {
+                                              setState(() {});
+                                            }
+                                          });
+                                        },
+                                        icon: const Icon(
+                                            Icons.add_circle_outline))),
+                                Tooltip(
+                                    message: 'Cerrar listado',
+                                    child: IconButton(
+                                        onPressed: () {
+                                          finnSelected = null;
+                                          invoicesList = [];
+                                          if (mounted) {
+                                            setState(() {});
+                                          }
+                                        },
+                                        icon: const Icon(
+                                            Icons.arrow_circle_up_outlined))),
+                              ])))),
+                ]),
                 Row(
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Expanded(
                       flex: 1,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              flex: 1,
-                              child: Card(
-                                clipBehavior: Clip.antiAliasWithSaveLayer,
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.fromSTEB(
-                                      20, 0, 20, 0),
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsetsDirectional.fromSTEB(
-                                            0, 20, 20, 0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Expanded(
-                                              flex: 1,
-                                              child: Align(
-                                                alignment: AlignmentDirectional(
-                                                    -1.00, -1.00),
-                                                child: Text(
-                                                  'Presupuesto Total',
-                                                  style: mainText,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    top: 0, bottom: 0),
-                                                child: LinearPercentIndicator(
-                                                  percent:
-                                                      executedBudgetProject /
-                                                          totalBudgetProject,
-                                                  center: totalExecuted,
-                                                  lineHeight: 15,
-                                                  animation: true,
-                                                  animateFromLastPercent: true,
-                                                  progressColor:
-                                                      Colors.blueGrey,
-                                                  backgroundColor: Colors.grey,
-                                                  padding: EdgeInsets.zero,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 1,
-                                              child: totalBudget,
-                                            ),
-                                          ],
-                                        ),
-                                        // const Text(
-                                        //   'Origen del presupuesto',
-                                        //   style: secondaryText,
-                                        // ),
-                                        const Divider(
-                                            thickness: 1, color: Colors.grey),
-
-                                        ListView(
-                                          padding: EdgeInsets.zero,
-                                          shrinkWrap: true,
-                                          scrollDirection: Axis.vertical,
-                                          children: sourceRows,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Card(
-                                clipBehavior: Clip.antiAliasWithSaveLayer,
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.fromSTEB(
-                                      20, 0, 20, 0),
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsetsDirectional.fromSTEB(
-                                            0, 20, 20, 0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Distribución Presupuesto',
-                                          style: mainText,
-                                        ),
-                                        const Divider(
-                                          thickness: 1,
-                                          color: Colors.grey,
-                                        ),
-                                        ListView(
-                                          padding: EdgeInsets.zero,
-                                          shrinkWrap: true,
-                                          scrollDirection: Axis.vertical,
-                                          children: distrRows,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )),
-                        ],
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        children: invoicesList,
                       ),
                     ),
                   ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: Row(
+                )
+              ]),
+            )));
+      }
+
+      double realPercentExecuted = totalBudgetProject > 0
+          ? executedBudgetProject / totalBudgetProject
+          : 0;
+      double percentExecuted = min(realPercentExecuted, 1);
+      Text totalExecuted = Text(
+        "${(realPercentExecuted * 100).toStringAsFixed(0)}%",
+        textAlign: TextAlign.end,
+        style: percentText,
+      );
+      return FutureBuilder(
+          initialData: SFinn.byProject(project.uuid),
+          future: SFinn.byProject(project.uuid),
+          builder: ((context, snapshot) {
+            return Column(children: [
+              Card(
+                  child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Row(
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       Expanded(
-                        flex: 2,
-                        child: ListView(
-                          padding: EdgeInsets.zero,
-                          physics: const BouncingScrollPhysics(),
-                          shrinkWrap: true,
-                          scrollDirection: Axis.vertical,
-                          children: infoFinnGral(snapshot, project),
+                        flex: 1,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                flex: 1,
+                                child: Card(
+                                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            20, 0, 20, 0),
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0, 20, 20, 0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Expanded(
+                                                flex: 1,
+                                                child: Align(
+                                                  alignment:
+                                                      AlignmentDirectional(
+                                                          -1.00, -1.00),
+                                                  child: Text(
+                                                    'Presupuesto Total',
+                                                    style: mainText,
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 1,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 0, bottom: 0),
+                                                  child: LinearPercentIndicator(
+                                                    percent: percentExecuted,
+                                                    center: totalExecuted,
+                                                    lineHeight: 15,
+                                                    animation: true,
+                                                    animateFromLastPercent:
+                                                        true,
+                                                    progressColor:
+                                                        percentExecuted < 1
+                                                            ? Colors.blueGrey
+                                                            : dangerColor,
+                                                    backgroundColor:
+                                                        Colors.grey,
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 1,
+                                                child: Text(
+                                                  toCurrency(
+                                                      totalBudgetProject),
+                                                  textAlign: TextAlign.end,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Readex Pro',
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          // const Text(
+                                          //   'Origen del presupuesto',
+                                          //   style: secondaryText,
+                                          // ),
+                                          const Divider(
+                                              thickness: 1, color: Colors.grey),
+
+                                          ListView(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            scrollDirection: Axis.vertical,
+                                            children: sourceRows,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                            Expanded(
+                                flex: 1,
+                                child: Card(
+                                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            20, 0, 20, 0),
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0, 20, 20, 0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Ejecución del Presupuesto',
+                                            style: mainText,
+                                          ),
+                                          const Divider(
+                                            thickness: 1,
+                                            color: Colors.grey,
+                                          ),
+                                          ListView(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            scrollDirection: Axis.vertical,
+                                            children: distrRows,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            )),
-            invoicesContainer,
-          ]);
-        }));
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            physics: const BouncingScrollPhysics(),
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            children: infoFinnGral(snapshot, project),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )),
+              invoicesContainer,
+            ]);
+          }));
+    }
   }
 
   List<Container> infoFinnGral(data, project) {
@@ -793,91 +834,109 @@ class _FinnsPageState extends State<FinnsPage> {
         cells.add(Expanded(
             flex: wPartidas,
             child: Padding(
-                padding: const EdgeInsets.all(15),
+                padding: EdgeInsets.only(
+                    bottom: 15,
+                    top: 15,
+                    right: 5,
+                    left: 15.0 * finn.getLevel()),
                 child: Text(
                   "${finn.name}. ${finn.description}",
                   textAlign: TextAlign.left,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ))));
-        Text totalText;
-        try {
-          totalText = aportesControllers[finn.uuid]!['Total'] as Text;
-        } catch (e) {
-          totalText = const Text("0.00",
+        bool hasChildren = false;
+        for (SFinn finn2 in data.data) {
+          if ((finn2.name.contains(finn.name)) && (finn2 != finn)) {
+            hasChildren = true;
+            break;
+          }
+        }
+        print("${finn.name}  ${finn.getLevel()} ${hasChildren}");
+        if (!hasChildren) {
+          Text totalText;
+          try {
+            totalText = aportesControllers[finn.uuid]!['Total'] as Text;
+          } catch (e) {
+            totalText = const Text("0.00",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold));
+          }
+          cells.add(Expanded(flex: fAportes, child: totalText));
+          double total = 0;
+          for (Financier financierObj in project.financiersObj) {
+            String financier = financierObj.uuid;
+            Text? labelButton = buttonEditableText("0.00");
+            if (aportesControllers.containsKey(finn.uuid)) {
+              if (aportesControllers[finn.uuid]!.containsKey(financier)) {
+                labelButton = aportesControllers[finn.uuid]![financier];
+                total += double.parse((labelButton as Text).data.toString());
+              }
+            }
+            ElevatedButton button = ElevatedButton(
+              onPressed: () {
+                _editFinnContribDialog(context, finn, financierObj);
+              },
+              style: buttonEditableTextStyle(),
+              child: labelButton,
+            );
+            cells.add(Expanded(
+                flex: fAportes,
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 5, right: 5),
+                    child: button)));
+          }
+
+          totalAport = total.toStringAsFixed(2);
+          int idx = (cells.length - 1 - project.financiers.length) as int;
+          cells[idx] = Expanded(
+              flex: fAportes,
+              child: Text(totalAport,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold)));
+
+          // By Partner
+          int fDist = wDist ~/ (project.partners.length + 1);
+          Text totalDistText = const Text("0.0",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold));
-        }
-        cells.add(Expanded(flex: fAportes, child: totalText));
-        double total = 0;
-        for (Financier financierObj in project.financiersObj) {
-          String financier = financierObj.uuid;
-          Text? labelButton = buttonEditableText("0.00");
-          if (aportesControllers.containsKey(finn.uuid)) {
-            if (aportesControllers[finn.uuid]!.containsKey(financier)) {
-              labelButton = aportesControllers[finn.uuid]![financier];
-              total += double.parse((labelButton as Text).data.toString());
+          cells.add(Expanded(flex: fDist, child: totalDistText));
+          total = 0;
+          for (Contact partnerObj in project.partnersObj) {
+            String partner = partnerObj.uuid;
+            Text? labelButton = buttonEditableText("0.00");
+            if (distrib_controllers.containsKey(finn.uuid)) {
+              if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
+                labelButton = distrib_controllers[finn.uuid]![partner];
+                total += double.parse((labelButton as Text).data.toString());
+              }
             }
+            ElevatedButton button = ElevatedButton(
+              onPressed: () {
+                _editFinnDistDialog(context, finn, partnerObj);
+              },
+              style: buttonEditableTextStyle(),
+              child: labelButton,
+            );
+            cells.add(Expanded(
+                flex: fDist,
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 5, right: 5),
+                    child: button)));
           }
-          ElevatedButton button = ElevatedButton(
-            onPressed: () {
-              _editFinnContribDialog(context, finn, financierObj);
-            },
-            style: buttonEditableTextStyle(),
-            child: labelButton,
-          );
-          cells.add(Expanded(
-              flex: fAportes,
-              child: Padding(
-                  padding: const EdgeInsets.only(left: 5, right: 5),
-                  child: button)));
-        }
-
-        totalAport = total.toStringAsFixed(2);
-        int idx = (cells.length - 1 - project.financiers.length) as int;
-        cells[idx] = Expanded(
-            flex: fAportes,
-            child: Text(totalAport,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold)));
-
-        // By Partner
-        int fDist = wDist ~/ (project.partners.length + 1);
-        Text totalDistText = const Text("0.0",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold));
-        cells.add(Expanded(flex: fDist, child: totalDistText));
-        total = 0;
-        for (Contact partnerObj in project.partnersObj) {
-          String partner = partnerObj.uuid;
-          Text? labelButton = buttonEditableText("0.00");
-          if (distrib_controllers.containsKey(finn.uuid)) {
-            if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
-              labelButton = distrib_controllers[finn.uuid]![partner];
-              total += double.parse((labelButton as Text).data.toString());
-            }
-          }
-          ElevatedButton button = ElevatedButton(
-            onPressed: () {
-              _editFinnDistDialog(context, finn, partnerObj);
-            },
-            style: buttonEditableTextStyle(),
-            child: labelButton,
-          );
-          cells.add(Expanded(
+          totalDist = total.toStringAsFixed(2);
+          idx = (cells.length - 1 - project.partners.length) as int;
+          cells[idx] = Expanded(
               flex: fDist,
-              child: Padding(
-                  padding: const EdgeInsets.only(left: 5, right: 5),
-                  child: button)));
-        }
-        totalDist = total.toStringAsFixed(2);
-        idx = (cells.length - 1 - project.partners.length) as int;
-        cells[idx] = Expanded(
-            flex: fDist,
-            child: Text(totalDist,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold)));
+              child: Text(totalDist,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold)));
 
-        rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
+          rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
+        } else {
+          cells.add(Expanded(flex: wAportes, child: const Text("")));
+          cells.add(Expanded(flex: wDist, child: const Text("")));
+          rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
+        }
       }
 
       List<Container> containers = [];
@@ -1259,8 +1318,8 @@ class _FinnsPageState extends State<FinnsPage> {
         return AlertDialog(
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Editar factura', context),
-            content: InvoiceForm(existingInvoice: invoice, partners: _project!.partnersObj)
-            );
+            content: InvoiceForm(
+                existingInvoice: invoice, partners: _project!.partnersObj));
       },
     );
   }

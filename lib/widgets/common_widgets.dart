@@ -604,6 +604,12 @@ TextStyle statusText(
   return TextStyle(fontWeight: fontWeight, fontSize: fontSize, color: color);
 }
 
+TextStyle percentText = const TextStyle(
+    fontFamily: 'Readex Pro',
+    fontSize: 14,
+    color: Colors.white,
+    fontWeight: FontWeight.bold);
+
 Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
   fgstyle ??= statusText();
   if (bgcolor == null) {
@@ -799,20 +805,47 @@ SizedBox s4cTitleBar(String title, [context]) {
 //                           BUTTONS
 //--------------------------------------------------------------------------
 
-Widget goPage(context, btnName, newContext, icon) {
-  return FilledButton(
+Widget goPage(context, btnName, newContext, icon,
+    {style = "", extraction = null}) {
+  Widget child = Column(
+    children: [
+      space(height: 5),
+      Icon(icon, color: subTitleColor),
+      space(height: 5),
+      customText(btnName, 12, textColor: subTitleColor),
+      space(height: 5),
+    ],
+  );
+  if (style == "bigBtn") {
+    style = ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    );
+    child = Column(
+      children: [
+        Icon(
+          icon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    );
+  }
+  return ElevatedButton(
       onPressed: () {
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => newContext)));
+        extraction?.call();
       },
-      style: btnStyle,
-      child: Column(
-        children: [
-          Icon(icon, color: subTitleColor),
-          space(height: 5),
-          customText(btnName, 12, textColor: subTitleColor),
-        ],
-      ));
+      style: (style == "") ? btnStyle : style,
+      child: child);
 }
 
 Widget goPageIcon(context, btnText, icon, newContext) {
