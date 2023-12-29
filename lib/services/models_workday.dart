@@ -52,7 +52,7 @@ class Workday {
 
   @override
   String toString() {
-    return 'Workday ${uuid}';
+    return 'Workday ${uuid} ${userId} ${startDate} ${endDate} ${open}';
   }
 
   void save() {

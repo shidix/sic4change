@@ -27,6 +27,14 @@ List reshape(List list, int m, int n) {
   return result;
 }
 
+DateTime today() {
+  return truncDate(DateTime.now());
+}
+
+DateTime truncDate( DateTime date ) {
+  return DateTime(date.year, date.month, date.day);
+}
+
 String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
   List days = [
     "Lunes",

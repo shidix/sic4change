@@ -382,6 +382,16 @@ class _HomePageState extends State<HomePage> {
 
   Widget worktimeRows(context) {
     // List myItems = worktimeItems();
+    for (Workday workday in myWorkdays!) {
+      if ((workday.open) && (workday.startDate.isBefore(today()))) {
+        DateTime newEndDate = truncDate(workday.startDate).add(Duration(days: 1)).subtract(Duration(seconds: 1));
+        if ((workday.endDate != newEndDate) || (workday.open)) {
+          workday.endDate = newEndDate;
+          workday.open = false;
+          workday.save();
+        }
+      }
+    }
 
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
