@@ -48,6 +48,16 @@ class SFinn {
     return items;
   }
 
+  String parentCode() {
+    RegExp punto = RegExp("\\.");
+    List<Match> separators = punto.allMatches(name).toList();
+    if (separators.isEmpty) {
+      return "";
+    } else {
+      return name.substring(0, name.lastIndexOf("."));
+    }
+  }
+
   static Future<List> byProject(String uuidProject) async {
     final List<SFinn> items = [];
     final database = db.collection("s4c_finns");

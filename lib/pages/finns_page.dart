@@ -31,12 +31,14 @@ class _FinnsPageState extends State<FinnsPage> {
   SProject? _project;
 
   Map<String, Map<String, Text>> aportesControllers = {};
-  Map<String, Map<String, Text>> distrib_controllers = {};
+  Map<String, Map<String, Text>> distribControllers = {};
   Map<String, double> distrib_amount = {};
   Map<String, double> aportes_amount = {};
   Map<String, Map> distribSummary = {};
   Map<String, Map> invoicesSummary = {};
   Map<String, Map> aportesSummary = {};
+  Map<String, SFinn> finnHash = {};
+  List<String> withChildrens = [];
 
   List<Widget> invoicesList = [];
   SFinn? finnSelected;
@@ -48,19 +50,37 @@ class _FinnsPageState extends State<FinnsPage> {
     _project = widget.project;
     totalBudgetProject = 0;
     executedBudgetProject = 0;
-    aportesByFinnancier().then((value) {
-      if (mounted) {
-        setState(() {
-          totalBudgetProject = totalBudgetProject;
-        });
+
+    SFinn.byProject(_project!.uuid).then((val) {
+      finnList = val;
+      for (SFinn finn in finnList) {
+        finnHash[finn.name] = finn;
+        String parentCode = finn.parentCode();
+        if (finnHash.containsKey(parentCode)) {
+          if (finn.parent != finnHash[parentCode]!.uuid) {
+            finn.parent = finnHash[parentCode]!.uuid;
+            finn.save();
+          }
+          if (!withChildrens.contains(parentCode)) {
+            withChildrens.add(parentCode);
+          }
+        }
       }
-    });
-    distribByPartner().then((value) {
-      invoicesByPartner().then((value) {
+      aportesByFinnancier().then((value) {
         if (mounted) {
-          setState(() {});
+          setState(() {
+            totalBudgetProject = totalBudgetProject;
+          });
         }
       });
+      distribByPartner().then((value) {
+        invoicesByPartner().then((value) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      });
+      loadFinns(_project!.uuid);
     });
   }
 
@@ -105,19 +125,12 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Future<void> loadFinns(value) async {
-    finnList = [];
+    // finnList = [];
     aportesControllers = {};
-    distrib_controllers = {};
+    distribControllers = {};
     distrib_amount = {};
     aportes_amount = {};
 
-    await SFinn.byProject(value).then((val) {
-      finnList = val;
-    });
-
-    // for (var partner in _project!.partners) {
-    //   distrib_amount[partner] = 0;
-    // }
     for (var financier in _project!.financiers) {
       if (aportesSummary.containsKey(financier)) {
         aportes_amount[financier] = aportesSummary[financier]!['total']!;
@@ -136,23 +149,29 @@ class _FinnsPageState extends State<FinnsPage> {
 
     for (SFinn finn in finnList) {
       await finn.getContrib().then((items) {
+        double totalByFinn = 0;
         aportesControllers[finn.uuid] = {};
-        aportesControllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
         for (FinnContribution item in items) {
-          Text labelButton =
-              buttonEditableText((item.amount).toStringAsFixed(2));
+          Text labelButton = buttonEditableText(toCurrency(item.amount));
           aportesControllers[finn.uuid]![item.financier] = labelButton;
+          totalByFinn += item.amount;
         }
+        aportesControllers[finn.uuid]!['Total'] =
+            buttonEditableText(toCurrency(totalByFinn));
       });
 
       await FinnDistribution.getByFinn(finn.uuid).then((items) {
-        distrib_controllers[finn.uuid] = {};
-        distrib_controllers[finn.uuid]!['Total'] = buttonEditableText("0.00");
+        double totalByFinn = 0;
+        distribControllers[finn.uuid] = {};
         for (FinnDistribution item in items) {
           Text labelButton =
-              buttonEditableText((item.amount).toStringAsFixed(2));
-          distrib_controllers[finn.uuid]![item.partner] = labelButton;
+              buttonEditableText(toCurrency(item.amount));
+          distribControllers[finn.uuid]![item.partner] = labelButton;
+          totalByFinn += item.amount;
         }
+        distribControllers[finn.uuid]!['Total'] =
+            buttonEditableText(toCurrency(totalByFinn));
+
       });
     }
 
@@ -727,8 +746,8 @@ class _FinnsPageState extends State<FinnsPage> {
       int wAportes = 30;
       int wDist = 30;
 
-      String totalAport = "0.00";
-      String totalDist = "0.00";
+      // String totalAport = toCurrency(0);
+      // String totalDist = toCurrency(0);
 
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded(
@@ -844,32 +863,20 @@ class _FinnsPageState extends State<FinnsPage> {
                   textAlign: TextAlign.left,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ))));
-        bool hasChildren = false;
-        for (SFinn finn2 in data.data) {
-          if ((finn2.name.contains(finn.name)) && (finn2 != finn)) {
-            hasChildren = true;
-            break;
-          }
-        }
-        print("${finn.name}  ${finn.getLevel()} ${hasChildren}");
-        if (!hasChildren) {
-          Text totalText;
-          try {
-            totalText = aportesControllers[finn.uuid]!['Total'] as Text;
-          } catch (e) {
-            totalText = const Text("0.00",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold));
-          }
+        if (!withChildrens.contains(finn.name)) {
+          Text totalText = Text(
+              toCurrency(0),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fAportes, child: totalText));
           double total = 0;
           for (Financier financierObj in project.financiersObj) {
             String financier = financierObj.uuid;
-            Text? labelButton = buttonEditableText("0.00");
+            Text? labelButton = buttonEditableText(toCurrency(0));
             if (aportesControllers.containsKey(finn.uuid)) {
               if (aportesControllers[finn.uuid]!.containsKey(financier)) {
                 labelButton = aportesControllers[finn.uuid]![financier];
-                total += double.parse((labelButton as Text).data.toString());
+                total += fromCurrency((labelButton as Text).data.toString());
               }
             }
             ElevatedButton button = ElevatedButton(
@@ -886,28 +893,27 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: button)));
           }
 
-          totalAport = total.toStringAsFixed(2);
           int idx = (cells.length - 1 - project.financiers.length) as int;
           cells[idx] = Expanded(
               flex: fAportes,
-              child: Text(totalAport,
+              child: Text(toCurrency(total),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.bold)));
 
           // By Partner
           int fDist = wDist ~/ (project.partners.length + 1);
-          Text totalDistText = const Text("0.0",
+          Text totalDistText =  Text(toCurrency(0),
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fDist, child: totalDistText));
           total = 0;
           for (Contact partnerObj in project.partnersObj) {
             String partner = partnerObj.uuid;
-            Text? labelButton = buttonEditableText("0.00");
-            if (distrib_controllers.containsKey(finn.uuid)) {
-              if (distrib_controllers[finn.uuid]!.containsKey(partner)) {
-                labelButton = distrib_controllers[finn.uuid]![partner];
-                total += double.parse((labelButton as Text).data.toString());
+            Text? labelButton = buttonEditableText(toCurrency(0));
+            if (distribControllers.containsKey(finn.uuid)) {
+              if (distribControllers[finn.uuid]!.containsKey(partner)) {
+                labelButton = distribControllers[finn.uuid]![partner];
+                total += fromCurrency((labelButton as Text).data.toString());
               }
             }
             ElevatedButton button = ElevatedButton(
@@ -923,11 +929,10 @@ class _FinnsPageState extends State<FinnsPage> {
                     padding: const EdgeInsets.only(left: 5, right: 5),
                     child: button)));
           }
-          totalDist = total.toStringAsFixed(2);
           idx = (cells.length - 1 - project.partners.length) as int;
           cells[idx] = Expanded(
               flex: fDist,
-              child: Text(totalDist,
+              child: Text(toCurrency(total),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.bold)));
 
@@ -946,9 +951,9 @@ class _FinnsPageState extends State<FinnsPage> {
 
       return containers;
     } else {
-      if (aportesControllers.isEmpty) {
-        loadFinns(project.uuid);
-      }
+      // if (aportesControllers.isEmpty) {
+      //   loadFinns(project.uuid);
+      // }
       return [];
     }
   }

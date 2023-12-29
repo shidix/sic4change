@@ -85,8 +85,18 @@ String showException(dynamic e) {
 }
 
 double currencyToDouble(String value) {
-  value = value.replaceAll(' €', '');
+  value = value.replaceAll('€', '');
+  value = value.replaceAll(' ', '');
   value = value.replaceAll('.', '');
   value = value.replaceAll(',', '.');
-  return double.parse(value);
+  try {
+    return double.parse(value);
+  } catch (e) {
+    print("Error al convertir $value a double");
+    return 0.0;
+  }
+}
+
+double fromCurrency(String value) {
+  return currencyToDouble(value);
 }

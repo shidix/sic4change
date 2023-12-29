@@ -191,8 +191,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                //customText("Nombre:", 16, textColor: titleColor),
-                //customTextField(nameController, "Nombre", size: 600),
                 SizedBox(
                   width: 600,
                   child: TextFormField(
@@ -268,35 +266,35 @@ class _ProjectsPageState extends State<ProjectsPage> {
         })));
   }
 
-  Widget projectList2(context) {
-    return Container(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: FutureBuilder(
-            future: getProjects(),
-            builder: ((context, snapshot) {
-              if (snapshot.hasData) {
-                prList = snapshot.data!;
-                return SizedBox(
-                    height: 900,
-                    child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: .9,
-                        ),
-                        itemCount: prList.length,
-                        itemBuilder: (_, index) {
-                          return projectCard(context, prList[index]);
-                        }));
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            })));
-  }
+  // Widget projectList2(context) {
+  //   return Container(
+  //       padding: const EdgeInsets.only(left: 20, right: 20),
+  //       child: FutureBuilder(
+  //           future: getProjects(),
+  //           builder: ((context, snapshot) {
+  //             if (snapshot.hasData) {
+  //               prList = snapshot.data!;
+  //               return SizedBox(
+  //                   height: 900,
+  //                   child: GridView.builder(
+  //                       gridDelegate:
+  //                           const SliverGridDelegateWithFixedCrossAxisCount(
+  //                         crossAxisCount: 2,
+  //                         crossAxisSpacing: 10,
+  //                         mainAxisSpacing: 10,
+  //                         childAspectRatio: .9,
+  //                       ),
+  //                       itemCount: prList.length,
+  //                       itemBuilder: (_, index) {
+  //                         return projectCard(context, prList[index]);
+  //                       }));
+  //             } else {
+  //               return const Center(
+  //                 child: CircularProgressIndicator(),
+  //               );
+  //             }
+  //           })));
+  // }
 
   Widget projectCard(context, _project) {
     return Container(
