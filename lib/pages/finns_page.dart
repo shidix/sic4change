@@ -65,6 +65,17 @@ class _FinnsPageState extends State<FinnsPage> {
             withChildrens.add(parentCode);
           }
         }
+        for (String parentCode in withChildrens) {
+          SFinn item = finnHash[parentCode]!;
+          item.recalculate();
+          // item.getContrib().then((contributions) {
+          //   print("DBG ${contributions.length}");
+          //   for (FinnContribution contrib in contributions) {
+          //     print("$parentCode=>  ${contrib.financier}");
+          //     contrib.recalculate();
+          //   }
+          // });
+        }
       }
       aportesByFinnancier().then((value) {
         if (mounted) {
@@ -164,14 +175,12 @@ class _FinnsPageState extends State<FinnsPage> {
         double totalByFinn = 0;
         distribControllers[finn.uuid] = {};
         for (FinnDistribution item in items) {
-          Text labelButton =
-              buttonEditableText(toCurrency(item.amount));
+          Text labelButton = buttonEditableText(toCurrency(item.amount));
           distribControllers[finn.uuid]![item.partner] = labelButton;
           totalByFinn += item.amount;
         }
         distribControllers[finn.uuid]!['Total'] =
             buttonEditableText(toCurrency(totalByFinn));
-
       });
     }
 
@@ -864,8 +873,7 @@ class _FinnsPageState extends State<FinnsPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ))));
         if (!withChildrens.contains(finn.name)) {
-          Text totalText = Text(
-              toCurrency(0),
+          Text totalText = Text(toCurrency(0),
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fAportes, child: totalText));
@@ -902,7 +910,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
           // By Partner
           int fDist = wDist ~/ (project.partners.length + 1);
-          Text totalDistText =  Text(toCurrency(0),
+          Text totalDistText = Text(toCurrency(0),
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fDist, child: totalDistText));
