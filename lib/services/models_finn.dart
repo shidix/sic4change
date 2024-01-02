@@ -1,8 +1,7 @@
-// import 'dart:collection';
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+// import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -46,6 +45,48 @@ class SFinn {
       }
     });
     return items;
+  }
+
+  Future<Map<String, double>> getTotalContrib() async {
+    final List<SFinn> childrens = await getChildrens();
+    if (childrens.isEmpty) {
+      final Map<String, double> items = {};
+      items["total"] = 0;
+      final database = db.collection("s4c_finncontrib");
+      await database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          final Map<String, dynamic> data = doc.data();
+          final item = FinnContribution.fromJson(data);
+          if (items.containsKey(item.financier)) {
+            items[item.financier] = items[item.financier]! + item.amount;
+          } else {
+            items[item.financier] = item.amount;
+          }
+          items["total"] = items["total"]! + item.amount;
+        }
+      });
+      return items;
+    } else {
+      final database = db.collection("s4c_finncontrib");
+      database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          database.doc(doc.id).delete();
+        }
+      });
+      final Map<String, double> items = {};
+      items["total"] = 0;
+      for (var child in childrens) {
+        final Map<String, double> childItems = await child.getTotalContrib();
+        for (var key in childItems.keys) {
+          if (items.containsKey(key)) {
+            items[key] = items[key]! + childItems[key]!;
+          } else {
+            items[key] = childItems[key]!;
+          }
+        }
+      }
+      return items;
+    }
   }
 
   String parentCode() {
@@ -112,7 +153,7 @@ class SFinn {
     List<Match> separators = punto.allMatches(name).toList();
 
     // Contar el número de coincidencias
-    return separators.length + 1;
+    return separators.length;
   }
 
   static SFinn byUuid(String uuid) {
@@ -305,7 +346,6 @@ class FinnContribution {
       }
     }
     return items;
-    ;
   }
 
   static Future<List> getByFinnAndFinancier(finn, financier) async {
@@ -345,6 +385,7 @@ class FinnContribution {
     return items;
   }
 
+  @override
   String toString() {
     return jsonEncode(toJson());
   }
