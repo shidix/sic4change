@@ -37,6 +37,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map> distribSummary = {};
   Map<String, Map> invoicesSummary = {};
   Map<String, Map> aportesSummary = {};
+  Map<String, Map> finnSummary = {};
   Map<String, SFinn> finnHash = {};
   List<String> withChildrens = [];
 
@@ -86,16 +87,22 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Future<Map> aportesByFinnancier() async {
     totalBudgetProject = 0;
-    for (String parentCode in withChildrens) {
-      SFinn item = finnHash[parentCode]!;
+    for (SFinn item in finnList) {
+      if (item.getLevel() == 1) {
       await item.getTotalContrib().then((aportes) {
+        finnSummary[item.uuid] = aportes;
         for (String financierUuid in aportes.keys) {
           if (financierUuid != "total") {
-            aportesSummary[financierUuid] = {"total": aportes[financierUuid]};
+            if (aportesSummary.containsKey(financierUuid)) {
+              aportesSummary[financierUuid]!['total'] += aportes[financierUuid]!;
+            } else {
+              aportesSummary[financierUuid] = {"total": aportes[financierUuid]};
+            }
           }
         }
         totalBudgetProject += aportes["total"]!;
       });
+      }
     }
     _project!.budget = toCurrency(totalBudgetProject).replaceAll("€", "");
     _project!.save();
@@ -730,7 +737,7 @@ class _FinnsPageState extends State<FinnsPage> {
     }
   }
 
-  List<Container> infoFinnGral(data, project) {
+  List<Container> infoFinnGral(data, SProject project) {
     List<Row> rows = [];
 
     if (data.data is! Future<List>) {
@@ -865,7 +872,7 @@ class _FinnsPageState extends State<FinnsPage> {
         if (!withChildrens.contains(finn.name)) {
           Text totalText = Text(toCurrency(0),
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold));
+              style: const TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fAportes, child: totalText));
           double total = 0;
           for (Financier financierObj in project.financiersObj) {
@@ -891,7 +898,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: button)));
           }
 
-          int idx = (cells.length - 1 - project.financiers.length) as int;
+          int idx = (cells.length - 1 - project.financiers.length);
           cells[idx] = Expanded(
               flex: fAportes,
               child: Text(toCurrency(total),
@@ -902,7 +909,7 @@ class _FinnsPageState extends State<FinnsPage> {
           int fDist = wDist ~/ (project.partners.length + 1);
           Text totalDistText = Text(toCurrency(0),
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold));
+              style: const TextStyle(fontWeight: FontWeight.bold));
           cells.add(Expanded(flex: fDist, child: totalDistText));
           total = 0;
           for (Contact partnerObj in project.partnersObj) {
@@ -927,7 +934,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     padding: const EdgeInsets.only(left: 5, right: 5),
                     child: button)));
           }
-          idx = (cells.length - 1 - project.partners.length) as int;
+          idx = (cells.length - 1 - project.partners.length);
           cells[idx] = Expanded(
               flex: fDist,
               child: Text(toCurrency(total),
@@ -936,9 +943,15 @@ class _FinnsPageState extends State<FinnsPage> {
 
           rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
         } else {
-          cells.add(Expanded(flex: wAportes, child: const Text("")));
-          cells.add(Expanded(flex: wDist, child: const Text("")));
+          
+          cells.add(Expanded(flex:fAportes, child: Text(toCurrency(finnSummary[finn.uuid]!=null?finnSummary[finn.uuid]!['total']:0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))));
+          for (String financierUuid in project.financiers) {
+            cells.add(Expanded(flex:fAportes, child: Text(toCurrency(finnSummary[finn.uuid]!=null?finnSummary[finn.uuid]![financierUuid]:0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))));
+          }
+
+          cells.add(Expanded(flex:wDist, child: Text(toCurrency(0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)))); 
           rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
+
         }
       }
 

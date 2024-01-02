@@ -1,9 +1,7 @@
-// import 'dart:collection';
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/services/models.dart';
+// import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -155,7 +153,7 @@ class SFinn {
     List<Match> separators = punto.allMatches(name).toList();
 
     // Contar el número de coincidencias
-    return separators.length + 1;
+    return separators.length;
   }
 
   static SFinn byUuid(String uuid) {
@@ -348,7 +346,6 @@ class FinnContribution {
       }
     }
     return items;
-    ;
   }
 
   static Future<List> getByFinnAndFinancier(finn, financier) async {
@@ -388,6 +385,7 @@ class FinnContribution {
     return items;
   }
 
+  @override
   String toString() {
     return jsonEncode(toJson());
   }
