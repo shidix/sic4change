@@ -85,6 +85,50 @@ class _FinnsPageState extends State<FinnsPage> {
     });
   }
 
+  void reloadState()
+  {
+      distrib_amount = {};
+ aportes_amount = {};
+  distribSummary = {};
+  invoicesSummary = {};
+   aportesSummary = {};
+  finnSummary = {};
+    totalBudgetProject = 0;
+    executedBudgetProject = 0;
+
+    SFinn.byProject(_project!.uuid).then((val) {
+      finnList = val;
+      for (SFinn finn in finnList) {
+        finnHash[finn.name] = finn;
+        String parentCode = finn.parentCode();
+        if (finnHash.containsKey(parentCode)) {
+          if (finn.parent != finnHash[parentCode]!.uuid) {
+            finn.parent = finnHash[parentCode]!.uuid;
+            finn.save();
+          }
+          if (!withChildrens.contains(parentCode)) {
+            withChildrens.add(parentCode);
+          }
+        }
+      }
+      aportesByFinnancier().then((value) {
+        if (mounted) {
+          setState(() {
+            totalBudgetProject = totalBudgetProject;
+          });
+        }
+      });
+      distribByPartner().then((value) {
+        invoicesByPartner().then((value) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      });
+      loadFinns(_project!.uuid);
+    });
+  }
+
   Future<Map> aportesByFinnancier() async {
     totalBudgetProject = 0;
     for (SFinn item in finnList) {
@@ -266,7 +310,8 @@ class _FinnsPageState extends State<FinnsPage> {
     _finn.parent = _parent;
     _finn.project = _project;
     _finn.save();
-    loadFinns(_project);
+    //loadFinns(_project);
+    reloadState();
   }
 
   Future<void> _editFinnDialog(args) {
@@ -1137,7 +1182,8 @@ class _FinnsPageState extends State<FinnsPage> {
         item.amount = double.parse(amount.text);
         item.subject = comment.text;
         item.save();
-        loadFinns(_project!.uuid);
+        //loadFinns(_project!.uuid);
+        reloadState();
         Navigator.of(context).pop();
       },
     );
@@ -1234,7 +1280,8 @@ class _FinnsPageState extends State<FinnsPage> {
         item.amount = double.parse(amount.text);
         item.subject = comment.text;
         item.save();
-        loadFinns(_project!.uuid);
+        //loadFinns(_project!.uuid);
+        reloadState();
         Navigator.of(context).pop();
       },
     );
@@ -1279,7 +1326,8 @@ class _FinnsPageState extends State<FinnsPage> {
               onPressed: () async {
                 String projectUuid = finn.project;
                 finn.delete();
-                loadFinns(projectUuid);
+                // loadFinns(projectUuid);
+                reloadState();
                 Navigator.of(context).pop();
               },
             ),
