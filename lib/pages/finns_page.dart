@@ -65,17 +65,6 @@ class _FinnsPageState extends State<FinnsPage> {
             withChildrens.add(parentCode);
           }
         }
-        for (String parentCode in withChildrens) {
-          SFinn item = finnHash[parentCode]!;
-          item.recalculate();
-          // item.getContrib().then((contributions) {
-          //   print("DBG ${contributions.length}");
-          //   for (FinnContribution contrib in contributions) {
-          //     print("$parentCode=>  ${contrib.financier}");
-          //     contrib.recalculate();
-          //   }
-          // });
-        }
       }
       aportesByFinnancier().then((value) {
         if (mounted) {
@@ -96,16 +85,17 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Future<Map> aportesByFinnancier() async {
-    for (String financierUuid in _project!.financiers) {
-      await FinnContribution.getSummaryByFinancierAndProject(
-              financierUuid, _project!.uuid)
-          .then((value) {
-        aportesSummary[financierUuid] = value;
-      });
-    }
     totalBudgetProject = 0;
-    for (var item in aportesSummary.values) {
-      totalBudgetProject += item['total']!;
+    for (String parentCode in withChildrens) {
+      SFinn item = finnHash[parentCode]!;
+      await item.getTotalContrib().then((aportes) {
+        for (String financierUuid in aportes.keys) {
+          if (financierUuid != "total") {
+            aportesSummary[financierUuid] = {"total": aportes[financierUuid]};
+          }
+        }
+        totalBudgetProject += aportes["total"]!;
+      });
     }
     _project!.budget = toCurrency(totalBudgetProject).replaceAll("€", "");
     _project!.save();
