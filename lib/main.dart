@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+
 //final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {

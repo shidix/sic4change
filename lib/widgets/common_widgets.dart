@@ -655,10 +655,10 @@ const String descText = "Descripción";
 //                              STYLES
 //--------------------------------------------------------------------------
 
-const Color titleColor = Color(0xffabf0ff);
+const Color titleColor = Colors.black;
 const TextStyle titleText = TextStyle(
   fontFamily: 'Readex Pro',
-  color: Color(0xffabf0ff),
+  color: titleColor,
   fontSize: 22,
   fontWeight: FontWeight.bold,
 );

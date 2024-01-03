@@ -11,10 +11,13 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 const PAGE_FINN_TITLE = "Gestión Económica";
 FirebaseFirestore db = FirebaseFirestore.instance;
 double executedBudgetProject = 0;
+
 
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key, required this.project});
@@ -30,6 +33,7 @@ class _FinnsPageState extends State<FinnsPage> {
   List finnList = [];
   SProject? _project;
 
+
   Map<String, Map<String, Text>> aportesControllers = {};
   Map<String, Map<String, Text>> distribControllers = {};
   Map<String, double> distrib_amount = {};
@@ -39,6 +43,8 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map> aportesSummary = {};
   Map<String, Map> finnSummary = {};
   Map<String, SFinn> finnHash = {};
+  Map<String, SFinn> finnUuidHash = {};
+
   List<String> withChildrens = [];
 
   List<Widget> invoicesList = [];
@@ -56,6 +62,7 @@ class _FinnsPageState extends State<FinnsPage> {
       finnList = val;
       for (SFinn finn in finnList) {
         finnHash[finn.name] = finn;
+        finnUuidHash[finn.uuid] = finn;
         String parentCode = finn.parentCode();
         if (finnHash.containsKey(parentCode)) {
           if (finn.parent != finnHash[parentCode]!.uuid) {
@@ -85,14 +92,13 @@ class _FinnsPageState extends State<FinnsPage> {
     });
   }
 
-  void reloadState()
-  {
-      distrib_amount = {};
- aportes_amount = {};
-  distribSummary = {};
-  invoicesSummary = {};
-   aportesSummary = {};
-  finnSummary = {};
+  void reloadState() {
+    distrib_amount = {};
+    aportes_amount = {};
+    distribSummary = {};
+    invoicesSummary = {};
+    aportesSummary = {};
+    finnSummary = {};
     totalBudgetProject = 0;
     executedBudgetProject = 0;
 
@@ -133,19 +139,22 @@ class _FinnsPageState extends State<FinnsPage> {
     totalBudgetProject = 0;
     for (SFinn item in finnList) {
       if (item.getLevel() == 1) {
-      await item.getTotalContrib().then((aportes) {
-        finnSummary[item.uuid] = aportes;
-        for (String financierUuid in aportes.keys) {
-          if (financierUuid != "total") {
-            if (aportesSummary.containsKey(financierUuid)) {
-              aportesSummary[financierUuid]!['total'] += aportes[financierUuid]!;
-            } else {
-              aportesSummary[financierUuid] = {"total": aportes[financierUuid]};
+        await item.getTotalContrib().then((aportes) {
+          finnSummary[item.uuid] = aportes;
+          for (String financierUuid in aportes.keys) {
+            if (financierUuid != "total") {
+              if (aportesSummary.containsKey(financierUuid)) {
+                aportesSummary[financierUuid]!['total'] +=
+                    aportes[financierUuid]!;
+              } else {
+                aportesSummary[financierUuid] = {
+                  "total": aportes[financierUuid]
+                };
+              }
             }
           }
-        }
-        totalBudgetProject += aportes["total"]!;
-      });
+          totalBudgetProject += aportes["total"]!;
+        });
       }
     }
     _project!.budget = toCurrency(totalBudgetProject).replaceAll("€", "");
@@ -338,16 +347,10 @@ class _FinnsPageState extends State<FinnsPage> {
         return AlertDialog(
           // <-- SEE HERE
           titlePadding: EdgeInsets.zero,
-          title: Card(
-              color: Colors.blueGrey,
-              child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white)))),
+          title: s4cTitleBar(title, context),
           content: SingleChildScrollView(
+              child: Container(
+            width: MediaQuery.of(context).size.width * 0.5,
             child: Column(children: [
               const Row(
                 children: <Widget>[
@@ -365,22 +368,25 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: customTextField(descController, "Descripción"))
               ]),
             ]),
-          ),
+          )),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                _saveFinn(context, _finn, nameController.text,
-                    descController.text, _parent, _project.uuid);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(flex: 3, child: Container()),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: saveBtnForm(context, () {
+                        _saveFinn(context, _finn, nameController.text,
+                            descController.text, _parent, _project.uuid);
+                        Navigator.of(context).pop();
+                      }))),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: cancelBtnForm(context))),
+            ]),
           ],
         );
       },
@@ -508,7 +514,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     child: Text(
                       executed > 0
                           ? "${toCurrency(executed)} de ${toCurrency(assigned)}"
-                          : "0.00 € de ${toCurrency(assigned)}",
+                          : "0.00 €  ${toCurrency(assigned)}",
                       textAlign: TextAlign.end,
                       style: ts,
                     ),
@@ -528,48 +534,31 @@ class _FinnsPageState extends State<FinnsPage> {
               child: Column(children: [
                 Row(children: [
                   Expanded(
-                      flex: 18,
+                      flex: 20,
                       child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
                               'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
-                              style: mainText))),
-                  Expanded(
-                      flex: 2,
-                      child: Align(
-                          alignment: Alignment.topRight,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Row(children: [
-                                Tooltip(
-                                    message: 'Añadir factura',
-                                    child: IconButton(
-                                        onPressed: () {
-                                          _addInvoiceDialog(
-                                                  context, finnSelected!)
-                                              .then((value) {
-                                            _loadInvoicesByFinn(
-                                                context, finnSelected!);
-                                            if (mounted) {
-                                              setState(() {});
-                                            }
-                                          });
-                                        },
-                                        icon: const Icon(
-                                            Icons.add_circle_outline))),
-                                Tooltip(
-                                    message: 'Cerrar listado',
-                                    child: IconButton(
-                                        onPressed: () {
-                                          finnSelected = null;
-                                          invoicesList = [];
-                                          if (mounted) {
-                                            setState(() {});
-                                          }
-                                        },
-                                        icon: const Icon(
-                                            Icons.arrow_circle_up_outlined))),
-                              ])))),
+                              style: titleText))),
+                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: Tooltip(message:AppLocalizations.of(context)!.addInvoice , child: IconButton(
+                      onPressed: () {
+                        _addInvoiceDialog(context, finnSelected!).then((value) {
+                          _loadInvoicesByFinn(context, finnSelected!);
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      },
+                      icon: const Icon(Icons.add_circle_outline))))),
+                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: Tooltip(message:'Cerrar listado', child: IconButton(
+                      onPressed: () {
+                        finnSelected = null;
+                        invoicesList = [];
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_circle_left_outlined))))),
                 ]),
                 Row(
                   mainAxisSize: MainAxisSize.max,
@@ -581,7 +570,14 @@ class _FinnsPageState extends State<FinnsPage> {
                         physics: const BouncingScrollPhysics(),
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
-                        children: invoicesList,
+                        children: (invoicesList.isNotEmpty)
+                            ? invoicesList
+                            : [
+                                const Center(child:Padding(padding: EdgeInsets.all(50), child: Text(
+                                  'No hay facturas para esta partida',
+                                  style: mainText
+                                )))
+                              ],
                       ),
                     ),
                   ],
@@ -786,19 +782,10 @@ class _FinnsPageState extends State<FinnsPage> {
     List<Row> rows = [];
 
     if (data.data is! Future<List>) {
-      const TextStyle headerList = TextStyle(
-        fontFamily: 'Readex Pro',
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      );
-
       int wTools = 10;
       int wPartidas = 30;
       int wAportes = 30;
       int wDist = 30;
-
-      // String totalAport = toCurrency(0);
-      // String totalDist = toCurrency(0);
 
       rows.add(Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded(
@@ -806,7 +793,7 @@ class _FinnsPageState extends State<FinnsPage> {
           child: const Text(
             'Partidas',
             textAlign: TextAlign.center,
-            style: headerList,
+            style: titleText,
           ),
         ),
         Expanded(
@@ -814,7 +801,7 @@ class _FinnsPageState extends State<FinnsPage> {
           child: const Text(
             'Aportes',
             textAlign: TextAlign.center,
-            style: headerList,
+            style: titleText,
           ),
         ),
         Expanded(
@@ -822,7 +809,7 @@ class _FinnsPageState extends State<FinnsPage> {
           child: const Text(
             'Distribución aportes',
             textAlign: TextAlign.center,
-            style: headerList,
+            style: titleText,
           ),
         ),
       ]));
@@ -912,7 +899,9 @@ class _FinnsPageState extends State<FinnsPage> {
                 child: Text(
                   "${finn.name}. ${finn.description}",
                   textAlign: TextAlign.left,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: (finn.getLevel() == 1)
+                      ? const TextStyle(fontWeight: FontWeight.bold)
+                      : null,
                 ))));
         if (!withChildrens.contains(finn.name)) {
           Text totalText = Text(toCurrency(0),
@@ -946,15 +935,17 @@ class _FinnsPageState extends State<FinnsPage> {
           int idx = (cells.length - 1 - project.financiers.length);
           cells[idx] = Expanded(
               flex: fAportes,
-              child: Text(toCurrency(total),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold)));
+              child: Text(
+                toCurrency(total),
+                textAlign: TextAlign.center,
+              ));
 
           // By Partner
           int fDist = wDist ~/ (project.partners.length + 1);
-          Text totalDistText = Text(toCurrency(0),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold));
+          Text totalDistText = Text(
+            toCurrency(0),
+            textAlign: TextAlign.center,
+          );
           cells.add(Expanded(flex: fDist, child: totalDistText));
           total = 0;
           for (Contact partnerObj in project.partnersObj) {
@@ -982,21 +973,46 @@ class _FinnsPageState extends State<FinnsPage> {
           idx = (cells.length - 1 - project.partners.length);
           cells[idx] = Expanded(
               flex: fDist,
-              child: Text(toCurrency(total),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold)));
+              child: Text(
+                toCurrency(total),
+                textAlign: TextAlign.center,
+              ));
 
           rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
         } else {
-          
-          cells.add(Expanded(flex:fAportes, child: Text(toCurrency(finnSummary[finn.uuid]!=null?finnSummary[finn.uuid]!['total']:0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))));
+          cells.add(Expanded(
+              flex: fAportes,
+              child: Text(
+                  toCurrency(finnSummary[finn.uuid] != null
+                      ? finnSummary[finn.uuid]!['total']
+                      : 0),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold))));
           for (String financierUuid in project.financiers) {
-            cells.add(Expanded(flex:fAportes, child: Text(toCurrency(finnSummary[finn.uuid]!=null?finnSummary[finn.uuid]![financierUuid]:0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))));
+            try {
+              cells.add(Expanded(
+                  flex: fAportes,
+                  child: Text(
+                      toCurrency(finnSummary[finn.uuid] != null
+                          ? finnSummary[finn.uuid]![financierUuid]
+                          : 0),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.bold))));
+            } catch (e) {
+              cells.add(Expanded(
+                  flex: fAportes,
+                  child: Text(toCurrency(0),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.bold))));
+            }
           }
 
-          cells.add(Expanded(flex:wDist, child: Text(toCurrency(0), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)))); 
+          cells.add(Expanded(
+              flex: wDist,
+              child: Text(toCurrency(0),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold))));
           rows.add(Row(mainAxisSize: MainAxisSize.max, children: cells));
-
         }
       }
 
@@ -1017,101 +1033,79 @@ class _FinnsPageState extends State<FinnsPage> {
   void _loadInvoicesByFinn(context, SFinn finn) async {
     finnSelected = finn;
 
+    Text headerField(String title, [alignment=TextAlign.start]) {
+      return Text(title,
+          textAlign: alignment,
+          style: headerListText);
+    }
+
     List items = await Invoice.getByFinn(finn.uuid);
     invoicesList = [];
+    if (items.isNotEmpty) {
 
-    Row header = const Row(children: [
-      Expanded(
-          flex: 2,
-          child: Text(
-            'Número',
-            style: secondaryText,
-          )),
-      Expanded(flex: 2, child: Text('Código', style: secondaryText)),
-      Expanded(flex: 2, child: Text('Fecha', style: secondaryText)),
-      Expanded(flex: 5, child: Text('Concepto', style: secondaryText)),
-      Expanded(
-          flex: 2,
-          child: Text(
-            'Base',
-            style: secondaryText,
-            textAlign: TextAlign.end,
-          )),
-      Expanded(
-          flex: 2,
-          child: Text(
-            'Impuestos',
-            style: secondaryText,
-            textAlign: TextAlign.end,
-          )),
-      Expanded(
-          flex: 2,
-          child: Text(
-            'Total',
-            style: secondaryText,
-            textAlign: TextAlign.end,
-          )),
-      Expanded(
-          flex: 3,
-          child: Text('', textAlign: TextAlign.end, style: secondaryText)),
-    ]);
 
-    invoicesList.add(header);
-    items.sort((a, b) => (a.date).compareTo(b.date));
-    for (Invoice invoice in items) {
-      invoicesList.add(MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-              onTap: () {
-                _viewInvoiceDialog(context, invoice);
-              },
-              child: Row(children: [
-                Expanded(flex: 2, child: Text(invoice.number)),
-                Expanded(flex: 2, child: Text(invoice.code)),
-                Expanded(flex: 2, child: Text(invoice.date)),
-                Expanded(flex: 5, child: Text(invoice.concept)),
-                Expanded(
-                    flex: 2,
-                    child: Text(
-                      "${invoice.base.toStringAsFixed(2)} €",
-                      textAlign: TextAlign.end,
-                    )),
-                Expanded(
-                    flex: 2,
-                    child: Text(
-                      "${invoice.taxes.toStringAsFixed(2)} €",
-                      textAlign: TextAlign.end,
-                    )),
-                Expanded(
-                    flex: 2,
-                    child: Text(
-                      "${invoice.total.toStringAsFixed(2)} €",
-                      textAlign: TextAlign.end,
-                    )),
-                Expanded(
-                    flex: 3,
-                    child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Row(children: [
-                          IconButton(
-                              onPressed: () {
-                                _viewInvoiceDialog(context, invoice);
-                              },
-                              icon: const Icon(Icons.info_outline)),
-                          IconButton(
-                              onPressed: () {
-                                _editInvoiceDialog(context, invoice)
-                                    .then((value) {
-                                  _loadInvoicesByFinn(context, finnSelected!);
-                                  if (mounted) {
-                                    setState(() {});
-                                  }
-                                });
-                                ;
-                              },
-                              icon: const Icon(Icons.edit))
-                        ]))),
-              ]))));
+      Row header = Row(children: [
+        Expanded(flex: 2, child: headerField('Partida')),
+        Expanded(flex: 2, child: headerField('Número')),
+        Expanded(flex: 2, child: headerField('Código')),
+        Expanded(flex: 2, child: headerField('Fecha')),
+        Expanded(flex: 5, child: headerField('Concepto')),
+        Expanded(flex: 2, child: headerField('Base', TextAlign.end)),
+        Expanded(flex: 2, child: headerField('Impuestos', TextAlign.end)),
+        Expanded(flex: 2, child: headerField('Total', TextAlign.end)),
+        Expanded(flex: 2, child: headerField('', TextAlign.end)),
+      ]);
+
+      invoicesList.add(header);
+      items.sort((a, b) => (a.date).compareTo(b.date));
+      for (Invoice invoice in items) {
+        invoicesList.add(MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+                onTap: () {
+                  _viewInvoiceDialog(context, invoice);
+                },
+                child: Row(children: [
+                  Expanded(flex: 2, child: Text(finnUuidHash.containsKey(invoice.finn)?finnUuidHash[invoice.finn]!.name:'')),
+                  Expanded(flex: 2, child: Text(invoice.number)),
+                  Expanded(flex: 2, child: Text(invoice.code)),
+                  Expanded(flex: 2, child: Text(invoice.date)),
+                  Expanded(flex: 5, child: Text(invoice.concept)),
+                  Expanded(
+                      flex: 2,
+                      child: Text(
+                        "${invoice.base.toStringAsFixed(2)} €",
+                        textAlign: TextAlign.end,
+                      )),
+                  Expanded(
+                      flex: 2,
+                      child: Text(
+                        "${invoice.taxes.toStringAsFixed(2)} €",
+                        textAlign: TextAlign.end,
+                      )),
+                  Expanded(
+                      flex: 2,
+                      child: Text(
+                        "${invoice.total.toStringAsFixed(2)} €",
+                        textAlign: TextAlign.end,
+                      )),
+                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: IconButton(
+                      onPressed: () {
+                        _viewInvoiceDialog(context, invoice);
+                      },
+                      icon: const Icon(Icons.info_outline)))),
+                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: IconButton(
+                      onPressed: () {
+                        _editInvoiceDialog(context, invoice).then((value) {
+                          _loadInvoicesByFinn(context, finn);
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      },
+                      icon: const Icon(Icons.edit)))),
+                ]))));
+      }
     }
 
     if (mounted) {
@@ -1176,43 +1170,37 @@ class _FinnsPageState extends State<FinnsPage> {
               child: customDoubleField(amount, ''))),
     ]));
 
-    TextButton saveButton = TextButton(
-      child: const Text('Guardar'),
-      onPressed: () async {
-        item.amount = double.parse(amount.text);
-        item.subject = comment.text;
-        item.save();
-        //loadFinns(_project!.uuid);
-        reloadState();
-        Navigator.of(context).pop();
-      },
-    );
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Card(
-              color: Colors.blueGrey,
-              child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Text('${finn.name}. ${finn.description}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white)))),
+          titlePadding: EdgeInsets.zero,
+          title: s4cTitleBar('${finn.name}. ${finn.description}', context),
           content: SingleChildScrollView(
             child: Column(children: rows),
           ),
           actions: <Widget>[
-            saveButton,
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(children: [
+              Expanded(flex: 3, child: Container()),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: saveBtnForm(context, () {
+                        item.amount = double.parse(amount.text);
+                        item.subject = comment.text;
+                        item.save();
+                        //loadFinns(_project!.uuid);
+                        reloadState();
+                        Navigator.of(context).pop();
+                      }))),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: cancelBtnForm(context))),
+            ])
           ],
         );
       },
@@ -1324,9 +1312,7 @@ class _FinnsPageState extends State<FinnsPage> {
             TextButton(
               child: const Text('Confirmar'),
               onPressed: () async {
-                String projectUuid = finn.project;
                 finn.delete();
-                // loadFinns(projectUuid);
                 reloadState();
                 Navigator.of(context).pop();
               },

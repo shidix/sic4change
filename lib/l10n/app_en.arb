@@ -3,6 +3,7 @@
     "@add" : {
         "description": "Add a new item"
     },
+    "addInvoice": "Add Invoice",
     "cancel": "Cancel",
     "close": "Close",
     "delete": "Delete",
