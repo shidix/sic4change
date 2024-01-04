@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/models_commons.dart';
 
 const List<String> MONTHS = [
   "Enero",
@@ -14,6 +15,31 @@ const List<String> MONTHS = [
   "Noviembre",
   "Diciembre "
 ];
+
+Map<String, String> CURRENCIES = {
+  'EUR': '€',
+  'USD': '\$',
+  'SOL': 'S/',
+  'GBP': '£',
+  'JPY': '¥',
+  'CNY': '¥',
+  'RUB': '₽',
+  'INR': '₹',
+  'BRL': 'R\$',
+  'CAD': '\$',
+  'AUD': '\$',
+  'CHF': 'CHF',
+  'HKD': 'HK\$',
+  'IDR': 'Rp',
+  'KRW': '₩',
+  'MXN': '\$',
+  'MYR': 'RM',
+  'NZD': '\$',
+  'PHP': '₱',
+  'SGD': 'S\$',
+  'THB': '฿',
+  'ZAR': 'R',
+};
 
 List reshape(List list, int m, int n) {
   List result = [];
@@ -31,7 +57,7 @@ DateTime today() {
   return truncDate(DateTime.now());
 }
 
-DateTime truncDate( DateTime date ) {
+DateTime truncDate(DateTime date) {
   return DateTime(date.year, date.month, date.day);
 }
 
@@ -68,8 +94,9 @@ int getWorkingDaysBetween(DateTime date1, DateTime date2) {
   return workingDays;
 }
 
-String toCurrency(double value) {
-  return NumberFormat.currency(locale: 'es_ES', symbol: '€').format(value);
+String toCurrency(double value, [String symbol = 'EUR']) {
+  return NumberFormat.currency(locale: 'es_ES', symbol: CURRENCIES[symbol])
+      .format(value);
 }
 
 String showException(dynamic e) {
@@ -85,8 +112,10 @@ String showException(dynamic e) {
 }
 
 double currencyToDouble(String value) {
-  value = value.replaceAll('€', '');
-  value = value.replaceAll(' ', '');
+  value = value.replaceAll(
+      RegExp(r'^\D+|(?<=\d),(?=\d)|(?<=\d).(?<=\d),(?=\d)'), '');
+  // value = value.replaceAll('€', '');
+  // value = value.replaceAll(' ', '');
   value = value.replaceAll('.', '');
   value = value.replaceAll(',', '.');
   try {

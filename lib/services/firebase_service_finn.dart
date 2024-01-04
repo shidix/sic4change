@@ -31,7 +31,9 @@ class InvoiceDetail extends StatelessWidget {
               Expanded(
                   flex: 1,
                   child: ReadOnlyTextField(
-                      label: 'Fecha', textToShow: invoice.date)),
+                      label: 'Fecha',
+                      textToShow:
+                          DateFormat('dd-MM-yyyy').format(invoice.date))),
             ]),
             const SizedBox(height: 16.0),
             Row(children: [
@@ -167,12 +169,10 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     padding: EdgeInsets.all(5),
                     child: DateTimePicker(
                       labelText: 'Fecha',
-                      selectedDate:
-                          DateFormat('dd-MM-yyyy').parse(_invoice.date),
+                      selectedDate: _invoice.date,
                       onSelectedDate: (DateTime value) {
                         setState(() {
-                          _invoice.date =
-                              DateFormat('dd-MM-yyyy').format(value);
+                          _invoice.date = value;
                         });
                       },
                     ))),
@@ -182,12 +182,10 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     padding: EdgeInsets.all(5),
                     child: DateTimePicker(
                       labelText: 'Fecha Pago',
-                      selectedDate:
-                          DateFormat('dd-MM-yyyy').parse(_invoice.paidDate),
+                      selectedDate: _invoice.paidDate,
                       onSelectedDate: (DateTime value) {
                         setState(() {
-                          _invoice.paidDate =
-                              DateFormat('dd-MM-yyyy').format(value);
+                          _invoice.paidDate = value;
                         });
                       },
                     ))),
@@ -306,7 +304,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
     super.initState();
     if (widget.existingBankTransfer == null) {
       _bankTransfer = BankTransfer("", "", "", "", "", "", "", "", "", 0, 0, 0,
-          0, 0, 0, 0, 0, "Euro", "Euro", "Euro", "");
+          0, 0, 0, 0, 0, "EUR", "EUR", "EUR", "");
       _bankTransfer.uuid = const Uuid().v4();
       _bankTransfer.project = widget.project!.uuid;
       _bankTransfer.concept = "Concepto";

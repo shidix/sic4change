@@ -542,21 +542,25 @@ class _FinnsPageState extends State<FinnsPage> {
                       flex: 1,
                       child: Align(
                           alignment: Alignment.centerRight,
-                          child: Tooltip(
-                              message: AppLocalizations.of(context)!.addInvoice,
-                              child: IconButton(
-                                  onPressed: () {
-                                    _addInvoiceDialog(context, finnSelected!)
-                                        .then((value) {
-                                      _loadInvoicesByFinn(
-                                          context, finnSelected!);
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-                                    });
-                                  },
-                                  icon:
-                                      const Icon(Icons.add_circle_outline))))),
+                          child: withChildrens.contains(finnSelected!.name)
+                              ? Container()
+                              : Tooltip(
+                                  message:
+                                      AppLocalizations.of(context)!.addInvoice,
+                                  child: IconButton(
+                                      onPressed: () {
+                                        _addInvoiceDialog(
+                                                context, finnSelected!)
+                                            .then((value) {
+                                          _loadInvoicesByFinn(
+                                              context, finnSelected!);
+                                          if (mounted) {
+                                            setState(() {});
+                                          }
+                                        });
+                                      },
+                                      icon: const Icon(
+                                          Icons.add_circle_outline))))),
                   Expanded(
                       flex: 1,
                       child: Align(
@@ -1061,24 +1065,27 @@ class _FinnsPageState extends State<FinnsPage> {
                       : '')),
               Expanded(flex: 2, child: Text(invoice.number)),
               Expanded(flex: 2, child: Text(invoice.code)),
-              Expanded(flex: 2, child: Text(invoice.date)),
+              Expanded(
+                  flex: 2,
+                  child: Text(DateFormat('dd-MM-yyyy').format(invoice.date))),
               Expanded(flex: 5, child: Text(invoice.concept)),
               Expanded(
                   flex: 2,
                   child: Text(
-                    "${invoice.base.toStringAsFixed(2)} €",
+                    toCurrency(invoice.base, invoice.currency),
+                    // "${invoice.base.toStringAsFixed(2)}",
                     textAlign: TextAlign.end,
                   )),
               Expanded(
                   flex: 2,
                   child: Text(
-                    "${invoice.taxes.toStringAsFixed(2)} €",
+                    toCurrency(invoice.taxes, invoice.currency),
                     textAlign: TextAlign.end,
                   )),
               Expanded(
                   flex: 2,
                   child: Text(
-                    "${invoice.total.toStringAsFixed(2)} €",
+                    toCurrency(invoice.total, invoice.currency),
                     textAlign: TextAlign.end,
                   )),
               Expanded(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
@@ -487,8 +488,8 @@ class Invoice {
   String code;
   String finn;
   String concept;
-  String date;
-  String paidDate;
+  DateTime date;
+  DateTime paidDate;
   double base;
   double taxes;
   double total;
@@ -496,6 +497,7 @@ class Invoice {
   String provider;
   String document;
   String partner;
+  String currency;
 
   Invoice(
       this.id,
@@ -512,9 +514,38 @@ class Invoice {
       this.desglose,
       this.provider,
       this.document,
-      this.partner);
+      this.partner,
+      this.currency);
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("currency")) {
+      json["currency"] = "EUR";
+    } else {
+      if (!CURRENCIES.containsKey(json["currency"])) {
+        json["currency"] = "EUR";
+      }
+    }
+    DateTime date = DateTime.now();
+    try {
+      date = DateTime.parse(json["date"]);
+    } catch (e) {
+      try {
+        date = DateFormat('dd-MM-yyyy').parse(json["date"]);
+      } catch (e) {
+        date = DateTime.now();
+      }
+    }
+
+    DateTime paidDate = DateTime.now();
+    try {
+      paidDate = DateTime.parse(json["paidDate"]);
+    } catch (e) {
+      try {
+        paidDate = DateFormat('dd-MM-yyyy').parse(json["paidDate"]);
+      } catch (e) {
+        paidDate = DateTime.now();
+      }
+    }
     return Invoice(
       json["id"],
       json["uuid"],
@@ -522,8 +553,8 @@ class Invoice {
       json["code"],
       json["finn"],
       json["concept"],
-      json["date"],
-      json["paidDate"],
+      date,
+      paidDate,
       json["base"],
       json["taxes"],
       json["total"],
@@ -531,6 +562,7 @@ class Invoice {
       json["provider"],
       json["document"],
       json["partner"],
+      json["currency"],
     );
   }
 
@@ -542,8 +574,8 @@ class Invoice {
       "", // code
       "", // finn
       "", // concept
-      DateFormat('dd-MM-yyyy').format(DateTime.now()), // date
-      DateFormat('dd-MM-yyyy').format(DateTime.now()), // date
+      DateTime.now(), // date
+      DateTime.now(), // date
       0, // base
       0, // taxes
       0, // total
@@ -551,6 +583,7 @@ class Invoice {
       "", // provider
       "", // document
       "", // partner
+      "EUR", // currency
     );
   }
 
@@ -561,8 +594,8 @@ class Invoice {
         'code': code,
         'finn': finn,
         'concept': concept,
-        'date': date,
-        'paidDate': paidDate,
+        'date': DateFormat('yyyy-MM-dd').format(date),
+        'paidDate': DateFormat('yyyy-MM-dd').format(paidDate),
         'base': base,
         'taxes': taxes,
         'total': total,
@@ -570,6 +603,7 @@ class Invoice {
         'provider': provider,
         'document': document,
         'partner': partner,
+        'currency': currency,
       };
 
   void save() async {
