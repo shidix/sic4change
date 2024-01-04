@@ -12,6 +12,7 @@
     "search": "Buscar",
     "yes": "Sí",
     "no": "No",
+    "concept": "Concepto",
     "confirm": "Confirmar",
     "confirmDelete": "¿Estás seguro de que quieres borrar este elemento?",
     "confirmDeleteTitle": "Confirmar Borrado",
@@ -46,6 +47,10 @@
     "confirmDeleteErrorServiceMessage": "Ha ocurrido un error borrando el elemento",
     "confirmDeleteErrorUnprocessableTitle": "Entidad no Procesable",
     "confirmDeleteErrorUnprocessableMessage": "Ha ocurrido un error borrando el elemento",
+    "currency": "Moneda",
+    "partner": "Socio",
+
+
     "appTitle": "Workout Tracker",
     "click_to_edit": "Haz click para editar",
     "company": "Organización",

@@ -4,8 +4,10 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class InvoiceDetail extends StatelessWidget {
   final Invoice invoice;
@@ -100,13 +102,22 @@ class _InvoiceFormState extends State<InvoiceForm> {
 
   @override
   Widget build(BuildContext context) {
-    Invoice saveInvoice() {
+    void saveInvoice() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
         _invoice.save();
         Navigator.of(context).pop(_invoice);
       }
-      return _invoice;
+    }
+
+    Invoice? removeInvoice() {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        _invoice.delete();
+        Navigator.of(context).pop(_invoice);
+        return(_invoice);
+      }
+      return null;
     }
 
     return Form(
@@ -165,8 +176,22 @@ class _InvoiceFormState extends State<InvoiceForm> {
           Row(children: [
             Expanded(
                 flex: 1,
+                child: CustomSelectFormField(
+                  labelText: AppLocalizations.of(context)!.currency,
+                  initial: _invoice.currency,
+                  options: CURRENCIES.keys
+                      .map((currency) => KeyValue(currency, currency))
+                      .toList(),
+                  onSelectedOpt: (value) {
+                    _invoice.currency = value.toString();
+                    if (mounted) setState(() {});
+                  },
+                  required: true,
+                )),
+            Expanded(
+                flex: 1,
                 child: Padding(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     child: DateTimePicker(
                       labelText: 'Fecha',
                       selectedDate: _invoice.date,
@@ -179,7 +204,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
             Expanded(
                 flex: 1,
                 child: Padding(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     child: DateTimePicker(
                       labelText: 'Fecha Pago',
                       selectedDate: _invoice.paidDate,
@@ -203,7 +228,8 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 child: TextFormField(
                   textAlign: TextAlign.right,
                   initialValue: _invoice.base.toString(),
-                  decoration: const InputDecoration(labelText: 'Base (€)'),
+                  decoration:
+                      InputDecoration(labelText: 'Base ${CURRENCIES[_invoice.currency]!.value}'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -213,26 +239,20 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     return null;
                   },
                   onChanged: (value) {
-                    if (value == "") {
-                      value = "0.0";
-                    }
-                    try {
-                      _invoice.base = double.parse(value);
-                    } catch (e) {
-                      _invoice.base = 0.0;
-                    }
+                    _invoice.base = currencyToDouble(value);
                     setState(() {
                       _invoice.total = _invoice.base + _invoice.taxes;
                     });
                   },
-                  onSaved: (value) => _invoice.base = double.parse(value!),
+                  onSaved: (value) => _invoice.base = currencyToDouble(value!),
                 )),
             Expanded(
                 flex: 1,
                 child: TextFormField(
                   textAlign: TextAlign.right,
                   initialValue: _invoice.taxes.toString(),
-                  decoration: const InputDecoration(labelText: 'Impuestos (€)'),
+                  decoration: InputDecoration(
+                      labelText: 'Impuestos ${CURRENCIES[_invoice.currency]!.value}'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -242,25 +262,18 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     return null;
                   },
                   onChanged: (value) {
-                    if (value == "") {
-                      value = "0.0";
-                    }
-                    try {
-                      _invoice.taxes = double.parse(value);
-                    } catch (e) {
-                      _invoice.taxes = 0.0;
-                    }
+                    _invoice.taxes = currencyToDouble(value);
                     setState(() {
                       _invoice.total = _invoice.base + _invoice.taxes;
                     });
                   },
-                  onSaved: (value) => _invoice.taxes = double.parse(value!),
+                  onSaved: (value) => _invoice.taxes = currencyToDouble(value!),
                 )),
             Expanded(
               flex: 1,
               child: ReadOnlyTextField(
-                label: 'Total',
-                textToShow: _invoice.total.toString(),
+                label: 'Total ${CURRENCIES[_invoice.currency]!.value}',
+                textToShow: toCurrency(_invoice.total, _invoice.currency),
                 textAlign: TextAlign.right,
               ),
             )
@@ -272,11 +285,10 @@ class _InvoiceFormState extends State<InvoiceForm> {
           ),
           const SizedBox(height: 16.0),
           Row(children: [
-            Expanded(flex: 3, child: Container()),
-            Expanded(flex: 2, child: saveBtnForm(context, saveInvoice)),
-            Expanded(flex: 1, child: Container()),
-            Expanded(flex: 2, child: cancelBtnForm(context)),
-            Expanded(flex: 3, child: Container()),
+            Expanded(flex: _invoice.id == ""?3:2, child: Container()),
+            Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: saveBtnForm(context, saveInvoice))),
+            _invoice.id == ""?Container(width: 0): Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: removeBtnForm(context, removeInvoice))),
+            Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: cancelBtnForm(context))),
           ]),
         ],
       )),

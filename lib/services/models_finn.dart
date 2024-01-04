@@ -618,6 +618,14 @@ class Invoice {
       collection.doc(item.id).set(data);
     }
   }
+  
+  void delete() {
+    final collection = db.collection("s4c_invoices");
+    if (id != "") {
+      collection.doc(id).delete();
+    }
+    id = "";
+  }
 
   static Future<List> getByFinn(finn) async {
     final collection = db.collection("s4c_invoices");
@@ -701,13 +709,6 @@ class Invoice {
   @override
   String toString() {
     return jsonEncode(toJson());
-  }
-
-  void delete() {
-    final collection = db.collection("s4c_invoices");
-    if (id != "") {
-      collection.doc(id).delete();
-    }
   }
 }
 

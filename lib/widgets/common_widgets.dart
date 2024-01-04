@@ -11,6 +11,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Widget customTitle(context, _text) {
   return Container(
@@ -632,9 +633,7 @@ Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
               ))));
 }
 
-Object getObject(List items, String uuid) {
-  return items.firstWhere((item) => item.uuid == uuid);
-}
+
 
 //--------------------------------------------------------------------------
 //                              TEXTS
@@ -951,6 +950,37 @@ Widget saveBtn(context, action, [args]) {
 
 Widget saveBtnForm(context, action, [args]) {
   return actionButton(context, saveText, action, Icons.save_outlined, args);
+}
+
+Widget removeBtnForm(context, action, [args]) {
+  void confirmDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      title: Text(AppLocalizations.of(context)!.confirm),
+      content: Text(AppLocalizations.of(context)!.confirmDelete),
+      actions: [
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.delete),
+          onPressed: () {
+            args == null ? Navigator.of(context).pop(action()) : Navigator.of(context).pop(action(args));
+          },
+        ),
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.cancel),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  return actionButton(context, removeText, confirmDialog, Icons.delete, context);
 }
 
 Widget cancelBtnForm(context) {
@@ -1442,8 +1472,8 @@ class CustomSelectFormField extends StatelessWidget {
 
     return DropdownButtonFormField(
       value: initial,
-      decoration: const InputDecoration(
-          labelText: 'Socio', contentPadding: EdgeInsets.only(left: 5)),
+      decoration: InputDecoration(
+          labelText: labelText, contentPadding: const EdgeInsets.only(left: 5)),
       items: optionsDrop,
       onChanged: (value) {
         onSelectedOpt(value.toString());

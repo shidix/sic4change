@@ -12,6 +12,8 @@
     "search": "Search",
     "yes": "Yes",
     "no": "No",
+
+    "concept": "Concept",
     "confirm": "Confirm",
     "confirmDelete": "Are you sure you want to delete this item?",
     "confirmDeleteTitle": "Confirm Delete",
@@ -46,6 +48,8 @@
     "confirmDeleteErrorServiceMessage": "There was an error deleting the item",
     "confirmDeleteErrorUnprocessableTitle": "Unprocessable Entity",
     "confirmDeleteErrorUnprocessableMessage": "There was an error deleting the item",
+    "currency" : "Currency",
+    "partner" : "Partner",
 
     "appTitle": "Workout Tracker",
     "click_to_edit": "Click to edit",

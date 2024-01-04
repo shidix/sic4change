@@ -46,8 +46,10 @@ class _FinnsPageState extends State<FinnsPage> {
   List<String> withChildrens = [];
 
   List<Widget> invoicesList = [];
+  List invoicesItems = [];
   SFinn? finnSelected;
   double totalBudgetProject = 0;
+  Widget? invoicesContainer;
 
   @override
   void initState() {
@@ -521,90 +523,8 @@ class _FinnsPageState extends State<FinnsPage> {
               )),
         ));
       }
-      Widget invoicesContainer = Container(width: double.infinity);
 
-      if (finnSelected != null) {
-        invoicesContainer = SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Card(
-                child: Padding(
-              padding: const EdgeInsets.only(left: 10, top: 10),
-              child: Column(children: [
-                Row(children: [
-                  Expanded(
-                      flex: 20,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                              'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
-                              style: titleText))),
-                  Expanded(
-                      flex: 1,
-                      child: Align(
-                          alignment: Alignment.centerRight,
-                          child: withChildrens.contains(finnSelected!.name)
-                              ? Container()
-                              : Tooltip(
-                                  message:
-                                      AppLocalizations.of(context)!.addInvoice,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        _addInvoiceDialog(
-                                                context, finnSelected!)
-                                            .then((value) {
-                                          _loadInvoicesByFinn(
-                                              context, finnSelected!);
-                                          if (mounted) {
-                                            setState(() {});
-                                          }
-                                        });
-                                      },
-                                      icon: const Icon(
-                                          Icons.add_circle_outline))))),
-                  Expanded(
-                      flex: 1,
-                      child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Tooltip(
-                              message: 'Cerrar listado',
-                              child: IconButton(
-                                  onPressed: () {
-                                    finnSelected = null;
-                                    invoicesList = [];
-                                    if (mounted) {
-                                      setState(() {});
-                                    }
-                                  },
-                                  icon: const Icon(
-                                      Icons.arrow_circle_left_outlined))))),
-                ]),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        physics: const BouncingScrollPhysics(),
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: (invoicesList.isNotEmpty)
-                            ? invoicesList
-                            : [
-                                const Center(
-                                    child: Padding(
-                                        padding: EdgeInsets.all(50),
-                                        child: Text(
-                                            'No hay facturas para esta partida',
-                                            style: mainText)))
-                              ],
-                      ),
-                    ),
-                  ],
-                )
-              ]),
-            )));
-      }
+      invoicesContainer = populateInvoicesContainer();
 
       double realPercentExecuted = totalBudgetProject > 0
           ? executedBudgetProject / totalBudgetProject
@@ -792,9 +712,129 @@ class _FinnsPageState extends State<FinnsPage> {
                   ),
                 ],
               )),
-              invoicesContainer,
+              invoicesContainer ?? Container(width: double.infinity),
             ]);
           }));
+    }
+  }
+
+  Widget populateInvoicesContainer() {
+    Text headerField(String title, [alignment = TextAlign.start]) {
+      return Text(title, textAlign: alignment, style: headerListText);
+    }
+
+    if (finnSelected != null) {
+      invoicesList = [];
+      if (invoicesItems.isNotEmpty) {
+        Row header = Row(children: [
+          Expanded(flex: 2, child: headerField('Partida')),
+          Expanded(flex: 2, child: headerField('Número')),
+          Expanded(flex: 2, child: headerField('Código')),
+          Expanded(flex: 2, child: headerField('Fecha')),
+          Expanded(flex: 4, child: headerField(AppLocalizations.of(context)!.concept)),
+          Expanded(flex: 2, child: headerField(AppLocalizations.of(context)!.partner)),
+          Expanded(flex: 2, child: headerField('Base', TextAlign.end)),
+          Expanded(flex: 2, child: headerField('Impuestos', TextAlign.end)),
+          Expanded(flex: 2, child: headerField('Total', TextAlign.end)),
+          Expanded(flex: 1, child: headerField('', TextAlign.end)),
+        ]);
+
+        invoicesList.add(header);
+        invoicesList.add(const Divider(height: 5, color: Colors.black,));
+        invoicesItems.sort((a, b) => (a.date).compareTo(b.date));
+        for (Invoice invoice in invoicesItems) {
+          invoicesList.add(rowFromInvoice(invoice));
+          if (!(invoice == invoicesItems.last)) {
+            invoicesList.add(const Divider(height: 5, color: Colors.grey,));
+          }
+        }
+      }
+
+      return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Card(
+              child: Padding(
+            padding: const EdgeInsets.only(left: 10, top: 10),
+            child: Column(children: [
+              Row(children: [
+                Expanded(
+                    flex: 20,
+                    child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                            'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
+                            style: titleText))),
+                Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: withChildrens.contains(finnSelected!.name)
+                            ? Container()
+                            : Tooltip(
+                                message:
+                                    AppLocalizations.of(context)!.addInvoice,
+                                child: IconButton(
+                                    onPressed: () {
+                                      _addInvoiceDialog(context, finnSelected!)
+                                          .then((value) {
+                                        if (value != null) {
+                                          invoicesItems.add(value);
+                                          if (mounted) {
+                                            setState(() {
+                                              invoicesContainer =
+                                                  populateInvoicesContainer();
+                                            });
+                                          }
+                                        }
+                                      });
+                                    },
+                                    icon: const Icon(
+                                        Icons.add_circle_outline))))),
+                Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Tooltip(
+                            message: 'Cerrar listado',
+                            child: IconButton(
+                                onPressed: () {
+                                  finnSelected = null;
+                                  invoicesList = [];
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                                icon: const Icon(
+                                    Icons.arrow_circle_left_outlined))))),
+              ]),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      physics: const BouncingScrollPhysics(),
+                      shrinkWrap: true,
+                      scrollDirection: Axis.vertical,
+                      children: (invoicesList.isNotEmpty)
+                          ? invoicesList
+                          : [
+                              const Center(
+                                  child: Padding(
+                                      padding: EdgeInsets.all(50),
+                                      child: Text(
+                                          'No hay facturas para esta partida',
+                                          style: mainText)))
+                            ],
+                    ),
+                  ),
+                ],
+              )
+            ]),
+          )));
+    } else {
+      return Container(width: double.infinity);
     }
   }
 
@@ -1055,9 +1095,20 @@ class _FinnsPageState extends State<FinnsPage> {
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
             onTap: () {
-              _viewInvoiceDialog(context, invoice);
+              _editInvoiceDialog(context, invoice).then((value) {
+                if ((value != null) && (value.id == "")) {
+                  invoicesItems
+                      .removeWhere((element) => element.uuid == invoice.uuid);
+                }
+                if (mounted) {
+                  setState(() {
+                    invoicesContainer = populateInvoicesContainer();
+                  });
+                }
+              });
+              // _viewInvoiceDialog(context, invoice);
             },
-            child: Row(children: [
+            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5), child: Row(children: [
               Expanded(
                   flex: 2,
                   child: Text(finnUuidHash.containsKey(invoice.finn)
@@ -1068,12 +1119,12 @@ class _FinnsPageState extends State<FinnsPage> {
               Expanded(
                   flex: 2,
                   child: Text(DateFormat('dd-MM-yyyy').format(invoice.date))),
-              Expanded(flex: 5, child: Text(invoice.concept)),
+              Expanded(flex: 4, child: Text(invoice.concept)),
+              Expanded(flex: 2, child: Text((getObject(_project!.partnersObj, invoice.partner) as Contact).name)),
               Expanded(
                   flex: 2,
                   child: Text(
                     toCurrency(invoice.base, invoice.currency),
-                    // "${invoice.base.toStringAsFixed(2)}",
                     textAlign: TextAlign.end,
                   )),
               Expanded(
@@ -1088,15 +1139,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     toCurrency(invoice.total, invoice.currency),
                     textAlign: TextAlign.end,
                   )),
-              Expanded(
-                  flex: 1,
-                  child: Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                          onPressed: () {
-                            _viewInvoiceDialog(context, invoice);
-                          },
-                          icon: const Icon(Icons.info_outline)))),
+  
               Expanded(
                   flex: 1,
                   child: Align(
@@ -1104,106 +1147,46 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: IconButton(
                           onPressed: () {
                             _editInvoiceDialog(context, invoice).then((value) {
-                              _loadInvoicesByFinn(context, finnSelected!);
+                              if (value == null) {
+                                invoicesItems.removeWhere(
+                                    (element) => element.uuid == invoice.uuid);
+                              }
                               if (mounted) {
-                                setState(() {});
+                                setState(() {
+                                  invoicesContainer =
+                                      populateInvoicesContainer();
+                                });
                               }
                             });
                           },
                           icon: const Icon(Icons.edit)))),
-            ])));
+            ]))));
   }
 
   void _loadInvoicesByFinn(context, SFinn finn) async {
     finnSelected = finn;
 
-    Text headerField(String title, [alignment = TextAlign.start]) {
-      return Text(title, textAlign: alignment, style: headerListText);
-    }
+    // Text headerField(String title, [alignment = TextAlign.start]) {
+    //   return Text(title, textAlign: alignment, style: headerListText);
+    // }
 
-    List items = await Invoice.getByFinn(finn.uuid);
-    invoicesList = [];
-    if (items.isNotEmpty) {
-      Row header = Row(children: [
-        Expanded(flex: 2, child: headerField('Partida')),
-        Expanded(flex: 2, child: headerField('Número')),
-        Expanded(flex: 2, child: headerField('Código')),
-        Expanded(flex: 2, child: headerField('Fecha')),
-        Expanded(flex: 5, child: headerField('Concepto')),
-        Expanded(flex: 2, child: headerField('Base', TextAlign.end)),
-        Expanded(flex: 2, child: headerField('Impuestos', TextAlign.end)),
-        Expanded(flex: 2, child: headerField('Total', TextAlign.end)),
-        Expanded(flex: 2, child: headerField('', TextAlign.end)),
-      ]);
-
-      invoicesList.add(header);
-      items.sort((a, b) => (a.date).compareTo(b.date));
-      for (Invoice invoice in items) {
-        invoicesList.add(rowFromInvoice(invoice));
-        // invoicesList.add(MouseRegion(
-        //     cursor: SystemMouseCursors.click,
-        //     child: GestureDetector(
-        //         onTap: () {
-        //           _viewInvoiceDialog(context, invoice);
-        //         },
-        //         child: Row(children: [
-        //           Expanded(
-        //               flex: 2,
-        //               child: Text(finnUuidHash.containsKey(invoice.finn)
-        //                   ? finnUuidHash[invoice.finn]!.name
-        //                   : '')),
-        //           Expanded(flex: 2, child: Text(invoice.number)),
-        //           Expanded(flex: 2, child: Text(invoice.code)),
-        //           Expanded(flex: 2, child: Text(invoice.date)),
-        //           Expanded(flex: 5, child: Text(invoice.concept)),
-        //           Expanded(
-        //               flex: 2,
-        //               child: Text(
-        //                 "${invoice.base.toStringAsFixed(2)} €",
-        //                 textAlign: TextAlign.end,
-        //               )),
-        //           Expanded(
-        //               flex: 2,
-        //               child: Text(
-        //                 "${invoice.taxes.toStringAsFixed(2)} €",
-        //                 textAlign: TextAlign.end,
-        //               )),
-        //           Expanded(
-        //               flex: 2,
-        //               child: Text(
-        //                 "${invoice.total.toStringAsFixed(2)} €",
-        //                 textAlign: TextAlign.end,
-        //               )),
-        //           Expanded(
-        //               flex: 1,
-        //               child: Align(
-        //                   alignment: Alignment.centerRight,
-        //                   child: IconButton(
-        //                       onPressed: () {
-        //                         _viewInvoiceDialog(context, invoice);
-        //                       },
-        //                       icon: const Icon(Icons.info_outline)))),
-        //           Expanded(
-        //               flex: 1,
-        //               child: Align(
-        //                   alignment: Alignment.centerRight,
-        //                   child: IconButton(
-        //                       onPressed: () {
-        //                         _editInvoiceDialog(context, invoice)
-        //                             .then((value) {
-        //                           _loadInvoicesByFinn(context, finn);
-        //                           if (mounted) {
-        //                             setState(() {});
-        //                           }
-        //                         });
-        //                       },
-        //                       icon: const Icon(Icons.edit)))),
-        //         ]))));
+    List<SFinn> finnSelectedChildrens = [];
+    for (SFinn finn in finnList) {
+      if (finn.parent == finnSelected!.uuid) {
+        finnSelectedChildrens.add(finn);
       }
     }
+    invoicesItems = await Invoice.getByFinn(finn.uuid);
+    for (SFinn finn in finnSelectedChildrens) {
+      List invoices = await Invoice.getByFinn(finn.uuid);
+      invoicesItems.addAll(invoices);
+    }
+    // invoicesItems = await Invoice.getByFinn(finn.uuid);
 
     if (mounted) {
-      setState(() {});
+      setState(() {
+        invoicesContainer = populateInvoicesContainer();
+      });
     }
   }
 
@@ -1454,8 +1437,8 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Future<void> _editInvoiceDialog(context, Invoice invoice) {
-    return showDialog<void>(
+  Future<Invoice?> _editInvoiceDialog(context, Invoice invoice) {
+    return showDialog<Invoice>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {

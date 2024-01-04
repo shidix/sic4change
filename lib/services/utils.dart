@@ -16,29 +16,35 @@ const List<String> MONTHS = [
   "Diciembre "
 ];
 
-Map<String, String> CURRENCIES = {
-  'EUR': '€',
-  'USD': '\$',
-  'SOL': 'S/',
-  'GBP': '£',
-  'JPY': '¥',
-  'CNY': '¥',
-  'RUB': '₽',
-  'INR': '₹',
-  'BRL': 'R\$',
-  'CAD': '\$',
-  'AUD': '\$',
-  'CHF': 'CHF',
-  'HKD': 'HK\$',
-  'IDR': 'Rp',
-  'KRW': '₩',
-  'MXN': '\$',
-  'MYR': 'RM',
-  'NZD': '\$',
-  'PHP': '₱',
-  'SGD': 'S\$',
-  'THB': '฿',
-  'ZAR': 'R',
+Map<String, KeyValue> CURRENCIES = {
+  'EUR': KeyValue('EUR', '€'),
+  'USD': KeyValue('USD', '\$'),
+  'PEN': KeyValue('PEN', 'S/'),
+  'GBP': KeyValue('GBP', '£'),
+  'MAD': KeyValue('MAD', 'MAD'),
+  'MRU': KeyValue('MRU', 'UM'),
+
+  // 'USD': '\$',
+  // 'SOL': 'S/',
+  // 'GBP': '£',
+  // 'JPY': '¥',
+  // 'CNY': '¥',
+  // 'RUB': '₽',
+  // 'INR': '₹',
+  // 'BRL': 'R\$',
+  // 'CAD': '\$',
+  // 'AUD': '\$',
+  // 'CHF': 'CHF',
+  // 'HKD': 'HK\$',
+  // 'IDR': 'Rp',
+  // 'KRW': '₩',
+  // 'MXN': '\$',
+  // 'MYR': 'RM',
+  // 'NZD': '\$',
+  // 'PHP': '₱',
+  // 'SGD': 'S\$',
+  // 'THB': '฿',
+  // 'ZAR': 'R',
 };
 
 List reshape(List list, int m, int n) {
@@ -59,6 +65,9 @@ DateTime today() {
 
 DateTime truncDate(DateTime date) {
   return DateTime(date.year, date.month, date.day);
+}
+Object getObject(List items, String uuid) {
+  return items.firstWhere((item) => item.uuid == uuid);
 }
 
 String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
@@ -95,7 +104,8 @@ int getWorkingDaysBetween(DateTime date1, DateTime date2) {
 }
 
 String toCurrency(double value, [String symbol = 'EUR']) {
-  return NumberFormat.currency(locale: 'es_ES', symbol: CURRENCIES[symbol])
+  return NumberFormat.currency(
+          locale: 'es_ES', symbol: CURRENCIES[symbol]!.value)
       .format(value);
 }
 
@@ -112,17 +122,30 @@ String showException(dynamic e) {
 }
 
 double currencyToDouble(String value) {
-  value = value.replaceAll(
-      RegExp(r'^\D+|(?<=\d),(?=\d)|(?<=\d).(?<=\d),(?=\d)'), '');
-  // value = value.replaceAll('€', '');
-  // value = value.replaceAll(' ', '');
-  value = value.replaceAll('.', '');
-  value = value.replaceAll(',', '.');
+  if (value == '') {
+    return 0.0;
+  } 
+  List<String> new_value = [];
+  String allowed = '0123456789.,';
+  for (int i = 0; i < value.length; i++) {
+    if (allowed.contains(value[i])) {
+      new_value.add(value[i]);
+    }
+  }
+  value = new_value.join();
   try {
     return double.parse(value);
   } catch (e) {
-    print("Error al convertir $value a double");
-    return 0.0;
+    // value = value.replaceAll('€', '');
+    // value = value.replaceAll(' ', '');
+    value = value.replaceAll('.', '');
+    value = value.replaceAll(',', '.');
+    try {
+      return double.parse(value);
+    } catch (e) {
+      print("Error al convertir $value a double");
+      return 0.0;
+    }
   }
 }
 
