@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/firebase_service_finn.dart';
@@ -13,11 +14,9 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-
 const PAGE_FINN_TITLE = "Gestión Económica";
 FirebaseFirestore db = FirebaseFirestore.instance;
 double executedBudgetProject = 0;
-
 
 class FinnsPage extends StatefulWidget {
   const FinnsPage({super.key, required this.project});
@@ -32,7 +31,6 @@ class _FinnsPageState extends State<FinnsPage> {
   //List projects = [];
   List finnList = [];
   SProject? _project;
-
 
   Map<String, Map<String, Text>> aportesControllers = {};
   Map<String, Map<String, Text>> distribControllers = {};
@@ -540,25 +538,41 @@ class _FinnsPageState extends State<FinnsPage> {
                           child: Text(
                               'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
                               style: titleText))),
-                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: Tooltip(message:AppLocalizations.of(context)!.addInvoice , child: IconButton(
-                      onPressed: () {
-                        _addInvoiceDialog(context, finnSelected!).then((value) {
-                          _loadInvoicesByFinn(context, finnSelected!);
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      },
-                      icon: const Icon(Icons.add_circle_outline))))),
-                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: Tooltip(message:'Cerrar listado', child: IconButton(
-                      onPressed: () {
-                        finnSelected = null;
-                        invoicesList = [];
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
-                      icon: const Icon(Icons.arrow_circle_left_outlined))))),
+                  Expanded(
+                      flex: 1,
+                      child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Tooltip(
+                              message: AppLocalizations.of(context)!.addInvoice,
+                              child: IconButton(
+                                  onPressed: () {
+                                    _addInvoiceDialog(context, finnSelected!)
+                                        .then((value) {
+                                      _loadInvoicesByFinn(
+                                          context, finnSelected!);
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    });
+                                  },
+                                  icon:
+                                      const Icon(Icons.add_circle_outline))))),
+                  Expanded(
+                      flex: 1,
+                      child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Tooltip(
+                              message: 'Cerrar listado',
+                              child: IconButton(
+                                  onPressed: () {
+                                    finnSelected = null;
+                                    invoicesList = [];
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
+                                  },
+                                  icon: const Icon(
+                                      Icons.arrow_circle_left_outlined))))),
                 ]),
                 Row(
                   mainAxisSize: MainAxisSize.max,
@@ -573,10 +587,12 @@ class _FinnsPageState extends State<FinnsPage> {
                         children: (invoicesList.isNotEmpty)
                             ? invoicesList
                             : [
-                                const Center(child:Padding(padding: EdgeInsets.all(50), child: Text(
-                                  'No hay facturas para esta partida',
-                                  style: mainText
-                                )))
+                                const Center(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(50),
+                                        child: Text(
+                                            'No hay facturas para esta partida',
+                                            style: mainText)))
                               ],
                       ),
                     ),
@@ -1030,20 +1046,77 @@ class _FinnsPageState extends State<FinnsPage> {
     }
   }
 
+  Widget rowFromInvoice(Invoice invoice) {
+    return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+            onTap: () {
+              _viewInvoiceDialog(context, invoice);
+            },
+            child: Row(children: [
+              Expanded(
+                  flex: 2,
+                  child: Text(finnUuidHash.containsKey(invoice.finn)
+                      ? finnUuidHash[invoice.finn]!.name
+                      : '')),
+              Expanded(flex: 2, child: Text(invoice.number)),
+              Expanded(flex: 2, child: Text(invoice.code)),
+              Expanded(flex: 2, child: Text(invoice.date)),
+              Expanded(flex: 5, child: Text(invoice.concept)),
+              Expanded(
+                  flex: 2,
+                  child: Text(
+                    "${invoice.base.toStringAsFixed(2)} €",
+                    textAlign: TextAlign.end,
+                  )),
+              Expanded(
+                  flex: 2,
+                  child: Text(
+                    "${invoice.taxes.toStringAsFixed(2)} €",
+                    textAlign: TextAlign.end,
+                  )),
+              Expanded(
+                  flex: 2,
+                  child: Text(
+                    "${invoice.total.toStringAsFixed(2)} €",
+                    textAlign: TextAlign.end,
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                          onPressed: () {
+                            _viewInvoiceDialog(context, invoice);
+                          },
+                          icon: const Icon(Icons.info_outline)))),
+              Expanded(
+                  flex: 1,
+                  child: Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                          onPressed: () {
+                            _editInvoiceDialog(context, invoice).then((value) {
+                              _loadInvoicesByFinn(context, finnSelected!);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
+                          },
+                          icon: const Icon(Icons.edit)))),
+            ])));
+  }
+
   void _loadInvoicesByFinn(context, SFinn finn) async {
     finnSelected = finn;
 
-    Text headerField(String title, [alignment=TextAlign.start]) {
-      return Text(title,
-          textAlign: alignment,
-          style: headerListText);
+    Text headerField(String title, [alignment = TextAlign.start]) {
+      return Text(title, textAlign: alignment, style: headerListText);
     }
 
     List items = await Invoice.getByFinn(finn.uuid);
     invoicesList = [];
     if (items.isNotEmpty) {
-
-
       Row header = Row(children: [
         Expanded(flex: 2, child: headerField('Partida')),
         Expanded(flex: 2, child: headerField('Número')),
@@ -1059,52 +1132,66 @@ class _FinnsPageState extends State<FinnsPage> {
       invoicesList.add(header);
       items.sort((a, b) => (a.date).compareTo(b.date));
       for (Invoice invoice in items) {
-        invoicesList.add(MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-                onTap: () {
-                  _viewInvoiceDialog(context, invoice);
-                },
-                child: Row(children: [
-                  Expanded(flex: 2, child: Text(finnUuidHash.containsKey(invoice.finn)?finnUuidHash[invoice.finn]!.name:'')),
-                  Expanded(flex: 2, child: Text(invoice.number)),
-                  Expanded(flex: 2, child: Text(invoice.code)),
-                  Expanded(flex: 2, child: Text(invoice.date)),
-                  Expanded(flex: 5, child: Text(invoice.concept)),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        "${invoice.base.toStringAsFixed(2)} €",
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        "${invoice.taxes.toStringAsFixed(2)} €",
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        "${invoice.total.toStringAsFixed(2)} €",
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: IconButton(
-                      onPressed: () {
-                        _viewInvoiceDialog(context, invoice);
-                      },
-                      icon: const Icon(Icons.info_outline)))),
-                  Expanded(flex:1, child: Align(alignment: Alignment.centerRight, child: IconButton(
-                      onPressed: () {
-                        _editInvoiceDialog(context, invoice).then((value) {
-                          _loadInvoicesByFinn(context, finn);
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        });
-                      },
-                      icon: const Icon(Icons.edit)))),
-                ]))));
+        invoicesList.add(rowFromInvoice(invoice));
+        // invoicesList.add(MouseRegion(
+        //     cursor: SystemMouseCursors.click,
+        //     child: GestureDetector(
+        //         onTap: () {
+        //           _viewInvoiceDialog(context, invoice);
+        //         },
+        //         child: Row(children: [
+        //           Expanded(
+        //               flex: 2,
+        //               child: Text(finnUuidHash.containsKey(invoice.finn)
+        //                   ? finnUuidHash[invoice.finn]!.name
+        //                   : '')),
+        //           Expanded(flex: 2, child: Text(invoice.number)),
+        //           Expanded(flex: 2, child: Text(invoice.code)),
+        //           Expanded(flex: 2, child: Text(invoice.date)),
+        //           Expanded(flex: 5, child: Text(invoice.concept)),
+        //           Expanded(
+        //               flex: 2,
+        //               child: Text(
+        //                 "${invoice.base.toStringAsFixed(2)} €",
+        //                 textAlign: TextAlign.end,
+        //               )),
+        //           Expanded(
+        //               flex: 2,
+        //               child: Text(
+        //                 "${invoice.taxes.toStringAsFixed(2)} €",
+        //                 textAlign: TextAlign.end,
+        //               )),
+        //           Expanded(
+        //               flex: 2,
+        //               child: Text(
+        //                 "${invoice.total.toStringAsFixed(2)} €",
+        //                 textAlign: TextAlign.end,
+        //               )),
+        //           Expanded(
+        //               flex: 1,
+        //               child: Align(
+        //                   alignment: Alignment.centerRight,
+        //                   child: IconButton(
+        //                       onPressed: () {
+        //                         _viewInvoiceDialog(context, invoice);
+        //                       },
+        //                       icon: const Icon(Icons.info_outline)))),
+        //           Expanded(
+        //               flex: 1,
+        //               child: Align(
+        //                   alignment: Alignment.centerRight,
+        //                   child: IconButton(
+        //                       onPressed: () {
+        //                         _editInvoiceDialog(context, invoice)
+        //                             .then((value) {
+        //                           _loadInvoicesByFinn(context, finn);
+        //                           if (mounted) {
+        //                             setState(() {});
+        //                           }
+        //                         });
+        //                       },
+        //                       icon: const Icon(Icons.edit)))),
+        //         ]))));
       }
     }
 
@@ -1342,8 +1429,8 @@ class _FinnsPageState extends State<FinnsPage> {
         });
   }
 
-  Future<void> _addInvoiceDialog(context, SFinn finn) {
-    return showDialog<void>(
+  Future<Invoice?> _addInvoiceDialog(context, SFinn finn) {
+    return showDialog<Invoice>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
@@ -1367,7 +1454,7 @@ class _FinnsPageState extends State<FinnsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             titlePadding: EdgeInsets.zero,
-            title: s4cTitleBar('Editar factura', context),
+            title: s4cTitleBar('Editar factura', context, Icons.edit),
             content: InvoiceForm(
                 existingInvoice: invoice, partners: _project!.partnersObj));
       },

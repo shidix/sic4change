@@ -98,12 +98,13 @@ class _InvoiceFormState extends State<InvoiceForm> {
 
   @override
   Widget build(BuildContext context) {
-    void saveInvoice() {
+    Invoice saveInvoice() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
         _invoice.save();
         Navigator.of(context).pop(_invoice);
       }
+      return _invoice;
     }
 
     return Form(
@@ -114,33 +115,41 @@ class _InvoiceFormState extends State<InvoiceForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextFormField(
-            initialValue: _invoice.number,
-            decoration: const InputDecoration(labelText: 'Número'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor, ingrese un valor';
-              }
-              return null;
-            },
-            onSaved: (value) => _invoice.number = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.code,
-            decoration: const InputDecoration(labelText: 'Código'),
-            onSaved: (value) => _invoice.code = value!,
-          ),
-          CustomSelectFormField(
-            labelText: 'Socio',
-            initial: _invoice.partner,
-            options: widget.partners!
-                .map((partner) => KeyValue(partner.uuid, partner.name))
-                .toList(),
-            onSelectedOpt: (value) {
-              _invoice.partner = value.toString();
-            },
-            required: true,
-          ),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: TextFormField(
+                  initialValue: _invoice.number,
+                  decoration: const InputDecoration(labelText: 'Número'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingrese un valor';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _invoice.number = value!,
+                )),
+            Expanded(
+                flex: 1,
+                child: TextFormField(
+                  initialValue: _invoice.code,
+                  decoration: const InputDecoration(labelText: 'Código'),
+                  onSaved: (value) => _invoice.code = value!,
+                )),
+            Expanded(
+                flex: 1,
+                child: CustomSelectFormField(
+                  labelText: 'Socio',
+                  initial: _invoice.partner,
+                  options: widget.partners!
+                      .map((partner) => KeyValue(partner.uuid, partner.name))
+                      .toList(),
+                  onSelectedOpt: (value) {
+                    _invoice.partner = value.toString();
+                  },
+                  required: true,
+                ))
+          ]),
           TextFormField(
             initialValue: _invoice.concept,
             decoration: const InputDecoration(labelText: 'Concepto'),
@@ -151,15 +160,38 @@ class _InvoiceFormState extends State<InvoiceForm> {
             decoration: const InputDecoration(labelText: 'Proveedor'),
             onSaved: (value) => _invoice.provider = value!,
           ),
-          DateTimePicker(
-            labelText: 'Fecha',
-            selectedDate: DateTime.parse(_invoice.date),
-            onSelectedDate: (DateTime value) {
-              setState(() {
-                _invoice.date = DateFormat('yyyy-MM-dd').format(value);
-              });
-            },
-          ),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.all(5),
+                    child: DateTimePicker(
+                      labelText: 'Fecha',
+                      selectedDate:
+                          DateFormat('dd-MM-yyyy').parse(_invoice.date),
+                      onSelectedDate: (DateTime value) {
+                        setState(() {
+                          _invoice.date =
+                              DateFormat('dd-MM-yyyy').format(value);
+                        });
+                      },
+                    ))),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.all(5),
+                    child: DateTimePicker(
+                      labelText: 'Fecha Pago',
+                      selectedDate:
+                          DateFormat('dd-MM-yyyy').parse(_invoice.paidDate),
+                      onSelectedDate: (DateTime value) {
+                        setState(() {
+                          _invoice.paidDate =
+                              DateFormat('dd-MM-yyyy').format(value);
+                        });
+                      },
+                    ))),
+          ]),
           TextFormField(
             initialValue: _invoice.desglose,
             keyboardType: TextInputType.multiline,
@@ -171,8 +203,9 @@ class _InvoiceFormState extends State<InvoiceForm> {
             Expanded(
                 flex: 1,
                 child: TextFormField(
+                  textAlign: TextAlign.right,
                   initialValue: _invoice.base.toString(),
-                  decoration: const InputDecoration(labelText: 'Base'),
+                  decoration: const InputDecoration(labelText: 'Base (€)'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -199,8 +232,9 @@ class _InvoiceFormState extends State<InvoiceForm> {
             Expanded(
                 flex: 1,
                 child: TextFormField(
+                  textAlign: TextAlign.right,
                   initialValue: _invoice.taxes.toString(),
-                  decoration: const InputDecoration(labelText: 'Impuestos'),
+                  decoration: const InputDecoration(labelText: 'Impuestos (€)'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -227,7 +261,10 @@ class _InvoiceFormState extends State<InvoiceForm> {
             Expanded(
               flex: 1,
               child: ReadOnlyTextField(
-                  label: 'Total', textToShow: _invoice.total.toString()),
+                label: 'Total',
+                textToShow: _invoice.total.toString(),
+                textAlign: TextAlign.right,
+              ),
             )
           ]),
           TextFormField(

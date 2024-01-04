@@ -765,7 +765,7 @@ Widget customText(_text, _size,
   );
 }
 
-SizedBox s4cTitleBar(String title, [context]) {
+SizedBox s4cTitleBar(String title, [context, icon]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
     closeButton = IconButton(
@@ -776,6 +776,11 @@ SizedBox s4cTitleBar(String title, [context]) {
         Navigator.of(context).pop();
       },
     );
+  }
+
+  Widget iconWidget = const SizedBox(width: 0);
+  if (icon != null) {
+    iconWidget = Icon(icon, color: Colors.white);
   }
   return SizedBox(
       width: double.infinity,
@@ -790,6 +795,7 @@ SizedBox s4cTitleBar(String title, [context]) {
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
+                Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
                 Expanded(
                     flex: 9,
                     child: Text(title,
@@ -1199,13 +1205,18 @@ class ReadOnlyTextField extends StatelessWidget {
                     )),
                 const SizedBox(
                     height: 2.0), // Ajusta el espacio según sea necesario
-                Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: Text(
-                      textToShow,
-                      textAlign: textAlign,
-                      style: fgstyle, // Estilo similar al de un TextFormField
-                    )),
+                Row(children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: Text(
+                            textToShow,
+                            textAlign: textAlign,
+                            style:
+                                fgstyle, // Estilo similar al de un TextFormField
+                          )))
+                ]),
                 const SizedBox(
                     height: 4.0), // Ajusta el espacio según sea necesario
 
@@ -1317,7 +1328,9 @@ class DateTimePicker extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              "${selectedDate.toLocal()}".split(' ')[0],
+              DateFormat("dd-MM-yyyy")
+                  .format(selectedDate.toLocal())
+                  .split(' ')[0],
             ),
             //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
             const Icon(Icons.calendar_today),
@@ -1429,7 +1442,8 @@ class CustomSelectFormField extends StatelessWidget {
 
     return DropdownButtonFormField(
       value: initial,
-      decoration: const InputDecoration(labelText: 'Socio'),
+      decoration: const InputDecoration(
+          labelText: 'Socio', contentPadding: EdgeInsets.only(left: 5)),
       items: optionsDrop,
       onChanged: (value) {
         onSelectedOpt(value.toString());

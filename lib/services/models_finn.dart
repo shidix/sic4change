@@ -488,6 +488,7 @@ class Invoice {
   String finn;
   String concept;
   String date;
+  String paidDate;
   double base;
   double taxes;
   double total;
@@ -504,6 +505,7 @@ class Invoice {
       this.finn,
       this.concept,
       this.date,
+      this.paidDate,
       this.base,
       this.taxes,
       this.total,
@@ -513,9 +515,6 @@ class Invoice {
       this.partner);
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
-    if (!json.containsKey("partner")) {
-      json["partner"] = "";
-    }
     return Invoice(
       json["id"],
       json["uuid"],
@@ -524,6 +523,7 @@ class Invoice {
       json["finn"],
       json["concept"],
       json["date"],
+      json["paidDate"],
       json["base"],
       json["taxes"],
       json["total"],
@@ -542,7 +542,8 @@ class Invoice {
       "", // code
       "", // finn
       "", // concept
-      DateFormat('yyyy-MM-dd').format(DateTime.now()), // date
+      DateFormat('dd-MM-yyyy').format(DateTime.now()), // date
+      DateFormat('dd-MM-yyyy').format(DateTime.now()), // date
       0, // base
       0, // taxes
       0, // total
@@ -561,6 +562,7 @@ class Invoice {
         'finn': finn,
         'concept': concept,
         'date': date,
+        'paidDate': paidDate,
         'base': base,
         'taxes': taxes,
         'total': total,
@@ -585,14 +587,14 @@ class Invoice {
 
   static Future<List> getByFinn(finn) async {
     final collection = db.collection("s4c_invoices");
-    final query =
-        await collection.where("finn", isEqualTo: finn).orderBy('date').get();
+    final query = await collection.where("finn", isEqualTo: finn).get();
     List items = [];
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;
       items.add(item);
     }
+    items.sort((a, b) => a.date.compareTo(b.date));
     return items;
   }
 
