@@ -655,8 +655,17 @@ class Invoice {
   }
 
   static Future<List> getByFinn(finn) async {
+    List finnUuids = [];
+    if (finn.runtimeType is String)
+    {
+      finnUuids = [finn];
+    }
+    else
+    {
+      finnUuids = finn;
+    }
     final collection = db.collection("s4c_invoices");
-    final query = await collection.where("finn", isEqualTo: finn).get();
+    final query = await collection.where("finn", whereIn: finnUuids).get();
     List items = [];
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
