@@ -376,12 +376,19 @@ class FinnContribution {
     final collection = db.collection("s4c_finncontrib");
     List finnList = await SFinn.byProject(project);
     List<FinnContribution> items = [];
-    for (var finn in finnList) {
-      final query = await collection.where("finn", isEqualTo: finn.uuid).get();
-      for (var element in query.docs) {
-        items.add(FinnContribution.fromJson(element.data()));
-      }
+    final query = await collection
+        .where("finn", whereIn: finnList.map((e) => e.uuid))
+        .get();
+    for (var element in query.docs) {
+      items.add(FinnContribution.fromJson(element.data()));
     }
+
+    // for (var finn in finnList) {
+    //   final query = await collection.where("finn", isEqualTo: finn.uuid).get();
+    //   for (var element in query.docs) {
+    //     items.add(FinnContribution.fromJson(element.data()));
+    //   }
+    // }
 
     return items;
   }
@@ -478,6 +485,26 @@ class FinnDistribution {
       items.add(FinnDistribution.fromJson(element.data()));
     }
     return items;
+  }
+
+  static Future<List<FinnDistribution>> getByProject(project) async {
+    final collection = db.collection("s4c_finndistrib");
+    List finnList = await SFinn.byProject(project);
+
+    List<FinnDistribution> items = [];
+    final query = await collection
+        .where("finn", whereIn: finnList.map((e) => e.uuid))
+        .get();
+    for (var element in query.docs) {
+      items.add(FinnDistribution.fromJson(element.data()));
+    }
+
+    return items;
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
   }
 }
 
@@ -618,7 +645,7 @@ class Invoice {
       collection.doc(item.id).set(data);
     }
   }
-  
+
   void delete() {
     final collection = db.collection("s4c_invoices");
     if (id != "") {

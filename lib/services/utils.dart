@@ -66,6 +66,7 @@ DateTime today() {
 DateTime truncDate(DateTime date) {
   return DateTime(date.year, date.month, date.day);
 }
+
 Object getObject(List items, String uuid) {
   return items.firstWhere((item) => item.uuid == uuid);
 }
@@ -124,7 +125,7 @@ String showException(dynamic e) {
 double currencyToDouble(String value) {
   if (value == '') {
     return 0.0;
-  } 
+  }
   List<String> new_value = [];
   String allowed = '0123456789.,';
   for (int i = 0; i < value.length; i++) {

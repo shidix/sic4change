@@ -49,6 +49,7 @@
     "confirmDeleteErrorUnprocessableMessage": "Ha ocurrido un error borrando el elemento",
     "currency": "Moneda",
     "partner": "Socio",
+    "totalBudget": "Presupuesto Total",
 
 
     "appTitle": "Workout Tracker",

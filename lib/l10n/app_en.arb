@@ -50,6 +50,7 @@
     "confirmDeleteErrorUnprocessableMessage": "There was an error deleting the item",
     "currency" : "Currency",
     "partner" : "Partner",
+    "totalBudget" : "Total Budget",
 
     "appTitle": "Workout Tracker",
     "click_to_edit": "Click to edit",
