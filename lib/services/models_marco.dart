@@ -116,8 +116,8 @@ class Result {
   String uuid = "";
   String name = "";
   String description = "";
-  String indicator_text = "";
-  String indicator_percent = "";
+  String indicatorText = "";
+  String indicatorPercent = "";
   String source = "";
   String goal = "";
 
@@ -130,8 +130,8 @@ class Result {
         uuid = json["uuid"],
         name = json['name'],
         description = json['description'],
-        indicator_text = json['indicator_text'],
-        indicator_percent = json['indicator_percent'],
+        indicatorText = json['indicatorText'],
+        indicatorPercent = json['indicatorPercent'],
         source = json['source'],
         goal = json['goal'];
 
@@ -140,16 +140,16 @@ class Result {
         'uuid': uuid,
         'name': name,
         'description': description,
-        'indicator_text': indicator_text,
-        'indicator_percent': indicator_percent,
+        'indicatorText': indicatorText,
+        'indicatorPercent': indicatorPercent,
         'source': source,
         'goal': goal,
       };
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbResult.add(data);
     } else {
@@ -163,34 +163,33 @@ class Result {
   }
 
   Future<String> getProjectByActivity() async {
-    Result _result;
-    Goal _goal;
-    SProject _project;
+    Result result;
+    Goal goal;
+    SProject project;
     QuerySnapshot? query;
-    QuerySnapshot? query_g;
-    QuerySnapshot? query_p;
+    QuerySnapshot? queryG;
+    QuerySnapshot? queryP;
 
     query = await dbResult.where("uuid", isEqualTo: uuid).get();
-    final _dbResult = query.docs.first;
-    final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
-    data["id"] = _dbResult.id;
-    _result = Result.fromJson(data);
+    final dbRes = query.docs.first;
+    final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+    data["id"] = dbRes.id;
+    result = Result.fromJson(data);
 
-    query_g = await dbGoal.where("uuid", isEqualTo: _result.goal).get();
-    final _dbGoal = query_g.docs.first;
-    final Map<String, dynamic> dataGoal =
-        _dbGoal.data() as Map<String, dynamic>;
-    dataGoal["id"] = _dbGoal.id;
-    _goal = Goal.fromJson(dataGoal);
+    queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
+    final dbG = queryG.docs.first;
+    final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+    dataGoal["id"] = dbG.id;
+    goal = Goal.fromJson(dataGoal);
 
-    query_p = await dbProject.where("uuid", isEqualTo: _goal.project).get();
-    final _dbProject = query_p.docs.first;
+    queryP = await dbProject.where("uuid", isEqualTo: goal.project).get();
+    final dbProj = queryP.docs.first;
     final Map<String, dynamic> dataProject =
-        _dbProject.data() as Map<String, dynamic>;
-    dataProject["id"] = _dbProject.id;
-    _project = SProject.fromJson(dataProject);
+        dbProj.data() as Map<String, dynamic>;
+    dataProject["id"] = dbProj.id;
+    project = SProject.fromJson(dataProject);
 
-    return _project.name + " > " + _goal.name + " > " + _result.name;
+    return project.name + " > " + goal.name + " > " + result.name;
   }
 }
 
@@ -206,13 +205,13 @@ Future<List> getResults() async {
   return items;
 }
 
-Future<List> getResultsByGoal(String _goal) async {
+Future<List> getResultsByGoal(String goal) async {
   List<Result> items = [];
 
   QuerySnapshot query = await dbResult
       //.orderBy("goal")
       //.orderBy("main", descending: true)
-      .where("goal", isEqualTo: _goal)
+      .where("goal", isEqualTo: goal)
       .get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

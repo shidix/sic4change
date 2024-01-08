@@ -27,7 +27,7 @@ class _ResultsPageState extends State<ResultsPage> {
   Goal? goal;
 
   void loadResults(value) async {
-    await getGoalsByProject(value).then((val) {
+    await getResultsByGoal(value).then((val) {
       results = val;
       //print(contact_list);
     });
@@ -36,46 +36,19 @@ class _ResultsPageState extends State<ResultsPage> {
 
   @override
   initState() {
-    print("--2--");
     super.initState();
     goal = widget.goal;
   }
 
   @override
   Widget build(BuildContext context) {
-    /*final Goal? goal;
-
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      goal = args["goal"];
-    } else {
-      goal = null;
-    }
-
-    if (goal == null) return const Page404();*/
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         resultPath(context, goal),
         space(height: 20),
         resultHeader(context, goal),
-        //marcoMenu(context, goal, "marco"),
         contentTab(context, resultList, goal),
-        /*Expanded(
-            child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: resultList(context, goal),
-                )))*/
       ]),
     );
   }
@@ -117,146 +90,104 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //addBtn(context, _goal),
             addBtn(context, _editResultDialog, {"goal": _goal, "result": null}),
             space(width: 10),
             returnBtn(context),
-            //customRowPopBtn(context, "Volver", Icons.arrow_back)
           ],
         ),
       ),
     ]);
   }
 
-  /*Widget addBtn(context, _goal) {
-    return FilledButton(
-      onPressed: () {
-        _editResultDialog(context, null, _goal);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
+  void saveResult(List args) async {
+    Result result = args[0];
+    result.save();
+    loadResults(result.goal);
 
-  void _saveResult(context, _result, _name, _desc, _indicator_text,
-      _indicator_percent, _source, _goal) async {
-    /*if (_result != null) {
-      await updateResult(_result.id, _result.uuid, _name, _desc,
-              _indicator_text, _indicator_percent, _source, _goal.uuid)
-          .then((value) async {
-        loadResults(_goal.uuid);
-      });
-    } else {
-      await addResult(_name, _desc, _indicator_text, _indicator_percent,
-              _source, _goal.uuid)
-          .then((value) async {
-        loadResults(_goal.uuid);
-      });
-    }*/
-    if (_result != null) _result = Result(_goal);
-    _goal.name = _name;
-    _goal.description = _desc;
-    _goal.indicator_text = _indicator_text;
-    _goal.indicator_percent = _indicator_percent;
-    _goal.source = _source;
-    _goal.save();
-    loadResults(_goal.uuid);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
   }
 
   Future<void> _editResultDialog(context, HashMap args) {
     Goal goal = args["goal"];
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    TextEditingController iTextController = TextEditingController(text: "");
-    TextEditingController iPercentController = TextEditingController(text: "");
-    TextEditingController sourceController = TextEditingController(text: "");
+    Result result = Result(goal.uuid);
 
     if (args["result"] != null) {
-      Result result = args["result"];
-      nameController = TextEditingController(text: result.name);
-      descController = TextEditingController(text: result.description);
-      iTextController = TextEditingController(text: result.indicator_text);
-      iPercentController =
-          TextEditingController(text: result.indicator_percent.toString());
-      sourceController = TextEditingController(text: result.source);
+      result = args["result"];
     }
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        //bool _main = false;
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Result edit'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar((result.name != "")
+              ? 'Editando Resultado'
+              : 'Añadiendo Resultado'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre..."),
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: result.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.name = val);
+                  },
+                )
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Descripción:", 16, textColor: Colors.blue),
-                customTextField(descController, "Descripción..."),
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: result.description,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.description = val);
+                  },
+                )
               ]),
             ]),
             space(height: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Indicador:", 16, textColor: Colors.blue),
-                customTextField(iTextController, "Indicador..."),
+                CustomTextField(
+                  labelText: "Indicador",
+                  initial: result.indicatorText,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.indicatorText = val);
+                  },
+                )
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Porcentaje:", 16, textColor: Colors.blue),
-                customDoubleField(iPercentController, "Porcentaje...")
+                CustomTextField(
+                  labelText: "Porcentaje",
+                  initial: result.indicatorPercent,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.indicatorPercent = val);
+                  },
+                )
               ]),
             ]),
             space(height: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fuente:", 16, textColor: Colors.blue),
-                customTextField(sourceController, "Fuente..."),
+                CustomTextField(
+                  labelText: "Fuente",
+                  initial: result.source,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.source = val);
+                  },
+                )
               ]),
             ])
           ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveResult(
-                    context,
-                    goal,
-                    nameController.text,
-                    descController.text,
-                    iTextController.text,
-                    iPercentController.text,
-                    sourceController.text,
-                    goal);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveResult, result)],
         );
       },
     );
@@ -285,33 +216,6 @@ class _ResultsPageState extends State<ResultsPage> {
                       child: resultRow(context, _result, _goal),
                     );
                   });
-
-              /*return Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                verticalDirection: VerticalDirection.down,
-                children: <Widget>[
-                  Expanded(
-                      child: Container(
-                          padding: EdgeInsets.all(15),
-                          child: ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: result_list.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                Result _result = result_list[index];
-                                return Container(
-                                  height: 400,
-                                  padding: EdgeInsets.only(top: 10, bottom: 10),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(color: Colors.grey)),
-                                  ),
-                                  child: resultRow(context, _result, _goal),
-                                );
-                              })))
-                ],
-              );*/
             } else {
               return const Text("");
             }
@@ -323,10 +227,10 @@ class _ResultsPageState extends State<ResultsPage> {
         }));
   }
 
-  Widget resultRow(context, _result, _goal) {
+  Widget resultRow(context, result, goal) {
     double _percent = 0;
     try {
-      _percent = double.parse(_result.indicator_percent) / 100;
+      _percent = double.parse(result.indicatorPercent) / 100;
     } on Exception catch (_) {}
 
     return Column(
@@ -336,12 +240,12 @@ class _ResultsPageState extends State<ResultsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            customText('${_result.name}', 14, bold: FontWeight.bold),
-            resultRowOptions(context, _result, _goal),
+            customText('${result.name}', 14, bold: FontWeight.bold),
+            resultRowOptions(context, result, goal),
           ],
         ),
         space(height: 10),
-        Text('${_result.description}'),
+        Text('${result.description}'),
         space(height: 10),
         customRowDivider(),
         space(height: 10),
@@ -350,7 +254,7 @@ class _ResultsPageState extends State<ResultsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${_result.indicator_text}'),
+            Text('${result.indicatorText}'),
             CircularPercentIndicator(
               radius: 30.0,
               lineWidth: 8.0,
@@ -365,77 +269,24 @@ class _ResultsPageState extends State<ResultsPage> {
         space(height: 10),
         customText('Fuente', 14, bold: FontWeight.bold),
         space(height: 10),
-        Text('${_result.source}'),
+        Text('${result.source}'),
       ],
     );
   }
 
-  Widget resultRowOptions(context, _result, _goal) {
+  Widget resultRowOptions(context, result, goal) {
     return Row(children: [
-      IconButton(
-          icon: const Icon(Icons.abc),
-          tooltip: 'Activities',
-          onPressed: () {
-            Navigator.pushNamed(context, "/activities",
-                arguments: {'result': _result});
-          }),
-      IconButton(
-          icon: const Icon(Icons.assignment_rounded),
-          tooltip: 'Tasks',
-          onPressed: () {
-            Navigator.pushNamed(context, "/result_tasks",
-                arguments: {'result': _result});
-          }),
-      editBtn(context, _editResultDialog, {"goal": _goal, "result": _result}),
-      /*IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: () async {
-            _editResultDialog(context, {"goal": _goal, "result": _result);
-          }),*/
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Remove',
-          onPressed: () {
-            _removeResultDialog(context, _result, _goal);
-          }),
+      goPageIcon(context, "Actividades", Icons.list_alt,
+          ActivitiesPage(result: result)),
+      goPageIcon(context, "Tareas", Icons.assignment_rounded,
+          ResultTasksPage(result: result)),
+      editBtn(context, _editResultDialog, {"goal": goal, "result": result}),
+      removeBtn(
+          context, removeResultDialog, {"goal": goal.uuid, "result": result})
     ]);
   }
 
-  Future<void> _removeResultDialog(context, _result, _goal) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Remove Result'),
-          content: const SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Remove'),
-              onPressed: () async {
-                _result.delete();
-                loadResults(_goal.uuid);
-                Navigator.of(context).pop();
-                /*await deleteResult(id).then((value) {
-                  loadResults(_goal.uuid);
-                  Navigator.of(context).pop();
-                  //Navigator.popAndPushNamed(context, "/goals", arguments: {});
-                });*/
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void removeResultDialog(context, args) {
+    customRemoveDialog(context, args["result"], loadResults, args["goal"]);
   }
 }

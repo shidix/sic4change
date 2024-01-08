@@ -3,7 +3,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/activity_indicators_page.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -14,55 +14,38 @@ const pageActivityTitle = "Actividades";
 List activities = [];
 
 class ActivitiesPage extends StatefulWidget {
-  const ActivitiesPage({super.key});
+  final Result? result;
+  const ActivitiesPage({super.key, this.result});
 
   @override
   State<ActivitiesPage> createState() => _ActivitiesPageState();
 }
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
-  void loadActivities(_result) async {
-    await _result.getActivitiesByResult().then((val) {
+  Result? result;
+
+  void loadActivities(value) async {
+    await getActivitiesByResult(value).then((val) {
       activities = val;
     });
     setState(() {});
   }
 
   @override
+  initState() {
+    super.initState();
+    result = widget.result;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Result? _result;
-
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _result = args["result"];
-    } else {
-      _result = null;
-    }
-
-    if (_result == null) return const Page404();
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        activityPath(context, _result),
-        activityHeader(context, _result),
-        //marcoMenu(context, _result, "marco"),
-        contentTab(context, activityList, _result),
-        /*Expanded(
-            child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: greyColor,
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: activityList(context, _result),
-                )))*/
-        footer( context)
+        activityPath(context, result),
+        activityHeader(context, result),
+        contentTab(context, activityList, result),
+        footer(context)
       ]),
     );
   }
@@ -100,8 +83,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //addBtn(context, result),
-            addBtn(context, _editActivityDialog,
+            addBtn(context, editActivityDialog,
                 {"activity": null, "result": result}),
             space(width: 10),
             returnBtn(context),
@@ -111,42 +93,20 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     ]);
   }
 
-  /*Widget addBtn(context, _result) {
-    return FilledButton(
-      onPressed: () {
-        _editActivityDialog(context, null, _result);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
-
-  void _saveActivity(context, activity, name, result) async {
-    activity ??= Activity(result);
-    activity.name = name;
+  void saveActivity(List args) async {
+    Activity activity = args[0];
     activity.save();
-    loadActivities(result);
-    Navigator.of(context).pop();
+    loadActivities(activity.result);
+
+    Navigator.pop(context);
   }
 
-  Future<void> _editActivityDialog(context, HashMap args) {
+  Future<void> editActivityDialog(context, HashMap args) {
     Result result = args["result"];
-    TextEditingController nameController = TextEditingController(text: "");
+    Activity activity = Activity(result.uuid);
 
     if (args["activity"] != null) {
-      nameController = TextEditingController(text: args["activity"].name);
+      activity = args["activity"];
     }
 
     return showDialog<void>(
@@ -154,29 +114,24 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Activity edit'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar((result.name != "")
+              ? 'Editando Actividad'
+              : 'Añadiendo Actividad'),
           content: SingleChildScrollView(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre..."),
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: activity.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => activity.name = val);
+                  },
+                )
               ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveActivity(
-                    context, args["activity"], nameController.text, result);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveActivity, activity)],
         );
       },
     );
@@ -246,58 +201,24 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   Widget activityRowOptions(context, activity, result) {
     return Row(children: [
-      IconButton(
+      /*IconButton(
           icon: const Icon(Icons.align_horizontal_left),
           tooltip: 'Indicadores',
           onPressed: () {
             Navigator.pushNamed(context, "/activity_indicators",
                 arguments: {'activity': activity});
-          }),
-      editBtn(context, _editActivityDialog,
-          {"activity": activity, "result": result}),
-      /*IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Editar',
-          onPressed: () async {
-            _editActivityDialog(context, activity, result);
           }),*/
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Borrar',
-          onPressed: () {
-            _removeActivityDialog(context, activity, result);
-          }),
+      goPageIcon(context, "Indicadores", Icons.list_alt,
+          ActivityIndicatorsPage(activity: activity)),
+      editBtn(context, editActivityDialog,
+          {"activity": activity, "result": result}),
+      removeBtn(context, removeActivityDialog,
+          {"result": result.uuid, "activity": activity})
     ]);
   }
 
-  Future<void> _removeActivityDialog(context, activity, result) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Borrar actividad'),
-          content: const SingleChildScrollView(
-            child: Text("Esta seguro/a de que desea borrar este elemento?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Borrar'),
-              onPressed: () async {
-                activity.delete();
-                loadActivities(result);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void removeActivityDialog(context, args) {
+    customRemoveDialog(
+        context, args["activity"], loadActivities, args["result"]);
   }
 }

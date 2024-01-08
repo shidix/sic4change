@@ -3,7 +3,6 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -13,13 +12,16 @@ const PAGE_TASKS_TITLE = "Tareas";
 List result_task_list = [];
 
 class ResultTasksPage extends StatefulWidget {
-  const ResultTasksPage({super.key});
+  final Result? result;
+  const ResultTasksPage({super.key, this.result});
 
   @override
   State<ResultTasksPage> createState() => _ResultTasksPageState();
 }
 
 class _ResultTasksPageState extends State<ResultTasksPage> {
+  Result? result;
+
   void loadTasks(value) async {
     await getResultTasksByResult(value).then((val) {
       result_task_list = val;
@@ -28,40 +30,19 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    result = widget.result;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Result? result;
-
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      result = args["result"];
-    } else {
-      result = null;
-    }
-
-    if (result == null) return const Page404();
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         taskPath(context, result),
         taskHeader(context, result),
-        //marcoMenu(context, _result, "marco"),
         contentTab(context, taskList, result),
-
-        /*Expanded(
-            child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: taskList(context, _result),
-                )))*/
       ]),
     );
   }
@@ -105,7 +86,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, _result),
-            addBtn(context, _editTaskDialog, {"task": null, "result": result}),
+            addBtn(context, editTaskDialog, {"task": null, "result": result}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -114,82 +95,44 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     ]);
   }
 
-  /*Widget addBtn(context, _result) {
-    return FilledButton(
-      onPressed: () {
-        _editTaskDialog(context, null, _result);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
-
-  void _saveTask(context, task, name, result) async {
-    /*if (_task != null) {
-      await updateResultTask(_task.id, _task.uuid, _name, _result.uuid)
-          .then((value) async {
-        loadTasks(_result.uuid);
-      });
-    } else {
-      await addResultTask(_name, _result.uuid).then((value) async {
-        loadTasks(_result.uuid);
-      });
-    }*/
-    if (task != null) task = ResultTask(result);
-    task.name = name;
+  void saveResultTask(List args) async {
+    ResultTask task = args[0];
     task.save();
-    loadTasks(result.uuid);
-    Navigator.of(context).pop();
+    loadTasks(task.result);
+
+    Navigator.pop(context);
   }
 
-  Future<void> _editTaskDialog(context, HashMap args) {
+  Future<void> editTaskDialog(context, HashMap args) {
     Result result = args["result"];
-    TextEditingController nameController = TextEditingController(text: "");
+    ResultTask task = ResultTask(result.uuid);
 
-    if (args["_task"] != null) {
-      nameController = TextEditingController(text: args["_task"].name);
+    if (args["task"] != null) {
+      task = args["task"];
     }
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Task edit'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar(
+              (result.name != "") ? 'Editando Tarea' : 'Añadiendo Tarea'),
           content: SingleChildScrollView(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre..."),
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: task.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => task.name = val);
+                  },
+                )
               ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveTask(context, args["_task"], nameController.text, result);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveResultTask, task)],
         );
       },
     );
@@ -259,55 +202,13 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Widget taskRowOptions(context, task, result) {
     return Row(children: [
-      editBtn(context, _editTaskDialog, {"task": task, "result": result}),
-      /*IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: () async {
-            _editTaskDialog(context, _task, _result);
-          }),*/
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Remove',
-          onPressed: () {
-            _removeTaskDialog(context, task, result);
-          }),
+      editBtn(context, editTaskDialog, {"task": task, "result": result}),
+      removeBtn(context, removeResultTaskDialog,
+          {"result": result.uuid, "task": task})
     ]);
   }
 
-  Future<void> _removeTaskDialog(context, task, result) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Remove Task'),
-          content: const SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Remove'),
-              onPressed: () async {
-                task.delete();
-                loadTasks(result.uuid);
-                Navigator.of(context).pop();
-                /*await deleteResultTask(id).then((value) {
-                  loadTasks(_result.uuid);
-                  Navigator.of(context).pop();
-                });*/
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void removeResultTaskDialog(context, args) {
+    customRemoveDialog(context, args["task"], loadTasks, args["result"]);
   }
 }

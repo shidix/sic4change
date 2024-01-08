@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -12,13 +11,16 @@ const pageActivityIndicatorTitle = "Indicadores de actividad";
 List aiList = [];
 
 class ActivityIndicatorsPage extends StatefulWidget {
-  const ActivityIndicatorsPage({super.key});
+  final Activity? activity;
+  const ActivityIndicatorsPage({super.key, this.activity});
 
   @override
   State<ActivityIndicatorsPage> createState() => _ActivityIndicatorsPageState();
 }
 
 class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
+  Activity? activity;
+
   void loadActivityIndicators(value) async {
     await getActivityIndicatorsByActivity(value).then((val) {
       aiList = val;
@@ -27,40 +29,19 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    activity = widget.activity;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Activity? activity;
-
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      activity = args["activity"];
-    } else {
-      activity = null;
-    }
-
-    if (activity == null) return const Page404();
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         activityIndicatorPath(context, activity),
         activityIndicatorHeader(context, activity),
-        //marcoMenu(context, activity, "marco"),
         contentTab(context, activityIndicatorList, activity),
-
-        /*Expanded(
-            child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xffdfdfdf),
-                      width: 2,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                  child: activityIndicatorList(context, activity),
-                )))*/
       ]),
     );
   }
@@ -95,7 +76,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, activity),
-            addBtn(context, _editActivityIndicatorDialog,
+            addBtn(context, editActivityIndicatorDialog,
                 {"indicator": null, "activity": activity}),
             space(width: 10),
             returnBtn(context),
@@ -105,50 +86,20 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     ]);
   }
 
-  /*Widget addBtn(context, activity) {
-    return FilledButton(
-      onPressed: () {
-        _editActivityIndicatorDialog(context, null, activity);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
+  void saveActivityIndicator(List args) async {
+    ActivityIndicator indicator = args[0];
+    indicator.save();
+    loadActivityIndicators(indicator.activity);
 
-  void _saveActivityIndicator(
-      context, indicator, name, percent, source, activity) async {
-    indicator ??= ActivityIndicator(activity);
-    activity.name = name;
-    activity.percent = percent;
-    activity.source = source;
-    activity.save();
-    loadActivityIndicators(activity.uuid);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
   }
 
-  Future<void> _editActivityIndicatorDialog(context, HashMap args) {
+  Future<void> editActivityIndicatorDialog(context, HashMap args) {
     Activity activity = args["activity"];
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController percentController = TextEditingController(text: "");
-    TextEditingController sourceController = TextEditingController(text: "");
+    ActivityIndicator indicator = ActivityIndicator(activity.uuid);
 
     if (args["indicator"] != null) {
-      ActivityIndicator indicator = args["indicator"];
-      nameController = TextEditingController(text: indicator.name);
-      percentController = TextEditingController(text: indicator.percent);
-      sourceController = TextEditingController(text: indicator.source);
+      indicator = args["indicator"];
     }
 
     return showDialog<void>(
@@ -156,39 +107,43 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Editar Indicador de Actividad'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar((activity.name != "")
+              ? 'Editando Indicador de Actividad'
+              : 'Añadiendo Indicador de Actividad'),
           content: SingleChildScrollView(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre..."),
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: indicator.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.name = val);
+                  },
+                ),
                 space(height: 20),
-                customText("Porcentaje:", 16, textColor: Colors.blue),
-                customTextField(percentController, "Porcentaje..."),
+                CustomTextField(
+                  labelText: "Porcentaje",
+                  initial: indicator.percent,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.percent = val);
+                  },
+                ),
                 space(height: 20),
-                customText("Fuente:", 16, textColor: Colors.blue),
-                customTextField(sourceController, "Fuente..."),
+                CustomTextField(
+                  labelText: "Fuente",
+                  initial: indicator.source,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.source = val);
+                  },
+                ),
               ])),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveActivityIndicator(
-                    context,
-                    args["indicator"],
-                    nameController.text,
-                    percentController.text,
-                    sourceController.text,
-                    activity);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            dialogsBtns(context, saveActivityIndicator, indicator)
           ],
         );
       },
@@ -271,52 +226,15 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorRowOptions(context, indicator, activity) {
     return Row(children: [
-      editBtn(context, _editActivityIndicatorDialog,
+      editBtn(context, editActivityIndicatorDialog,
           {"indicator": indicator, "activity": activity}),
-      /*IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Editar',
-          onPressed: () async {
-            _editActivityIndicatorDialog(context, indicator, activity);
-          }),*/
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Borrar',
-          onPressed: () {
-            _removeActivityIndicatorDialog(context, indicator, activity);
-          }),
+      removeBtn(context, removeActivityDialog,
+          {"activity": activity.uuid, "indicator": indicator})
     ]);
   }
 
-  Future<void> _removeActivityIndicatorDialog(
-      context, indicator, activity) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Borrar Indicador de Actividad'),
-          content: const SingleChildScrollView(
-            child: Text("Está seguro/a de que desea borrar este elemento?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Borrar'),
-              onPressed: () async {
-                indicator.delete();
-                loadActivityIndicators(activity.uuid);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void removeActivityDialog(context, args) {
+    customRemoveDialog(
+        context, args["indicator"], loadActivityIndicators, args["activity"]);
   }
 }
