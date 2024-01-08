@@ -11,6 +11,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Widget customTitle(context, _text) {
   return Container(
@@ -604,6 +605,12 @@ TextStyle statusText(
   return TextStyle(fontWeight: fontWeight, fontSize: fontSize, color: color);
 }
 
+TextStyle percentText = const TextStyle(
+    fontFamily: 'Readex Pro',
+    fontSize: 14,
+    color: Colors.white,
+    fontWeight: FontWeight.bold);
+
 Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
   fgstyle ??= statusText();
   if (bgcolor == null) {
@@ -626,9 +633,7 @@ Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
               ))));
 }
 
-Object getObject(List items, String uuid) {
-  return items.firstWhere((item) => item.uuid == uuid);
-}
+
 
 //--------------------------------------------------------------------------
 //                              TEXTS
@@ -649,10 +654,10 @@ const String descText = "Descripción";
 //                              STYLES
 //--------------------------------------------------------------------------
 
-const Color titleColor = Color(0xffabf0ff);
+const Color titleColor = Colors.black;
 const TextStyle titleText = TextStyle(
   fontFamily: 'Readex Pro',
-  color: Color(0xffabf0ff),
+  color: titleColor,
   fontSize: 22,
   fontWeight: FontWeight.bold,
 );
@@ -759,7 +764,7 @@ Widget customText(_text, _size,
   );
 }
 
-SizedBox s4cTitleBar(String title, [context]) {
+SizedBox s4cTitleBar(String title, [context, icon]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
     closeButton = IconButton(
@@ -770,6 +775,11 @@ SizedBox s4cTitleBar(String title, [context]) {
         Navigator.of(context).pop();
       },
     );
+  }
+
+  Widget iconWidget = const SizedBox(width: 0);
+  if (icon != null) {
+    iconWidget = Icon(icon, color: Colors.white);
   }
   return SizedBox(
       width: double.infinity,
@@ -784,6 +794,7 @@ SizedBox s4cTitleBar(String title, [context]) {
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
+                Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
                 Expanded(
                     flex: 9,
                     child: Text(title,
@@ -799,20 +810,47 @@ SizedBox s4cTitleBar(String title, [context]) {
 //                           BUTTONS
 //--------------------------------------------------------------------------
 
-Widget goPage(context, btnName, newContext, icon) {
-  return FilledButton(
+Widget goPage(context, btnName, newContext, icon,
+    {style = "", extraction = null}) {
+  Widget child = Column(
+    children: [
+      space(height: 5),
+      Icon(icon, color: subTitleColor),
+      space(height: 5),
+      customText(btnName, 12, textColor: subTitleColor),
+      space(height: 5),
+    ],
+  );
+  if (style == "bigBtn") {
+    style = ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      backgroundColor: Colors.white,
+      //primary: Colors.purple),
+    );
+    child = Column(
+      children: [
+        Icon(
+          icon,
+          color: Colors.black54,
+          size: 30,
+        ),
+        space(height: 10),
+        Text(
+          btnName,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
+        ),
+      ],
+    );
+  }
+  return ElevatedButton(
       onPressed: () {
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => newContext)));
+        extraction?.call();
       },
-      style: btnStyle,
-      child: Column(
-        children: [
-          Icon(icon, color: subTitleColor),
-          space(height: 5),
-          customText(btnName, 12, textColor: subTitleColor),
-        ],
-      ));
+      style: (style == "") ? btnStyle : style,
+      child: child);
 }
 
 Widget goPageIcon(context, btnText, icon, newContext) {
@@ -888,6 +926,67 @@ Widget returnBtn(context) {
       ],
     ),
   );
+}
+
+Widget saveBtn(context, action, [args]) {
+  return FilledButton(
+    onPressed: () {
+      if (args == null) {
+        action();
+      } else {
+        action(args);
+      }
+    },
+    style: btnStyle,
+    child: Column(
+      children: [
+        const Icon(Icons.save_outlined, color: subTitleColor),
+        space(height: 5),
+        customText(saveText, 12, textColor: subTitleColor)
+      ],
+    ),
+  );
+}
+
+Widget saveBtnForm(context, action, [args]) {
+  return actionButton(context, saveText, action, Icons.save_outlined, args);
+}
+
+Widget removeBtnForm(context, action, [args]) {
+  void confirmDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      title: Text(AppLocalizations.of(context)!.confirm),
+      content: Text(AppLocalizations.of(context)!.confirmDelete),
+      actions: [
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.delete),
+          onPressed: () {
+            args == null ? Navigator.of(context).pop(action()) : Navigator.of(context).pop(action(args));
+          },
+        ),
+        TextButton(
+          child: Text(AppLocalizations.of(context)!.cancel),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  return actionButton(context, removeText, confirmDialog, Icons.delete, context);
+}
+
+Widget cancelBtnForm(context) {
+  return actionButton(context, cancelText, () {
+    Navigator.pop(context);
+  }, Icons.cancel, null);
 }
 
 Widget dialogsBtns(context, action, obj) {
@@ -1118,33 +1217,44 @@ class ReadOnlyTextField extends StatelessWidget {
         .copyWith(backgroundColor: bgcolor);
     return Container(
         color: bgcolor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
-            Text(
-              label,
-              textAlign: textAlign,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-            Text(
-              textToShow,
-              textAlign: textAlign,
-              style: fgstyle, // Estilo similar al de un TextFormField
-            ),
-            const SizedBox(
-                height: 4.0), // Ajusta el espacio según sea necesario
+        child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                    height: 5.0), // Ajusta el espacio según sea necesario
+                Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: Text(
+                      label,
+                      textAlign: textAlign,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall, // Estilo similar al de un TextFormField
+                    )),
+                const SizedBox(
+                    height: 2.0), // Ajusta el espacio según sea necesario
+                Row(children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: Text(
+                            textToShow,
+                            textAlign: textAlign,
+                            style:
+                                fgstyle, // Estilo similar al de un TextFormField
+                          )))
+                ]),
+                const SizedBox(
+                    height: 4.0), // Ajusta el espacio según sea necesario
 
-            const Divider(height: 1.0, color: Colors.black54),
-            const SizedBox(
-                height: 2.0), // Ajusta el espacio según sea necesario
-          ],
-        ));
+                const Divider(height: 1.0, color: Colors.black54),
+                const SizedBox(
+                    height: 2.0), // Ajusta el espacio según sea necesario
+              ],
+            )));
   }
 }
 
@@ -1248,7 +1358,9 @@ class DateTimePicker extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              "${selectedDate.toLocal()}".split(' ')[0],
+              DateFormat("dd-MM-yyyy")
+                  .format(selectedDate.toLocal())
+                  .split(' ')[0],
             ),
             //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
             const Icon(Icons.calendar_today),
@@ -1326,6 +1438,52 @@ class CustomTextField extends StatelessWidget {
           fieldValue(val);
         },
       ),
+    );
+  }
+}
+
+class CustomSelectFormField extends StatelessWidget {
+  const CustomSelectFormField({
+    Key? key,
+    required this.labelText,
+    required this.initial,
+    required this.options,
+    required this.onSelectedOpt,
+    this.required = false,
+  }) : super(key: key);
+
+  final String labelText;
+  final String initial;
+  final List<KeyValue> options;
+  final ValueChanged<String> onSelectedOpt;
+  final bool required;
+
+  @override
+  Widget build(BuildContext context) {
+    if (initial == "") {
+      options.insert(0, KeyValue("", "Seleccione una opción"));
+    }
+    List<DropdownMenuItem<String>> optionsDrop = options.map((e) {
+      return DropdownMenuItem<String>(
+        value: e.key,
+        child: Text(e.value),
+      );
+    }).toList();
+
+    return DropdownButtonFormField(
+      value: initial,
+      decoration: InputDecoration(
+          labelText: labelText, contentPadding: const EdgeInsets.only(left: 5)),
+      items: optionsDrop,
+      onChanged: (value) {
+        onSelectedOpt(value.toString());
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty || (required && value == "")) {
+          return 'Por favor seleccione una opción';
+        }
+        return null;
+      },
     );
   }
 }

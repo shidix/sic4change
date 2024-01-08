@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+
 //final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -25,7 +26,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-
   MyApp({super.key});
 
   final _routes = {
@@ -38,12 +38,12 @@ class MyApp extends StatelessWidget {
     '/contact_info': (context) => const ContactInfoPage(),
     '/contact_claims': (context) => const ContactClaimPage(),
     '/contact_claim_info': (context) => const ContactClaimInfoPage(),
-    '/contact_trackings': (context) => const ContactTrackingPage(contact:null),
+    '/contact_trackings': (context) => const ContactTrackingPage(contact: null),
     '/contact_tracking_info': (context) => const ContactTrackingInfoPage(),
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),
     '/results': (context) => const ResultsPage(),
-    '/finns': (context) => const FinnsPage(),
+    '/finns': (context) => const FinnsPage(project: null),
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
     '/result_tasks': (context) => const ResultTasksPage(),

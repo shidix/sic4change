@@ -36,7 +36,6 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
     contact = widget.contact;
     _contactInfo = widget.contactInfo;
     contactInfoDetailsPanel = contactInfoDetails(context);
-    print(_contactInfo);
 
     if (_contactInfo == null) {
       contact!.getContactInfo().then((val) {
@@ -62,7 +61,6 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
       });
     });
   }
-
 
   Future<ContactInfo?> loadContactInfo(contact) async {
     if (_contactInfo == null) {
@@ -140,10 +138,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                         addBtn(context, callContactInfoEditDialog, null,
                             text: "Editar", icon: Icons.edit),
                         space(width: 10),
-                        goPage(
-                            context,
-                            "Volver",
-                            const ContactsPage(),
+                        goPage(context, "Volver", const ContactsPage(),
                             Icons.arrow_circle_left_outlined),
                         //customRowPopBtn(context, "Volver", Icons.arrow_back)
                       ],
