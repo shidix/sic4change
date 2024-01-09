@@ -71,7 +71,8 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             /*addBtn(
                 context, editGoalDialog, {'_goal': null, '_project': project}),*/
-            addBtn(context, editGoalDialog, {'goal': Goal(project.uuid)}),
+            addBtn(context, editGoalDialog,
+                {'goal': null, 'project': project.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -90,11 +91,10 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Future<void> editGoalDialog(context, HashMap args) {
     //Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
-    /*Goal goal = Goal(args["project"]);
+    Goal goal = Goal(args["project"]);
     if (args["goal"] == null) {
       goal = args["goal"];
-    }*/
-    Goal goal = args["goal"];
+    }
 
     return showDialog<void>(
       context: context,
@@ -256,7 +256,7 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(children: [
       goPageIcon(
           context, "Resultados", Icons.list_alt, ResultsPage(goal: goal)),
-      editBtn(context, editGoalDialog, {'goal': goal}),
+      editBtn(context, editGoalDialog, {'goal': goal, 'project': project.uuid}),
       removeBtn(
           context, removeGoalDialog, {"goal": goal, "project": project.uuid})
     ]);
