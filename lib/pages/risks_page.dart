@@ -104,48 +104,44 @@ class _RisksPageState extends State<RisksPage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar(
               (risk.name != "") ? 'Editando Riesgo' : 'Añadiendo Riesgo'),
-          content: SizedBox(child: customText("AAA", 14)),
-          /*StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Row(children: <Widget>[
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: risk.name,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => risk.name = val);
+          content: SingleChildScrollView(
+              child: Row(children: <Widget>[
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Nombre",
+                initial: risk.name,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => risk.name = val);
+                },
+              )
+            ]),
+            space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Descripción",
+                initial: risk.description,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => risk.description = val);
+                },
+              )
+            ]),
+            Column(children: [
+              customText("¿Ocurrió?", 12),
+              FormField<bool>(builder: (FormFieldState<bool> state) {
+                return Checkbox(
+                  value: risk.occur,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      risk.occur = value!;
+                      state.didChange(risk.occur);
+                    });
                   },
-                )
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Descripción",
-                  initial: risk.description,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => risk.description = val);
-                  },
-                )
-              ]),
-              Column(children: [
-                customText("¿Ocurrió?", 12),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: risk.occur,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        risk.occur = value!;
-                        state.didChange(risk.occur);
-                      });
-                    },
-                  );
-                })
-              ]),
-            ]));
-          }),*/
+                );
+              })
+            ]),
+          ])),
           actions: <Widget>[dialogsBtns(context, saveRisk, risk)],
         );
       },
