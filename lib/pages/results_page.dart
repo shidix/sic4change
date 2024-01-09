@@ -121,7 +121,7 @@ class _ResultsPageState extends State<ResultsPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((result.name != "")
-              ? 'Editando Resultado'
+              ? 'Editando Resultado...'
               : 'Añadiendo Resultado'),
           content: SingleChildScrollView(
               child: Column(children: [
