@@ -106,8 +106,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     if (args["activity"] != null) {
       activity = args["activity"];
     }*/
-    Activity activity = Activity(args["result"]);
-    activity = args["activity"];
+    Activity activity = args["activity"];
+    activity ??= Activity(args["result"]);
 
     return showDialog<void>(
       context: context,
