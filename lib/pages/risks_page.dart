@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -73,6 +72,7 @@ class _RisksPageState extends State<RisksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            customText(project.uuid, 14),
             addBtn(context, riskEditDialog,
                 {'risk': null, 'project': project.uuid}),
             space(width: 10),
