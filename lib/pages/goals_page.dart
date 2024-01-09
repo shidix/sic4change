@@ -107,7 +107,7 @@ class _GoalsPageState extends State<GoalsPage> {
               (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
-            customText("Test", 14),
+            customText("Test...", 14),
             /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
