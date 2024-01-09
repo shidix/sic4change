@@ -515,7 +515,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("País de ejecución:", 16, textColor: Colors.grey),
         space(height: 5),
-        //customText(_project.country, 16),
+        customText(project.locationObj.countryObj.name, 16),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),

@@ -633,8 +633,6 @@ Padding statusCard(String text, [TextStyle? fgstyle, Color? bgcolor]) {
               ))));
 }
 
-
-
 //--------------------------------------------------------------------------
 //                              TEXTS
 //--------------------------------------------------------------------------
@@ -814,11 +812,11 @@ Widget goPage(context, btnName, newContext, icon,
     {style = "", extraction = null}) {
   Widget child = Column(
     children: [
-      space(height: 5),
+      //space(height: 5),
       Icon(icon, color: subTitleColor),
       space(height: 5),
       customText(btnName, 12, textColor: subTitleColor),
-      space(height: 5),
+      //space(height: 5),
     ],
   );
   if (style == "bigBtn") {
@@ -961,7 +959,9 @@ Widget removeBtnForm(context, action, [args]) {
         TextButton(
           child: Text(AppLocalizations.of(context)!.delete),
           onPressed: () {
-            args == null ? Navigator.of(context).pop(action()) : Navigator.of(context).pop(action(args));
+            args == null
+                ? Navigator.of(context).pop(action())
+                : Navigator.of(context).pop(action(args));
           },
         ),
         TextButton(
@@ -980,7 +980,8 @@ Widget removeBtnForm(context, action, [args]) {
     );
   }
 
-  return actionButton(context, removeText, confirmDialog, Icons.delete, context);
+  return actionButton(
+      context, removeText, confirmDialog, Icons.delete, context);
 }
 
 Widget cancelBtnForm(context) {

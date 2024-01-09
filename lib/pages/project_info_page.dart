@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
+import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -73,7 +74,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               addBtn(context, _callProjectEditDialog, project,
                   icon: Icons.edit, text: "Editar"),
               space(width: 10),
-              returnBtn(context),
+              //returnBtn(context),
+              goPage(context, "Volver", const ProjectsPage(),
+                  Icons.arrow_circle_left_outlined),
             ])
           ]),
           space(height: 20),

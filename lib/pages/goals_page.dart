@@ -122,17 +122,20 @@ class _GoalsPageState extends State<GoalsPage> {
                 },
               )
             ]),
-            FormField<bool>(builder: (FormFieldState<bool> state) {
-              return Checkbox(
-                value: goal.main,
-                onChanged: (bool? value) {
-                  setState(() {
-                    goal.main = value!;
-                    state.didChange(goal.main);
-                  });
-                },
-              );
-            })
+            Column(children: [
+              customText("Principal", 12),
+              FormField<bool>(builder: (FormFieldState<bool> state) {
+                return Checkbox(
+                  value: goal.main,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      goal.main = value!;
+                      state.didChange(goal.main);
+                    });
+                  },
+                );
+              })
+            ]),
           ])),
           actions: <Widget>[dialogsBtns(context, saveGoal, goal)],
         );

@@ -35,6 +35,7 @@ class SProject {
   List<Financier> financiersObj = [];
   List<Contact> partnersObj = [];
   ProjectDates datesObj = ProjectDates("");
+  ProjectLocation locationObj = ProjectLocation("");
 
   double dblbudget = 0;
 
@@ -116,6 +117,7 @@ class SProject {
     financiersObj = await getFinanciers();
     partnersObj = await getPartners();
     datesObj = await getDates();
+    locationObj = await getLocation();
     return this;
   }
 
@@ -135,10 +137,10 @@ class SProject {
       /*DateTime _start = DateTime.parse(datesObj.start);
       DateTime _end = DateTime.parse(datesObj.end);
       DateTime _approved = DateTime.parse(datesObj.approved);*/
-      DateTime _today = DateTime.now();
-      if (_today.isBefore(datesObj.start)) return "Sin iniciar";
-      if (_today.isBefore(datesObj.approved)) return "Sin aprobar";
-      if (_today.isAfter(datesObj.end)) return "Finalizado";
+      DateTime today = DateTime.now();
+      if (today.isBefore(datesObj.start)) return "Sin iniciar";
+      if (today.isBefore(datesObj.approved)) return "Sin aprobar";
+      if (today.isAfter(datesObj.end)) return "Finalizado";
       return "En proceso";
     } catch (e) {
       return "Finalizado";
@@ -174,6 +176,13 @@ class SProject {
       datesObj = await getProjectDatesByProject(uuid);
     }
     return datesObj;
+  }
+
+  Future<ProjectLocation> getLocation() async {
+    if (locationObj.project == "") {
+      locationObj = await getProjectLocationByProject(uuid);
+    }
+    return locationObj;
   }
 
   Future<Ambit> getAmbit() async {
@@ -277,11 +286,11 @@ class SProject {
         try {
           QuerySnapshot query =
               await dbFinancier.where("uuid", isEqualTo: fin).get();
-          final _doc = query.docs.first;
-          final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-          data["id"] = _doc.id;
-          Financier _financier = Financier.fromJson(data);
-          _fin_list.add(_financier);
+          final doc = query.docs.first;
+          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data["id"] = doc.id;
+          Financier financier = Financier.fromJson(data);
+          _fin_list.add(financier);
         } catch (e) {}
       }
       return _fin_list;
@@ -292,7 +301,7 @@ class SProject {
 
   Future<List<Contact>> getPartners() async {
     if (partnersObj.isEmpty) {
-      List<Contact> _par_list = [];
+      List<Contact> parList = [];
       for (String par in partners) {
         try {
           QuerySnapshot query =
@@ -301,10 +310,10 @@ class SProject {
           final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
           data["id"] = _doc.id;
           Contact _contact = Contact.fromJson(data);
-          _par_list.add(_contact);
+          parList.add(_contact);
         } catch (e) {}
       }
-      return _par_list;
+      return parList;
     } else {
       return partnersObj;
     }
@@ -342,6 +351,7 @@ class SProject {
     financiersObj = await getFinanciers();
     partnersObj = await getPartners();
     datesObj = await getDates();
+    locationObj = await getLocation();
   }
 }
 
@@ -432,8 +442,8 @@ class ProjectType {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProjectType.add(data);
     } else {
@@ -537,8 +547,8 @@ Future<List> getProjectDates() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = ProjectDates.fromJson(data);
-    items.add(_item);
+    final item = ProjectDates.fromJson(data);
+    items.add(item);
   }
 
   return items;
@@ -554,14 +564,14 @@ Future<ProjectDates> getProjectDatesById(String id) async {
 Future<ProjectDates> getProjectDatesByProject(String _project) async {
   QuerySnapshot query =
       await dbDates.where("project", isEqualTo: _project).get();
-  if (query.docs.length == 0) {
-    ProjectDates _dates = ProjectDates(_project);
-    _dates.save();
-    return _dates;
+  if (query.docs.isEmpty) {
+    ProjectDates dates = ProjectDates(_project);
+    dates.save();
+    return dates;
   }
-  final _dbResult = query.docs.first;
-  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
-  data["id"] = _dbResult.id;
+  final dbRes = query.docs.first;
+  final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+  data["id"] = dbRes.id;
   return ProjectDates.fromJson(data);
 }
 
@@ -607,8 +617,8 @@ class ProjectLocation {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbLocation.add(data);
     } else {
@@ -625,9 +635,9 @@ class ProjectLocation {
     try {
       QuerySnapshot query =
           await dbCountry.where("uuid", isEqualTo: country).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Country.fromJson(data);
     } catch (e) {
       return Country("");
@@ -638,9 +648,9 @@ class ProjectLocation {
     try {
       QuerySnapshot query =
           await dbProvince.where("uuid", isEqualTo: province).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Province.fromJson(data);
     } catch (e) {
       return Province("");
@@ -651,9 +661,9 @@ class ProjectLocation {
     try {
       QuerySnapshot query =
           await dbRegion.where("uuid", isEqualTo: region).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Region.fromJson(data);
     } catch (e) {
       return Region("");
@@ -663,9 +673,9 @@ class ProjectLocation {
   Future<Town> getTown() async {
     try {
       QuerySnapshot query = await dbTown.where("uuid", isEqualTo: town).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Town.fromJson(data);
     } catch (e) {
       return Town("");
@@ -680,8 +690,8 @@ Future<List> getProjectLocation() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = ProjectLocation.fromJson(data);
-    items.add(_item);
+    final item = ProjectLocation.fromJson(data);
+    items.add(item);
   }
 
   return items;
@@ -691,15 +701,15 @@ Future<ProjectLocation> getProjectLocationByProject(String _project) async {
   QuerySnapshot query =
       await dbLocation.where("project", isEqualTo: _project).get();
 
-  if (query.docs.length == 0) {
-    ProjectLocation _loc = ProjectLocation(_project);
-    _loc.save();
-    return _loc;
+  if (query.docs.isEmpty) {
+    ProjectLocation loc = ProjectLocation(_project);
+    loc.save();
+    return loc;
   }
 
-  final _dbResult = query.docs.first;
-  final Map<String, dynamic> data = _dbResult.data() as Map<String, dynamic>;
-  data["id"] = _dbResult.id;
+  final dbRes = query.docs.first;
+  final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+  data["id"] = dbRes.id;
   ProjectLocation _pl = ProjectLocation.fromJson(data);
   _pl.countryObj = await _pl.getCountry();
   _pl.provinceObj = await _pl.getProvince();
@@ -843,9 +853,9 @@ class Reformulation {
     try {
       QuerySnapshot query =
           await dbProject.where("uuid", isEqualTo: project).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return SProject.fromJson(data);
     } catch (e) {
       return SProject("");
@@ -856,9 +866,9 @@ class Reformulation {
     try {
       QuerySnapshot query =
           await dbFinancier.where("uuid", isEqualTo: financier).get();
-      final _doc = query.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
       return Financier.fromJson(data);
     } catch (e) {
       return Financier("");
@@ -873,10 +883,10 @@ Future<List> getReformulations() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Reformulation.fromJson(data);
-    _item.projectObj = await _item.getProject();
-    _item.financierObj = await _item.getFinancier();
-    items.add(_item);
+    final item = Reformulation.fromJson(data);
+    item.projectObj = await item.getProject();
+    item.financierObj = await item.getFinancier();
+    items.add(item);
   }
 
   return items;
