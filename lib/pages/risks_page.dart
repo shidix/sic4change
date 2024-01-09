@@ -72,8 +72,8 @@ class _RisksPageState extends State<RisksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, riskEditDialog,
-                {'risk': null, 'project': project.uuid}),
+            addBtn(
+                context, riskEditDialog, {'risk': "", 'project': project.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -92,7 +92,7 @@ class _RisksPageState extends State<RisksPage> {
 
   Future<void> riskEditDialog(context, HashMap args) {
     Risk risk = Risk(args["project"]);
-    if (args["risk"] != null) {
+    if (args["risk"] != "") {
       risk = args["risk"];
     }
 
