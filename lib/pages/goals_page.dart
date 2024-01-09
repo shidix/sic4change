@@ -71,7 +71,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             /*addBtn(
                 context, editGoalDialog, {'_goal': null, '_project': project}),*/
-            addBtn(context, editGoalDialog,
+            addBtn(context, callEditGoalDialog,
                 {'goal': null, 'project': project.uuid}),
             space(width: 10),
             returnBtn(context),
@@ -89,12 +89,20 @@ class _GoalsPageState extends State<GoalsPage> {
     Navigator.pop(context);
   }
 
-  Future<void> editGoalDialog(context, HashMap args) {
+  void callEditGoalDialog(context, HashMap args) {
     Goal goal = Goal(args["project"]);
     if (args["goal"] != null) {
       goal = args["goal"];
     }
+    editGoalDialog(context, goal);
+  }
 
+  /*Future<void> editGoalDialog(context, HashMap args) {
+    Goal goal = Goal(args["project"]);
+    if (args["goal"] != null) {
+      goal = args["goal"];
+    }*/
+  Future<void> editGoalDialog(context, Goal goal) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
