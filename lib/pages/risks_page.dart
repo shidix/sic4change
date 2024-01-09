@@ -72,7 +72,6 @@ class _RisksPageState extends State<RisksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            customText(project.uuid, 14),
             addBtn(context, riskEditDialog,
                 {'risk': null, 'project': project.uuid}),
             space(width: 10),
@@ -105,7 +104,8 @@ class _RisksPageState extends State<RisksPage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar(
               (risk.name != "") ? 'Editando Riesgo' : 'Añadiendo Riesgo'),
-          content: StatefulBuilder(
+          content: SizedBox(child: customText("AAA", 14)),
+          /*StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
             return SingleChildScrollView(
                 child: Row(children: <Widget>[
@@ -145,7 +145,7 @@ class _RisksPageState extends State<RisksPage> {
                 })
               ]),
             ]));
-          }),
+          }),*/
           actions: <Widget>[dialogsBtns(context, saveRisk, risk)],
         );
       },
