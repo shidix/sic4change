@@ -84,7 +84,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(context, editActivityDialog,
-                {"activity": null, "result": result.uuid}),
+                {"activity": "", "result": result.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -103,7 +103,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   Future<void> editActivityDialog(context, HashMap args) {
     Activity activity = Activity(args["result"]);
-    if (args["activity"] != null) {
+    if (args["activity"] != "") {
       activity = args["activity"];
     }
 
@@ -116,22 +116,19 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           title: s4cTitleBar((activity.name != "")
               ? 'Editando Actividad'
               : 'Añadiendo Actividad'),
-          content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  CustomTextField(
-                    labelText: "Nombre",
-                    initial: activity.name,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => activity.name = val);
-                    },
-                  )
-                ]));
-          }),
+          content: SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: activity.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => activity.name = val);
+                  },
+                )
+              ])),
           actions: <Widget>[dialogsBtns(context, saveActivity, activity)],
         );
       },

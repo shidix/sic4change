@@ -91,7 +91,7 @@ class _ResultsPageState extends State<ResultsPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(
-                context, editResultDialog, {"goal": goal.uuid, "result": null}),
+                context, editResultDialog, {"goal": goal.uuid, "result": ""}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -110,7 +110,7 @@ class _ResultsPageState extends State<ResultsPage> {
 
   Future<void> editResultDialog(context, HashMap args) {
     Result result = Result(args["goal"]);
-    if (args["result"] != null) {
+    if (args["result"] != "") {
       result = args["result"];
     }
 
@@ -123,72 +123,69 @@ class _ResultsPageState extends State<ResultsPage> {
           title: s4cTitleBar((result.name != "")
               ? 'Editando Resultado'
               : 'Añadiendo Resultado'),
-          content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Column(children: [
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Nombre",
-                    initial: result.name,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => result.name = val);
-                    },
-                  )
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Descripción",
-                    initial: result.description,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => result.description = val);
-                    },
-                  )
-                ]),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: result.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.name = val);
+                  },
+                )
               ]),
-              space(height: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Indicador",
-                    initial: result.indicatorText,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => result.indicatorText = val);
-                    },
-                  )
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Porcentaje",
-                    initial: result.indicatorPercent,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => result.indicatorPercent = val);
-                    },
-                  )
-                ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: result.description,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.description = val);
+                  },
+                )
               ]),
-              space(height: 20),
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Fuente",
-                    initial: result.source,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => result.source = val);
-                    },
-                  )
-                ]),
-              ])
-            ]));
-          }),
+            ]),
+            space(height: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Indicador",
+                  initial: result.indicatorText,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.indicatorText = val);
+                  },
+                )
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Porcentaje",
+                  initial: result.indicatorPercent,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.indicatorPercent = val);
+                  },
+                )
+              ]),
+            ]),
+            space(height: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Fuente",
+                  initial: result.source,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.source = val);
+                  },
+                )
+              ]),
+            ])
+          ])),
           actions: <Widget>[dialogsBtns(context, saveResult, result)],
         );
       },

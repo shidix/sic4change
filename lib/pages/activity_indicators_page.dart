@@ -77,7 +77,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           children: [
             //addBtn(context, activity),
             addBtn(context, editActivityIndicatorDialog,
-                {"indicator": null, "activity": activity.uuid}),
+                {"indicator": "", "activity": activity.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -96,7 +96,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Future<void> editActivityIndicatorDialog(context, HashMap args) {
     ActivityIndicator indicator = ActivityIndicator(args["activity"]);
-    if (args["indicator"] != null) {
+    if (args["indicator"] != "") {
       indicator = args["indicator"];
     }
 
@@ -109,40 +109,37 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           title: s4cTitleBar((indicator.name != "")
               ? 'Editando Indicador de Actividad'
               : 'Añadiendo Indicador de Actividad'),
-          content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  CustomTextField(
-                    labelText: "Nombre",
-                    initial: indicator.name,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => indicator.name = val);
-                    },
-                  ),
-                  space(height: 20),
-                  CustomTextField(
-                    labelText: "Porcentaje",
-                    initial: indicator.percent,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => indicator.percent = val);
-                    },
-                  ),
-                  space(height: 20),
-                  CustomTextField(
-                    labelText: "Fuente",
-                    initial: indicator.source,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => indicator.source = val);
-                    },
-                  ),
-                ]));
-          }),
+          content: SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: indicator.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.name = val);
+                  },
+                ),
+                space(height: 20),
+                CustomTextField(
+                  labelText: "Porcentaje",
+                  initial: indicator.percent,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.percent = val);
+                  },
+                ),
+                space(height: 20),
+                CustomTextField(
+                  labelText: "Fuente",
+                  initial: indicator.source,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => indicator.source = val);
+                  },
+                ),
+              ])),
           actions: <Widget>[
             dialogsBtns(context, saveActivityIndicator, indicator)
           ],
