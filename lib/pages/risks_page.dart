@@ -93,7 +93,7 @@ class _RisksPageState extends State<RisksPage> {
 
   Future<void> riskEditDialog(context, HashMap args) {
     Risk risk = Risk(args["project"]);
-    if (args["risk"] == null) {
+    if (args["risk"] != null) {
       risk = args["risk"];
     }
 

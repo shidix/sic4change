@@ -91,7 +91,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Future<void> editGoalDialog(context, HashMap args) {
     Goal goal = Goal(args["project"]);
-    if (args["goal"] == null) {
+    if (args["goal"] != null) {
       goal = args["goal"];
     }
 

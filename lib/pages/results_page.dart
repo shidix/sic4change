@@ -71,7 +71,7 @@ class _ResultsPageState extends State<ResultsPage> {
         }));
   }
 
-  Widget resultHeader(context, _goal) {
+  Widget resultHeader(context, goal) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.only(left: 40),
@@ -79,7 +79,7 @@ class _ResultsPageState extends State<ResultsPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_goal.name, style: const TextStyle(fontSize: 20)),
+              Text(goal.name, style: const TextStyle(fontSize: 20)),
               space(height: 20),
               customLinearPercent(context, 1.5, 0.8, Colors.blue),
               space(height: 20)
@@ -90,8 +90,8 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, _editResultDialog,
-                {"goal": _goal.uuid, "result": null}),
+            addBtn(
+                context, editResultDialog, {"goal": goal.uuid, "result": null}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -108,7 +108,7 @@ class _ResultsPageState extends State<ResultsPage> {
     Navigator.pop(context);
   }
 
-  Future<void> _editResultDialog(context, HashMap args) {
+  Future<void> editResultDialog(context, HashMap args) {
     Result result = Result(args["goal"]);
     if (args["result"] != null) {
       result = args["result"];
@@ -279,8 +279,7 @@ class _ResultsPageState extends State<ResultsPage> {
           ActivitiesPage(result: result)),
       goPageIcon(context, "Tareas", Icons.assignment_rounded,
           ResultTasksPage(result: result)),
-      editBtn(
-          context, _editResultDialog, {"goal": goal.uuid, "result": result}),
+      editBtn(context, editResultDialog, {"goal": goal.uuid, "result": result}),
       removeBtn(
           context, removeResultDialog, {"goal": goal.uuid, "result": result})
     ]);
