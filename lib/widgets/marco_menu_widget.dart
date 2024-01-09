@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
+import 'package:sic4change/pages/risks_page.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget marcoMenu(context, project, tabSelected) {
-  bool marco = (tabSelected == "marco") ? true : false;
-  bool risk = (tabSelected == "risk") ? true : false;
+  /*bool marco = (tabSelected == "marco") ? true : false;
+  bool risk = (tabSelected == "risk") ? true : false;*/
 
   return Container(
     padding: const EdgeInsets.only(left: 10, right: 10),
     child: Row(
       children: [
-        menuTab(context, "Marco lógico", "/goals", {'project': project},
+        /*menuTab(context, "Marco lógico", "/goals", {'project': project},
             selected: marco),
         menuTab(context, "Riesgos", "/risks", {'project': project},
-            selected: risk),
+            selected: risk),*/
+        menuTab2(context, "Marco lógico", GoalsPage(project: project),
+            selected: (tabSelected == "marco")),
+        menuTab2(context, "Riesgos", RisksPage(project: project),
+            selected: (tabSelected == "risk")),
         menuTab(context, "Bitácora", "/goals", {'project': project}),
         menuTab(
             context, "Eva. externa y calidad", "/goals", {'project': project}),

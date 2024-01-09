@@ -71,7 +71,8 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             /*addBtn(
                 context, editGoalDialog, {'_goal': null, '_project': project}),*/
-            addBtn(context, editGoalDialog, {'goal': null}),
+            addBtn(context, editGoalDialog,
+                {'goal': null, 'project': project.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -90,7 +91,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Future<void> editGoalDialog(context, HashMap args) {
     //Goal goal = args["goal"];
-    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(project!.uuid);
+    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
 
     return showDialog<void>(
       context: context,
@@ -102,8 +103,7 @@ class _GoalsPageState extends State<GoalsPage> {
               (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
-            customText("Test", 14),
-            /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
                 initial: goal.name,
@@ -137,7 +137,7 @@ class _GoalsPageState extends State<GoalsPage> {
                   },
                 );
               })
-            ]),*/
+            ]),
           ])),
           actions: <Widget>[dialogsBtns(context, saveGoal, goal)],
         );
@@ -250,7 +250,7 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(children: [
       goPageIcon(
           context, "Resultados", Icons.list_alt, ResultsPage(goal: goal)),
-      editBtn(context, editGoalDialog, {'goal': goal}),
+      editBtn(context, editGoalDialog, {'goal': goal, "project": project.uuid}),
       removeBtn(
           context, removeGoalDialog, {"goal": goal, "project": project.uuid})
     ]);
