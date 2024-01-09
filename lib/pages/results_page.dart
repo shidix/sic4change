@@ -109,10 +109,11 @@ class _ResultsPageState extends State<ResultsPage> {
   }
 
   Future<void> editResultDialog(context, HashMap args) {
-    Result result = Result(args["goal"]);
+    /*Result result = Result(args["goal"]);
     if (args["result"] != null) {
       result = args["result"];
-    }
+    }*/
+    Result result = args["result"];
 
     return showDialog<void>(
       context: context,
@@ -121,7 +122,7 @@ class _ResultsPageState extends State<ResultsPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((result.name != "")
-              ? 'Editando Resultado...'
+              ? 'Editando Resultado'
               : 'Añadiendo Resultado'),
           content: SingleChildScrollView(
               child: Column(children: [
