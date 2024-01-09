@@ -109,37 +109,40 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           title: s4cTitleBar((indicator.name != "")
               ? 'Editando Indicador de Actividad'
               : 'Añadiendo Indicador de Actividad'),
-          content: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: indicator.name,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => indicator.name = val);
-                  },
-                ),
-                space(height: 20),
-                CustomTextField(
-                  labelText: "Porcentaje",
-                  initial: indicator.percent,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => indicator.percent = val);
-                  },
-                ),
-                space(height: 20),
-                CustomTextField(
-                  labelText: "Fuente",
-                  initial: indicator.source,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => indicator.source = val);
-                  },
-                ),
-              ])),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  CustomTextField(
+                    labelText: "Nombre",
+                    initial: indicator.name,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => indicator.name = val);
+                    },
+                  ),
+                  space(height: 20),
+                  CustomTextField(
+                    labelText: "Porcentaje",
+                    initial: indicator.percent,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => indicator.percent = val);
+                    },
+                  ),
+                  space(height: 20),
+                  CustomTextField(
+                    labelText: "Fuente",
+                    initial: indicator.source,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => indicator.source = val);
+                    },
+                  ),
+                ]));
+          }),
           actions: <Widget>[
             dialogsBtns(context, saveActivityIndicator, indicator)
           ],

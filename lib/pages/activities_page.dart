@@ -102,12 +102,10 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   Future<void> editActivityDialog(context, HashMap args) {
-    /*Activity activity = Activity(args["result"]);
+    Activity activity = Activity(args["result"]);
     if (args["activity"] != null) {
       activity = args["activity"];
-    }*/
-    Activity activity = args["activity"];
-    activity ??= Activity(args["result"]);
+    }
 
     return showDialog<void>(
       context: context,
@@ -118,19 +116,22 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           title: s4cTitleBar((activity.name != "")
               ? 'Editando Actividad'
               : 'Añadiendo Actividad'),
-          content: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: activity.name,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => activity.name = val);
-                  },
-                )
-              ])),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  CustomTextField(
+                    labelText: "Nombre",
+                    initial: activity.name,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => activity.name = val);
+                    },
+                  )
+                ]));
+          }),
           actions: <Widget>[dialogsBtns(context, saveActivity, activity)],
         );
       },
