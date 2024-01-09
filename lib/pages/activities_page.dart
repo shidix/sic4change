@@ -102,10 +102,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   Future<void> editActivityDialog(context, HashMap args) {
-    Activity activity = Activity(args["result"]);
+    /*Activity activity = Activity(args["result"]);
     if (args["activity"] != null) {
       activity = args["activity"];
-    }
+    }*/
+    Activity activity = Activity(args["result"]);
+    activity = args["activity"];
 
     return showDialog<void>(
       context: context,
