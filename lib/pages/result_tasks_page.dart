@@ -86,7 +86,8 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, _result),
-            addBtn(context, editTaskDialog, {"task": null, "result": result}),
+            addBtn(
+                context, editTaskDialog, {"task": null, "result": result.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -104,9 +105,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
   }
 
   Future<void> editTaskDialog(context, HashMap args) {
-    Result result = args["result"];
-    ResultTask task = ResultTask(result.uuid);
-
+    ResultTask task = ResultTask(args["result"]);
     if (args["task"] != null) {
       task = args["task"];
     }
@@ -118,7 +117,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar(
-              (result.name != "") ? 'Editando Tarea' : 'Añadiendo Tarea'),
+              (task.name != "") ? 'Editando Tarea' : 'Añadiendo Tarea'),
           content: SingleChildScrollView(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +201,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Widget taskRowOptions(context, task, result) {
     return Row(children: [
-      editBtn(context, editTaskDialog, {"task": task, "result": result}),
+      editBtn(context, editTaskDialog, {"task": task, "result": result.uuid}),
       removeBtn(context, removeResultTaskDialog,
           {"result": result.uuid, "task": task})
     ]);

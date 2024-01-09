@@ -84,7 +84,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(context, editActivityDialog,
-                {"activity": null, "result": result}),
+                {"activity": null, "result": result.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -102,9 +102,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   Future<void> editActivityDialog(context, HashMap args) {
-    Result result = args["result"];
-    Activity activity = Activity(result.uuid);
-
+    Activity activity = Activity(args["result"]);
     if (args["activity"] != null) {
       activity = args["activity"];
     }
@@ -115,7 +113,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar((result.name != "")
+          title: s4cTitleBar((activity.name != "")
               ? 'Editando Actividad'
               : 'Añadiendo Actividad'),
           content: SingleChildScrollView(
@@ -211,7 +209,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       goPageIcon(context, "Indicadores", Icons.list_alt,
           ActivityIndicatorsPage(activity: activity)),
       editBtn(context, editActivityDialog,
-          {"activity": activity, "result": result}),
+          {"activity": activity, "result": result.uuid}),
       removeBtn(context, removeActivityDialog,
           {"result": result.uuid, "activity": activity})
     ]);

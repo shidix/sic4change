@@ -77,7 +77,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           children: [
             //addBtn(context, activity),
             addBtn(context, editActivityIndicatorDialog,
-                {"indicator": null, "activity": activity}),
+                {"indicator": null, "activity": activity.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -95,9 +95,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   }
 
   Future<void> editActivityIndicatorDialog(context, HashMap args) {
-    Activity activity = args["activity"];
-    ActivityIndicator indicator = ActivityIndicator(activity.uuid);
-
+    ActivityIndicator indicator = ActivityIndicator(args["activity"]);
     if (args["indicator"] != null) {
       indicator = args["indicator"];
     }
@@ -108,7 +106,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar((activity.name != "")
+          title: s4cTitleBar((indicator.name != "")
               ? 'Editando Indicador de Actividad'
               : 'Añadiendo Indicador de Actividad'),
           content: SingleChildScrollView(
@@ -227,7 +225,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   Widget activityIndicatorRowOptions(context, indicator, activity) {
     return Row(children: [
       editBtn(context, editActivityIndicatorDialog,
-          {"indicator": indicator, "activity": activity}),
+          {"indicator": indicator, "activity": activity.uuid}),
       removeBtn(context, removeActivityDialog,
           {"activity": activity.uuid, "indicator": indicator})
     ]);
