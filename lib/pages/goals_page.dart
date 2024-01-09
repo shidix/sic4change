@@ -104,44 +104,47 @@ class _GoalsPageState extends State<GoalsPage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar(
               (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
-          content: SingleChildScrollView(
-              child: Row(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: goal.name,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => goal.name = val);
-                },
-              )
-            ]),
-            space(width: 20),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Descripción",
-                initial: goal.description,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => goal.description = val);
-                },
-              )
-            ]),
-            Column(children: [
-              customText("Principal", 12),
-              FormField<bool>(builder: (FormFieldState<bool> state) {
-                return Checkbox(
-                  value: goal.main,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      goal.main = value!;
-                      state.didChange(goal.main);
-                    });
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: goal.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => goal.name = val);
                   },
-                );
-              })
-            ]),
-          ])),
+                )
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: goal.description,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => goal.description = val);
+                  },
+                )
+              ]),
+              Column(children: [
+                customText("Principal", 12),
+                FormField<bool>(builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: goal.main,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        goal.main = value!;
+                        state.didChange(goal.main);
+                      });
+                    },
+                  );
+                })
+              ]),
+            ]));
+          }),
           actions: <Widget>[dialogsBtns(context, saveGoal, goal)],
         );
       },
