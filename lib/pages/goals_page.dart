@@ -14,13 +14,15 @@ const goalPageTitle = "Marco Lógico";
 List goals = [];
 
 class GoalsPage extends StatefulWidget {
-  const GoalsPage({super.key});
+  final SProject? project;
+  const GoalsPage({super.key, this.project});
 
   @override
   State<GoalsPage> createState() => _GoalsPageState();
 }
 
 class _GoalsPageState extends State<GoalsPage> {
+  SProject? project;
   void loadGoals(value) async {
     await getGoalsByProject(value).then((val) {
       goals = val;
@@ -29,18 +31,13 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    project = widget.project;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    SProject? project;
-
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      Map args = ModalRoute.of(context)!.settings.arguments as Map;
-      project = args["project"];
-    } else {
-      project = null;
-    }
-
-    if (project == null) return const Page404();
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),

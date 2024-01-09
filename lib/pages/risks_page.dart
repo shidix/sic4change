@@ -21,6 +21,7 @@ class RisksPage extends StatefulWidget {
 }
 
 class _RisksPageState extends State<RisksPage> {
+  SProject? project;
   void loadRisks(value) async {
     await getRisksByProject(value).then((val) {
       risks = val;
@@ -30,8 +31,6 @@ class _RisksPageState extends State<RisksPage> {
 
   @override
   Widget build(BuildContext context) {
-    SProject? project;
-
     if (ModalRoute.of(context)!.settings.arguments != null) {
       Map args = ModalRoute.of(context)!.settings.arguments as Map;
       project = args["project"];
@@ -44,7 +43,7 @@ class _RisksPageState extends State<RisksPage> {
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        pathHeader(context, project.name),
+        pathHeader(context, project!.name),
         riskHeader(context, project),
         marcoMenu(context, project, "risk"),
         contentTab(context, riskList, project),
@@ -67,7 +66,7 @@ class _RisksPageState extends State<RisksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, callRiskDialog, {"risk": null, "project": project}),
+            addBtn(context, riskEditDialog, {'risk': Risk(project.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -76,70 +75,64 @@ class _RisksPageState extends State<RisksPage> {
     ]);
   }
 
-  void callRiskDialog(context, HashMap args) {
-    riskEditDialog(context, args["risk"], args["project"]);
-  }
-
-  void saveRisk(context, risk, name, desc, occur, project) async {
-    risk ??= Risk(project.uuid);
-    risk.name = name;
-    risk.description = desc;
-    risk.occur = occur;
+  void saveRisk(List args) async {
+    Risk risk = args[0];
     risk.save();
-    loadRisks(project.uuid);
-    Navigator.of(context).pop();
+    loadRisks(risk.project);
+
+    Navigator.pop(context);
   }
 
-  Future<void> riskEditDialog(context, risk, project) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    bool occur = false;
-
-    if (risk != null) {
-      nameController = TextEditingController(text: risk.name);
-      descController = TextEditingController(text: risk.description);
-      occur = risk.occur;
-    }
+  Future<void> riskEditDialog(context, HashMap args) {
+    Risk risk = args["risk"];
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(editText),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar(
+              (risk.name != "") ? 'Editando Riesgo' : 'Añadiendo Riesgo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText(nameText, 16, textColor: mainColor),
-              customTextField(nameController, nameText),
+              CustomTextField(
+                labelText: "Nombre",
+                initial: risk.name,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => risk.name = val);
+                },
+              )
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText(descText, 16, textColor: mainColor),
-              customTextField(descController, descText),
-            ]),
-            FormField<bool>(builder: (FormFieldState<bool> state) {
-              return Checkbox(
-                value: occur,
-                onChanged: (bool? value) {
-                  setState(() {
-                    occur = value!;
-                    state.didChange(occur);
-                  });
+              CustomTextField(
+                labelText: "Descripción",
+                initial: risk.description,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => risk.description = val);
                 },
-              );
-            })
+              )
+            ]),
+            Column(children: [
+              customText("¿Ocurrió?", 12),
+              FormField<bool>(builder: (FormFieldState<bool> state) {
+                return Checkbox(
+                  value: risk.occur,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      risk.occur = value!;
+                      state.didChange(risk.occur);
+                    });
+                  },
+                );
+              })
+            ]),
           ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(saveText),
-              onPressed: () async {
-                saveRisk(context, risk, nameController.text,
-                    descController.text, occur, project);
-              },
-            ),
-            cancelBtn(context),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveRisk, risk)],
         );
       },
     );
@@ -216,14 +209,7 @@ class _RisksPageState extends State<RisksPage> {
           ],
         ),
         Row(children: [
-          /*IconButton(
-          icon: const Icon(Icons.list_alt),
-          tooltip: 'Results',
-          onPressed: () {
-            Navigator.pushNamed(context, "/results",
-                arguments: {'goal': risk});
-          }),*/
-          editBtn(context, callRiskDialog, {"risk": risk, "project": project}),
+          editBtn(context, riskEditDialog, {"risk": risk, "project": project}),
           removeBtn(context, removeRiskDialog,
               {"risk": risk, "project": project.uuid})
         ])
