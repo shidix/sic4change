@@ -87,7 +87,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           children: [
             //addBtn(context, _result),
             addBtn(
-                context, editTaskDialog, {"task": null, "result": result.uuid}),
+                context, editTaskDialog, {"task": "", "result": result.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -106,7 +106,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Future<void> editTaskDialog(context, HashMap args) {
     ResultTask task = ResultTask(args["result"]);
-    if (args["task"] != null) {
+    if (args["task"] != "") {
       task = args["task"];
     }
 
