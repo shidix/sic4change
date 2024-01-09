@@ -103,7 +103,8 @@ class _GoalsPageState extends State<GoalsPage> {
               (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Test", 14),
+            /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
                 initial: goal.name,
@@ -137,7 +138,7 @@ class _GoalsPageState extends State<GoalsPage> {
                   },
                 );
               })
-            ]),
+            ]),*/
           ])),
           actions: <Widget>[dialogsBtns(context, saveGoal, goal)],
         );
