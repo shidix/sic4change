@@ -155,28 +155,6 @@ class _GoalsPageState extends State<GoalsPage> {
           }),
           actions: <Widget>[
             dialogsBtns(context, saveGoal, goal),
-            ElevatedButton(
-              onPressed: () {
-                goal.save();
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 20.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
-                backgroundColor: Colors.white,
-              ),
-              child: Row(children: [
-                const Icon(
-                  Icons.remove_circle_outline,
-                  color: Colors.black54,
-                  size: 30,
-                ),
-                space(width: 10),
-                customText("Enviar", 14)
-              ]),
-            )
           ],
         );
       },
