@@ -24,8 +24,6 @@ class GoalsPage extends StatefulWidget {
 
 class _GoalsPageState extends State<GoalsPage> {
   SProject? project;
-  Goal? goal;
-
   void loadGoals() async {
     await getGoalsByProject(project!.uuid).then((val) {
       goals = val;
@@ -92,7 +90,7 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void saveGoal(List args) async {
-    Goal goal = args[0];
+    Goal goal = Goal.fromJson(args[0]);
     try {
       goal.save();
     } catch (e) {
@@ -107,7 +105,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
-    goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
+    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
 
     return showDialog<void>(
       context: context,
@@ -117,7 +115,7 @@ class _GoalsPageState extends State<GoalsPage> {
         if (args["goal"] != "") {
           goal = args["goal"];
         }*/
-        error = "-->${goal?.project}";
+        error = "-->${goal.project}";
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
@@ -130,10 +128,10 @@ class _GoalsPageState extends State<GoalsPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: "Nombre",
-                  initial: goal!.name,
+                  initial: goal.name,
                   size: 220,
                   fieldValue: (String val) {
-                    setState(() => goal!.name = val);
+                    setState(() => goal.name = val);
                   },
                 )
               ]),
@@ -141,10 +139,10 @@ class _GoalsPageState extends State<GoalsPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: "Descripción",
-                  initial: goal!.description,
+                  initial: goal.description,
                   size: 220,
                   fieldValue: (String val) {
-                    setState(() => goal!.description = val);
+                    setState(() => goal.description = val);
                   },
                 )
               ]),
@@ -152,11 +150,11 @@ class _GoalsPageState extends State<GoalsPage> {
                 customText("Principal", 12),
                 FormField<bool>(builder: (FormFieldState<bool> state) {
                   return Checkbox(
-                    value: goal!.main,
+                    value: goal.main,
                     onChanged: (bool? value) {
                       setState(() {
-                        goal!.main = value!;
-                        state.didChange(goal!.main);
+                        goal.main = value!;
+                        state.didChange(goal.main);
                       });
                     },
                   );
@@ -165,7 +163,7 @@ class _GoalsPageState extends State<GoalsPage> {
             ]));
           }),
           actions: <Widget>[
-            dialogsBtns(context, saveGoal, goal),
+            dialogsBtns(context, saveGoal, goal.toJson()),
           ],
         );
       },
