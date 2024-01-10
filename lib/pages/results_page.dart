@@ -108,7 +108,7 @@ class _ResultsPageState extends State<ResultsPage> {
   }
 
   Future<void> editResultDialog(context, Map<String, dynamic> args) {
-    Result result = args["goal"];
+    Result result = args["result"];
 
     return showDialog<void>(
       context: context,
