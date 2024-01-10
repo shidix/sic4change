@@ -82,11 +82,7 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void saveGoal(List args) async {
-    //Goal goal = args[0];
-    Goal goal = Goal(args[0]);
-    goal.name = args[1];
-    goal.description = args[2];
-    //goal.name = args[1];
+    Goal goal = args[0];
     goal.save();
     loadGoals();
 
@@ -96,6 +92,7 @@ class _GoalsPageState extends State<GoalsPage> {
   Future<void> editGoalDialog(context, HashMap args) {
     //Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
     Goal goal = Goal(args["project"]);
+    goal.save();
     if (args["goal"] != "") {
       goal = args["goal"];
     }
@@ -147,9 +144,7 @@ class _GoalsPageState extends State<GoalsPage> {
             ]),
           ])),
           actions: <Widget>[
-            //dialogsBtns(context, saveGoal, goal),
-            dialogsBtns(context, saveGoal,
-                [goal.project, goal.name, goal.description, goal.main]),
+            dialogsBtns(context, saveGoal, goal),
           ],
         );
       },
