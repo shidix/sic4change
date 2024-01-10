@@ -92,7 +92,7 @@ class _GoalsPageState extends State<GoalsPage> {
     if (goal.id == "") {
       Goal newGoal = Goal(goal.project);
       newGoal.name = goal.name;
-      newGoal.save();
+      //newGoal.save();
     } else {
       goal.save();
     }
@@ -105,7 +105,6 @@ class _GoalsPageState extends State<GoalsPage> {
   Future<void> editGoalDialog(context, HashMap args) {
     //Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
     Goal goal = Goal(args["project"]);
-    //goal.save();
     if (args["goal"] != "") {
       goal = args["goal"];
     }
