@@ -91,7 +91,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   void saveGoal(List args) async {
     try {
-      Goal goal = Goal.fromJson(args[0]);
+      Goal goal = args[0];
       goal.save();
     } catch (e) {
       error = e.toString() + " // " + args[0] + " // ";
@@ -102,15 +102,14 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   //Future<void> editGoalDialog(context, goal) {
-  Future<void> editGoalDialog(context, HashMap args) {
+  Future<void> editGoalDialog(context, Map<String, dynamic> args) {
     //Goal goal = (args["goal"] != "") ? args["goal"] : Goal(args["project"]);
-    Goal goal = Goal("");
-    try {
-      goal = args["goal"];
+    Goal goal = args["goal"];
+    /*try {
       Map<String, dynamic> t = goal.toJson();
     } catch (e) {
       error = e.toString();
-    }
+    }*/
 
     return showDialog<void>(
       context: context,
