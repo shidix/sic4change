@@ -1027,8 +1027,8 @@ Widget dialogsBtns(context, action, obj) {
     space(width: 10),
     Expanded(
         flex: 5,
-        child: actionButton(
-            context, "Cancelar", cancelItem, Icons.cancel, context))
+        child: actionButton(context, "Cancelar", cancelAndRemoveItem,
+            Icons.cancel, [context, obj]))
   ]);
 }
 
@@ -1219,6 +1219,12 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
 //                           ACTIONS
 //--------------------------------------------------------------------------
 void cancelItem(BuildContext context) {
+  Navigator.of(context).pop();
+}
+
+void cancelAndRemoveItem(args) {
+  BuildContext context = args[0];
+  args[1].delete();
   Navigator.of(context).pop();
 }
 
