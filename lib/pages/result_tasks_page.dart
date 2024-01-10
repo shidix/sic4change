@@ -105,7 +105,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
   }
 
   Future<void> editTaskDialog(context, Map<String, dynamic> args) {
-    ResultTask task = args["result"];
+    ResultTask task = args["task"];
 
     return showDialog<void>(
       context: context,

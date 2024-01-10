@@ -102,7 +102,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   Future<void> editActivityDialog(context, Map<String, dynamic> args) {
-    Activity activity = args["result"];
+    Activity activity = args["activity"];
 
     return showDialog<void>(
       context: context,

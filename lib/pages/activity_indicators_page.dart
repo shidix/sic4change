@@ -95,7 +95,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   }
 
   Future<void> editActivityIndicatorDialog(context, Map<String, dynamic> args) {
-    ActivityIndicator indicator = args["activity"];
+    ActivityIndicator indicator = args["indicator"];
 
     return showDialog<void>(
       context: context,
