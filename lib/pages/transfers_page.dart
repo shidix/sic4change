@@ -225,25 +225,23 @@ class _TransfersPageState extends State<TransfersPage> {
   }
 
   Widget listHeaderBankTransfers(BuildContext context) {
-    return const ListTile(
-        tileColor: Colors.white,
-        titleTextStyle: mainText,
-        title: Column(children: [
+
+    return ListTile(
+        tileColor: headerListBgColor,
+        title: 
           Row(children: [
-            Expanded(flex: 1, child: Text('Emisor')),
-            Expanded(flex: 1, child: Text('Receptor')),
-            Expanded(flex: 1, child: Text('Concepto')),
-            Expanded(flex: 1, child: Text('Fecha')),
-            Expanded(
-                flex: 1, child: Text('Enviado', textAlign: TextAlign.right)),
-            Expanded(
-                flex: 1, child: Text('Intermedio', textAlign: TextAlign.right)),
-            Expanded(
-                flex: 1, child: Text('Recibido', textAlign: TextAlign.right)),
-            Expanded(flex: 1, child: Text('')),
-          ]),
-          Divider(color: Colors.blueGrey),
-        ]));
+            headerCell(text: 'Emisor', flex:2),
+            headerCell(text: 'Receptor', flex:2),
+            headerCell(text: 'Concepto', flex:2),
+            headerCell(text: 'Fecha'),
+            headerCell(text: 'Enviado', textAlign: TextAlign.right),
+            headerCell(text:'TC', textAlign: TextAlign.right),
+            headerCell(text: 'Intermedio', textAlign: TextAlign.right),
+            headerCell(text:'TC', textAlign: TextAlign.right),
+            headerCell(text: 'Recibido', textAlign: TextAlign.right),
+            headerCell(text: ''),
+          ]));
+          
   }
 
   Widget listBankTransfers(BuildContext context) {
@@ -255,38 +253,22 @@ class _TransfersPageState extends State<TransfersPage> {
               itemBuilder: (context, index) {
                 return ListTile(
                   title: Row(children: [
-                    Expanded(
-                        flex: 1,
-                        child: Text(
-                            getFinancier(bankTransfers[index].emissor).name)),
-                    Expanded(
-                        flex: 1,
-                        child: Text(
-                            getContact(bankTransfers[index].receiver).name)),
-                    Expanded(
-                        flex: 1, child: Text(bankTransfers[index].concept)),
-                    Expanded(
-                        flex: 1,
-                        child: Text(DateFormat('dd-MM-yyyy')
-                            .format(bankTransfers[index].date))),
-                    Expanded(
-                        flex: 1,
-                        child: Text(
-                          "${bankTransfers[index].amountSource.toStringAsFixed(2).padLeft(10)} ${bankTransfers[index].currencySource.padRight(7)}",
-                          textAlign: TextAlign.right,
-                        )),
-                    Expanded(
-                        flex: 1,
-                        child: Text(
-                          "${bankTransfers[index].amountIntermediary.toStringAsFixed(2).padLeft(10)} ${bankTransfers[index].currencyIntermediary.padRight(7)}",
-                          textAlign: TextAlign.right,
-                        )),
-                    Expanded(
-                        flex: 1,
-                        child: Text(
-                          "${bankTransfers[index].amountDestination.toStringAsFixed(2).padLeft(10)} ${bankTransfers[index].currencyDestination.padRight(7)}",
-                          textAlign: TextAlign.right,
-                        )),
+                    listCell(
+                      flex:2,
+                        text: getFinancier(bankTransfers[index].emissor).name),
+                    listCell(flex:2, text: getContact(bankTransfers[index].receiver).name),
+                    listCell(flex:2, text: bankTransfers[index].concept),
+                    listCell(
+                        text: DateFormat('dd-MM-yyyy')
+                            .format(bankTransfers[index].date)),
+                    listCell(text:toCurrency(bankTransfers[index].amountSource, bankTransfers[index].currencySource),
+                        textAlign: TextAlign.right),
+                    listCell(text: bankTransfers[index].exchangeSource.toStringAsFixed(2), textAlign: TextAlign.right),
+                    listCell(text: toCurrency(bankTransfers[index].amountIntermediary, bankTransfers[index].currencyIntermediary),
+                        textAlign: TextAlign.right),
+                    listCell(text: bankTransfers[index].exchangeIntermediary.toStringAsFixed(2), textAlign: TextAlign.right),
+                    listCell(text: toCurrency(bankTransfers[index].amountDestination, bankTransfers[index].currencyDestination),
+                        textAlign: TextAlign.right),
                     Expanded(
                         flex: 1,
                         child: IconButton(
@@ -298,10 +280,6 @@ class _TransfersPageState extends State<TransfersPage> {
                           },
                         ))
                   ]),
-                  // onTap: () {
-                  //   currentTransfer = bankTransfers[index];
-                  //   addBankTransferDialog(context);
-                  // },
                 );
               }));
     } else {

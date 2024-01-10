@@ -860,6 +860,16 @@ class BankTransfer {
         date = DateTime.now();
       }
     }
+
+    if (json["amountIntermediary"] != 0) {
+      json["exchangeSource"] = json["amountIntermediary"] / json["amountSource"];
+      json["exchangeIntermediary"] =
+          json["amountDestination"] / json["amountIntermediary"];
+    } else {
+      json["exchangeIntermediary"] = 0;
+      json["exchangeSource"] = json["amountDestination"] / json["amountSource"];
+    }
+
     return BankTransfer(
       json["id"],
       json["uuid"],
@@ -911,6 +921,15 @@ class BankTransfer {
 
   void save() async {
     final collection = db.collection("s4c_banktransfers");
+    if (amountIntermediary != 0) {
+      exchangeSource = amountIntermediary / amountSource;
+      exchangeIntermediary = amountDestination / amountIntermediary;
+    }
+    else {
+      exchangeIntermediary = 0;
+      exchangeSource = amountDestination / amountSource;
+    }
+
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();

@@ -737,7 +737,7 @@ const Color cellsListColor = Color(0xff0b0b0b);
 const TextStyle headerListStyle = TextStyle(
   fontFamily: 'Readex Pro',
   color: headerListColor,
-  fontSize: 16,
+  fontSize: 15,
   fontWeight: FontWeight.bold,
 );
 
@@ -831,6 +831,22 @@ SizedBox s4cTitleBar(String title, [context, icon]) {
                             color: Colors.white))),
                 Expanded(flex: 1, child: closeButton)
               ]))));
+}
+
+Expanded headerCell({int flex=1, String text='', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(flex: flex, child: Text(
+    text,
+    style: headerListStyle,
+    textAlign: textAlign,
+  ));
+}
+
+Expanded listCell( {int flex=1, String text='', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(flex: flex, child: Text(
+    text,
+    style: cellsListStyle,
+    textAlign: textAlign,
+  ));
 }
 
 //--------------------------------------------------------------------------
