@@ -77,7 +77,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
           children: [
             //addBtn(context, activity),
             addBtn(context, editActivityIndicatorDialog,
-                {"indicator": "", "activity": activity.uuid}),
+                {"indicator": ActivityIndicator(activity.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -94,11 +94,8 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
     Navigator.pop(context);
   }
 
-  Future<void> editActivityIndicatorDialog(context, HashMap args) {
-    ActivityIndicator indicator = ActivityIndicator(args["activity"]);
-    if (args["indicator"] != "") {
-      indicator = args["indicator"];
-    }
+  Future<void> editActivityIndicatorDialog(context, Map<String, dynamic> args) {
+    ActivityIndicator indicator = args["indicator"];
 
     return showDialog<void>(
       context: context,
@@ -224,8 +221,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorRowOptions(context, indicator, activity) {
     return Row(children: [
-      editBtn(context, editActivityIndicatorDialog,
-          {"indicator": indicator, "activity": activity.uuid}),
+      editBtn(context, editActivityIndicatorDialog, {"indicator": indicator}),
       removeBtn(context, removeActivityDialog,
           {"activity": activity.uuid, "indicator": indicator})
     ]);

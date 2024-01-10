@@ -71,8 +71,7 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             /*addBtn(
                 context, editGoalDialog, {'_goal': null, '_project': project}),*/
-            addBtn(
-                context, editGoalDialog, {'goal': "", 'project': project.uuid}),
+            addBtn(context, editGoalDialog, {'goal': Goal(project.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -81,83 +80,62 @@ class _GoalsPageState extends State<GoalsPage> {
     ]);
   }
 
-  void callEditGoalDialog(context, HashMap args) {
-    Goal goal = Goal(args["project"]);
-    goal.save();
-    //editGoalDialog(context, goal);
-  }
-
   void saveGoal(List args) async {
     Goal goal = args[0];
-    try {
-      goal.save();
-    } catch (e) {
-      Goal g = Goal(goal.project);
-      g.save();
-    }
+    goal.save();
     loadGoals();
 
     Navigator.pop(context);
   }
 
-  //Future<void> editGoalDialog(context, goal) {
-  Future<void> editGoalDialog(context, HashMap args) {
-    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
+  Future<void> editGoalDialog(context, Map<String, dynamic> args) {
+    Goal goal = args["goal"];
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        /*Goal goal = Goal(args["project"]);
-        if (args["goal"] != "") {
-          goal = args["goal"];
-        }*/
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
-          /*title: s4cTitleBar(
-              (goal.name != "") ? 'Editando Objetivo' : 'Añadiendo Objetivo'),*/
-          content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Row(children: <Widget>[
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: goal.name,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => goal.name = val);
+          content: SingleChildScrollView(
+              child: Row(children: <Widget>[
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Nombre",
+                initial: goal.name,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => goal.name = val);
+                },
+              )
+            ]),
+            space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Descripción",
+                initial: goal.description,
+                size: 220,
+                fieldValue: (String val) {
+                  setState(() => goal.description = val);
+                },
+              )
+            ]),
+            Column(children: [
+              customText("Principal", 12),
+              FormField<bool>(builder: (FormFieldState<bool> state) {
+                return Checkbox(
+                  value: goal.main,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      goal.main = value!;
+                      state.didChange(goal.main);
+                    });
                   },
-                )
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Descripción",
-                  initial: goal.description,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => goal.description = val);
-                  },
-                )
-              ]),
-              Column(children: [
-                customText("Principal", 12),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: goal.main,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        goal.main = value!;
-                        state.didChange(goal.main);
-                      });
-                    },
-                  );
-                })
-              ]),
-            ]));
-          }),
+                );
+              })
+            ]),
+          ])),
           actions: <Widget>[
             dialogsBtns(context, saveGoal, goal),
           ],
@@ -271,7 +249,7 @@ class _GoalsPageState extends State<GoalsPage> {
     return Row(children: [
       goPageIcon(
           context, "Resultados", Icons.list_alt, ResultsPage(goal: goal)),
-      editBtn(context, editGoalDialog, {'goal': goal, 'project': project.uuid}),
+      editBtn(context, editGoalDialog, {'goal': goal}),
       removeBtn(
           context, removeGoalDialog, {"goal": goal, "project": project.uuid})
     ]);

@@ -1230,12 +1230,6 @@ void cancelItem(BuildContext context) {
   Navigator.of(context).pop();
 }
 
-void cancelAndRemoveItem(args) {
-  BuildContext context = args[0];
-  args[1].delete();
-  Navigator.of(context).pop();
-}
-
 //--------------------------------------------------------------------------
 //                           FORMS FIELDS
 //--------------------------------------------------------------------------

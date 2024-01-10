@@ -2,6 +2,7 @@
 
 import 'dart:collection';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -86,8 +87,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, _result),
-            addBtn(
-                context, editTaskDialog, {"task": "", "result": result.uuid}),
+            addBtn(context, editTaskDialog, {"task": ResultTask(result.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -104,11 +104,8 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
     Navigator.pop(context);
   }
 
-  Future<void> editTaskDialog(context, HashMap args) {
-    ResultTask task = ResultTask(args["result"]);
-    if (args["task"] != "") {
-      task = args["task"];
-    }
+  Future<void> editTaskDialog(context, Map<String, dynamic> args) {
+    ResultTask task = args["task"];
 
     return showDialog<void>(
       context: context,
@@ -201,7 +198,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Widget taskRowOptions(context, task, result) {
     return Row(children: [
-      editBtn(context, editTaskDialog, {"task": task, "result": result.uuid}),
+      editBtn(context, editTaskDialog, {"task": task}),
       removeBtn(context, removeResultTaskDialog,
           {"result": result.uuid, "task": task})
     ]);

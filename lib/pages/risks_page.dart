@@ -72,8 +72,7 @@ class _RisksPageState extends State<RisksPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(
-                context, riskEditDialog, {'risk': "", 'project': project.uuid}),
+            addBtn(context, riskEditDialog, {'risk': Risk(project.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -90,11 +89,8 @@ class _RisksPageState extends State<RisksPage> {
     Navigator.pop(context);
   }
 
-  Future<void> riskEditDialog(context, HashMap args) {
-    Risk risk = Risk(args["project"]);
-    if (args["risk"] != "") {
-      risk = args["risk"];
-    }
+  Future<void> riskEditDialog(context, Map<String, dynamic> args) {
+    Risk risk = args["risk"];
 
     return showDialog<void>(
       context: context,
@@ -219,8 +215,7 @@ class _RisksPageState extends State<RisksPage> {
           ],
         ),
         Row(children: [
-          editBtn(
-              context, riskEditDialog, {"risk": risk, "project": project.uuid}),
+          editBtn(context, riskEditDialog, {"risk": risk}),
           removeBtn(context, removeRiskDialog,
               {"risk": risk, "project": project.uuid})
         ])

@@ -90,8 +90,7 @@ class _ResultsPageState extends State<ResultsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(
-                context, editResultDialog, {"goal": goal.uuid, "result": ""}),
+            addBtn(context, editResultDialog, {"result": Result(goal.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -108,11 +107,8 @@ class _ResultsPageState extends State<ResultsPage> {
     Navigator.pop(context);
   }
 
-  Future<void> editResultDialog(context, HashMap args) {
-    Result result = Result(args["goal"]);
-    if (args["result"] != "") {
-      result = args["result"];
-    }
+  Future<void> editResultDialog(context, Map<String, dynamic> args) {
+    Result result = args["result"];
 
     return showDialog<void>(
       context: context,
@@ -279,7 +275,7 @@ class _ResultsPageState extends State<ResultsPage> {
           ActivitiesPage(result: result)),
       goPageIcon(context, "Tareas", Icons.assignment_rounded,
           ResultTasksPage(result: result)),
-      editBtn(context, editResultDialog, {"goal": goal.uuid, "result": result}),
+      editBtn(context, editResultDialog, {"result": result}),
       removeBtn(
           context, removeResultDialog, {"goal": goal.uuid, "result": result})
     ]);
