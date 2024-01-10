@@ -94,7 +94,7 @@ class _GoalsPageState extends State<GoalsPage> {
     try {
       goal.save();
     } catch (e) {
-      error = e.toString() + goal.project;
+      error = e.toString() + " // " + args[0] + " // " + goal.name;
       Goal g = Goal(goal.project);
       g.save();
     }
