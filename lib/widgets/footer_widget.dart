@@ -32,7 +32,7 @@ Widget footer(context) {
                   alignment: Alignment.center,
                   child: Image(
                     image: AssetImage('assets/images/logo_s4c.png'),
-                    height: 150,
+                    height: 100,
                   ),
                 )),
             Expanded(
@@ -41,7 +41,7 @@ Widget footer(context) {
                   alignment: Alignment.center,
                   child: Image(
                     image: AssetImage('assets/images/logo_ministerio.png'),
-                    height: 150,
+                    height: 100,
                   ),
                 )),
           ],
