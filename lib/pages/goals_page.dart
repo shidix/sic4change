@@ -73,8 +73,8 @@ class _GoalsPageState extends State<GoalsPage> {
           children: [
             /*addBtn(
                 context, editGoalDialog, {'_goal': null, '_project': project}),*/
-            addBtn(
-                context, editGoalDialog, {'goal': "", 'project': project.uuid}),
+            addBtn(context, editGoalDialog,
+                {'goal': Goal(project.uuid), 'project': project.uuid}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -103,7 +103,13 @@ class _GoalsPageState extends State<GoalsPage> {
 
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
-    Goal goal = (args["goal"] != "") ? args["goal"] : Goal(args["project"]);
+    //Goal goal = (args["goal"] != "") ? args["goal"] : Goal(args["project"]);
+    Goal goal = args["goal"];
+    try {
+      Map<String, dynamic> t = goal.toJson();
+    } catch (e) {
+      error = e.toString();
+    }
 
     return showDialog<void>(
       context: context,
