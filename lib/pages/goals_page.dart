@@ -23,8 +23,8 @@ class GoalsPage extends StatefulWidget {
 
 class _GoalsPageState extends State<GoalsPage> {
   SProject? project;
-  void loadGoals(value) async {
-    await getGoalsByProject(value).then((val) {
+  void loadGoals() async {
+    await getGoalsByProject(project!.uuid).then((val) {
       goals = val;
     });
     setState(() {});
@@ -84,7 +84,8 @@ class _GoalsPageState extends State<GoalsPage> {
   void saveGoal(List args) async {
     Goal goal = args[0];
     goal.save();
-    loadGoals(goal.project);
+    //loadGoals(goal.project);
+    loadGoals();
 
     Navigator.pop(context);
   }
@@ -146,7 +147,8 @@ class _GoalsPageState extends State<GoalsPage> {
             Column(children: [
               actionButton(
                   context, "Enviar", saveGoal, Icons.save_outlined, [goal]),
-              dialogsBtns(context, saveGoal, goal)
+              dialogsBtns(context, saveGoal, goal),
+              dialogsBtns2(context, loadGoals, goal.project)
             ])
           ],
         );
@@ -266,6 +268,7 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void removeGoalDialog(context, args) {
-    customRemoveDialog(context, args["goal"], loadGoals, args["project"]);
+    //customRemoveDialog(context, args["goal"], loadGoals, args["project"]);
+    customRemoveDialog(context, args["goal"], loadGoals, null);
   }
 }
