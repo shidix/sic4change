@@ -12,6 +12,7 @@ import 'package:sic4change/widgets/path_header_widget.dart';
 
 const goalPageTitle = "Marco Lógico";
 List goals = [];
+String error = "-";
 
 class GoalsPage extends StatefulWidget {
   final SProject? project;
@@ -45,6 +46,7 @@ class _GoalsPageState extends State<GoalsPage> {
         goalPath(context, project),
         goalHeader(context, project),
         marcoMenu(context, project, "marco"),
+        customText(error, 14),
         contentTab(context, goalList, project),
         footer(context),
       ]),
@@ -92,6 +94,7 @@ class _GoalsPageState extends State<GoalsPage> {
     try {
       goal.save();
     } catch (e) {
+      error = e.toString();
       Goal g = Goal(goal.project);
       g.save();
     }
