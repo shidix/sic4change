@@ -73,6 +73,17 @@ class InvoiceDetail extends StatelessWidget {
                   flex: 1,
                   child: ReadOnlyTextField(
                       label: 'Total', textToShow: invoice.total.toString())),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Moneda',
+                      textToShow: CURRENCIES[invoice.currency]!.value)),
+              Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                      label: 'Fecha Pago',
+                      textToShow:
+                          DateFormat('dd-MM-yyyy').format(invoice.paidDate))),
             ]),
           ],
         ));
@@ -115,7 +126,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
         _formKey.currentState!.save();
         _invoice.delete();
         Navigator.of(context).pop(_invoice);
-        return(_invoice);
+        return (_invoice);
       }
       return null;
     }
@@ -228,8 +239,9 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 child: TextFormField(
                   textAlign: TextAlign.right,
                   initialValue: _invoice.base.toString(),
-                  decoration:
-                      InputDecoration(labelText: 'Base ${CURRENCIES[_invoice.currency]!.value}'),
+                  decoration: InputDecoration(
+                      labelText:
+                          'Base ${CURRENCIES[_invoice.currency]!.value}'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -252,7 +264,8 @@ class _InvoiceFormState extends State<InvoiceForm> {
                   textAlign: TextAlign.right,
                   initialValue: _invoice.taxes.toString(),
                   decoration: InputDecoration(
-                      labelText: 'Impuestos ${CURRENCIES[_invoice.currency]!.value}'),
+                      labelText:
+                          'Impuestos ${CURRENCIES[_invoice.currency]!.value}'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -276,7 +289,33 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 textToShow: toCurrency(_invoice.total, _invoice.currency),
                 textAlign: TextAlign.right,
               ),
-            )
+            ),
+            Expanded(
+                flex: 1,
+                child: TextFormField(
+                  textAlign: TextAlign.right,
+                  initialValue: _invoice.imputation.toStringAsFixed(2),
+                  decoration: const InputDecoration(labelText: 'Imputado (%)'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingrese el % imputado';
+                    }
+                    if (double.parse(value) > 100) {
+                      return 'El % imputado no puede ser mayor que 100';
+                    }
+                    if (double.parse(value) < 1) {
+                      return 'El % imputado no puede ser menor que 1';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    _invoice.imputation = double.parse(value);
+                  },
+                  onSaved: (value) =>
+                      _invoice.imputation = double.parse(value!),
+                )),
           ]),
           TextFormField(
             initialValue: _invoice.document,
@@ -285,10 +324,24 @@ class _InvoiceFormState extends State<InvoiceForm> {
           ),
           const SizedBox(height: 16.0),
           Row(children: [
-            Expanded(flex: _invoice.id == ""?3:2, child: Container()),
-            Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: saveBtnForm(context, saveInvoice))),
-            _invoice.id == ""?Container(width: 0): Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: removeBtnForm(context, removeInvoice))),
-            Expanded(flex: 1, child: Padding(padding:const EdgeInsets.only(left:5), child: cancelBtnForm(context))),
+            Expanded(flex: _invoice.id == "" ? 3 : 2, child: Container()),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: saveBtnForm(context, saveInvoice))),
+            _invoice.id == ""
+                ? Container(width: 0)
+                : Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: removeBtnForm(context, removeInvoice))),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: cancelBtnForm(context))),
           ]),
         ],
       )),
@@ -315,12 +368,11 @@ class _BankTransferFormState extends State<BankTransferForm> {
   void initState() {
     super.initState();
     if (widget.existingBankTransfer == null) {
-      _bankTransfer = BankTransfer("", "", "", "", "", "", "", "", "", 0, 0, 0,
-          0, 0, 0, 0, 0, "EUR", "EUR", "EUR", "");
+      _bankTransfer = BankTransfer.getEmpty();
       _bankTransfer.uuid = const Uuid().v4();
       _bankTransfer.project = widget.project!.uuid;
       _bankTransfer.concept = "Concepto";
-      _bankTransfer.date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      _bankTransfer.date = DateTime.now();
       _bankTransfer.emissor = widget.project!.financiersObj[0].uuid;
       _bankTransfer.receiver = widget.project!.partnersObj[0].uuid;
     } else {
@@ -364,6 +416,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
         if (_formKey.currentState!.validate()) {
           _formKey.currentState!.save();
           _bankTransfer.delete();
+          _bankTransfer.id = "";
           Navigator.of(context).pop(_bankTransfer);
         }
       },
@@ -423,11 +476,10 @@ class _BankTransferFormState extends State<BankTransferForm> {
                       flex: 1,
                       child: DateTimePicker(
                         labelText: 'Fecha',
-                        selectedDate: DateTime.parse(_bankTransfer.date),
+                        selectedDate: _bankTransfer.date,
                         onSelectedDate: (DateTime value) {
                           setState(() {
-                            _bankTransfer.date =
-                                DateFormat('yyyy-MM-dd').format(value);
+                            _bankTransfer.date = value;
                           });
                         },
                       ))
@@ -534,11 +586,17 @@ class _BankTransferFormState extends State<BankTransferForm> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: _bankTransfer.currencySource,
-                      decoration:
-                          const InputDecoration(labelText: 'Moneda Origen'),
-                      onSaved: (value) => _bankTransfer.currencySource = value!,
+                    child: CustomSelectFormField(
+                      labelText: AppLocalizations.of(context)!.currency,
+                      initial: _bankTransfer.currencySource,
+                      options: CURRENCIES.keys
+                          .map((currency) => KeyValue(currency, currency))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        _bankTransfer.currencySource = value.toString();
+                        if (mounted) setState(() {});
+                      },
+                      required: true,
                     )),
               ]),
               Row(children: [
@@ -633,12 +691,17 @@ class _BankTransferFormState extends State<BankTransferForm> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: _bankTransfer.currencyIntermediary,
-                      decoration: const InputDecoration(
-                          labelText: 'Moneda Intermediario'),
-                      onSaved: (value) =>
-                          _bankTransfer.currencyIntermediary = value!,
+                    child: CustomSelectFormField(
+                      labelText: AppLocalizations.of(context)!.currency,
+                      initial: _bankTransfer.currencyIntermediary,
+                      options: CURRENCIES.keys
+                          .map((currency) => KeyValue(currency, currency))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        _bankTransfer.currencyIntermediary = value.toString();
+                        if (mounted) setState(() {});
+                      },
+                      required: true,
                     )),
               ]),
               Row(children: [
@@ -703,12 +766,17 @@ class _BankTransferFormState extends State<BankTransferForm> {
                 Expanded(flex: 1, child: Container()),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: _bankTransfer.currencyDestination,
-                      decoration:
-                          const InputDecoration(labelText: 'Moneda Destino'),
-                      onSaved: (value) =>
-                          _bankTransfer.currencyDestination = value!,
+                    child: CustomSelectFormField(
+                      labelText: AppLocalizations.of(context)!.currency,
+                      initial: _bankTransfer.currencyDestination,
+                      options: CURRENCIES.keys
+                          .map((currency) => KeyValue(currency, currency))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        _bankTransfer.currencyDestination = value.toString();
+                        if (mounted) setState(() {});
+                      },
+                      required: true,
                     )),
               ]),
               TextFormField(

@@ -669,7 +669,8 @@ Color mainMenuBtnColor = Colors.white54;
 Color blueColor = const Color(0Xff00809a);
 
 // const Color mainColor = Color(0xFF00809A);
-const Color mainColor = Color(0xffabf100);
+// const Color mainColor = Color(0xffabf100);
+const Color mainColor = Color(0xff00594f);
 const TextStyle mainText = TextStyle(
   fontFamily: 'Readex Pro',
   color: mainColor,
@@ -689,6 +690,14 @@ const Color normalColor = Colors.black;
 const TextStyle normalText = TextStyle(
   fontFamily: 'Readex Pro',
   color: normalColor,
+  fontSize: 14,
+  fontWeight: FontWeight.normal,
+);
+
+const Color fieldColor = Color(0xFF757575);
+const TextStyle fieldStyle = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: fieldColor,
   fontSize: 14,
   fontWeight: FontWeight.normal,
 );
@@ -719,7 +728,25 @@ const TextStyle cardHeaderText = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
-TextStyle headerListText = headerTitleText.copyWith(fontSize: 14);
+const Color headerListBgColor = Color(0xffe5f2d7);
+const Color headerListColor = Color(0xff0b0b0b);
+const Color cellsListColor = Color(0xff0b0b0b);
+
+const TextStyle headerListStyle = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: headerListColor,
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
+
+const TextStyle cellsListStyle = TextStyle(
+  fontFamily: 'Readex Pro',
+  color: cellsListColor,
+  fontSize: 14,
+  fontWeight: FontWeight.normal,
+);
+
+//headerTitleText.copyWith(fontSize: 14);
 
 const Color subTitleColor = Colors.black45;
 const TextStyle subTitleText =
