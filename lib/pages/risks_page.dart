@@ -90,7 +90,7 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   Future<void> riskEditDialog(context, Map<String, dynamic> args) {
-    Risk risk = args["project"];
+    Risk risk = args["risk"];
 
     return showDialog<void>(
       context: context,
