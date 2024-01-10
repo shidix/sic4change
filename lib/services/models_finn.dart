@@ -760,7 +760,7 @@ class BankTransfer {
   String code;
   String project;
   String concept;
-  String date;
+  DateTime date;
   String emissor;
   String receiver;
   double amountSource;
@@ -799,28 +799,91 @@ class BankTransfer {
       this.currencyDestination,
       this.document);
 
-  BankTransfer.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        number = json["number"],
-        code = json["code"],
-        project = json["project"],
-        concept = json["concept"],
-        date = json["date"],
-        emissor = json["emissor"],
-        receiver = json["receiver"],
-        amountSource = json["amountSource"],
-        exchangeSource = json["exchangeSource"],
-        commissionSource = json["commissionSource"],
-        amountIntermediary = json["amountIntermediary"],
-        exchangeIntermediary = json["exchangeIntermediary"],
-        commissionIntermediary = json["commissionIntermediary"],
-        amountDestination = json["amountDestination"],
-        commissionDestination = json["commissionDestination"],
-        currencySource = json["currencySource"],
-        currencyIntermediary = json["currencyIntermediary"],
-        currencyDestination = json["currencyDestination"],
-        document = json["document"];
+  factory BankTransfer.getEmpty() {
+    return BankTransfer(
+      "", // id
+      const Uuid().v4(), // uuid
+      "", // number
+      "", // code
+      "", // project
+      "", // concept
+      DateTime.now(), // date
+      "", // emissor
+      "", // receiver
+      0, // amountSource
+      0, // exchangeSource
+      0, // commissionSource
+      0, // amountIntermediary
+      0, // exchangeIntermediary
+      0, // commissionIntermediary
+      0, // amountDestination
+      0, // commissionDestination
+      "EUR", // currencySource
+      "EUR", // currencyIntermediary
+      "EUR", // currencyDestination
+      "", // document
+    );
+  }
+
+  factory BankTransfer.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("currencySource")) {
+      json["currencySource"] = "EUR";
+    } else {
+      if (!CURRENCIES.containsKey(json["currencySource"])) {
+        json["currencySource"] = "EUR";
+      }
+    }
+    if (!json.containsKey("currencyIntermediary")) {
+      json["currencyIntermediary"] = "EUR";
+    } else {
+      if (!CURRENCIES.containsKey(json["currencyIntermediary"])) {
+        json["currencyIntermediary"] = "EUR";
+      }
+    }
+    if (!json.containsKey("currencyDestination")) {
+      json["currencyDestination"] = "EUR";
+    } else {
+      if (!CURRENCIES.containsKey(json["currencyDestination"])) {
+        json["currencyDestination"] = "EUR";
+      }
+    }
+    if (!json.containsKey("document")) {
+      json["document"] = "";
+    }
+    DateTime date = DateTime.now();
+    try {
+      date = DateTime.parse(json["date"]);
+    } catch (e) {
+      try {
+        date = DateFormat('dd-MM-yyyy').parse(json["date"]);
+      } catch (e) {
+        date = DateTime.now();
+      }
+    }
+    return BankTransfer(
+      json["id"],
+      json["uuid"],
+      json["number"],
+      json["code"],
+      json["project"],
+      json["concept"],
+      date,
+      json["emissor"],
+      json["receiver"],
+      json["amountSource"],
+      json["exchangeSource"],
+      json["commissionSource"],
+      json["amountIntermediary"],
+      json["exchangeIntermediary"],
+      json["commissionIntermediary"],
+      json["amountDestination"],
+      json["commissionDestination"],
+      json["currencySource"],
+      json["currencyIntermediary"],
+      json["currencyDestination"],
+      json["document"],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -829,7 +892,7 @@ class BankTransfer {
         'code': code,
         'project': project,
         'concept': concept,
-        'date': date,
+        'date': DateFormat('yyyy-MM-dd').format(date),
         'emissor': emissor,
         'receiver': receiver,
         'amountSource': amountSource,

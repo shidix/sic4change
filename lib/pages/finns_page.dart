@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
-import 'package:sic4change/services/firebase_service_finn.dart';
+import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -151,7 +151,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         percent: min(percentExecuted, 1),
                         center: Text(
                             "${(percentExecuted * 100).toStringAsFixed(0)} %",
-                            style: mainText),
+                            style: mainText.copyWith(color: Colors.white)),
                         lineHeight: 20,
                         animation: true,
                         animateFromLastPercent: true,
@@ -180,9 +180,12 @@ class _FinnsPageState extends State<FinnsPage> {
     invoicesSummary = {};
     for (Invoice invoice in invoicesItems) {
       if (invoicesSummary.containsKey(invoice.partner)) {
-        invoicesSummary[invoice.partner]!['total'] += invoice.total;
+        invoicesSummary[invoice.partner]!['total'] +=
+            invoice.total * invoice.imputation * 0.01;
       } else {
-        invoicesSummary[invoice.partner] = {"total": invoice.total};
+        invoicesSummary[invoice.partner] = {
+          "total": invoice.total * invoice.imputation * 0.01
+        };
       }
     }
 
@@ -333,6 +336,11 @@ class _FinnsPageState extends State<FinnsPage> {
       TextStyle trunkStyle =
           cellsListStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 15);
       TextStyle leafStyle = cellsListStyle;
+      String finnTitle = "${finn.name}. ${finn.description}";
+      String suffix = "";
+      if (finnTitle.length > 45) {
+        suffix = "...";
+      }
       finnRows.add(SizedBox(
           height: 30,
           child: Row(children: [
@@ -341,8 +349,13 @@ class _FinnsPageState extends State<FinnsPage> {
                 child: Padding(
                     padding: EdgeInsets.only(left: finn.getLevel() * 15),
                     child: Row(children: [
-                      Text("${finn.name}. ${finn.description}",
-                          style: level == 1 ? trunkStyle : leafStyle),
+                      Tooltip(
+                          message: finnTitle,
+                          child: Text(
+                              finnTitle.substring(
+                                      0, min(finnTitle.length, 45)) +
+                                  suffix,
+                              style: level == 1 ? trunkStyle : leafStyle)),
                       IconButton(
                           onPressed: () {
                             _editFinnDialog([context, finn, _project]);
@@ -385,7 +398,13 @@ class _FinnsPageState extends State<FinnsPage> {
                 flex: 1,
                 child: Text(toCurrency(getDistrib(finn.uuid)),
                     textAlign: TextAlign.start,
-                    style: level == 1 ? trunkStyle : leafStyle)),
+                    style: level == 1
+                        ? (getDistrib(finn.uuid) > getAporte(finn.uuid))
+                            ? trunkStyle.copyWith(color: dangerColor)
+                            : trunkStyle
+                        : (getDistrib(finn.uuid) > getAporte(finn.uuid))
+                            ? leafStyle.copyWith(color: dangerColor)
+                            : leafStyle)),
             for (Contact partner in _project!.partnersObj)
               Expanded(
                   flex: 1,
@@ -486,9 +505,12 @@ class _FinnsPageState extends State<FinnsPage> {
     invoicesSummary = {};
     for (Invoice invoice in invoicesItems) {
       if (invoicesSummary.containsKey(invoice.partner)) {
-        invoicesSummary[invoice.partner]!['total'] += invoice.total;
+        invoicesSummary[invoice.partner]!['total'] +=
+            invoice.total * invoice.imputation * 0.01;
       } else {
-        invoicesSummary[invoice.partner] = {"total": invoice.total};
+        invoicesSummary[invoice.partner] = {
+          "total": invoice.total * invoice.imputation * 0.01
+        };
       }
     }
     for (var item in invoicesSummary.values) {
@@ -567,6 +589,9 @@ class _FinnsPageState extends State<FinnsPage> {
           MaterialPageRoute(
               builder: ((context) => TransfersPage(
                     project: project,
+                    finnItems: finnList,
+                    aportesItems: aportesItems,
+                    distribItems: distribItems,
                   ))));
     }
 
@@ -852,7 +877,7 @@ class _FinnsPageState extends State<FinnsPage> {
                   child: IconButton(
                       onPressed: () {
                         _editInvoiceDialog(context, invoice).then((value) {
-                          if ((value == null) || (value.id == "")) {
+                          if ((value != null) && (value.id == "")) {
                             invoicesItems.remove(invoice);
                           }
                           reloadState();
