@@ -106,7 +106,6 @@ class _GoalsPageState extends State<GoalsPage> {
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
     Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
-    error = "-->${goal.name}";
 
     return showDialog<void>(
       context: context,
@@ -116,6 +115,7 @@ class _GoalsPageState extends State<GoalsPage> {
         if (args["goal"] != "") {
           goal = args["goal"];
         }*/
+        error = "-->${goal.name}";
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
