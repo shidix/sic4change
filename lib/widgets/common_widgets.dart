@@ -1027,8 +1027,8 @@ Widget dialogsBtns(context, action, obj) {
     space(width: 10),
     Expanded(
         flex: 5,
-        child: actionButton(context, "Cancelar", cancelAndRemoveItem,
-            Icons.cancel, [context, obj]))
+        child: actionButton(
+            context, "Cancelar", cancelItem, Icons.cancel, context))
   ]);
 }
 
