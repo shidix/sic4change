@@ -145,8 +145,6 @@ class _GoalsPageState extends State<GoalsPage> {
           ])),
           actions: <Widget>[
             Column(children: [
-              actionButton(
-                  context, "Enviar", saveGoal, Icons.save_outlined, [goal]),
               dialogsBtns(context, saveGoal, goal),
               dialogsBtns2(context, loadGoals, goal)
             ])
