@@ -525,6 +525,7 @@ class Invoice {
   String document;
   String partner;
   String currency;
+  double imputation;
 
   Invoice(
       this.id,
@@ -542,7 +543,8 @@ class Invoice {
       this.provider,
       this.document,
       this.partner,
-      this.currency);
+      this.currency,
+      {this.imputation = 100.0});
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("currency")) {
@@ -551,6 +553,9 @@ class Invoice {
       if (!CURRENCIES.containsKey(json["currency"])) {
         json["currency"] = "EUR";
       }
+    }
+    if (!json.containsKey("imputation")) {
+      json["imputation"] = 100.0;
     }
     DateTime date = DateTime.now();
     try {
@@ -590,6 +595,7 @@ class Invoice {
       json["document"],
       json["partner"],
       json["currency"],
+      imputation: json["imputation"],
     );
   }
 
@@ -611,6 +617,7 @@ class Invoice {
       "", // document
       "", // partner
       "EUR", // currency
+      imputation: 100.0,
     );
   }
 
@@ -631,6 +638,7 @@ class Invoice {
         'document': document,
         'partner': partner,
         'currency': currency,
+        'imputation': imputation,
       };
 
   void save() async {
@@ -656,12 +664,9 @@ class Invoice {
 
   static Future<List> getByFinn(finn) async {
     List finnUuids = [];
-    if (finn.runtimeType is String)
-    {
+    if (finn.runtimeType is String) {
       finnUuids = [finn];
-    }
-    else
-    {
+    } else {
       finnUuids = finn;
     }
     final collection = db.collection("s4c_invoices");
@@ -685,9 +690,9 @@ class Invoice {
     int count = 0;
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
-      total += item.total;
-      taxes += item.taxes;
-      base += item.base;
+      total += item.total * item.imputation * 0.01;
+      taxes += item.taxes * item.imputation * 0.01;
+      base += item.base * item.imputation * 0.01;
       count++;
     }
     return {
@@ -721,9 +726,9 @@ class Invoice {
     int count = 0;
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
-      total += item.total;
-      taxes += item.taxes;
-      base += item.base;
+      total += item.total * item.imputation * 0.01;
+      taxes += item.taxes * item.imputation * 0.01;
+      base += item.base * item.imputation * 0.01;
       count++;
     }
     return {

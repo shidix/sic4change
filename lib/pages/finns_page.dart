@@ -31,7 +31,6 @@ class _FinnsPageState extends State<FinnsPage> {
   List finnList = [];
   SProject? _project;
 
-
   Map<String, Map> invoicesSummary = {};
   List aportesItems = [];
   List distribItems = [];
@@ -291,31 +290,33 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget populateFinnContainer() {
     int widthFinn = 3;
     List<Widget> finnRows = [];
-    Row headerRow = Row(children: [
-      Expanded(
-          flex: widthFinn,
-          child: Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text("Partida", style: headerListText))),
-      Expanded(
-          flex: 1,
-          child: Text("Aportaciones",
-              textAlign: TextAlign.start, style: headerListText)),
-      for (Financier financier in _project!.financiersObj)
-        Expanded(
-            flex: 1,
-            child: Text(financier.name,
-                textAlign: TextAlign.start, style: headerListText)),
-      Expanded(
-          flex: 1,
-          child: Text("Ejecución",
-              textAlign: TextAlign.start, style: headerListText)),
-      for (Contact partner in _project!.partnersObj)
-        Expanded(
-            flex: 1,
-            child: Text(partner.name,
-                textAlign: TextAlign.start, style: headerListText)),
-    ]);
+    Container headerRow = Container(
+        color: headerListBgColor,
+        child: Row(children: [
+          Expanded(
+              flex: widthFinn,
+              child: const Padding(
+                  padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
+                  child: Text("Partida", style: headerListStyle))),
+          const Expanded(
+              flex: 1,
+              child: Text("Aportaciones",
+                  textAlign: TextAlign.start, style: headerListStyle)),
+          for (Financier financier in _project!.financiersObj)
+            Expanded(
+                flex: 1,
+                child: Text(financier.name,
+                    textAlign: TextAlign.start, style: headerListStyle)),
+          const Expanded(
+              flex: 1,
+              child: Text("Ejecución",
+                  textAlign: TextAlign.start, style: headerListStyle)),
+          for (Contact partner in _project!.partnersObj)
+            Expanded(
+                flex: 1,
+                child: Text(partner.name,
+                    textAlign: TextAlign.start, style: headerListStyle)),
+        ]));
     finnRows.add(headerRow);
     finnRows.add(const Divider(thickness: 1, color: Colors.grey));
     for (SFinn finn in finnList) {
@@ -325,12 +326,13 @@ class _FinnsPageState extends State<FinnsPage> {
       }
       Map<dynamic, dynamic> summary = {"total": 0};
       if (level == 1) {
-          summary = {"total": getAporte(finn.uuid)};
+        summary = {"total": getAporte(finn.uuid)};
       } else {
         summary = {"total": getAporte(finn.uuid)};
       }
-      TextStyle trunkStyle = const TextStyle(fontWeight: FontWeight.bold);
-      TextStyle leafStyle = const TextStyle(fontWeight: FontWeight.normal);
+      TextStyle trunkStyle =
+          cellsListStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 15);
+      TextStyle leafStyle = cellsListStyle;
       finnRows.add(SizedBox(
           height: 30,
           child: Row(children: [
@@ -346,14 +348,12 @@ class _FinnsPageState extends State<FinnsPage> {
                             _editFinnDialog([context, finn, _project]);
                           },
                           icon: const Icon(Icons.edit, size: 15)),
-  
-                          IconButton(
-                              onPressed: () {
-                                finnSelected = finn;
-                                reloadState();
-                              },
-                              icon: const Icon(Icons.list, size: 15))
-
+                      IconButton(
+                          onPressed: () {
+                            finnSelected = finn;
+                            reloadState();
+                          },
+                          icon: const Icon(Icons.list, size: 15))
                     ]))),
             Expanded(
                 flex: 1,
@@ -477,7 +477,6 @@ class _FinnsPageState extends State<FinnsPage> {
       });
     });
   }
-
 
   Future<double> invoicesByPartner() async {
     List finnUuids = finnList.map((e) => e.uuid).toList();
@@ -671,7 +670,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget populateInvoicesContainer() {
     Text headerField(String title, [alignment = TextAlign.start]) {
-      return Text(title, textAlign: alignment, style: headerListText);
+      return Text(title, textAlign: alignment, style: headerListStyle);
     }
 
     if (finnSelected != null) {
@@ -691,6 +690,7 @@ class _FinnsPageState extends State<FinnsPage> {
           Expanded(flex: 2, child: headerField('Base', TextAlign.end)),
           Expanded(flex: 2, child: headerField('Impuestos', TextAlign.end)),
           Expanded(flex: 2, child: headerField('Total', TextAlign.end)),
+          Expanded(flex: 1, child: headerField('%', TextAlign.end)),
           Expanded(flex: 1, child: headerField('', TextAlign.end)),
         ]);
 
@@ -803,65 +803,64 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget rowFromInvoice(Invoice invoice) {
     return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                child: Row(children: [
-                  Expanded(
-                      flex: 2,
-                      child: Text(finnUuidHash.containsKey(invoice.finn)
-                          ? finnUuidHash[invoice.finn]!.name
-                          : '')),
-                  Expanded(flex: 2, child: Text(invoice.number)),
-                  Expanded(flex: 2, child: Text(invoice.code)),
-                  Expanded(
-                      flex: 2,
-                      child:
-                          Text(DateFormat('dd-MM-yyyy').format(invoice.date))),
-                  Expanded(flex: 4, child: Text(invoice.concept)),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                          (getObject(_project!.partnersObj, invoice.partner)
-                                  as Contact)
-                              .name)),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        toCurrency(invoice.base, invoice.currency),
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        toCurrency(invoice.taxes, invoice.currency),
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        toCurrency(invoice.total, invoice.currency),
-                        textAlign: TextAlign.end,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                              onPressed: () {
-                                _editInvoiceDialog(context, invoice)
-                                    .then((value) {
-                                  if ((value == null) || (value.id =="")) {
-                                    invoicesItems.remove(invoice);
-                                  }
-                                  reloadState();
-
-                                });
-                              },
-                              icon: const Icon(Icons.edit)))),
-                ])
-                );
-  
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: Row(children: [
+          Expanded(
+              flex: 2,
+              child: Text(finnUuidHash.containsKey(invoice.finn)
+                  ? finnUuidHash[invoice.finn]!.name
+                  : '')),
+          Expanded(flex: 2, child: Text(invoice.number)),
+          Expanded(flex: 2, child: Text(invoice.code)),
+          Expanded(
+              flex: 2,
+              child: Text(DateFormat('dd-MM-yyyy').format(invoice.date))),
+          Expanded(flex: 4, child: Text(invoice.concept)),
+          Expanded(
+              flex: 2,
+              child: Text(
+                  (getObject(_project!.partnersObj, invoice.partner) as Contact)
+                      .name)),
+          Expanded(
+              flex: 2,
+              child: Text(
+                toCurrency(invoice.base, invoice.currency),
+                textAlign: TextAlign.end,
+              )),
+          Expanded(
+              flex: 2,
+              child: Text(
+                toCurrency(invoice.taxes, invoice.currency),
+                textAlign: TextAlign.end,
+              )),
+          Expanded(
+              flex: 2,
+              child: Text(
+                toCurrency(invoice.total, invoice.currency),
+                textAlign: TextAlign.end,
+              )),
+          Expanded(
+              flex: 1,
+              child: Text(
+                "${invoice.imputation.toStringAsFixed(0)}%",
+                textAlign: TextAlign.end,
+              )),
+          Expanded(
+              flex: 1,
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                      onPressed: () {
+                        _editInvoiceDialog(context, invoice).then((value) {
+                          if ((value == null) || (value.id == "")) {
+                            invoicesItems.remove(invoice);
+                          }
+                          reloadState();
+                        });
+                      },
+                      icon: const Icon(Icons.edit)))),
+        ]));
   }
-
 
   Future<void> _editFinnContribDialog(context, finn, financierObj) {
     List<Row> rows = [];

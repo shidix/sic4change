@@ -59,7 +59,8 @@ class _OrgchartState extends State<Orgchart> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('${AppLocalizations.of(context)!.add} Perfil', context),
+          title: s4cTitleBar(
+              '${AppLocalizations.of(context)!.add} Perfil', context),
           content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
               child: ProfileForm(
@@ -91,8 +92,8 @@ class _OrgchartState extends State<Orgchart> {
 
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
-      actionButtonVertical(
-          context, AppLocalizations.of(context)!.add, addProfileDialog, Icons.add, {'context':context}),
+      actionButtonVertical(context, AppLocalizations.of(context)!.add,
+          addProfileDialog, Icons.add, {'context': context}),
       // space(width: 10),
       // backButton(context),
     ];
@@ -115,28 +116,32 @@ class _OrgchartState extends State<Orgchart> {
         itemCount: filteredProfiles.length,
         itemBuilder: (context, index) {
           Profile item = filteredProfiles[index];
-          return Tooltip(message: AppLocalizations.of(context)!.click_to_edit, child: ListTile(
-            title: Column(
-              children: [
-                Row(
+          return Tooltip(
+              message: AppLocalizations.of(context)!.click_to_edit,
+              child: ListTile(
+                title: Column(
                   children: [
-                    Expanded(
-                        flex: 1, child: Text(item.email, style: normalText)),
-                    Expanded(
-                        flex: 1, child: Text(item.mainRole, style: normalText)),
-                    Expanded(
-                        flex: 2,
-                        child: Text(item.holidaySupervisor.join(', '),
-                            style: normalText)),
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 1,
+                            child: Text(item.email, style: normalText)),
+                        Expanded(
+                            flex: 1,
+                            child: Text(item.mainRole, style: normalText)),
+                        Expanded(
+                            flex: 2,
+                            child: Text(item.holidaySupervisor.join(', '),
+                                style: normalText)),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-            onTap: () {
-              currentProfile = item;
-              addProfileDialog({'context':context});
-            },
-          ));
+                onTap: () {
+                  currentProfile = item;
+                  addProfileDialog({'context': context});
+                },
+              ));
         },
       );
     }
@@ -144,16 +149,16 @@ class _OrgchartState extends State<Orgchart> {
 
   Widget buildProfileHeader() {
     return Container(
-        child:  ListTile(
+        child: ListTile(
             title: Column(
       children: [
         Row(
           children: [
-            Expanded(flex: 1, child: Text("Usuario", style: headerListText)),
-            Expanded(flex: 1, child: Text("Rol", style: headerListText)),
+            Expanded(flex: 1, child: Text("Usuario", style: headerListStyle)),
+            Expanded(flex: 1, child: Text("Rol", style: headerListStyle)),
             Expanded(
                 flex: 2,
-                child: Text("Supervisores vacaciones", style: headerListText)),
+                child: Text("Supervisores vacaciones", style: headerListStyle)),
           ],
         ),
         const Divider(),
@@ -187,10 +192,9 @@ class _OrgchartState extends State<Orgchart> {
                     )),
                 Expanded(flex: 2, child: topButtons(context))
               ])),
-          CardRounded(child: Column(children: [
-            buildProfileHeader(),
-            buildProfileList()
-          ])),
+          CardRounded(
+              child:
+                  Column(children: [buildProfileHeader(), buildProfileList()])),
           // buildProfileHeader(),
           // SizedBox(
           //   height: 400,
