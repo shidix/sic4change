@@ -124,7 +124,7 @@ class _FinnsPageState extends State<FinnsPage> {
               lineHeight: 20,
               animation: true,
               animateFromLastPercent: true,
-              progressColor: Colors.blueGrey,
+              progressColor: percentBarPrimary,
               backgroundColor: Colors.grey,
               padding: EdgeInsets.zero,
             )),
@@ -151,12 +151,15 @@ class _FinnsPageState extends State<FinnsPage> {
                         percent: min(percentExecuted, 1),
                         center: Text(
                             "${(percentExecuted * 100).toStringAsFixed(0)} %",
-                            style: mainText.copyWith(color: Colors.white)),
+                                                        style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)
+                           ),
                         lineHeight: 20,
                         animation: true,
                         animateFromLastPercent: true,
                         progressColor:
-                            percentExecuted < 1 ? Colors.blueGrey : dangerColor,
+                            percentExecuted < 1 ? percentBarPrimary : dangerColor,
                         backgroundColor: Colors.grey,
                         padding: EdgeInsets.zero,
                       )),
@@ -232,7 +235,7 @@ class _FinnsPageState extends State<FinnsPage> {
               lineHeight: 20,
               animation: true,
               animateFromLastPercent: true,
-              progressColor: distribPercent < 1 ? Colors.blueGrey : dangerColor,
+              progressColor: distribPercent < 1 ? percentBarPrimary : dangerColor,
               backgroundColor: Colors.grey,
               padding: EdgeInsets.zero,
             )),
@@ -272,7 +275,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         animation: true,
                         animateFromLastPercent: true,
                         progressColor: (percentExecuted < 1)
-                            ? Colors.blueGrey
+                            ? percentBarPrimary
                             : dangerColor,
                         backgroundColor: Colors.grey,
                         padding: EdgeInsets.zero,
@@ -282,7 +285,7 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Text(
                           "${toCurrency(totalExecuted)} de ${toCurrency(totalDistrib)}",
                           textAlign: TextAlign.end,
-                          style: secondaryText)),
+                          style: (percentExecuted < 1) ? mainText.copyWith(fontSize: mainText.fontSize! - 2): mainText.copyWith(fontSize: mainText.fontSize! - 2, color: dangerColor))),
                 ]),
                 const Divider()
               ] +

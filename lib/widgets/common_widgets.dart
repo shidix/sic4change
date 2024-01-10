@@ -668,6 +668,8 @@ Color mainMenuBtnSelectedColor = Colors.white;
 Color mainMenuBtnColor = Colors.white54;
 Color blueColor = const Color(0Xff00809a);
 
+const Color percentBarPrimary = Color(0xffabf100);
+
 // const Color mainColor = Color(0xFF00809A);
 // const Color mainColor = Color(0xffabf100);
 const Color mainColor = Color(0xff00594f);
@@ -839,11 +841,11 @@ Widget goPage(context, btnName, newContext, icon,
     {style = "", extraction = null}) {
   Widget child = Column(
     children: [
-      //space(height: 5),
+      space(height: 5),
       Icon(icon, color: subTitleColor),
       space(height: 5),
       customText(btnName, 12, textColor: subTitleColor),
-      //space(height: 5),
+      space(height: 5),
     ],
   );
   if (style == "bigBtn") {
@@ -900,9 +902,11 @@ Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
       style: btnStyle,
       child: Column(
         children: [
+          space(height: 5),
           Icon(icon, color: subTitleColor),
           space(height: 5),
           customText(text, 12, textColor: subTitleColor),
+          space(height: 5),
         ],
       ));
 }
@@ -945,9 +949,11 @@ Widget returnBtn(context) {
     style: btnStyle,
     child: Column(
       children: [
+        space(height: 5),
         const Icon(Icons.arrow_circle_left_outlined, color: subTitleColor),
         space(height: 5),
-        customText(returnText, 12, textColor: subTitleColor)
+        customText(returnText, 12, textColor: subTitleColor),
+        space(height: 5),
       ],
     ),
   );
@@ -965,9 +971,11 @@ Widget saveBtn(context, action, [args]) {
     style: btnStyle,
     child: Column(
       children: [
+        space(height: 5),
         const Icon(Icons.save_outlined, color: subTitleColor),
         space(height: 5),
-        customText(saveText, 12, textColor: subTitleColor)
+        customText(saveText, 12, textColor: subTitleColor),
+        space(height: 5),
       ],
     ),
   );

@@ -475,7 +475,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 children: [
                   customText("En ejecución:", 16),
                   space(height: 5),
-                  customLinearPercent(context, 4.5, 0.8, mainColor),
+                  customLinearPercent(context, 4.5, 0.8, percentBarPrimary),
                 ],
               ),
               const VerticalDivider(
