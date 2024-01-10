@@ -89,7 +89,12 @@ class _GoalsPageState extends State<GoalsPage> {
 
   void saveGoal(List args) async {
     Goal goal = args[0];
-    //goal.save();
+    try {
+      goal.save();
+    } catch (e) {
+      Goal g = Goal(goal.project);
+      g.save();
+    }
     loadGoals();
 
     Navigator.pop(context);
@@ -97,16 +102,16 @@ class _GoalsPageState extends State<GoalsPage> {
 
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
-    //Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
+    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        Goal goal = Goal(args["project"]);
+        /*Goal goal = Goal(args["project"]);
         if (args["goal"] != "") {
           goal = args["goal"];
-        }
+        }*/
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
