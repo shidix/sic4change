@@ -84,7 +84,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(context, editActivityDialog,
-                {"activity": "", "result": result.uuid}),
+                {"activity": Activity(result.uuid)}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -101,11 +101,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     Navigator.pop(context);
   }
 
-  Future<void> editActivityDialog(context, HashMap args) {
-    Activity activity = Activity(args["result"]);
-    if (args["activity"] != "") {
-      activity = args["activity"];
-    }
+  Future<void> editActivityDialog(context, Map<String, dynamic> args) {
+    Activity activity = args["result"];
 
     return showDialog<void>(
       context: context,
@@ -208,8 +205,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           }),*/
       goPageIcon(context, "Indicadores", Icons.list_alt,
           ActivityIndicatorsPage(activity: activity)),
-      editBtn(context, editActivityDialog,
-          {"activity": activity, "result": result.uuid}),
+      editBtn(context, editActivityDialog, {"activity": activity}),
       removeBtn(context, removeActivityDialog,
           {"result": result.uuid, "activity": activity})
     ]);
