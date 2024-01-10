@@ -90,13 +90,11 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void saveGoal(List args) async {
-    Goal goal = Goal.fromJson(args[0]);
     try {
+      Goal goal = Goal.fromJson(args[0]);
       goal.save();
     } catch (e) {
-      error = e.toString() + " // " + args[0] + " // " + goal.name;
-      Goal g = Goal(goal.project);
-      g.save();
+      error = e.toString() + " // " + args[0] + " // ";
     }
     loadGoals();
 
@@ -105,7 +103,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
-    Goal goal = (args["goal"] != null) ? args["goal"] : Goal(args["project"]);
+    Goal goal = (args["goal"] != "") ? args["goal"] : Goal(args["project"]);
 
     return showDialog<void>(
       context: context,
@@ -163,7 +161,7 @@ class _GoalsPageState extends State<GoalsPage> {
             ]));
           }),
           actions: <Widget>[
-            dialogsBtns(context, saveGoal, goal),
+            dialogsBtns(context, saveGoal, goal.toJson()),
           ],
         );
       },
