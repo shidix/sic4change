@@ -115,7 +115,7 @@ class _GoalsPageState extends State<GoalsPage> {
         if (args["goal"] != "") {
           goal = args["goal"];
         }*/
-        error = "-->${goal.name}";
+        error = "-->${goal.project}";
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
