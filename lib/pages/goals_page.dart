@@ -82,9 +82,10 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void saveGoal(List args) async {
-    Goal goal = args[0];
-    goal.save();
-    loadGoals(goal.project);
+    //Goal goal = args[0];
+    //goal.save();
+    args[0].save();
+    loadGoals(args[0].project);
 
     Navigator.pop(context);
   }

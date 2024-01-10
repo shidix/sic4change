@@ -399,7 +399,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Ambito del proyecto", 14, bold: FontWeight.bold),
+                customText("Ámbito del proyecto", 14, bold: FontWeight.bold),
                 space(height: 5),
                 customText(project?.ambit, 14),
                 space(height: 5),
