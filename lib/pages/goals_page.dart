@@ -82,9 +82,12 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void saveGoal(List args) async {
+    //Goal goal = args[0];
     Goal goal = args[0];
+    goal.name = args[1];
+    goal.description = args[2];
+    //goal.name = args[1];
     goal.save();
-    //loadGoals(goal.project);
     loadGoals();
 
     Navigator.pop(context);
@@ -144,10 +147,9 @@ class _GoalsPageState extends State<GoalsPage> {
             ]),
           ])),
           actions: <Widget>[
-            Column(children: [
-              dialogsBtns(context, saveGoal, goal),
-              dialogsBtns2(context, loadGoals, goal)
-            ])
+            //dialogsBtns(context, saveGoal, goal),
+            dialogsBtns(context, saveGoal,
+                [goal.project, goal.name, goal.description, goal.main]),
           ],
         );
       },

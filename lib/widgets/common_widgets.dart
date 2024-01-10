@@ -1032,38 +1032,6 @@ Widget dialogsBtns(context, action, obj) {
   ]);
 }
 
-Widget dialogsBtns2(context, action, obj) {
-  return Row(children: [
-    ElevatedButton(
-      onPressed: () {
-        obj.save();
-        action();
-        Navigator.of(context).pop();
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(children: [
-        const Icon(
-          Icons.save_outlined,
-          color: Colors.black54,
-          size: 30,
-        ),
-        space(width: 10),
-        customText("Enviar", 14)
-      ]),
-    ),
-    space(width: 10),
-    Expanded(
-        flex: 5,
-        child: actionButton(
-            context, "Cancelar", cancelItem, Icons.cancel, context))
-  ]);
-}
-
 //--------------------------------------------------------------------------
 //                           TABS
 //--------------------------------------------------------------------------
