@@ -104,8 +104,9 @@ class _GoalsPageState extends State<GoalsPage> {
   //Future<void> editGoalDialog(context, goal) {
   Future<void> editGoalDialog(context, HashMap args) {
     //Goal goal = (args["goal"] != "") ? args["goal"] : Goal(args["project"]);
-    Goal goal = args["goal"];
+    Goal goal = Goal("");
     try {
+      goal = args["goal"];
       Map<String, dynamic> t = goal.toJson();
     } catch (e) {
       error = e.toString();
@@ -119,7 +120,6 @@ class _GoalsPageState extends State<GoalsPage> {
         if (args["goal"] != "") {
           goal = args["goal"];
         }*/
-        error = "-->${goal.project}";
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
