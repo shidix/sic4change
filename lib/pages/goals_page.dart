@@ -83,7 +83,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   void saveGoal(List args) async {
     //Goal goal = args[0];
-    Goal goal = args[0];
+    Goal goal = Goal(args[0]);
     goal.name = args[1];
     goal.description = args[2];
     //goal.name = args[1];
