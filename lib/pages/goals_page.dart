@@ -163,7 +163,7 @@ class _GoalsPageState extends State<GoalsPage> {
             ]));
           }),
           actions: <Widget>[
-            dialogsBtns(context, saveGoal, goal.toJson()),
+            dialogsBtns(context, saveGoal, goal),
           ],
         );
       },
