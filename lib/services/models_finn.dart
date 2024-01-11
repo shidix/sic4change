@@ -931,11 +931,12 @@ class BankTransfer {
   void save() async {
     final collection = db.collection("s4c_banktransfers");
     if (amountIntermediary != 0) {
-      exchangeSource = amountIntermediary / amountSource;
-      exchangeIntermediary = amountDestination / amountIntermediary;
+      exchangeSource = amountIntermediary / (amountSource - commissionSource);
+      exchangeIntermediary =
+          amountDestination / (amountIntermediary - commissionIntermediary);
     } else {
       exchangeIntermediary = 0;
-      exchangeSource = amountDestination / amountSource;
+      exchangeSource = amountDestination / (amountSource - commissionSource);
     }
 
     if (id == "") {

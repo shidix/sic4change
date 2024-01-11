@@ -128,27 +128,29 @@ class _TransfersPageState extends State<TransfersPage> {
     return Financier("");
   }
 
-  void addTransfer() {
-    BankTransfer bankTransfer = BankTransfer.getEmpty();
-    bankTransfer.uuid = const Uuid().v4();
-    bankTransfer.project = currentProject!.uuid;
-    bankTransfer.concept = "Concepto";
-    bankTransfer.date = DateTime.now();
-    bankTransfer.amountSource = Random().nextDouble() * 20000;
-    bankTransfer.commissionSource = Random().nextDouble() * 0.04;
-    bankTransfer.exchangeSource = (0.97 + Random().nextDouble() * 0.06);
-    bankTransfer.amountIntermediary =
-        bankTransfer.amountSource * bankTransfer.exchangeSource -
-            bankTransfer.commissionSource;
-    bankTransfer.commissionIntermediary = Random().nextDouble() * 0.04;
-    bankTransfer.exchangeIntermediary =
-        1 / (0.26 + Random().nextDouble() * 0.04);
-    bankTransfer.amountDestination =
-        bankTransfer.amountIntermediary * bankTransfer.exchangeIntermediary -
-            bankTransfer.commissionIntermediary;
-    bankTransfer.commissionDestination = Random().nextDouble() * 0.04;
+  void addTransfer([int n = 1]) {
+    for (var i = 0; i < n; i++) {
+      BankTransfer bankTransfer = BankTransfer.getEmpty();
+      bankTransfer.uuid = const Uuid().v4();
+      bankTransfer.project = currentProject!.uuid;
+      bankTransfer.concept = "Concepto";
+      bankTransfer.date = DateTime.now();
+      bankTransfer.amountSource = Random().nextDouble() * 20000;
+      bankTransfer.commissionSource = Random().nextDouble() * 0.04;
+      bankTransfer.exchangeSource = (0.97 + Random().nextDouble() * 0.06);
+      bankTransfer.amountIntermediary =
+          bankTransfer.amountSource * bankTransfer.exchangeSource -
+              bankTransfer.commissionSource;
+      bankTransfer.commissionIntermediary = Random().nextDouble() * 0.04;
+      bankTransfer.exchangeIntermediary =
+          1 / (0.26 + Random().nextDouble() * 0.04);
+      bankTransfer.amountDestination =
+          bankTransfer.amountIntermediary * bankTransfer.exchangeIntermediary -
+              bankTransfer.commissionIntermediary;
+      bankTransfer.commissionDestination = Random().nextDouble() * 0.04;
 
-    bankTransfer.save();
+      bankTransfer.save();
+    }
     setState(() {});
   }
 
@@ -204,7 +206,11 @@ class _TransfersPageState extends State<TransfersPage> {
       space(width: 10),
       actionButtonVertical(context, 'Volver', () {
         Navigator.pop(context);
-      }, Icons.arrow_circle_left_outlined, null)
+      }, Icons.arrow_circle_left_outlined, null),
+      // space(width: 10),
+      // actionButton(context, "Aleatorias", () {
+      //   addTransfer(10);
+      // }, Icons.currency_exchange_rounded, null),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -220,28 +226,28 @@ class _TransfersPageState extends State<TransfersPage> {
                 child: Column(children: [
               listHeaderBankTransfers(context),
               listBankTransfersContainer!,
+              const Divider(),
               totalSummary(context),
             ]))));
   }
 
   Widget listHeaderBankTransfers(BuildContext context) {
-
     return ListTile(
         tileColor: headerListBgColor,
-        title: 
-          Row(children: [
-            headerCell(text: 'Emisor', flex:2),
-            headerCell(text: 'Receptor', flex:2),
-            headerCell(text: 'Concepto', flex:2),
-            headerCell(text: 'Fecha'),
-            headerCell(text: 'Enviado', textAlign: TextAlign.right),
-            headerCell(text:'TC', textAlign: TextAlign.right),
-            headerCell(text: 'Intermedio', textAlign: TextAlign.right),
-            headerCell(text:'TC', textAlign: TextAlign.right),
-            headerCell(text: 'Recibido', textAlign: TextAlign.right),
-            headerCell(text: ''),
-          ]));
-          
+        title: Row(children: [
+          headerCell(text: 'Emisor', flex: 2),
+          headerCell(text: 'Receptor', flex: 2),
+          headerCell(text: 'Concepto', flex: 2),
+          headerCell(text: 'Fecha'),
+          headerCell(
+              text: 'Enviado (com)', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'TC', textAlign: TextAlign.right),
+          headerCell(
+              text: 'Intermedio (com)', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'TC', textAlign: TextAlign.right),
+          headerCell(text: 'Recibido', textAlign: TextAlign.right),
+          headerCell(text: ''),
+        ]));
   }
 
   Widget listBankTransfers(BuildContext context) {
@@ -254,31 +260,66 @@ class _TransfersPageState extends State<TransfersPage> {
                 return ListTile(
                   title: Row(children: [
                     listCell(
-                      flex:2,
+                        flex: 2,
                         text: getFinancier(bankTransfers[index].emissor).name),
-                    listCell(flex:2, text: getContact(bankTransfers[index].receiver).name),
-                    listCell(flex:2, text: bankTransfers[index].concept),
+                    listCell(
+                        flex: 2,
+                        text: getContact(bankTransfers[index].receiver).name),
+                    listCell(flex: 2, text: bankTransfers[index].concept),
                     listCell(
                         text: DateFormat('dd-MM-yyyy')
                             .format(bankTransfers[index].date)),
-                    listCell(text:toCurrency(bankTransfers[index].amountSource, bankTransfers[index].currencySource),
+                    listCell(
+                        flex: 2,
+                        text:
+                            "${toCurrency(bankTransfers[index].amountSource, bankTransfers[index].currencySource)} (${toCurrency(bankTransfers[index].commissionSource, bankTransfers[index].currencySource)})",
                         textAlign: TextAlign.right),
-                    listCell(text: bankTransfers[index].exchangeSource.toStringAsFixed(2), textAlign: TextAlign.right),
-                    listCell(text: toCurrency(bankTransfers[index].amountIntermediary, bankTransfers[index].currencyIntermediary),
+                    listCell(
+                        text: bankTransfers[index]
+                            .exchangeSource
+                            .toStringAsFixed(2),
                         textAlign: TextAlign.right),
-                    listCell(text: bankTransfers[index].exchangeIntermediary.toStringAsFixed(2), textAlign: TextAlign.right),
-                    listCell(text: toCurrency(bankTransfers[index].amountDestination, bankTransfers[index].currencyDestination),
+                    listCell(
+                        flex: 2,
+                        text:
+                            "${toCurrency(bankTransfers[index].amountIntermediary, bankTransfers[index].currencyIntermediary)} (${toCurrency(bankTransfers[index].commissionIntermediary, bankTransfers[index].currencyIntermediary)})",
+                        textAlign: TextAlign.right),
+                    listCell(
+                        text: bankTransfers[index]
+                            .exchangeIntermediary
+                            .toStringAsFixed(2),
+                        textAlign: TextAlign.right),
+                    listCell(
+                        text: toCurrency(bankTransfers[index].amountDestination,
+                            bankTransfers[index].currencyDestination),
                         textAlign: TextAlign.right),
                     Expanded(
                         flex: 1,
-                        child: IconButton(
-                          iconSize: 18,
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            currentTransfer = bankTransfers[index];
-                            addBankTransferDialog(context);
-                          },
-                        ))
+                        child: Row(children: [
+                          IconButton(
+                            iconSize: 18,
+                            icon: const Icon(Icons.edit),
+                            onPressed: () {
+                              currentTransfer = bankTransfers[index];
+                              addBankTransferDialog(context);
+                            },
+                          ),
+                          IconButton(
+                            iconSize: 18,
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              bankTransfers[index].delete();
+                              bankTransfers.remove(bankTransfers[index]);
+                              setState(() {
+                                currentTransfer = null;
+                                listBankTransfersContainer =
+                                    listBankTransfers(context);
+                                contentContainer =
+                                    contentContainerPopulate(context);
+                              });
+                            },
+                          ),
+                        ])),
                   ]),
                 );
               }));
@@ -407,9 +448,7 @@ class _TransfersPageState extends State<TransfersPage> {
     }
 
     headers.add(Row(children: [
-      const Expanded(
-          flex: 1,
-          child: Text('Origen del presupuesto total', style: mainText)),
+      const Expanded(flex: 1, child: Text('Financiación', style: mainText)),
       Expanded(
           flex: 1,
           child: Text(toCurrency(totalAmount),

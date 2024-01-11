@@ -302,12 +302,16 @@ class _BankTransferFormState extends State<BankTransferForm> {
   @override
   Widget build(BuildContext context) {
     List<DropdownMenuItem<Object>>? financiers = [];
+    financiers.add(
+        const DropdownMenuItem(value: "", child: Text("Selecciona un emisor")));
     for (Financier financier in widget.project!.financiersObj) {
       financiers.add(
           DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
     }
 
     List<DropdownMenuItem<Object>>? contacts = [];
+    contacts.add(const DropdownMenuItem(
+        value: "", child: Text("Selecciona un receptor")));
     for (Contact contact in widget.project!.partnersObj) {
       contacts.add(
           DropdownMenuItem(value: contact.uuid, child: Text(contact.name)));
@@ -367,6 +371,21 @@ class _BankTransferFormState extends State<BankTransferForm> {
       ];
     }
 
+    void update_exchange() {
+      if (_bankTransfer.amountIntermediary > 0.0) {
+        _bankTransfer.exchangeIntermediary = _bankTransfer.amountDestination /
+            (_bankTransfer.amountIntermediary -
+                _bankTransfer.commissionIntermediary);
+        _bankTransfer.exchangeSource = _bankTransfer.amountIntermediary /
+            (_bankTransfer.amountSource - _bankTransfer.commissionSource);
+      } else {
+        _bankTransfer.exchangeIntermediary = 0;
+        _bankTransfer.exchangeSource = _bankTransfer.amountDestination /
+            (_bankTransfer.amountSource - _bankTransfer.commissionSource);
+      }
+      setState(() {});
+    }
+
     return Form(
       key: _formKey,
       child: SizedBox(
@@ -408,6 +427,12 @@ class _BankTransferFormState extends State<BankTransferForm> {
                   value: _bankTransfer.emissor,
                   decoration: const InputDecoration(labelText: 'Emisor'),
                   items: financiers,
+                  validator: (value) {
+                    if (value == null || value == "") {
+                      return 'Por favor, seleccione un emisor';
+                    }
+                    return null;
+                  },
                   onChanged: (value) {
                     _bankTransfer.emissor = value.toString();
                   }),
@@ -415,6 +440,12 @@ class _BankTransferFormState extends State<BankTransferForm> {
                   value: _bankTransfer.receiver,
                   decoration: const InputDecoration(labelText: 'Receptor'),
                   items: contacts,
+                  validator: (value) {
+                    if (value == null || value == "") {
+                      return 'Por favor, seleccione un receptor';
+                    }
+                    return null;
+                  },
                   onChanged: (value) {
                     _bankTransfer.receiver = value.toString();
                   }),
@@ -438,14 +469,14 @@ class _BankTransferFormState extends State<BankTransferForm> {
                           value = "0.0";
                         }
                         try {
-                          _bankTransfer.amountSource = double.parse(value);
+                          _bankTransfer.amountSource = fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.amountSource = 0.0;
                         }
-                        setState(() {});
+                        update_exchange();
                       },
                       onSaved: (value) =>
-                          _bankTransfer.amountSource = double.parse(value!),
+                          _bankTransfer.amountSource = fromCurrency(value!),
                     )),
                 Expanded(
                     flex: 1,
@@ -466,42 +497,22 @@ class _BankTransferFormState extends State<BankTransferForm> {
                           value = "0.0";
                         }
                         try {
-                          _bankTransfer.commissionSource = double.parse(value);
+                          _bankTransfer.commissionSource = fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.commissionSource = 0.0;
                         }
-                        setState(() {});
+                        update_exchange();
                       },
                       onSaved: (value) =>
-                          _bankTransfer.commissionSource = double.parse(value!),
+                          _bankTransfer.commissionSource = fromCurrency(value!),
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: _bankTransfer.exchangeSource.toString(),
-                      decoration:
-                          const InputDecoration(labelText: 'Cambio Origen'),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese un valor';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        if (value == "") {
-                          value = "0.0";
-                        }
-                        try {
-                          _bankTransfer.exchangeSource = double.parse(value);
-                        } catch (e) {
-                          _bankTransfer.exchangeSource = 0.0;
-                        }
-                        setState(() {});
-                      },
-                      onSaved: (value) =>
-                          _bankTransfer.exchangeSource = double.parse(value!),
+                    child: ReadOnlyTextField(
+                      label: "Cambio Origen",
+                      textToShow:
+                          _bankTransfer.exchangeSource.toStringAsFixed(2),
+                      textAlign: TextAlign.right,
                     )),
                 Expanded(
                     flex: 1,
@@ -539,14 +550,14 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         }
                         try {
                           _bankTransfer.amountIntermediary =
-                              double.parse(value);
+                              fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.amountIntermediary = 0.0;
                         }
-                        setState(() {});
+                        update_exchange();
                       },
                       onSaved: (value) => _bankTransfer.amountIntermediary =
-                          double.parse(value!),
+                          fromCurrency(value!),
                     )),
                 Expanded(
                     flex: 1,
@@ -569,44 +580,22 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         }
                         try {
                           _bankTransfer.commissionIntermediary =
-                              double.parse(value);
+                              fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.commissionIntermediary = 0.0;
                         }
-                        setState(() {});
+                        update_exchange();
                       },
                       onSaved: (value) => _bankTransfer.commissionIntermediary =
-                          double.parse(value!),
+                          fromCurrency(value!),
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue:
-                          _bankTransfer.exchangeIntermediary.toString(),
-                      decoration: const InputDecoration(
-                          labelText: 'Cambio Intermediario'),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese un valor';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        if (value == "") {
-                          value = "0.0";
-                        }
-                        try {
-                          _bankTransfer.exchangeIntermediary =
-                              double.parse(value);
-                        } catch (e) {
-                          _bankTransfer.exchangeIntermediary = 0.0;
-                        }
-                        setState(() {});
-                      },
-                      onSaved: (value) => _bankTransfer.exchangeIntermediary =
-                          double.parse(value!),
+                    child: ReadOnlyTextField(
+                      label: "Cambio Intermediario",
+                      textToShow:
+                          _bankTransfer.exchangeIntermediary.toStringAsFixed(2),
+                      textAlign: TextAlign.right,
                     )),
                 Expanded(
                     flex: 1,
@@ -643,11 +632,11 @@ class _BankTransferFormState extends State<BankTransferForm> {
                           value = "0.0";
                         }
                         try {
-                          _bankTransfer.amountDestination = double.parse(value);
+                          _bankTransfer.amountDestination = fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.amountDestination = 0.0;
                         }
-                        setState(() {});
+                        update_exchange();
                       },
                       onSaved: (value) => _bankTransfer.amountDestination =
                           double.parse(value!),
@@ -673,14 +662,14 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         }
                         try {
                           _bankTransfer.commissionDestination =
-                              double.parse(value);
+                              fromCurrency(value);
                         } catch (e) {
                           _bankTransfer.commissionDestination = 0.0;
                         }
                         setState(() {});
                       },
                       onSaved: (value) => _bankTransfer.commissionDestination =
-                          double.parse(value!),
+                          fromCurrency(value!),
                     )),
                 Expanded(flex: 1, child: Container()),
                 Expanded(
