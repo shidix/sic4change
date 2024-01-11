@@ -11,7 +11,6 @@ import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-
 //final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -74,7 +73,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget app = MaterialApp(
       //navigatorKey: navigatorKey,
-      title: 'Material App',
+      title: 'Worket. Mejorando la gestión de las ONGs',
       initialRoute: '/',
       routes: _routes,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -93,8 +93,10 @@ class _FinnsPageState extends State<FinnsPage> {
       }
       totalAportes += contribution.amount;
     }
-    if (fromCurrency(_project!.budget) != totalAportes) {
+    if ((fromCurrency(_project!.budget) != totalAportes) ||
+        (_project!.execBudget != executedBudgetProject)) {
       _project!.budget = toCurrency(totalAportes).replaceAll("€", "");
+      _project!.execBudget = executedBudgetProject;
       _project!.save();
     }
 
@@ -124,7 +126,7 @@ class _FinnsPageState extends State<FinnsPage> {
               lineHeight: 20,
               animation: true,
               animateFromLastPercent: true,
-              progressColor: Colors.blueGrey,
+              progressColor: percentBarPrimary,
               backgroundColor: Colors.grey,
               padding: EdgeInsets.zero,
             )),
@@ -151,12 +153,15 @@ class _FinnsPageState extends State<FinnsPage> {
                         percent: min(percentExecuted, 1),
                         center: Text(
                             "${(percentExecuted * 100).toStringAsFixed(0)} %",
-                            style: mainText.copyWith(color: Colors.white)),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
                         lineHeight: 20,
                         animation: true,
                         animateFromLastPercent: true,
-                        progressColor:
-                            percentExecuted < 1 ? Colors.blueGrey : dangerColor,
+                        progressColor: percentExecuted < 1
+                            ? percentBarPrimary
+                            : dangerColor,
                         backgroundColor: Colors.grey,
                         padding: EdgeInsets.zero,
                       )),
@@ -203,6 +208,11 @@ class _FinnsPageState extends State<FinnsPage> {
       totalDistrib += distribution.amount;
     }
 
+    if (_project!.assignedBudget != totalDistrib) {
+      _project!.assignedBudget = totalDistrib;
+      _project!.save();
+    }
+
     double totalExecuted = 0;
     double percentExecuted = 0;
 
@@ -232,7 +242,8 @@ class _FinnsPageState extends State<FinnsPage> {
               lineHeight: 20,
               animation: true,
               animateFromLastPercent: true,
-              progressColor: distribPercent < 1 ? Colors.blueGrey : dangerColor,
+              progressColor:
+                  distribPercent < 1 ? percentBarPrimary : dangerColor,
               backgroundColor: Colors.grey,
               padding: EdgeInsets.zero,
             )),
@@ -272,7 +283,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         animation: true,
                         animateFromLastPercent: true,
                         progressColor: (percentExecuted < 1)
-                            ? Colors.blueGrey
+                            ? percentBarPrimary
                             : dangerColor,
                         backgroundColor: Colors.grey,
                         padding: EdgeInsets.zero,
@@ -282,7 +293,12 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Text(
                           "${toCurrency(totalExecuted)} de ${toCurrency(totalDistrib)}",
                           textAlign: TextAlign.end,
-                          style: secondaryText)),
+                          style: (percentExecuted < 1)
+                              ? mainText.copyWith(
+                                  fontSize: mainText.fontSize! - 2)
+                              : mainText.copyWith(
+                                  fontSize: mainText.fontSize! - 2,
+                                  color: dangerColor))),
                 ]),
                 const Divider()
               ] +

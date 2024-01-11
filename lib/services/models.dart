@@ -28,6 +28,8 @@ class SProject {
   bool evaluation = false;
   List financiers = [];
   List partners = [];
+  double execBudget = 0;
+  double assignedBudget = 0;
   Ambit ambitObj = Ambit("");
   ProjectType typeObj = ProjectType("");
   Contact managerObj = Contact("", "", "", "", "");
@@ -53,21 +55,34 @@ class SProject {
       this.audit = false,
       this.evaluation = false]);*/
 
-  SProject.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        type = json['type'],
-        budget = json['budget'],
-        manager = json['manager'],
-        programme = json['programme'],
-        announcement = json['announcement'],
-        ambit = json['ambit'],
-        audit = json['audit'],
-        evaluation = json['evaluation'],
-        financiers = json['financiers'],
-        partners = json['partners'];
+  factory SProject.fromJson(Map<String, dynamic> json) {
+    SProject item = SProject(json['name']);
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    item.description = json['description'];
+    item.type = json['type'];
+    item.budget = json['budget'];
+    item.manager = json['manager'];
+    item.programme = json['programme'];
+    item.announcement = json['announcement'];
+    item.ambit = json['ambit'];
+    item.audit = json['audit'];
+    item.evaluation = json['evaluation'];
+    item.financiers = json['financiers'];
+    item.partners = json['partners'];
+    if (!json.containsKey("execBudget")) {
+      item.execBudget = 0;
+    } else {
+      item.execBudget = json['execBudget'];
+    }
+    if (!json.containsKey("assignedBudget")) {
+      item.assignedBudget = 0;
+    } else {
+      item.assignedBudget = json['assignedBudget'];
+    }
+    return item;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -84,6 +99,8 @@ class SProject {
         'evaluation': evaluation,
         'financiers': financiers,
         'partners': partners,
+        'execBudget': execBudget,
+        'assignedBudget': assignedBudget,
       };
 
   KeyValue toKeyValue() {

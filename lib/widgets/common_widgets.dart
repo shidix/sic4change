@@ -8,6 +8,7 @@ import 'dart:js' as js;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/services/models_workday.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -76,6 +77,14 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () {
+      User user = FirebaseAuth.instance.currentUser!;
+      Workday.currentByUser(user.email!).then((value) {
+        if (value.open) {
+          value.endDate = DateTime.now();
+          value.open = false;
+          value.save();
+        }
+      });
       FirebaseAuth.instance.signOut();
       Navigator.pushReplacementNamed(context, '/');
     },
@@ -668,6 +677,8 @@ Color mainMenuBtnSelectedColor = Colors.white;
 Color mainMenuBtnColor = Colors.white54;
 Color blueColor = const Color(0Xff00809a);
 
+const Color percentBarPrimary = Color(0xffabf100);
+
 // const Color mainColor = Color(0xFF00809A);
 // const Color mainColor = Color(0xffabf100);
 const Color mainColor = Color(0xff00594f);
@@ -735,7 +746,7 @@ const Color cellsListColor = Color(0xff0b0b0b);
 const TextStyle headerListStyle = TextStyle(
   fontFamily: 'Readex Pro',
   color: headerListColor,
-  fontSize: 16,
+  fontSize: 15,
   fontWeight: FontWeight.bold,
 );
 
@@ -831,6 +842,28 @@ SizedBox s4cTitleBar(String title, [context, icon]) {
               ]))));
 }
 
+Expanded headerCell(
+    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: headerListStyle,
+        textAlign: textAlign,
+      ));
+}
+
+Expanded listCell(
+    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: cellsListStyle,
+        textAlign: textAlign,
+      ));
+}
+
 //--------------------------------------------------------------------------
 //                           BUTTONS
 //--------------------------------------------------------------------------
@@ -839,11 +872,11 @@ Widget goPage(context, btnName, newContext, icon,
     {style = "", extraction = null}) {
   Widget child = Column(
     children: [
-      //space(height: 5),
+      space(height: 5),
       Icon(icon, color: subTitleColor),
       space(height: 5),
       customText(btnName, 12, textColor: subTitleColor),
-      //space(height: 5),
+      space(height: 5),
     ],
   );
   if (style == "bigBtn") {
@@ -900,9 +933,11 @@ Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
       style: btnStyle,
       child: Column(
         children: [
+          space(height: 5),
           Icon(icon, color: subTitleColor),
           space(height: 5),
           customText(text, 12, textColor: subTitleColor),
+          space(height: 5),
         ],
       ));
 }
@@ -945,9 +980,11 @@ Widget returnBtn(context) {
     style: btnStyle,
     child: Column(
       children: [
+        space(height: 5),
         const Icon(Icons.arrow_circle_left_outlined, color: subTitleColor),
         space(height: 5),
-        customText(returnText, 12, textColor: subTitleColor)
+        customText(returnText, 12, textColor: subTitleColor),
+        space(height: 5),
       ],
     ),
   );
@@ -965,9 +1002,11 @@ Widget saveBtn(context, action, [args]) {
     style: btnStyle,
     child: Column(
       children: [
+        space(height: 5),
         const Icon(Icons.save_outlined, color: subTitleColor),
         space(height: 5),
-        customText(saveText, 12, textColor: subTitleColor)
+        customText(saveText, 12, textColor: subTitleColor),
+        space(height: 5),
       ],
     ),
   );

@@ -139,8 +139,12 @@ double currencyToDouble(String value) {
   } catch (e) {
     // value = value.replaceAll('€', '');
     // value = value.replaceAll(' ', '');
-    value = value.replaceAll('.', '');
-    value = value.replaceAll(',', '.');
+    if ((value.contains(".")) && (value.contains(","))) {
+      value = value.replaceAll('.', '');
+      value = value.replaceAll(',', '.');
+    } else if (value.contains(",")) {
+      value = value.replaceAll(',', '.');
+    }
     try {
       return double.parse(value);
     } catch (e) {
