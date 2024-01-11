@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/404_page.dart';
@@ -12,16 +13,18 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
 
 const taskInfoTitle = "Detalles de la tarea";
-STask? _task;
+//STask? _task;
 
 class TaskInfoPage extends StatefulWidget {
-  const TaskInfoPage({super.key});
+  final STask? task;
+  const TaskInfoPage({super.key, this.task});
 
   @override
   State<TaskInfoPage> createState() => _TaskInfoPageState();
 }
 
 class _TaskInfoPageState extends State<TaskInfoPage> {
+  STask? task;
   void loadTask(task) async {
     await task.reload().then((val) {
       Navigator.popAndPushNamed(context, "/task_info",
@@ -30,15 +33,21 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    task = widget.task;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
+    /*if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       _task = args["task"];
     } else {
       _task = null;
     }
 
-    if (_task == null) return const Page404();
+    if (_task == null) return const Page404();*/
 
     return Scaffold(
       body: Column(
@@ -46,7 +55,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context, null, "/tasks_user"),
-          projectTaskHeader(context, _task),
+          projectTaskHeader(context, task),
           space(height: 20),
           contentTab(context, taskInfoDetails, null)
         ],
@@ -54,7 +63,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     );
   }
 
-  Widget projectTaskHeader(context, _task) {
+  Widget projectTaskHeader(context, task) {
     return Container(
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -65,16 +74,16 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   //Text(_task.name, style: TextStyle(fontSize: 20)),
                   SizedBox(
                     width: MediaQuery.of(context).size.width - 300,
-                    child: customText(_task.name, 22),
+                    child: customText(task.name, 22),
                   ),
                   /*VerticalDivider(
                     width: 10,
                     color: Colors.grey,
                   ),*/
-                  Text(_task.statusObj.name,
+                  Text(task.statusObj.name,
                       style: TextStyle(
                           fontSize: 16,
-                          color: getStatusColor(_task.statusObj.name))),
+                          color: getStatusColor(task.statusObj.name))),
                   /*IconButton(
                       icon: const Icon(Icons.edit),
                       tooltip: 'Ver',
@@ -87,7 +96,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             //editBtn(context),
-                            addBtn(context, _callEditDialog, _task,
+                            addBtn(context, _callEditDialog, task,
                                 icon: Icons.edit, text: "Editar"),
                             //returnBtn(context)
                             space(width: 10),
@@ -126,34 +135,34 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 //customText(_task?.sender, 16),
-                taskInfoSenderPublic(context, _task),
+                taskInfoSenderPublic(context, task),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 10),
                 customText("Descripción de la tarea:", 16,
                     textColor: smallColor),
                 space(height: 5),
-                customText(_task?.description, 16),
+                customText(task?.description, 16),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 10),
                 customText("Comentarios:", 16, textColor: smallColor),
                 space(height: 5),
-                customText(_task?.comments, 16),
+                customText(task?.comments, 16),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 10),
-                taskInfoDates(context, _task),
+                taskInfoDates(context, task),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                taskAssignedHeader(context, _task),
-                taskAssigned(context, _task),
+                taskAssignedHeader(context, task),
+                taskAssigned(context, task),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                taskProgrammesHeader(context, _task),
-                taskProgrammes(context, _task),
+                taskProgrammesHeader(context, task),
+                taskProgrammes(context, task),
                 space(height: 5),
               ],
             )));
@@ -225,14 +234,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     ]);
   }
 
-  Widget taskAssignedHeader(context, _task) {
+  Widget taskAssignedHeader(context, task) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Responsables:", 16, textColor: Colors.grey),
       IconButton(
         icon: const Icon(Icons.add),
         tooltip: 'Añadir responsable',
         onPressed: () {
-          _callAssignedEditDialog(context, _task);
+          _callAssignedEditDialog(context, task);
         },
       )
     ]);
@@ -531,14 +540,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     Navigator.of(context).pop();
   }
 
-  void _callAssignedEditDialog(context, _task) async {
+  void _callAssignedEditDialog(context, task) async {
     List<String> contacts = [];
     await getContacts().then((value) async {
       for (Contact item in value) {
         contacts.add(item.name);
       }
 
-      _editTaskAssignedDialog(context, _task, contacts);
+      _editTaskAssignedDialog(context, task, contacts);
     });
   }
 

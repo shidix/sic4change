@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/task_info_page.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -200,13 +201,15 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     DataCell(Text(task.getAssignedStr())),
                     DataCell(customTextStatus(task.statusObj.name, 14)),
                     DataCell(Row(children: [
-                      IconButton(
+                      /*IconButton(
                           icon: const Icon(Icons.view_compact),
                           tooltip: 'Ver',
                           onPressed: () async {
                             Navigator.pushNamed(context, "/task_info",
                                 arguments: {'task': task});
-                          }),
+                          }),*/
+                      goPageIcon(context, "Ver", Icons.view_compact,
+                          TaskInfoPage(task: task)),
                       IconButton(
                           icon: const Icon(Icons.remove_circle),
                           tooltip: 'Remove',
