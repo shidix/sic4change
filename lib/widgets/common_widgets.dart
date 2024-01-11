@@ -957,6 +957,18 @@ Widget removeBtn(context, action, args,
   return IconButton(
     icon: Icon(icon),
     tooltip: text,
+    onPressed: () {
+      action(context, args);
+    },
+  );
+}
+
+
+Widget removeConfirmBtn(context, action, args,
+    {text = removeText, icon = Icons.remove_circle}) {
+  return IconButton(
+    icon: Icon(icon),
+    tooltip: text,
     onPressed: () async {
       bool confirmation = await showDialog(
           context: context,
