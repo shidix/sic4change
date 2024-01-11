@@ -235,17 +235,17 @@ class _TransfersPageState extends State<TransfersPage> {
     return ListTile(
         tileColor: headerListBgColor,
         title: Row(children: [
-          headerCell(text: 'Emisor', flex: 2),
-          headerCell(text: 'Receptor', flex: 2),
-          headerCell(text: 'Concepto', flex: 2),
+          headerCell(text: 'De --> A', flex: 3),
+          headerCell(text: 'Concepto', flex: 3),
           headerCell(text: 'Fecha'),
-          headerCell(
-              text: 'Enviado (com)', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Enviado', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Com', textAlign: TextAlign.right),
           headerCell(text: 'TC', textAlign: TextAlign.right),
-          headerCell(
-              text: 'Intermedio (com)', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Intermedio', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Com', textAlign: TextAlign.right),
           headerCell(text: 'TC', textAlign: TextAlign.right),
-          headerCell(text: 'Recibido', textAlign: TextAlign.right),
+          headerCell(text: 'Recibido', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Com', textAlign: TextAlign.right),
           headerCell(text: ''),
         ]));
   }
@@ -260,19 +260,21 @@ class _TransfersPageState extends State<TransfersPage> {
                 return ListTile(
                   title: Row(children: [
                     listCell(
-                        flex: 2,
-                        text: getFinancier(bankTransfers[index].emissor).name),
-                    listCell(
-                        flex: 2,
-                        text: getContact(bankTransfers[index].receiver).name),
-                    listCell(flex: 2, text: bankTransfers[index].concept),
+                        flex: 3,
+                        text: "${getFinancier(bankTransfers[index].emissor).name} --> ${getContact(bankTransfers[index].receiver).name}"),
+                    listCell(flex: 3, text: bankTransfers[index].concept),
                     listCell(
                         text: DateFormat('dd-MM-yyyy')
                             .format(bankTransfers[index].date)),
                     listCell(
                         flex: 2,
-                        text:
-                            "${toCurrency(bankTransfers[index].amountSource, bankTransfers[index].currencySource)} (${toCurrency(bankTransfers[index].commissionSource, bankTransfers[index].currencySource)})",
+                        text: toCurrency(bankTransfers[index].amountSource,
+                            bankTransfers[index].currencySource),
+                        textAlign: TextAlign.right),
+                    listCell(
+                        flex: 1,
+                        text: toCurrency(bankTransfers[index].commissionSource,
+                            bankTransfers[index].currencySource),
                         textAlign: TextAlign.right),
                     listCell(
                         text: bankTransfers[index]
@@ -281,16 +283,34 @@ class _TransfersPageState extends State<TransfersPage> {
                         textAlign: TextAlign.right),
                     listCell(
                         flex: 2,
-                        text:
-                            "${toCurrency(bankTransfers[index].amountIntermediary, bankTransfers[index].currencyIntermediary)} (${toCurrency(bankTransfers[index].commissionIntermediary, bankTransfers[index].currencyIntermediary)})",
+                        text: (bankTransfers[index].amountIntermediary != 0)
+                            ? toCurrency(
+                                bankTransfers[index].amountIntermediary,
+                                bankTransfers[index].currencyIntermediary)
+                            : "--",
                         textAlign: TextAlign.right),
                     listCell(
-                        text: bankTransfers[index]
-                            .exchangeIntermediary
-                            .toStringAsFixed(2),
+                        flex: 1,
+                        text: toCurrency(
+                            bankTransfers[index].commissionIntermediary,
+                            bankTransfers[index].currencyIntermediary),
+                        textAlign: TextAlign.right),
+                    listCell(
+                        text: (bankTransfers[index].amountIntermediary != 0)
+                            ? bankTransfers[index]
+                                .exchangeIntermediary
+                                .toStringAsFixed(2)
+                            : "--",
                         textAlign: TextAlign.right),
                     listCell(
                         text: toCurrency(bankTransfers[index].amountDestination,
+                            bankTransfers[index].currencyDestination),
+                        textAlign: TextAlign.right,
+                        flex: 2),
+                    listCell(
+                        flex: 1,
+                        text: toCurrency(
+                            bankTransfers[index].commissionDestination,
                             bankTransfers[index].currencyDestination),
                         textAlign: TextAlign.right),
                     Expanded(
@@ -308,14 +328,16 @@ class _TransfersPageState extends State<TransfersPage> {
                             iconSize: 18,
                             icon: const Icon(Icons.delete),
                             onPressed: () {
-                              bankTransfers[index].delete();
-                              bankTransfers.remove(bankTransfers[index]);
-                              setState(() {
-                                currentTransfer = null;
-                                listBankTransfersContainer =
-                                    listBankTransfers(context);
-                                contentContainer =
-                                    contentContainerPopulate(context);
+                              customRemoveDialog(context, bankTransfers[index],
+                                  () {
+                                bankTransfers.remove(bankTransfers[index]);
+                                setState(() {
+                                  currentTransfer = null;
+                                  listBankTransfersContainer =
+                                      listBankTransfers(context);
+                                  contentContainer =
+                                      contentContainerPopulate(context);
+                                });
                               });
                             },
                           ),

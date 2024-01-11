@@ -441,8 +441,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         genderQuestionsCounter++;
         questionsInMain++;
         if (question.completed) {
-          // transparencyQuestionsCompleted++;
-          // transparencyCounters.last++;
+
           genderQuestionsCompleted++;
           genderCounters.last++;
         }
@@ -460,44 +459,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     if (lastMain != null) {
       califications[lastMain.code] = "${genderCounters.last}/$questionsInMain";
     }
-
-    // Widget panel = Container(
-    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-    //     // height: 150,
-    //     color: Colors.white,
-    //     child: currentProject != null
-    //         ? Column(children: [
-    //             Align(
-    //                 alignment: Alignment.topRight,
-    //                 child: Padding(
-    //                     padding: const EdgeInsets.symmetric(
-    //                         horizontal: 20, vertical: 10),
-    //                     child: actionButtonVertical(
-    //                         context,
-    //                         'Nuevo ítem',
-    //                         genderQuestionDialog,
-    //                         Icons.add,
-    //                         {'context': context, 'item': null}))),
-    //             ListView.builder(
-    //                 shrinkWrap: true,
-    //                 itemCount: genderQuestions!.length,
-    //                 itemBuilder: (BuildContext context, int index) {
-    //                   TransversalQuestion item =
-    //                       genderQuestions!.elementAt(index);
-    //                   return Tooltip(
-    //                       message: 'Click para editar',
-    //                       showDuration: const Duration(seconds: 0),
-    //                       child: ListTile(
-    //                           subtitle: headerTransversals(item, califications),
-    //                           onTap: () {
-    //                             genderQuestionDialog(
-    //                                 {'context': context, 'item': item});
-    //                           }));
-    //                 })
-    //           ])
-    //         : const Center(
-    //             child: CircularProgressIndicator(),
-    //           ));
 
     Widget panel = generalPanel(context, genderQuestions, califications,
         genderQuestionDialog);
@@ -561,44 +522,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
     Widget panel = generalPanel(context, transparencyQuestions, califications,
         transparencyQuestionDialog);
-
-    // Widget panel = Container(
-    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-    //     // height: 150,
-    //     color: Colors.white,
-    //     child: currentProject != null
-    //         ? Column(children: [
-    //             Align(
-    //                 alignment: Alignment.topRight,
-    //                 child: Padding(
-    //                     padding: const EdgeInsets.symmetric(
-    //                         horizontal: 20, vertical: 10),
-    //                     child: actionButtonVertical(
-    //                         context,
-    //                         'Nuevo ítem',
-    //                         transparencyQuestionDialog,
-    //                         Icons.add,
-    //                         {'context': context, 'item': null}))),
-    //             ListView.builder(
-    //                 shrinkWrap: true,
-    //                 itemCount: transparencyQuestions!.length,
-    //                 itemBuilder: (BuildContext context, int index) {
-    //                   TransversalQuestion item =
-    //                       transparencyQuestions!.elementAt(index);
-    //                   return Tooltip(
-    //                       message: 'Click para editar',
-    //                       showDuration: const Duration(seconds: 0),
-    //                       child: ListTile(
-    //                           subtitle: headerTransversals(item, califications),
-    //                           onTap: () {
-    //                             transparencyQuestionDialog(
-    //                                 {'context': context, 'item': item});
-    //                           }));
-    //                 })
-    //           ])
-    //         : const Center(
-    //             child: CircularProgressIndicator(),
-    //           ));
 
     return Column(children: [
       panel,
@@ -690,44 +613,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] =
           "${environmentCounters.last}/$questionsInMain";
     }
-
-    // Widget panel = Container(
-    //     padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-    //     // height: 150,
-    //     color: Colors.white,
-    //     child: currentProject != null
-    //         ? Column(children: [
-    //             Align(
-    //                 alignment: Alignment.topRight,
-    //                 child: Padding(
-    //                     padding: const EdgeInsets.symmetric(
-    //                         horizontal: 20, vertical: 10),
-    //                     child: actionButtonVertical(
-    //                         context,
-    //                         'Nuevo ítem',
-    //                         environmentQuestionDialog,
-    //                         Icons.add,
-    //                         {'context': context, 'item': null}))),
-    //             ListView.builder(
-    //                 shrinkWrap: true,
-    //                 itemCount: environmentQuestions!.length,
-    //                 itemBuilder: (BuildContext context, int index) {
-    //                   TransversalQuestion item =
-    //                       environmentQuestions!.elementAt(index);
-    //                   return Tooltip(
-    //                       message: 'Click para editar',
-    //                       showDuration: const Duration(seconds: 0),
-    //                       child: ListTile(
-    //                           subtitle: headerTransversals(item, califications),
-    //                           onTap: () {
-    //                             environmentQuestionDialog(
-    //                                 {'context': context, 'item': item});
-    //                           }));
-    //                 })
-    //           ])
-    //         : const Center(
-    //             child: CircularProgressIndicator(),
-    //           ));
 
     Widget panel = generalPanel(context, environmentQuestions, califications,
         environmentQuestionDialog);
@@ -885,21 +770,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.only(left: 35, top: 20, bottom: 15),
-                  child: Row(
-                    children: [
-                      customText("Transversal", 20),
-                    ],
-                  ),
-                ),
-                // statusProject(),
-                // Container(
-                //   height: 20,
-                // ),
-                // const Divider(height: 1),
-
-                // topButtons(context))
                 marcoMenu(context, currentProject, "transversal"),
                 multiplesIndicators(),
                 footer(context),
