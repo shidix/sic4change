@@ -376,6 +376,9 @@ class FinnContribution {
     final collection = db.collection("s4c_finncontrib");
     List finnList = await SFinn.byProject(project);
     List<FinnContribution> items = [];
+    if (finnList.isEmpty) {
+      return items;
+    }
     final query = await collection
         .where("finn", whereIn: finnList.map((e) => e.uuid))
         .get();
@@ -490,8 +493,10 @@ class FinnDistribution {
   static Future<List<FinnDistribution>> getByProject(project) async {
     final collection = db.collection("s4c_finndistrib");
     List finnList = await SFinn.byProject(project);
-
     List<FinnDistribution> items = [];
+    if (finnList.isEmpty) {
+      return items;
+    }
     final query = await collection
         .where("finn", whereIn: finnList.map((e) => e.uuid))
         .get();
@@ -670,8 +675,11 @@ class Invoice {
       finnUuids = finn;
     }
     final collection = db.collection("s4c_invoices");
-    final query = await collection.where("finn", whereIn: finnUuids).get();
     List items = [];
+    if (finnUuids.isEmpty) {
+      return items;
+    }
+    final query = await collection.where("finn", whereIn: finnUuids).get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;
@@ -862,7 +870,8 @@ class BankTransfer {
     }
 
     if (json["amountIntermediary"] != 0) {
-      json["exchangeSource"] = json["amountIntermediary"] / json["amountSource"];
+      json["exchangeSource"] =
+          json["amountIntermediary"] / json["amountSource"];
       json["exchangeIntermediary"] =
           json["amountDestination"] / json["amountIntermediary"];
     } else {
@@ -924,8 +933,7 @@ class BankTransfer {
     if (amountIntermediary != 0) {
       exchangeSource = amountIntermediary / amountSource;
       exchangeIntermediary = amountDestination / amountIntermediary;
-    }
-    else {
+    } else {
       exchangeIntermediary = 0;
       exchangeSource = amountDestination / amountSource;
     }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -8,87 +7,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-class InvoiceDetail extends StatelessWidget {
-  final Invoice invoice;
-
-  const InvoiceDetail({Key? key, required this.invoice}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: MediaQuery.of(context).size.width * 0.5,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(children: [
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Número', textToShow: invoice.number)),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Código', textToShow: invoice.code)),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Fecha',
-                      textToShow:
-                          DateFormat('dd-MM-yyyy').format(invoice.date))),
-            ]),
-            const SizedBox(height: 16.0),
-            Row(children: [
-              Expanded(
-                  flex: 3,
-                  child: ReadOnlyTextField(
-                      label: 'Concepto', textToShow: invoice.concept)),
-            ]),
-            const SizedBox(height: 16.0),
-            Row(children: [
-              Expanded(
-                  flex: 3,
-                  child: ReadOnlyTextField(
-                      label: 'Proveedor', textToShow: invoice.provider)),
-            ]),
-            const SizedBox(height: 16.0),
-            Row(children: [
-              Expanded(
-                  flex: 3,
-                  child: ReadOnlyTextField(
-                      label: 'Desglose', textToShow: invoice.desglose)),
-            ]),
-            const SizedBox(height: 16.0),
-            Row(children: [
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Base', textToShow: invoice.base.toString())),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Impuestos',
-                      textToShow: invoice.taxes.toString())),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Total', textToShow: invoice.total.toString())),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Moneda',
-                      textToShow: CURRENCIES[invoice.currency]!.value)),
-              Expanded(
-                  flex: 1,
-                  child: ReadOnlyTextField(
-                      label: 'Fecha Pago',
-                      textToShow:
-                          DateFormat('dd-MM-yyyy').format(invoice.paidDate))),
-            ]),
-          ],
-        ));
-  }
-}
 
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
@@ -319,7 +237,8 @@ class _InvoiceFormState extends State<InvoiceForm> {
           ]),
           TextFormField(
             initialValue: _invoice.document,
-            decoration: const InputDecoration(labelText: 'Documento'),
+            decoration:
+                const InputDecoration(labelText: 'Documento (localizador)'),
             onSaved: (value) => _invoice.document = value!,
           ),
           const SizedBox(height: 16.0),

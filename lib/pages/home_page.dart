@@ -173,6 +173,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    autoStartWorkday(context);
     loadMyData();
   }
 
@@ -231,6 +232,34 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// WORKTIME ///////////
+
+  void autoStartWorkday(context) async {
+    Workday.currentByUser(user.email!).then((value) {
+      currentWorkday = value;
+      if (!currentWorkday!.open) {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = user.email!;
+        currentWorkday!.open = true;
+        currentWorkday!.save();
+      }
+      if (mounted) {
+        setState(() {
+          currentWorkday = value;
+        });
+      }
+    });
+  }
+
+  void autoStopWorkday(context) async {
+    Workday.currentByUser(user.email!).then((value) {
+      currentWorkday = value;
+      if (currentWorkday!.open) {
+        currentWorkday!.endDate = DateTime.now();
+        currentWorkday!.open = false;
+        currentWorkday!.save();
+      }
+    });
+  }
 
   void workdayAction(context) {
     _workdayAction(context);
@@ -384,7 +413,9 @@ class _HomePageState extends State<HomePage> {
     // List myItems = worktimeItems();
     for (Workday workday in myWorkdays!) {
       if ((workday.open) && (workday.startDate.isBefore(today()))) {
-        DateTime newEndDate = truncDate(workday.startDate).add(Duration(days: 1)).subtract(Duration(seconds: 1));
+        DateTime newEndDate = truncDate(workday.startDate)
+            .add(Duration(days: 1))
+            .subtract(Duration(seconds: 1));
         if ((workday.endDate != newEndDate) || (workday.open)) {
           workday.endDate = newEndDate;
           workday.open = false;

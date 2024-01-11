@@ -173,7 +173,7 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
             keyboardType: TextInputType.multiline,
             maxLines: null,
             decoration: const InputDecoration(
-              labelText: 'Documentos',
+              labelText: 'Documentos (localizador, separador por coma)',
             ),
             onSaved: (value) {
               transversalQuestion.docs = value!.split(",");

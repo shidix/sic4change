@@ -458,7 +458,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ]);
   }
 
-  Widget projectCardDatas(context, project) {
+  Widget projectCardDatas(context, SProject project) {
+    double prjBudget = fromCurrency(project.budget);
+    double execVsBudget = (prjBudget != 0) ? project.execBudget / prjBudget : 0;
+    double execVsAssigned = (project.assignedBudget != 0)
+        ? project.execBudget / project.assignedBudget
+        : 0;
+
+    execVsBudget = (execVsBudget > 1) ? 1 : execVsBudget;
+    execVsAssigned = (execVsAssigned > 1) ? 1 : execVsAssigned;
+
+    execVsBudget = (execVsBudget * 100).round() / 100;
+    execVsAssigned = (execVsAssigned * 100).round() / 100;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -473,9 +485,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("En ejecución:", 16),
+                  customText(
+                      "En ejecución: ${toCurrency(project.assignedBudget)}",
+                      16),
                   space(height: 5),
-                  customLinearPercent(context, 4.5, 0.8, percentBarPrimary),
+                  customLinearPercent(
+                      context, 4.5, execVsAssigned, percentBarPrimary),
                 ],
               ),
               const VerticalDivider(
@@ -485,7 +500,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Presupuesto total:   ${project.budget} €", 16),
                 space(height: 5),
-                customLinearPercent(context, 4.5, 0.8, blueColor),
+                customLinearPercent(context, 4.5, execVsBudget, blueColor),
               ]),
             ],
           ),

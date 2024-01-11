@@ -8,6 +8,7 @@ import 'dart:js' as js;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/services/models_workday.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -76,6 +77,14 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () {
+      User user = FirebaseAuth.instance.currentUser!;
+      Workday.currentByUser(user.email!).then((value) {
+        if (value.open) {
+          value.endDate = DateTime.now();
+          value.open = false;
+          value.save();
+        }
+      });
       FirebaseAuth.instance.signOut();
       Navigator.pushReplacementNamed(context, '/');
     },
@@ -833,20 +842,26 @@ SizedBox s4cTitleBar(String title, [context, icon]) {
               ]))));
 }
 
-Expanded headerCell({int flex=1, String text='', TextAlign textAlign = TextAlign.start}) {
-  return Expanded(flex: flex, child: Text(
-    text,
-    style: headerListStyle,
-    textAlign: textAlign,
-  ));
+Expanded headerCell(
+    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: headerListStyle,
+        textAlign: textAlign,
+      ));
 }
 
-Expanded listCell( {int flex=1, String text='', TextAlign textAlign = TextAlign.start}) {
-  return Expanded(flex: flex, child: Text(
-    text,
-    style: cellsListStyle,
-    textAlign: textAlign,
-  ));
+Expanded listCell(
+    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+  return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: cellsListStyle,
+        textAlign: textAlign,
+      ));
 }
 
 //--------------------------------------------------------------------------
