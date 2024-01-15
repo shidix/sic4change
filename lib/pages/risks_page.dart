@@ -62,11 +62,11 @@ class _RisksPageState extends State<RisksPage> {
                             RISKS
 -------------------------------------------------------------*/
   Widget riskHeader(context, project) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Container(
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      /*Container(
         padding: const EdgeInsets.only(left: 40),
         child: customText(riskPageTitle, 20),
-      ),
+      ),*/
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(

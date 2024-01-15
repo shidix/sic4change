@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
+import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/utils.dart';
@@ -537,10 +538,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            customPushBtn(context, "+ Info", Icons.info, "/project_info",
-                {"project": project}),
+            /*customPushBtn(context, "+ Info", Icons.info, "/project_info",
+                {"project": project}),*/
             /*customPushBtn(context, "Marco técnico", Icons.task, "/goals",
                 {"project": project}),*/
+            goPage(context, "+ Info", ProjectInfoPage(project: project),
+                Icons.info,
+                style: "bigBtn", extraction: () {}),
             goPage(context, "Marco técnico", GoalsPage(project: project),
                 Icons.task,
                 style: "bigBtn", extraction: () {

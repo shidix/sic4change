@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -12,41 +11,51 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectInfoTitle = "Detalles del Proyecto";
-SProject? project;
+//SProject? project;
 bool projLoading = true;
 
 class ProjectInfoPage extends StatefulWidget {
-  const ProjectInfoPage({super.key});
+  final SProject? project;
+  const ProjectInfoPage({super.key, this.project});
 
   @override
   State<ProjectInfoPage> createState() => _ProjectInfoPageState();
 }
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
+  SProject? project;
+
   void loadProject(project) async {
     setState(() {
       projLoading = false;
     });
 
     await project.reload().then((val) {
-      Navigator.popAndPushNamed(context, "/project_info",
-          arguments: {"project": val});
+      /*Navigator.popAndPushNamed(context, "/project_info",
+          arguments: {"project": val});*/
       setState(() {
+        project = val;
         projLoading = true;
       });
     });
   }
 
   @override
+  initState() {
+    super.initState();
+    project = widget.project;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
+    /*if (ModalRoute.of(context)!.settings.arguments != null) {
       Map args = ModalRoute.of(context)!.settings.arguments as Map;
       project = args["project"];
     } else {
       project = null;
     }
 
-    if (project == null) return const Page404();
+    if (project == null) return const Page404();*/
 
     return Scaffold(
       body: Column(
@@ -57,7 +66,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           projectInfoHeader(context, project),
           projectInfoMenu(context, project),
           projLoading
-              ? contentTab(context, projectInfoDetails, null)
+              ? contentTab(context, projectInfoDetails, {"project": project})
               : const Center(child: CircularProgressIndicator()),
         ],
       ),
@@ -375,6 +384,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Widget projectInfoDetails(context, args) {
+    SProject proj = args["project"];
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -382,48 +392,48 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                projectManagerProgramme(context, project),
+                projectManagerProgramme(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Breve descripción del proyecto", 14,
                     bold: FontWeight.bold),
                 space(height: 5),
-                customText(project?.description, 14),
+                customText(proj.description, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Convocatoria", 14, bold: FontWeight.bold),
                 space(height: 5),
-                customText(project?.announcement, 14),
+                customText(proj.announcement, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 customText("Ámbito del proyecto", 14, bold: FontWeight.bold),
                 space(height: 5),
-                customText(project?.ambit, 14),
+                customText(proj.ambit, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectAuditEvaluation(context, project),
+                projectAuditEvaluation(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectFinanciersHeader(context, project),
-                projectFinanciers(context, project),
+                projectFinanciersHeader(context, proj),
+                projectFinanciers(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectPartnersHeader(context, project),
-                projectPartners(context, project),
+                projectPartnersHeader(context, proj),
+                projectPartners(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoDates(context, project),
+                projectInfoDates(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoLocation(context, project),
+                projectInfoLocation(context, proj),
               ],
             )));
   }
@@ -440,13 +450,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   // }
 
   void saveProject(List args) async {
-    SProject project = args[0];
-    project.save();
+    SProject proj = args[0];
+    proj.save();
+    loadProject(project);
 
     Navigator.pop(context);
   }
 
-  void _callProjectEditDialog(context, roject) async {
+  void _callProjectEditDialog(context, project) async {
     List<KeyValue> ambits = await getAmbitsHash();
     List<KeyValue> types = await getProjectTypesHash();
     List<KeyValue> contacts = await getContactsHash();
@@ -455,7 +466,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Future<void> editProjectDialog(
-      context, project, ambits, types, contacts, programmes) {
+      context, proj, ambits, types, contacts, programmes) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -471,11 +482,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomTextField(
                     labelText: 'Nombre',
                     size: 220,
-                    initial: project.name,
+                    initial: proj.name,
                     fieldValue: (String val) {
-                      setState(() {
-                        project.name = val;
-                      });
+                      proj.name = val;
+                      /*setState(() {
+                        proj.name = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -484,11 +496,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomTextField(
                     labelText: 'Descripción',
                     size: 220,
-                    initial: project.description,
+                    initial: proj.description,
                     fieldValue: (String val) {
-                      setState(() {
-                        project.description = val;
-                      });
+                      proj.description = val;
+                      /*setState(() {
+                        proj.description = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -497,12 +510,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomDropdown(
                     labelText: 'Tipología',
                     size: 220,
-                    selected: project.typeObj.toKeyValue(),
+                    selected: proj.typeObj.toKeyValue(),
                     options: types,
                     onSelectedOpt: (String val) {
-                      setState(() {
-                        project.type = val;
-                      });
+                      proj.type = val;
+                      /*setState(() {
+                        proj.type = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -511,11 +525,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomTextField(
                     labelText: 'Presupuesto',
                     size: 220,
-                    initial: project.budget,
+                    initial: proj.budget,
                     fieldValue: (String val) {
-                      setState(() {
-                        project.budget = val;
-                      });
+                      proj.budget = val;
+                      /*setState(() {
+                        proj.budget = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -526,12 +541,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomDropdown(
                     labelText: 'Responsable',
                     size: 220,
-                    selected: project.managerObj.toKeyValue(),
+                    selected: proj.managerObj.toKeyValue(),
                     options: contacts,
                     onSelectedOpt: (String val) {
-                      setState(() {
-                        project.manager = val;
-                      });
+                      proj.manager = val;
+                      /*setState(() {
+                        proj.manager = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -540,12 +556,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomDropdown(
                     labelText: 'Programa',
                     size: 220,
-                    selected: project.programmeObj.toKeyValue(),
+                    selected: proj.programmeObj.toKeyValue(),
                     options: programmes,
                     onSelectedOpt: (String val) {
-                      setState(() {
-                        project.programme = val;
-                      });
+                      proj.programme = val;
+                      /*setState(() {
+                        proj.programme = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -554,11 +571,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomTextField(
                     labelText: 'Convocatoria',
                     size: 220,
-                    initial: project.announcement,
+                    initial: proj.announcement,
                     fieldValue: (String val) {
-                      setState(() {
-                        project.announcement = val;
-                      });
+                      proj.announcement = val;
+                      /*setState(() {
+                        proj.announcement = val;
+                      });*/
                     },
                   ),
                 ]),
@@ -567,12 +585,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   CustomDropdown(
                     labelText: 'Ámbito',
                     size: 220,
-                    selected: project.ambitObj.toKeyValue(),
+                    selected: proj.ambitObj.toKeyValue(),
                     options: ambits,
                     onSelectedOpt: (String val) {
-                      setState(() {
-                        project.ambit = val;
-                      });
+                      proj.ambit = val;
+                      /*setState(() {
+                        proj.ambit = val;
+                      });*/
                     },
                   ),
 
@@ -594,12 +613,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Auditoría:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(
-                      value: project.audit,
+                      value: proj.audit,
                       onChanged: (bool? value) {
-                        setState(() {
-                          project.audit = value!;
-                          state.didChange(project.audit);
-                        });
+                        proj.audit = value!;
+                        state.didChange(proj.audit);
+                        /*setState(() {
+                          state.didChange(proj.audit);
+                        });*/
                       },
                     );
                   }),
@@ -607,12 +627,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Evaluación:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(
-                      value: project.evaluation,
+                      value: proj.evaluation,
                       onChanged: (bool? value) {
-                        setState(() {
-                          project.evaluation = value!;
-                          state.didChange(project.evaluation);
-                        });
+                        proj.evaluation = value!;
+                        state.didChange(proj.evaluation);
+                        /*setState(() {
+                          proj.evaluation = value!;
+                          state.didChange(proj.evaluation);
+                        });*/
                       },
                     );
                   })

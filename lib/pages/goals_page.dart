@@ -59,11 +59,11 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   Widget goalHeader(context, project) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Container(
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      /*Container(
         padding: const EdgeInsets.only(left: 40),
         child: customText(goalPageTitle, 20),
-      ),
+      ),*/
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -163,10 +163,10 @@ class _GoalsPageState extends State<GoalsPage> {
                             padding: const EdgeInsets.all(8),
                             itemCount: goals.length,
                             itemBuilder: (BuildContext context, int index) {
-                              Goal _goal = goals[index];
-                              if (_goal.main) {
+                              Goal goal = goals[index];
+                              if (goal.main) {
                                 return Container(
-                                  height: 120,
+                                  height: 140,
                                   padding: const EdgeInsets.only(
                                       top: 20, bottom: 10),
                                   decoration: const BoxDecoration(
@@ -175,7 +175,7 @@ class _GoalsPageState extends State<GoalsPage> {
                                             color: Color(0xffdfdfdf),
                                             width: 1)),
                                   ),
-                                  child: goalRowMain(context, _goal, _project),
+                                  child: goalRowMain(context, goal, _project),
                                 );
                               } else {
                                 return Container(
@@ -188,7 +188,7 @@ class _GoalsPageState extends State<GoalsPage> {
                                             color: Color(0xffdfdfdf),
                                             width: 1)),
                                   ),
-                                  child: goalRow(context, _goal, _project),
+                                  child: goalRow(context, goal, _project),
                                 );
                               }
                             }))),
@@ -210,7 +210,9 @@ class _GoalsPageState extends State<GoalsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${goal.name}'),
+            customText('Objetivo General', 14, bold: FontWeight.bold),
+            space(height: 10),
+            customText('${goal.name}', 14),
             space(height: 10),
             customLinearPercent(context, 2, 0.8, Colors.green),
             space(height: 10),

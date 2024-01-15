@@ -1118,7 +1118,7 @@ Widget menuTab2(context, btnName, newContext, {selected = false}) {
             Navigator.push(
                 context, MaterialPageRoute(builder: ((context) => newContext)));
           },
-          child: customText(btnName, 16, textColor: cardHeaderColor),
+          child: customText(btnName, 16, textColor: mainColor),
         ));
   } else {
     return Container(
@@ -1135,17 +1135,18 @@ Widget menuTab2(context, btnName, newContext, {selected = false}) {
 
 Widget contentTab(context, action, obj) {
   return Expanded(
-      child: Container(
-          padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Card(
+          elevation: 5,
           child: Container(
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            /*decoration: BoxDecoration(
               border: Border.all(
                 color: const Color(0xffdfdfdf),
                 width: 2,
               ),
               borderRadius: const BorderRadius.all(Radius.circular(5)),
               color: Colors.white,
-            ),
+            ),*/
             child: action(context, obj),
           )));
 }

@@ -1,9 +1,7 @@
 import 'dart:collection';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -13,7 +11,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
 
 const taskInfoTitle = "Detalles de la tarea";
-//STask? _task;
 
 class TaskInfoPage extends StatefulWidget {
   final STask? task;
@@ -40,15 +37,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _task = args["task"];
-    } else {
-      _task = null;
-    }
-
-    if (_task == null) return const Page404();*/
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -332,12 +320,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     _taskEditDialog(context, task, statusList, contactList, projectList);
   }
 
-  /*void _saveTask(List args) async {
+  void saveTask(List args) async {
     STask task = args[1];
     task.save();
     loadTask(task);
     Navigator.pop(context);
-  }*/
+  }
 
   void cancelItem(BuildContext context) {
     Navigator.of(context).pop();
@@ -350,7 +338,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          //title: const Text('Modificar tarea'),
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Modificar tarea'),
           content: SingleChildScrollView(
@@ -504,6 +491,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             ])
           ])),
           actions: <Widget>[
+            dialogsBtns(context, saveTask, task),
+          ],
+          /*actions: <Widget>[
             TextButton(
               child: const Text('Guardar'),
               onPressed: () async {
@@ -519,7 +509,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 Navigator.of(context).pop();
               },
             ),
-          ],
+          ],*/
         );
       },
     );
@@ -556,11 +546,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Añadir responsable'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir responsable'),
           content: SingleChildScrollView(
             child: Column(children: [
               customAutocompleteField(
@@ -616,11 +606,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Añadir responsable'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir programa'),
           content: SingleChildScrollView(
             child: Column(children: [
               customAutocompleteField(
