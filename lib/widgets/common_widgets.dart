@@ -963,6 +963,51 @@ Widget removeBtn(context, action, args,
   );
 }
 
+
+Widget removeConfirmBtn(context, action, args,
+    {text = removeText, icon = Icons.remove_circle}) {
+  return IconButton(
+    icon: Icon(icon),
+    tooltip: text,
+    onPressed: () async {
+      bool confirmation = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: const Text('Confirmación de borrado'),
+                content: const Text('¿Está seguro de eliminar este elemento?'),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, false);
+                      },
+                      child: const Text('Cancelar')),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                      },
+                      child: const Text('Aceptar')),
+                ]);
+          }) as bool;
+      if (confirmation) {
+        if (args == null) {
+          try {
+            action();
+          } catch (e) {
+            action(context);
+          }
+        } else {
+          try {
+            action(args);
+          } catch (e) {
+            action(context, args);
+          }
+        }
+      }
+    },
+  );
+}
+
 Widget cancelBtn(context) {
   return TextButton(
     child: const Text(cancelText),

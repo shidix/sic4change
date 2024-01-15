@@ -318,43 +318,27 @@ class _BankTransferFormState extends State<BankTransferForm> {
     }
 
     List<Widget> buttons;
-    ElevatedButton saveButton = ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(Colors.blueGrey),
-      ),
-      onPressed: () {
-        if (_formKey.currentState!.validate()) {
-          _formKey.currentState!.save();
-          _bankTransfer.save();
-          Navigator.of(context).pop(_bankTransfer);
-        }
-      },
-      child: const Text('Enviar'),
-    );
-    ElevatedButton removeButton = ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(Colors.blueGrey),
-      ),
-      onPressed: () {
-        if (_formKey.currentState!.validate()) {
-          _formKey.currentState!.save();
-          _bankTransfer.delete();
+
+    Widget saveButton = actionButton(context, "Guardar", () {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        _bankTransfer.save();
+        Navigator.of(context).pop(_bankTransfer);
+      }
+    }, Icons.save, null);
+    Widget removeButton = actionButton(context, "Borrar", () {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        customRemoveDialog(context, _bankTransfer, () {
           _bankTransfer.id = "";
           Navigator.of(context).pop(_bankTransfer);
-        }
-      },
-      child: const Text('Eliminar'),
-    );
-    ElevatedButton cancelButton = ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(Colors.blueGrey),
-      ),
-      onPressed: () {
-        Navigator.of(context).pop(null);
-      },
-      child: const Text('Cancelar'),
-    );
+        });
+      }
+    }, Icons.delete, null);
 
+    Widget cancelButton = actionButton(context, "Cancelar", () {
+      Navigator.of(context).pop(null);
+    }, Icons.cancel, null);
     if (widget.existingBankTransfer!.id == "") {
       buttons = [
         Expanded(flex: 5, child: saveButton),
