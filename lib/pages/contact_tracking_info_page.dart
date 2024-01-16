@@ -10,11 +10,13 @@ import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactTrackingInfoTitle = "Detalles del Seguimiento";
-Contact? contactT;
-ContactTracking? tracking;
+//Contact? contactT;
+//ContactTracking? tracking;
 
 class ContactTrackingInfoPage extends StatefulWidget {
-  const ContactTrackingInfoPage({super.key});
+  final Contact? contact;
+  final ContactTracking? tracking;
+  const ContactTrackingInfoPage({super.key, this.contact, this.tracking});
 
   @override
   State<ContactTrackingInfoPage> createState() =>
@@ -22,6 +24,9 @@ class ContactTrackingInfoPage extends StatefulWidget {
 }
 
 class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
+  Contact? contact;
+  ContactTracking? tracking;
+
   void reloadContactTrackingInfo() async {
     tracking?.reload().then((val) {
       tracking = val;
@@ -29,8 +34,15 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    contact = widget.contact;
+    tracking = widget.tracking;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
+    /*if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       contactT = args["contact"];
       tracking = args["tracking"];
@@ -38,7 +50,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
       tracking = null;
     }
 
-    if (tracking == null) return const Page404();
+    if (tracking == null) return const Page404();*/
 
     return Scaffold(
         body: Column(
@@ -47,8 +59,9 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
             children: [
           mainMenu(context),
           contactTrackingInfoHeader(context),
-          contactMenu(context, contactT, null, "tracking"),
-          Expanded(
+          contactMenu(context, contact, null, "tracking"),
+          contentTab(context, contactTrackingInfoDetails, null)
+          /*Expanded(
               child: Container(
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Container(
@@ -60,7 +73,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                       borderRadius: const BorderRadius.all(Radius.circular(5)),
                     ),
                     child: contactTrackingInfoDetails(context),
-                  )))
+                  )))*/
         ]));
   }
 
@@ -81,7 +94,9 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        editBtn(context),
+                        //editBtn(context),
+                        addBtn(context, editDialog, tracking,
+                            icon: Icons.edit, text: "Editar"),
                         returnBtn(context),
                       ],
                     ),
@@ -91,7 +106,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
         ]));
   }
 
-  Widget editBtn(context) {
+  /*Widget editBtn(context) {
     return FilledButton(
       onPressed: () {
         editDialog(context, tracking);
@@ -111,12 +126,12 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
         ],
       ),
     );
-  }
+  }*/
 
 /*--------------------------------------------------------------------*/
 /*                      CONTACT TRACKING EDIT                         */
 /*--------------------------------------------------------------------*/
-  void saveTracking(context, tracking, name, desc, date, manager, assistants,
+  /*void saveTracking(context, tracking, name, desc, date, manager, assistants,
       topics, agreements, contact) async {
     tracking ??= ContactTracking(contact.uuid);
     tracking.name = name;
@@ -129,10 +144,17 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
     tracking.save();
     reloadContactTrackingInfo();
     Navigator.of(context).pop();
+  }*/
+
+  void saveTracking(List args) async {
+    ContactTracking tracking = args[0];
+    tracking.save();
+    reloadContactTrackingInfo();
+    Navigator.of(context).pop();
   }
 
   Future<void> editDialog(context, tracking) {
-    TextEditingController nameController = TextEditingController(text: "");
+    /*TextEditingController nameController = TextEditingController(text: "");
     TextEditingController descController = TextEditingController(text: "");
     TextEditingController dateController = TextEditingController(text: "");
     TextEditingController managerController = TextEditingController(text: "");
@@ -150,66 +172,131 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
       assistantsController = TextEditingController(text: tracking.assistants);
       topicsController = TextEditingController(text: tracking.topics);
       agreementsController = TextEditingController(text: tracking.agreements);
-    }
+    }*/
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Editar seguimiento'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Editar seguimiento'),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre..."),
+                /*customText("Nombre:", 16, textColor: Colors.blue),
+                customTextField(nameController, "Nombre..."),*/
+                CustomTextField(
+                  labelText: 'Nombre',
+                  size: 220,
+                  initial: tracking.name,
+                  fieldValue: (String val) {
+                    tracking.name = val;
+                    /*setState(() {
+                        proj.name = val;
+                      });*/
+                  },
+                ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Fecha:", 16, textColor: Colors.blue),
-                customDateField(context, dateController),
+                /*customText("Fecha:", 16, textColor: Colors.blue),
+                customDateField(context, dateController),*/
+                SizedBox(
+                    width: 220,
+                    child: DateTimePicker(
+                      labelText: 'Fecha:',
+                      selectedDate: tracking.date,
+                      onSelectedDate: (DateTime date) {
+                        tracking.date = date;
+                        /*setState(() {
+                            dates.approved = date;
+                          });*/
+                      },
+                    )),
               ]),
             ]),
             space(width: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Descripción:", 16, textColor: Colors.blue),
-                customTextField(descController, "Descripción...", size: 440),
+                /*customText("Descripción:", 16, textColor: Colors.blue),
+                customTextField(descController, "Descripción...", size: 440),*/
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: tracking.description,
+                  size: 440,
+                  fieldValue: (String val) {
+                    tracking.description = val;
+                  },
+                )
               ]),
             ]),
             space(width: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Responsable:", 16, textColor: Colors.blue),
-                customTextField(managerController, "Responsable...", size: 440),
+                /*customText("Responsable:", 16, textColor: Colors.blue),
+                customTextField(managerController, "Responsable...", size: 440),*/
+                CustomTextField(
+                  labelText: "Responsable",
+                  initial: tracking.manager,
+                  size: 440,
+                  fieldValue: (String val) {
+                    tracking.manager = val;
+                  },
+                )
               ]),
             ]),
             space(width: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Asistentes:", 16, textColor: Colors.blue),
+                /*customText("Asistentes:", 16, textColor: Colors.blue),
                 customTextField(assistantsController, "Asistentes...",
-                    size: 440),
+                    size: 440),*/
+                CustomTextField(
+                  labelText: "Asistentes",
+                  initial: tracking.assistants,
+                  size: 440,
+                  fieldValue: (String val) {
+                    tracking.assistants = val;
+                  },
+                )
               ]),
             ]),
             space(width: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Temas tratados:", 16, textColor: Colors.blue),
+                /*customText("Temas tratados:", 16, textColor: Colors.blue),
                 customTextField(topicsController, "Temas tratados...",
-                    size: 440),
+                    size: 440),*/
+                CustomTextField(
+                  labelText: "Temas tratados",
+                  initial: tracking.topics,
+                  size: 440,
+                  fieldValue: (String val) {
+                    tracking.topics = val;
+                  },
+                )
               ]),
             ]),
             space(width: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Acuerdos:", 16, textColor: Colors.blue),
-                customTextField(agreementsController, "Acuerdos...", size: 440),
+                /*customText("Acuerdos:", 16, textColor: Colors.blue),
+                customTextField(agreementsController, "Acuerdos...", size: 440),*/
+                CustomTextField(
+                  labelText: "Acuerdos",
+                  initial: tracking.agreements,
+                  size: 440,
+                  fieldValue: (String val) {
+                    tracking.agreements = val;
+                  },
+                )
               ]),
             ]),
           ])),
-          actions: <Widget>[
+          actions: <Widget>[dialogsBtns(context, saveTracking, tracking)],
+          /*actions: <Widget>[
             TextButton(
               child: const Text('Guardar'),
               onPressed: () async {
@@ -223,7 +310,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                     assistantsController.text,
                     topicsController.text,
                     agreementsController.text,
-                    contactT);
+                    contact);
               },
             ),
             TextButton(
@@ -232,13 +319,13 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 Navigator.of(context).pop();
               },
             ),
-          ],
+          ],*/
         );
       },
     );
   }
 
-  Widget customDateField(context, dateController) {
+  /*Widget customDateField(context, dateController) {
     return SizedBox(
         width: 220,
         child: TextField(
@@ -268,12 +355,12 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
             }
           },
         ));
-  }
+  }*/
 
 /*--------------------------------------------------------------------*/
 /*                      CONTACT TRACKING INFO                         */
 /*--------------------------------------------------------------------*/
-  Widget contactTrackingInfoDetails(context) {
+  Widget contactTrackingInfoDetails(context, param) {
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -285,7 +372,9 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       customText(tracking?.name, 16, bold: FontWeight.bold),
-                      customText(tracking?.date, 16, bold: FontWeight.bold)
+                      customText(
+                          DateFormat("dd-MM-yyyy").format(tracking!.date), 16,
+                          bold: FontWeight.bold)
                     ]),
                 space(height: 10),
                 customRowDividerBlue(),

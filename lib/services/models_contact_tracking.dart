@@ -15,7 +15,7 @@ class ContactTracking {
 
   String name = "";
   String description = "";
-  String date = "";
+  DateTime date = DateTime.now();
   String manager = "";
   String assistants = "";
   String topics = "";
@@ -29,7 +29,7 @@ class ContactTracking {
         contact = json['contact'],
         name = json['name'],
         description = json['description'],
-        date = json['date'],
+        date = json['date'].toDate(),
         manager = json['manager'],
         assistants = json['assistants'],
         topics = json['topics'],
