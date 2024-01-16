@@ -6,21 +6,25 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/project_info_menu_widget.dart';
 
 const reformulationTitle = "Detalles del Proyecto";
-SProject? _project;
+//SProject? _project;
 List refList = [];
 
 class ReformulationPage extends StatefulWidget {
-  const ReformulationPage({super.key});
+  final SProject? project;
+  const ReformulationPage({super.key, this.project});
 
   @override
   State<ReformulationPage> createState() => _ReformulationPageState();
 }
 
 class _ReformulationPageState extends State<ReformulationPage> {
+  SProject? project;
+
   void loadReformulations() async {
-    await getReformulationsByProject(_project!.uuid).then((val) {
+    await getReformulationsByProject(project!.uuid).then((val) {
       refList = val;
     });
     setState(() {});
@@ -28,14 +32,14 @@ class _ReformulationPageState extends State<ReformulationPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
+    /*if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       _project = args["project"];
     } else {
       _project = null;
     }
 
-    if (_project == null) return const Page404();
+    if (_project == null) return const Page404();*/
 
     return Scaffold(
       body: Column(
@@ -43,22 +47,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context),
-          projectInfoHeader(context, _project),
-          projectInfoMenu(context, _project),
+          projectInfoHeader(context, project),
+          projectInfoMenu(context, project, "reformulation"),
           contentTab(context, reformulationList, null)
-          /*Expanded(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xffdfdfdf),
-                        width: 2,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                    ),
-                    child: reformulationList(context),
-                  ))),*/
         ],
       ),
     );
@@ -73,7 +64,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
             Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  addBtn(context, callEditDialog, null),
+                  addBtn(context, callEditDialog, Reformulation(project)),
                   space(width: 10),
                   returnBtn(context),
                 ]))
@@ -107,7 +98,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         ]));
   }
 
-  Widget projectInfoMenu(context, project) {
+  /*Widget projectInfoMenu(context, project) {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
@@ -119,14 +110,14 @@ class _ReformulationPageState extends State<ReformulationPage> {
         ],
       ),
     );
-  }
+  }*/
 
 /*-------------------------------------------------------------
                        REFORMULATION
 -------------------------------------------------------------*/
   Widget reformulationList(context, args) {
     return FutureBuilder(
-        future: getReformulationsByProject(_project!.uuid),
+        future: getReformulationsByProject(project!.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             refList = snapshot.data!;
@@ -201,7 +192,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
 
   Widget reformulationRowOptions(context, ref) {
     return Row(children: [
-      IconButton(
+      /*IconButton(
           icon: const Icon(Icons.edit),
           tooltip: 'Editar',
           onPressed: () async {
@@ -212,14 +203,16 @@ class _ReformulationPageState extends State<ReformulationPage> {
           tooltip: 'Borrar',
           onPressed: () {
             removeReformulationDialog(context, ref);
-          }),
+          }),*/
+      editBtn(context, callEditDialog, {'ref': ref}),
+      removeBtn(context, removeReformulationDialog, {"ref": ref})
     ]);
   }
 
 /*-------------------------------------------------------------
                        EDIT REFORMULATION
 -------------------------------------------------------------*/
-  Widget addBtn2(context) {
+  /*Widget addBtn2(context) {
     return FilledButton(
       onPressed: () {
         callEditDialog(context, null);
@@ -239,9 +232,18 @@ class _ReformulationPageState extends State<ReformulationPage> {
         ],
       ),
     );
+  }*/
+
+  void saveReformulation(List args) async {
+    Reformulation ref = args[0];
+    ref.save();
+    loadReformulations();
+
+    Navigator.pop(context);
   }
 
-  void callEditDialog(context, ref) async {
+  void callEditDialog(context, args) async {
+    Reformulation ref = args["ref"];
     List<KeyValue> financierList = [];
 
     await getFinanciers().then((value) async {
@@ -253,60 +255,107 @@ class _ReformulationPageState extends State<ReformulationPage> {
   }
 
   Future<void> _editDialog(context, ref, financierList) {
-    TextEditingController financierController = TextEditingController(text: "");
+    /*TextEditingController financierController = TextEditingController(text: "");
     TextEditingController reformulationController =
         TextEditingController(text: "");
     TextEditingController correctionController =
         TextEditingController(text: "");
     TextEditingController requestController = TextEditingController(text: "");
-    KeyValue fin = KeyValue("", "");
+    KeyValue fin = KeyValue("", "");*/
 
-    if (ref != null) {
+    /*if (ref != null) {
       financierController = TextEditingController(text: ref.financier);
       reformulationController = TextEditingController(text: ref.reformulation);
       correctionController = TextEditingController(text: ref.correction);
       requestController = TextEditingController(text: ref.request);
       Financier financier = ref.financierObj;
       fin = financier.toKeyValue();
-    }
+    }*/
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
+          titlePadding: const EdgeInsets.all(0),
           title: (ref != null)
-              ? const Text('Editar reformulación')
-              : const Text('Añadir reformulación'),
+              ? s4cTitleBar("Editar reformualción")
+              : s4cTitleBar("Añadir reformualción"),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Financiador:", 16, textColor: Colors.blue),
+                /*customText("Financiador:", 16, textColor: Colors.blue),
                 customDropdownField(financierController, financierList, fin,
-                    "Selecciona financiador"),
+                    "Selecciona financiador"),*/
+                CustomDropdown(
+                  labelText: 'Financiador',
+                  size: 220,
+                  selected: ref.financierObj.toKeyValue(),
+                  options: financierList,
+                  onSelectedOpt: (String val) {
+                    ref.financier = val;
+                    /*setState(() {
+                        proj.type = val;
+                      });*/
+                  },
+                ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Reformulaciones:", 16, textColor: Colors.blue),
-                customTextField(reformulationController, "Reformulaciones"),
+                /*customText("Reformulaciones:", 16, textColor: Colors.blue),
+                customTextField(reformulationController, "Reformulaciones"),*/
+                CustomTextField(
+                  labelText: 'Reformulaciones',
+                  size: 220,
+                  initial: ref.reformulation,
+                  fieldValue: (String val) {
+                    ref.reformulation = val;
+                    /*setState(() {
+                        proj.budget = val;
+                      });*/
+                  },
+                ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Subsanación:", 16, textColor: Colors.blue),
-                customTextField(correctionController, "Subsanación"),
+                /*customText("Subsanación:", 16, textColor: Colors.blue),
+                customTextField(correctionController, "Subsanación"),*/
+                CustomTextField(
+                  labelText: 'Subsanación',
+                  size: 220,
+                  initial: ref.correction,
+                  fieldValue: (String val) {
+                    ref.correction = val;
+                    /*setState(() {
+                        proj.budget = val;
+                      });*/
+                  },
+                ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Solicitud de subcontratación:", 16,
+                /*customText("Solicitud de subcontratación:", 16,
                     textColor: Colors.blue),
                 customTextField(
-                    requestController, "Solicitud de subcontratación"),
+                    requestController, "Solicitud de subcontratación"),*/
+                CustomTextField(
+                  labelText: 'Solicitud de subcontratación',
+                  size: 220,
+                  initial: ref.request,
+                  fieldValue: (String val) {
+                    ref.request = val;
+                    /*setState(() {
+                        proj.budget = val;
+                      });*/
+                  },
+                ),
               ])
             ]),
           ])),
           actions: <Widget>[
+            dialogsBtns(context, saveReformulation, ref),
+            /*actions: <Widget>[
             TextButton(
               child: const Text('Guardar'),
               onPressed: () async {
@@ -324,14 +373,14 @@ class _ReformulationPageState extends State<ReformulationPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-            ),
+            ),*/
           ],
         );
       },
     );
   }
 
-  void saveReformulation(
+  /*void saveReformulation(
     context,
     ref,
     financier,
@@ -339,7 +388,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
     correction,
     request,
   ) async {
-    ref ??= Reformulation(_project!.uuid);
+    ref ??= Reformulation(project!.uuid);
     ref.financier = financier;
     ref.reformulation = reformulation;
     ref.correction = correction;
@@ -347,9 +396,13 @@ class _ReformulationPageState extends State<ReformulationPage> {
     ref.save();
     loadReformulations();
     Navigator.pop(context);
+  }*/
+
+  void removeReformulationDialog(context, args) {
+    customRemoveDialog(context, args["ref"], loadReformulations, null);
   }
 
-  Future<void> removeReformulationDialog(context, ref) async {
+  /*Future<void> removeReformulationDialog(context, ref) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -379,5 +432,5 @@ class _ReformulationPageState extends State<ReformulationPage> {
         );
       },
     );
-  }
+  }*/
 }

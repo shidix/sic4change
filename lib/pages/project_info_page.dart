@@ -9,6 +9,7 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/project_info_menu_widget.dart';
 
 const projectInfoTitle = "Detalles del Proyecto";
 //SProject? project;
@@ -64,7 +65,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           mainMenu(context),
           projectInfoHeader(context, project),
-          projectInfoMenu(context, project),
+          projectInfoMenu(context, project, "info"),
           projLoading
               ? contentTab(context, projectInfoDetails, {"project": project})
               : const Center(child: CircularProgressIndicator()),
@@ -113,7 +114,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         ]));
   }
 
-  Widget projectInfoMenu(context, _project) {
+  /*Widget projectInfoMenu(context, _project) {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
@@ -125,7 +126,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         ],
       ),
     );
-  }
+  }*/
 
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
@@ -135,14 +136,15 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       child: Row(
         children: [
           SizedBox(
-              width: MediaQuery.of(context).size.width / 2.2,
+              //width: MediaQuery.of(context).size.width / 2.2,
+              width: 200,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   customText("Responsable del proyecto", 14,
                       bold: FontWeight.bold),
                   space(height: 5),
-                  customText(_project.managerObj.name, 14),
+                  //customText(_project.managerObj.name, 14),
                 ],
               )),
           const VerticalDivider(

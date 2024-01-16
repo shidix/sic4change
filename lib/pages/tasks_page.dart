@@ -168,7 +168,7 @@ class _TasksPageState extends State<TasksPage> {
               DataColumn(
                   label: customText("Tarea", 14, bold: FontWeight.bold),
                   tooltip: "Tarea"),
-              DataColumn(
+              /*DataColumn(
                 label: customText("Acuerdo", 14, bold: FontWeight.bold),
                 tooltip: "Acuerdo",
               ),
@@ -190,13 +190,13 @@ class _TasksPageState extends State<TasksPage> {
                   tooltip: "Estado"),
               DataColumn(
                   label: customText("Acciones", 14, bold: FontWeight.bold),
-                  tooltip: "Acciones"),
+                  tooltip: "Acciones"),*/
             ],
             rows: tasks
                 .map(
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
-                    DataCell(
+                    /*DataCell(
                       Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
                     ),
                     DataCell(Text(
@@ -207,23 +207,10 @@ class _TasksPageState extends State<TasksPage> {
                     DataCell(Text(task.getAssignedStr())),
                     DataCell(customTextStatus(task.statusObj.name, 14)),
                     DataCell(Row(children: [
-                      /*IconButton(
-                          icon: const Icon(Icons.view_compact),
-                          tooltip: 'Ver',
-                          onPressed: () async {
-                            Navigator.pushNamed(context, "/task_info",
-                                arguments: {'task': task});
-                          }),
-                      IconButton(
-                          icon: const Icon(Icons.remove_circle),
-                          tooltip: 'Remove',
-                          onPressed: () {
-                            _removeTaskDialog(context, task);
-                          }),*/
                       goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),
                       removeBtn(context, removeTaskDialog, {"task": task})
-                    ]))
+                    ]))*/
                   ]),
                 )
                 .toList(),
