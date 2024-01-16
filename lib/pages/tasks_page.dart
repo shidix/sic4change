@@ -53,11 +53,11 @@ class _TasksPageState extends State<TasksPage> {
         space(height: 20),
         taskMenu(context, "tasks"),
         //contactsHeader(context),
-        taskLoading
+        /*taskLoading
             ? contentTab(context, taskList, null)
             : const Center(
                 child: CircularProgressIndicator(),
-              ),
+              ),*/
         footer(context),
       ]),
     );
@@ -129,8 +129,7 @@ class _TasksPageState extends State<TasksPage> {
     return Expanded(
         child: Container(
       padding: const EdgeInsets.all(5),
-      //child: dataBody(context),
-      child: customText("Test", 16),
+      child: dataBody(context),
     ));
 
     /*return FutureBuilder(

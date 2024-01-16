@@ -31,6 +31,12 @@ class _ReformulationPageState extends State<ReformulationPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    project = widget.project;
+  }
+
+  @override
   Widget build(BuildContext context) {
     /*if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
@@ -48,8 +54,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
         children: [
           mainMenu(context),
           projectInfoHeader(context, project),
-          projectInfoMenu(context, project, "reformulation"),
-          contentTab(context, reformulationList, null)
+          //projectInfoMenu(context, project, "reformulation"),
+          //contentTab(context, reformulationList, null)
         ],
       ),
     );
