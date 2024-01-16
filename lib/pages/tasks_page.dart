@@ -53,11 +53,11 @@ class _TasksPageState extends State<TasksPage> {
         space(height: 20),
         taskMenu(context, "tasks"),
         //contactsHeader(context),
-        /*taskLoading
-            ? contentTab(context, taskList, null)
+        taskLoading
+            ? contentTab(context, tasks, null)
             : const Center(
                 child: CircularProgressIndicator(),
-              ),*/
+              ),
         footer(context),
       ]),
     );

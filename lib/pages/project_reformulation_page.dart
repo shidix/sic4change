@@ -54,8 +54,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
         children: [
           mainMenu(context),
           projectInfoHeader(context, project),
-          //projectInfoMenu(context, project, "reformulation"),
-          //contentTab(context, reformulationList, null)
+          projectInfoMenu(context, project, "reformulation"),
+          contentTab(context, reformulationList, null)
         ],
       ),
     );
@@ -70,7 +70,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
             Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  addBtn(context, callEditDialog, Reformulation(project)),
+                  addBtn(context, callEditDialog, Reformulation(project.uuid)),
                   space(width: 10),
                   returnBtn(context),
                 ]))
