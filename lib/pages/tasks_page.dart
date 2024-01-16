@@ -158,6 +158,9 @@ class _TasksPageState extends State<TasksPage> {
 
   SingleChildScrollView dataBody(context) {
     return SingleChildScrollView(
+        scrollDirection: Axis.vertical, child: customText("_text", 14));
+
+    /*return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
           width: double.infinity,
@@ -168,7 +171,7 @@ class _TasksPageState extends State<TasksPage> {
               DataColumn(
                   label: customText("Tarea", 14, bold: FontWeight.bold),
                   tooltip: "Tarea"),
-              /*DataColumn(
+              DataColumn(
                 label: customText("Acuerdo", 14, bold: FontWeight.bold),
                 tooltip: "Acuerdo",
               ),
@@ -190,13 +193,13 @@ class _TasksPageState extends State<TasksPage> {
                   tooltip: "Estado"),
               DataColumn(
                   label: customText("Acciones", 14, bold: FontWeight.bold),
-                  tooltip: "Acciones"),*/
+                  tooltip: "Acciones"),
             ],
             rows: tasks
                 .map(
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
-                    /*DataCell(
+                    DataCell(
                       Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
                     ),
                     DataCell(Text(
@@ -210,12 +213,12 @@ class _TasksPageState extends State<TasksPage> {
                       goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),
                       removeBtn(context, removeTaskDialog, {"task": task})
-                    ]))*/
+                    ]))
                   ]),
                 )
                 .toList(),
           ),
-        ));
+        ));*/
   }
 
   void _callEditDialog(context, HashMap args) async {

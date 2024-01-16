@@ -137,16 +137,15 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           SizedBox(
               //width: MediaQuery.of(context).size.width / 2.2,
-              width: 200,
+              //width: 200,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText("Responsable del proyecto", 14,
-                      bold: FontWeight.bold),
-                  space(height: 5),
-                  //customText(_project.managerObj.name, 14),
-                ],
-              )),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              customText("Responsable del proyecto", 14, bold: FontWeight.bold),
+              space(height: 5),
+              //customText(_project.managerObj.name, 14),
+            ],
+          )),
           const VerticalDivider(
             width: 10,
             color: Colors.grey,
