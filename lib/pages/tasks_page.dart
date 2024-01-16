@@ -129,7 +129,8 @@ class _TasksPageState extends State<TasksPage> {
     return Expanded(
         child: Container(
       padding: const EdgeInsets.all(5),
-      child: dataBody(context),
+      //child: dataBody(context),
+      child: customText("Test", 16),
     ));
 
     /*return FutureBuilder(
@@ -158,9 +159,6 @@ class _TasksPageState extends State<TasksPage> {
 
   SingleChildScrollView dataBody(context) {
     return SingleChildScrollView(
-        scrollDirection: Axis.vertical, child: customText("_text", 14));
-
-    /*return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
           width: double.infinity,
@@ -218,7 +216,7 @@ class _TasksPageState extends State<TasksPage> {
                 )
                 .toList(),
           ),
-        ));*/
+        ));
   }
 
   void _callEditDialog(context, HashMap args) async {
