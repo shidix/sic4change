@@ -54,7 +54,7 @@ class _TasksPageState extends State<TasksPage> {
         taskMenu(context, "tasks"),
         //contactsHeader(context),
         taskLoading
-            ? contentTab(context, tasks, null)
+            ? contentTab(context, taskList, null)
             : const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -192,7 +192,7 @@ class _TasksPageState extends State<TasksPage> {
                   label: customText("Acciones", 14, bold: FontWeight.bold),
                   tooltip: "Acciones"),
             ],
-            rows: tasks
+            rows: []
                 .map(
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
