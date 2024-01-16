@@ -244,7 +244,7 @@ class _HomePageState extends State<HomePage> {
       }
       if (mounted) {
         setState(() {
-          currentWorkday = value;
+          currentWorkday = currentWorkday;
         });
       }
     });
