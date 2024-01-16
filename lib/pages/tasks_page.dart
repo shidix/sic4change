@@ -197,7 +197,7 @@ class _TasksPageState extends State<TasksPage> {
                   label: customText("Acciones", 14, bold: FontWeight.bold),
                   tooltip: "Acciones"),
             ],
-            rows: []
+            rows: tasks
                 .map(
                   (task) => DataRow(cells: [
                     DataCell(Text(task.name)),
