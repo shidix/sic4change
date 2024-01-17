@@ -50,3 +50,4 @@ app.*.map.json
 web/start.sh
 pubspec.lock
 windows/**
+*.sh

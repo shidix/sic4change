@@ -236,7 +236,7 @@ class _HomePageState extends State<HomePage> {
   void autoStartWorkday(context) async {
     Workday.currentByUser(user.email!).then((value) {
       currentWorkday = value;
-      if (!currentWorkday!.open) {
+      if ((currentWorkday == null) || (!currentWorkday!.open)) {
         currentWorkday = Workday.getEmpty();
         currentWorkday!.userId = user.email!;
         currentWorkday!.open = true;
@@ -244,7 +244,7 @@ class _HomePageState extends State<HomePage> {
       }
       if (mounted) {
         setState(() {
-          currentWorkday = value;
+          currentWorkday = currentWorkday;
         });
       }
     });
