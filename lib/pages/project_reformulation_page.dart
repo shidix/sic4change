@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -38,15 +35,6 @@ class _ReformulationPageState extends State<ReformulationPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      _project = args["project"];
-    } else {
-      _project = null;
-    }
-
-    if (_project == null) return const Page404();*/
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -70,7 +58,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
             Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  addBtn(context, callEditDialog, Reformulation(project.uuid)),
+                  addBtn(context, callEditDialog,
+                      {"ref": Reformulation(project.uuid)}),
                   space(width: 10),
                   returnBtn(context),
                 ]))

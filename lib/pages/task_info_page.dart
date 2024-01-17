@@ -23,13 +23,9 @@ class TaskInfoPage extends StatefulWidget {
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
   void loadTask(task) async {
-    //void loadTask() async {
     await task.reload().then((val) {
-      //Navigator.popAndPushNamed(context, "/task_info",
-      //    arguments: {"task": val});
       setState(() {
         task = val;
-        // projLoading = true;
       });
     });
   }
@@ -358,14 +354,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     //setState(() => task.comments = val);
                   },
                 )
-                /*SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue: (task.name != "") ? task.name : "",
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                    onChanged: (val) => setState(() => task.name = val),
-                  ),
-                ),*/
               ]),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Pública:", 16, textColor: mainColor),
@@ -395,9 +383,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   options: projectList,
                   onSelectedOpt: (String val) {
                     task.project = val;
-                    /*setState(() {
-                      task.project = val;
-                    });*/
                   },
                 ),
               ]),
@@ -411,18 +396,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   size: 600,
                   fieldValue: (String val) {
                     task.description = val;
-                    //setState(() => task.comments = val);
                   },
                 )
-                /*SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue:
-                        (task.description != "") ? task.description : "",
-                    decoration: const InputDecoration(labelText: 'Descripción'),
-                    onChanged: (val) => setState(() => task.description = val),
-                  ),
-                ),*/
               ]),
             ]),
             space(height: 20),
@@ -434,17 +409,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   size: 600,
                   fieldValue: (String val) {
                     task.comments = val;
-                    //setState(() => task.comments = val);
                   },
                 )
-                /*SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue: (task.comments != "") ? task.comments : "",
-                    decoration: const InputDecoration(labelText: 'Comentarios'),
-                    onChanged: (val) => setState(() => task.comments = val),
-                  ),
-                ),*/
               ]),
             ]),
             space(height: 20),
@@ -458,9 +424,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   options: statusList,
                   onSelectedOpt: (String val) {
                     task.status = val;
-                    /*setState(() {
-                      task.status = val;
-                    });*/
                   },
                 ),
               ]),
@@ -474,9 +437,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   options: contactList,
                   onSelectedOpt: (String val) {
                     task.sender = val;
-                    /*setState(() {
-                      task.sender = val;
-                    });*/
                   },
                 ),
               ]),
@@ -491,9 +451,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       selectedDate: task.dealDate,
                       onSelectedDate: (DateTime date) {
                         task.dealDate = date;
-                        /*setState(() {
-                          task.dealDate = date;
-                        });*/
                       },
                     )),
               ]),
@@ -506,9 +463,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       selectedDate: task.deadLineDate,
                       onSelectedDate: (DateTime date) {
                         task.deadLineDate = date;
-                        /*setState(() {
-                          task.deadLineDate = date;
-                        });*/
                       },
                     )),
               ]),
@@ -521,10 +475,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       selectedDate: task.newDeadLineDate,
                       onSelectedDate: (DateTime date) {
                         task.newDeadLineDate = date;
-
-                        /*setState(() {
-                          task.newDeadLineDate = date;
-                        });*/
                       },
                     )),
               ]),
@@ -542,17 +492,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           ASSIGNED                                 */
   /*--------------------------------------------------------------------*/
-  /*void _saveAssigned(context, task, name, contacts) async {
-    task.assigned.add(name);
-    task.updateAssigned();
-
-    if (!contacts.contains(name)) {
-      Contact _contact = Contact(name, "", "", "", "");
-      _contact.save();
-    }
-    loadTask(task);
-    Navigator.of(context).pop();
-  }*/
   void saveAssigned(List args) async {
     STask task = args[0];
     task.updateAssigned();
@@ -561,21 +500,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void _callAssignedEditDialog(context, task) async {
-    /*List<String> contacts = [];
-    await getContacts().then((value) async {
-      for (Contact item in value) {
-        contacts.add(item.name);
-      }
-
-      _editTaskAssignedDialog(context, task, contacts);
-    });*/
     List<KeyValue> contacts = await getContactsHash();
     _editTaskAssignedDialog(context, task, contacts);
   }
 
   Future<void> _editTaskAssignedDialog(context, task, contacts) {
-    //TextEditingController nameController = TextEditingController(text: "");
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -597,26 +526,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     });*/
                 },
               ),
-
-              /*customAutocompleteField(
-                  nameController, contacts, "Write or select contact..."),*/
             ]),
           ),
           actions: <Widget>[dialogsBtns(context, saveAssigned, task)],
-          /*actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveAssigned(context, task, nameController.text, contacts);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],*/
         );
       },
     );
@@ -625,17 +537,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PROGRAMMES                               */
   /*--------------------------------------------------------------------*/
-  /*void _saveProgrammes(context, task, name, programmesList) async {
-    task.programmes.add(name);
-    task.updateProgrammes();
-    if (!programmesList.contains(name)) {
-      Programme programme = Programme(name);
-      programme.save();
-    }
-    loadTask(task);
-    Navigator.of(context).pop();
-  }*/
-
   void saveProgrammes(List args) async {
     STask task = args[0];
     task.updateProgrammes();
@@ -644,21 +545,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void _callProgrammesEditDialog(context, task) async {
-    /*List<String> programmeList = [];
-    await getProgrammes().then((value) async {
-      for (Programme item in value) {
-        programmeList.add(item.name);
-      }
-
-      _editTaskProgrammesDialog(context, task, programmeList);
-    });*/
     List<KeyValue> programmeList = await getProgrammesHash();
     _editTaskProgrammesDialog(context, task, programmeList);
   }
 
   Future<void> _editTaskProgrammesDialog(context, task, programmeList) {
-    //TextEditingController nameController = TextEditingController(text: "");
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -675,32 +566,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 options: programmeList,
                 onSelectedOpt: (String val) {
                   task.programmes.add(val);
-                  /*setState(() {
-                      task.sender = val;
-                    });*/
                 },
               ),
-
-              /*customAutocompleteField(
-                  nameController, programmeList, "Write or select contact..."),*/
             ]),
           ),
           actions: <Widget>[dialogsBtns(context, saveProgrammes, task)],
-          /*actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveProgrammes(
-                    context, task, nameController.text, programmeList);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],*/
         );
       },
     );
