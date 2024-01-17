@@ -23,9 +23,14 @@ class TaskInfoPage extends StatefulWidget {
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
   void loadTask(task) async {
+    //void loadTask() async {
     await task.reload().then((val) {
-      Navigator.popAndPushNamed(context, "/task_info",
-          arguments: {"task": val});
+      //Navigator.popAndPushNamed(context, "/task_info",
+      //    arguments: {"task": val});
+      setState(() {
+        task = val;
+        // projLoading = true;
+      });
     });
   }
 
@@ -248,7 +253,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${task.assigned[index]}'),
+                    Text('${task.assignedObj[index].name}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -285,14 +290,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: task.programmes.length,
+        itemCount: task.programmesObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${task.programmes[index]}'),
+                    Text('${task.programmesObj[index].name}'),
                     IconButton(
                       icon: const Icon(
                         Icons.remove,
@@ -321,7 +326,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void saveTask(List args) async {
-    STask task = args[1];
+    STask task = args[0];
     task.save();
     loadTask(task);
     Navigator.pop(context);
@@ -344,14 +349,23 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: task.name,
+                  size: 600,
+                  fieldValue: (String val) {
+                    task.name = val;
+                    //setState(() => task.comments = val);
+                  },
+                )
+                /*SizedBox(
                   width: 600,
                   child: TextFormField(
                     initialValue: (task.name != "") ? task.name : "",
                     decoration: const InputDecoration(labelText: 'Nombre'),
                     onChanged: (val) => setState(() => task.name = val),
                   ),
-                ),
+                ),*/
               ]),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Pública:", 16, textColor: mainColor),
@@ -359,10 +373,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   return Checkbox(
                     value: task.public,
                     onChanged: (bool? value) {
-                      setState(() {
+                      task.public = value!;
+                      state.didChange(task.public);
+                      /*setState(() {
                         task.public = value!;
                         state.didChange(task.public);
-                      });
+                      });*/
                     },
                   );
                 })
@@ -378,9 +394,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   selected: task.projectObj.toKeyValue(),
                   options: projectList,
                   onSelectedOpt: (String val) {
-                    setState(() {
+                    task.project = val;
+                    /*setState(() {
                       task.project = val;
-                    });
+                    });*/
                   },
                 ),
               ]),
@@ -388,7 +405,16 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: task.description,
+                  size: 600,
+                  fieldValue: (String val) {
+                    task.description = val;
+                    //setState(() => task.comments = val);
+                  },
+                )
+                /*SizedBox(
                   width: 600,
                   child: TextFormField(
                     initialValue:
@@ -396,20 +422,29 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     decoration: const InputDecoration(labelText: 'Descripción'),
                     onChanged: (val) => setState(() => task.description = val),
                   ),
-                ),
+                ),*/
               ]),
             ]),
             space(height: 20),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
+                CustomTextField(
+                  labelText: "Comentarios",
+                  initial: task.comments,
+                  size: 600,
+                  fieldValue: (String val) {
+                    task.comments = val;
+                    //setState(() => task.comments = val);
+                  },
+                )
+                /*SizedBox(
                   width: 600,
                   child: TextFormField(
                     initialValue: (task.comments != "") ? task.comments : "",
                     decoration: const InputDecoration(labelText: 'Comentarios'),
                     onChanged: (val) => setState(() => task.comments = val),
                   ),
-                ),
+                ),*/
               ]),
             ]),
             space(height: 20),
@@ -422,9 +457,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   selected: task.statusObj.toKeyValue(),
                   options: statusList,
                   onSelectedOpt: (String val) {
-                    setState(() {
+                    task.status = val;
+                    /*setState(() {
                       task.status = val;
-                    });
+                    });*/
                   },
                 ),
               ]),
@@ -437,9 +473,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   selected: task.senderObj.toKeyValue(),
                   options: contactList,
                   onSelectedOpt: (String val) {
-                    setState(() {
+                    task.sender = val;
+                    /*setState(() {
                       task.sender = val;
-                    });
+                    });*/
                   },
                 ),
               ]),
@@ -453,9 +490,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       labelText: 'Acuerdo',
                       selectedDate: task.dealDate,
                       onSelectedDate: (DateTime date) {
-                        setState(() {
+                        task.dealDate = date;
+                        /*setState(() {
                           task.dealDate = date;
-                        });
+                        });*/
                       },
                     )),
               ]),
@@ -467,9 +505,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       labelText: 'Deadline',
                       selectedDate: task.deadLineDate,
                       onSelectedDate: (DateTime date) {
-                        setState(() {
+                        task.deadLineDate = date;
+                        /*setState(() {
                           task.deadLineDate = date;
-                        });
+                        });*/
                       },
                     )),
               ]),
@@ -481,9 +520,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       labelText: 'Nuevo deadline',
                       selectedDate: task.newDeadLineDate,
                       onSelectedDate: (DateTime date) {
-                        setState(() {
+                        task.newDeadLineDate = date;
+
+                        /*setState(() {
                           task.newDeadLineDate = date;
-                        });
+                        });*/
                       },
                     )),
               ]),
@@ -493,23 +534,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           actions: <Widget>[
             dialogsBtns(context, saveTask, task),
           ],
-          /*actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                task.save();
-                loadTask(task);
-                Navigator.pop(context);
-                //_saveTask([context, task, statusList]);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],*/
         );
       },
     );
@@ -518,7 +542,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           ASSIGNED                                 */
   /*--------------------------------------------------------------------*/
-  void _saveAssigned(context, task, name, contacts) async {
+  /*void _saveAssigned(context, task, name, contacts) async {
     task.assigned.add(name);
     task.updateAssigned();
 
@@ -528,21 +552,29 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     }
     loadTask(task);
     Navigator.of(context).pop();
+  }*/
+  void saveAssigned(List args) async {
+    STask task = args[0];
+    task.updateAssigned();
+    loadTask(task);
+    Navigator.of(context).pop();
   }
 
   void _callAssignedEditDialog(context, task) async {
-    List<String> contacts = [];
+    /*List<String> contacts = [];
     await getContacts().then((value) async {
       for (Contact item in value) {
         contacts.add(item.name);
       }
 
       _editTaskAssignedDialog(context, task, contacts);
-    });
+    });*/
+    List<KeyValue> contacts = await getContactsHash();
+    _editTaskAssignedDialog(context, task, contacts);
   }
 
   Future<void> _editTaskAssignedDialog(context, task, contacts) {
-    TextEditingController nameController = TextEditingController(text: "");
+    //TextEditingController nameController = TextEditingController(text: "");
 
     return showDialog<void>(
       context: context,
@@ -553,11 +585,25 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           title: s4cTitleBar('Añadir responsable'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customAutocompleteField(
-                  nameController, contacts, "Write or select contact..."),
+              CustomDropdown(
+                labelText: 'Responsable',
+                size: 340,
+                selected: KeyValue("", ""),
+                options: contacts,
+                onSelectedOpt: (String val) {
+                  task.assigned.add(val);
+                  /*setState(() {
+                      task.sender = val;
+                    });*/
+                },
+              ),
+
+              /*customAutocompleteField(
+                  nameController, contacts, "Write or select contact..."),*/
             ]),
           ),
-          actions: <Widget>[
+          actions: <Widget>[dialogsBtns(context, saveAssigned, task)],
+          /*actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
@@ -570,7 +616,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 Navigator.of(context).pop();
               },
             ),
-          ],
+          ],*/
         );
       },
     );
@@ -579,7 +625,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PROGRAMMES                               */
   /*--------------------------------------------------------------------*/
-  void _saveProgrammes(context, task, name, programmesList) async {
+  /*void _saveProgrammes(context, task, name, programmesList) async {
     task.programmes.add(name);
     task.updateProgrammes();
     if (!programmesList.contains(name)) {
@@ -588,21 +634,30 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     }
     loadTask(task);
     Navigator.of(context).pop();
+  }*/
+
+  void saveProgrammes(List args) async {
+    STask task = args[0];
+    task.updateProgrammes();
+    loadTask(task);
+    Navigator.of(context).pop();
   }
 
   void _callProgrammesEditDialog(context, task) async {
-    List<String> programmeList = [];
+    /*List<String> programmeList = [];
     await getProgrammes().then((value) async {
       for (Programme item in value) {
         programmeList.add(item.name);
       }
 
       _editTaskProgrammesDialog(context, task, programmeList);
-    });
+    });*/
+    List<KeyValue> programmeList = await getProgrammesHash();
+    _editTaskProgrammesDialog(context, task, programmeList);
   }
 
   Future<void> _editTaskProgrammesDialog(context, task, programmeList) {
-    TextEditingController nameController = TextEditingController(text: "");
+    //TextEditingController nameController = TextEditingController(text: "");
 
     return showDialog<void>(
       context: context,
@@ -613,11 +668,25 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           title: s4cTitleBar('Añadir programa'),
           content: SingleChildScrollView(
             child: Column(children: [
-              customAutocompleteField(
-                  nameController, programmeList, "Write or select contact..."),
+              CustomDropdown(
+                labelText: 'Programa',
+                size: 340,
+                selected: KeyValue("", ""),
+                options: programmeList,
+                onSelectedOpt: (String val) {
+                  task.programmes.add(val);
+                  /*setState(() {
+                      task.sender = val;
+                    });*/
+                },
+              ),
+
+              /*customAutocompleteField(
+                  nameController, programmeList, "Write or select contact..."),*/
             ]),
           ),
-          actions: <Widget>[
+          actions: <Widget>[dialogsBtns(context, saveProgrammes, task)],
+          /*actions: <Widget>[
             TextButton(
               child: const Text('Save'),
               onPressed: () async {
@@ -631,7 +700,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 Navigator.of(context).pop();
               },
             ),
-          ],
+          ],*/
         );
       },
     );

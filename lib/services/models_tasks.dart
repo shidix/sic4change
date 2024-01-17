@@ -35,6 +35,7 @@ class STask {
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("", "", "", "", "");
   List<Contact> assignedObj = [];
+  List<Programme> programmesObj = [];
 
   STask(this.name);
 
@@ -110,6 +111,7 @@ class STask {
     await getStatus();
     await getSender();
     await getAssigned();
+    await getProgrammes();
     return this;
   }
 
@@ -149,6 +151,7 @@ class STask {
   }
 
   Future<void> getAssigned() async {
+    List<Contact> listAssigned = [];
     for (String item in assigned) {
       try {
         QuerySnapshot query =
@@ -157,9 +160,10 @@ class STask {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
         Contact contact = Contact.fromJson(data);
-        assignedObj.add(contact);
+        listAssigned.add(contact);
       } catch (e) {}
     }
+    assignedObj = listAssigned;
   }
 
   String getAssignedStr() {
@@ -184,6 +188,7 @@ class STask {
       await task.getStatus();
       await task.getSender();
       await task.getAssigned();
+      await task.getProgrammes();
       items.add(task);
     }
     return items;
@@ -200,10 +205,27 @@ class STask {
         task.getStatus();
         task.getSender();
         task.getAssigned();
+        task.getProgrammes();
         items.add(task);
       }
     });
     return items;
+  }
+
+  Future<void> getProgrammes() async {
+    List<Programme> listProgrammes = [];
+    for (String item in programmes) {
+      try {
+        QuerySnapshot query =
+            await dbProgramme.where("uuid", isEqualTo: item).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Programme programme = Programme.fromJson(data);
+        listProgrammes.add(programme);
+      } catch (e) {}
+    }
+    programmesObj = listProgrammes;
   }
 }
 
@@ -219,6 +241,7 @@ Future<List> getTasks() async {
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
+    await task.getProgrammes();
     items.add(task);
   }
   return items;
@@ -249,6 +272,7 @@ Future<List> getTasksBySender(sender) async {
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
+    await task.getProgrammes();
     items.add(task);
   }
   return items;
@@ -267,6 +291,7 @@ Future<List> getTasksByAssigned(user) async {
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
+    await task.getProgrammes();
     items.add(task);
   }
   return items;
