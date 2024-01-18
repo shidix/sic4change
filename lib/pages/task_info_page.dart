@@ -341,146 +341,152 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Modificar tarea'),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: task.name,
-                  size: 600,
-                  fieldValue: (String val) {
-                    task.name = val;
-                    //setState(() => task.comments = val);
-                  },
-                )
-              ]),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Pública:", 16, textColor: mainColor),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: task.public,
-                    onChanged: (bool? value) {
-                      task.public = value!;
-                      state.didChange(task.public);
-                      /*setState(() {
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Column(children: [
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Nombre",
+                    initial: task.name,
+                    size: 600,
+                    fieldValue: (String val) {
+                      task.name = val;
+                      //setState(() => task.comments = val);
+                    },
+                  )
+                ]),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  customText("Pública:", 16, textColor: mainColor),
+                  FormField<bool>(builder: (FormFieldState<bool> state) {
+                    return Checkbox(
+                      value: task.public,
+                      onChanged: (bool? value) {
+                        task.public = value!;
+                        state.didChange(task.public);
+                        /*setState(() {
                         task.public = value!;
                         state.didChange(task.public);
                       });*/
+                      },
+                    );
+                  })
+                ])
+              ]),
+              space(height: 20),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  customText("Proyecto:", 16, textColor: mainColor),
+                  CustomDropdown(
+                    labelText: 'Proyecto',
+                    size: 700,
+                    selected: task.projectObj.toKeyValue(),
+                    options: projectList,
+                    onSelectedOpt: (String val) {
+                      task.project = val;
                     },
-                  );
-                })
+                  ),
+                ]),
+              ]),
+              space(height: 20),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Descripción",
+                    initial: task.description,
+                    size: 600,
+                    fieldValue: (String val) {
+                      task.description = val;
+                    },
+                  )
+                ]),
+              ]),
+              space(height: 20),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Comentarios",
+                    initial: task.comments,
+                    size: 600,
+                    fieldValue: (String val) {
+                      task.comments = val;
+                    },
+                  )
+                ]),
+              ]),
+              space(height: 20),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  customText("Estado:", 16, textColor: mainColor),
+                  CustomDropdown(
+                    labelText: 'Estado',
+                    size: 340,
+                    selected: task.statusObj.toKeyValue(),
+                    options: statusList,
+                    onSelectedOpt: (String val) {
+                      task.status = val;
+                    },
+                  ),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  customText("Devolución:", 16, textColor: mainColor),
+                  CustomDropdown(
+                    labelText: 'Devolución',
+                    size: 340,
+                    selected: task.senderObj.toKeyValue(),
+                    options: contactList,
+                    onSelectedOpt: (String val) {
+                      task.sender = val;
+                    },
+                  ),
+                ]),
+              ]),
+              space(height: 20),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Acuerdo',
+                        selectedDate: task.dealDate,
+                        onSelectedDate: (DateTime date) {
+                          //task.dealDate = date;
+                          setState(() {
+                            task.dealDate = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Deadline',
+                        selectedDate: task.deadLineDate,
+                        onSelectedDate: (DateTime date) {
+                          task.deadLineDate = date;
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Nuevo deadline',
+                        selectedDate: task.newDeadLineDate,
+                        onSelectedDate: (DateTime date) {
+                          task.newDeadLineDate = date;
+                        },
+                      )),
+                ]),
+                space(width: 20),
               ])
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Proyecto:", 16, textColor: mainColor),
-                CustomDropdown(
-                  labelText: 'Proyecto',
-                  size: 700,
-                  selected: task.projectObj.toKeyValue(),
-                  options: projectList,
-                  onSelectedOpt: (String val) {
-                    task.project = val;
-                  },
-                ),
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Descripción",
-                  initial: task.description,
-                  size: 600,
-                  fieldValue: (String val) {
-                    task.description = val;
-                  },
-                )
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Comentarios",
-                  initial: task.comments,
-                  size: 600,
-                  fieldValue: (String val) {
-                    task.comments = val;
-                  },
-                )
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Estado:", 16, textColor: mainColor),
-                CustomDropdown(
-                  labelText: 'Estado',
-                  size: 340,
-                  selected: task.statusObj.toKeyValue(),
-                  options: statusList,
-                  onSelectedOpt: (String val) {
-                    task.status = val;
-                  },
-                ),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Devolución:", 16, textColor: mainColor),
-                CustomDropdown(
-                  labelText: 'Devolución',
-                  size: 340,
-                  selected: task.senderObj.toKeyValue(),
-                  options: contactList,
-                  onSelectedOpt: (String val) {
-                    task.sender = val;
-                  },
-                ),
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Acuerdo',
-                      selectedDate: task.dealDate,
-                      onSelectedDate: (DateTime date) {
-                        task.dealDate = date;
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Deadline',
-                      selectedDate: task.deadLineDate,
-                      onSelectedDate: (DateTime date) {
-                        task.deadLineDate = date;
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                    width: 220,
-                    child: DateTimePicker(
-                      labelText: 'Nuevo deadline',
-                      selectedDate: task.newDeadLineDate,
-                      onSelectedDate: (DateTime date) {
-                        task.newDeadLineDate = date;
-                      },
-                    )),
-              ]),
-              space(width: 20),
-            ])
-          ])),
+            ]));
+          }),
           actions: <Widget>[
             dialogsBtns(context, saveTask, task),
           ],
