@@ -1038,9 +1038,7 @@ class _FinnsPageState extends State<FinnsPage> {
               child: customDoubleField(amount, ''))),
     ]));
 
-    TextButton saveButton = TextButton(
-      child: const Text('Guardar'),
-      onPressed: () async {
+    Widget saveButton = saveBtnForm(context, () async {
         item.amount = double.parse(amount.text);
         item.subject = comment.text;
         item.save();
@@ -1062,16 +1060,18 @@ class _FinnsPageState extends State<FinnsPage> {
           content: SingleChildScrollView(
             child: Column(children: rows),
           ),
-          actions: <Widget>[
-            saveButton,
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+          actions: <Widget>[Row( children: [
+            Expanded(flex: 3, child: Container()),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: saveButton)),
+            Expanded(flex: 1, child: Padding(
+                padding: const EdgeInsets.only(right: 5),
+                child: cancelBtnForm(context))),
           ],
-        );
+        )]);
       },
     );
   }

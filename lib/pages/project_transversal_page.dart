@@ -6,6 +6,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sic4change/pages/goals_page.dart';
+import 'package:sic4change/pages/index.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_quality.dart';
@@ -164,7 +166,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         ]));
   }
 
-  void test() {}
+  // void test() {}
 
   @override
   void initState() {
@@ -744,11 +746,26 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     ]));
   }
 
+  Widget topButtons(BuildContext context) {
+    List<Widget> buttons = [
+      goPage(context, "Volver", const ProjectsPage(), Icons.arrow_circle_left_outlined,),
+
+      // space(width: 10),
+      // actionButton(context, "Aleatorias", () {
+      //   addTransfer(10);
+      // }, Icons.currency_exchange_rounded, null),
+    ];
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: buttons));
+  }
+
   Widget content(context) {
     if (currentProject == null) {
       return Column(children: [
         mainMenu(context, user, "/projects"),
-        Container(height: 10),
+        Container(height: MediaQuery.of(context).size.height *0.75),
         const Center(child: CircularProgressIndicator()),
         footer(context),
       ]);
@@ -770,6 +787,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     ],
                   ),
                 ),
+                topButtons(context),
                 marcoMenu(context, currentProject, "transversal"),
                 multiplesIndicators(),
                 footer(context),
