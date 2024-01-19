@@ -13,6 +13,7 @@ import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -87,13 +88,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadMyWorkdays() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      Workday.byUser(value.email).then((value) {
-        myWorkdays = value;
-        setState(() {});
+    if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
+      await Contact.byEmail(user.email!).then((value) {
+        contact = value;
+        Workday.byUser(value.email).then((value) {
+          setState(() { 
+            myWorkdays = value;
+            myWorkdays!.sort((a, b) => a.startDate.compareTo(b.startDate));
+});
+        });
       });
-    });
+    } else {
+      setState(() {
+                    myWorkdays!.sort((a, b) => a.startDate.compareTo(b.startDate));
+      });
+    }
   }
 
   Future<void> loadMyData() async {
@@ -283,14 +292,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel(BuildContext context) {
-    workdayButton = actionButton(context, "(Re)Iniciar", workdayAction,
-        Icons.play_circle_outline_sharp, context,
-        iconColor: successColor);
-    if (currentWorkday?.open == true) {
-      workdayButton = actionButton(context, "Finalizar", workdayAction,
-          Icons.stop_circle_outlined, context,
-          iconColor: dangerColor);
-    }
+    // workdayButton = actionButton(context, "(Re)Iniciar", workdayAction,
+    //     Icons.play_circle_outline_sharp, context,
+    //     iconColor: successColor);
+    // if (currentWorkday?.open == true) {
+    //   workdayButton = actionButton(context, "Finalizar", workdayAction,
+    //       Icons.stop_circle_outlined, context,
+    //       iconColor: dangerColor);
+    // }
+    workdayButton = actionButton(context, null, () {
+      _editWorkdayDialog(Workday.getEmpty(open: false)).then((value) {
+        if ((value != null) && (!myWorkdays!.contains(value))) {
+          value.save();
+          myWorkdays!.add(value);
+          if (mounted) {
+            setState(() {
+              myWorkdays = myWorkdays;
+            });
+          }
+        }
+      });
+    }, Icons.add, null);
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -326,7 +348,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                             )),
                         Expanded(
-                            flex: 4,
+                            flex: 5,
                             child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Column(
@@ -343,9 +365,14 @@ class _HomePageState extends State<HomePage> {
                                           style: subTitleText),
                                     ]))),
                         Expanded(
-                          flex: 2,
-                          child: workdayButton,
-                        ),
+                            flex: 1,
+                            child: Tooltip(
+                                message: "Añadir registro horario",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 0),
+                                  child: workdayButton,
+                                ))),
                         Expanded(
                             flex: 1,
                             child: Tooltip(
@@ -366,37 +393,41 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     color: Colors.white,
-                    child: const ListTile(
+                    child: ListTile(
                       title: Row(
                         children: [
                           Expanded(
-                              flex: 2,
+                              flex: 4,
                               child: Text(
                                 "Fecha",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Entrada",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Salida",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Horas",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
+                          Expanded(
+                            flex: 1,
+                            child: Container(),
+                          )
                         ],
                       ),
                     )),
@@ -440,7 +471,7 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       children: [
                         Expanded(
-                            flex: 2,
+                            flex: 4,
                             child: Align(
                               alignment: Alignment.center,
                               child: Padding(
@@ -455,7 +486,7 @@ class _HomePageState extends State<HomePage> {
                                   )),
                             )),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -465,7 +496,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -477,7 +508,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -496,6 +527,35 @@ class _HomePageState extends State<HomePage> {
                                 textAlign: TextAlign.center,
                               )),
                         ),
+                        Expanded(
+                          flex: 1,
+                          child: (!item.open)
+                              ? Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: actionButton(context, null, () {
+                                    _editWorkdayDialog(item).then((value) {
+                                      if (value != null) {
+                                        if ((myWorkdays!.contains(value)) &&
+                                            (value.id == "")) {
+                                          myWorkdays!.remove(value);
+                                        }
+                                        if ((!myWorkdays!.contains(value)) &&
+                                            (value.id != "")) {
+                                          value.save();
+                                          myWorkdays!.add(value);
+                                        }
+                                        if (mounted) {
+                                          setState(() {
+                                            myWorkdays = myWorkdays;
+                                          });
+                                        }
+                                      }
+                                    });
+                                  }, Icons.edit, null,
+                                      size: 15, hPadding: 5, vPadding: 2),
+                                )
+                              : Container(),
+                        )
                       ],
                     )
                   ]));
@@ -505,6 +565,35 @@ class _HomePageState extends State<HomePage> {
               ));
 
     return result;
+  }
+
+  Future<Workday?> _editWorkdayDialog(Workday workday) {
+    return showDialog<Workday>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Editar registro horario', context),
+          content: WorkdayForm(
+            key: null,
+            currentWorkday: workday,
+            user: user,
+          ),
+        );
+      },
+    ).then((value) {
+      if ((value != null) && (!myWorkdays!.contains(value))) {
+        myWorkdays!.add(value);
+      }
+      if (mounted) {
+        setState(() {
+          myWorkdays = myWorkdays;
+        });
+      }
+
+      return value;
+    });
   }
 
   void dialogPrintWorkday(context) {

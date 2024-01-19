@@ -1,6 +1,7 @@
 // import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -76,15 +77,15 @@ class Workday {
     return endDate.difference(startDate).inMinutes / 60;
   }
 
-  static Workday getEmpty() {
+  static Workday getEmpty({String email='', bool open=true}) {
     DateTime today = DateTime.now();
     return Workday(
         id: '',
         uuid: const Uuid().v4(),
-        userId: '',
-        open: true,
-        startDate: today,
-        endDate: DateTime(today.year, today.month, today.day, 21, 00, 00));
+        userId: email,
+        open: open,
+        startDate: truncDate(today).subtract(const Duration(hours: 16)),
+        endDate: truncDate(today).subtract(const Duration(hours: 6)));
   }
 
   static Future<Workday> currentByUser(String email) async {

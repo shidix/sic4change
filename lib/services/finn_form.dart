@@ -51,9 +51,8 @@ class _InvoiceFormState extends State<InvoiceForm> {
 
     return Form(
       key: _formKey,
-      child: SizedBox(
-          //width: MediaQuery.of(context).size.width * 0.5,
-          child: Column(
+      child: Scaffold(
+          body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
