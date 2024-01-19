@@ -92,15 +92,16 @@ class _HomePageState extends State<HomePage> {
       await Contact.byEmail(user.email!).then((value) {
         contact = value;
         Workday.byUser(value.email).then((value) {
-          setState(() { 
+          setState(() {
             myWorkdays = value;
-            myWorkdays!.sort((a, b) => a.startDate.compareTo(b.startDate));
-});
+            myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+          });
         });
       });
     } else {
       setState(() {
-                    myWorkdays!.sort((a, b) => a.startDate.compareTo(b.startDate));
+        myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+        myWorkdays = myWorkdays;
       });
     }
   }
@@ -292,22 +293,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel(BuildContext context) {
-    // workdayButton = actionButton(context, "(Re)Iniciar", workdayAction,
-    //     Icons.play_circle_outline_sharp, context,
-    //     iconColor: successColor);
-    // if (currentWorkday?.open == true) {
-    //   workdayButton = actionButton(context, "Finalizar", workdayAction,
-    //       Icons.stop_circle_outlined, context,
-    //       iconColor: dangerColor);
-    // }
-    workdayButton = actionButton(context, null, () {
-      _editWorkdayDialog(Workday.getEmpty(open: false)).then((value) {
+    if (currentWorkday?.open == true) {
+      workdayButton = actionButton(
+          context, null, workdayAction, Icons.stop_circle_outlined, context,
+          iconColor: dangerColor);
+    } else {
+      workdayButton = actionButton(context, null, workdayAction,
+          Icons.play_circle_outline_sharp, context,
+          iconColor: successColor);
+    }
+    Widget addWorkdayButton = actionButton(context, null, () {
+      _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+          .then((value) {
         if ((value != null) && (!myWorkdays!.contains(value))) {
-          value.save();
           myWorkdays!.add(value);
           if (mounted) {
             setState(() {
               myWorkdays = myWorkdays;
+              myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
             });
           }
         }
@@ -367,11 +370,20 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                             flex: 1,
                             child: Tooltip(
+                                message: (currentWorkday != null)
+                                    ? (currentWorkday!.open)
+                                        ? "Parar jornada"
+                                        : "(Re)Iniciar jornada"
+                                    : "",
+                                child: workdayButton)),
+                        Expanded(
+                            flex: 1,
+                            child: Tooltip(
                                 message: "Añadir registro horario",
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 5, vertical: 0),
-                                  child: workdayButton,
+                                  child: addWorkdayButton,
                                 ))),
                         Expanded(
                             flex: 1,
@@ -442,17 +454,19 @@ class _HomePageState extends State<HomePage> {
 
   Widget worktimeRows(context) {
     // List myItems = worktimeItems();
+    int index = 0;
     for (Workday workday in myWorkdays!) {
       if ((workday.open) && (workday.startDate.isBefore(today()))) {
         DateTime newEndDate = truncDate(workday.startDate)
             .add(Duration(days: 1))
             .subtract(Duration(seconds: 1));
-        if ((workday.endDate != newEndDate) || (workday.open)) {
+        if (index > 0) {
           workday.endDate = newEndDate;
           workday.open = false;
-          workday.save();
+          // workday.save();
         }
       }
+      index += 1;
     }
 
     Widget result = Container(
@@ -466,6 +480,7 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int index) {
                   Workday item = myWorkdays!.elementAt(index);
+                  item.open = (index == 0);
                   return ListTile(
                       subtitle: Column(children: [
                     Row(
@@ -477,8 +492,6 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    // dateToES(
-                                    //     myWorkdays!.elementAt(index).startDate),
                                     DateFormat('dd-MM-yyyy').format(
                                         myWorkdays!.elementAt(index).startDate),
                                     style:
@@ -528,34 +541,13 @@ class _HomePageState extends State<HomePage> {
                               )),
                         ),
                         Expanded(
-                          flex: 1,
-                          child: (!item.open)
-                              ? Padding(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  child: actionButton(context, null, () {
-                                    _editWorkdayDialog(item).then((value) {
-                                      if (value != null) {
-                                        if ((myWorkdays!.contains(value)) &&
-                                            (value.id == "")) {
-                                          myWorkdays!.remove(value);
-                                        }
-                                        if ((!myWorkdays!.contains(value)) &&
-                                            (value.id != "")) {
-                                          value.save();
-                                          myWorkdays!.add(value);
-                                        }
-                                        if (mounted) {
-                                          setState(() {
-                                            myWorkdays = myWorkdays;
-                                          });
-                                        }
-                                      }
-                                    });
-                                  }, Icons.edit, null,
-                                      size: 15, hPadding: 5, vPadding: 2),
-                                )
-                              : Container(),
-                        )
+                            flex: 1,
+                            child: IconButton(
+                              icon: Icon(Icons.edit, size: 15),
+                              onPressed: () {
+                                _editWorkdayDialog(item);
+                              },
+                            )),
                       ],
                     )
                   ]));
@@ -586,9 +578,13 @@ class _HomePageState extends State<HomePage> {
       if ((value != null) && (!myWorkdays!.contains(value))) {
         myWorkdays!.add(value);
       }
+      if ((value != null) && (value.id == "")) {
+        myWorkdays!.remove(value);
+      }
       if (mounted) {
         setState(() {
           myWorkdays = myWorkdays;
+          myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
         });
       }
 
@@ -654,7 +650,7 @@ class _HomePageState extends State<HomePage> {
       workdays = value;
     });
 
-    workdays.sort((a, b) => a.startDate.compareTo(b.startDate));
+    workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
     Map<String, double> hoursDict = {};
     Map<String, DateTime> inDict = {};

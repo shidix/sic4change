@@ -77,7 +77,7 @@ class Workday {
     return endDate.difference(startDate).inMinutes / 60;
   }
 
-  static Workday getEmpty({String email='', bool open=true}) {
+  static Workday getEmpty({String email = '', bool open = true}) {
     DateTime today = DateTime.now();
     return Workday(
         id: '',
@@ -88,28 +88,38 @@ class Workday {
         endDate: truncDate(today).subtract(const Duration(hours: 6)));
   }
 
-  static Future<Workday> currentByUser(String email) async {
+  static Future<Workday?> currentByUser(String email) async {
     final database = db.collection("s4c_workday");
     List<Workday> items = [];
     DateTime today = DateTime.now();
+    today = truncDate(today);
     final query = await database
         .where("userId", isEqualTo: email)
-        .where("startDate",
-            isGreaterThanOrEqualTo:
-                DateTime(today.year, today.month, today.day, 0, 0, 0))
+        .where("startDate", isGreaterThanOrEqualTo: today)
         .get();
-    for (var result in query.docs) {
-      items.add(Workday.fromFirestore(result));
+    if (query.docs.isNotEmpty) {
+      for (var result in query.docs) {
+        Workday item = Workday.fromFirestore(result);
+        if (item.open) {
+          items.add(item);
+        }
+      }
     }
-    if (items.isEmpty) {
+    if (items.isNotEmpty) {
+      items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+      print("DBG 000 ${items.length}");
+      for (Workday item in items) {
+        print("DBG 001 $item");
+      }
+      return items.first;
+    } else {
       Workday empty = Workday.getEmpty();
       empty.userId = email;
-      empty.open = false;
-      items.add(empty);
+      empty.open = true;
+      empty.startDate = DateTime.now();
+      empty.endDate = empty.startDate.add(const Duration(hours: 8));
+      return empty;
     }
-
-    items.sort((a, b) => a.startDate.compareTo(b.startDate));
-    return items.last;
   }
 
   static Future<List<Workday>> byUser(String email,
