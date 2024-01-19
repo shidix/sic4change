@@ -752,6 +752,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     ProjectDates dates = args[0];
     dates.save();
     loadProject(project);
+
+    Navigator.pop(context);
   }
 
   void callDatesEditDialog(context, project) async {
