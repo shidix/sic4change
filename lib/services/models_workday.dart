@@ -107,10 +107,6 @@ class Workday {
     }
     if (items.isNotEmpty) {
       items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
-      print("DBG 000 ${items.length}");
-      for (Workday item in items) {
-        print("DBG 001 $item");
-      }
       return items.first;
     } else {
       Workday empty = Workday.getEmpty();
@@ -118,6 +114,7 @@ class Workday {
       empty.open = true;
       empty.startDate = DateTime.now();
       empty.endDate = empty.startDate.add(const Duration(hours: 8));
+      empty.save();
       return empty;
     }
   }

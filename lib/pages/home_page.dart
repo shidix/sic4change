@@ -136,55 +136,38 @@ class _HomePageState extends State<HomePage> {
       }
     });
     Workday.byUser(user.email!).then((value) {
-      if (mounted) {
-        setState(() {
-          myWorkdays = value;
-        });
-      }
-    });
-    Workday.currentByUser(user.email!).then((value) {
-      if (mounted) {
-        setState(() {
-          currentWorkday = value;
-        });
-      }
-    });
-  }
-
-  Future loadMyData2() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-    });
-    await contact!.getProjects().then((value) {
-      myProjects = value;
-    });
-    await STask.getByAssigned(contact!.uuid).then((value) {
-      mytasks = value;
-    });
-    await HolidayRequest.byUser(user.email!).then((value) {
-      myHolidays = value;
-      holidayDays = widget.HOLIDAY_DAYS;
-      for (HolidayRequest holiday in myHolidays!) {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-      }
-    });
-    await Workday.byUser(user.email!).then((value) {
       myWorkdays = value;
+      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      if ((myWorkdays!.first.open) &&
+          (truncDate(myWorkdays!.first.startDate) ==
+              truncDate(DateTime.now()))) {
+        currentWorkday = myWorkdays!.first;
+      } else {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = user.email!;
+        currentWorkday!.open = true;
+        currentWorkday!.save();
+      }
+      // Workday.currentByUser(user.email!).then((value) {
+      //   currentWorkday = value;
+      //   // if (!myWorkdays!.contains(value)) {
+      //   //   myWorkdays!.add(value!);
+      //   // }
+      //   if (mounted) {
+      //     setState(() {
+      //       myWorkdays = myWorkdays;
+      //       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      //     });
+      //   }
+      // });
     });
-
-    await Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-    });
-
-    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    autoStartWorkday(context);
     loadMyData();
+    autoStartWorkday(context);
   }
 
   @override
@@ -246,12 +229,12 @@ class _HomePageState extends State<HomePage> {
   void autoStartWorkday(context) async {
     Workday.currentByUser(user.email!).then((value) {
       currentWorkday = value;
-      if ((currentWorkday == null) || (!currentWorkday!.open)) {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = user.email!;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
+      // if ((currentWorkday == null) || (!currentWorkday!.open)) {
+      //   currentWorkday = Workday.getEmpty();
+      //   currentWorkday!.userId = user.email!;
+      //   currentWorkday!.open = true;
+      //   currentWorkday!.save();
+      // }
       if (mounted) {
         setState(() {
           currentWorkday = currentWorkday;
@@ -276,19 +259,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _workdayAction(context) async {
-    await Workday.currentByUser(contact!.email).then((value) {
-      currentWorkday = value;
-      if (currentWorkday!.open) {
-        currentWorkday!.endDate = DateTime.now();
-        currentWorkday!.open = false;
-        currentWorkday!.save();
-      } else {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = contact!.email;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
-    });
+    if (currentWorkday!.open) {
+      currentWorkday!.endDate = DateTime.now();
+      currentWorkday!.open = false;
+      currentWorkday!.save();
+    } else {
+      currentWorkday = Workday.getEmpty();
+      currentWorkday!.userId = user.email!;
+      currentWorkday!.open = true;
+      currentWorkday!.save();
+    }
+    // await Workday.currentByUser(contact!.email).then((value) {
+    //   currentWorkday = value;
+    //   if (currentWorkday!.open) {
+    //     currentWorkday!.endDate = DateTime.now();
+    //     currentWorkday!.open = false;
+    //     currentWorkday!.save();
+    //   } else {
+    //     currentWorkday = Workday.getEmpty();
+    //     currentWorkday!.userId = contact!.email;
+    //     currentWorkday!.open = true;
+    //     currentWorkday!.save();
+    //   }
+    // });
     loadMyWorkdays();
   }
 
@@ -453,22 +446,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget worktimeRows(context) {
-    // List myItems = worktimeItems();
-    int index = 0;
-    for (Workday workday in myWorkdays!) {
-      if ((workday.open) && (workday.startDate.isBefore(today()))) {
-        DateTime newEndDate = truncDate(workday.startDate)
-            .add(Duration(days: 1))
-            .subtract(Duration(seconds: 1));
-        if (index > 0) {
-          workday.endDate = newEndDate;
-          workday.open = false;
-          // workday.save();
-        }
-      }
-      index += 1;
-    }
-
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,

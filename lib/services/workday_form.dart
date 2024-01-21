@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/utils.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_workday.dart';
@@ -26,6 +25,7 @@ class WorkdayFormState extends State<WorkdayForm> {
   @override
   void initState() {
     super.initState();
+
     user = widget.user!;
     workday = widget.currentWorkday!;
   }
@@ -43,8 +43,6 @@ class WorkdayFormState extends State<WorkdayForm> {
     return workday;
   }
 
-  TextEditingController dateFieldController = TextEditingController(text: '');
-
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -58,13 +56,14 @@ class WorkdayFormState extends State<WorkdayForm> {
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.person),
-                      title: Text(user.displayName!),
-                    )),
+                        leading: const Icon(Icons.person),
+                        title: (user.displayName != null)
+                            ? Text(user.displayName!)
+                            : const Text(""))),
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.email),
+                      leading: const Icon(Icons.email),
                       title: Text(
                         user.email!,
                       ),
@@ -72,8 +71,8 @@ class WorkdayFormState extends State<WorkdayForm> {
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.date_range),
-                      title: Text("Fecha"),
+                      leading: const Icon(Icons.date_range),
+                      title: const Text("Fecha"),
                       subtitle: Text(
                           DateFormat('dd/MM/yyyy').format(workday.startDate)),
                       onTap: (workday.id == "")
@@ -87,8 +86,6 @@ class WorkdayFormState extends State<WorkdayForm> {
                                   picked != workday.startDate &&
                                   mounted) {
                                 setState(() {
-                                  dateFieldController.text =
-                                      DateFormat('dd/MM/yyyy').format(picked);
                                   workday.startDate = truncDate(picked)
                                       .add(const Duration(hours: 8));
                                   workday.endDate = truncDate(picked)
@@ -103,8 +100,8 @@ class WorkdayFormState extends State<WorkdayForm> {
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.date_range),
-                      title: Text("Inicio de jornada"),
+                      leading: const Icon(Icons.date_range),
+                      title: const Text("Inicio de jornada"),
                       subtitle:
                           Text(DateFormat('HH:mm').format(workday.startDate)),
                       onTap: () async {
@@ -119,9 +116,7 @@ class WorkdayFormState extends State<WorkdayForm> {
                                 child: child!,
                               );
                             });
-                        if (picked != null &&
-                            picked != workday.startDate &&
-                            mounted) {
+                        if (picked != null && mounted) {
                           setState(() {
                             DateTime newStartDate = DateTime(
                                 workday.startDate.year,
@@ -136,12 +131,12 @@ class WorkdayFormState extends State<WorkdayForm> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: Text("Error"),
-                                      content: Text(
+                                      title: const Text("Error"),
+                                      content: const Text(
                                           "La fecha de inicio de jornada no puede ser posterior a la de fin"),
                                       actions: [
                                         TextButton(
-                                          child: Text("OK"),
+                                          child: const Text("OK"),
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
@@ -157,8 +152,8 @@ class WorkdayFormState extends State<WorkdayForm> {
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.date_range),
-                      title: Text("Fin de jornada"),
+                      leading: const Icon(Icons.date_range),
+                      title: const Text("Fin de jornada"),
                       subtitle:
                           Text(DateFormat('HH:mm').format(workday.endDate)),
                       onTap: () async {
@@ -191,12 +186,12 @@ class WorkdayFormState extends State<WorkdayForm> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: Text("Error"),
-                                      content: Text(
+                                      title: const Text("Error"),
+                                      content: const Text(
                                           "La fecha de fin de jornada no puede ser anterior a la de inicio"),
                                       actions: [
                                         TextButton(
-                                          child: Text("OK"),
+                                          child: const Text("OK"),
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
@@ -212,13 +207,13 @@ class WorkdayFormState extends State<WorkdayForm> {
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: Icon(Icons.access_time),
-                      title: Text("Horas"),
+                      leading: const Icon(Icons.access_time),
+                      title: const Text("Horas"),
                       subtitle: Text(workday.hours().toStringAsFixed(2)),
                     ))
               ]),
               const SizedBox(height: 16.0),
-              Divider(),
+              const Divider(),
               Row(children: [
                 Expanded(flex: workday.id == "" ? 3 : 2, child: Container()),
                 Expanded(
