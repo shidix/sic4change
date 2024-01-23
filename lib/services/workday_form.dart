@@ -174,9 +174,9 @@ class WorkdayFormState extends State<WorkdayForm> {
                             (mounted)) {
                           setState(() {
                             DateTime newEndDate = DateTime(
-                                workday.endDate.year,
-                                workday.endDate.month,
-                                workday.endDate.day,
+                                workday.startDate.year,
+                                workday.startDate.month,
+                                workday.startDate.day,
                                 picked.hour,
                                 picked.minute);
                             if (newEndDate.isAfter(workday.startDate)) {
