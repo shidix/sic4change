@@ -145,7 +145,7 @@ class _ResultsPageState extends State<ResultsPage> {
               ]),
             ]),
             space(height: 20),
-            Row(children: <Widget>[
+            /*Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: "Indicador",
@@ -167,7 +167,7 @@ class _ResultsPageState extends State<ResultsPage> {
                   },
                 )
               ]),
-            ]),
+            ]),*/
             space(height: 20),
             Row(children: <Widget>[
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -223,10 +223,10 @@ class _ResultsPageState extends State<ResultsPage> {
   }
 
   Widget resultRow(context, result, goal) {
-    double _percent = 0;
+    /*double _percent = 0;
     try {
       _percent = double.parse(result.indicatorPercent) / 100;
-    } on Exception catch (_) {}
+    } on Exception catch (_) {}*/
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -244,7 +244,7 @@ class _ResultsPageState extends State<ResultsPage> {
         space(height: 10),
         customRowDivider(),
         space(height: 10),
-        customText('Indicador del resultado', 14, bold: FontWeight.bold),
+        /*customText('Indicador del resultado', 14, bold: FontWeight.bold),
         space(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -258,7 +258,7 @@ class _ResultsPageState extends State<ResultsPage> {
               progressColor: Colors.lightGreen,
             ),
           ],
-        ),
+        ),*/
         space(height: 10),
         customRowDivider(),
         space(height: 10),

@@ -742,6 +742,7 @@ const TextStyle cardHeaderText = TextStyle(
 const Color headerListBgColor = Color(0xffe5f2d7);
 const Color headerListColor = Color(0xff0b0b0b);
 const Color cellsListColor = Color(0xff0b0b0b);
+const Color headerListTitleColor = Color(0xff327971);
 
 const TextStyle headerListStyle = TextStyle(
   fontFamily: 'Readex Pro',
@@ -782,6 +783,10 @@ ButtonStyle btnStyle = ButtonStyle(
   elevation: const MaterialStatePropertyAll<double>(5),
 );
 
+BoxDecoration rowDecoration = const BoxDecoration(
+  border: Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1)),
+);
+
 //--------------------------------------------------------------------------
 //                           COMMONS
 //--------------------------------------------------------------------------
@@ -793,9 +798,12 @@ Widget space({width = 10, height = 10}) {
 }
 
 Widget customText(_text, _size,
-    {textColor = Colors.black, bold = FontWeight.normal}) {
+    {textColor = Colors.black,
+    bold = FontWeight.normal,
+    align = TextAlign.start}) {
   return Text(
     _text,
+    textAlign: align,
     style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
 }
@@ -962,7 +970,6 @@ Widget removeBtn(context, action, args,
     },
   );
 }
-
 
 Widget removeConfirmBtn(context, action, args,
     {text = removeText, icon = Icons.remove_circle}) {
@@ -1194,6 +1201,24 @@ Widget contentTab(context, action, obj) {
             ),*/
             child: action(context, obj),
           )));
+}
+
+//--------------------------------------------------------------------------
+//                           COLLAPSE
+//--------------------------------------------------------------------------
+Widget customCollapse(context, title, action, obj) {
+  return ExpansionTile(
+    title: customText(title, 14, textColor: headerListTitleColor),
+    backgroundColor: headerListBgColor,
+    collapsedBackgroundColor: headerListBgColor,
+    iconColor: headerListTitleColor,
+    collapsedIconColor: headerListTitleColor,
+    initiallyExpanded: true,
+    shape: Border.all(color: Colors.transparent),
+    children: [
+      Container(decoration: tabDecoration, child: action(context, obj))
+    ],
+  );
 }
 
 //--------------------------------------------------------------------------

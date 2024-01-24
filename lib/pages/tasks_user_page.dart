@@ -108,7 +108,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     return Column(
       children: [
         ExpansionTile(
-          title: customText("Para mi", 16, textColor: mainColor),
+          title: customText("Para mí", 16, textColor: mainColor),
           initiallyExpanded: true,
           children: [
             FutureBuilder(
@@ -133,7 +133,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
           ],
         ),
         ExpansionTile(
-          title: customText("Creadas por mi", 16, textColor: mainColor),
+          title: customText("Creadas por mí", 16, textColor: mainColor),
           children: [
             FutureBuilder(
                 future: getTasksBySender(user.uid),

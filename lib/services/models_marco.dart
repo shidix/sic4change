@@ -116,8 +116,8 @@ class Result {
   String uuid = "";
   String name = "";
   String description = "";
-  String indicatorText = "";
-  String indicatorPercent = "";
+  //String indicatorText = "";
+  //String indicatorPercent = "";
   String source = "";
   String goal = "";
 
@@ -130,8 +130,8 @@ class Result {
         uuid = json["uuid"],
         name = json['name'],
         description = json['description'],
-        indicatorText = json['indicatorText'],
-        indicatorPercent = json['indicatorPercent'],
+        //indicatorText = json['indicatorText'],
+        //indicatorPercent = json['indicatorPercent'],
         source = json['source'],
         goal = json['goal'];
 
@@ -140,8 +140,8 @@ class Result {
         'uuid': uuid,
         'name': name,
         'description': description,
-        'indicatorText': indicatorText,
-        'indicatorPercent': indicatorPercent,
+        //'indicatorText': indicatorText,
+        //'indicatorPercent': indicatorPercent,
         'source': source,
         'goal': goal,
       };
@@ -217,6 +217,78 @@ Future<List> getResultsByGoal(String goal) async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(Result.fromJson(data));
+  }
+  return items;
+}
+
+//--------------------------------------------------------------
+//                     RESULT INDICATOR
+//--------------------------------------------------------------
+CollectionReference dbResultIndicator = db.collection("s4c_result_indicators");
+
+class ResultIndicator {
+  String id = "";
+  String uuid = "";
+  String name = "";
+  String value = "";
+  String result = "";
+
+  ResultIndicator(this.result);
+
+  ResultIndicator.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'],
+        value = json['value'],
+        result = json['result'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+        'value': value,
+        'result': result,
+      };
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbResultIndicator.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbResultIndicator.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbResultIndicator.doc(id).delete();
+  }
+}
+
+Future<List> getResultIndicators() async {
+  List<ResultIndicator> items = [];
+
+  QuerySnapshot query = await dbResultIndicator.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    // final _item = ActivityIndicator.fromJson(data);
+    items.add(ResultIndicator.fromJson(data));
+  }
+  return items;
+}
+
+Future<List> getResultIndicatorsByResult(String result) async {
+  List<ResultIndicator> items = [];
+
+  QuerySnapshot query =
+      await dbResultIndicator.where("result", isEqualTo: result).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    items.add(ResultIndicator.fromJson(data));
   }
   return items;
 }
