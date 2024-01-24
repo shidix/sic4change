@@ -473,6 +473,7 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
+        columnSpacing: 500,
         columns: [
           DataColumn(
               label: customText("Nombre", 14, bold: FontWeight.bold),
@@ -482,8 +483,7 @@ class _GoalsPageState extends State<GoalsPage>
             tooltip: "Valor",
           ),
           DataColumn(
-              label: customText("Acciones", 14,
-                  bold: FontWeight.bold, align: TextAlign.end),
+              label: customText("Acciones", 14, bold: FontWeight.bold),
               tooltip: "Acciones"),
         ],
         rows: indicators
@@ -491,12 +491,14 @@ class _GoalsPageState extends State<GoalsPage>
               (indicator) => DataRow(cells: [
                 DataCell(Text(indicator.name)),
                 DataCell(Text(indicator.value)),
-                DataCell(Row(children: [
-                  /*goPageIcon(context, "Ver", Icons.view_compact,
+                DataCell(Row(
+                    //mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
-                  removeBtn(context, removeResultIndicatorDialog,
-                      {"indicator": indicator})
-                ]))
+                      removeBtn(context, removeResultIndicatorDialog,
+                          {"indicator": indicator})
+                    ]))
               ]),
             )
             .toList(),
@@ -583,25 +585,26 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
+        columnSpacing: 1050,
         columns: [
           DataColumn(
               label: customText("Nombre", 14, bold: FontWeight.bold),
               tooltip: "Nombre"),
-          const DataColumn(
-              /*label: customText("Acciones", 14,
-                  bold: FontWeight.bold, align: TextAlign.end),*/
-              label: Center(child: Text("Acciones", textAlign: TextAlign.end)),
+          DataColumn(
+              label: customText("Acciones", 14, bold: FontWeight.bold),
               tooltip: "Acciones"),
         ],
         rows: items
             .map(
               (item) => DataRow(cells: [
-                DataCell(Text(item.name)),
-                DataCell(Row(children: [
-                  /*goPageIcon(context, "Ver", Icons.view_compact,
+                DataCell(customText("${item.name}", 14)),
+                DataCell(Row(
+                    //mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
-                  removeBtn(context, removeActivityDialog, {"item": item})
-                ]))
+                      removeBtn(context, removeActivityDialog, {"item": item})
+                    ]))
               ]),
             )
             .toList(),
