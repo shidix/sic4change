@@ -13,6 +13,7 @@ import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -87,13 +88,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadMyWorkdays() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      Workday.byUser(value.email).then((value) {
-        myWorkdays = value;
-        setState(() {});
+    if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
+      await Contact.byEmail(user.email!).then((value) {
+        contact = value;
+        Workday.byUser(value.email).then((value) {
+          setState(() {
+            myWorkdays = value;
+            myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+          });
+        });
       });
-    });
+    } else {
+      setState(() {
+        myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+        myWorkdays = myWorkdays;
+      });
+    }
   }
 
   Future<void> loadMyData() async {
@@ -126,55 +136,38 @@ class _HomePageState extends State<HomePage> {
       }
     });
     Workday.byUser(user.email!).then((value) {
-      if (mounted) {
-        setState(() {
-          myWorkdays = value;
-        });
-      }
-    });
-    Workday.currentByUser(user.email!).then((value) {
-      if (mounted) {
-        setState(() {
-          currentWorkday = value;
-        });
-      }
-    });
-  }
-
-  Future loadMyData2() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-    });
-    await contact!.getProjects().then((value) {
-      myProjects = value;
-    });
-    await STask.getByAssigned(contact!.uuid).then((value) {
-      mytasks = value;
-    });
-    await HolidayRequest.byUser(user.email!).then((value) {
-      myHolidays = value;
-      holidayDays = widget.HOLIDAY_DAYS;
-      for (HolidayRequest holiday in myHolidays!) {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-      }
-    });
-    await Workday.byUser(user.email!).then((value) {
       myWorkdays = value;
+      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      if ((myWorkdays!.first.open) &&
+          (truncDate(myWorkdays!.first.startDate) ==
+              truncDate(DateTime.now()))) {
+        currentWorkday = myWorkdays!.first;
+      } else {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = user.email!;
+        currentWorkday!.open = true;
+        currentWorkday!.save();
+      }
+      // Workday.currentByUser(user.email!).then((value) {
+      //   currentWorkday = value;
+      //   // if (!myWorkdays!.contains(value)) {
+      //   //   myWorkdays!.add(value!);
+      //   // }
+      //   if (mounted) {
+      //     setState(() {
+      //       myWorkdays = myWorkdays;
+      //       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      //     });
+      //   }
+      // });
     });
-
-    await Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-    });
-
-    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    autoStartWorkday(context);
     loadMyData();
+    autoStartWorkday(context);
   }
 
   @override
@@ -236,12 +229,12 @@ class _HomePageState extends State<HomePage> {
   void autoStartWorkday(context) async {
     Workday.currentByUser(user.email!).then((value) {
       currentWorkday = value;
-      if ((currentWorkday == null) || (!currentWorkday!.open)) {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = user.email!;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
+      // if ((currentWorkday == null) || (!currentWorkday!.open)) {
+      //   currentWorkday = Workday.getEmpty();
+      //   currentWorkday!.userId = user.email!;
+      //   currentWorkday!.open = true;
+      //   currentWorkday!.save();
+      // }
       if (mounted) {
         setState(() {
           currentWorkday = currentWorkday;
@@ -266,31 +259,56 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _workdayAction(context) async {
-    await Workday.currentByUser(contact!.email).then((value) {
-      currentWorkday = value;
-      if (currentWorkday!.open) {
-        currentWorkday!.endDate = DateTime.now();
-        currentWorkday!.open = false;
-        currentWorkday!.save();
-      } else {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = contact!.email;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
-    });
+    if (currentWorkday!.open) {
+      currentWorkday!.endDate = DateTime.now();
+      currentWorkday!.open = false;
+      currentWorkday!.save();
+    } else {
+      currentWorkday = Workday.getEmpty();
+      currentWorkday!.userId = user.email!;
+      currentWorkday!.open = true;
+      currentWorkday!.save();
+    }
+    // await Workday.currentByUser(contact!.email).then((value) {
+    //   currentWorkday = value;
+    //   if (currentWorkday!.open) {
+    //     currentWorkday!.endDate = DateTime.now();
+    //     currentWorkday!.open = false;
+    //     currentWorkday!.save();
+    //   } else {
+    //     currentWorkday = Workday.getEmpty();
+    //     currentWorkday!.userId = contact!.email;
+    //     currentWorkday!.open = true;
+    //     currentWorkday!.save();
+    //   }
+    // });
     loadMyWorkdays();
   }
 
   Widget workTimePanel(BuildContext context) {
-    workdayButton = actionButton(context, "(Re)Iniciar", workdayAction,
-        Icons.play_circle_outline_sharp, context,
-        iconColor: successColor);
     if (currentWorkday?.open == true) {
-      workdayButton = actionButton(context, "Finalizar", workdayAction,
-          Icons.stop_circle_outlined, context,
+      workdayButton = actionButton(
+          context, null, workdayAction, Icons.stop_circle_outlined, context,
           iconColor: dangerColor);
+    } else {
+      workdayButton = actionButton(context, null, workdayAction,
+          Icons.play_circle_outline_sharp, context,
+          iconColor: successColor);
     }
+    Widget addWorkdayButton = actionButton(context, null, () {
+      _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+          .then((value) {
+        if ((value != null) && (!myWorkdays!.contains(value))) {
+          myWorkdays!.add(value);
+          if (mounted) {
+            setState(() {
+              myWorkdays = myWorkdays;
+              myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+            });
+          }
+        }
+      });
+    }, Icons.add, null);
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -326,7 +344,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                             )),
                         Expanded(
-                            flex: 4,
+                            flex: 5,
                             child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Column(
@@ -343,9 +361,23 @@ class _HomePageState extends State<HomePage> {
                                           style: subTitleText),
                                     ]))),
                         Expanded(
-                          flex: 2,
-                          child: workdayButton,
-                        ),
+                            flex: 1,
+                            child: Tooltip(
+                                message: (currentWorkday != null)
+                                    ? (currentWorkday!.open)
+                                        ? "Parar jornada"
+                                        : "(Re)Iniciar jornada"
+                                    : "",
+                                child: workdayButton)),
+                        Expanded(
+                            flex: 1,
+                            child: Tooltip(
+                                message: "Añadir registro horario",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 0),
+                                  child: addWorkdayButton,
+                                ))),
                         Expanded(
                             flex: 1,
                             child: Tooltip(
@@ -366,37 +398,41 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     color: Colors.white,
-                    child: const ListTile(
+                    child: ListTile(
                       title: Row(
                         children: [
                           Expanded(
-                              flex: 2,
+                              flex: 4,
                               child: Text(
                                 "Fecha",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Entrada",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Salida",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "Horas",
                                 style: subTitleText,
                                 textAlign: TextAlign.center,
                               )),
+                          Expanded(
+                            flex: 1,
+                            child: Container(),
+                          )
                         ],
                       ),
                     )),
@@ -410,20 +446,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget worktimeRows(context) {
-    // List myItems = worktimeItems();
-    for (Workday workday in myWorkdays!) {
-      if ((workday.open) && (workday.startDate.isBefore(today()))) {
-        DateTime newEndDate = truncDate(workday.startDate)
-            .add(Duration(days: 1))
-            .subtract(Duration(seconds: 1));
-        if ((workday.endDate != newEndDate) || (workday.open)) {
-          workday.endDate = newEndDate;
-          workday.open = false;
-          workday.save();
-        }
-      }
-    }
-
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
@@ -435,19 +457,18 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int index) {
                   Workday item = myWorkdays!.elementAt(index);
+                  item.open = (index == 0);
                   return ListTile(
                       subtitle: Column(children: [
                     Row(
                       children: [
                         Expanded(
-                            flex: 2,
+                            flex: 4,
                             child: Align(
                               alignment: Alignment.center,
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    // dateToES(
-                                    //     myWorkdays!.elementAt(index).startDate),
                                     DateFormat('dd-MM-yyyy').format(
                                         myWorkdays!.elementAt(index).startDate),
                                     style:
@@ -455,7 +476,7 @@ class _HomePageState extends State<HomePage> {
                                   )),
                             )),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -465,7 +486,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -477,7 +498,7 @@ class _HomePageState extends State<HomePage> {
                               )),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
@@ -496,6 +517,14 @@ class _HomePageState extends State<HomePage> {
                                 textAlign: TextAlign.center,
                               )),
                         ),
+                        Expanded(
+                            flex: 1,
+                            child: IconButton(
+                              icon: Icon(Icons.edit, size: 15),
+                              onPressed: () {
+                                _editWorkdayDialog(item);
+                              },
+                            )),
                       ],
                     )
                   ]));
@@ -505,6 +534,39 @@ class _HomePageState extends State<HomePage> {
               ));
 
     return result;
+  }
+
+  Future<Workday?> _editWorkdayDialog(Workday workday) {
+    return showDialog<Workday>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Editar registro horario', context),
+          content: WorkdayForm(
+            key: null,
+            currentWorkday: workday,
+            user: user,
+          ),
+        );
+      },
+    ).then((value) {
+      if ((value != null) && (!myWorkdays!.contains(value))) {
+        myWorkdays!.add(value);
+      }
+      if ((value != null) && (value.id == "")) {
+        myWorkdays!.remove(value);
+      }
+      if (mounted) {
+        setState(() {
+          myWorkdays = myWorkdays;
+          myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+        });
+      }
+
+      return value;
+    });
   }
 
   void dialogPrintWorkday(context) {
@@ -565,7 +627,7 @@ class _HomePageState extends State<HomePage> {
       workdays = value;
     });
 
-    workdays.sort((a, b) => a.startDate.compareTo(b.startDate));
+    workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
     Map<String, double> hoursDict = {};
     Map<String, DateTime> inDict = {};

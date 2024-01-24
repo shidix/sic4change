@@ -79,7 +79,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
     onPressed: () {
       User user = FirebaseAuth.instance.currentUser!;
       Workday.currentByUser(user.email!).then((value) {
-        if (value.open) {
+        if ((value != null) && (value.open)) {
           value.endDate = DateTime.now();
           value.open = false;
           value.save();
@@ -492,7 +492,11 @@ Widget backButton(context) {
 
 Widget actionButton(
     context, String? text, Function action, IconData? icon, dynamic args,
-    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
+    {Color textColor = Colors.black54,
+    Color iconColor = Colors.black54,
+    double size = 30,
+    double hPadding = 20.0,
+    double vPadding = 20.0}) {
   icon ??= Icons.settings;
   Widget? row;
   if (text != null) {
@@ -500,7 +504,7 @@ Widget actionButton(
     children.add(Icon(
       icon,
       color: iconColor,
-      size: 30,
+      size: size,
     ));
 
     children.add(space(width: 10));
@@ -513,7 +517,7 @@ Widget actionButton(
     row = Icon(
       icon,
       color: iconColor,
-      size: 30,
+      size: size,
     );
   }
 
@@ -526,7 +530,7 @@ Widget actionButton(
       }
     },
     style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+      padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
       backgroundColor: Colors.white,
     ),

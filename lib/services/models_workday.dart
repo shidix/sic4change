@@ -1,6 +1,7 @@
 // import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -76,39 +77,46 @@ class Workday {
     return endDate.difference(startDate).inMinutes / 60;
   }
 
-  static Workday getEmpty() {
+  static Workday getEmpty({String email = '', bool open = true}) {
     DateTime today = DateTime.now();
     return Workday(
         id: '',
         uuid: const Uuid().v4(),
-        userId: '',
-        open: true,
-        startDate: today,
-        endDate: DateTime(today.year, today.month, today.day, 21, 00, 00));
+        userId: email,
+        open: open,
+        startDate: truncDate(today).subtract(const Duration(hours: 16)),
+        endDate: truncDate(today).subtract(const Duration(hours: 6)));
   }
 
-  static Future<Workday> currentByUser(String email) async {
+  static Future<Workday?> currentByUser(String email) async {
     final database = db.collection("s4c_workday");
     List<Workday> items = [];
     DateTime today = DateTime.now();
+    today = truncDate(today);
     final query = await database
         .where("userId", isEqualTo: email)
-        .where("startDate",
-            isGreaterThanOrEqualTo:
-                DateTime(today.year, today.month, today.day, 0, 0, 0))
+        .where("startDate", isGreaterThanOrEqualTo: today)
         .get();
-    for (var result in query.docs) {
-      items.add(Workday.fromFirestore(result));
+    if (query.docs.isNotEmpty) {
+      for (var result in query.docs) {
+        Workday item = Workday.fromFirestore(result);
+        if (item.open) {
+          items.add(item);
+        }
+      }
     }
-    if (items.isEmpty) {
+    if (items.isNotEmpty) {
+      items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+      return items.first;
+    } else {
       Workday empty = Workday.getEmpty();
       empty.userId = email;
-      empty.open = false;
-      items.add(empty);
+      empty.open = true;
+      empty.startDate = DateTime.now();
+      empty.endDate = empty.startDate.add(const Duration(hours: 8));
+      empty.save();
+      return empty;
     }
-
-    items.sort((a, b) => a.startDate.compareTo(b.startDate));
-    return items.last;
   }
 
   static Future<List<Workday>> byUser(String email,

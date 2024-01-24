@@ -52,218 +52,222 @@ class _InvoiceFormState extends State<InvoiceForm> {
     return Form(
       key: _formKey,
       child: SizedBox(
-          //width: MediaQuery.of(context).size.width * 0.5,
+          width: MediaQuery.of(context).size.width * 0.5,
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: TextFormField(
-                  initialValue: _invoice.number,
-                  decoration: const InputDecoration(labelText: 'Número'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, ingrese un valor';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _invoice.number = value!,
-                )),
-            Expanded(
-                flex: 1,
-                child: TextFormField(
-                  initialValue: _invoice.code,
-                  decoration: const InputDecoration(labelText: 'Código'),
-                  onSaved: (value) => _invoice.code = value!,
-                )),
-            Expanded(
-                flex: 1,
-                child: CustomSelectFormField(
-                  labelText: 'Socio',
-                  initial: _invoice.partner,
-                  options: widget.partners!
-                      .map((partner) => KeyValue(partner.uuid, partner.name))
-                      .toList(),
-                  onSelectedOpt: (value) {
-                    _invoice.partner = value.toString();
-                  },
-                  required: true,
-                ))
-          ]),
-          TextFormField(
-            initialValue: _invoice.concept,
-            decoration: const InputDecoration(labelText: 'Concepto'),
-            onSaved: (value) => _invoice.concept = value!,
-          ),
-          TextFormField(
-            initialValue: _invoice.provider,
-            decoration: const InputDecoration(labelText: 'Proveedor'),
-            onSaved: (value) => _invoice.provider = value!,
-          ),
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: CustomSelectFormField(
-                  labelText: AppLocalizations.of(context)!.currency,
-                  initial: _invoice.currency,
-                  options: CURRENCIES.keys
-                      .map((currency) => KeyValue(currency, currency))
-                      .toList(),
-                  onSelectedOpt: (value) {
-                    _invoice.currency = value.toString();
-                    if (mounted) setState(() {});
-                  },
-                  required: true,
-                )),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: DateTimePicker(
-                      labelText: 'Fecha',
-                      selectedDate: _invoice.date,
-                      onSelectedDate: (DateTime value) {
-                        setState(() {
-                          _invoice.date = value;
-                        });
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: _invoice.number,
+                      decoration: const InputDecoration(labelText: 'Número'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese un valor';
+                        }
+                        return null;
                       },
-                    ))),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: DateTimePicker(
-                      labelText: 'Fecha Pago',
-                      selectedDate: _invoice.paidDate,
-                      onSelectedDate: (DateTime value) {
-                        setState(() {
-                          _invoice.paidDate = value;
-                        });
+                      onSaved: (value) => _invoice.number = value!,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: _invoice.code,
+                      decoration: const InputDecoration(labelText: 'Código'),
+                      onSaved: (value) => _invoice.code = value!,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: CustomSelectFormField(
+                      labelText: 'Socio',
+                      initial: _invoice.partner,
+                      options: widget.partners!
+                          .map(
+                              (partner) => KeyValue(partner.uuid, partner.name))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        _invoice.partner = value.toString();
                       },
-                    ))),
-          ]),
-          TextFormField(
-            initialValue: _invoice.desglose,
-            keyboardType: TextInputType.multiline,
-            maxLines: null, // Permite un número ilimitado de líneas
-            decoration: const InputDecoration(labelText: 'Desglose'),
-            onSaved: (value) => _invoice.desglose = value!,
-          ),
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: TextFormField(
-                  textAlign: TextAlign.right,
-                  initialValue: _invoice.base.toString(),
-                  decoration: InputDecoration(
-                      labelText:
-                          'Base ${CURRENCIES[_invoice.currency]!.value}'),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, ingrese la base';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    _invoice.base = currencyToDouble(value);
-                    setState(() {
-                      _invoice.total = _invoice.base + _invoice.taxes;
-                    });
-                  },
-                  onSaved: (value) => _invoice.base = currencyToDouble(value!),
-                )),
-            Expanded(
-                flex: 1,
-                child: TextFormField(
-                  textAlign: TextAlign.right,
-                  initialValue: _invoice.taxes.toString(),
-                  decoration: InputDecoration(
-                      labelText:
-                          'Impuestos ${CURRENCIES[_invoice.currency]!.value}'),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, ingrese los impuestos';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    _invoice.taxes = currencyToDouble(value);
-                    setState(() {
-                      _invoice.total = _invoice.base + _invoice.taxes;
-                    });
-                  },
-                  onSaved: (value) => _invoice.taxes = currencyToDouble(value!),
-                )),
-            Expanded(
-              flex: 1,
-              child: ReadOnlyTextField(
-                label: 'Total ${CURRENCIES[_invoice.currency]!.value}',
-                textToShow: toCurrency(_invoice.total, _invoice.currency),
-                textAlign: TextAlign.right,
+                      required: true,
+                    ))
+              ]),
+              TextFormField(
+                initialValue: _invoice.concept,
+                decoration: const InputDecoration(labelText: 'Concepto'),
+                onSaved: (value) => _invoice.concept = value!,
               ),
-            ),
-            Expanded(
-                flex: 1,
-                child: TextFormField(
-                  textAlign: TextAlign.right,
-                  initialValue: _invoice.imputation.toStringAsFixed(2),
-                  decoration: const InputDecoration(labelText: 'Imputado (%)'),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, ingrese el % imputado';
-                    }
-                    if (double.parse(value) > 100) {
-                      return 'El % imputado no puede ser mayor que 100';
-                    }
-                    if (double.parse(value) < 1) {
-                      return 'El % imputado no puede ser menor que 1';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    _invoice.imputation = double.parse(value);
-                  },
-                  onSaved: (value) =>
-                      _invoice.imputation = double.parse(value!),
-                )),
-          ]),
-          TextFormField(
-            initialValue: _invoice.document,
-            decoration:
-                const InputDecoration(labelText: 'Documento (localizador)'),
-            onSaved: (value) => _invoice.document = value!,
-          ),
-          const SizedBox(height: 16.0),
-          Row(children: [
-            Expanded(flex: _invoice.id == "" ? 3 : 2, child: Container()),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: saveBtnForm(context, saveInvoice))),
-            _invoice.id == ""
-                ? Container(width: 0)
-                : Expanded(
+              TextFormField(
+                initialValue: _invoice.provider,
+                decoration: const InputDecoration(labelText: 'Proveedor'),
+                onSaved: (value) => _invoice.provider = value!,
+              ),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: CustomSelectFormField(
+                      labelText: AppLocalizations.of(context)!.currency,
+                      initial: _invoice.currency,
+                      options: CURRENCIES.keys
+                          .map((currency) => KeyValue(currency, currency))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        _invoice.currency = value.toString();
+                        if (mounted) setState(() {});
+                      },
+                      required: true,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: DateTimePicker(
+                          labelText: 'Fecha',
+                          selectedDate: _invoice.date,
+                          onSelectedDate: (DateTime value) {
+                            setState(() {
+                              _invoice.date = value;
+                            });
+                          },
+                        ))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: DateTimePicker(
+                          labelText: 'Fecha Pago',
+                          selectedDate: _invoice.paidDate,
+                          onSelectedDate: (DateTime value) {
+                            setState(() {
+                              _invoice.paidDate = value;
+                            });
+                          },
+                        ))),
+              ]),
+              TextFormField(
+                initialValue: _invoice.desglose,
+                keyboardType: TextInputType.multiline,
+                maxLines: null, // Permite un número ilimitado de líneas
+                decoration: const InputDecoration(labelText: 'Desglose'),
+                onSaved: (value) => _invoice.desglose = value!,
+              ),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      textAlign: TextAlign.right,
+                      initialValue: _invoice.base.toString(),
+                      decoration: InputDecoration(
+                          labelText:
+                              'Base ${CURRENCIES[_invoice.currency]!.value}'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese la base';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        _invoice.base = currencyToDouble(value);
+                        setState(() {
+                          _invoice.total = _invoice.base + _invoice.taxes;
+                        });
+                      },
+                      onSaved: (value) =>
+                          _invoice.base = currencyToDouble(value!),
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      textAlign: TextAlign.right,
+                      initialValue: _invoice.taxes.toString(),
+                      decoration: InputDecoration(
+                          labelText:
+                              'Impuestos ${CURRENCIES[_invoice.currency]!.value}'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese los impuestos';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        _invoice.taxes = currencyToDouble(value);
+                        setState(() {
+                          _invoice.total = _invoice.base + _invoice.taxes;
+                        });
+                      },
+                      onSaved: (value) =>
+                          _invoice.taxes = currencyToDouble(value!),
+                    )),
+                Expanded(
+                  flex: 1,
+                  child: ReadOnlyTextField(
+                    label: 'Total ${CURRENCIES[_invoice.currency]!.value}',
+                    textToShow: toCurrency(_invoice.total, _invoice.currency),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      textAlign: TextAlign.right,
+                      initialValue: _invoice.imputation.toStringAsFixed(2),
+                      decoration:
+                          const InputDecoration(labelText: 'Imputado (%)'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese el % imputado';
+                        }
+                        if (double.parse(value) > 100) {
+                          return 'El % imputado no puede ser mayor que 100';
+                        }
+                        if (double.parse(value) < 1) {
+                          return 'El % imputado no puede ser menor que 1';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        _invoice.imputation = double.parse(value);
+                      },
+                      onSaved: (value) =>
+                          _invoice.imputation = double.parse(value!),
+                    )),
+              ]),
+              TextFormField(
+                initialValue: _invoice.document,
+                decoration:
+                    const InputDecoration(labelText: 'Documento (localizador)'),
+                onSaved: (value) => _invoice.document = value!,
+              ),
+              const SizedBox(height: 16.0),
+              Row(children: [
+                Expanded(flex: _invoice.id == "" ? 3 : 2, child: Container()),
+                Expanded(
                     flex: 1,
                     child: Padding(
                         padding: const EdgeInsets.only(left: 5),
-                        child: removeBtnForm(context, removeInvoice))),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: cancelBtnForm(context))),
-          ]),
-        ],
-      )),
+                        child: saveBtnForm(context, saveInvoice))),
+                _invoice.id == ""
+                    ? Container(width: 0)
+                    : Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: removeBtnForm(context, removeInvoice))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: cancelBtnForm(context))),
+              ]),
+            ],
+          )),
     );
   }
 }

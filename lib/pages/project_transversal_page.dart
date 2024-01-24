@@ -749,11 +749,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
       goPage(context, "Volver", const ProjectsPage(), Icons.arrow_circle_left_outlined,),
-
-      // space(width: 10),
-      // actionButton(context, "Aleatorias", () {
-      //   addTransfer(10);
-      // }, Icons.currency_exchange_rounded, null),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
