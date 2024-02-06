@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/utils.dart';
@@ -87,6 +88,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
           children: [
             const Text(projectTitle, style: headerTitleText),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              goPage(context, "Listado", const ProjectListPage(), Icons.info,
+                  style: "bigBtn", extraction: () {}),
+              space(width: 10),
               addBtn(context, callDialog, {"programme": null},
                   text: "Añadir Programa"),
               space(width: 10),

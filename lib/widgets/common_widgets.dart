@@ -477,6 +477,13 @@ Widget customRowDivider() {
   );
 }
 
+Widget customColumnDivider() {
+  return VerticalDivider(
+    width: 10,
+    color: greyColor,
+  );
+}
+
 Widget customRowDividerBlue() {
   return const Divider(
     height: 1,
@@ -787,8 +794,16 @@ ButtonStyle btnStyle = ButtonStyle(
   elevation: const MaterialStatePropertyAll<double>(5),
 );
 
+ButtonStyle btnStylePlane = const ButtonStyle(
+  backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
+);
+
 BoxDecoration rowDecoration = const BoxDecoration(
   border: Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1)),
+);
+
+BoxDecoration rowDecorationGreen = const BoxDecoration(
+  border: Border(bottom: BorderSide(color: Color(0xff00594f), width: 2)),
 );
 
 //--------------------------------------------------------------------------
@@ -950,6 +965,26 @@ Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
           space(height: 5),
           customText(text, 12, textColor: subTitleColor),
           space(height: 5),
+        ],
+      ));
+}
+
+Widget addBtnRow(context, action, args,
+    {text = addText, icon = Icons.add, color = subTitleColor}) {
+  return FilledButton(
+      onPressed: () {
+        if (args == null) {
+          action(context);
+        } else {
+          action(context, args);
+        }
+      },
+      style: btnStylePlane,
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          space(width: 5),
+          customText(text, 12, textColor: color),
         ],
       ));
 }

@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
@@ -269,6 +271,71 @@ class _GoalsPageState extends State<GoalsPage>
   /*-------------------------------------------------------------
                             RESULTS
   -------------------------------------------------------------*/
+  void saveResult(List args) async {
+    Result result = args[0];
+    result.save();
+    loadGoals();
+
+    Navigator.pop(context);
+  }
+
+  Future<void> editResultDialog(context, Map<String, dynamic> args) {
+    Result result = args["result"];
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar((result.name != "")
+              ? 'Editando Resultado'
+              : 'Añadiendo Resultado'),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: result.name,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.name = val);
+                  },
+                )
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: result.description,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.description = val);
+                  },
+                )
+              ]),
+            ]),
+            space(height: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Fuente",
+                  initial: result.source,
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => result.source = val);
+                  },
+                )
+              ]),
+            ])
+          ])),
+          actions: <Widget>[dialogsBtns(context, saveResult, result)],
+        );
+      },
+    );
+  }
+
   Widget resultList(context, goal) {
     return FutureBuilder(
         future: getResultsByGoal(goal.uuid),
@@ -291,8 +358,21 @@ class _GoalsPageState extends State<GoalsPage>
                             bottom:
                                 BorderSide(color: Color(0xffdfdfdf), width: 2)),
                       ),*/
-                      decoration: rowDecoration,
-                      child: resultRow(context, result, goal),
+                      decoration: rowDecorationGreen,
+                      child: Column(children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            /*editBtn(context, editResultDialog, {"result": Result(goal.uuid)},
+                icon: Icons.add),*/
+                            addBtnRow(context, editResultDialog,
+                                {"result": Result(goal.uuid)},
+                                text: "Añadir resultado",
+                                icon: Icons.add_circle_outline),
+                          ],
+                        ),
+                        resultRow(context, result, goal),
+                      ]),
                     );
                   });
             } else {
@@ -316,7 +396,7 @@ class _GoalsPageState extends State<GoalsPage>
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        /*Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             customText('${result.name}', 14, bold: FontWeight.bold),
@@ -329,7 +409,27 @@ class _GoalsPageState extends State<GoalsPage>
         customText('Fuente', 14, bold: FontWeight.bold),
         space(height: 10),
         Text('${result.source}'),
-        space(height: 10),
+        space(height: 10),*/
+        IntrinsicHeight(
+            child: Row(children: [
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText('${result.name}', 14, bold: FontWeight.bold),
+                  space(height: 5),
+                  customText('${result.description}', 14),
+                ],
+              )),
+          space(width: 10),
+          customColumnDivider(),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Fuente", 14, bold: FontWeight.bold),
+            space(height: 5),
+            customText('${result.source}', 14),
+          ]),
+        ])),
         resultIndicatorsHeader(context, result),
         resultIndicators(context, result),
         resultActivitiesHeader(context, result),
@@ -379,11 +479,15 @@ class _GoalsPageState extends State<GoalsPage>
       /*goPageIcon(context, "Actividades", Icons.list_alt,
           ActivitiesPage(result: result)),
       goPageIcon(context, "Tareas", Icons.assignment_rounded,
-          ResultTasksPage(result: result)),
+          ResultTasksPage(result: result)),*/
       editBtn(context, editResultDialog, {"result": result}),
       removeBtn(
-          context, removeResultDialog, {"goal": goal.uuid, "result": result})*/
+          context, removeResultDialog, {"goal": goal.uuid, "result": result})
     ]);
+  }
+
+  void removeResultDialog(context, args) {
+    customRemoveDialog(context, args["result"], loadGoals, args["goal"]);
   }
 
   /*-------------------------------------------------------------
@@ -442,9 +546,9 @@ class _GoalsPageState extends State<GoalsPage>
   Widget resultIndicatorsHeader(context, result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Indicadores", 15, bold: FontWeight.bold),
-      editBtn(context, editResultIndicatorDialog,
+      addBtnRow(context, editResultIndicatorDialog,
           {'indicator': ResultIndicator(result.uuid)},
-          icon: Icons.add),
+          text: "Añadir indicador", icon: Icons.add_circle_outline),
     ]);
   }
 
@@ -473,17 +577,24 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
-        columnSpacing: 500,
+        columnSpacing: 690,
+        headingRowColor:
+            MaterialStateColor.resolveWith((states) => headerListBgColor),
         columns: [
           DataColumn(
-              label: customText("Nombre", 14, bold: FontWeight.bold),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Nombre"),
           DataColumn(
-            label: customText("Valor", 14, bold: FontWeight.bold),
+            label: customText("Valor", 14,
+                bold: FontWeight.bold, textColor: headerListTitleColor),
             tooltip: "Valor",
           ),
           DataColumn(
-              label: customText("Acciones", 14, bold: FontWeight.bold),
+              label: customText("Acciones", 14,
+                  bold: FontWeight.bold,
+                  textColor: headerListTitleColor,
+                  align: TextAlign.end),
               tooltip: "Acciones"),
         ],
         rows: indicators
@@ -491,14 +602,13 @@ class _GoalsPageState extends State<GoalsPage>
               (indicator) => DataRow(cells: [
                 DataCell(Text(indicator.name)),
                 DataCell(Text(indicator.value)),
-                DataCell(Row(
-                    //mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      /*goPageIcon(context, "Ver", Icons.view_compact,
+                DataCell(
+                    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
-                      removeBtn(context, removeResultIndicatorDialog,
-                          {"indicator": indicator})
-                    ]))
+                  removeBtn(context, removeResultIndicatorDialog,
+                      {"indicator": indicator})
+                ]))
               ]),
             )
             .toList(),
@@ -555,8 +665,9 @@ class _GoalsPageState extends State<GoalsPage>
   Widget resultActivitiesHeader(context, result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Actividades", 15, bold: FontWeight.bold),
-      editBtn(context, editActivityDialog, {'activity': Activity(result.uuid)},
-          icon: Icons.add),
+      addBtnRow(
+          context, editActivityDialog, {'activity': Activity(result.uuid)},
+          text: "Añadir actividad", icon: Icons.add_circle_outline),
     ]);
   }
 
@@ -585,26 +696,29 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
-        columnSpacing: 1050,
+        columnSpacing: 1320,
+        headingRowColor:
+            MaterialStateColor.resolveWith((states) => headerListBgColor),
         columns: [
           DataColumn(
-              label: customText("Nombre", 14, bold: FontWeight.bold),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Nombre"),
           DataColumn(
-              label: customText("Acciones", 14, bold: FontWeight.bold),
+              label: customText("Acciones", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Acciones"),
         ],
         rows: items
             .map(
               (item) => DataRow(cells: [
                 DataCell(customText("${item.name}", 14)),
-                DataCell(Row(
-                    //mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      /*goPageIcon(context, "Ver", Icons.view_compact,
+                DataCell(
+                    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
-                      removeBtn(context, removeActivityDialog, {"item": item})
-                    ]))
+                  removeBtn(context, removeActivityDialog, {"item": item})
+                ]))
               ]),
             )
             .toList(),
