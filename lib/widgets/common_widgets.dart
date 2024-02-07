@@ -1245,14 +1245,14 @@ Widget contentTab(context, action, obj) {
 //--------------------------------------------------------------------------
 //                           COLLAPSE
 //--------------------------------------------------------------------------
-Widget customCollapse(context, title, action, obj) {
+Widget customCollapse(context, title, action, obj, {expanded = true}) {
   return ExpansionTile(
     title: customText(title, 14, textColor: headerListTitleColor),
     backgroundColor: headerListBgColor,
     collapsedBackgroundColor: headerListBgColor,
     iconColor: headerListTitleColor,
     collapsedIconColor: headerListTitleColor,
-    initiallyExpanded: true,
+    initiallyExpanded: expanded,
     shape: Border.all(color: Colors.transparent),
     children: [
       Container(decoration: tabDecoration, child: action(context, obj))

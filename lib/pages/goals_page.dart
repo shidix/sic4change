@@ -236,21 +236,24 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   Widget goalRow(context, goal, project) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${goal.name}'),
-            space(height: 10),
-            customLinearPercent(context, 2, 0.8, Colors.blue),
-          ],
-        ),
-        goalRowOptions(context, goal, project),
-      ],
-    );
+    return Column(children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${goal.name}'),
+              space(height: 10),
+              customLinearPercent(context, 2, 0.8, Colors.blue),
+            ],
+          ),
+          goalRowOptions(context, goal, project),
+        ],
+      ),
+      customCollapse(context, "Resultados", resultList, goal, expanded: false)
+    ]);
   }
 
   Widget goalRowOptions(context, goal, project) {
@@ -337,53 +340,50 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   Widget resultList(context, goal) {
-    return FutureBuilder(
-        future: getResultsByGoal(goal.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            results = snapshot.data!;
-            if (results.isNotEmpty) {
-              return ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: results.length,
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    Result result = results[index];
-                    return Container(
-                      //height: 400,
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      /*decoration: const BoxDecoration(
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        addBtnRow(context, editResultDialog, {"result": Result(goal.uuid)},
+            text: "Añadir resultado", icon: Icons.add_circle_outline),
+      ]),
+      FutureBuilder(
+          future: getResultsByGoal(goal.uuid),
+          builder: ((context, snapshot) {
+            if (snapshot.hasData) {
+              results = snapshot.data!;
+              if (results.isNotEmpty) {
+                return ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: results.length,
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      Result result = results[index];
+                      return Container(
+                        //height: 400,
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        /*decoration: const BoxDecoration(
                         border: Border(
                             bottom:
                                 BorderSide(color: Color(0xffdfdfdf), width: 2)),
                       ),*/
-                      decoration: rowDecorationGreen,
-                      child: Column(children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            /*editBtn(context, editResultDialog, {"result": Result(goal.uuid)},
+                        decoration: rowDecorationGreen,
+                        child: Column(children: [
+                          /*editBtn(context, editResultDialog, {"result": Result(goal.uuid)},
                 icon: Icons.add),*/
-                            addBtnRow(context, editResultDialog,
-                                {"result": Result(goal.uuid)},
-                                text: "Añadir resultado",
-                                icon: Icons.add_circle_outline),
-                          ],
-                        ),
-                        resultRow(context, result, goal),
-                      ]),
-                    );
-                  });
+                          resultRow(context, result, goal),
+                        ]),
+                      );
+                    });
+              } else {
+                return const Text("");
+              }
             } else {
-              return const Text("");
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
             }
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+          }))
+    ]);
   }
 
   Widget resultRow(context, result, goal) {
