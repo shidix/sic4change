@@ -172,7 +172,8 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   Widget orgList(context, args) {
-    return Builder(builder: ((context) {
+    return Container(child: customText("_text", 16));
+    /*return Builder(builder: ((context) {
       if (orgs.isNotEmpty) {
         return Column(children: [
           s4cTitleBar("Organizaciones"),
@@ -186,12 +187,11 @@ class _ContactsPageState extends State<ContactsPage> {
           child: CircularProgressIndicator(),
         );
       }
-    }));
+    }));*/
   }
 
   SingleChildScrollView dataBodyOrg(context) {
-    return SingleChildScrollView(child: customText("_text", 16));
-    /*return SingleChildScrollView(
+    return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
           width: double.infinity,
@@ -230,7 +230,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 )
                 .toList(),
           ),
-        ));*/
+        ));
   }
 
   void removeOrganizationDialog(context, args) {
