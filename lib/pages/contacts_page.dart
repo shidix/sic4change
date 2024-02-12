@@ -92,7 +92,7 @@ class _ContactsPageState extends State<ContactsPage> {
           children: [
             SizedBox(
               width: MediaQuery.of(context).size.width / 3,
-              //child: contentTab(context, orgList, null),
+              child: contentTab(context, orgList, null),
             ),
             contentTab(context, contactList, null),
           ],
@@ -190,7 +190,8 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   SingleChildScrollView dataBodyOrg(context) {
-    return SingleChildScrollView(
+    return SingleChildScrollView(child: customText("_text", 16));
+    /*return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
           width: double.infinity,
@@ -229,7 +230,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 )
                 .toList(),
           ),
-        ));
+        ));*/
   }
 
   void removeOrganizationDialog(context, args) {
