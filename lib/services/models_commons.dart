@@ -90,7 +90,7 @@ Future<List> getOrganizations() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Organization item = Organization.fromJson(data);
-    //await item.getType();
+    await item.getType();
     items.add(item);
     //items.add(Organization.fromJson(data));
   }

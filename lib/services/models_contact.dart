@@ -271,6 +271,23 @@ Future<List> searchContacts(name) async {
   return items;
 }
 
+Future<List> getContactsByOrg(org) async {
+  List<Contact> items = [];
+  QuerySnapshot? query =
+      await dbContacts.where("organization", isEqualTo: org).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = Contact.fromJson(data);
+    item.getOrganization();
+    item.getCompany();
+    item.getPosition();
+    item.getProjects();
+    items.add(item);
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                           COMPANIES
 //--------------------------------------------------------------
