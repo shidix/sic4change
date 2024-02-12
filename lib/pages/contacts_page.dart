@@ -90,10 +90,11 @@ class _ContactsPageState extends State<ContactsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
+            contentTab(context, orgList, null),
+            /*SizedBox(
               width: MediaQuery.of(context).size.width / 3,
               child: contentTab(context, orgList, null),
-            ),
+            ),*/
             contentTab(context, contactList, null),
           ],
         )
@@ -172,8 +173,7 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   Widget orgList(context, args) {
-    return Container(child: customText("_text", 16));
-    /*return Builder(builder: ((context) {
+    return Builder(builder: ((context) {
       if (orgs.isNotEmpty) {
         return Column(children: [
           s4cTitleBar("Organizaciones"),
@@ -187,7 +187,7 @@ class _ContactsPageState extends State<ContactsPage> {
           child: CircularProgressIndicator(),
         );
       }
-    }));*/
+    }));
   }
 
   SingleChildScrollView dataBodyOrg(context) {
