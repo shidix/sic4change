@@ -91,7 +91,7 @@ class _ContactsPageState extends State<ContactsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //contentTab(context, orgList, null),
-            Center(
+            Align(
               child: SizedBox(
                 width: MediaQuery.of(context).size.width / 2.5,
                 child: contentTab(context, orgList, null),
