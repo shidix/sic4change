@@ -92,7 +92,7 @@ class _ContactsPageState extends State<ContactsPage> {
           children: [
             SizedBox(
               width: MediaQuery.of(context).size.width / 3,
-              child: contentTab(context, orgList, null),
+              //child: contentTab(context, orgList, null),
             ),
             contentTab(context, contactList, null),
           ],
