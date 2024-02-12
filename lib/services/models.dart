@@ -32,7 +32,7 @@ class SProject {
   double assignedBudget = 0;
   Ambit ambitObj = Ambit("");
   ProjectType typeObj = ProjectType("");
-  Contact managerObj = Contact("", "", "", "", "");
+  Contact managerObj = Contact("");
   Programme programmeObj = Programme("");
   List<Financier> financiersObj = [];
   List<Contact> partnersObj = [];
@@ -250,7 +250,7 @@ class SProject {
         data["id"] = doc.id;
         return Contact.fromJson(data);
       } catch (e) {
-        return Contact("", "", "", "", "");
+        return Contact("");
       }
     } else {
       return managerObj;

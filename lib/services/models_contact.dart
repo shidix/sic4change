@@ -15,22 +15,28 @@ CollectionReference dbContacts = db.collection("s4c_contacts");
 class Contact {
   String id = "";
   String uuid = "";
-  String name;
-  String company;
+  String name = "";
+  String organization = "";
+  String company = "";
   List<String> projects = [];
-  String position;
-  String email;
-  String phone;
+  String position = "";
+  String email = "";
+  String phone = "";
+  Organization organizationObj = Organization("");
   Company companyObj = Company("");
+  Position positionObj = Position("");
   List<SProject> projectsObj = [];
 
-  Contact(this.name, this.company, this.position, this.email, this.phone);
+  /*Contact(this.name, this.company, this.position, this.email, this.phone,
+      this.organization);*/
+  Contact(this.name);
 
   Contact.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
         company = json['company'],
+        organization = json['organization'],
         projects = List.from(json['projects']),
         position = json["position"],
         email = json["email"],
@@ -41,6 +47,7 @@ class Contact {
         'uuid': uuid,
         'name': name,
         'company': company,
+        'organization': organization,
         'projects': projects,
         'position': position,
         'email': email,
@@ -67,16 +74,44 @@ class Contact {
     await dbContacts.doc(id).delete();
   }
 
-  Future<Company> getCompany() async {
+  Future<void> getOrganization() async {
+    try {
+      QuerySnapshot query =
+          await dbOrg.where("uuid", isEqualTo: organization).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      organizationObj = Organization.fromJson(data);
+      //return Organization.fromJson(data);
+    } catch (e) {
+      print(e);
+      //return Organization("");
+    }
+  }
+
+  Future<void> getCompany() async {
     try {
       QuerySnapshot query =
           await dbComp.where("uuid", isEqualTo: company).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      return Company.fromJson(data);
+      companyObj = Company.fromJson(data);
     } catch (e) {
-      return Company("");
+      //return Company("");
+    }
+  }
+
+  Future<void> getPosition() async {
+    try {
+      QuerySnapshot query =
+          await dbPos.where("uuid", isEqualTo: position).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      positionObj = Position.fromJson(data);
+    } catch (e) {
+      //return Position("");
     }
   }
 
@@ -168,7 +203,7 @@ class Contact {
       return Contact.fromJson(data);
     } catch (e) {
       print(e);
-      return Contact("", "", "", "", "");
+      return Contact("");
     }
   }
 }
@@ -176,13 +211,17 @@ class Contact {
 Future<List> getContacts() async {
   List<Contact> items = [];
   QuerySnapshot query = await dbContacts.get();
+
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Contact item = Contact.fromJson(data);
-    item.companyObj = await item.getCompany();
+    await item.getOrganization();
+    await item.getCompany();
+    await item.getPosition();
     item.projectsObj = await item.getProjects();
-    items.add(Contact.fromJson(data));
+    items.add(item);
+    //items.add(Contact.fromJson(data));
   }
   return items;
 }
@@ -220,7 +259,9 @@ Future<List> searchContacts(name) async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     final item = Contact.fromJson(data);
+    item.getOrganization();
     item.getCompany();
+    item.getPosition();
     item.getProjects();
     // item.companyObj = await item.getCompany();
 
@@ -253,6 +294,10 @@ class Company {
         'name': name,
       };
 
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
   Future<void> save() async {
     if (id == "") {
       //id = uuid;
@@ -282,6 +327,18 @@ Future<List> getCompanies() async {
   return items;
 }
 
+Future<List<KeyValue>> getCompaniesHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbComp.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Company item = Company.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                           POSITION
 //--------------------------------------------------------------
@@ -304,6 +361,10 @@ class Position {
         'uuid': uuid,
         'name': name,
       };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
 
   Future<void> save() async {
     if (id == "") {
@@ -331,6 +392,18 @@ Future<List> getPositions() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     items.add(Position.fromJson(data));
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getPositionsHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbPos.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Position item = Position.fromJson(data);
+    items.add(item.toKeyValue());
   }
   return items;
 }

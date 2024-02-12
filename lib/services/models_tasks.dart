@@ -33,7 +33,7 @@ class STask {
 
   SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
-  Contact senderObj = Contact("", "", "", "", "");
+  Contact senderObj = Contact("");
   List<Contact> assignedObj = [];
   List<Programme> programmesObj = [];
 

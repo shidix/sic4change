@@ -116,7 +116,8 @@ class _TransfersPageState extends State<TransfersPage> {
         return partner;
       }
     }
-    return Contact("", "", "", "", "");
+    return Contact("");
+    //return Contact("", "", "", "", "");
   }
 
   Financier getFinancier(uuid) {
@@ -261,7 +262,8 @@ class _TransfersPageState extends State<TransfersPage> {
                   title: Row(children: [
                     listCell(
                         flex: 3,
-                        text: "${getFinancier(bankTransfers[index].emissor).name} --> ${getContact(bankTransfers[index].receiver).name}"),
+                        text:
+                            "${getFinancier(bankTransfers[index].emissor).name} --> ${getContact(bankTransfers[index].receiver).name}"),
                     listCell(flex: 3, text: bankTransfers[index].concept),
                     listCell(
                         text: DateFormat('dd-MM-yyyy')
