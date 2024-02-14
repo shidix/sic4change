@@ -90,15 +90,15 @@ class _ContactsPageState extends State<ContactsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /*SizedBox(
+            SizedBox(
               width: MediaQuery.of(context).size.width / 3,
               child: contentTab(context, orgList, null),
             ),
-            SizedBox(
+            /*SizedBox(
               width: MediaQuery.of(context).size.width / 1.5,
               child: contentTab(context, contactList, null),
             ),*/
-            contentTab(context, orgList, null),
+            //contentTab(context, orgList, null),
             contentTab(context, contactList, null),
           ],
         )
@@ -213,7 +213,7 @@ class _ContactsPageState extends State<ContactsPage> {
           s4cTitleBar("Organizaciones"),
           Container(
             padding: const EdgeInsets.all(5),
-            width: MediaQuery.of(context).size.width / 3,
+            //width: MediaQuery.of(context).size.width / 3,
             child: dataBodyOrg(context),
           )
         ]);
@@ -229,7 +229,8 @@ class _ContactsPageState extends State<ContactsPage> {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
-          width: double.infinity,
+          //width: double.infinity,
+          //width: MediaQuery.of(context).size.width / 3,
           child: DataTable(
             sortColumnIndex: 0,
             showCheckboxColumn: false,
