@@ -90,14 +90,16 @@ class _ContactsPageState extends State<ContactsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            contentTab(context, orgList, null),
-            /*Align(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width / 2.5,
-                child: contentTab(context, orgList, null),
-              ),
-            ),*/
-            contentTab(context, contactList, null),
+            SizedBox(
+              width: MediaQuery.of(context).size.width / 3,
+              child: contentTab(context, orgList, null),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width / 1.5,
+              child: contentTab(context, contactList, null),
+            ),
+            //contentTab(context, orgList, null),
+            //contentTab(context, contactList, null),
           ],
         )
         /*Expanded(
@@ -153,7 +155,37 @@ class _ContactsPageState extends State<ContactsPage> {
                 )
               ]),
               space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Column(children: [
+                customText("Financiador", 12),
+                FormField<bool>(builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: org.financier,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        org.financier = value!;
+                        state.didChange(org.financier);
+                      });
+                    },
+                  );
+                })
+              ]),
+              space(width: 20),
+              Column(children: [
+                customText("Socio", 12),
+                FormField<bool>(builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: org.partner,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        org.partner = value!;
+                        state.didChange(org.partner);
+                      });
+                    },
+                  );
+                })
+              ]),
+
+              /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomDropdown(
                   labelText: 'Tipo',
                   size: 220,
@@ -163,7 +195,7 @@ class _ContactsPageState extends State<ContactsPage> {
                     org.type = val;
                   },
                 ),
-              ]),
+              ]),*/
             ]),
           ])),
           actions: <Widget>[
@@ -205,8 +237,11 @@ class _ContactsPageState extends State<ContactsPage> {
                   label: customText("Nombre", 14, bold: FontWeight.bold),
                   tooltip: "Nombre"),
               DataColumn(
-                  label: customText("Tipo", 14, bold: FontWeight.bold),
-                  tooltip: "Tipo"),
+                  label: customText("Financiador", 14, bold: FontWeight.bold),
+                  tooltip: "Financiador"),
+              DataColumn(
+                  label: customText("Socio", 14, bold: FontWeight.bold),
+                  tooltip: "Socio"),
               DataColumn(
                   label: customText("Acciones", 14, bold: FontWeight.bold),
                   tooltip: "Acciones"),
@@ -217,12 +252,13 @@ class _ContactsPageState extends State<ContactsPage> {
                       onSelectChanged: (bool? selected) {
                         if (selected == true) {
                           loadContacts(org.uuid);
-                          //print("--1--");
                         }
                       },
                       cells: [
                         DataCell(Text(org.name)),
-                        DataCell(Text(org.typeObj.name)),
+                        DataCell(Icon(org.isFinancier())),
+                        DataCell(Icon(org.isPartner())),
+                        //DataCell(Text(org.typeObj.name)),
                         DataCell(Row(children: [
                           editBtn(context, callEditOrgDialog, {"org": org}),
                           /*removeBtn(

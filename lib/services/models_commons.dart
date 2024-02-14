@@ -1,4 +1,7 @@
+//import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -31,22 +34,28 @@ class Organization {
   String id = "";
   String uuid = "";
   String name;
-  String type = "";
-  OrganizationType typeObj = OrganizationType("");
+  bool financier = false;
+  bool partner = false;
+  //String type = "";
+  //OrganizationType typeObj = OrganizationType("");
 
   Organization(this.name);
 
   Organization.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        name = json['name'],
-        type = json['type'];
+        financier = json["financier"],
+        partner = json["partner"],
+        name = json['name'];
+  //type = json['type'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'financier': financier,
+        'partner': partner,
         'name': name,
-        'type': type,
+        //'type': type,
       };
 
   KeyValue toKeyValue() {
@@ -69,7 +78,16 @@ class Organization {
     await dbOrg.doc(id).delete();
   }
 
-  Future<void> getType() async {
+  IconData isFinancier() {
+    if (financier == true) return Icons.check_circle_outline;
+    return Icons.cancel_outlined;
+  }
+
+  IconData isPartner() {
+    if (partner == true) return Icons.check_circle_outline;
+    return Icons.cancel_outlined;
+  }
+  /*Future<void> getType() async {
     try {
       QuerySnapshot query =
           await dbOrgType.where("uuid", isEqualTo: type).get();
@@ -80,7 +98,7 @@ class Organization {
     } catch (e) {
       //return Company("");
     }
-  }
+  }*/
 }
 
 Future<List> getOrganizations() async {
@@ -90,7 +108,7 @@ Future<List> getOrganizations() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Organization item = Organization.fromJson(data);
-    await item.getType();
+    //await item.getType();
     items.add(item);
     //items.add(Organization.fromJson(data));
   }
