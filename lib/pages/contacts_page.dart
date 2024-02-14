@@ -99,7 +99,7 @@ class _ContactsPageState extends State<ContactsPage> {
               child: contentTab(context, contactList, null),
             ),*/
             contentTab(context, orgList, null, widthFactor: 0.33),
-            contentTab(context, contactList, null, widthFactor: 0.33),
+            contentTab(context, contactList, null, widthFactor: 0.66),
           ],
         )
         /*Expanded(
