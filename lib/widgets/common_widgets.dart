@@ -1243,7 +1243,7 @@ Widget contentTab(context, action, obj, {widthFactor = 1}) {
           )));
 }
 
-/*Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
+Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
   return Container(
       padding: const EdgeInsets.only(left: 10, right: 10),
       width: MediaQuery.of(context).size.width * widthFactor,
@@ -1251,7 +1251,7 @@ Widget contentTab(context, action, obj, {widthFactor = 1}) {
         elevation: 5,
         child: action(context, obj),
       ));
-}*/
+}
 
 //--------------------------------------------------------------------------
 //                           COLLAPSE
