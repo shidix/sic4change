@@ -1225,12 +1225,12 @@ Widget menuTab2(context, btnName, newContext, {selected = false}) {
 }
 
 Widget contentTab(context, action, obj, {widthFactor = 1}) {
-  return Expanded(
-      child: Card(
-          elevation: 5,
-          child: Container(
-            width: MediaQuery.of(context).size.width * widthFactor,
-            padding: const EdgeInsets.only(left: 10, right: 10),
+  return Flexible(
+      child: Container(
+          width: MediaQuery.of(context).size.width * widthFactor,
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: Card(
+            elevation: 5,
             /*decoration: BoxDecoration(
               border: Border.all(
                 color: const Color(0xffdfdfdf),
