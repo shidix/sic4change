@@ -1225,7 +1225,15 @@ Widget menuTab2(context, btnName, newContext, {selected = false}) {
 }
 
 Widget contentTab(context, action, obj, {widthFactor = 1}) {
-  return Expanded(
+  return Container(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      width: MediaQuery.of(context).size.width * widthFactor,
+      child: Card(
+        elevation: 5,
+        child: action(context, obj),
+      ));
+
+  /*return Expanded(
       child: Card(
           elevation: 5,
           child: Container(
@@ -1240,7 +1248,7 @@ Widget contentTab(context, action, obj, {widthFactor = 1}) {
               color: Colors.white,
             ),*/
             child: action(context, obj),
-          )));
+          )));*/
 }
 
 //--------------------------------------------------------------------------

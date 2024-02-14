@@ -98,8 +98,8 @@ class _ContactsPageState extends State<ContactsPage> {
               width: MediaQuery.of(context).size.width / 1.5,
               child: contentTab(context, contactList, null),
             ),*/
-            contentTab(context, orgList, null, widthFactor: 0.5),
-            contentTab(context, contactList, null),
+            contentTab(context, orgList, null, widthFactor: 0.33),
+            contentTab(context, contactList, null, widthFactor: 0.65),
           ],
         )
         /*Expanded(
