@@ -208,69 +208,75 @@ class _ContactsPageState extends State<ContactsPage> {
 
   Widget orgList(context, args) {
     return Builder(builder: ((context) {
-      if (orgs.isNotEmpty) {
-        return Column(children: [
-          s4cTitleBar("Organizaciones"),
-          Container(
-            padding: const EdgeInsets.all(5),
-            //width: MediaQuery.of(context).size.width / 3,
-            child: dataBodyOrg(context),
-          )
-        ]);
-      } else {
+      //if (orgs.isNotEmpty) {
+      return Column(children: [
+        s4cTitleBar("Organizaciones"),
+        Container(
+          padding: const EdgeInsets.all(5),
+          //width: MediaQuery.of(context).size.width / 3,
+          child: dataBodyOrg(context),
+        )
+      ]);
+      /*} else {
         return const Center(
           child: CircularProgressIndicator(),
         );
-      }
+      }*/
     }));
   }
 
-  SingleChildScrollView dataBodyOrg(context) {
-    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SizedBox(
-          //width: double.infinity,
-          //width: MediaQuery.of(context).size.width / 3,
-          child: DataTable(
-            sortColumnIndex: 0,
-            showCheckboxColumn: false,
-            columns: [
-              DataColumn(
-                  label: customText("Nombre", 14, bold: FontWeight.bold),
-                  tooltip: "Nombre"),
-              DataColumn(
-                  label: customText("Financiador", 14, bold: FontWeight.bold),
-                  tooltip: "Financiador"),
-              DataColumn(
-                  label: customText("Socio", 14, bold: FontWeight.bold),
-                  tooltip: "Socio"),
-              DataColumn(
-                  label: customText("Acciones", 14, bold: FontWeight.bold),
-                  tooltip: "Acciones"),
-            ],
-            rows: orgs
-                .map(
-                  (org) => DataRow(
-                      onSelectChanged: (bool? selected) {
-                        if (selected == true) {
-                          loadContacts(org.uuid);
-                        }
-                      },
-                      cells: [
-                        DataCell(Text(org.name)),
-                        DataCell(Icon(org.isFinancier())),
-                        DataCell(Icon(org.isPartner())),
-                        //DataCell(Text(org.typeObj.name)),
-                        DataCell(Row(children: [
-                          editBtn(context, callEditOrgDialog, {"org": org}),
-                          /*removeBtn(
+  Widget dataBodyOrg(context) {
+    if (orgs.isNotEmpty) {
+      return SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SizedBox(
+            //width: double.infinity,
+            //width: MediaQuery.of(context).size.width / 3,
+            child: DataTable(
+              sortColumnIndex: 0,
+              showCheckboxColumn: false,
+              columns: [
+                DataColumn(
+                    label: customText("Nombre", 14, bold: FontWeight.bold),
+                    tooltip: "Nombre"),
+                DataColumn(
+                    label: customText("Financiador", 14, bold: FontWeight.bold),
+                    tooltip: "Financiador"),
+                DataColumn(
+                    label: customText("Socio", 14, bold: FontWeight.bold),
+                    tooltip: "Socio"),
+                DataColumn(
+                    label: customText("Acciones", 14, bold: FontWeight.bold),
+                    tooltip: "Acciones"),
+              ],
+              rows: orgs
+                  .map(
+                    (org) => DataRow(
+                        onSelectChanged: (bool? selected) {
+                          if (selected == true) {
+                            loadContacts(org.uuid);
+                          }
+                        },
+                        cells: [
+                          DataCell(Text(org.name)),
+                          DataCell(Icon(org.isFinancier())),
+                          DataCell(Icon(org.isPartner())),
+                          //DataCell(Text(org.typeObj.name)),
+                          DataCell(Row(children: [
+                            editBtn(context, callEditOrgDialog, {"org": org}),
+                            /*removeBtn(
                         context, _removeContactDialog, {"contact": contact})*/
-                        ]))
-                      ]),
-                )
-                .toList(),
-          ),
-        ));
+                          ]))
+                        ]),
+                  )
+                  .toList(),
+            ),
+          ));
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
   }
 
   void removeOrganizationDialog(context, args) {
@@ -353,67 +359,73 @@ class _ContactsPageState extends State<ContactsPage> {
       }));
 }*/
 
-  DataTable contactTable(context) {
-    return DataTable(
-      sortColumnIndex: 0,
-      showCheckboxColumn: false,
-      columns: [
-        DataColumn(
-            label: customText("Nombre", 14, bold: FontWeight.bold),
-            tooltip: "Nombre"),
-        DataColumn(
-            label: customText("Organización", 14, bold: FontWeight.bold),
-            tooltip: "Organización"),
-        DataColumn(
-          label: customText(AppLocalizations.of(context)!.company, 14,
-              bold: FontWeight.bold),
-          tooltip: AppLocalizations.of(context)!.company,
-        ),
-        DataColumn(
-            label: customText("Proyecto", 14, bold: FontWeight.bold),
-            tooltip: "Proyecto"),
-        DataColumn(
-            label: customText("Posición", 14, bold: FontWeight.bold),
-            tooltip: "Posición"),
-        DataColumn(
-            label: customText("Teléfono", 14, bold: FontWeight.bold),
-            tooltip: "Teléfono"),
-        DataColumn(
-            label: customText("Acciones", 14, bold: FontWeight.bold),
-            tooltip: "Acciones"),
-      ],
-      rows: contacts
-          .map(
-            (contact) => DataRow(cells: [
-              DataCell(Text(contact.name)),
-              DataCell(
-                Text(contact.organizationObj.name),
-              ),
-              DataCell(
-                Text(contact.companyObj.name),
-              ),
-              const DataCell(Text("")),
-              DataCell(Text(contact.position)),
-              DataCell(Text(contact.phone)),
-              DataCell(Row(children: [
-                IconButton(
-                    icon: const Icon(Icons.info),
-                    tooltip: 'View',
-                    onPressed: () async {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: ((context) => ContactInfoPage(
-                                    contact: contact,
-                                  ))));
-                    }),
-                editBtn(context, callEditDialog, {"contact": contact}),
-                removeBtn(context, removeContactDialog, {"contact": contact})
-              ]))
-            ]),
-          )
-          .toList(),
-    );
+  Widget contactTable(context) {
+    if (contacts.isNotEmpty) {
+      return DataTable(
+        sortColumnIndex: 0,
+        showCheckboxColumn: false,
+        columns: [
+          DataColumn(
+              label: customText("Nombre", 14, bold: FontWeight.bold),
+              tooltip: "Nombre"),
+          DataColumn(
+              label: customText("Organización", 14, bold: FontWeight.bold),
+              tooltip: "Organización"),
+          DataColumn(
+            label: customText(AppLocalizations.of(context)!.company, 14,
+                bold: FontWeight.bold),
+            tooltip: AppLocalizations.of(context)!.company,
+          ),
+          DataColumn(
+              label: customText("Proyecto", 14, bold: FontWeight.bold),
+              tooltip: "Proyecto"),
+          DataColumn(
+              label: customText("Posición", 14, bold: FontWeight.bold),
+              tooltip: "Posición"),
+          DataColumn(
+              label: customText("Teléfono", 14, bold: FontWeight.bold),
+              tooltip: "Teléfono"),
+          DataColumn(
+              label: customText("Acciones", 14, bold: FontWeight.bold),
+              tooltip: "Acciones"),
+        ],
+        rows: contacts
+            .map(
+              (contact) => DataRow(cells: [
+                DataCell(Text(contact.name)),
+                DataCell(
+                  Text(contact.organizationObj.name),
+                ),
+                DataCell(
+                  Text(contact.companyObj.name),
+                ),
+                const DataCell(Text("")),
+                DataCell(Text(contact.position)),
+                DataCell(Text(contact.phone)),
+                DataCell(Row(children: [
+                  IconButton(
+                      icon: const Icon(Icons.info),
+                      tooltip: 'View',
+                      onPressed: () async {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => ContactInfoPage(
+                                      contact: contact,
+                                    ))));
+                      }),
+                  editBtn(context, callEditDialog, {"contact": contact}),
+                  removeBtn(context, removeContactDialog, {"contact": contact})
+                ]))
+              ]),
+            )
+            .toList(),
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
   }
 
   SingleChildScrollView dataBody(context) {
