@@ -360,72 +360,72 @@ class _ContactsPageState extends State<ContactsPage> {
 }*/
 
   Widget contactTable(context) {
-    if (contacts.isNotEmpty) {
-      return DataTable(
-        sortColumnIndex: 0,
-        showCheckboxColumn: false,
-        columns: [
-          DataColumn(
-              label: customText("Nombre", 14, bold: FontWeight.bold),
-              tooltip: "Nombre"),
-          DataColumn(
-              label: customText("Organización", 14, bold: FontWeight.bold),
-              tooltip: "Organización"),
-          DataColumn(
-            label: customText(AppLocalizations.of(context)!.company, 14,
-                bold: FontWeight.bold),
-            tooltip: AppLocalizations.of(context)!.company,
-          ),
-          DataColumn(
-              label: customText("Proyecto", 14, bold: FontWeight.bold),
-              tooltip: "Proyecto"),
-          DataColumn(
-              label: customText("Posición", 14, bold: FontWeight.bold),
-              tooltip: "Posición"),
-          DataColumn(
-              label: customText("Teléfono", 14, bold: FontWeight.bold),
-              tooltip: "Teléfono"),
-          DataColumn(
-              label: customText("Acciones", 14, bold: FontWeight.bold),
-              tooltip: "Acciones"),
-        ],
-        rows: contacts
-            .map(
-              (contact) => DataRow(cells: [
-                DataCell(Text(contact.name)),
-                DataCell(
-                  Text(contact.organizationObj.name),
-                ),
-                DataCell(
-                  Text(contact.companyObj.name),
-                ),
-                const DataCell(Text("")),
-                DataCell(Text(contact.position)),
-                DataCell(Text(contact.phone)),
-                DataCell(Row(children: [
-                  IconButton(
-                      icon: const Icon(Icons.info),
-                      tooltip: 'View',
-                      onPressed: () async {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: ((context) => ContactInfoPage(
-                                      contact: contact,
-                                    ))));
-                      }),
-                  editBtn(context, callEditDialog, {"contact": contact}),
-                  removeBtn(context, removeContactDialog, {"contact": contact})
-                ]))
-              ]),
-            )
-            .toList(),
-      );
-    } else {
+    //if (contacts.isNotEmpty) {
+    return DataTable(
+      sortColumnIndex: 0,
+      showCheckboxColumn: false,
+      columns: [
+        DataColumn(
+            label: customText("Nombre", 14, bold: FontWeight.bold),
+            tooltip: "Nombre"),
+        DataColumn(
+            label: customText("Organización", 14, bold: FontWeight.bold),
+            tooltip: "Organización"),
+        DataColumn(
+          label: customText(AppLocalizations.of(context)!.company, 14,
+              bold: FontWeight.bold),
+          tooltip: AppLocalizations.of(context)!.company,
+        ),
+        DataColumn(
+            label: customText("Proyecto", 14, bold: FontWeight.bold),
+            tooltip: "Proyecto"),
+        DataColumn(
+            label: customText("Posición", 14, bold: FontWeight.bold),
+            tooltip: "Posición"),
+        DataColumn(
+            label: customText("Teléfono", 14, bold: FontWeight.bold),
+            tooltip: "Teléfono"),
+        DataColumn(
+            label: customText("Acciones", 14, bold: FontWeight.bold),
+            tooltip: "Acciones"),
+      ],
+      rows: contacts
+          .map(
+            (contact) => DataRow(cells: [
+              DataCell(Text(contact.name)),
+              DataCell(
+                Text(contact.organizationObj.name),
+              ),
+              DataCell(
+                Text(contact.companyObj.name),
+              ),
+              const DataCell(Text("")),
+              DataCell(Text(contact.position)),
+              DataCell(Text(contact.phone)),
+              DataCell(Row(children: [
+                IconButton(
+                    icon: const Icon(Icons.info),
+                    tooltip: 'View',
+                    onPressed: () async {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: ((context) => ContactInfoPage(
+                                    contact: contact,
+                                  ))));
+                    }),
+                editBtn(context, callEditDialog, {"contact": contact}),
+                removeBtn(context, removeContactDialog, {"contact": contact})
+              ]))
+            ]),
+          )
+          .toList(),
+    );
+    /*} else {
       return const Center(
         child: CircularProgressIndicator(),
       );
-    }
+    }*/
   }
 
   SingleChildScrollView dataBody(context) {
