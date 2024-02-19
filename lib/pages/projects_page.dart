@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
@@ -5,6 +6,7 @@ import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -23,6 +25,7 @@ class ProjectsPage extends StatefulWidget {
 class _ProjectsPageState extends State<ProjectsPage> {
   List prList = [];
   List programList = [];
+  Profile? profile;
 
   void loadProgrammes() async {
     await getProgrammes().then((val) {
@@ -36,6 +39,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
       prList = val;
     });
     setState(() {});
+  }
+
+  void getProfile(user) async {
+    await Profile.getProfile(user.email!).then((value) {
+      profile = value;
+      print(profile?.mainRole);
+    });
   }
 
   @override
@@ -55,6 +65,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
         }
       }
     });
+
+    final user = FirebaseAuth.instance.currentUser!;
+    getProfile(user);
   }
 
   @override

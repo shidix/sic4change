@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
+
+Profile? profile;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,18 +40,29 @@ class _LoginPageState extends State<LoginPage> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Center(child: Text("Something went wrong!"));
+              return const Center(child: Text("Something went wrong!"));
             } else if (snapshot.hasData) {
+              final user = FirebaseAuth.instance.currentUser!;
+              getProfile(user);
+              if (profile?.mainRole == "Admin") {
+                return const HomeAdminPage();
+              }
               //Navigator.pushReplacementNamed(context, '/home');
-              return HomePage();
+              return const HomePage();
             } else {
               return loginBody(context, emailController, passwdController);
             }
           }),
     );
   }
+}
+
+void getProfile(user) async {
+  await Profile.getProfile(user.email!).then((value) {
+    profile = value;
+  });
 }
 
 Widget loginBody(context, emailController, passwdController) {
@@ -155,7 +169,7 @@ Future signIn(context, emailController, passwdController) async {
   showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
+      builder: (context) => const Center(
             child: CircularProgressIndicator(),
           ));
 

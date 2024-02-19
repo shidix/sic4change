@@ -316,6 +316,15 @@ class SProject {
     }
   }
 
+  String getFinanciersStr() {
+    String finList = "";
+    for (Financier fin in financiersObj) {
+      finList += ", ${fin.name}";
+    }
+    if (finList.length > 1) return finList.substring(2);
+    return finList;
+  }
+
   Future<List<Contact>> getPartners() async {
     if (partnersObj.isEmpty) {
       List<Contact> parList = [];
@@ -727,12 +736,12 @@ Future<ProjectLocation> getProjectLocationByProject(String _project) async {
   final dbRes = query.docs.first;
   final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
   data["id"] = dbRes.id;
-  ProjectLocation _pl = ProjectLocation.fromJson(data);
-  _pl.countryObj = await _pl.getCountry();
-  _pl.provinceObj = await _pl.getProvince();
-  _pl.regionObj = await _pl.getRegion();
-  _pl.townObj = await _pl.getTown();
-  return _pl;
+  ProjectLocation pl = ProjectLocation.fromJson(data);
+  pl.countryObj = await pl.getCountry();
+  pl.provinceObj = await pl.getProvince();
+  pl.regionObj = await pl.getRegion();
+  pl.townObj = await pl.getTown();
+  return pl;
 }
 
 //--------------------------------------------------------------

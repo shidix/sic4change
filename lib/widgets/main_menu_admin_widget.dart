@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget mainMenu(context, [user, url]) {
+Widget mainMenuAdmin(context, [user, url]) {
   return Container(
     padding: const EdgeInsets.all(3),
     color: bgColor,
@@ -11,17 +11,23 @@ Widget mainMenu(context, [user, url]) {
         logo(),
         menuBtn(context, "Inicio", Icons.home, "/home",
             (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
-        menuBtn(
+        /*menuBtn(
             context,
             "Tareas",
             Icons.grading_sharp,
             "/tasks_user",
             (url == "/tasks_user")
                 ? mainMenuBtnSelectedColor
-                : mainMenuBtnColor),
-        menuBtn(context, "Programas", Icons.list_alt, "/projects",
-            (url == "/projects") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+                : mainMenuBtnColor),*/
         menuBtn(
+            context,
+            "Programas",
+            Icons.list_alt,
+            "/project_list",
+            (url == "/project_list")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
+        /*menuBtn(
             context,
             "Documentos",
             Icons.folder,
@@ -32,7 +38,7 @@ Widget mainMenu(context, [user, url]) {
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         menuBtn(context, "Roles", Icons.group, "/orgchart",
-            (url == "/orgchart") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            (url == "/orgchart") ? mainMenuBtnSelectedColor : mainMenuBtnColor),*/
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           customText(user.email!, 14, textColor: Colors.white54),

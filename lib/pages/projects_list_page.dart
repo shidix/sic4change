@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -55,8 +56,9 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Column(
+      //body: SingleChildScrollView(
+      //child: Column(
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -69,11 +71,12 @@ class _ProjectListPageState extends State<ProjectListPage> {
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
-          projectListMenu(context, "marco"),
-          projectList(context),
+          projectListMenu(context, "proyectos"),
+          contentTab(context, projectList, null)
+          //projectList(context),
         ],
       ),
-    ));
+    );
   }
 
   Widget projectSearch() {
@@ -239,13 +242,72 @@ class _ProjectListPageState extends State<ProjectListPage> {
 /*-------------------------------------------------------------
                      PROJECTS
 -------------------------------------------------------------*/
-  Widget projectList(context) {
+  Widget projectList(context, param) {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Builder(builder: ((context) {
           if (prList.isNotEmpty) {
-            return SizedBox(
-                height: 900,
+            return DataTable(
+                sortColumnIndex: 0,
+                showCheckboxColumn: false,
+                columns: [
+                  DataColumn(
+                      label: customText("Nº", 14, bold: FontWeight.bold),
+                      tooltip: "Nº"),
+                  DataColumn(
+                    label: customText("Código", 14, bold: FontWeight.bold),
+                    tooltip: "Código",
+                  ),
+                  DataColumn(
+                      label: customText("Título", 14, bold: FontWeight.bold),
+                      tooltip: "Título"),
+                  DataColumn(
+                      label: customText("Estado", 14, bold: FontWeight.bold),
+                      tooltip: "Estado"),
+                  DataColumn(
+                      label:
+                          customText("Responsable", 14, bold: FontWeight.bold),
+                      tooltip: "Responsable"),
+                  DataColumn(
+                      label: customText("Sector", 14, bold: FontWeight.bold),
+                      tooltip: "Sector"),
+                  DataColumn(
+                      label: customText("País", 14, bold: FontWeight.bold),
+                      tooltip: "País"),
+                  DataColumn(
+                      label: customText("Donante", 14, bold: FontWeight.bold),
+                      tooltip: "Donante"),
+                  DataColumn(
+                      label: customText("Año", 14, bold: FontWeight.bold),
+                      tooltip: "Año"),
+                ],
+                rows: prList
+                    .map(
+                      (proj) => DataRow(cells: [
+                        DataCell(customText(proj.id, 14)),
+                        DataCell(customText("???", 14)),
+                        DataCell(customText(proj.name, 14)),
+                        DataCell(customText("???", 14)),
+                        DataCell(customText(proj.managerObj.name, 14)),
+                        DataCell(customText("???", 14)),
+                        DataCell(
+                            customText(proj.locationObj.countryObj.name, 14)),
+                        DataCell(customText(proj.getFinanciersStr(), 14)),
+                        DataCell(
+                          customText(
+                              DateFormat('yyyy').format(proj.datesObj.approved),
+                              14),
+                          /*DataCell(Row(children: [
+                      goPageIcon(context, "Ver", Icons.view_compact,
+                          TaskInfoPage(task: task)),
+                      removeBtn(context, removeTaskDialog, {"task": task})
+                    ])*/
+                        )
+                      ]),
+                    )
+                    .toList());
+            /*return SizedBox(
+                //height: 900,
                 child: GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
@@ -259,7 +321,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
                       SProject pr = prList[index];
                       return customText(pr.name, 16);
                       //return projectCard(context, prList[index]);
-                    }));
+                    }));*/
           } else {
             return const Center(
               child: CircularProgressIndicator(),

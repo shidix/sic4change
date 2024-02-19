@@ -7,6 +7,7 @@ import 'package:sic4change/pages/index.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
     '/projects': (context) => const ProjectsPage(),
+    '/project_list': (context) => const ProjectListPage(),
     '/project_info': (context) => const ProjectInfoPage(),
     '/project_reformulation': (context) => const ReformulationPage(),
     '/contacts': (context) => const ContactsPage(),
