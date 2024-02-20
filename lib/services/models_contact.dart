@@ -206,6 +206,17 @@ class Contact {
       return Contact("");
     }
   }
+
+  static Future<Contact> getByUuid(String uuid) async {
+    Contact item = Contact("");
+    await dbContacts.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Contact.fromJson(data);
+    });
+    return item;
+  }
 }
 
 Future<List> getContacts() async {

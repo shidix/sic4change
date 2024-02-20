@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -251,9 +252,9 @@ class _ProjectListPageState extends State<ProjectListPage> {
                 sortColumnIndex: 0,
                 showCheckboxColumn: false,
                 columns: [
-                  DataColumn(
+                  /*DataColumn(
                       label: customText("Nº", 14, bold: FontWeight.bold),
-                      tooltip: "Nº"),
+                      tooltip: "Nº"),*/
                   DataColumn(
                     label: customText("Código", 14, bold: FontWeight.bold),
                     tooltip: "Código",
@@ -280,29 +281,30 @@ class _ProjectListPageState extends State<ProjectListPage> {
                   DataColumn(
                       label: customText("Año", 14, bold: FontWeight.bold),
                       tooltip: "Año"),
+                  DataColumn(
+                      label: customText("Acciones", 14, bold: FontWeight.bold),
+                      tooltip: "Acciones"),
                 ],
                 rows: prList
                     .map(
                       (proj) => DataRow(cells: [
-                        DataCell(customText(proj.id, 14)),
-                        DataCell(customText("???", 14)),
+                        //DataCell(customText(proj.id, 14)),
+                        DataCell(customText(proj.getCode(), 14)),
                         DataCell(customText(proj.name, 14)),
-                        DataCell(customText("???", 14)),
+                        DataCell(customText(proj.statusObj.name, 14)),
                         DataCell(customText(proj.managerObj.name, 14)),
-                        DataCell(customText("???", 14)),
+                        DataCell(customText(proj.ambitObj.name, 14)),
                         DataCell(
                             customText(proj.locationObj.countryObj.name, 14)),
                         DataCell(customText(proj.getFinanciersStr(), 14)),
-                        DataCell(
-                          customText(
-                              DateFormat('yyyy').format(proj.datesObj.approved),
-                              14),
-                          /*DataCell(Row(children: [
-                      goPageIcon(context, "Ver", Icons.view_compact,
-                          TaskInfoPage(task: task)),
-                      removeBtn(context, removeTaskDialog, {"task": task})
-                    ])*/
-                        )
+                        DataCell(customText(
+                            DateFormat('yyyy').format(proj.datesObj.approved),
+                            14)),
+                        DataCell(Row(children: [
+                          goPageIcon(context, "Ver", Icons.info_outline,
+                              ProjectInfoPage(project: proj)),
+                          //removeBtn(context, removeTaskDialog, {"task": task})
+                        ]))
                       ]),
                     )
                     .toList());

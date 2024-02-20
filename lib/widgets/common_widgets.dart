@@ -472,7 +472,7 @@ Text buttonEditableText(String textButton) {
 
 Widget customRowDivider() {
   return const Divider(
-    height: 1,
+    height: 2,
     color: Colors.grey,
   );
 }
@@ -1291,7 +1291,7 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
                 flex: 5,
                 child: ElevatedButton(
                   onPressed: () {
-                    obj.delete();
+                    if (obj != null) obj.delete();
                     if (args == null) {
                       action();
                     } else {
