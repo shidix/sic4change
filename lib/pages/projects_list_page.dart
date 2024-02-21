@@ -9,9 +9,10 @@ import 'package:sic4change/widgets/project_list_menu_widget.dart';
 const projectTitle = "Proyectos";
 
 class ProjectListPage extends StatefulWidget {
-  const ProjectListPage({super.key, this.prList});
+  const ProjectListPage({super.key, this.prList, this.prType});
 
   final List? prList;
+  final String? prType;
 
   @override
   State<ProjectListPage> createState() => _ProjectListPageState();
@@ -20,6 +21,7 @@ class ProjectListPage extends StatefulWidget {
 class _ProjectListPageState extends State<ProjectListPage> {
   List prList = [];
   List programList = [];
+  String? prType = "Proyecto";
 
   void loadProgrammes() async {
     await getProgrammes().then((val) {
@@ -38,7 +40,15 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   void initState() {
     super.initState();
-    getProjects().then((val) {
+    print("--1--");
+    print(widget.prType);
+    if (widget.prType != null) {
+      prType = widget.prType;
+    } else {
+      prType = "Proyecto";
+    }
+    //getProjects().then((val) {
+    getProjectsByType(prType!).then((val) {
       if (mounted) {
         setState(() {
           prList = val;

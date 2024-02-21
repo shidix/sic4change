@@ -331,7 +331,7 @@ class SProject {
     }
     return finList;*/
     if (financiersObj.isEmpty) {
-      List<Financier> _fin_list = [];
+      List<Financier> finList = [];
       for (String fin in financiers) {
         try {
           QuerySnapshot query =
@@ -340,10 +340,10 @@ class SProject {
           final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           data["id"] = doc.id;
           Financier financier = Financier.fromJson(data);
-          _fin_list.add(financier);
+          finList.add(financier);
         } catch (e) {}
       }
-      return _fin_list;
+      return finList;
     } else {
       return financiersObj;
     }
@@ -462,12 +462,31 @@ Future<SProject> getProjectById(String id) async {
   return SProject.fromJson(data);
 }
 
-Future<SProject?> getProjectByUuid(String _uuid) async {
-  QuerySnapshot query = await dbProject.where("uuid", isEqualTo: _uuid).get();
-  final _doc = query.docs.first;
-  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-  data["id"] = _doc.id;
+Future<SProject?> getProjectByUuid(String uuid) async {
+  QuerySnapshot query = await dbProject.where("uuid", isEqualTo: uuid).get();
+  final doc = query.docs.first;
+  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  data["id"] = doc.id;
   return SProject.fromJson(data);
+}
+
+Future<List> getProjectsByType(String type) async {
+  QuerySnapshot query =
+      await dbProjectType.where("name", isEqualTo: type).get();
+  final doc = query.docs.first;
+  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  data["id"] = doc.id;
+  ProjectType pt = ProjectType.fromJson(data);
+
+  List items = [];
+  query = await dbProject.where("type", isEqualTo: pt.uuid).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = SProject.fromJson(data);
+    items.add(item);
+  }
+  return items;
 }
 
 //--------------------------------------------------------------

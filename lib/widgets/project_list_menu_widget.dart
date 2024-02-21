@@ -9,7 +9,8 @@ Widget projectListMenu(context, tabSelected) {
       children: [
         menuTab2(context, "Cuadro de proyectos", const ProjectListPage(),
             selected: (tabSelected == "proyectos")),
-        menuTab2(context, "Cuadro de consultorías", const ProjectListPage(),
+        menuTab2(context, "Cuadro de consultorías",
+            const ProjectListPage(prType: "Consultoria"),
             selected: (tabSelected == "consultorias")),
       ],
     ),

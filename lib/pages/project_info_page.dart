@@ -136,22 +136,23 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       child: Row(
         children: [
           SizedBox(
-              //width: MediaQuery.of(context).size.width / 2.2,
+              width: MediaQuery.of(context).size.width / 3.2,
               //width: 200,
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              customText("Responsable del proyecto", 14, bold: FontWeight.bold),
-              space(height: 5),
-              //customText(_project.managerObj.name, 14),
-            ],
-          )),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText("Responsable del proyecto", 14,
+                      bold: FontWeight.bold),
+                  space(height: 5),
+                  //customText(_project.managerObj.name, 14),
+                ],
+              )),
           const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
           SizedBox(
-              width: MediaQuery.of(context).size.width / 2.2,
+              width: MediaQuery.of(context).size.width / 3.2,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -159,6 +160,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     space(height: 5),
                     customText(_project.programmeObj.name, 14),
                   ])),
+          const VerticalDivider(
+            width: 10,
+            color: Colors.grey,
+          ),
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 3,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    customText("Estado", 14, bold: FontWeight.bold),
+                    space(height: 5),
+                    customText(_project.statusObj.name, 14),
+                  ])),
+
           /*const VerticalDivider(
             width: 10,
             color: Colors.grey,
@@ -471,13 +486,15 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void _callProjectEditDialog(context, project) async {
     List<KeyValue> ambits = await getAmbitsHash();
     List<KeyValue> types = await getProjectTypesHash();
+    List<KeyValue> status = await getProjectStatusHash();
     List<KeyValue> contacts = await getContactsHash();
     List<KeyValue> programmes = await getProgrammesHash();
-    editProjectDialog(context, project, ambits, types, contacts, programmes);
+    editProjectDialog(
+        context, project, ambits, types, status, contacts, programmes);
   }
 
   Future<void> editProjectDialog(
-      context, proj, ambits, types, contacts, programmes) {
+      context, proj, ambits, types, status, contacts, programmes) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -621,6 +638,23 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               space(height: 20),
               Row(
                 children: <Widget>[
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomDropdown(
+                          labelText: 'Estado',
+                          size: 220,
+                          selected: proj.statusObj.toKeyValue(),
+                          options: status,
+                          onSelectedOpt: (String val) {
+                            proj.status = val;
+                            /*setState(() {
+                        proj.type = val;
+                      });*/
+                          },
+                        ),
+                      ]),
+                  space(width: 20),
                   customText("Auditoría:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(
@@ -648,7 +682,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                         });*/
                       },
                     );
-                  })
+                  }),
                 ],
               )
             ]),
