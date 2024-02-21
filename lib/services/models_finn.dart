@@ -41,6 +41,11 @@ class SFinn {
     return partida;
   }
 
+  static SFinn getEmpty() {
+    return SFinn("", "", "", "", "", "");
+
+  }
+
   Future<Organization> getOrganization() async {
     organization ??= await Organization.byUuid(orgUuid);
     return organization!;

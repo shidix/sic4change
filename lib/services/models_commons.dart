@@ -101,6 +101,22 @@ class Organization {
     }
   }*/
 
+  static Future<List> getFinanciers() async {
+    List<Organization> items = [];
+    QuerySnapshot query = await dbOrg.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      if (data["financier"] == true) {
+        data["id"] = doc.id;
+        items.add(Organization.fromJson(data));
+      }
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // items.add(Organization.fromJson(data));
+    }
+    return items;
+  }
+
   static Future<Organization> byUuid(String uuid) async {
     Organization item = Organization("None");
     QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: uuid).get();

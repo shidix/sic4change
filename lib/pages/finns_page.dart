@@ -137,7 +137,9 @@ class _FinnsPageState extends State<FinnsPage> {
       double aportePercent =
           (totalBudgetProject == 0) ? 0 : aporte / totalBudgetProject;
       sourceRows.add(Row(children: [
-        Expanded(flex: 2, child: Text(financier.name)),
+        (financiers.containsKey(financier.organization))?
+          Expanded(flex: 2, child: Text(financiers[financier.organization]!.name)):
+          Expanded(flex: 2, child: Text(financier.name)),
         Expanded(
             flex: 2,
             child: LinearPercentIndicator(
@@ -398,7 +400,8 @@ class _FinnsPageState extends State<FinnsPage> {
                               style: level == 1 ? trunkStyle : leafStyle)),
                       IconButton(
                           onPressed: () {
-                            _editFinnDialog([context, finn, _project]);
+                            // _editFinnDialog([context, finn, _project]);
+                            _editFinnDialog(context, finn);
                           },
                           icon: const Icon(Icons.edit, size: 15)),
                       IconButton(
@@ -506,9 +509,6 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void loadInitialData() {
-    // SFinn.fixModels().then((value) {
-    //   print("Finns Fixed");
-    // });
     totalBudgetProject = fromCurrency(_project!.budget);
     executedBudgetProject = 0;
 
@@ -519,15 +519,14 @@ class _FinnsPageState extends State<FinnsPage> {
     summaryContainer = populateSummaryContainer();
     finnanciersContainer = populateFinnanciersContainer();
 
+    Organization.getFinanciers().then((val) {
+      for (Organization item in val) {
+        financiers[item.uuid] = item;
+      }
+    }); 
+
     SFinn.byProject(_project!.uuid).then((val) {
       finnList = val;
-      for (SFinn finn in finnList) {
-        finn.getOrganization().then((value) {
-          if (!financiers.containsKey(value.uuid)) {
-            financiers[value.uuid] = value;
-          }
-        });
-      }
 
       for (SFinn finn in finnList) {
         finnHash[finn.name] = finn;
@@ -631,7 +630,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                     "${(getDistrib(finn.uuid) / getAporte(finn.uuid, item.uuid) * 100).toStringAsFixed(0)}%",
                                     textAlign: TextAlign.right,
                                   )
-                                : Text(
+                                : const Text(
                                     "0%",
                                     textAlign: TextAlign.right,
                                   )),
@@ -662,9 +661,10 @@ class _FinnsPageState extends State<FinnsPage> {
           ));
         }
       }
-      finnanciersRows.add(Row(children: rowItems));
+      finnanciersRows.add(Row(      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,children: rowItems));
     }
-    return Column(children: finnanciersRows);
+    return Column(children: finnanciersRows, );
   }
 
   Future<double> invoicesByPartner() async {
@@ -753,8 +753,8 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnAddBtn(context, _project) {
-    return actionButtonVertical(context, 'Nueva partida', _editFinnDialog,
-        Icons.add, [context, null, _project]);
+    return actionButtonVertical(context, 'Nueva partida', addFinnDialog,
+        Icons.add, context);
   }
 
   Widget transferButton(context, _project) {
@@ -791,7 +791,7 @@ class _FinnsPageState extends State<FinnsPage> {
     reloadState();
   }
 
-  Future<void> _editFinnDialog(args) {
+  Future<void> _editFinnDialog2(args) {
     //context, _finn, _project
     SFinn? _finn = args[1];
     SProject _project = args[2];
@@ -1270,6 +1270,53 @@ class _FinnsPageState extends State<FinnsPage> {
             title: s4cTitleBar('Editar factura', context, Icons.edit),
             content: InvoiceForm(
                 existingInvoice: invoice, partners: _project!.partnersObj));
+      },
+    );
+  }
+
+  void addFinnDialog(context) {
+    _addFinnDialog(context).then((value) {
+      if (value != null) {
+        if (!finnList.contains(value)) {
+          finnList.add(value);
+        }
+        reloadState();
+      }
+    });
+  }
+
+  Future<SFinn?> _addFinnDialog(context) {
+    return showDialog<SFinn>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: EdgeInsets.zero,
+          title: s4cTitleBar('Añadir partida', context),
+          content: SFinnForm(
+            key: null,
+            project: _project!,
+            existingFinn: SFinn.getEmpty()..project = _project!.uuid,
+
+          ),
+        );
+      },
+    );
+  }
+
+  Future<SFinn?> _editFinnDialog(context, SFinn finn) {
+    return showDialog<SFinn>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            titlePadding: EdgeInsets.zero,
+            title: s4cTitleBar('Editar partida', context, Icons.edit),
+            content: SFinnForm(
+              key: null,
+              project: _project!,
+              existingFinn: finn,
+               ));
       },
     );
   }
