@@ -6,6 +6,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/utils.dart';
@@ -30,6 +31,7 @@ class FinnsPage extends StatefulWidget {
 class _FinnsPageState extends State<FinnsPage> {
   List finnList = [];
   SProject? _project;
+  Map<String, Organization> financiers = {};
 
   Map<String, Map> invoicesSummary = {};
   List aportesItems = [];
@@ -43,11 +45,13 @@ class _FinnsPageState extends State<FinnsPage> {
   List invoicesItems = [];
   SFinn? finnSelected;
   double totalBudgetProject = 0;
+
   Widget? invoicesContainer;
   Widget? summaryContainer;
   Widget? finnContainer;
   Widget? aportesSummaryContainer;
   Widget? distribSummaryContainer;
+  Widget? finnanciersContainer;
 
   double getAporte(String finnUuid, [String? financierUuid]) {
     double aporte = 0;
@@ -469,6 +473,7 @@ class _FinnsPageState extends State<FinnsPage> {
         distribSummaryContainer = populateDistribSummaryContainer();
         finnContainer = populateFinnContainer();
         invoicesContainer = populateInvoicesContainer();
+        finnanciersContainer = populateFinnanciersContainer();
       });
     }
   }
@@ -481,6 +486,9 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void loadInitialData() {
+    // SFinn.fixModels().then((value) {
+    //   print("Finns Fixed");
+    // });
     totalBudgetProject = fromCurrency(_project!.budget);
     executedBudgetProject = 0;
 
@@ -489,9 +497,18 @@ class _FinnsPageState extends State<FinnsPage> {
     aportesSummaryContainer = populateAportesSummaryContainer();
     distribSummaryContainer = populateDistribSummaryContainer();
     summaryContainer = populateSummaryContainer();
+    finnanciersContainer = populateFinnanciersContainer();
 
     SFinn.byProject(_project!.uuid).then((val) {
       finnList = val;
+      for (SFinn finn in finnList) {
+        finn.getOrganization().then((value) {
+          if (!financiers.containsKey(value.uuid)) {
+            financiers[value.uuid] = value;
+          }
+        });
+      }
+
       for (SFinn finn in finnList) {
         finnHash[finn.name] = finn;
         finnUuidHash[finn.uuid] = finn;
@@ -511,6 +528,97 @@ class _FinnsPageState extends State<FinnsPage> {
         reloadState();
       });
     });
+  }
+
+  Widget FinnancierSummaryCard(Organization item) {
+    return Expanded(
+        flex: 1,
+        child: Card(
+            child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: Column(children: [
+            Container(
+              child: Text(item.name, style: headerListStyle),
+            ),
+            const Divider(thickness: 1, color: Colors.grey),
+            Container(
+                color: headerListBgColor,
+                child: const Row(children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Text(
+                            "Partida",
+                            style: headerListStyle,
+                          ))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Text("Presupuesto", style: headerListStyle))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Text("Ejecutado", style: headerListStyle))),
+                ])),
+            const Divider(thickness: 1, color: Colors.grey),
+            for (SFinn finn in finnList)
+              finn.orgUuid == item.uuid
+                  ? Row(children: [
+                      Expanded(
+                          flex: 2,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              child: Text(item.name))),
+                      Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10),
+                              child: Text(toCurrency(
+                                  getAporte(finn.uuid, item.uuid))))),
+                      Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10),
+                              child: Text(toCurrency(
+                                  getDistrib(finn.uuid, item.uuid))))),
+                    ])
+                  : Container(),
+            const Divider(thickness: 1, color: Colors.grey),
+          ]),
+        )));
+  }
+
+  Widget populateFinnanciersContainer() {
+    List<Widget> finnanciersRows = [];
+    int nItems = financiers.length;
+    int nCols = 3;
+    int nRows = (nItems / nCols).ceil();
+    for (int i = 0; i < nRows; i++) {
+      List<Widget> rowItems = [];
+      for (int j = 0; j < nCols; j++) {
+        int index = i * nCols + j;
+        if (index < nItems) {
+          rowItems
+              .add(FinnancierSummaryCard(financiers.values.elementAt(index)));
+        } else {
+          rowItems.add(Expanded(
+            flex: 1,
+            child: Container(),
+          ));
+        }
+      }
+      finnanciersRows.add(Row(children: rowItems));
+    }
+    return Column(children: finnanciersRows);
   }
 
   Future<double> invoicesByPartner() async {
@@ -551,6 +659,11 @@ class _FinnsPageState extends State<FinnsPage> {
                   Expanded(flex: 1, child: aportesSummaryContainer!),
                   Expanded(flex: 1, child: distribSummaryContainer!),
                 ]),
+                Row(
+                  children: [
+                    Expanded(flex: 1, child: finnanciersContainer!),
+                  ],
+                ),
                 Row(children: [
                   Expanded(flex: 1, child: finnContainer!),
                 ]),
@@ -1038,7 +1151,9 @@ class _FinnsPageState extends State<FinnsPage> {
               child: customDoubleField(amount, ''))),
     ]));
 
-    Widget saveButton = saveBtnForm(context, () async {
+    Widget saveButton = saveBtnForm(
+      context,
+      () async {
         item.amount = double.parse(amount.text);
         item.subject = comment.text;
         item.save();
@@ -1055,23 +1170,28 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('${finn.name}. ${finn.description}'),
-          content: SingleChildScrollView(
-            child: Column(children: rows),
-          ),
-          actions: <Widget>[Row( children: [
-            Expanded(flex: 3, child: Container()),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.only(right: 5),
-                    child: saveButton)),
-            Expanded(flex: 1, child: Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: cancelBtnForm(context))),
-          ],
-        )]);
+            titlePadding: EdgeInsets.zero,
+            title: s4cTitleBar('${finn.name}. ${finn.description}'),
+            content: SingleChildScrollView(
+              child: Column(children: rows),
+            ),
+            actions: <Widget>[
+              Row(
+                children: [
+                  Expanded(flex: 3, child: Container()),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: saveButton)),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: cancelBtnForm(context))),
+                ],
+              )
+            ]);
       },
     );
   }

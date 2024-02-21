@@ -1,5 +1,7 @@
 //import 'dart:ffi';
 
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -47,7 +49,6 @@ class Organization {
         financier = json["financier"],
         partner = json["partner"],
         name = json['name'];
-  //type = json['type'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -99,6 +100,23 @@ class Organization {
       //return Company("");
     }
   }*/
+
+  static Future<Organization> byUuid(String uuid) async {
+    Organization item = Organization("None");
+    QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = Organization.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
+  }
 }
 
 Future<List> getOrganizations() async {
