@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
@@ -14,17 +15,36 @@ class SFinn {
   String description;
   String parent;
   String project;
+  String orgUuid;
+  Organization? organization;
 
   SFinn(this.id, this.uuid, this.name, this.description, this.parent,
-      this.project);
+      this.project,
+      {this.orgUuid = ""});
 
-  SFinn.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        parent = json['parent'],
-        project = json['project'];
+  factory SFinn.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("orgUuid") ||
+        json["orgUuid"] == "" ||
+        json["orgUuid"] == null) {
+      json["orgUuid"] = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
+    }
+
+    SFinn partida = SFinn(
+      json["id"],
+      json["uuid"],
+      json['name'],
+      json['description'],
+      json['parent'],
+      json['project'],
+      orgUuid: json['orgUuid'],
+    );
+    return partida;
+  }
+
+  Future<Organization> getOrganization() async {
+    organization ??= await Organization.byUuid(orgUuid);
+    return organization!;
+  }
 
   Map<String, String> toJson() => {
         'id': id,
@@ -33,6 +53,7 @@ class SFinn {
         'description': description,
         'parent': parent,
         'project': project,
+        'orgUuid': orgUuid,
       };
 
   Future<List> getContrib() async {
@@ -123,6 +144,16 @@ class SFinn {
     return items;
   }
 
+  static Future<void> fixModels() async {
+    QuerySnapshot query = await db.collection("s4c_finns").get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      SFinn item = SFinn.fromJson(data);
+      item.save();
+    }
+  }
+
   static Future<List> byProjectAndMain(String uuidProject) async {
     final List<SFinn> items = [];
     final database = db.collection("s4c_finns");
@@ -164,6 +195,9 @@ class SFinn {
       var first = querySnapshot.docs.first;
       item.id = first.id;
       item = SFinn.fromJson(first.data());
+      Organization.byUuid(item.orgUuid).then((value) {
+        item.organization = value;
+      });
     });
     return item;
   }

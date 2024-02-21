@@ -40,7 +40,9 @@ class _ContactsPageState extends State<ContactsPage> {
         contacts = val;
       });
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
     /*await searchContacts(value).then((val) {
       contacts = val;
     });
