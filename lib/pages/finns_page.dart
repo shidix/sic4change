@@ -54,12 +54,18 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget? finnanciersContainer;
 
   double getAporte(String finnUuid, [String? financierUuid]) {
+    Map<String, String> equivalencies = {};
+    for (Financier financier in _project!.financiersObj) {
+      equivalencies[financier.uuid] = financier.organization;
+    }
     double aporte = 0;
     SFinn finn = finnUuidHash[finnUuid]!;
     for (FinnContribution item in aportesItems) {
       SFinn itemFinn = finnUuidHash[item.finn]!;
       if ((itemFinn.name.startsWith(finn.name)) &&
-          (financierUuid == null || item.financier == financierUuid)) {
+          (financierUuid == null ||
+              item.financier == financierUuid ||
+              equivalencies[item.financier] == financierUuid)) {
         aporte += item.amount;
       }
     }
@@ -67,13 +73,19 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   double getDistrib(String finnUuid, [String? partnerUuid]) {
+    Map<String, String> equivalencies = {};
+    for (Contact partner in _project!.partnersObj) {
+      equivalencies[partner.uuid] = partner.organization;
+    }
     double distrib = 0;
     SFinn finn = finnUuidHash[finnUuid]!;
     for (FinnDistribution item in distribItems) {
       SFinn itemFinn = finnUuidHash[item.finn]!;
       if (((itemFinn.name.startsWith(finn.name)) &&
               (!withChildrens.contains(itemFinn.name))) &&
-          (partnerUuid == null || item.partner == partnerUuid)) {
+          (partnerUuid == null ||
+              item.partner == partnerUuid ||
+              equivalencies[item.partner] == partnerUuid)) {
         distrib += item.amount;
       }
     }
@@ -88,14 +100,20 @@ class _FinnsPageState extends State<FinnsPage> {
 
     double totalAportes = 0;
     for (FinnContribution contribution in aportesItems) {
-      if (aportesTotalByFinancier.containsKey(contribution.financier)) {
-        aportesTotalByFinancier[contribution.financier] =
-            aportesTotalByFinancier[contribution.financier]! +
-                contribution.amount;
+      SFinn finn = finnUuidHash[contribution.finn]!;
+      if ((withChildrens.contains(finn.name)) ||
+          (contribution.financier == "")) {
+        continue;
       } else {
-        aportesTotalByFinancier[contribution.financier] = contribution.amount;
+        if (aportesTotalByFinancier.containsKey(contribution.financier)) {
+          aportesTotalByFinancier[contribution.financier] =
+              aportesTotalByFinancier[contribution.financier]! +
+                  contribution.amount;
+        } else {
+          aportesTotalByFinancier[contribution.financier] = contribution.amount;
+        }
+        totalAportes += contribution.amount;
       }
-      totalAportes += contribution.amount;
     }
     if ((fromCurrency(_project!.budget) != totalAportes) ||
         (_project!.execBudget != executedBudgetProject)) {
@@ -202,20 +220,22 @@ class _FinnsPageState extends State<FinnsPage> {
       SFinn finn = finnUuidHash[distribution.finn]!;
       if (withChildrens.contains(finn.name)) {
         continue;
-      }
-      if (distribTotalByPartner.containsKey(distribution.partner)) {
-        distribTotalByPartner[distribution.partner] =
-            distribTotalByPartner[distribution.partner]! + distribution.amount;
       } else {
-        distribTotalByPartner[distribution.partner] = distribution.amount;
+        if (distribTotalByPartner.containsKey(distribution.partner)) {
+          distribTotalByPartner[distribution.partner] =
+              distribTotalByPartner[distribution.partner]! +
+                  distribution.amount;
+        } else {
+          distribTotalByPartner[distribution.partner] = distribution.amount;
+        }
+        totalDistrib += distribution.amount;
       }
-      totalDistrib += distribution.amount;
     }
 
-    if (_project!.assignedBudget != totalDistrib) {
-      _project!.assignedBudget = totalDistrib;
-      _project!.save();
-    }
+    // if (_project!.assignedBudget != totalDistrib) {
+    //   _project!.assignedBudget = totalDistrib;
+    //   _project!.save();
+    // }
 
     double totalExecuted = 0;
     double percentExecuted = 0;
@@ -530,7 +550,7 @@ class _FinnsPageState extends State<FinnsPage> {
     });
   }
 
-  Widget FinnancierSummaryCard(Organization item) {
+  Widget finnancierSummaryCard(Organization item) {
     return Expanded(
         flex: 1,
         child: Card(
@@ -545,7 +565,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 color: headerListBgColor,
                 child: const Row(children: [
                   Expanded(
-                      flex: 1,
+                      flex: 5,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -554,42 +574,68 @@ class _FinnsPageState extends State<FinnsPage> {
                             style: headerListStyle,
                           ))),
                   Expanded(
-                      flex: 1,
+                      flex: 2,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                           child: Text("Presupuesto", style: headerListStyle))),
                   Expanded(
-                      flex: 1,
+                      flex: 2,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                           child: Text("Ejecutado", style: headerListStyle))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Text("%", style: headerListStyle))),
                 ])),
             const Divider(thickness: 1, color: Colors.grey),
             for (SFinn finn in finnList)
-              finn.orgUuid == item.uuid
+              (finn.orgUuid == item.uuid) && (finn.getLevel() == 1)
                   ? Row(children: [
+                      Expanded(
+                          flex: 5,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              child:
+                                  Text("${finn.name}. ${finn.description}"))),
                       Expanded(
                           flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              child: Text(item.name))),
+                                  vertical: 10, horizontal: 10),
+                              child: Text(
+                                toCurrency(getAporte(finn.uuid, item.uuid)),
+                                textAlign: TextAlign.right,
+                              ))),
                       Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 10),
-                              child: Text(toCurrency(
-                                  getAporte(finn.uuid, item.uuid))))),
+                              child: Text(
+                                toCurrency(getDistrib(finn.uuid)),
+                                textAlign: TextAlign.right,
+                              ))),
                       Expanded(
-                          flex: 1,
-                          child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 10),
-                              child: Text(toCurrency(
-                                  getDistrib(finn.uuid, item.uuid))))),
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: getAporte(finn.uuid) != 0
+                                ? Text(
+                                    "${(getDistrib(finn.uuid) / getAporte(finn.uuid, item.uuid) * 100).toStringAsFixed(0)}%",
+                                    textAlign: TextAlign.right,
+                                  )
+                                : Text(
+                                    "0%",
+                                    textAlign: TextAlign.right,
+                                  )),
+                      ),
                     ])
                   : Container(),
             const Divider(thickness: 1, color: Colors.grey),
@@ -600,7 +646,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget populateFinnanciersContainer() {
     List<Widget> finnanciersRows = [];
     int nItems = financiers.length;
-    int nCols = 3;
+    int nCols = 2;
     int nRows = (nItems / nCols).ceil();
     for (int i = 0; i < nRows; i++) {
       List<Widget> rowItems = [];
@@ -608,7 +654,7 @@ class _FinnsPageState extends State<FinnsPage> {
         int index = i * nCols + j;
         if (index < nItems) {
           rowItems
-              .add(FinnancierSummaryCard(financiers.values.elementAt(index)));
+              .add(finnancierSummaryCard(financiers.values.elementAt(index)));
         } else {
           rowItems.add(Expanded(
             flex: 1,

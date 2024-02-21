@@ -860,13 +860,33 @@ class Financier {
   String id = "";
   String uuid = "";
   String name = "";
+  String organization = "";
 
   Financier(this.name);
 
-  Financier.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'];
+  factory Financier.fromJson(Map<String, dynamic> json) {
+    Financier item = Financier(json['name']);
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    try {
+      item.organization = json['organization'];
+    } catch (e) {
+      Map<String, String> equivalencies = {
+        "078bdde3-f409-41fb-8a10-f6840c199dca":
+            "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00",
+        "4aa7eb9c-c780-49db-bdea-fc65ba1098b1":
+            "0acabf09-b760-4ff2-b347-0facca7a9b13"
+      };
+      if (equivalencies.containsKey(item.uuid)) {
+        item.organization = equivalencies[item.uuid]!;
+        item.save();
+      } else {
+        item.organization = "";
+      }
+    }
+    return item;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
