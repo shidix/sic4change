@@ -40,8 +40,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   void initState() {
     super.initState();
-    print("--1--");
-    print(widget.prType);
     if (widget.prType != null) {
       prType = widget.prType;
     } else {
@@ -279,9 +277,13 @@ class _ProjectListPageState extends State<ProjectListPage> {
                       label:
                           customText("Responsable", 14, bold: FontWeight.bold),
                       tooltip: "Responsable"),
-                  DataColumn(
+                  /*DataColumn(
                       label: customText("Sector", 14, bold: FontWeight.bold),
-                      tooltip: "Sector"),
+                      tooltip: "Sector"),*/
+                  DataColumn(
+                      label:
+                          customText("Presupuesto", 14, bold: FontWeight.bold),
+                      tooltip: "Presupuesto"),
                   DataColumn(
                       label: customText("País", 14, bold: FontWeight.bold),
                       tooltip: "País"),
@@ -301,9 +303,11 @@ class _ProjectListPageState extends State<ProjectListPage> {
                         //DataCell(customText(proj.id, 14)),
                         DataCell(customText(proj.getCode(), 14)),
                         DataCell(customText(proj.name, 14)),
-                        DataCell(customText(proj.statusObj.name, 14)),
+                        DataCell(customText(proj.statusObj.name, 14,
+                            textColor: proj.getStatusColor())),
                         DataCell(customText(proj.managerObj.name, 14)),
-                        DataCell(customText(proj.ambitObj.name, 14)),
+                        //DataCell(customText(proj.ambitObj.name, 14)),
+                        DataCell(customText(proj.budget, 14)),
                         DataCell(
                             customText(proj.locationObj.countryObj.name, 14)),
                         DataCell(customText(proj.getFinanciersStr(), 14)),

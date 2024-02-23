@@ -1,7 +1,10 @@
 // import 'dart:ffi';
 // import 'dart:html';
 
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_location.dart';
@@ -414,6 +417,11 @@ class SProject {
     datesObj = await getDates();
     locationObj = await getLocation();
   }
+
+  Color getStatusColor() {
+    int color = int.parse("0xff${statusObj.color}");
+    return Color(color);
+  }
 }
 
 Future<List> getProjects() async {
@@ -573,6 +581,7 @@ CollectionReference dbProjectStatus = db.collection("s4c_project_status");
 class ProjectStatus {
   String id = "";
   String uuid = "";
+  String color = "";
   String name = "";
 
   ProjectStatus(this.name);
@@ -580,11 +589,13 @@ class ProjectStatus {
   ProjectStatus.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
+        color = json['color'],
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'color': color,
         'name': name,
       };
 
