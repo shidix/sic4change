@@ -687,3 +687,141 @@ class _BankTransferFormState extends State<BankTransferForm> {
     );
   }
 }
+
+class SFinnForm extends StatefulWidget {
+  final SFinn? existingFinn;
+  final SProject? project;
+
+  const SFinnForm({Key? key, this.existingFinn, this.project}) : super(key: key);
+
+  @override
+  createState() => _SFinnFormState();
+}
+
+class _SFinnFormState extends State<SFinnForm> {
+  final _formKey = GlobalKey<FormState>();
+  late SFinn _finn;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingFinn == null) {
+      _finn = SFinn.getEmpty();
+      _finn.project = widget.project!.uuid;
+    } else {
+      _finn = widget.existingFinn!;
+    }
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<DropdownMenuItem<Object>>? financiers = [];
+    financiers.add(
+        const DropdownMenuItem(value: "", child: Text("Selecciona un financiador")));
+    for (Financier financier in widget.project!.financiersObj) {
+      financiers.add(
+          DropdownMenuItem(value: financier.organization, child: Text(financier.name)));
+    }
+
+
+    List<Widget> buttons;
+
+    Widget saveButton = actionButton(context, "Guardar", () {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        _finn.save();
+        Navigator.of(context).pop(_finn);
+      }
+    }, Icons.save, null);
+    Widget removeButton = actionButton(context, "Borrar", () {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        customRemoveDialog(context, _finn, () {
+          _finn.id = "";
+          Navigator.of(context).pop(_finn);
+        });
+      }
+    }, Icons.delete, null);
+
+    Widget cancelButton = actionButton(context, "Cancelar", () {
+      Navigator.of(context).pop(null);
+    }, Icons.cancel, null);
+    if (widget.existingFinn!.id == "") {
+      buttons = [
+        Expanded(flex: 5, child: saveButton),
+        Expanded(flex: 1, child: Container()),
+        Expanded(flex: 5, child: cancelButton)
+      ];
+    } else {
+      buttons = [
+        Expanded(flex: 3, child: saveButton),
+        Expanded(flex: 1, child: Container()),
+        Expanded(flex: 3, child: cancelButton),
+        Expanded(flex: 1, child: Container()),
+        Expanded(flex: 3, child: removeButton)
+      ];
+    }
+
+    return Form(
+      key: _formKey,
+      child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(flex:2, child:
+                                DropdownButtonFormField(
+                  value: _finn.orgUuid,
+                  decoration: const InputDecoration(labelText: 'Financiador'),
+                  items: financiers,
+                  validator: (value) {
+                    if (value == null || value == "") {
+                      return 'Por favor, seleccione un financiador';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    _finn.orgUuid = value.toString();
+                  })),
+                  Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: _finn.name,
+                      decoration: const InputDecoration(labelText: 'Código'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese un código de partida';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) => _finn.name = value!,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      initialValue: _finn.description,
+                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese la descripción';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) => _finn.description = value!,
+                    ),
+                  )
+                ],
+              ),
+
+              const SizedBox(height: 16.0),
+              Row(children: buttons),
+            ],
+          )),
+    );
+  }
+}
