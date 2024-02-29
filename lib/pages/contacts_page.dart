@@ -12,6 +12,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];
 List contacts = [];
+bool contactsLoading = false;
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -31,13 +32,23 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   void loadContacts(value) async {
-    if (value != "") {
+    setState(() {
+      contactsLoading = true;
+    });
+
+    if (value != "-1") {
       await getContactsByOrg(value).then((val) {
         contacts = val;
+        setState(() {
+          contactsLoading = false;
+        });
       });
     } else {
       await getContacts().then((val) {
         contacts = val;
+        setState(() {
+          contactsLoading = false;
+        });
       });
     }
     if (mounted) {
@@ -61,7 +72,8 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: [
+        body: SingleChildScrollView(
+      child: Column(children: [
         mainMenu(context, user, "/contacts"),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
@@ -115,7 +127,7 @@ class _ContactsPageState extends State<ContactsPage> {
           // contactList(context),
         ))*/
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------
@@ -265,9 +277,14 @@ class _ContactsPageState extends State<ContactsPage> {
                           DataCell(Icon(org.isPartner())),
                           //DataCell(Text(org.typeObj.name)),
                           DataCell(Row(children: [
-                            editBtn(context, callEditOrgDialog, {"org": org}),
-                            /*removeBtn(
-                        context, _removeContactDialog, {"contact": contact})*/
+                            editBtn(context, callEditOrgDialog, {"org": org},
+                                iconSize: 18),
+                            editBtn(
+                                context, callEditOrgBillingDialog, {"org": org},
+                                icon: Icons.abc_outlined, iconSize: 18),
+                            removeBtn(
+                                context, removeOrganizationDialog, {"org": org},
+                                iconSize: 18)
                           ]))
                         ]),
                   )
@@ -282,7 +299,117 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   void removeOrganizationDialog(context, args) {
-    customRemoveDialog(context, args["org"], loadOrgs, null);
+    //customRemoveDialog(context, args["org"], loadOrgs, null);
+    customRemoveDialog(context, null, removeOrganization, args["org"]);
+  }
+
+  void removeOrganization(args) {
+    Organization org = args;
+    //print(org.name);
+  }
+
+/*-------------------------------------------------------------
+                            ORGANIZATIONS BILLING
+-------------------------------------------------------------*/
+  void saveOrganizationBilling(List args) async {
+    OrganizationBilling orgBilling = args[0];
+    orgBilling.save();
+
+    //loadOrgs();
+
+    Navigator.pop(context);
+  }
+
+  void callEditOrgBillingDialog(context, Map<String, dynamic> args) async {
+    Organization org = args["org"];
+    OrganizationBilling orgBilling =
+        await OrganizationBilling.byOrganization(org.uuid);
+    if (orgBilling.name == "None") {
+      orgBilling.organization = org.uuid;
+      orgBilling.org = org;
+      orgBilling.save();
+    }
+    orgBillingEditDialog(context, orgBilling);
+  }
+
+  Future<void> orgBillingEditDialog(context, org) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Datos de Facturación"),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: org.name,
+                  size: 280,
+                  fieldValue: (String val) {
+                    org.name = val;
+                    //setState(() => org.name = val);
+                  },
+                )
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre Clave",
+                  initial: org.codeName,
+                  size: 130,
+                  fieldValue: (String val) {
+                    org.codeName = val;
+                  },
+                )
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "CIF",
+                  initial: org.cif,
+                  size: 150,
+                  fieldValue: (String val) {
+                    org.cif = val;
+                  },
+                )
+              ]),
+            ]),
+            space(height: 20),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Dirección",
+                  initial: org.address,
+                  size: 600,
+                  fieldValue: (String val) {
+                    org.address = val;
+                  },
+                )
+              ]),
+            ]),
+            space(height: 20),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Número de cuenta",
+                  initial: org.account,
+                  size: 600,
+                  fieldValue: (String val) {
+                    org.account = val;
+                  },
+                )
+              ]),
+            ]),
+          ])),
+          actions: <Widget>[
+            dialogsBtns(context, saveOrganizationBilling, org),
+          ],
+        );
+      },
+    );
   }
 
 /*-------------------------------------------------------------
@@ -310,10 +437,25 @@ class _ContactsPageState extends State<ContactsPage> {
   );
 }*/
 
+  void filterContacts(context, args) {
+    if (args["filter"] == "all") {
+      loadContacts("-1");
+    }
+    if (args["filter"] == "generic") {
+      loadContacts("");
+    }
+  }
+
   Widget contactList(context, args) {
     return Builder(builder: ((context) {
       return Column(children: [
         s4cTitleBar("Contactos"),
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          addBtnRow(context, filterContacts, {"filter": "generic"},
+              text: "Ver genéricos", icon: Icons.search),
+          addBtnRow(context, filterContacts, {"filter": "all"},
+              text: "Ver todos", icon: Icons.search),
+        ]),
         Container(
           padding: const EdgeInsets.all(5),
           child: dataBody(context),
@@ -363,71 +505,75 @@ class _ContactsPageState extends State<ContactsPage> {
 
   Widget contactTable(context) {
     //if (contacts.isNotEmpty) {
-    return DataTable(
-      sortColumnIndex: 0,
-      showCheckboxColumn: false,
-      columns: [
-        DataColumn(
-            label: customText("Nombre", 14, bold: FontWeight.bold),
-            tooltip: "Nombre"),
-        DataColumn(
-            label: customText("Organización", 14, bold: FontWeight.bold),
-            tooltip: "Organización"),
-        DataColumn(
-          label: customText(AppLocalizations.of(context)!.company, 14,
-              bold: FontWeight.bold),
-          tooltip: AppLocalizations.of(context)!.company,
-        ),
-        DataColumn(
-            label: customText("Proyecto", 14, bold: FontWeight.bold),
-            tooltip: "Proyecto"),
-        DataColumn(
-            label: customText("Posición", 14, bold: FontWeight.bold),
-            tooltip: "Posición"),
-        DataColumn(
-            label: customText("Teléfono", 14, bold: FontWeight.bold),
-            tooltip: "Teléfono"),
-        DataColumn(
-            label: customText("Acciones", 14, bold: FontWeight.bold),
-            tooltip: "Acciones"),
-      ],
-      rows: contacts
-          .map(
-            (contact) => DataRow(cells: [
-              DataCell(Text(contact.name)),
-              DataCell(
-                Text(contact.organizationObj.name),
-              ),
-              DataCell(
-                Text(contact.companyObj.name),
-              ),
-              const DataCell(Text("")),
-              DataCell(Text(contact.position)),
-              DataCell(Text(contact.phone)),
-              DataCell(Row(children: [
-                IconButton(
-                    icon: const Icon(Icons.info),
-                    tooltip: 'View',
-                    onPressed: () async {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: ((context) => ContactInfoPage(
-                                    contact: contact,
-                                  ))));
-                    }),
-                editBtn(context, callEditDialog, {"contact": contact}),
-                removeBtn(context, removeContactDialog, {"contact": contact})
-              ]))
-            ]),
-          )
-          .toList(),
-    );
-    /*} else {
+    if (contactsLoading == false) {
+      return DataTable(
+        sortColumnIndex: 0,
+        showCheckboxColumn: false,
+        columns: [
+          DataColumn(
+              label: customText("Nombre", 14, bold: FontWeight.bold),
+              tooltip: "Nombre"),
+          DataColumn(
+              label: customText("Organización", 14, bold: FontWeight.bold),
+              tooltip: "Organización"),
+          DataColumn(
+            label: customText(AppLocalizations.of(context)!.company, 14,
+                bold: FontWeight.bold),
+            tooltip: AppLocalizations.of(context)!.company,
+          ),
+          DataColumn(
+              label: customText("Proyecto", 14, bold: FontWeight.bold),
+              tooltip: "Proyecto"),
+          DataColumn(
+              label: customText("Posición", 14, bold: FontWeight.bold),
+              tooltip: "Posición"),
+          DataColumn(
+              label: customText("Teléfono", 14, bold: FontWeight.bold),
+              tooltip: "Teléfono"),
+          DataColumn(
+              label: customText("Acciones", 14, bold: FontWeight.bold),
+              tooltip: "Acciones"),
+        ],
+        rows: contacts
+            .map(
+              (contact) => DataRow(cells: [
+                DataCell(Text(contact.name)),
+                DataCell(
+                  Text(contact.organizationObj.name),
+                ),
+                DataCell(
+                  Text(contact.companyObj.name),
+                ),
+                const DataCell(Text("")),
+                DataCell(Text(contact.position)),
+                DataCell(Text(contact.phone)),
+                DataCell(Row(children: [
+                  IconButton(
+                      icon: const Icon(
+                        Icons.info,
+                        size: 18,
+                      ),
+                      tooltip: 'View',
+                      onPressed: () async {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => ContactInfoPage(
+                                      contact: contact,
+                                    ))));
+                      }),
+                  editBtn(context, callEditDialog, {"contact": contact}),
+                  removeBtn(context, removeContactDialog, {"contact": contact})
+                ]))
+              ]),
+            )
+            .toList(),
+      );
+    } else {
       return const Center(
         child: CircularProgressIndicator(),
       );
-    }*/
+    }
   }
 
   SingleChildScrollView dataBody(context) {

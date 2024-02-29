@@ -989,9 +989,13 @@ Widget addBtnRow(context, action, args,
       ));
 }
 
-Widget editBtn(context, action, args, {text = editText, icon = Icons.edit}) {
+Widget editBtn(context, action, args,
+    {text = editText, icon = Icons.edit, iconSize = 20}) {
   return IconButton(
-    icon: Icon(icon),
+    icon: Icon(
+      icon,
+      size: iconSize,
+    ),
     tooltip: text,
     onPressed: () {
       action(context, args);
@@ -1000,9 +1004,12 @@ Widget editBtn(context, action, args, {text = editText, icon = Icons.edit}) {
 }
 
 Widget removeBtn(context, action, args,
-    {text = removeText, icon = Icons.remove_circle}) {
+    {text = removeText, icon = Icons.remove_circle, iconSize = 20}) {
   return IconButton(
-    icon: Icon(icon),
+    icon: Icon(
+      icon,
+      size: iconSize,
+    ),
     tooltip: text,
     onPressed: () {
       action(context, args);

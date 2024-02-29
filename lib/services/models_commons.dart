@@ -162,6 +162,97 @@ Future<List<KeyValue>> getOrganizationsHash() async {
 }
 
 //--------------------------------------------------------------
+//                       ORGANIZATION BILLING
+//--------------------------------------------------------------
+CollectionReference dbOrgBill = db.collection("s4c_organization_billing");
+
+class OrganizationBilling {
+  String id = "";
+  String uuid = "";
+  String name;
+  String codeName = "";
+  String account = "";
+  String address = "";
+  String cif = "";
+  String organization = "";
+  Organization org = Organization("");
+
+  OrganizationBilling(this.name);
+
+  OrganizationBilling.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'],
+        codeName = json['codeName'],
+        account = json['account'],
+        address = json['address'],
+        cif = json['cif'],
+        organization = json['organization'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+        'codeName': codeName,
+        'account': account,
+        'address': address,
+        'cif': cif,
+        'organization': organization,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbOrgBill.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbOrgBill.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbOrgBill.doc(id).delete();
+  }
+
+  Future<void> getOrganization() async {
+    try {
+      QuerySnapshot query =
+          await dbOrg.where("uuid", isEqualTo: organization).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      org = Organization.fromJson(data);
+    } catch (e) {
+      //return Company("");
+    }
+  }
+
+  static Future<OrganizationBilling> byOrganization(String uuid) async {
+    OrganizationBilling item = OrganizationBilling("None");
+    QuerySnapshot query =
+        await dbOrgBill.where("organization", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = OrganizationBilling.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
+  }
+}
+
+//--------------------------------------------------------------
 //                   ORGANIZATIONS TYPES
 //--------------------------------------------------------------
 CollectionReference dbOrgType = db.collection("s4c_organizations_type");
