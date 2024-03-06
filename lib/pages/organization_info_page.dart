@@ -131,6 +131,8 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
               children: [
                 orgInfo(context),
                 space(height: 20),
+                customRowDivider(),
+                space(height: 20),
                 orgBillingInfo(context),
               ],
             )));
@@ -143,8 +145,10 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
           TableRow(children: [
             customText("Código", 14, bold: FontWeight.bold),
             customText("Nombre", 14, bold: FontWeight.bold),
-            customText("Financiador", 14, bold: FontWeight.bold),
-            customText("Socio", 14, bold: FontWeight.bold),
+            customText("Financiador", 14,
+                bold: FontWeight.bold, align: TextAlign.center),
+            customText("Socio", 14,
+                bold: FontWeight.bold, align: TextAlign.center),
           ]),
           TableRow(children: [
             space(height: 10),
@@ -165,21 +169,27 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
     return Column(children: [
       Table(children: [
         TableRow(children: [
-          customText("Nombre Facturación", 14, bold: FontWeight.bold),
           customText("CIF", 14, bold: FontWeight.bold),
-          customText("Cuenta", 14, bold: FontWeight.bold),
+          customText("Nombre Facturación", 14, bold: FontWeight.bold),
+          customText("Cuenta", 14,
+              bold: FontWeight.bold, align: TextAlign.center),
+          customText("", 14, bold: FontWeight.bold),
         ]),
         TableRow(children: [
           space(height: 10),
           space(height: 10),
           space(height: 10),
+          space(height: 10),
         ]),
         TableRow(children: [
-          customText(orgBilling?.name, 16),
           customText(orgBilling?.cif, 16),
-          customText(orgBilling?.account, 16),
+          customText(orgBilling?.name, 16),
+          customText(orgBilling?.account, 16, align: TextAlign.center),
+          customText("", 16),
         ])
       ]),
+      space(height: 20),
+      customRowDivider(),
       space(height: 20),
       Table(children: [
         TableRow(children: [

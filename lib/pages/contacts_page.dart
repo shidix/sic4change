@@ -148,7 +148,7 @@ class _ContactsPageState extends State<ContactsPage> {
 /*-------------------------------------------------------------
                             ORGANIZATIONS
 -------------------------------------------------------------*/
-  void saveOrganization(List args) async {
+  /*void saveOrganization(List args) async {
     Organization org = args[0];
     org.save();
     loadOrgs();
@@ -233,7 +233,7 @@ class _ContactsPageState extends State<ContactsPage> {
         );
       },
     );
-  }
+  }*/
 
   Widget orgList(context, args) {
     return Builder(builder: ((context) {
@@ -339,7 +339,7 @@ class _ContactsPageState extends State<ContactsPage> {
 /*-------------------------------------------------------------
                             ORGANIZATIONS BILLING
 -------------------------------------------------------------*/
-  void saveOrganizationBilling(List args) async {
+  /*void saveOrganizationBilling(List args) async {
     OrganizationBilling orgBilling = args[0];
     orgBilling.save();
 
@@ -427,7 +427,7 @@ class _ContactsPageState extends State<ContactsPage> {
         );
       },
     );
-  }
+  }*/
 
 /*-------------------------------------------------------------
                             CONTACTS
