@@ -35,6 +35,7 @@ CollectionReference dbOrg = db.collection("s4c_organizations");
 class Organization {
   String id = "";
   String uuid = "";
+  String code = "";
   String name;
   bool financier = false;
   bool partner = false;
@@ -46,6 +47,7 @@ class Organization {
   Organization.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
+        code = json["code"],
         financier = json["financier"],
         partner = json["partner"],
         name = json['name'];
@@ -53,6 +55,7 @@ class Organization {
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'code': code,
         'financier': financier,
         'partner': partner,
         'name': name,
@@ -133,6 +136,27 @@ class Organization {
     }
     return item;
   }
+
+  Future<OrganizationBilling> getBilling() async {
+    OrganizationBilling item = OrganizationBilling("");
+    QuerySnapshot query =
+        await dbOrgBill.where("organization", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = OrganizationBilling.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    } else {
+      item.organization = uuid;
+      item.save();
+    }
+    return item;
+  }
 }
 
 Future<List> getOrganizations() async {
@@ -170,7 +194,6 @@ class OrganizationBilling {
   String id = "";
   String uuid = "";
   String name;
-  String codeName = "";
   String account = "";
   String address = "";
   String cif = "";
@@ -183,7 +206,6 @@ class OrganizationBilling {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
-        codeName = json['codeName'],
         account = json['account'],
         address = json['address'],
         cif = json['cif'],
@@ -193,7 +215,6 @@ class OrganizationBilling {
         'id': id,
         'uuid': uuid,
         'name': name,
-        'codeName': codeName,
         'account': account,
         'address': address,
         'cif': cif,

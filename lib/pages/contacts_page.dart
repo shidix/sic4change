@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
+import 'package:sic4change/pages/organization_info_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -62,6 +63,19 @@ class _ContactsPageState extends State<ContactsPage> {
     }*/
   }
 
+  void findContacts(value) async {
+    setState(() {
+      contactsLoading = true;
+    });
+
+    await searchContacts(value).then((val) {
+      contacts = val;
+      setState(() {
+        contactsLoading = false;
+      });
+    });
+  }
+
   @override
   void initState() {
     loadOrgs();
@@ -77,9 +91,10 @@ class _ContactsPageState extends State<ContactsPage> {
         mainMenu(context, user, "/contacts"),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
-            padding: const EdgeInsets.only(left: 40),
+            padding: const EdgeInsets.all(20),
             child: const Text(pageContactTitle, style: headerTitleText),
           ),
+          /*
           SearchBar(
             controller: searchController,
             padding: const MaterialStatePropertyAll<EdgeInsets>(
@@ -98,7 +113,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 addBtn(context, callEditDialog, {"contact": Contact("")}),
               ],
             ),
-          ),
+          ),*/
         ]),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -249,18 +264,21 @@ class _ContactsPageState extends State<ContactsPage> {
             child: DataTable(
               sortColumnIndex: 0,
               showCheckboxColumn: false,
+              columnSpacing: 25,
               columns: [
                 DataColumn(
                     label: customText("Nombre", 14, bold: FontWeight.bold),
                     tooltip: "Nombre"),
                 DataColumn(
-                    label: customText("Financiador", 14, bold: FontWeight.bold),
-                    tooltip: "Financiador"),
-                DataColumn(
+                    label:
+                        customText("Finan - Socio", 14, bold: FontWeight.bold),
+                    tooltip: "Finan - Socio"),
+                /*DataColumn(
                     label: customText("Socio", 14, bold: FontWeight.bold),
-                    tooltip: "Socio"),
+                    tooltip: "Socio"),*/
                 DataColumn(
-                    label: customText("Acciones", 14, bold: FontWeight.bold),
+                    label: customText("Acciones", 14,
+                        bold: FontWeight.bold, align: TextAlign.end),
                     tooltip: "Acciones"),
               ],
               rows: orgs
@@ -273,15 +291,25 @@ class _ContactsPageState extends State<ContactsPage> {
                         },
                         cells: [
                           DataCell(Text(org.name)),
-                          DataCell(Icon(org.isFinancier())),
-                          DataCell(Icon(org.isPartner())),
+                          DataCell(Row(children: [
+                            Icon(org.isFinancier()),
+                            customText("  -  ", 14),
+                            Icon(org.isPartner())
+                          ])),
+                          //DataCell(Icon(org.isPartner())),
                           //DataCell(Text(org.typeObj.name)),
                           DataCell(Row(children: [
-                            editBtn(context, callEditOrgDialog, {"org": org},
+                            /*editBtn(context, callEditOrgDialog, {"org": org},
                                 iconSize: 18),
-                            editBtn(
-                                context, callEditOrgBillingDialog, {"org": org},
-                                icon: Icons.abc_outlined, iconSize: 18),
+                            editBtn(context, callEditOrgBillingDialog,
+                                    {"org": org},
+                                    icon: Icons.abc_outlined, iconSize: 14),*/
+                            goPageIcon(
+                              context,
+                              "View",
+                              Icons.info,
+                              OrganizationInfoPage(org: org),
+                            ),
                             removeBtn(
                                 context, removeOrganizationDialog, {"org": org},
                                 iconSize: 18)
@@ -351,17 +379,6 @@ class _ContactsPageState extends State<ContactsPage> {
                   fieldValue: (String val) {
                     org.name = val;
                     //setState(() => org.name = val);
-                  },
-                )
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre Clave",
-                  initial: org.codeName,
-                  size: 130,
-                  fieldValue: (String val) {
-                    org.codeName = val;
                   },
                 )
               ]),
@@ -451,6 +468,15 @@ class _ContactsPageState extends State<ContactsPage> {
       return Column(children: [
         s4cTitleBar("Contactos"),
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          SearchBar(
+            controller: searchController,
+            padding: const MaterialStatePropertyAll<EdgeInsets>(
+                EdgeInsets.symmetric(horizontal: 12.0)),
+            onSubmitted: (value) {
+              findContacts(value);
+            },
+            leading: const Icon(Icons.search),
+          ),
           addBtnRow(context, filterContacts, {"filter": "generic"},
               text: "Ver genéricos", icon: Icons.search),
           addBtnRow(context, filterContacts, {"filter": "all"},
@@ -548,7 +574,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 DataCell(Text(contact.position)),
                 DataCell(Text(contact.phone)),
                 DataCell(Row(children: [
-                  IconButton(
+                  /*IconButton(
                       icon: const Icon(
                         Icons.info,
                         size: 18,
@@ -561,7 +587,13 @@ class _ContactsPageState extends State<ContactsPage> {
                                 builder: ((context) => ContactInfoPage(
                                       contact: contact,
                                     ))));
-                      }),
+                      }),*/
+                  goPageIcon(
+                    context,
+                    "View",
+                    Icons.info,
+                    ContactInfoPage(contact: contact),
+                  ),
                   editBtn(context, callEditDialog, {"contact": contact}),
                   removeBtn(context, removeContactDialog, {"contact": contact})
                 ]))

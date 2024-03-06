@@ -938,9 +938,12 @@ Widget goPage(context, btnName, newContext, icon,
       child: child);
 }
 
-Widget goPageIcon(context, btnText, icon, newContext) {
+Widget goPageIcon(context, btnText, icon, newContext, {iconSize = 20}) {
   return IconButton(
-      icon: Icon(icon),
+      icon: Icon(
+        icon,
+        size: iconSize,
+      ),
       tooltip: btnText,
       onPressed: () {
         Navigator.push(
@@ -1160,6 +1163,20 @@ Widget dialogsBtns(context, action, obj) {
       flex: 5,
       child:
           actionButton(context, "Enviar", action, Icons.save_outlined, [obj]),
+    ),
+    space(width: 10),
+    Expanded(
+        flex: 5,
+        child: actionButton(
+            context, "Cancelar", cancelItem, Icons.cancel, context))
+  ]);
+}
+
+Widget dialogsBtns2(context, action, [args]) {
+  return Row(children: [
+    Expanded(
+      flex: 5,
+      child: actionButton(context, "Enviar", action, Icons.save_outlined, args),
     ),
     space(width: 10),
     Expanded(
