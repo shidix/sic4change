@@ -20,6 +20,7 @@ class ContactTracking {
   String assistants = "";
   String topics = "";
   String agreements = "";
+  String nextSteps = "";
 
   ContactTracking(this.contact);
 
@@ -33,7 +34,8 @@ class ContactTracking {
         manager = json['manager'],
         assistants = json['assistants'],
         topics = json['topics'],
-        agreements = json['agreements'];
+        agreements = json['agreements'],
+        nextSteps = json['nextSteps'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -46,6 +48,7 @@ class ContactTracking {
         'assistants': assistants,
         'topics': topics,
         'agreements': agreements,
+        'nextSteps': nextSteps,
       };
 
   Future<void> save() async {

@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -86,7 +84,8 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
   void saveTracking(List args) async {
     ContactTracking tracking = args[0];
     tracking.save();
-    reloadContactTrackingInfo();
+    setState(() {});
+    //reloadContactTrackingInfo();
     Navigator.of(context).pop();
   }
 
@@ -104,7 +103,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: 'Nombre',
-                  size: 220,
+                  size: 300,
                   initial: tracking.name,
                   fieldValue: (String val) {
                     tracking.name = val;
@@ -114,7 +113,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 SizedBox(
-                    width: 220,
+                    width: 290,
                     child: DateTimePicker(
                       labelText: 'Fecha:',
                       selectedDate: tracking.date,
@@ -130,7 +129,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 CustomTextField(
                   labelText: "Descripción",
                   initial: tracking.description,
-                  size: 440,
+                  size: 600,
                   fieldValue: (String val) {
                     tracking.description = val;
                   },
@@ -143,7 +142,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 CustomTextField(
                   labelText: "Responsable",
                   initial: tracking.manager,
-                  size: 440,
+                  size: 600,
                   fieldValue: (String val) {
                     tracking.manager = val;
                   },
@@ -156,7 +155,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 CustomTextField(
                   labelText: "Asistentes",
                   initial: tracking.assistants,
-                  size: 440,
+                  size: 600,
                   fieldValue: (String val) {
                     tracking.assistants = val;
                   },
@@ -169,7 +168,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 CustomTextField(
                   labelText: "Temas tratados",
                   initial: tracking.topics,
-                  size: 440,
+                  size: 600,
                   fieldValue: (String val) {
                     tracking.topics = val;
                   },
@@ -182,9 +181,22 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                 CustomTextField(
                   labelText: "Acuerdos",
                   initial: tracking.agreements,
-                  size: 440,
+                  size: 600,
                   fieldValue: (String val) {
                     tracking.agreements = val;
+                  },
+                )
+              ]),
+            ]),
+            space(width: 20),
+            Row(children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Siguientes Pasos",
+                  initial: tracking.nextSteps,
+                  size: 600,
+                  fieldValue: (String val) {
+                    tracking.nextSteps = val;
                   },
                 )
               ]),
@@ -251,6 +263,15 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                     customText("Acuerdos", 16, textColor: titleColor),
                     space(height: 10),
                     customText(tracking?.agreements, 16)
+                  ],
+                ),
+                space(height: 30),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    customText("Siguientes pasos", 16, textColor: titleColor),
+                    space(height: 10),
+                    customText(tracking?.nextSteps, 16)
                   ],
                 ),
               ],
