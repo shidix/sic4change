@@ -48,6 +48,9 @@ dependencies:
   dropdown_search: ^5.0.6
   pdf: ^3.6.0
   syncfusion_flutter_datepicker: ^20.3.30  # Asegúrate de usar la última versión disponible
+  google_sign_in: ^6.1.6
+  googleapis: ^9.2.0
+  syncfusion_flutter_calendar: ^20.4.54
 
 dev_dependencies:
   flutter_test:

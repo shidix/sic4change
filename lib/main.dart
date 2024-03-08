@@ -1,6 +1,7 @@
 // import 'dart:developer' as developer;
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
     '/contact_claim_info': (context) => const ContactClaimInfoPage(),
     '/contact_trackings': (context) => const ContactTrackingPage(contact: null),
     '/contact_tracking_info': (context) => const ContactTrackingInfoPage(),
+    '/contact_calendars': (context) => const ContactCalendarPage(contact: null),
     '/documents': (context) => const DocumentsPage(),
     '/goals': (context) => const GoalsPage(),
     '/results': (context) => const ResultsPage(),

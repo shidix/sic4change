@@ -185,6 +185,24 @@ Future<List<KeyValue>> getOrganizationsHash() async {
   return items;
 }
 
+Future<List> searchOrganizations(name) async {
+  List<Organization> items = [];
+  QuerySnapshot? query;
+
+  if (name != "") {
+    query = await dbOrg.where("name", isEqualTo: name).get();
+  } else {
+    query = await dbOrg.get();
+  }
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = Organization.fromJson(data);
+    items.add(item);
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                       ORGANIZATION BILLING
 //--------------------------------------------------------------
