@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/contact_claim_info_page.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -12,7 +13,6 @@ import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactClaimPageTitle = "Seguimiento";
-List claimList = [];
 // Contact? contact;
 
 class ContactClaimPage extends StatefulWidget {
@@ -26,6 +26,7 @@ class ContactClaimPage extends StatefulWidget {
 
 class _ContactClaimPageState extends State<ContactClaimPage> {
   Contact? contact;
+  List claimList = [];
 
   @override
   void initState() {
@@ -43,21 +44,13 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
 
   @override
   Widget build(BuildContext context) {
-    // if (ModalRoute.of(context)!.settings.arguments != null) {
-    //   HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-    //   contact = args["contact"];
-    // } else {
-    //   contact = null;
-    // }
-
-    // if (contact == null) return const Page404();
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
         contactClaimHeader(context),
         contactMenu(context, contact, widget.contactInfo, "claim"),
-        Expanded(
+        contentTab(context, claimListDetails, null)
+        /*Expanded(
             child: Container(
                 padding: const EdgeInsets.only(left: 10, right: 10),
                 child: Container(
@@ -69,7 +62,7 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                     borderRadius: const BorderRadius.all(Radius.circular(5)),
                   ),
                   child: contactClaimList(context, contact),
-                )))
+                )))*/
       ]),
     );
   }
@@ -96,10 +89,7 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                         addBtn(context, editDialog,
                             {'claim': ContactClaim(widget.contact!.uuid)}),
                         space(width: 10),
-                        goPage(
-                            context,
-                            "Volver",
-                            const ContactsPage(),
+                        goPage(context, "Volver", const ContactsPage(),
                             Icons.arrow_circle_left_outlined),
                       ],
                     ),
@@ -109,50 +99,17 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
         ]));
   }
 
-  /*Widget contactClaimMenu(context) {
+  Widget claimListDetails(context, param) {
     return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Row(
-        children: [
-          menuTab(context, "Info", "/contact_info", {'contact': contact}),
-          menuTabSelect(context, "Seguimiento", "/contact_trackings",
-              {'contact': contact}),
-          menuTab(
-              context, "Reclamaciones", "/project_info", {'contact': contact}),
-        ],
-      ),
+      padding: const EdgeInsets.all(5),
+      child: dataBody(context),
     );
-  }*/
+  }
 
-  // Widget addBtn(context) {
-  //   return FilledButton(
-  //     onPressed: () {
-  //       _editDialog(context, null);
-  //     },
-  //     style: FilledButton.styleFrom(
-  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
-  //       backgroundColor: const Color(0xffffffff),
-  //     ),
-  //     child: const Column(
-  //       children: [
-  //         Icon(Icons.add, color: Colors.black54),
-  //         SizedBox(height: 5),
-  //         Text(
-  //           "Añadir",
-  //           style: TextStyle(color: Colors.black54, fontSize: 12),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  void saveClaim(context, claim, name, manager, date, contact) async {
-    claim ??= ContactClaim(contact.uuid);
-    claim.name = name;
-    claim.manager = manager;
-    claim.date = date;
+  void saveClaim(List args) async {
+    ContactClaim claim = args[0];
     claim.save();
-    loadContactClaim(contact.uuid);
+    loadContactClaim(contact!.uuid);
     Navigator.of(context).pop();
   }
 
@@ -162,19 +119,6 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
   }
 
   Future<void> _editDialog(context, claim) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController managerController = TextEditingController(text: "");
-    TextEditingController dateController = TextEditingController(text: "");
-
-    print("--1--");
-    print(claim);
-    print(claim.name);
-    if (claim != null) {
-      nameController = TextEditingController(text: claim.name);
-      managerController = TextEditingController(text: claim.manager);
-      dateController = TextEditingController(text: claim.date);
-    }
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -184,73 +128,103 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Nombre:", 16, textColor: Colors.blue),
-              customTextField(nameController, "Nombre..."),
+              CustomTextField(
+                labelText: "Nombre",
+                initial: claim.name,
+                size: 220,
+                fieldValue: (String val) {
+                  claim.name = val;
+                },
+              )
+            ]),
+            /*space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Responsable:",
+                initial: claim.manager,
+                size: 220,
+                fieldValue: (String val) {
+                  claim.manager = val;
+                },
+              )
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Responsable:", 16, textColor: Colors.blue),
-              customTextField(managerController, "Responsable..."),
-            ]),
-            space(width: 20),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Fecha:", 16, textColor: Colors.blue),
-              customDateField(context, dateController),
-            ]),
+              SizedBox(
+                  width: 220,
+                  child: DateTimePicker(
+                    labelText: 'Fecha:',
+                    selectedDate: claim.date,
+                    onSelectedDate: (DateTime date) {
+                      claim.date = date;
+                    },
+                  )),
+            ]),*/
           ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                saveClaim(context, claim, nameController.text,
-                    managerController.text, dateController, contact);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveClaim, claim)],
         );
       },
     );
   }
 
-  Widget customDateField(context, dateController) {
-    return SizedBox(
-        width: 220,
-        child: TextField(
-          controller: dateController, //editing controller of this TextField
-          decoration: const InputDecoration(
-              icon: Icon(Icons.calendar_today), //icon of text field
-              labelText: "Introducir fecha" //label text of field
+  SingleChildScrollView dataBody(context) {
+    return SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SizedBox(
+          width: double.infinity,
+          child: DataTable(
+            sortColumnIndex: 0,
+            showCheckboxColumn: false,
+            columns: [
+              DataColumn(
+                  label: customText("Nombre", 14, bold: FontWeight.bold),
+                  tooltip: "Nombre"),
+              DataColumn(
+                label: customText("Responsable", 14, bold: FontWeight.bold),
+                tooltip: "Responsable",
               ),
-          readOnly: true, //set it true, so that user will not able to edit text
-          onTap: () async {
-            DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(
-                    2000), //DateTime.now() - not to allow to choose before today.
-                lastDate: DateTime(2101));
-
-            if (pickedDate != null) {
-              String formattedDate =
-                  DateFormat('dd-MM-yyyy').format(pickedDate);
-
-              setState(() {
-                dateController.text = formattedDate;
-              });
-            } else {
-              //print("Date is not selected");
-            }
-          },
+              DataColumn(
+                  label: customText("Fecha:", 14, bold: FontWeight.bold),
+                  tooltip: "Fecha"),
+              DataColumn(
+                  label: Expanded(
+                      child: customText("Acciones", 14,
+                          bold: FontWeight.bold, align: TextAlign.end)),
+                  tooltip: "Acciones"),
+            ],
+            rows: claimList
+                .map(
+                  (claim) => DataRow(cells: [
+                    DataCell(Text(claim.name)),
+                    DataCell(Text(claim.managerObj.name)),
+                    DataCell(
+                      Text(DateFormat('yyyy-MM-dd').format(claim.date)),
+                    ),
+                    DataCell(Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          goPageIcon(
+                              context,
+                              "Detalles",
+                              Icons.info,
+                              ContactClaimInfoPage(
+                                  claim: claim, contact: contact)),
+                          //editBtn(context, editDialog, {'claim': claim}),
+                          removeBtn(
+                              context, removeClaimDialog, {"claim": claim})
+                        ]))
+                  ]),
+                )
+                .toList(),
+          ),
         ));
   }
 
-  Widget contactClaimList(context, contact) {
+  void removeClaimDialog(context, args) {
+    customRemoveDialog(context, args["claim"], loadContactClaim, null);
+  }
+
+  /*Widget contactClaimList(context, contact) {
     return FutureBuilder(
         future: getClaimsByContact(contact.uuid),
         builder: ((context, snapshot) {
@@ -291,15 +265,13 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
             );
           }
         }));
-  }
+  }*/
 
-  Widget claimHeaderRow(context) {
+  /* Widget claimHeaderRow(context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             customText("Nombre", 16,
                 textColor: titleColor, bold: FontWeight.bold),
@@ -325,16 +297,16 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             customText(claim.name, 14, bold: FontWeight.bold),
-            space(height: 10),
-            customText(claim.description, 14),
           ],
         ),
         Column(children: [
-          customText(claim.date, 14, bold: FontWeight.bold),
+          customText(claim.manager, 14, bold: FontWeight.bold),
+        ]),
+        Column(children: [
+          customText(DateFormat('yyyy-MM-dd').format(claim.date), 14,
+              bold: FontWeight.bold),
         ]),
         Column(children: [
           claimRowOptions(context, claim),
@@ -396,5 +368,73 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
         );
       },
     );
-  }
+  }*/
+
+  /*Widget customDateField(context, dateController) {
+    return SizedBox(
+        width: 220,
+        child: TextField(
+          controller: dateController, //editing controller of this TextField
+          decoration: const InputDecoration(
+              icon: Icon(Icons.calendar_today), //icon of text field
+              labelText: "Introducir fecha" //label text of field
+              ),
+          readOnly: true, //set it true, so that user will not able to edit text
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(
+                    2000), //DateTime.now() - not to allow to choose before today.
+                lastDate: DateTime(2101));
+
+            if (pickedDate != null) {
+              String formattedDate =
+                  DateFormat('dd-MM-yyyy').format(pickedDate);
+
+              setState(() {
+                dateController.text = formattedDate;
+              });
+            } else {
+              //print("Date is not selected");
+            }
+          },
+        ));
+  }*/
+/*Widget contactClaimMenu(context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Row(
+        children: [
+          menuTab(context, "Info", "/contact_info", {'contact': contact}),
+          menuTabSelect(context, "Seguimiento", "/contact_trackings",
+              {'contact': contact}),
+          menuTab(
+              context, "Reclamaciones", "/project_info", {'contact': contact}),
+        ],
+      ),
+    );
+  }*/
+
+  // Widget addBtn(context) {
+  //   return FilledButton(
+  //     onPressed: () {
+  //       _editDialog(context, null);
+  //     },
+  //     style: FilledButton.styleFrom(
+  //       side: const BorderSide(width: 0, color: Color(0xffffffff)),
+  //       backgroundColor: const Color(0xffffffff),
+  //     ),
+  //     child: const Column(
+  //       children: [
+  //         Icon(Icons.add, color: Colors.black54),
+  //         SizedBox(height: 5),
+  //         Text(
+  //           "Añadir",
+  //           style: TextStyle(color: Colors.black54, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

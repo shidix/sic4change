@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -245,6 +246,30 @@ Future<List<KeyValue>> getContactsHash() async {
     data["id"] = doc.id;
     Contact item = Contact.fromJson(data);
     items.add(item.toKeyValue());
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getContactsProfilesHash() async {
+  List<KeyValue> items = [];
+  List<String> emailList = [];
+
+  QuerySnapshot queryPro = await db.collection("s4c_profiles").get();
+  for (var doc in queryPro.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Profile item = Profile.fromJson(data);
+    emailList.add(item.email);
+  }
+
+  QuerySnapshot query = await dbContacts.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Contact item = Contact.fromJson(data);
+    if (emailList.contains(item.email)) {
+      items.add(item.toKeyValue());
+    }
   }
   return items;
 }

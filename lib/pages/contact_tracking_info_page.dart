@@ -69,6 +69,7 @@ class _ContactTrackingInfoPageState extends State<ContactTrackingInfoPage> {
                         //editBtn(context),
                         addBtn(context, editDialog, tracking,
                             icon: Icons.edit, text: "Editar"),
+                        space(width: 10),
                         returnBtn(context),
                       ],
                     ),

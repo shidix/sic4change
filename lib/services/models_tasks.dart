@@ -278,7 +278,7 @@ Future<List> getTasksBySender(sender) async {
   return items;
 }
 
-Future<List> getTasksByAssigned(user) async {
+/*Future<List> getTasksByAssigned(user) async {
   List<STask> items = [];
   QuerySnapshot query =
       await dbTasks.where("assigned", arrayContains: user).get();
@@ -295,7 +295,7 @@ Future<List> getTasksByAssigned(user) async {
     items.add(task);
   }
   return items;
-}
+}*/
 
 //--------------------------------------------------------------
 //                           TASKS STATUS

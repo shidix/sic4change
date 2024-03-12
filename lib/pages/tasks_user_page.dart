@@ -112,7 +112,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
           initiallyExpanded: true,
           children: [
             FutureBuilder(
-                future: getTasksByAssigned(user.uid),
+                //future: getTasksByAssigned(user.uid),
+                future: STask.getByAssigned(user.email),
                 builder: ((context, snapshot) {
                   if (snapshot.hasData) {
                     tasksUser = snapshot.data!;

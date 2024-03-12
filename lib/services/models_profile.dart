@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_commons.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -52,6 +53,10 @@ class Profile {
     return 'Profile{id: $id, email: $email, holidaySupervisor: $holidaySupervisor, mainRole: $mainRole}';
   }
 
+  KeyValue toKeyValue() {
+    return KeyValue(email, email);
+  }
+
   factory Profile.getEmpty() {
     return Profile(
       id: "",
@@ -91,5 +96,17 @@ class Profile {
       final dbResult = query.docs.first;
       return Profile.fromFirestore(dbResult);
     }
+  }
+
+  static Future<List<KeyValue>> getProfileHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await db.collection("s4c_profiles").get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Profile item = Profile.fromJson(data);
+      items.add(item.toKeyValue());
+    }
+    return items;
   }
 }

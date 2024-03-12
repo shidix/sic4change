@@ -92,14 +92,61 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
         ]));
   }
 
-  /*void saveTracking(context, tracking, name, desc, contact) async {
-    tracking ??= ContactTracking(contact.uuid);
-    tracking.name = name;
-    tracking.description = desc;
-    tracking.save();
-    loadContactTracking(contact.uuid);
-    Navigator.of(context).pop();
-  }*/
+  Widget contactTrackingList(context, param) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      child: dataBody(context),
+    );
+  }
+
+  SingleChildScrollView dataBody(context) {
+    return SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SizedBox(
+          width: double.infinity,
+          child: DataTable(
+            sortColumnIndex: 0,
+            showCheckboxColumn: false,
+            columns: [
+              DataColumn(
+                  label: customText("Encuentro", 14, bold: FontWeight.bold),
+                  tooltip: "Encuentro"),
+              DataColumn(
+                  label: customText("Fecha:", 14, bold: FontWeight.bold),
+                  tooltip: "Fecha"),
+              DataColumn(
+                  label: Expanded(
+                      child: customText("Acciones", 14,
+                          bold: FontWeight.bold, align: TextAlign.end)),
+                  tooltip: "Acciones"),
+            ],
+            rows: trackingList
+                .map(
+                  (tracking) => DataRow(cells: [
+                    DataCell(Text(tracking.name)),
+                    DataCell(
+                      Text(DateFormat('yyyy-MM-dd').format(tracking.date)),
+                    ),
+                    DataCell(Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          goPageIcon(
+                              context,
+                              "Detalles",
+                              Icons.info,
+                              ContactTrackingInfoPage(
+                                  tracking: tracking, contact: contact)),
+                          //editBtn(context, editDialog, {'claim': claim}),
+                          removeBtn(context, removeTrackingDialog,
+                              {"tracking": tracking})
+                        ]))
+                  ]),
+                )
+                .toList(),
+          ),
+        ));
+  }
+
   void saveTracking(List args) async {
     ContactTracking tracking = args[0];
     tracking.save();
@@ -112,16 +159,6 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
   }
 
   Future<void> _editDialog(context, tracking) {
-    /*TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    TextEditingController dateController = TextEditingController(text: "");
-
-    if (tracking != null) {
-      nameController = TextEditingController(text: tracking.name);
-      descController = TextEditingController(text: tracking.description);
-      dateController = TextEditingController(text: tracking.date);
-    }*/
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -132,8 +169,6 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
           content: SingleChildScrollView(
               child: Row(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              /*customText("Nombre:", 16, textColor: Colors.blue),
-              customTextField(nameController, "Nombre..."),*/
               CustomTextField(
                 labelText: "Nombre",
                 initial: tracking.name,
@@ -145,8 +180,6 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              /*customText("Descripción:", 16, textColor: Colors.blue),
-              customTextField(descController, "Descripción..."),*/
               CustomTextField(
                 labelText: "Descripción",
                 initial: tracking.description,
@@ -158,8 +191,6 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
             ]),
             space(width: 20),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              /*customText("Fecha:", 16, textColor: Colors.blue),
-              customDateField(context, dateController),*/
               SizedBox(
                   width: 220,
                   child: DateTimePicker(
@@ -175,24 +206,13 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
             ]),
           ])),
           actions: <Widget>[dialogsBtns(context, saveTracking, tracking)],
-          /*actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                saveTracking(context, tracking, nameController.text,
-                    descController.text, contact);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],*/
         );
       },
     );
+  }
+
+  void removeTrackingDialog(context, args) {
+    customRemoveDialog(context, args["tracking"], loadContactTracking, null);
   }
 
   /*Widget customDateField(context, dateController) {
@@ -228,7 +248,7 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
   }*/
 
   //Widget contactTrackingList(context, contact) {
-  Widget contactTrackingList(context, param) {
+  /*Widget contactTrackingList(context, param) {
     return FutureBuilder(
         future: getTrakingsByContact(contact!.uuid),
         builder: ((context, snapshot) {
@@ -344,11 +364,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
             _removeDialog(context, tracking);
           }),*/
     ]);
-  }
+  }*/
 
-  void removeTrackingDialog(context, args) {
-    customRemoveDialog(context, args["tracking"], loadContactTracking, null);
-  }
   /*Future<void> _removeDialog(context, tracking) async {
     return showDialog<void>(
       context: context,

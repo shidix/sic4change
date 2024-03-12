@@ -1,27 +1,31 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_claim.dart';
+import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const contactClaimInfoTitle = "Detalles del Seguimiento";
-Contact? contactC;
-ContactClaim? claim;
+//Contact? contactC;
+//ContactClaim? claim;
 
 class ContactClaimInfoPage extends StatefulWidget {
-  const ContactClaimInfoPage({super.key});
+  final Contact? contact;
+  final ContactClaim? claim;
+  const ContactClaimInfoPage({super.key, this.contact, this.claim});
 
   @override
   State<ContactClaimInfoPage> createState() => _ContactClaimInfoPageState();
 }
 
 class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
+  Contact? contact;
+  ContactClaim? claim;
+
   void reloadContactClaimInfo() async {
     claim?.reload().then((val) {
       claim = val;
@@ -29,17 +33,14 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    contact = widget.contact;
+    claim = widget.claim;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context)!.settings.arguments != null) {
-      HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
-      contactC = args["contact"];
-      claim = args["claim"];
-    } else {
-      claim = null;
-    }
-
-    if (claim == null) return const Page404();
-
     return Scaffold(
         body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -47,20 +48,8 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
             children: [
           mainMenu(context),
           contactClaimInfoHeader(context),
-          contactMenu(context, contactC, null,"claim"),
-          Expanded(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xffdfdfdf),
-                        width: 2,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                    ),
-                    child: contactClaimInfoDetails(context),
-                  )))
+          contactMenu(context, contact, null, "claim"),
+          contentTab(context, contactClaimInfoDetails, null)
         ]));
   }
 
@@ -81,7 +70,12 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        editBtn(context),
+                        //editBtn(context),
+                        /*addBtn(context, editClaimInfoDialog, claim,
+                            icon: Icons.edit, text: "Editar"),*/
+                        addBtn(context, editDialog, claim,
+                            icon: Icons.edit, text: "Editar"),
+                        space(width: 10),
                         returnBtn(context),
                       ],
                     ),
@@ -91,32 +85,10 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
         ]));
   }
 
-  Widget editBtn(context) {
-    return FilledButton(
-      onPressed: () {
-        editClaimInfoDialog(context);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.edit, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Editar",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
 /*--------------------------------------------------------------------*/
-/*                      CONTACT TRACKING INFO                         */
+/*                      CONTACT CLAIM INFO                            */
 /*--------------------------------------------------------------------*/
-  Widget contactClaimInfoDetails(context) {
+  Widget contactClaimInfoDetails(context, param) {
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -127,11 +99,22 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      customText(claim?.name, 16, bold: FontWeight.bold),
-                      customText(claim?.date, 16, bold: FontWeight.bold)
+                      customText(claim!.name, 16, bold: FontWeight.bold),
+                      customText(
+                          DateFormat('yyyy-MM-dd').format(claim!.date), 16,
+                          bold: FontWeight.bold)
                     ]),
                 space(height: 10),
                 customRowDividerBlue(),
+                space(height: 30),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    customText("Responsable", 16, textColor: titleColor),
+                    space(height: 10),
+                    customText(claim?.managerObj.name, 16),
+                  ],
+                ),
                 space(height: 30),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +155,10 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
                           customText("Fecha de solución", 16,
                               textColor: titleColor),
                           space(height: 10),
-                          customText(claim?.resolutionDate, 16)
+                          customText(
+                              DateFormat('yyyy-MM-dd')
+                                  .format(claim!.resolutionDate),
+                              16)
                         ],
                       )),
                   Column(
@@ -180,7 +166,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
                     children: [
                       customText("Conforme Si/No", 16, textColor: titleColor),
                       space(height: 10),
-                      customText(claim?.resolutionDate, 16)
+                      customText(claim?.agree, 16)
                     ],
                   ),
                 ]),
@@ -191,18 +177,30 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT CLAIM INFO                          */
 /*--------------------------------------------------------------------*/
-  Future<void> editClaimInfoDialog(context) {
-    TextEditingController descController =
-        TextEditingController(text: claim?.description);
-    TextEditingController motivationController =
-        TextEditingController(text: claim?.motivation);
-    TextEditingController actionsController =
-        TextEditingController(text: claim?.actions);
-    TextEditingController resDateController =
-        TextEditingController(text: claim?.resolutionDate);
-    TextEditingController agreeController =
-        TextEditingController(text: claim?.agree);
+  void saveClaim(List args) async {
+    ContactClaim claim = args[0];
+    claim.save();
+    await claim.getManager();
+    setState(() {});
+    if (claim.task == "") {
+      STask task =
+          STask("Reclamación: ${claim.name} [${claim.contactObj.name}]");
+      task.description = "Reclamación: ${claim.name} [${claim.uuid}]";
+      task.assigned.add(claim.managerObj.email);
+      task.save();
+      claim.task = task.uuid;
+      claim.save();
+    }
+    //reloadContactTrackingInfo();
+    Navigator.of(context).pop();
+  }
 
+  Future<void> editDialog(context, claim) async {
+    List<KeyValue> contacts = await getContactsProfilesHash();
+    editClaimInfoDialog(context, claim, contacts);
+  }
+
+  Future<void> editClaimInfoDialog(context, claim, contacts) {
     List<KeyValue> yesnoDic = [KeyValue("Si", "Si"), KeyValue("No", "No")];
     String agreeVal = (claim?.agree == "Si") ? "Si" : "No";
     KeyValue currentAgree = KeyValue(agreeVal, agreeVal);
@@ -216,74 +214,126 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
           content: SingleChildScrollView(
             child: Column(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Objeto de la reclamación:", 16,
-                    textColor: titleColor),
-                customTextField(descController, "Objeto de la reclamación",
-                    size: 440)
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: claim.name,
+                  size: 440,
+                  fieldValue: (String val) {
+                    claim.name = val;
+                  },
+                )
+              ]),
+              space(width: 20),
+              /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Responsable:",
+                  initial: claim.manager,
+                  size: 220,
+                  fieldValue: (String val) {
+                    claim.manager = val;
+                  },
+                )
+              ]),*/
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'Responsable:',
+                  size: 440,
+                  selected: claim.managerObj.toKeyValue(),
+                  options: contacts,
+                  onSelectedOpt: (String val) {
+                    claim.manager = val;
+                  },
+                ),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Motivación (explicación):", 16,
-                    textColor: titleColor),
-                customTextField(
-                    motivationController, "Motivación (explicación)",
-                    size: 440)
+                SizedBox(
+                    width: 440,
+                    child: DateTimePicker(
+                      labelText: 'Fecha:',
+                      selectedDate: claim.date,
+                      onSelectedDate: (DateTime date) {
+                        claim.date = date;
+                      },
+                    )),
               ]),
               space(width: 20),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Medidas tomadas/solución:", 16,
-                    textColor: titleColor),
-                customTextField(actionsController, "Medidas tomadas/solución",
-                    size: 440)
+                CustomTextField(
+                  labelText: 'Objeto de la reclamación:',
+                  size: 440,
+                  initial: claim.description,
+                  fieldValue: (String val) {
+                    claim.description = val;
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: 'Motivación (explicación):',
+                  size: 440,
+                  initial: claim.motivation,
+                  fieldValue: (String val) {
+                    claim.motivation = val;
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: 'Medidas tomadas/solución:',
+                  size: 440,
+                  initial: claim.actions,
+                  fieldValue: (String val) {
+                    claim.actions = val;
+                  },
+                ),
               ]),
               space(height: 20),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Fecha de solución:", 16, textColor: titleColor),
-                  customDateField(context, resDateController),
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Fecha de solución:',
+                        selectedDate: claim.resolutionDate,
+                        onSelectedDate: (DateTime date) {
+                          claim.resolutionDate = date;
+                        },
+                      )),
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Conforme Si/No:", 16, textColor: titleColor),
-                  customDropdownField(
-                      agreeController, yesnoDic, currentAgree, "Si o No")
+                  //customText("Conforme Si/No:", 16, textColor: mainColor),
+                  CustomDropdown(
+                    labelText: 'Conforme Si/No',
+                    size: 210,
+                    selected: currentAgree,
+                    options: yesnoDic,
+                    onSelectedOpt: (String val) {
+                      claim.agree = val;
+                    },
+                  ),
                 ]),
               ]),
               space(width: 20),
             ]),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                claim?.description = descController.text;
-                claim?.motivation = motivationController.text;
-                claim?.actions = actionsController.text;
-                claim?.resolutionDate = resDateController.text;
-                claim?.agree = agreeController.text;
-                _saveContactInfo(context);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          actions: <Widget>[dialogsBtns(context, saveClaim, claim)],
         );
       },
     );
   }
 
-  void _saveContactInfo(context) async {
+  /*void _saveContactInfo(context) async {
     claim?.save();
 
     Navigator.of(context).pop();
     reloadContactClaimInfo();
-  }
+  }*/
 
-  Widget customDateField(context, dateController) {
+  /*Widget customDateField(context, dateController) {
     return SizedBox(
         width: 220,
         child: TextField(
@@ -310,5 +360,5 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
             }
           },
         ));
-  }
+  }*/
 }

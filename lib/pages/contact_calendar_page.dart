@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
@@ -7,6 +9,8 @@ import 'package:googleapis/calendar/v3.dart' as GoogleAPI;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:http/io_client.dart' show IOClient, IOStreamedResponse;
 import 'package:http/http.dart' show BaseRequest, Response;
+
+import 'package:path_provider/path_provider.dart';
 
 const contactCalendarPageTitle = "Calendario";
 //List trackingList = [];
@@ -43,6 +47,38 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
       ]),
     );
   }*/
+  Future<String> get _localPath async {
+    print("--a.1.1--");
+    //final directory = await getApplicationDocumentsDirectory();
+    final directory = "/home/zeben/develop/sic4change/";
+
+    print("--a.1.2--");
+    return directory;
+    //return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    print("--a.1--");
+    final path = await _localPath;
+    print("--a.2--");
+    return File('$path/logs.txt');
+  }
+
+  Future<File> writeLog(String value) async {
+    print("--a--");
+    final file = await _localFile;
+
+    print("--b--");
+    print('$value');
+    // Write the file
+    try {
+      file.writeAsString('$value');
+    } catch (e) {
+      print(e);
+    }
+    return file.writeAsString('$value');
+  }
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId:
         '448685429662-lkfg75liknfos2bcgprd0u130nvaabm8.apps.googleusercontent.com',
@@ -55,6 +91,8 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
   void initState() {
     super.initState();
     print("--1--");
+    writeLog("--1--");
+    print("--1.1--");
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       print("--2--");
       print(account);
