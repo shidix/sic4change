@@ -85,7 +85,7 @@ class Contact {
       organizationObj = Organization.fromJson(data);
       //return Organization.fromJson(data);
     } catch (e) {
-      print(e);
+      print("Error [model contact - getOrganization]: $e");
       //return Organization("");
     }
   }
@@ -218,6 +218,13 @@ class Contact {
     });
     return item;
   }
+
+  Future<void> loadObjs() async {
+    await getOrganization();
+    await getCompany();
+    await getPosition();
+    projectsObj = await getProjects();
+  }
 }
 
 Future<List> getContacts() async {
@@ -228,10 +235,10 @@ Future<List> getContacts() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Contact item = Contact.fromJson(data);
-    await item.getOrganization();
+    /*await item.getOrganization();
     await item.getCompany();
     await item.getPosition();
-    item.projectsObj = await item.getProjects();
+    item.projectsObj = await item.getProjects();*/
     items.add(item);
     //items.add(Contact.fromJson(data));
   }

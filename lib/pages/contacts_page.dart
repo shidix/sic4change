@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
@@ -63,6 +61,10 @@ class _ContactsPageState extends State<ContactsPage> {
     if (mounted) {
       setState(() {});
     }
+    for (Contact c in contacts) {
+      await c.loadObjs();
+    }
+    setState(() {});
   }
 
   void findOrganizations(value) async {
@@ -83,7 +85,7 @@ class _ContactsPageState extends State<ContactsPage> {
       contactsLoading = true;
     });
 
-    await searchContacts(value).then((val) {
+    searchContacts(value).then((val) {
       contacts = val;
       setState(() {
         contactsLoading = false;
@@ -144,18 +146,22 @@ class _ContactsPageState extends State<ContactsPage> {
       //if (orgs.isNotEmpty) {
       return Column(children: [
         s4cTitleBar("Organizaciones"),
-        Row(children: [
-          SizedBox(
-              width: 300,
-              child: SearchBar(
-                onSubmitted: (value) {
-                  findOrganizations(value);
-                },
-                leading: const Icon(Icons.search),
-              )),
-          addBtnRow(context, filterOrganizations, {"filter": "all"},
-              text: "Ver todas", icon: Icons.search),
-        ]),
+        Container(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                      width: 280,
+                      child: SearchBar(
+                        onSubmitted: (value) {
+                          findOrganizations(value);
+                        },
+                        leading: const Icon(Icons.search),
+                      )),
+                  addBtnRow(context, filterOrganizations, {"filter": "all"},
+                      text: "Ver todas", icon: Icons.search),
+                ])),
         Container(
           padding: const EdgeInsets.all(5),
           //width: MediaQuery.of(context).size.width / 3,
@@ -266,23 +272,27 @@ class _ContactsPageState extends State<ContactsPage> {
     return Builder(builder: ((context) {
       return Column(children: [
         s4cTitleBar("Contactos"),
-        Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          SizedBox(
-              width: 600,
-              child: SearchBar(
-                controller: searchController,
-                padding: const MaterialStatePropertyAll<EdgeInsets>(
-                    EdgeInsets.symmetric(horizontal: 12.0)),
-                onSubmitted: (value) {
-                  findContacts(value);
-                },
-                leading: const Icon(Icons.search),
-              )),
-          addBtnRow(context, filterContacts, {"filter": "generic"},
-              text: "Ver genéricos", icon: Icons.search),
-          addBtnRow(context, filterContacts, {"filter": "all"},
-              text: "Ver todos", icon: Icons.search),
-        ]),
+        Container(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                      width: 600,
+                      child: SearchBar(
+                        controller: searchController,
+                        padding: const MaterialStatePropertyAll<EdgeInsets>(
+                            EdgeInsets.symmetric(horizontal: 12.0)),
+                        onSubmitted: (value) {
+                          findContacts(value);
+                        },
+                        leading: const Icon(Icons.search),
+                      )),
+                  addBtnRow(context, filterContacts, {"filter": "generic"},
+                      text: "Ver genéricos", icon: Icons.search),
+                  addBtnRow(context, filterContacts, {"filter": "all"},
+                      text: "Ver todos", icon: Icons.search),
+                ])),
         Container(
           padding: const EdgeInsets.all(5),
           child: dataBody(context),
