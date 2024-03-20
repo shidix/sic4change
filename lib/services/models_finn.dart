@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/services/models.dart';
@@ -43,7 +44,6 @@ class SFinn {
 
   static SFinn getEmpty() {
     return SFinn("", "", "", "", "", "");
-
   }
 
   Future<Organization> getOrganization() async {
@@ -571,6 +571,9 @@ class Invoice {
   String currency;
   double imputation;
 
+  SFinn finnObj = SFinn.getEmpty();
+  SProject projectObj = SProject("");
+
   Invoice(
       this.id,
       this.uuid,
@@ -786,12 +789,42 @@ class Invoice {
     };
   }
 
+  static Future<List> getByPartner(partner) async {
+    final collection = db.collection("s4c_invoices");
+    List items = [];
+    QuerySnapshot<Map<String, dynamic>>? query =
+        await collection.where("partner", isEqualTo: partner).get();
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      await item.getFinn();
+      await item.getProject();
+      items.add(item);
+    }
+    return items;
+  }
+
   static Future<Invoice> getByUuid(uuid) async {
     final collection = db.collection("s4c_invoices");
     final query = await collection.where("uuid", isEqualTo: uuid).get();
     Invoice item = Invoice.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
+  }
+
+  Future<void> getFinn() async {
+    final collection = db.collection("s4c_finns");
+    final query = await collection.where("uuid", isEqualTo: finn).get();
+    SFinn item = SFinn.fromJson(query.docs.first.data());
+    finnObj = item;
+  }
+
+  Future<void> getProject() async {
+    final collection = db.collection("s4c_projects");
+    final query =
+        await collection.where("uuid", isEqualTo: finnObj.project).get();
+    SProject item = SProject.fromJson(query.docs.first.data());
+    projectObj = item;
   }
 
   @override

@@ -184,8 +184,15 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                 tooltip: "Responsable",
               ),
               DataColumn(
-                  label: customText("Fecha:", 14, bold: FontWeight.bold),
+                  label: customText("Fecha", 14, bold: FontWeight.bold),
                   tooltip: "Fecha"),
+              DataColumn(
+                  label: customText("Fecha de solución", 14,
+                      bold: FontWeight.bold),
+                  tooltip: "Fecha de solución"),
+              DataColumn(
+                  label: customText("Conforme", 14, bold: FontWeight.bold),
+                  tooltip: "Conforme"),
               DataColumn(
                   label: Expanded(
                       child: customText("Acciones", 14,
@@ -200,6 +207,11 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
                     DataCell(
                       Text(DateFormat('yyyy-MM-dd').format(claim.date)),
                     ),
+                    DataCell(
+                      Text(DateFormat('yyyy-MM-dd')
+                          .format(claim.resolutionDate)),
+                    ),
+                    DataCell(Text(claim.agree)),
                     DataCell(Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

@@ -64,6 +64,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
 
   @override
   Widget build(BuildContext context) {
+    String currentTab = (prType == "Proyecto") ? "proyectos" : "consultorias";
     return Scaffold(
       //body: SingleChildScrollView(
       //child: Column(
@@ -80,7 +81,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
-          projectListMenu(context, "proyectos"),
+          projectListMenu(context, currentTab),
           contentTab(context, projectList, null)
           //projectList(context),
         ],

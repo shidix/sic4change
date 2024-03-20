@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/pages/organization_info_page.dart';
+import 'package:sic4change/pages/organization_invoices_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -187,7 +188,6 @@ class _ContactsPageState extends State<ContactsPage> {
             child: DataTable(
               sortColumnIndex: 0,
               showCheckboxColumn: false,
-              columnSpacing: 25,
               columns: [
                 DataColumn(
                     label: customText("Nombre", 14, bold: FontWeight.bold),
@@ -229,9 +229,15 @@ class _ContactsPageState extends State<ContactsPage> {
                                     icon: Icons.abc_outlined, iconSize: 14),*/
                             goPageIcon(
                               context,
-                              "View",
+                              "Ver",
                               Icons.info,
                               OrganizationInfoPage(org: org),
+                            ),
+                            goPageIcon(
+                              context,
+                              "Facturas",
+                              Icons.inventory,
+                              OrganizationInvoicesPage(org: org),
                             ),
                             removeBtn(
                                 context, removeOrganizationDialog, {"org": org},
