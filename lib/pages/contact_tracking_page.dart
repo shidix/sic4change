@@ -122,25 +122,33 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
             ],
             rows: trackingList
                 .map(
-                  (tracking) => DataRow(cells: [
-                    DataCell(Text(tracking.name)),
-                    DataCell(
-                      Text(DateFormat('yyyy-MM-dd').format(tracking.date)),
-                    ),
-                    DataCell(Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          goPageIcon(
+                  (tracking) => DataRow(
+                      onSelectChanged: (bool? selected) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => ContactTrackingInfoPage(
+                                    tracking: tracking, contact: contact))));
+                      },
+                      cells: [
+                        DataCell(Text(tracking.name)),
+                        DataCell(
+                          Text(DateFormat('yyyy-MM-dd').format(tracking.date)),
+                        ),
+                        DataCell(Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              /*goPageIcon(
                               context,
                               "Detalles",
                               Icons.info,
                               ContactTrackingInfoPage(
-                                  tracking: tracking, contact: contact)),
-                          //editBtn(context, editDialog, {'claim': claim}),
-                          removeBtn(context, removeTrackingDialog,
-                              {"tracking": tracking})
-                        ]))
-                  ]),
+                                  tracking: tracking, contact: contact)),*/
+                              //editBtn(context, editDialog, {'claim': claim}),
+                              removeBtn(context, removeTrackingDialog,
+                                  {"tracking": tracking})
+                            ]))
+                      ]),
                 )
                 .toList(),
           ),

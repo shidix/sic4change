@@ -91,12 +91,20 @@ Future<List> getContactTrackings() async {
 Future<List> getTrakingsByContact(String contact) async {
   List<ContactTracking> items = [];
 
-  QuerySnapshot query =
-      await dbContactTracking.where("contact", isEqualTo: contact).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ContactTracking.fromJson(data));
+  try {
+    QuerySnapshot query = await dbContactTracking
+        .where("contact", isEqualTo: contact)
+        .orderBy('date', descending: true)
+        .get();
+    /*QuerySnapshot query =
+      await dbContactTracking.where("contact", isEqualTo: contact).get();*/
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ContactTracking.fromJson(data));
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }

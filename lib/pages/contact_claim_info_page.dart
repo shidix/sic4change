@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_claim.dart';
-import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
@@ -201,8 +200,8 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
   }
 
   Future<void> editClaimInfoDialog(context, claim, contacts) {
-    List<KeyValue> yesnoDic = [KeyValue("Si", "Si"), KeyValue("No", "No")];
-    String agreeVal = (claim?.agree == "Si") ? "Si" : "No";
+    List<KeyValue> yesnoDic = [KeyValue("Sí", "Sí"), KeyValue("No", "No")];
+    String agreeVal = (claim?.agree == "Sí") ? "Sí" : "No";
     KeyValue currentAgree = KeyValue(agreeVal, agreeVal);
 
     return showDialog<void>(
@@ -307,7 +306,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   //customText("Conforme Si/No:", 16, textColor: mainColor),
                   CustomDropdown(
-                    labelText: 'Conforme Si/No',
+                    labelText: 'Conforme',
                     size: 210,
                     selected: currentAgree,
                     options: yesnoDic,

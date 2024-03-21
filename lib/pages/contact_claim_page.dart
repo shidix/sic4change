@@ -201,31 +201,39 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
             ],
             rows: claimList
                 .map(
-                  (claim) => DataRow(cells: [
-                    DataCell(Text(claim.name)),
-                    DataCell(Text(claim.managerObj.name)),
-                    DataCell(
-                      Text(DateFormat('yyyy-MM-dd').format(claim.date)),
-                    ),
-                    DataCell(
-                      Text(DateFormat('yyyy-MM-dd')
-                          .format(claim.resolutionDate)),
-                    ),
-                    DataCell(Text(claim.agree)),
-                    DataCell(Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          goPageIcon(
-                              context,
-                              "Detalles",
-                              Icons.info,
-                              ContactClaimInfoPage(
-                                  claim: claim, contact: contact)),
-                          //editBtn(context, editDialog, {'claim': claim}),
-                          removeBtn(
-                              context, removeClaimDialog, {"claim": claim})
-                        ]))
-                  ]),
+                  (claim) => DataRow(
+                      onSelectChanged: (bool? selected) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => ContactClaimInfoPage(
+                                    claim: claim, contact: contact))));
+                      },
+                      cells: [
+                        DataCell(Text(claim.name)),
+                        DataCell(Text(claim.managerObj.name)),
+                        DataCell(
+                          Text(DateFormat('yyyy-MM-dd').format(claim.date)),
+                        ),
+                        DataCell(
+                          Text(DateFormat('yyyy-MM-dd')
+                              .format(claim.resolutionDate)),
+                        ),
+                        DataCell(Text(claim.agree)),
+                        DataCell(Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              /*goPageIcon(
+                                  context,
+                                  "Detalles",
+                                  Icons.info,
+                                  ContactClaimInfoPage(
+                                      claim: claim, contact: contact)),*/
+                              //editBtn(context, editDialog, {'claim': claim}),
+                              removeBtn(
+                                  context, removeClaimDialog, {"claim": claim})
+                            ]))
+                      ]),
                 )
                 .toList(),
           ),
