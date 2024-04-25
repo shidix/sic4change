@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 
@@ -361,6 +362,22 @@ class SProject {
     return finList;
   }
 
+  Future<List<SFinn>> getFinns() async {
+    final List<SFinn> items = [];
+    final database = db.collection("s4c_finns");
+    await database
+        .where("project", isEqualTo: uuid)
+        .get()
+        .then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        final Map<String, dynamic> data = doc.data();
+        final item = SFinn.fromJson(data);
+        items.add(item);
+      }
+    });
+    return items;
+  }
+
   Future<List<Contact>> getPartners() async {
     if (partnersObj.isEmpty) {
       List<Contact> parList = [];
@@ -488,6 +505,19 @@ Future<List> getProjectsByType(String type) async {
 
   List items = [];
   query = await dbProject.where("type", isEqualTo: pt.uuid).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = SProject.fromJson(data);
+    items.add(item);
+  }
+  return items;
+}
+
+Future<List> getProjectsByProgramme(String programme) async {
+  List items = [];
+  QuerySnapshot query =
+      await dbProject.where("programme", isEqualTo: programme).get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
@@ -1112,6 +1142,9 @@ class Programme {
   String id = "";
   String uuid = "";
   String name = "";
+  String title = "";
+  String description = "";
+  String impact = "";
   String logo = "";
   int projects = 0;
 
@@ -1121,12 +1154,18 @@ class Programme {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
+        title = json['title'],
+        description = json['description'],
+        impact = json['impact'],
         logo = json['logo'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'title': title,
+        'description': description,
+        'impact': impact,
         'logo': logo,
       };
 

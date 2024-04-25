@@ -2,16 +2,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
+import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
-import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_quality.dart';
+import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectTitle = "Proyectos";
+bool loading = false;
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key, this.prList});
@@ -26,6 +30,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
   List prList = [];
   List programList = [];
   Profile? profile;
+  String deleteMsg = "";
+
+  void setLoading() {
+    setState(() {
+      loading = true;
+    });
+  }
+
+  void stopLoading() {
+    setState(() {
+      loading = false;
+    });
+  }
 
   void loadProgrammes() async {
     await getProgrammes().then((val) {
@@ -35,10 +52,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void loadProjects() async {
+    setLoading();
     await getProjects().then((val) {
       prList = val;
     });
     setState(() {});
+    stopLoading();
   }
 
   void getProfile(user) async {
@@ -87,7 +106,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
-          projectList(context),
+          loading
+              ? const Center(child: CircularProgressIndicator())
+              : projectList(context),
         ],
       ),
     ));
@@ -101,8 +122,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
           children: [
             const Text(projectTitle, style: headerTitleText),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              goPage(context, "Listado", const ProjectListPage(), Icons.info,
-                  style: "bigBtn", extraction: () {}),
+              /*goPage(context, "Listado", const ProjectListPage(), Icons.info,
+                  style: "bigBtn", extraction: () {}),*/
               space(width: 10),
               addBtn(context, callDialog, {"programme": null},
                   text: "Añadir Programa"),
@@ -153,7 +174,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Image.network(programme.logo),
+                                  //Image.network(programme.logo),
+                                  InkWell(
+                                    child: Container(
+                                        child: Image.network(programme.logo)),
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) =>
+                                                  ProgrammePage(
+                                                      programme: programme))));
+                                    },
+                                  ),
                                   editBtn(context, callDialog,
                                       {'programme': programme}),
                                 ]);
@@ -346,14 +379,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
               _project.typeObj.name.toUpperCase(),
               style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
             ),
-
-            /*IconButton(
-              icon: const Icon(Icons.edit),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
               tooltip: 'Editar proyecto',
               onPressed: () {
-                _callProjectEditDialog(context, _project);
+                projectRemoveDialog(context, _project);
               },
-            ),*/
+            ),
           ],
         ),
         space(height: 10),
@@ -593,8 +625,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
     project.save();
 
     Navigator.pop(context);
-    Navigator.pushNamed(context, "/project_info",
-        arguments: {'project': project});
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: ((context) => ProjectInfoPage(
+                  project: project,
+                ))));
   }
 
   Future<void> projectEditDialog(context, project) {
@@ -640,295 +676,143 @@ class _ProjectsPageState extends State<ProjectsPage> {
       },
     );
   }
-  /*void _saveProject(
-      context,
-      _project,
-      _types,
-      _contacts,
-      _programmes,
-      _name,
-      _desc,
-      _type,
-      _budget,
-      _manager,
-      _programme,
-      _country,
-      _announcement,
-      _ambit,
-      _audit,
-      _evaluation) async {
-    if (_project != null) {
-      await updateProject(
-              _project.id,
-              _project.uuid,
-              _name,
-              _desc,
-              _type,
-              _budget,
-              _manager,
-              _programme,
-              _country,
-              _announcement,
-              _ambit,
-              _audit,
-              _evaluation,
-              _project.financiers,
-              _project.partners)
-          .then((value) async {
-        loadProjects();
-      });
-    } else {
-      await addProject(_name, _desc, _type, _budget, _manager, _programme,
-              _country, "", "", false, false)
-          .then((value) async {
-        loadProjects();
-      });
+
+  void removeProject(List args) async {
+    setLoading();
+    Navigator.pop(context);
+
+    SProject project = args[0];
+
+    ProjectDates pd = await getProjectDatesByProject(project.uuid);
+    pd.delete();
+
+    ProjectLocation pl = await getProjectLocationByProject(project.uuid);
+    pl.delete();
+
+    List refList = await getReformulationsByProject(project.uuid);
+    for (Reformulation ref in refList) {
+      ref.delete();
     }
-    if (!_types.contains(_type)) await addProjectType(_type);
-    if (!_contacts.contains(_manager))
-      await addContact(_manager, "", [], "", "", "");
-    if (!_programmes.contains(_programme)) await addProgramme(_programme);
-    Navigator.of(context).pop();
+
+    List riskList = await getRisksByProject(project.uuid);
+    for (Risk risk in riskList) {
+      risk.delete();
+    }
+
+    Quality q = await Quality.byProject(project.uuid);
+    if (q.id != "") {
+      q.delete();
+    }
+
+    Transparency t = await Transparency.byProject(project.uuid);
+    if (t.id != "") {
+      t.delete();
+    }
+
+    Gender g = await Gender.byProject(project.uuid);
+    if (g.id != "") {
+      g.delete();
+    }
+
+    Environment e = await Environment.byProject(project.uuid);
+    if (e.id != "") {
+      e.delete();
+    }
+
+    List finList = await SFinn.byProject(project.uuid);
+    for (SFinn finn in finList) {
+      List contribList = await FinnContribution.getByFinn(finn.uuid);
+      for (FinnContribution contrib in contribList) {
+        contrib.delete();
+      }
+
+      List distList = await FinnDistribution.getByFinn(finn.uuid);
+      for (FinnDistribution dist in distList) {
+        dist.delete();
+      }
+
+      List invList = await Invoice.getByFinn(finn.uuid);
+      for (Invoice inv in invList) {
+        inv.delete();
+      }
+
+      finn.delete();
+    }
+
+    List btList = await BankTransfer.getByProject(project.uuid);
+    for (BankTransfer bt in btList) {
+      bt.delete();
+    }
+
+    project.delete();
+
+    loadProjects();
   }
 
-  void _callProjectEditDialog(context, _project) async {
-    List<String> types = [];
-    List<String> contacts = [];
-    List<String> programmes = [];
-    await getProjectTypes().then((value) async {
-      for (ProjectType item in value) {
-        types.add(item.name);
-      }
-      await getContacts().then((value) async {
-        for (Contact item2 in value) {
-          contacts.add(item2.name);
-        }
-        await getProgrammes().then((value) async {
-          for (Programme item3 in value) {
-            programmes.add(item3.name);
-          }
-          _editProjectDialog(context, _project, types, contacts, programmes);
+  Future<void> projectRemoveDialog(context, project) {
+    project ??= SProject("");
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Borrar proyecto'),
+            content: SingleChildScrollView(
+                child: loading
+                    ? const Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                            customText(
+                                "Se va a borrar el proyecto ${project.name}.",
+                                16,
+                                bold: FontWeight.bold),
+                            space(height: 20),
+                            customText("En concreto se borrara:", 16),
+                            space(height: 10),
+                            customText(
+                                "- Información relacionadad con los detalles del proyecto (fechas, ubicación...)",
+                                16),
+                            space(height: 10),
+                            customText(
+                                "- El marco lógico (objetivos, resultados...)",
+                                16),
+                            space(height: 10),
+                            customText(
+                                "- Los riesgos asociados al proyecto", 16),
+                            space(height: 10),
+                            customText(
+                                "- La información transversal asociada al proyecto (calidad, transparencia...)",
+                                16),
+                            space(height: 10),
+                            customText(
+                                "- La información financiera asociada al proyecto (partidas, aportaciones...)",
+                                16),
+                            space(height: 20),
+                            customText(
+                                "Esta información NO será recuperable, ¿está seguro/a de que desea borrarla?",
+                                16,
+                                bold: FontWeight.bold),
+                            customText(deleteMsg, 16, bold: FontWeight.bold),
+                          ])),
+            actions: <Widget>[
+              Row(children: [
+                Expanded(
+                  flex: 5,
+                  child: actionButton(context, "Borrar", removeProject,
+                      Icons.save_outlined, [project]),
+                ),
+                space(width: 10),
+                Expanded(
+                    flex: 5,
+                    child: actionButton(
+                        context, "Cancelar", cancelItem, Icons.cancel, context))
+              ]),
+            ],
+          );
         });
-      });
-    });
   }
-
-  Future<void> _editProjectDialog(
-      context, _project, _types, _contacts, _programmes) {
-    TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController descController = TextEditingController(text: "");
-    TextEditingController typeController = TextEditingController(text: "");
-    TextEditingController budgetController = TextEditingController(text: "");
-    TextEditingController managerController = TextEditingController(text: "");
-    TextEditingController programmeController = TextEditingController(text: "");
-    TextEditingController countryController = TextEditingController(text: "");
-
-    if (_project != null) {
-      nameController = TextEditingController(text: _project.name);
-      descController = TextEditingController(text: _project.description);
-      typeController = TextEditingController(text: _project.type);
-      budgetController = TextEditingController(text: _project.budget);
-      managerController = TextEditingController(text: _project.manager);
-      programmeController = TextEditingController(text: _project.programme);
-      countryController = TextEditingController(text: _project.country);
-    }
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Project edit'),
-          content: SingleChildScrollView(
-            child: Column(children: [
-              Row(children: <Widget>[
-                customTextField(nameController, "Enter name"),
-                space(width: 20),
-                customTextField(descController, "Enter description"),
-                space(width: 20),
-                customAutocompleteField(
-                    typeController, _types, "Write or select project type..."),
-                space(width: 20),
-                customTextField(budgetController, "Enter budget"),
-              ]),
-              Row(children: <Widget>[
-                customAutocompleteField(
-                    managerController, _contacts, "Write or select manager..."),
-                space(width: 20),
-                customAutocompleteField(programmeController, _programmes,
-                    "Write or select programme..."),
-                space(width: 20),
-                customTextField(countryController, "Enter country"),
-              ]),
-            ]),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveProject(
-                    context,
-                    _project,
-                    _types,
-                    _contacts,
-                    _programmes,
-                    nameController.text,
-                    descController.text,
-                    typeController.text,
-                    budgetController.text,
-                    managerController.text,
-                    programmeController.text,
-                    countryController.text,
-                    "",
-                    "",
-                    false,
-                    false);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
-
-  /*--------------------------------------------------------------------*/
-  /*                           FINACIERS                                */
-  /*--------------------------------------------------------------------*/
-  /*void _saveFinancier(context, _project, _name, _financiers) async {
-    _project.financiers.add(_name);
-    await updateProjectFinanciers(_project.id, _project.financiers)
-        .then((value) async {
-      if (!_financiers.contains(_name)) await addFinancier(_name);
-      loadProjects();
-    });
-    Navigator.of(context).pop();
-  }
-
-  void _removeFinancier(context, _project) async {
-    await updateProjectFinanciers(_project.id, _project.financiers)
-        .then((value) async {
-      loadProjects();
-    });
-  }
-
-  void _callFinancierEditDialog(context, _project) async {
-    List<String> financiers = [];
-    await getFinanciers().then((value) async {
-      for (Financier item in value) {
-        financiers.add(item.name);
-      }
-
-      _editProjectFinancierDialog(context, _project, financiers);
-    });
-  }
-
-  Future<void> _editProjectFinancierDialog(context, _project, _financiers) {
-    TextEditingController nameController = TextEditingController(text: "");
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Add financier'),
-          content: SingleChildScrollView(
-            child: Column(children: [
-              customAutocompleteField(
-                  nameController, _financiers, "Write or select financier..."),
-            ]),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveFinancier(
-                    context, _project, nameController.text, _financiers);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
-
-  /*--------------------------------------------------------------------*/
-  /*                           PARTNERS                                 */
-  /*--------------------------------------------------------------------*/
-  /*void _savePartner(context, _project, _name, _contacts) async {
-    _project.partners.add(_name);
-    await updateProjectPartners(_project.id, _project.partners)
-        .then((value) async {
-      if (!_contacts.contains(_name))
-        await addContact(_name, "", [], "", "", "");
-      loadProjects();
-    });
-    Navigator.of(context).pop();
-  }
-
-  void _removePartner(context, _project) async {
-    await updateProjectPartners(_project.id, _project.partners)
-        .then((value) async {
-      loadProjects();
-    });
-  }
-
-  void _callPartnerEditDialog(context, _project) async {
-    List<String> contacts = [];
-    await getContacts().then((value) async {
-      for (Contact item in value) {
-        contacts.add(item.name);
-      }
-
-      _editProjectPartnerDialog(context, _project, contacts);
-    });
-  }
-
-  Future<void> _editProjectPartnerDialog(context, _project, _contacts) {
-    TextEditingController nameController = TextEditingController(text: "");
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Add partner'),
-          content: SingleChildScrollView(
-            child: Column(children: [
-              customAutocompleteField(
-                  nameController, _contacts, "Write or select contact..."),
-            ]),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _savePartner(context, _project, nameController.text, _contacts);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
 }

@@ -343,7 +343,8 @@ class FinnContribution {
     };
   }
 
-  static Future<Map<String, double>> getSummaryByFinancierAndProject(
+  //static Future<Map<String, double>> getSummaryByFinancierAndProject(
+  static Future<double> getSummaryByFinancierAndProject(
       finnancier, project) async {
     List? finnList;
     await SFinn.byProjectAndMain(project).then((value) {
@@ -360,9 +361,10 @@ class FinnContribution {
       FinnContribution item = FinnContribution.fromJson(element.data());
       total += item.amount;
     }
-    return {
+    return total;
+    /*return {
       "total": total,
-    };
+    };*/
   }
 
   static Future<Map<String, double>> totalsByFinancier({project}) async {
@@ -433,6 +435,13 @@ class FinnContribution {
     // }
 
     return items;
+  }
+
+  void delete() {
+    final database = db.collection("s4c_finncontrib");
+    if (id != "") {
+      database.doc(id).delete();
+    }
   }
 
   @override
@@ -544,6 +553,13 @@ class FinnDistribution {
     }
 
     return items;
+  }
+
+  void delete() {
+    final database = db.collection("s4c_finndistrib");
+    if (id != "") {
+      database.doc(id).delete();
+    }
   }
 
   @override
@@ -711,11 +727,12 @@ class Invoice {
 
   static Future<List> getByFinn(finn) async {
     List finnUuids = [];
-    if (finn.runtimeType is String) {
+    finnUuids = [finn];
+    /*if (finn.runtimeType is String) {
       finnUuids = [finn];
     } else {
       finnUuids = finn;
-    }
+    }*/
     final collection = db.collection("s4c_invoices");
     List items = [];
     if (finnUuids.isEmpty) {
