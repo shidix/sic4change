@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/widgets/main_menu_admin_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_list_menu_widget.dart';
 
 const projectTitle = "Proyectos";
+bool loading = false;
 
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key, this.prList, this.prType});
@@ -45,11 +47,15 @@ class _ProjectListPageState extends State<ProjectListPage> {
     } else {
       prType = "Proyecto";
     }
+    setState(() {
+      loading = true;
+    });
     //getProjects().then((val) {
     getProjectsByType(prType!).then((val) {
       if (mounted) {
         setState(() {
           prList = val;
+          loading = false;
         });
         for (SProject item in prList) {
           item.loadObjs().then((value) {
@@ -72,7 +78,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, null, "/projects"),
+          mainMenuAdmin(context, null, "/projects"),
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),
@@ -256,7 +262,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Builder(builder: ((context) {
-          if (prList.isNotEmpty) {
+          //if (prList.isNotEmpty) {
+          if (!loading) {
             return DataTable(
                 sortColumnIndex: 0,
                 showCheckboxColumn: false,
@@ -323,6 +330,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
                       ]),
                     )
                     .toList());
+
             /*return SizedBox(
                 //height: 900,
                 child: GridView.builder(

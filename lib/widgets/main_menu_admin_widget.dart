@@ -9,8 +9,14 @@ Widget mainMenuAdmin(context, [user, url]) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo(),
-        menuBtn(context, "Inicio", Icons.home, "/home",
-            (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        menuBtn(
+            context,
+            "Inicio",
+            Icons.home,
+            "/home_admin",
+            (url == "/home_admin")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         /*menuBtn(
             context,
             "Tareas",

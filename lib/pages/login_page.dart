@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 
 Profile? profile;
+bool loadProf = false;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,6 +32,29 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    //final user = FirebaseAuth.instance.currentUser!;
+    //getProfile(user);
+    setState(() {
+      loadProf = true;
+    });
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      Profile.getProfile(user.email!).then((value) {
+        profile = value;
+        setState(() {
+          loadProf = false;
+        });
+      });
+    } catch (e) {
+      setState(() {
+        loadProf = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     /*return Scaffold(
       /*appBar: AppBar(
@@ -35,6 +62,25 @@ class _LoginPageState extends State<LoginPage> {
       ),*/
       body: loginBody(context, emailController, passwdController),
     );*/
+
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      if (loadProf == true) {
+        return const Center(child: CircularProgressIndicator());
+      } else {
+        if (profile?.mainRole == "Admin") {
+          return const HomeAdminPage();
+        } else {
+          return const HomePage();
+        }
+      }
+    } catch (e) {
+      return Scaffold(
+        body: Center(
+            child: loginBody(context, emailController, passwdController)),
+      );
+    }
+/*
     return Scaffold(
       body: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
@@ -44,9 +90,12 @@ class _LoginPageState extends State<LoginPage> {
             } else if (snapshot.hasError) {
               return const Center(child: Text("Something went wrong!"));
             } else if (snapshot.hasData) {
-              final user = FirebaseAuth.instance.currentUser!;
-              getProfile(user);
+              print(snapshot.data);
+              //final user = FirebaseAuth.instance.currentUser!;
+              print("--1--");
+              print(profile);
               if (profile?.mainRole == "Admin") {
+                print("--2--");
                 return const HomeAdminPage();
               }
               //Navigator.pushReplacementNamed(context, '/home');
@@ -55,14 +104,8 @@ class _LoginPageState extends State<LoginPage> {
               return loginBody(context, emailController, passwdController);
             }
           }),
-    );
+    );*/
   }
-}
-
-void getProfile(user) async {
-  await Profile.getProfile(user.email!).then((value) {
-    profile = value;
-  });
 }
 
 Widget loginBody(context, emailController, passwdController) {
@@ -178,9 +221,19 @@ Future signIn(context, emailController, passwdController) async {
       email: emailController.text.trim(),
       password: passwdController.text.trim(),
     );
+    final user = FirebaseAuth.instance.currentUser!;
+    profile = await Profile.getProfile(user.email!);
   } on FirebaseException catch (e) {
     print(e);
   }
   //navigatorKey.currentState!.popUntil((route) => route.isFirst);
+
   Navigator.pop(context);
+  if (profile?.mainRole == "Admin") {
+    Navigator.push(context,
+        MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+  } else {
+    Navigator.push(
+        context, MaterialPageRoute(builder: ((context) => const HomePage())));
+  }
 }

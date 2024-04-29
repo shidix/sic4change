@@ -162,7 +162,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenuAdmin(context, user, "/home"),
+          mainMenuAdmin(context, user, "/home_admin"),
           Container(
             height: 10,
           ),
