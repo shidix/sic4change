@@ -53,6 +53,14 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget? distribSummaryContainer;
   Widget? finnanciersContainer;
 
+  bool belongsTo(SFinn finn, String financierUuid) {
+    Map<String, String> equivalencies = {};
+    for (Financier financier in _project!.financiersObj) {
+      equivalencies[financier.uuid] = financier.organization;
+    }
+    return (equivalencies[financierUuid] == finn.orgUuid);
+  }
+
   double getAporte(String finnUuid, [String? financierUuid]) {
     Map<String, String> equivalencies = {};
     for (Financier financier in _project!.financiersObj) {
@@ -99,22 +107,16 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     double totalAportes = 0;
-    for (FinnContribution contribution in aportesItems) {
-      SFinn finn = finnUuidHash[contribution.finn]!;
-      if ((withChildrens.contains(finn.name)) ||
-          (contribution.financier == "")) {
-        continue;
-      } else {
-        if (aportesTotalByFinancier.containsKey(contribution.financier)) {
-          aportesTotalByFinancier[contribution.financier] =
-              aportesTotalByFinancier[contribution.financier]! +
-                  contribution.amount;
-        } else {
-          aportesTotalByFinancier[contribution.financier] = contribution.amount;
+    for (var financier in _project!.financiers) {
+      for (FinnContribution contribution in aportesItems) {
+        if (belongsTo(finnUuidHash[contribution.finn]!, financier)) {
+          aportesTotalByFinancier[financier] =
+              aportesTotalByFinancier[financier]! + contribution.amount;
+          totalAportes += contribution.amount;
         }
-        totalAportes += contribution.amount;
       }
     }
+
     if ((fromCurrency(_project!.budget) != totalAportes) ||
         (_project!.execBudget != executedBudgetProject)) {
       _project!.budget = toCurrency(totalAportes).replaceAll("€", "");
@@ -137,9 +139,10 @@ class _FinnsPageState extends State<FinnsPage> {
       double aportePercent =
           (totalBudgetProject == 0) ? 0 : aporte / totalBudgetProject;
       sourceRows.add(Row(children: [
-        (financiers.containsKey(financier.organization))?
-          Expanded(flex: 2, child: Text(financiers[financier.organization]!.name)):
-          Expanded(flex: 2, child: Text(financier.name)),
+        (financiers.containsKey(financier.organization))
+            ? Expanded(
+                flex: 2, child: Text(financiers[financier.organization]!.name))
+            : Expanded(flex: 2, child: Text(financier.name)),
         Expanded(
             flex: 2,
             child: LinearPercentIndicator(
@@ -332,6 +335,150 @@ class _FinnsPageState extends State<FinnsPage> {
     ));
   }
 
+  // Widget populateFinnContainer_old() {
+  //   int widthFinn = 3;
+  //   List<Widget> finnRows = [];
+  //   Container headerRow = Container(
+  //       color: headerListBgColor,
+  //       child: Row(children: [
+  //         Expanded(
+  //             flex: widthFinn,
+  //             child: const Padding(
+  //                 padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
+  //                 child: Text("Partida", style: headerListStyle))),
+  //         const Expanded(
+  //             flex: 1,
+  //             child: Text("Aportaciones",
+  //                 textAlign: TextAlign.start, style: headerListStyle)),
+  //         for (Financier financier in _project!.financiersObj)
+  //           Expanded(
+  //               flex: 1,
+  //               child: Text(financier.name,
+  //                   textAlign: TextAlign.start, style: headerListStyle)),
+  //         const Expanded(
+  //             flex: 1,
+  //             child: Text("Ejecución",
+  //                 textAlign: TextAlign.start, style: headerListStyle)),
+  //         for (Contact partner in _project!.partnersObj)
+  //           Expanded(
+  //               flex: 1,
+  //               child: Text(partner.name,
+  //                   textAlign: TextAlign.start, style: headerListStyle)),
+  //       ]));
+  //   finnRows.add(headerRow);
+  //   finnRows.add(const Divider(thickness: 1, color: Colors.grey));
+  //   for (SFinn finn in finnList) {
+  //     int level = finn.getLevel();
+  //     if ((finnList.first != finn) && (level == 1)) {
+  //       finnRows.add(const Divider());
+  //     }
+  //     Map<dynamic, dynamic> summary = {"total": 0};
+  //     if (level == 1) {
+  //       summary = {"total": getAporte(finn.uuid)};
+  //     } else {
+  //       summary = {"total": getAporte(finn.uuid)};
+  //     }
+  //     TextStyle trunkStyle =
+  //         cellsListStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 15);
+  //     TextStyle leafStyle = cellsListStyle;
+  //     String finnTitle = "${finn.name}. ${finn.description}";
+  //     String suffix = "";
+  //     if (finnTitle.length > 45) {
+  //       suffix = "...";
+  //     }
+  //     finnRows.add(SizedBox(
+  //         height: 30,
+  //         child: Row(children: [
+  //           Expanded(
+  //               flex: widthFinn,
+  //               child: Padding(
+  //                   padding: EdgeInsets.only(left: finn.getLevel() * 15),
+  //                   child: Row(children: [
+  //                     Tooltip(
+  //                         message: finnTitle,
+  //                         child: Text(
+  //                             finnTitle.substring(
+  //                                     0, min(finnTitle.length, 45)) +
+  //                                 suffix,
+  //                             style: level == 1 ? trunkStyle : leafStyle)),
+  //                     IconButton(
+  //                         onPressed: () {
+  //                           // _editFinnDialog([context, finn, _project]);
+  //                           _editFinnDialog(context, finn);
+  //                         },
+  //                         icon: const Icon(Icons.edit, size: 15)),
+  //                     IconButton(
+  //                         onPressed: () {
+  //                           finnSelected = finn;
+  //                           reloadState();
+  //                         },
+  //                         icon: const Icon(Icons.list, size: 15))
+  //                   ]))),
+  //           Expanded(
+  //               flex: 1,
+  //               child: Text(toCurrency(summary["total"]),
+  //                   textAlign: TextAlign.start,
+  //                   style: level == 1 ? trunkStyle : leafStyle)),
+  //           for (Financier financier in _project!.financiersObj)
+  //             Expanded(
+  //                 flex: 1,
+  //                 child: withChildrens.contains(finn.name)
+  //                     ? Text(toCurrency(getAporte(finn.uuid, financier.uuid)),
+  //                         textAlign: TextAlign.start,
+  //                         style: level == 1 ? trunkStyle : leafStyle)
+  //                     : Row(children: [
+  //                         Text(toCurrency(getAporte(finn.uuid, financier.uuid)),
+  //                             textAlign: TextAlign.start,
+  //                             style: finn.getLevel() == 1
+  //                                 ? trunkStyle
+  //                                 : leafStyle),
+  //                         space(width: 5),
+  //                         IconButton(
+  //                             onPressed: () {
+  //                               _editFinnContribDialog(
+  //                                   context, finn, financier);
+  //                             },
+  //                             icon: const Icon(Icons.edit, size: 15))
+  //                       ])),
+  //           Expanded(
+  //               flex: 1,
+  //               child: Text(toCurrency(getDistrib(finn.uuid)),
+  //                   textAlign: TextAlign.start,
+  //                   style: level == 1
+  //                       ? (getDistrib(finn.uuid) > getAporte(finn.uuid))
+  //                           ? trunkStyle.copyWith(color: dangerColor)
+  //                           : trunkStyle
+  //                       : (getDistrib(finn.uuid) > getAporte(finn.uuid))
+  //                           ? leafStyle.copyWith(color: dangerColor)
+  //                           : leafStyle)),
+  //           for (Contact partner in _project!.partnersObj)
+  //             Expanded(
+  //                 flex: 1,
+  //                 child: withChildrens.contains(finn.name)
+  //                     ? Text(toCurrency(getDistrib(finn.uuid, partner.uuid)),
+  //                         textAlign: TextAlign.start,
+  //                         style: level == 1 ? trunkStyle : leafStyle)
+  //                     : Row(children: [
+  //                         Text(toCurrency(getDistrib(finn.uuid, partner.uuid)),
+  //                             textAlign: TextAlign.start,
+  //                             style: level == 1 ? trunkStyle : leafStyle),
+  //                         space(width: 5),
+  //                         IconButton(
+  //                             onPressed: () {
+  //                               _editFinnDistDialog(context, finn, partner);
+  //                             },
+  //                             icon: const Icon(Icons.edit, size: 15))
+  //                       ]))
+  //         ])));
+  //     //finnRows.add(const Divider(thickness: 1, color: Colors.grey));
+  //   }
+  //   return Card(
+  //       child: Padding(
+  //     padding: const EdgeInsets.all(20),
+  //     child: Column(children: finnRows),
+  //   ));
+  // }
+
   Widget populateFinnContainer() {
     int widthFinn = 3;
     List<Widget> finnRows = [];
@@ -347,11 +494,11 @@ class _FinnsPageState extends State<FinnsPage> {
               flex: 1,
               child: Text("Aportaciones",
                   textAlign: TextAlign.start, style: headerListStyle)),
-          for (Financier financier in _project!.financiersObj)
-            Expanded(
-                flex: 1,
-                child: Text(financier.name,
-                    textAlign: TextAlign.start, style: headerListStyle)),
+          // for (Financier financier in _project!.financiersObj)
+          //   Expanded(
+          //       flex: 1,
+          //       child: Text(financier.name,
+          //           textAlign: TextAlign.start, style: headerListStyle)),
           const Expanded(
               flex: 1,
               child: Text("Ejecución",
@@ -383,6 +530,8 @@ class _FinnsPageState extends State<FinnsPage> {
       if (finnTitle.length > 45) {
         suffix = "...";
       }
+
+      // Load information for each finn
       finnRows.add(SizedBox(
           height: 30,
           child: Row(children: [
@@ -411,32 +560,31 @@ class _FinnsPageState extends State<FinnsPage> {
                           },
                           icon: const Icon(Icons.list, size: 15))
                     ]))),
-            Expanded(
-                flex: 1,
-                child: Text(toCurrency(summary["total"]),
-                    textAlign: TextAlign.start,
-                    style: level == 1 ? trunkStyle : leafStyle)),
+            // Expanded(
+            //     flex: 1,
+            //     child: Text(toCurrency(summary["total"]),
+            //         textAlign: TextAlign.start,
+            //         style: level == 1 ? trunkStyle : leafStyle)),
             for (Financier financier in _project!.financiersObj)
-              Expanded(
-                  flex: 1,
-                  child: withChildrens.contains(finn.name)
-                      ? Text(toCurrency(getAporte(finn.uuid, financier.uuid)),
-                          textAlign: TextAlign.start,
-                          style: level == 1 ? trunkStyle : leafStyle)
-                      : Row(children: [
-                          Text(toCurrency(getAporte(finn.uuid, financier.uuid)),
-                              textAlign: TextAlign.start,
-                              style: finn.getLevel() == 1
-                                  ? trunkStyle
-                                  : leafStyle),
-                          space(width: 5),
-                          IconButton(
-                              onPressed: () {
-                                _editFinnContribDialog(
-                                    context, finn, financier);
-                              },
-                              icon: const Icon(Icons.edit, size: 15))
-                        ])),
+              if (belongsTo(finn, financier.uuid))
+                Expanded(
+                    flex: 1,
+                    child: withChildrens.contains(finn.name)
+                        ? Text(toCurrency(getAporte(finn.uuid)),
+                            textAlign: TextAlign.start,
+                            style: level == 1 ? trunkStyle : leafStyle)
+                        : Row(children: [
+                            Text(toCurrency(getAporte(finn.uuid)),
+                                textAlign: TextAlign.start,
+                                style: level == 1 ? trunkStyle : leafStyle),
+                            space(width: 5),
+                            IconButton(
+                                onPressed: () {
+                                  _editFinnContribDialog(
+                                      context, finn, financier);
+                                },
+                                icon: const Icon(Icons.edit, size: 15))
+                          ])),
             Expanded(
                 flex: 1,
                 child: Text(toCurrency(getDistrib(finn.uuid)),
@@ -523,7 +671,7 @@ class _FinnsPageState extends State<FinnsPage> {
       for (Organization item in val) {
         financiers[item.uuid] = item;
       }
-    }); 
+    });
 
     SFinn.byProject(_project!.uuid).then((val) {
       finnList = val;
@@ -589,7 +737,17 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("%", style: headerListStyle))),
+                          child: Text("%",
+                              style: headerListStyle,
+                              textAlign: TextAlign.right))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Text("",
+                              style: headerListStyle,
+                              textAlign: TextAlign.right))),
                 ])),
             const Divider(thickness: 1, color: Colors.grey),
             for (SFinn finn in finnList)
@@ -635,6 +793,16 @@ class _FinnsPageState extends State<FinnsPage> {
                                     textAlign: TextAlign.right,
                                   )),
                       ),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: IconButton(
+                                onPressed: () {},
+                                icon: const Icon(Icons.list),
+                                padding: EdgeInsets.zero)),
+                      ),
                     ])
                   : Container(),
             const Divider(thickness: 1, color: Colors.grey),
@@ -661,10 +829,14 @@ class _FinnsPageState extends State<FinnsPage> {
           ));
         }
       }
-      finnanciersRows.add(Row(      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,children: rowItems));
+      finnanciersRows.add(Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: rowItems));
     }
-    return Column(children: finnanciersRows, );
+    return Column(
+      children: finnanciersRows,
+    );
   }
 
   Future<double> invoicesByPartner() async {
@@ -753,8 +925,8 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget finnAddBtn(context, _project) {
-    return actionButtonVertical(context, 'Nueva partida', addFinnDialog,
-        Icons.add, context);
+    return actionButtonVertical(
+        context, 'Nueva partida', addFinnDialog, Icons.add, context);
   }
 
   Widget transferButton(context, _project) {
@@ -1062,7 +1234,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]));
   }
 
-  Future<void> _editFinnContribDialog(context, finn, financierObj) {
+  Future<void> _editFinnContribDialog(context, SFinn finn, financierObj) {
     List<Row> rows = [];
     TextEditingController amount = TextEditingController(text: "0");
     TextEditingController comment = TextEditingController(text: "");
@@ -1131,6 +1303,8 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: saveBtnForm(context, () {
                         item.amount = double.parse(amount.text);
                         item.subject = comment.text;
+                        item.finn = finn.uuid;
+                        item.financier = finn.orgUuid;
                         item.save();
                         if (!aportesItems.contains(item)) {
                           aportesItems.add(item);
@@ -1297,7 +1471,6 @@ class _FinnsPageState extends State<FinnsPage> {
             key: null,
             project: _project!,
             existingFinn: SFinn.getEmpty()..project = _project!.uuid,
-
           ),
         );
       },
@@ -1316,7 +1489,7 @@ class _FinnsPageState extends State<FinnsPage> {
               key: null,
               project: _project!,
               existingFinn: finn,
-               ));
+            ));
       },
     );
   }
