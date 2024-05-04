@@ -71,7 +71,8 @@ class _FinnsPageState extends State<FinnsPage> {
       SFinn finn = finnUuidHash[finnUuid]!;
       for (FinnContribution item in aportesItems) {
         SFinn itemFinn = finnUuidHash[item.finn]!;
-        if ((itemFinn.name.startsWith(finn.name)) &&
+        if (((itemFinn.name.startsWith(finn.name)) &&
+                (itemFinn.orgUuid == finn.orgUuid)) &&
             (financierUuid == null ||
                 item.financier == financierUuid ||
                 equivalencies[item.financier] == financierUuid)) {
@@ -1259,8 +1260,7 @@ class _FinnsPageState extends State<FinnsPage> {
         finn.uuid, comment.text);
 
     for (FinnContribution contribution in aportesItems) {
-      if ((contribution.finn == finn.uuid) &&
-          (contribution.financier == financierObj.uuid)) {
+      if ((contribution.finn == finn.uuid)) {
         item = contribution;
         amount.text = item.amount.toStringAsFixed(2);
         comment.text = item.subject;
