@@ -747,6 +747,7 @@ class Invoice {
     if (finnUuids.isEmpty) {
       return items;
     }
+
     final query = await collection.where("finn", whereIn: finnUuids).get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
@@ -754,6 +755,7 @@ class Invoice {
       items.add(item);
     }
     items.sort((a, b) => a.date.compareTo(b.date));
+
     return items;
   }
 

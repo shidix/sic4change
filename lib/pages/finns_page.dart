@@ -67,15 +67,19 @@ class _FinnsPageState extends State<FinnsPage> {
       equivalencies[financier.uuid] = financier.organization;
     }
     double aporte = 0;
-    SFinn finn = finnUuidHash[finnUuid]!;
-    for (FinnContribution item in aportesItems) {
-      SFinn itemFinn = finnUuidHash[item.finn]!;
-      if ((itemFinn.name.startsWith(finn.name)) &&
-          (financierUuid == null ||
-              item.financier == financierUuid ||
-              equivalencies[item.financier] == financierUuid)) {
-        aporte += item.amount;
+    try {
+      SFinn finn = finnUuidHash[finnUuid]!;
+      for (FinnContribution item in aportesItems) {
+        SFinn itemFinn = finnUuidHash[item.finn]!;
+        if ((itemFinn.name.startsWith(finn.name)) &&
+            (financierUuid == null ||
+                item.financier == financierUuid ||
+                equivalencies[item.financier] == financierUuid)) {
+          aporte += item.amount;
+        }
       }
+    } catch (e) {
+      print("ERROR:> $e");
     }
     return aporte;
   }
@@ -89,6 +93,7 @@ class _FinnsPageState extends State<FinnsPage> {
     SFinn finn = finnUuidHash[finnUuid]!;
     for (FinnDistribution item in distribItems) {
       SFinn itemFinn = finnUuidHash[item.finn]!;
+
       if (((itemFinn.name.startsWith(finn.name)) &&
               (!withChildrens.contains(itemFinn.name))) &&
           (partnerUuid == null ||
@@ -550,7 +555,10 @@ class _FinnsPageState extends State<FinnsPage> {
                       IconButton(
                           onPressed: () {
                             // _editFinnDialog([context, finn, _project]);
-                            _editFinnDialog(context, finn);
+                            _editFinnDialog(context, finn).then((value) {
+                              finnSelected = value;
+                              reloadState();
+                            });
                           },
                           icon: const Icon(Icons.edit, size: 15)),
                       IconButton(
@@ -625,6 +633,13 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Future<void> reloadState() async {
+    finnList.sort((a, b) {
+      if (a.orgUuid == b.orgUuid) {
+        return a.name.compareTo(b.name);
+      } else {
+        return a.orgUuid.compareTo(b.orgUuid);
+      }
+    });
     if (aportesItems.isEmpty) {
       await FinnContribution.getByProject(_project!.uuid).then((val) {
         aportesItems = val;
@@ -959,7 +974,8 @@ class _FinnsPageState extends State<FinnsPage> {
       finnHash[_finn.name] = _finn;
       finnUuidHash[_finn.uuid] = _finn;
     }
-    finnList.sort((a, b) => (a.name).compareTo(b.name));
+    // finnList.sort((a, b) => (a.name).compareTo(b.name));
+
     reloadState();
   }
 
@@ -1453,6 +1469,8 @@ class _FinnsPageState extends State<FinnsPage> {
       if (value != null) {
         if (!finnList.contains(value)) {
           finnList.add(value);
+          finnHash[value.name] = value;
+          finnUuidHash[value.uuid] = value;
         }
         reloadState();
       }
