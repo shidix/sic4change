@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget projectInfoMenu(context, project, tabSelected) {
+Widget profileMenu(context, project, tabSelected) {
   return Container(
     padding: const EdgeInsets.only(left: 10, right: 10),
     child: Row(

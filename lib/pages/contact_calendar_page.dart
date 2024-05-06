@@ -10,8 +10,6 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:http/io_client.dart' show IOClient, IOStreamedResponse;
 import 'package:http/http.dart' show BaseRequest, Response;
 
-import 'package:path_provider/path_provider.dart';
-
 const contactCalendarPageTitle = "Calendario";
 //List trackingList = [];
 

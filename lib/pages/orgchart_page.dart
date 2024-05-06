@@ -14,7 +14,7 @@ class Orgchart extends StatefulWidget {
 }
 
 class _OrgchartState extends State<Orgchart> {
-  User user = FirebaseAuth.instance.currentUser!;
+  //User user = FirebaseAuth.instance.currentUser!;
   Profile? currentProfile;
   List<Profile> profiles = [];
   List<Profile> filteredProfiles = [];
@@ -173,7 +173,7 @@ class _OrgchartState extends State<Orgchart> {
       child: Container(
           child: Column(
         children: [
-          mainMenu(context, user, "/orgchart"),
+          mainMenu(context, "/orgchart"),
           Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [

@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenu(context, user, "/home"),
+          mainMenu(context, "/home"),
           Container(
             height: 10,
           ),

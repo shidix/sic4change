@@ -42,7 +42,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         children: [
           mainMenu(context),
           projectInfoHeader(context, project),
-          projectInfoMenu(context, project, "reformulation"),
+          profileMenu(context, project, "reformulation"),
           contentTab(context, reformulationList, null)
         ],
       ),

@@ -27,7 +27,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     final user = FirebaseAuth.instance.currentUser!;
     return Scaffold(
       body: Column(children: [
-        mainMenu(context, null, "/tasks_user"),
+        mainMenu(context, "/tasks_user"),
         taskHeader(context),
         space(height: 20),
         taskMenu(context, "taskUser"),

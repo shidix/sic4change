@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
-import 'package:sic4change/widgets/main_menu_admin_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_list_menu_widget.dart';
@@ -78,7 +77,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenuAdmin(context, null, "/projects"),
+          mainMenu(context, "/projects"),
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),

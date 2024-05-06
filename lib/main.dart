@@ -8,6 +8,7 @@ import 'package:sic4change/pages/index.dart';
 // Importaciones de firebase
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/pages/orgchart_page.dart';
+import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'firebase_options.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
     '/tasks_user': (context) => const TasksUserPage(),
     '/task_info': (context) => const TaskInfoPage(),
     '/orgchart': (context) => const Orgchart(),
+    '/profile': (context) => const ProfilePage(),
   };
 
   @override

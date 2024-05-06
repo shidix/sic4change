@@ -43,7 +43,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, null, "/tasks_user"),
+          mainMenu(context, "/tasks_user"),
           projectTaskHeader(context, task),
           space(height: 20),
           contentTab(context, taskInfoDetails, null)

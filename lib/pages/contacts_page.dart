@@ -24,7 +24,7 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
-  User user = FirebaseAuth.instance.currentUser!;
+  //User user = FirebaseAuth.instance.currentUser!;
 
   void loadOrgs() async {
     setState(() {
@@ -106,7 +106,7 @@ class _ContactsPageState extends State<ContactsPage> {
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [
-        mainMenu(context, user, "/contacts"),
+        mainMenu(context, "/contacts"),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
             padding: const EdgeInsets.all(20),
@@ -162,6 +162,11 @@ class _ContactsPageState extends State<ContactsPage> {
                       )),
                   addBtnRow(context, filterOrganizations, {"filter": "all"},
                       text: "Ver todas", icon: Icons.search),
+                  addBtnRow(
+                    context,
+                    callEditOrgDialog,
+                    {'org': Organization("")},
+                  ),
                 ])),
         Container(
           padding: const EdgeInsets.all(5),
@@ -255,6 +260,80 @@ class _ContactsPageState extends State<ContactsPage> {
     }
   }
 
+  void saveOrganization(List args) async {
+    Organization org = args[0];
+    org.save();
+    loadOrgs();
+
+    Navigator.pop(context);
+  }
+
+  void callEditOrgDialog(context, Map<String, dynamic> args) async {
+    Organization org = args["org"];
+    orgEditDialog(context, org);
+  }
+
+  Future<void> orgEditDialog(context, org) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Organización"),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: org.name,
+                  size: 300,
+                  fieldValue: (String val) {
+                    org.name = val;
+                  },
+                )
+              ]),
+              space(width: 20),
+              Column(children: [
+                customText("Financiador", 12),
+                FormField<bool>(builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: org.financier,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        org.financier = value!;
+                        state.didChange(org.financier);
+                      });
+                    },
+                  );
+                })
+              ]),
+              space(width: 20),
+              Column(children: [
+                customText("Socio", 12),
+                FormField<bool>(builder: (FormFieldState<bool> state) {
+                  return Checkbox(
+                    value: org.partner,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        org.partner = value!;
+                        state.didChange(org.partner);
+                      });
+                    },
+                  );
+                })
+              ]),
+            ]),
+          ])),
+          actions: <Widget>[
+            dialogsBtns2(context, saveOrganization, [org]),
+          ],
+        );
+      },
+    );
+  }
+
   void removeOrganizationDialog(context, args) {
     //customRemoveDialog(context, args["org"], loadOrgs, null);
     customRemoveDialog(context, null, removeOrganization, args["org"]);
@@ -262,9 +341,14 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void removeOrganization(args) {
     Organization org = args;
+    org.delete();
+    loadOrgs();
     //print(org.name);
   }
 
+/*-------------------------------------------------------------
+                            CONTACTS
+-------------------------------------------------------------*/
   void filterContacts(context, args) {
     if (args["filter"] == "all") {
       loadContacts("-1");
@@ -284,7 +368,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SizedBox(
-                      width: 600,
+                      width: 500,
                       child: SearchBar(
                         controller: searchController,
                         padding: const MaterialStatePropertyAll<EdgeInsets>(
@@ -298,6 +382,7 @@ class _ContactsPageState extends State<ContactsPage> {
                       text: "Ver genéricos", icon: Icons.search),
                   addBtnRow(context, filterContacts, {"filter": "all"},
                       text: "Ver todos", icon: Icons.search),
+                  addBtnRow(context, callEditDialog, {"contact": Contact("")}),
                 ])),
         Container(
           padding: const EdgeInsets.all(5),
@@ -349,7 +434,7 @@ class _ContactsPageState extends State<ContactsPage> {
                   Text(contact.companyObj.name),
                 ),
                 // const DataCell(Text("")),
-                DataCell(Text(contact.position)),
+                DataCell(Text(contact.positionObj.name)),
                 DataCell(Text(contact.phone)),
                 DataCell(Row(children: [
                   goPageIcon(
@@ -493,7 +578,7 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   void removeContactDialog(context, args) {
-    customRemoveDialog(context, args["contact"], loadContacts, null);
+    customRemoveDialog(context, args["contact"], loadContacts, "-1");
   }
 
   /*Future<void> _removeContactDialog(context, _contact) async {
