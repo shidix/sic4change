@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -56,8 +55,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
   bool belongsTo(SFinn finn, String financierUuid) {
     Map<String, String> equivalencies = {};
-    for (Financier financier in _project!.financiersObj) {
-      equivalencies[financier.uuid] = financier.organization;
+    for (String financier in _project!.financiers) {
+      equivalencies[financier] = financier;
     }
     return (equivalencies[financierUuid] == finn.orgUuid);
   }
@@ -95,6 +94,9 @@ class _FinnsPageState extends State<FinnsPage> {
     SFinn finn = finnUuidHash[finnUuid]!;
     for (FinnDistribution item in distribItems) {
       SFinn itemFinn = finnUuidHash[item.finn]!;
+      if (itemFinn.orgUuid != finn.orgUuid) {
+        continue;
+      }
 
       if (((itemFinn.name.startsWith(finn.name)) &&
               (!withChildrens.contains(itemFinn.name))) &&
@@ -143,8 +145,10 @@ class _FinnsPageState extends State<FinnsPage> {
 
     List<Widget> sourceRows = [];
     for (String financier in _project!.financiers) {
+      if (!financiers.containsKey(financier)) {
+        continue;
+      }
       Organization? org = financiers[financier];
-      // Organization? org = Organization.byUuidNoSync(financier);
       if (!aportesTotalByFinancier.containsKey(financier)) {
         aportesTotalByFinancier[financier] = 0;
       }
@@ -172,7 +176,7 @@ class _FinnsPageState extends State<FinnsPage> {
         Expanded(
             flex: 1, child: Text(toCurrency(aporte), textAlign: TextAlign.end)),
       ]));
-      if (_project!.financiersObj.last != financier) {
+      if (_project!.financiers.last != financier) {
         sourceRows.add(const Divider(thickness: 1, color: Colors.white));
       }
     }
@@ -234,6 +238,10 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     for (FinnDistribution distribution in distribItems) {
+      if (!finnUuidHash.containsKey(distribution.finn)) {
+        distribution.delete();
+        continue;
+      }
       SFinn finn = finnUuidHash[distribution.finn]!;
       if (withChildrens.contains(finn.name)) {
         continue;
@@ -394,7 +402,6 @@ class _FinnsPageState extends State<FinnsPage> {
         suffix = "...";
       }
 
-      // Load information for each finn
       finnRows.add(SizedBox(
           height: 30,
           child: Row(children: [
@@ -431,11 +438,11 @@ class _FinnsPageState extends State<FinnsPage> {
                           },
                           icon: const Icon(Icons.list, size: 15))
                     ]))),
-            // Expanded(
-            //     flex: 1,
-            //     child: Text(toCurrency(summary["total"]),
-            //         textAlign: TextAlign.start,
-            //         style: level == 1 ? trunkStyle : leafStyle)),
+            Expanded(
+                flex: 1,
+                child: Text(toCurrency(summary["total"]),
+                    textAlign: TextAlign.start,
+                    style: level == 1 ? trunkStyle : leafStyle)),
             for (Financier financier in _project!.financiersObj)
               if (belongsTo(finn, financier.uuid))
                 Expanded(
@@ -516,6 +523,7 @@ class _FinnsPageState extends State<FinnsPage> {
     if (invoicesItems.isEmpty) {
       await invoicesByPartner().then((val) {});
     }
+
     if (mounted) {
       setState(() {
         aportesSummaryContainer = populateAportesSummaryContainer();
@@ -535,26 +543,30 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void loadInitialData() {
-    // Organization.getFinanciers().then((val) {
-    //   for (Organization item in val) {
-    //     financiers[item.uuid] = item;
-    //   }
-    // });
-
-    for (String financier in _project!.financiers) {
-      financiers[financier] = Organization.byUuidNoSync(financier);
-    }
+    Organization.getFinanciers().then((val) {
+      for (Organization item in val) {
+        financiers[item.uuid] = item;
+      }
+    });
 
     totalBudgetProject = fromCurrency(_project!.budget);
     executedBudgetProject = 0;
 
     finnContainer = const Center(child: CircularProgressIndicator());
     invoicesContainer = Container(width: 0);
-    aportesSummaryContainer = populateAportesSummaryContainer();
+
+    finnanciersContainer = populateFinnanciersContainer();
+    if (aportesItems.isEmpty) {
+      FinnContribution.getByProject(_project!.uuid).then((val) {
+        aportesItems = val;
+        reloadState();
+      });
+    } else {
+      aportesSummaryContainer = populateAportesSummaryContainer();
+    }
+
     distribSummaryContainer = populateDistribSummaryContainer();
     summaryContainer = populateSummaryContainer();
-    finnanciersContainer = populateFinnanciersContainer();
-
     SFinn.byProject(_project!.uuid).then((val) {
       finnList = val;
 
@@ -607,13 +619,17 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("Presupuesto", style: headerListStyle))),
+                          child: Text("Presupuesto",
+                              style: headerListStyle,
+                              textAlign: TextAlign.right))),
                   Expanded(
                       flex: 2,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("Ejecutado", style: headerListStyle))),
+                          child: Text("Ejecutado",
+                              style: headerListStyle,
+                              textAlign: TextAlign.right))),
                   Expanded(
                       flex: 1,
                       child: Padding(
@@ -648,7 +664,7 @@ class _FinnsPageState extends State<FinnsPage> {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 10),
                               child: Text(
-                                toCurrency(getAporte(finn.uuid, item.uuid)),
+                                toCurrency(getAporte(finn.uuid)),
                                 textAlign: TextAlign.right,
                               ))),
                       Expanded(
@@ -665,11 +681,19 @@ class _FinnsPageState extends State<FinnsPage> {
                         child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 10),
-                            child: getAporte(finn.uuid) != 0
-                                ? Text(
-                                    "${(getDistrib(finn.uuid) / getAporte(finn.uuid, item.uuid) * 100).toStringAsFixed(0)}%",
-                                    textAlign: TextAlign.right,
-                                  )
+                            child: ((getAporte(finn.uuid) != 0) &&
+                                    (getDistrib(finn.uuid) != 0))
+                                ? (getDistrib(finn.uuid) >=
+                                        getAporte(finn.uuid))
+                                    ? Text(
+                                        "100%",
+                                        style: dangerText.copyWith(
+                                            fontSize: dangerText.fontSize! - 2),
+                                      )
+                                    : Text(
+                                        "${(getDistrib(finn.uuid) / getAporte(finn.uuid) * 100).toStringAsFixed(0)}%",
+                                        textAlign: TextAlign.right,
+                                      )
                                 : const Text(
                                     "0%",
                                     textAlign: TextAlign.right,
@@ -917,6 +941,8 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget populateSummaryContainer() {
+    aportesSummaryContainer ??= populateAportesSummaryContainer();
+    distribSummaryContainer ??= populateDistribSummaryContainer();
     return Row(children: [
       Expanded(flex: 1, child: aportesSummaryContainer!),
       Expanded(flex: 1, child: distribSummaryContainer!),

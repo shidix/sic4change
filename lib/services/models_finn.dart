@@ -237,7 +237,6 @@ class SFinn {
       }
       ;
       List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
-      print("DBG childres.length: ${childrensUuid.length}");
 
       // FinnContribution.getSummaryByProject project)
     });
