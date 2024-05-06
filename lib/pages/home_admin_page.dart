@@ -16,7 +16,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
-import 'package:sic4change/widgets/main_menu_admin_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -162,7 +161,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenuAdmin(context, user, "/home_admin"),
+          mainMenu(context, "/home_admin"),
           Container(
             height: 10,
           ),

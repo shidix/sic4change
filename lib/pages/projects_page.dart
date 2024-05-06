@@ -97,7 +97,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, null, "/projects"),
+          mainMenu(context, "/projects"),
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),
@@ -381,7 +381,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ),
             IconButton(
               icon: const Icon(Icons.remove_circle_outline),
-              tooltip: 'Editar proyecto',
+              tooltip: 'Eliminar proyecto',
               onPressed: () {
                 projectRemoveDialog(context, _project);
               },

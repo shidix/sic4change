@@ -1,7 +1,5 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/activity_indicators_page.dart';
 import 'package:sic4change/services/models_marco.dart';

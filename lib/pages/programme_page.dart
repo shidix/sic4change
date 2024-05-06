@@ -95,7 +95,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenu(context, null, "/projects"),
+          mainMenu(context, "/projects"),
           programmeHeader(),
           loading
               ? const Center(

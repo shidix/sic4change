@@ -6,6 +6,9 @@ final FirebaseFirestore db = FirebaseFirestore.instance;
 class Profile {
   String id;
   String email;
+  String name = "";
+  String position = "";
+  String phone = "";
   List<dynamic> holidaySupervisor;
   String mainRole;
 
@@ -27,12 +30,16 @@ class Profile {
   });
 
   factory Profile.fromJson(Map data) {
-    return Profile(
+    Profile profile = Profile(
       id: data['id'],
       email: data['email'],
       holidaySupervisor: data['holidaySupervisor'],
       mainRole: data['mainRole'],
     );
+    profile.name = data['name'];
+    profile.position = data['position'];
+    profile.phone = data['phone'];
+    return profile;
   }
 
   factory Profile.fromFirestore(DocumentSnapshot doc) {
@@ -44,6 +51,9 @@ class Profile {
   Map<String, dynamic> toJson() => {
         'id': id,
         'email': email,
+        'name': name,
+        'position': position,
+        'phone': phone,
         'holidaySupervisor': holidaySupervisor,
         'mainRole': mainRole,
       };

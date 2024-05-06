@@ -56,7 +56,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, null, "/documents"),
+          mainMenu(context, "/documents"),
           foldersHeader(context, currentFolder),
           Expanded(
               child: Container(

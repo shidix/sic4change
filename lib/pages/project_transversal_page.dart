@@ -70,7 +70,7 @@ class ProjectTransversalPage extends StatefulWidget {
 
 class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   TransversalQuestion? currentQuestion;
-  User user = FirebaseAuth.instance.currentUser!;
+  //User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
 
   Quality? quality;
@@ -243,7 +243,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
   }
 
-
   Widget generalPanel(context, questions, califications, dialog) {
     return Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -266,16 +265,14 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                     shrinkWrap: true,
                     itemCount: questions!.length,
                     itemBuilder: (BuildContext context, int index) {
-                      TransversalQuestion item =
-                          questions!.elementAt(index);
+                      TransversalQuestion item = questions!.elementAt(index);
                       return Tooltip(
                           message: 'Click para editar',
                           showDuration: const Duration(seconds: 0),
                           child: ListTile(
                               subtitle: rowTransversal(item, califications),
                               onTap: () {
-                                dialog(
-                                    {'context': context, 'item': item});
+                                dialog({'context': context, 'item': item});
                               }));
                     })
               ])
@@ -330,9 +327,9 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
     }
 
-    Widget panel = generalPanel(context, qualityQuestions, califications,
-        qualityQuestionDialog);
-        
+    Widget panel = generalPanel(
+        context, qualityQuestions, califications, qualityQuestionDialog);
+
     return Column(children: [
       panel,
       const Divider(
@@ -443,7 +440,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         genderQuestionsCounter++;
         questionsInMain++;
         if (question.completed) {
-
           genderQuestionsCompleted++;
           genderCounters.last++;
         }
@@ -462,8 +458,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${genderCounters.last}/$questionsInMain";
     }
 
-    Widget panel = generalPanel(context, genderQuestions, califications,
-        genderQuestionDialog);
+    Widget panel = generalPanel(
+        context, genderQuestions, califications, genderQuestionDialog);
     return Column(children: [
       panel,
       const Divider(
@@ -484,7 +480,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       }
     });
   }
-
 
   Widget transparencyPanel() {
     transparencyQuestions = transparency!.questions;
@@ -748,7 +743,12 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
-      goPage(context, "Volver", const ProjectsPage(), Icons.arrow_circle_left_outlined,),
+      goPage(
+        context,
+        "Volver",
+        const ProjectsPage(),
+        Icons.arrow_circle_left_outlined,
+      ),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -759,15 +759,15 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget content(context) {
     if (currentProject == null) {
       return Column(children: [
-        mainMenu(context, user, "/projects"),
-        Container(height: MediaQuery.of(context).size.height *0.75),
+        mainMenu(context, "/projects"),
+        Container(height: MediaQuery.of(context).size.height * 0.75),
         const Center(child: CircularProgressIndicator()),
         footer(context),
       ]);
     } else {
       return Column(
         children: [
-          mainMenu(context, user, "/projects"),
+          mainMenu(context, "/projects"),
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               child: Column(children: [

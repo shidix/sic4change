@@ -65,7 +65,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           mainMenu(context),
           projectInfoHeader(context, project),
-          projectInfoMenu(context, project, "info"),
+          profileMenu(context, project, "info"),
           projLoading
               ? contentTab(context, projectInfoDetails, {"project": project})
               : const Center(child: CircularProgressIndicator()),
@@ -792,11 +792,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void callPartnerEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
-    List<KeyValue> contacts = await getContactsHash();
-    editProjectPartnerDialog(context, project, contacts);
+    //List<KeyValue> contacts = await getContactsHash();
+    List<KeyValue> orgs = await getOrganizationsHash();
+    editProjectPartnerDialog(context, project, orgs);
+    //editProjectPartnerDialog(context, project, contacts);
   }
 
-  Future<void> editProjectPartnerDialog(context, project, contacts) {
+  Future<void> editProjectPartnerDialog(context, project, orgs) {
     TextEditingController controller = TextEditingController(text: "");
     return showDialog<void>(
       context: context,
@@ -811,7 +813,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 labelText: 'Socio',
                 size: 220,
                 selected: KeyValue("", ""),
-                options: contacts,
+                options: orgs,
                 onSelectedOpt: (String val) {
                   project?.partners.add(val);
                   controller.text = val;
