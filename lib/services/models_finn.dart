@@ -145,7 +145,13 @@ class SFinn {
         }
       }
     });
-    items.sort((a, b) => a.name.compareTo(b.name));
+    items.sort((a, b) {
+      if (a.orgUuid == b.orgUuid) {
+        return a.name.compareTo(b.name);
+      } else {
+        return a.orgUuid.compareTo(b.orgUuid);
+      }
+    });
     return items;
   }
 
@@ -239,6 +245,9 @@ class SFinn {
 
   void save() {
     final database = db.collection("s4c_finns");
+    if (uuid == "") {
+      uuid = const Uuid().v4();
+    }
     if (id == "") {
       id = uuid;
       Map<String, dynamic> data = toJson();
@@ -738,6 +747,7 @@ class Invoice {
     if (finnUuids.isEmpty) {
       return items;
     }
+
     final query = await collection.where("finn", whereIn: finnUuids).get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
@@ -745,6 +755,7 @@ class Invoice {
       items.add(item);
     }
     items.sort((a, b) => a.date.compareTo(b.date));
+
     return items;
   }
 
