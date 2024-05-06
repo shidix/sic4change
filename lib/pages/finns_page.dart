@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -63,8 +64,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
   double getAporte(String finnUuid, [String? financierUuid]) {
     Map<String, String> equivalencies = {};
-    for (Financier financier in _project!.financiersObj) {
-      equivalencies[financier.uuid] = financier.organization;
+    for (Organization financier in financiers.values) {
+      equivalencies[financier.uuid] = financier.uuid;
     }
     double aporte = 0;
     try {
@@ -116,7 +117,6 @@ class _FinnsPageState extends State<FinnsPage> {
     for (var financier in _project!.financiers) {
       for (FinnContribution contribution in aportesItems) {
         if (!(finnUuidHash.containsKey(contribution.finn))) {
-          print(1);
           contribution.delete();
           continue;
         }
@@ -142,18 +142,19 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     List<Widget> sourceRows = [];
-    for (Financier financier in _project!.financiersObj) {
-      if (!aportesTotalByFinancier.containsKey(financier.uuid)) {
-        aportesTotalByFinancier[financier.uuid] = 0;
+    for (String financier in _project!.financiers) {
+      Organization? org = financiers[financier];
+      // Organization? org = Organization.byUuidNoSync(financier);
+      if (!aportesTotalByFinancier.containsKey(financier)) {
+        aportesTotalByFinancier[financier] = 0;
       }
-      double aporte = aportesTotalByFinancier[financier.uuid]!;
+      double aporte = aportesTotalByFinancier[financier]!;
       double aportePercent =
           (totalBudgetProject == 0) ? 0 : aporte / totalBudgetProject;
       sourceRows.add(Row(children: [
-        (financiers.containsKey(financier.organization))
-            ? Expanded(
-                flex: 2, child: Text(financiers[financier.organization]!.name))
-            : Expanded(flex: 2, child: Text(financier.name)),
+        (financiers.containsKey(financier))
+            ? Expanded(flex: 2, child: Text(org!.name))
+            : Expanded(flex: 2, child: Text(org!.name)),
         Expanded(
             flex: 2,
             child: LinearPercentIndicator(
@@ -534,6 +535,16 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void loadInitialData() {
+    // Organization.getFinanciers().then((val) {
+    //   for (Organization item in val) {
+    //     financiers[item.uuid] = item;
+    //   }
+    // });
+
+    for (String financier in _project!.financiers) {
+      financiers[financier] = Organization.byUuidNoSync(financier);
+    }
+
     totalBudgetProject = fromCurrency(_project!.budget);
     executedBudgetProject = 0;
 
@@ -543,12 +554,6 @@ class _FinnsPageState extends State<FinnsPage> {
     distribSummaryContainer = populateDistribSummaryContainer();
     summaryContainer = populateSummaryContainer();
     finnanciersContainer = populateFinnanciersContainer();
-
-    Organization.getFinanciers().then((val) {
-      for (Organization item in val) {
-        financiers[item.uuid] = item;
-      }
-    });
 
     SFinn.byProject(_project!.uuid).then((val) {
       finnList = val;

@@ -278,6 +278,7 @@ class FinnContribution {
   double amount;
   String finn;
   String subject;
+  Organization? organization;
 
   FinnContribution(
       this.id, this.financier, this.amount, this.finn, this.subject);
@@ -288,6 +289,11 @@ class FinnContribution {
         amount = json["amount"],
         subject = json["subject"],
         finn = json["finn"];
+
+  Future<Organization> getOrganization() async {
+    organization ??= await Organization.byUuid(financier);
+    return organization!;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,

@@ -120,6 +120,23 @@ class Organization {
     return items;
   }
 
+  static Organization byUuidNoSync(String uuid) {
+    Organization item = Organization("None");
+    dbOrg.where("uuid", isEqualTo: uuid).get().then((query) {
+      if (query.docs.isNotEmpty) {
+        try {
+          Map<String, dynamic> data =
+              query.docs.first.data() as Map<String, dynamic>;
+          data["id"] = query.docs.first.id;
+          item = Organization.fromJson(data);
+        } catch (e) {
+          print("ERROR : $e");
+        }
+      }
+    });
+    return item;
+  }
+
   static Future<Organization> byUuid(String uuid) async {
     Organization item = Organization("None");
     QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: uuid).get();
