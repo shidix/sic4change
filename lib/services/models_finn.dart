@@ -236,8 +236,7 @@ class SFinn {
         });
       }
       ;
-      List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
-      print("DBG childres.length: ${childrensUuid.length}");
+      // List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
 
       // FinnContribution.getSummaryByProject project)
     });
@@ -278,6 +277,7 @@ class FinnContribution {
   double amount;
   String finn;
   String subject;
+  Organization? organization;
 
   FinnContribution(
       this.id, this.financier, this.amount, this.finn, this.subject);
@@ -288,6 +288,11 @@ class FinnContribution {
         amount = json["amount"],
         subject = json["subject"],
         finn = json["finn"];
+
+  Future<Organization> getOrganization() async {
+    organization ??= await Organization.byUuid(financier);
+    return organization!;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
