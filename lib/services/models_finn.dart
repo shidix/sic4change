@@ -236,7 +236,7 @@ class SFinn {
         });
       }
       ;
-      List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
+      // List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
 
       // FinnContribution.getSummaryByProject project)
     });

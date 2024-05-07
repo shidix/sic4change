@@ -44,6 +44,7 @@ class _FinnsPageState extends State<FinnsPage> {
   List<Widget> invoicesList = [];
   List invoicesItems = [];
   SFinn? finnSelected;
+  String? financierUuidSelected;
   double totalBudgetProject = 0;
 
   Widget? invoicesContainer;
@@ -358,142 +359,157 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget populateFinnContainer() {
     int widthFinn = 3;
     List<Widget> finnRows = [];
-    Container headerRow = Container(
-        color: headerListBgColor,
-        child: Row(children: [
-          Expanded(
-              flex: widthFinn,
-              child: const Padding(
-                  padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
-                  child: Text("Partida", style: headerListStyle))),
-          const Expanded(
-              flex: 1,
-              child: Text("Aportaciones",
-                  textAlign: TextAlign.start, style: headerListStyle)),
-          const Expanded(
-              flex: 1,
-              child: Text("Ejecución",
-                  textAlign: TextAlign.start, style: headerListStyle)),
-          for (Contact partner in _project!.partnersObj)
-            Expanded(
-                flex: 1,
-                child: Text(partner.name,
-                    textAlign: TextAlign.start, style: headerListStyle)),
-        ]));
-    finnRows.add(headerRow);
-    finnRows.add(const Divider(thickness: 1, color: Colors.grey));
-    for (SFinn finn in finnList) {
-      int level = finn.getLevel();
-      if ((finnList.first != finn) && (level == 1)) {
-        finnRows.add(const Divider());
-      }
-      Map<dynamic, dynamic> summary = {"total": 0};
-      if (level == 1) {
-        summary = {"total": getAporte(finn.uuid)};
-      } else {
-        summary = {"total": getAporte(finn.uuid)};
-      }
-      TextStyle trunkStyle =
-          cellsListStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 15);
-      TextStyle leafStyle = cellsListStyle;
-      String finnTitle = "${finn.name}. ${finn.description}";
-      String suffix = "";
-      if (finnTitle.length > 45) {
-        suffix = "...";
-      }
-
-      finnRows.add(SizedBox(
-          height: 30,
+    if (financierUuidSelected != null) {
+      Container headerRow = Container(
+          color: headerListBgColor,
           child: Row(children: [
             Expanded(
                 flex: widthFinn,
-                child: Padding(
-                    padding: EdgeInsets.only(left: finn.getLevel() * 15),
-                    child: Row(children: [
-                      Tooltip(
-                          message: finnTitle,
-                          child: Text(
-                              finnTitle.substring(
-                                      0, min(finnTitle.length, 45)) +
-                                  suffix,
-                              style: level == 1 ? trunkStyle : leafStyle)),
-                      IconButton(
-                          onPressed: () {
-                            // _editFinnDialog([context, finn, _project]);
-                            _editFinnDialog(context, finn).then((value) {
-                              if (finn.id == "") {
-                                finnList.remove(finn);
-                                finnHash.remove(finn.name);
-                                finnUuidHash.remove(finn.uuid);
-                              }
-                              finnSelected = null;
-                              reloadState();
-                            });
-                          },
-                          icon: const Icon(Icons.edit, size: 15)),
-                      IconButton(
-                          onPressed: () {
-                            finnSelected = finn;
-                            reloadState();
-                          },
-                          icon: const Icon(Icons.list, size: 15))
-                    ]))),
-            Expanded(
+                child: const Padding(
+                    padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
+                    child: Text("Partida", style: headerListStyle))),
+            const Expanded(
                 flex: 1,
-                child: Text(toCurrency(summary["total"]),
-                    textAlign: TextAlign.start,
-                    style: level == 1 ? trunkStyle : leafStyle)),
-            for (Financier financier in _project!.financiersObj)
-              if (belongsTo(finn, financier.uuid))
+                child: Text("Aportaciones",
+                    textAlign: TextAlign.start, style: headerListStyle)),
+            const Expanded(
+                flex: 1,
+                child: Text("Ejecución",
+                    textAlign: TextAlign.start, style: headerListStyle)),
+            for (Contact partner in _project!.partnersObj)
+              Expanded(
+                  flex: 1,
+                  child: Text(partner.name,
+                      textAlign: TextAlign.start, style: headerListStyle)),
+          ]));
+      finnRows.add(headerRow);
+      finnRows.add(const Divider(thickness: 1, color: Colors.grey));
+      for (SFinn finn in finnList) {
+        if (finn.orgUuid != financierUuidSelected) {
+          continue;
+        }
+        int level = finn.getLevel();
+        if ((finnList.first != finn) && (level == 1)) {
+          finnRows.add(const Divider());
+        }
+        Map<dynamic, dynamic> summary = {"total": 0};
+        if (level == 1) {
+          summary = {"total": getAporte(finn.uuid)};
+        } else {
+          summary = {"total": getAporte(finn.uuid)};
+        }
+        TextStyle trunkStyle =
+            cellsListStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 15);
+        TextStyle leafStyle = cellsListStyle;
+        String finnTitle = "${finn.name}. ${finn.description}";
+        String suffix = "";
+        if (finnTitle.length > 45) {
+          suffix = "...";
+        }
+
+        finnRows.add(SizedBox(
+            height: 30,
+            child: Row(children: [
+              Expanded(
+                  flex: widthFinn,
+                  child: Padding(
+                      padding: EdgeInsets.only(left: finn.getLevel() * 15),
+                      child: Row(children: [
+                        Tooltip(
+                            message: finnTitle,
+                            child: Text(
+                                finnTitle.substring(
+                                        0, min(finnTitle.length, 45)) +
+                                    suffix,
+                                style: level == 1 ? trunkStyle : leafStyle)),
+                        IconButton(
+                            onPressed: () {
+                              // _editFinnDialog([context, finn, _project]);
+                              _editFinnDialog(context, finn).then((value) {
+                                if (finn.id == "") {
+                                  finnList.remove(finn);
+                                  finnHash.remove(finn.name);
+                                  finnUuidHash.remove(finn.uuid);
+                                }
+                                finnSelected = null;
+                                reloadState();
+                              });
+                            },
+                            icon: const Icon(Icons.edit, size: 15)),
+                        IconButton(
+                            onPressed: () {
+                              finnSelected = finn;
+                              reloadState();
+                            },
+                            icon: const Icon(Icons.list, size: 15))
+                      ]))),
+              Expanded(
+                  flex: 1,
+                  child: Text(toCurrency(summary["total"]),
+                      textAlign: TextAlign.start,
+                      style: level == 1 ? trunkStyle : leafStyle)),
+              for (Financier financier in _project!.financiersObj)
+                if (belongsTo(finn, financier.uuid))
+                  Expanded(
+                      flex: 1,
+                      child: withChildrens.contains(finn.name)
+                          ? Text(toCurrency(getAporte(finn.uuid)),
+                              textAlign: TextAlign.start,
+                              style: level == 1 ? trunkStyle : leafStyle)
+                          : Row(children: [
+                              Text(toCurrency(getAporte(finn.uuid)),
+                                  textAlign: TextAlign.start,
+                                  style: level == 1 ? trunkStyle : leafStyle),
+                              space(width: 5),
+                              IconButton(
+                                  onPressed: () {
+                                    _editFinnContribDialog(
+                                        context, finn, financier);
+                                  },
+                                  icon: const Icon(Icons.edit, size: 15))
+                            ])),
+              Expanded(
+                  flex: 1,
+                  child: Text(toCurrency(getDistrib(finn.uuid)),
+                      textAlign: TextAlign.start,
+                      style: level == 1
+                          ? (getDistrib(finn.uuid) > getAporte(finn.uuid))
+                              ? trunkStyle.copyWith(color: dangerColor)
+                              : trunkStyle
+                          : (getDistrib(finn.uuid) > getAporte(finn.uuid))
+                              ? leafStyle.copyWith(color: dangerColor)
+                              : leafStyle)),
+              for (Contact partner in _project!.partnersObj)
                 Expanded(
                     flex: 1,
                     child: withChildrens.contains(finn.name)
-                        ? Text(toCurrency(getAporte(finn.uuid)),
+                        ? Text(toCurrency(getDistrib(finn.uuid, partner.uuid)),
                             textAlign: TextAlign.start,
                             style: level == 1 ? trunkStyle : leafStyle)
                         : Row(children: [
-                            Text(toCurrency(getAporte(finn.uuid)),
+                            Text(
+                                toCurrency(getDistrib(finn.uuid, partner.uuid)),
                                 textAlign: TextAlign.start,
                                 style: level == 1 ? trunkStyle : leafStyle),
                             space(width: 5),
                             IconButton(
                                 onPressed: () {
-                                  _editFinnContribDialog(
-                                      context, finn, financier);
+                                  _editFinnDistDialog(context, finn, partner);
                                 },
                                 icon: const Icon(Icons.edit, size: 15))
-                          ])),
-            Expanded(
-                flex: 1,
-                child: Text(toCurrency(getDistrib(finn.uuid)),
-                    textAlign: TextAlign.start,
-                    style: level == 1
-                        ? (getDistrib(finn.uuid) > getAporte(finn.uuid))
-                            ? trunkStyle.copyWith(color: dangerColor)
-                            : trunkStyle
-                        : (getDistrib(finn.uuid) > getAporte(finn.uuid))
-                            ? leafStyle.copyWith(color: dangerColor)
-                            : leafStyle)),
-            for (Contact partner in _project!.partnersObj)
-              Expanded(
-                  flex: 1,
-                  child: withChildrens.contains(finn.name)
-                      ? Text(toCurrency(getDistrib(finn.uuid, partner.uuid)),
-                          textAlign: TextAlign.start,
-                          style: level == 1 ? trunkStyle : leafStyle)
-                      : Row(children: [
-                          Text(toCurrency(getDistrib(finn.uuid, partner.uuid)),
-                              textAlign: TextAlign.start,
-                              style: level == 1 ? trunkStyle : leafStyle),
-                          space(width: 5),
-                          IconButton(
-                              onPressed: () {
-                                _editFinnDistDialog(context, finn, partner);
-                              },
-                              icon: const Icon(Icons.edit, size: 15))
-                        ]))
-          ])));
-      //finnRows.add(const Divider(thickness: 1, color: Colors.grey));
+                          ]))
+            ])));
+        //finnRows.add(const Divider(thickness: 1, color: Colors.grey));
+      }
+    } else {
+      finnRows.add(
+          const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(
+          Icons.ads_click,
+        ),
+        Text("Seleccione un financiador o una partida para ver los detalles")
+      ]));
+      finnRows.add(const Divider(thickness: 1, color: Colors.grey));
     }
     return Card(
         child: Padding(
@@ -598,9 +614,20 @@ class _FinnsPageState extends State<FinnsPage> {
             child: Padding(
           padding: const EdgeInsets.all(5),
           child: Column(children: [
-            Container(
-              child: Text(item.name, style: headerListStyle),
-            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(item.name, style: headerListStyle),
+              IconButton(
+                  icon: Icon(Icons.ads_click),
+                  onPressed: () {
+                    finnSelected = null;
+                    if (financierUuidSelected == item.uuid) {
+                      financierUuidSelected = null;
+                    } else {
+                      financierUuidSelected = item.uuid;
+                    }
+                    reloadState();
+                  })
+            ]),
             const Divider(thickness: 1, color: Colors.grey),
             Container(
                 color: headerListBgColor,
@@ -689,6 +716,7 @@ class _FinnsPageState extends State<FinnsPage> {
                                         "100%",
                                         style: dangerText.copyWith(
                                             fontSize: dangerText.fontSize! - 2),
+                                        textAlign: TextAlign.right,
                                       )
                                     : Text(
                                         "${(getDistrib(finn.uuid) / getAporte(finn.uuid) * 100).toStringAsFixed(0)}%",
@@ -705,8 +733,12 @@ class _FinnsPageState extends State<FinnsPage> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 10),
                             child: IconButton(
-                                onPressed: () {},
-                                icon: const Icon(Icons.list),
+                                onPressed: () {
+                                  finnSelected = finn;
+                                  financierUuidSelected = item.uuid;
+                                  reloadState();
+                                },
+                                icon: const Icon(Icons.ads_click_outlined),
                                 padding: EdgeInsets.zero)),
                       ),
                     ])
