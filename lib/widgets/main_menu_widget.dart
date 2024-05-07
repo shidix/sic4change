@@ -67,6 +67,14 @@ Widget mainMenuAdmin(context, [user, url]) {
             (url == "/project_list")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
+        menuBtn(
+            context,
+            "Documentos",
+            Icons.folder,
+            "/documents",
+            (url == "/documents")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),

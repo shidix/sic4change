@@ -40,7 +40,7 @@ class SProject {
   ProjectStatus statusObj = ProjectStatus("");
   Contact managerObj = Contact("");
   Programme programmeObj = Programme("");
-  List<Financier> financiersObj = [];
+  List<Organization> financiersObj = [];
   List<Contact> partnersObj = [];
   ProjectDates datesObj = ProjectDates("");
   ProjectLocation locationObj = ProjectLocation("");
@@ -320,7 +320,7 @@ class SProject {
     }
   }
 
-  Future<List<Financier>> getFinanciers() async {
+  Future<List<Organization>> getFinanciers() async {
     /*List<Financier> finList = [];
     for (String fin in financiers) {
       try {
@@ -335,15 +335,14 @@ class SProject {
     }
     return finList;*/
     if (financiersObj.isEmpty) {
-      List<Financier> finList = [];
+      List<Organization> finList = [];
       for (String fin in financiers) {
         try {
-          QuerySnapshot query =
-              await dbFinancier.where("uuid", isEqualTo: fin).get();
+          QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: fin).get();
           final doc = query.docs.first;
           final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           data["id"] = doc.id;
-          Financier financier = Financier.fromJson(data);
+          Organization financier = Organization.fromJson(data);
           finList.add(financier);
         } catch (e) {}
       }
@@ -355,7 +354,7 @@ class SProject {
 
   String getFinanciersStr() {
     String finList = "";
-    for (Financier fin in financiersObj) {
+    for (Organization fin in financiersObj) {
       finList += ", ${fin.name}";
     }
     if (finList.length > 1) return finList.substring(2);
@@ -914,7 +913,7 @@ Future<ProjectLocation> getProjectLocationByProject(String _project) async {
 //--------------------------------------------------------------
 //                       PROJECT FINANCIER
 //--------------------------------------------------------------
-CollectionReference dbFinancier = db.collection("s4c_financier");
+/*CollectionReference dbFinancier = db.collection("s4c_financier");
 
 class Financier {
   String id = "";
@@ -1012,7 +1011,7 @@ Future<List<KeyValue>> getFinanciersHash() async {
   }
 
   return items;
-}
+}*/
 
 //--------------------------------------------------------------
 //                       PROJECT REFORMULATION
@@ -1030,7 +1029,8 @@ class Reformulation {
   String financier = "";
   //SProject projectObj = SProject("", "");
   SProject projectObj = SProject("");
-  Financier financierObj = Financier("");
+  //Financier financierObj = Financier("");
+  Organization financierObj = Organization("");
 
   Reformulation(this.project);
 
@@ -1086,16 +1086,16 @@ class Reformulation {
     }
   }
 
-  Future<Financier> getFinancier() async {
+  Future<Organization> getFinancier() async {
     try {
       QuerySnapshot query =
-          await dbFinancier.where("uuid", isEqualTo: financier).get();
+          await dbOrg.where("uuid", isEqualTo: financier).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      return Financier.fromJson(data);
+      return Organization.fromJson(data);
     } catch (e) {
-      return Financier("");
+      return Organization("");
     }
   }
 }

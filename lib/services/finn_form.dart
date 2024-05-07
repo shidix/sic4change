@@ -308,7 +308,11 @@ class _BankTransferFormState extends State<BankTransferForm> {
     List<DropdownMenuItem<Object>>? financiers = [];
     financiers.add(
         const DropdownMenuItem(value: "", child: Text("Selecciona un emisor")));
-    for (Financier financier in widget.project!.financiersObj) {
+    /*for (Financier financier in widget.project!.financiersObj) {
+      financiers.add(
+          DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
+    }*/
+    for (Organization financier in widget.project!.financiersObj) {
       financiers.add(
           DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
     }
@@ -692,7 +696,8 @@ class SFinnForm extends StatefulWidget {
   final SFinn? existingFinn;
   final SProject? project;
 
-  const SFinnForm({Key? key, this.existingFinn, this.project}) : super(key: key);
+  const SFinnForm({Key? key, this.existingFinn, this.project})
+      : super(key: key);
 
   @override
   createState() => _SFinnFormState();
@@ -711,19 +716,21 @@ class _SFinnFormState extends State<SFinnForm> {
     } else {
       _finn = widget.existingFinn!;
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     List<DropdownMenuItem<Object>>? financiers = [];
-    financiers.add(
-        const DropdownMenuItem(value: "", child: Text("Selecciona un financiador")));
-    for (Financier financier in widget.project!.financiersObj) {
+    financiers.add(const DropdownMenuItem(
+        value: "", child: Text("Selecciona un financiador")));
+    /*for (Financier financier in widget.project!.financiersObj) {
       financiers.add(
           DropdownMenuItem(value: financier.organization, child: Text(financier.name)));
+    }*/
+    for (Organization financier in widget.project!.financiersObj) {
+      financiers.add(
+          DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
     }
-
 
     List<Widget> buttons;
 
@@ -773,20 +780,22 @@ class _SFinnFormState extends State<SFinnForm> {
             children: [
               Row(
                 children: [
-                  Expanded(flex:2, child:
-                                DropdownButtonFormField(
-                  value: _finn.orgUuid,
-                  decoration: const InputDecoration(labelText: 'Financiador'),
-                  items: financiers,
-                  validator: (value) {
-                    if (value == null || value == "") {
-                      return 'Por favor, seleccione un financiador';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    _finn.orgUuid = value.toString();
-                  })),
+                  Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField(
+                          value: _finn.orgUuid,
+                          decoration:
+                              const InputDecoration(labelText: 'Financiador'),
+                          items: financiers,
+                          validator: (value) {
+                            if (value == null || value == "") {
+                              return 'Por favor, seleccione un financiador';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            _finn.orgUuid = value.toString();
+                          })),
                   Expanded(
                     flex: 1,
                     child: TextFormField(
@@ -805,7 +814,8 @@ class _SFinnFormState extends State<SFinnForm> {
                     flex: 2,
                     child: TextFormField(
                       initialValue: _finn.description,
-                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      decoration:
+                          const InputDecoration(labelText: 'Descripción'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor, ingrese la descripción';
@@ -817,7 +827,6 @@ class _SFinnFormState extends State<SFinnForm> {
                   )
                 ],
               ),
-
               const SizedBox(height: 16.0),
               Row(children: buttons),
             ],

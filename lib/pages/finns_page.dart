@@ -55,16 +55,22 @@ class _FinnsPageState extends State<FinnsPage> {
 
   bool belongsTo(SFinn finn, String financierUuid) {
     Map<String, String> equivalencies = {};
-    for (Financier financier in _project!.financiersObj) {
+    /*for (Financier financier in _project!.financiersObj) {
       equivalencies[financier.uuid] = financier.organization;
+  }*/
+    for (Organization financier in _project!.financiersObj) {
+      equivalencies[financier.uuid] = financier.uuid;
     }
     return (equivalencies[financierUuid] == finn.orgUuid);
   }
 
   double getAporte(String finnUuid, [String? financierUuid]) {
     Map<String, String> equivalencies = {};
-    for (Financier financier in _project!.financiersObj) {
+    /*for (Financier financier in _project!.financiersObj) {
       equivalencies[financier.uuid] = financier.organization;
+    }*/
+    for (Organization financier in _project!.financiersObj) {
+      equivalencies[financier.uuid] = financier.uuid;
     }
     double aporte = 0;
     try {
@@ -142,7 +148,40 @@ class _FinnsPageState extends State<FinnsPage> {
     }
 
     List<Widget> sourceRows = [];
-    for (Financier financier in _project!.financiersObj) {
+    for (Organization financier in _project!.financiersObj) {
+      if (!aportesTotalByFinancier.containsKey(financier.uuid)) {
+        aportesTotalByFinancier[financier.uuid] = 0;
+      }
+      double aporte = aportesTotalByFinancier[financier.uuid]!;
+      double aportePercent =
+          (totalBudgetProject == 0) ? 0 : aporte / totalBudgetProject;
+      sourceRows.add(Row(children: [
+        (financiers.containsKey(financier.uuid))
+            ? Expanded(flex: 2, child: Text(financiers[financier.uuid]!.name))
+            : Expanded(flex: 2, child: Text(financier.name)),
+        Expanded(
+            flex: 2,
+            child: LinearPercentIndicator(
+              percent: min(aportePercent, 1),
+              center: Text("${(aportePercent * 100).toStringAsFixed(0)} %",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+              lineHeight: 20,
+              animation: true,
+              animateFromLastPercent: true,
+              progressColor: percentBarPrimary,
+              backgroundColor: Colors.grey,
+              padding: EdgeInsets.zero,
+            )),
+        Expanded(
+            flex: 1, child: Text(toCurrency(aporte), textAlign: TextAlign.end)),
+      ]));
+      if (_project!.financiersObj.last != financier) {
+        sourceRows.add(const Divider(thickness: 1, color: Colors.white));
+      }
+    }
+
+    /*for (Financier financier in _project!.financiersObj) {
       if (!aportesTotalByFinancier.containsKey(financier.uuid)) {
         aportesTotalByFinancier[financier.uuid] = 0;
       }
@@ -174,7 +213,7 @@ class _FinnsPageState extends State<FinnsPage> {
       if (_project!.financiersObj.last != financier) {
         sourceRows.add(const Divider(thickness: 1, color: Colors.white));
       }
-    }
+    }*/
 
     return Card(
         child: Padding(
@@ -435,7 +474,27 @@ class _FinnsPageState extends State<FinnsPage> {
             //     child: Text(toCurrency(summary["total"]),
             //         textAlign: TextAlign.start,
             //         style: level == 1 ? trunkStyle : leafStyle)),
-            for (Financier financier in _project!.financiersObj)
+            /*for (Financier financier in _project!.financiersObj)
+              if (belongsTo(finn, financier.uuid))
+                Expanded(
+                    flex: 1,
+                    child: withChildrens.contains(finn.name)
+                        ? Text(toCurrency(getAporte(finn.uuid)),
+                            textAlign: TextAlign.start,
+                            style: level == 1 ? trunkStyle : leafStyle)
+                        : Row(children: [
+                            Text(toCurrency(getAporte(finn.uuid)),
+                                textAlign: TextAlign.start,
+                                style: level == 1 ? trunkStyle : leafStyle),
+                            space(width: 5),
+                            IconButton(
+                                onPressed: () {
+                                  _editFinnContribDialog(
+                                      context, finn, financier);
+                                },
+                                icon: const Icon(Icons.edit, size: 15))
+                          ])),*/
+            for (Organization financier in _project!.financiersObj)
               if (belongsTo(finn, financier.uuid))
                 Expanded(
                     flex: 1,

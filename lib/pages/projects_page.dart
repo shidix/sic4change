@@ -5,6 +5,7 @@ import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -405,7 +406,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     if (project.financiersObj.isNotEmpty) {
       for (var uuid in list) {
         financiers
-            .add((getObject(project.financiersObj, uuid) as Financier).name);
+            .add((getObject(project.financiersObj, uuid) as Organization).name);
       }
     }
 

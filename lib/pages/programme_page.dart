@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -41,9 +42,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
     Map<String, double> finMap = {};
     Map<String, String> finUUID = {};
     for (SProject project in projects) {
-      List<Financier> finList = await project.getFinanciers();
+      List<Organization> finList = await project.getFinanciers();
       project.financiersObj = finList;
-      for (Financier financier in finList) {
+      for (Organization financier in finList) {
         finMap[financier.name] = 0;
         finUUID[financier.name] = financier.uuid;
       }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/utils.dart';
@@ -120,13 +121,13 @@ class _TransfersPageState extends State<TransfersPage> {
     //return Contact("", "", "", "", "");
   }
 
-  Financier getFinancier(uuid) {
+  Organization getFinancier(uuid) {
     for (var financier in currentProject!.financiersObj) {
       if (financier.uuid == uuid) {
         return financier;
       }
     }
-    return Financier("");
+    return Organization("");
   }
 
   void addTransfer([int n = 1]) {

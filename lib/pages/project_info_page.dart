@@ -698,7 +698,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   void saveFinancier(List args) async {
     project!.updateProjectFinanciers();
-    Financier.getByUuid(args[0].text).then((value) {
+    //Financier.getByUuid(args[0].text).then((value) {
+    Organization.byUuid(args[0].text).then((value) {
       project?.financiersObj.add(value);
       setState(() {});
     });
@@ -706,7 +707,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void removeFinancierDialog(context, Map<String, dynamic> args) {
-    Financier financier = args["financier"];
+    Organization financier = args["financier"];
     customRemoveDialog(context, null, removeFinancier, financier);
   }
 
@@ -723,7 +724,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void callFinancierEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
-    List<KeyValue> financiers = await getFinanciersHash();
+    List<KeyValue> financiers = await getOrganizationsHash();
     editProjectFinancierDialog(context, project, financiers);
   }
 

@@ -241,8 +241,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
     Reformulation ref = args["ref"];
     List<KeyValue> financierList = [];
 
-    await getFinanciers().then((value) async {
-      for (Financier item in value) {
+    //await getFinanciers().then((value) async {
+    await getOrganizations().then((value) async {
+      for (Organization item in value) {
         financierList.add(item.toKeyValue());
       }
       _editDialog(context, ref, financierList);

@@ -15,13 +15,15 @@ List folders = [];
 enum SampleItem { itemOne, itemTwo, itemThree }
 
 class DocumentsPage extends StatefulWidget {
-  const DocumentsPage({super.key});
+  final Folder? currentFolder;
+  const DocumentsPage({super.key, this.currentFolder});
 
   @override
   State<DocumentsPage> createState() => _DocumentsPageState();
 }
 
 class _DocumentsPageState extends State<DocumentsPage> {
+  Folder? currentFolder;
   PlatformFile? pickedFile;
   Uint8List? pickedFileBytes;
   UploadTask? uploadTask;
@@ -41,15 +43,21 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final Folder? currentFolder;
+  initState() {
+    super.initState();
+    currentFolder = widget.currentFolder;
+  }
 
-    if (ModalRoute.of(context)!.settings.arguments != null) {
+  @override
+  Widget build(BuildContext context) {
+    //final Folder? currentFolder;
+
+    /*if (ModalRoute.of(context)!.settings.arguments != null) {
       HashMap args = ModalRoute.of(context)!.settings.arguments as HashMap;
       currentFolder = args["parent"];
     } else {
       currentFolder = null;
-    }
+    }*/
 
     return Scaffold(
       body: Column(
@@ -293,15 +301,18 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
             return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5,
-                  childAspectRatio: 3,
+                  crossAxisCount: 4,
+                  childAspectRatio: 5,
                 ),
                 itemCount: folders.length,
                 itemBuilder: (_, index) {
                   Folder? cFolder = folders[index];
                   return Row(children: [
-                    customRowBtn(context, folders[index].name, Icons.folder,
-                        "/documents", {"parent": cFolder}),
+                    goPage(context, folders[index].name,
+                        DocumentsPage(currentFolder: cFolder), Icons.folder,
+                        extraction: () {}),
+                    /*customRowBtn(context, folders[index].name, Icons.folder,
+                        "/documents", {"parent": cFolder}),*/
                     folderPopUpBtn(context, folders[index], currentFolder)
                   ]);
                 });
