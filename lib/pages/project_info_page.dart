@@ -948,6 +948,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     ProjectLocation loc = args[0];
     loc.save();
     loadProject();
+
+    Navigator.pop(context);
   }
 
   void _callLocationEditDialog(context, project) async {

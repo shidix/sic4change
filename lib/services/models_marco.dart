@@ -56,24 +56,23 @@ class Goal {
   }
 
   Future<String> getProjectByGoal() async {
-    Goal _goal;
-    SProject _project;
+    Goal goal;
+    SProject project;
 
     QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: uuid).get();
-    final _dbGoal = query.docs.first;
-    final Map<String, dynamic> data = _dbGoal.data() as Map<String, dynamic>;
-    data["id"] = _dbGoal.id;
-    _goal = Goal.fromJson(data);
+    final db = query.docs.first;
+    final Map<String, dynamic> data = db.data() as Map<String, dynamic>;
+    data["id"] = db.id;
+    goal = Goal.fromJson(data);
 
-    QuerySnapshot query_p =
-        await dbProject.where("uuid", isEqualTo: _goal.project).get();
-    final _dbProject = query_p.docs.first;
-    final Map<String, dynamic> dataProject =
-        _dbProject.data() as Map<String, dynamic>;
-    dataProject["id"] = _dbProject.id;
-    _project = SProject.fromJson(dataProject);
+    QuerySnapshot queryP =
+        await dbProject.where("uuid", isEqualTo: goal.project).get();
+    final dbP = queryP.docs.first;
+    final Map<String, dynamic> dataProject = dbP.data() as Map<String, dynamic>;
+    dataProject["id"] = dbP.id;
+    project = SProject.fromJson(dataProject);
 
-    return _project.name;
+    return project.name;
     //return _project.name + " > " + _goal.name;
   }
 }
@@ -90,13 +89,14 @@ Future<List> getGoals() async {
   return items;
 }
 
-Future<List> getGoalsByProject(String _project) async {
+Future<List> getGoalsByProject(String project) async {
   List<Goal> items = [];
 
   QuerySnapshot query = await dbGoal
       .orderBy("project")
       .orderBy("main", descending: true)
-      .where("project", isEqualTo: _project)
+      .orderBy("name", descending: false)
+      .where("project", isEqualTo: project)
       .get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

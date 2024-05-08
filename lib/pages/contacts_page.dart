@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/pages/organization_info_page.dart';
@@ -12,6 +11,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];
 List contacts = [];
+String currentOrg = "Ninguna seleccionada";
 bool orgsLoading = false;
 bool contactsLoading = false;
 
@@ -214,6 +214,7 @@ class _ContactsPageState extends State<ContactsPage> {
                     (org) => DataRow(
                         onSelectChanged: (bool? selected) {
                           if (selected == true) {
+                            currentOrg = org.name;
                             loadContacts(org.uuid);
                           }
                         },
@@ -384,6 +385,16 @@ class _ContactsPageState extends State<ContactsPage> {
                       text: "Ver todos", icon: Icons.search),
                   addBtnRow(context, callEditDialog, {"contact": Contact("")}),
                 ])),
+        Container(
+            padding: const EdgeInsets.only(top: 20, left: 30),
+            child: Row(
+              children: [
+                customText("Organización seleccionada:", 16,
+                    textColor: mainColor),
+                space(width: 10),
+                customText(currentOrg, 16, textColor: mainColor)
+              ],
+            )),
         Container(
           padding: const EdgeInsets.all(5),
           child: dataBody(context),
