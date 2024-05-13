@@ -17,6 +17,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 const projectTitle = "Proyectos";
 bool loading = false;
+Widget? _mainMenu;
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key, this.prList});
@@ -71,6 +72,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
   @override
   void initState() {
     super.initState();
+
+    _mainMenu = mainMenu(context, "/projects");
     getProjects().then((val) {
       if (mounted) {
         setState(() {
@@ -98,7 +101,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, "/projects"),
+          //mainMenu(context, "/projects"),
+          _mainMenu!,
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),
@@ -797,7 +801,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 "Esta información NO será recuperable, ¿está seguro/a de que desea borrarla?",
                                 16,
                                 bold: FontWeight.bold),
-                            customText(deleteMsg, 16, bold: FontWeight.bold),
+                            //customText(deleteMsg, 16, bold: FontWeight.bold),
                           ])),
             actions: <Widget>[
               Row(children: [

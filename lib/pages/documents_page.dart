@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 const pageTitle = "Documentos";
 List files = [];
 List folders = [];
+Widget? _mainMenu;
 
 enum SampleItem { itemOne, itemTwo, itemThree }
 
@@ -45,6 +46,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   initState() {
     super.initState();
     currentFolder = widget.currentFolder;
+    _mainMenu = mainMenu(context, "/documents");
   }
 
   @override
@@ -58,12 +60,14 @@ class _DocumentsPageState extends State<DocumentsPage> {
       currentFolder = null;
     }*/
 
+    if (currentFolder != null) print(currentFolder!.name);
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, "/documents"),
+          //mainMenu(context, "/documents"),
+          _mainMenu!,
           foldersHeader(context, currentFolder),
           Expanded(
               child: Container(
@@ -375,6 +379,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     String folderUuid = "";
     if (currentFolder != null) folderUuid = currentFolder!.uuid;
     Folder folder = args[0];
+    folder.parent = folderUuid;
     folder.save();
     loadFolders(folderUuid);
     Navigator.pop(context);

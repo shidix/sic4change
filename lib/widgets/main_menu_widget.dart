@@ -96,6 +96,7 @@ Widget mainMenu(context, [url]) {
   final user = FirebaseAuth.instance.currentUser!;
   String email = user.email!;
 
+  print("--A--");
   return FutureBuilder<Profile>(
     future:
         Profile.getProfile(email), // Llama a la función que devuelve el Future

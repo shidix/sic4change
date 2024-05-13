@@ -1,7 +1,4 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_marco.dart';
@@ -13,6 +10,8 @@ import 'package:sic4change/widgets/path_header_widget.dart';
 
 const goalPageTitle = "Marco Lógico";
 List goals = [];
+bool loadingGoal = false;
+Widget? _mainMenu;
 
 class GoalsPage extends StatefulWidget {
   final SProject? project;
@@ -30,7 +29,19 @@ class _GoalsPageState extends State<GoalsPage>
     Tab(text: "Actividades"),
     Tab(text: "Tareas"),
   ];*/
-  late TabController _tabController;
+  //late TabController _tabController;
+
+  void setLoading() {
+    setState(() {
+      loadingGoal = true;
+    });
+  }
+
+  void stopLoading() {
+    setState(() {
+      loadingGoal = false;
+    });
+  }
 
   void loadGoals() async {
     await getGoalsByProject(project!.uuid).then((val) {
@@ -43,7 +54,8 @@ class _GoalsPageState extends State<GoalsPage>
   initState() {
     super.initState();
     project = widget.project;
-    _tabController = TabController(vsync: this, length: 2);
+    _mainMenu = mainMenu(context);
+    //_tabController = TabController(vsync: this, length: 2);
     //_tabController = TabController(vsync: this, length: myTabs.length);
   }
 
@@ -51,12 +63,17 @@ class _GoalsPageState extends State<GoalsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        mainMenu(context),
+        //mainMenu(context),
+        _mainMenu!,
         //pathHeader(context, _project.name),
         goalPath(context, project),
         goalHeader(context, project),
         marcoMenu(context, project, "marco"),
-        contentTab(context, goalList, project),
+        loadingGoal
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : contentTab(context, goalList, project),
         footer(context),
       ]),
     );
@@ -71,17 +88,11 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget goalHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-      /*Container(
-        padding: const EdgeInsets.only(left: 40),
-        child: customText(goalPageTitle, 20),
-      ),*/
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            /*addBtn(
-                context, editGoalDialog, {'_goal': null, '_project': project}),*/
             addBtn(context, editGoalDialog, {'goal': Goal(project.uuid)}),
             space(width: 10),
             returnBtn(context),
@@ -266,9 +277,100 @@ class _GoalsPageState extends State<GoalsPage>
     ]);
   }
 
-  void removeGoalDialog(context, args) {
+  Future<void> removeGoalDialog(context, args) {
     //customRemoveDialog(context, args["goal"], loadGoals, args["project"]);
-    customRemoveDialog(context, args["goal"], loadGoals, null);
+    //customRemoveDialog(context, args["goal"], loadGoals, null);
+    Goal goal = args["goal"];
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Borrar objetivo'),
+            content: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  customText("Se va a borrar el objetivo ${goal.name}.", 16,
+                      bold: FontWeight.bold),
+                  space(height: 20),
+                  customText("En concreto se borrara:", 16),
+                  space(height: 10),
+                  customText(
+                      "- Información relacionadad con los resultados asociados al objetivo",
+                      16),
+                  space(height: 10),
+                  customText(
+                      "- Información relacionada con las actividades asociadas al objetivo",
+                      16),
+                  space(height: 10),
+                  customText(
+                      "- Información relacionada con los indicacores asociados al objetivo",
+                      16),
+                  space(height: 20),
+                  customText(
+                      "- Información relacionada con las tareas asociadas al objetivo",
+                      16),
+                  space(height: 20),
+                  customText(
+                      "Esta información NO será recuperable, ¿está seguro/a de que desea borrarla?",
+                      16,
+                      bold: FontWeight.bold),
+                ])),
+            actions: <Widget>[
+              Row(children: [
+                Expanded(
+                  flex: 5,
+                  child: actionButton(context, "Borrar", removeGoal,
+                      Icons.save_outlined, [goal]),
+                ),
+                space(width: 10),
+                Expanded(
+                    flex: 5,
+                    child: actionButton(
+                        context, "Cancelar", cancelItem, Icons.cancel, context))
+              ]),
+            ],
+          );
+        });
+  }
+
+  void removeGoal(List args) async {
+    setLoading();
+    Navigator.pop(context);
+
+    Goal goal = args[0];
+
+    List resultList = await getResultsByGoal(goal.uuid);
+    for (Result res in resultList) {
+      //Indicadores de resultado
+      List riList = await getResultIndicatorsByResult(res.uuid);
+      for (ResultIndicator ri in riList) {
+        ri.delete();
+      }
+
+      //Actividades del resultado
+      List actList = await getActivitiesByResult(res.uuid);
+      for (Activity act in actList) {
+        //Indicadores de la actividad
+        List aiList = await getActivityIndicatorsByActivity(act.uuid);
+        for (ActivityIndicator ai in aiList) {
+          ai.delete();
+        }
+        act.delete();
+      }
+
+      //Tareas del resultado
+      List taskList = await getResultTasksByResult(res.uuid);
+      for (ResultTask task in taskList) {
+        task.delete();
+      }
+      res.delete();
+    }
+    goal.delete();
+    stopLoading();
+    //loadProjects();
   }
 
   /*-------------------------------------------------------------
@@ -359,17 +461,9 @@ class _GoalsPageState extends State<GoalsPage>
                     itemBuilder: (BuildContext context, int index) {
                       Result result = results[index];
                       return Container(
-                        //height: 400,
                         padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        /*decoration: const BoxDecoration(
-                        border: Border(
-                            bottom:
-                                BorderSide(color: Color(0xffdfdfdf), width: 2)),
-                      ),*/
                         decoration: rowDecorationGreen,
                         child: Column(children: [
-                          /*editBtn(context, editResultDialog, {"result": Result(goal.uuid)},
-                icon: Icons.add),*/
                           resultRow(context, result, goal),
                         ]),
                       );
@@ -387,29 +481,10 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   Widget resultRow(context, result, goal) {
-    /*double percent = 0;
-    try {
-      percent = double.parse(result.indicatorPercent) / 100;
-    } on Exception catch (_) {}*/
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /*Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            customText('${result.name}', 14, bold: FontWeight.bold),
-            resultRowOptions(context, result, goal),
-          ],
-        ),
-        space(height: 10),
-        Text('${result.description}'),
-        space(height: 10),
-        customText('Fuente', 14, bold: FontWeight.bold),
-        space(height: 10),
-        Text('${result.source}'),
-        space(height: 10),*/
         IntrinsicHeight(
             child: Row(children: [
           SizedBox(
@@ -424,70 +499,113 @@ class _GoalsPageState extends State<GoalsPage>
               )),
           space(width: 10),
           customColumnDivider(),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Fuente", 14, bold: FontWeight.bold),
-            space(height: 5),
-            customText('${result.source}', 14),
-          ]),
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 3,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    customText("Fuente", 14, bold: FontWeight.bold),
+                    space(height: 5),
+                    customText('${result.source}', 14),
+                  ])),
+          customColumnDivider(),
+          editBtn(context, editResultDialog, {"result": result}),
+          removeBtn(context, removeResultDialog,
+              {"goal": goal.uuid, "result": result})
         ])),
         resultIndicatorsHeader(context, result),
         resultIndicators(context, result),
         resultActivitiesHeader(context, result),
         resultActivities(context, result),
-
-        //customRowDivider(),
-        //space(height: 10),
-        /*customText('Indicador del resultado', 14, bold: FontWeight.bold),
-        space(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('${result.indicatorText}'),
-            CircularPercentIndicator(
-              radius: 30.0,
-              lineWidth: 8.0,
-              percent: percent,
-              center: Text("$percent %"),
-              progressColor: Colors.lightGreen,
-            ),
-          ],
-        ),
-        space(height: 10),*/
-        //customRowDivider(),
-        /*TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(child: customText("Activiades", 14)),
-            Tab(child: customText("Tareas", 14))
-          ],
-        ),
-        SizedBox(
-            height: 300,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                activityList(context, result),
-                taskList(context, result),
-              ],
-            )),*/
       ],
     );
   }
 
-  Widget resultRowOptions(context, result, goal) {
-    return Row(children: [
-      /*goPageIcon(context, "Actividades", Icons.list_alt,
-          ActivitiesPage(result: result)),
-      goPageIcon(context, "Tareas", Icons.assignment_rounded,
-          ResultTasksPage(result: result)),*/
-      editBtn(context, editResultDialog, {"result": result}),
-      removeBtn(
-          context, removeResultDialog, {"goal": goal.uuid, "result": result})
-    ]);
+  Future<void> removeResultDialog(context, args) {
+    Result result = args["result"];
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Borrar resultado'),
+            content: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  customText("Se va a borrar el objetivo ${result.name}.", 16,
+                      bold: FontWeight.bold),
+                  space(height: 20),
+                  customText("En concreto se borrara:", 16),
+                  space(height: 10),
+                  customText(
+                      "- Información relacionada con las actividades asociadas al resultado",
+                      16),
+                  space(height: 10),
+                  customText(
+                      "- Información relacionada con los indicacores asociados al resultado",
+                      16),
+                  space(height: 20),
+                  customText(
+                      "- Información relacionada con las tareas asociadas al resultado",
+                      16),
+                  space(height: 20),
+                  customText(
+                      "Esta información NO será recuperable, ¿está seguro/a de que desea borrarla?",
+                      16,
+                      bold: FontWeight.bold),
+                ])),
+            actions: <Widget>[
+              Row(children: [
+                Expanded(
+                  flex: 5,
+                  child: actionButton(context, "Borrar", removeResult,
+                      Icons.save_outlined, [result]),
+                ),
+                space(width: 10),
+                Expanded(
+                    flex: 5,
+                    child: actionButton(
+                        context, "Cancelar", cancelItem, Icons.cancel, context))
+              ]),
+            ],
+          );
+        });
   }
 
-  void removeResultDialog(context, args) {
-    customRemoveDialog(context, args["result"], loadGoals, args["goal"]);
+  void removeResult(List args) async {
+    setLoading();
+    Navigator.pop(context);
+
+    Result res = args[0];
+
+    //Indicadores de resultado
+    List riList = await getResultIndicatorsByResult(res.uuid);
+    for (ResultIndicator ri in riList) {
+      ri.delete();
+    }
+
+    //Actividades del resultado
+    List actList = await getActivitiesByResult(res.uuid);
+    for (Activity act in actList) {
+      //Indicadores de la actividad
+      List aiList = await getActivityIndicatorsByActivity(act.uuid);
+      for (ActivityIndicator ai in aiList) {
+        ai.delete();
+      }
+      act.delete();
+    }
+
+    //Tareas del resultado
+    List taskList = await getResultTasksByResult(res.uuid);
+    for (ResultTask task in taskList) {
+      task.delete();
+    }
+
+    res.delete();
+    loadGoals();
+    stopLoading();
   }
 
   /*-------------------------------------------------------------
@@ -606,6 +724,8 @@ class _GoalsPageState extends State<GoalsPage>
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
+                  editBtn(context, editResultIndicatorDialog,
+                      {"indicator": indicator}),
                   removeBtn(context, removeResultIndicatorDialog,
                       {"indicator": indicator})
                 ]))
@@ -717,6 +837,7 @@ class _GoalsPageState extends State<GoalsPage>
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   /*goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),*/
+                  editBtn(context, editActivityDialog, {"activity": item}),
                   removeBtn(context, removeActivityDialog, {"item": item})
                 ]))
               ]),
@@ -729,134 +850,4 @@ class _GoalsPageState extends State<GoalsPage>
   void removeActivityDialog(context, args) {
     customRemoveDialog(context, args["item"], loadGoals, null);
   }
-
-  /*-------------------------------------------------------------
-                            ACTIVITIES
-  -------------------------------------------------------------*/
-/*  Widget activityList(context, result) {
-    return FutureBuilder(
-        future: getActivitiesByResult(result.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            activities = snapshot.data!;
-            if (activities.isNotEmpty) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                verticalDirection: VerticalDirection.down,
-                children: <Widget>[
-                  Expanded(
-                      child: Container(
-                          padding: const EdgeInsets.all(15),
-                          child: ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: activities.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                Activity activity = activities[index];
-                                return Container(
-                                  height: 100,
-                                  padding: const EdgeInsets.only(
-                                      top: 20, bottom: 10),
-                                  decoration: const BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(
-                                            color: Color(0xffdfdfdf))),
-                                  ),
-                                  child: activityRow(context, activity, result),
-                                );
-                              })))
-                ],
-              );
-            } else {
-              return const Text("");
-            }
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }
-
-  Widget activityRow(context, activity, result) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            customText('${activity.name}', 16),
-            //activityRowOptions(context, activity, result),
-          ],
-        ),
-      ],
-    );
-  }
-
-  /*-------------------------------------------------------------
-                            TASKS
-  -------------------------------------------------------------*/
-  Widget taskList(context, result) {
-    return FutureBuilder(
-        future: getResultTasksByResult(result.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            result_task_list = snapshot.data!;
-            if (result_task_list.isNotEmpty) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                verticalDirection: VerticalDirection.down,
-                children: <Widget>[
-                  Expanded(
-                      child: Container(
-                          padding: const EdgeInsets.all(15),
-                          child: ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: result_task_list.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                ResultTask task = result_task_list[index];
-                                return Container(
-                                  height: 80,
-                                  padding: const EdgeInsets.only(
-                                      top: 20, bottom: 10),
-                                  decoration: const BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(
-                                            color: Color(0xffdfdfdf))),
-                                  ),
-                                  child: taskRow(context, task, result),
-                                );
-                              })))
-                ],
-              );
-            } else {
-              return const Text("");
-            }
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }
-
-  Widget taskRow(context, task, result) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            customText('${task.name}', 16),
-            //taskRowOptions(context, task, result),
-          ],
-        ),
-      ],
-    );
-  }*/
 }
