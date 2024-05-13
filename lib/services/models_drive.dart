@@ -142,38 +142,35 @@ class SFile {
     return loc;
   }
 
-
   static Future<SFile> byLoc(String loc) async {
     QuerySnapshot? query;
 
     query = await dbFile.where("loc", isEqualTo: loc).get();
     if (query.size == 0) {
       return SFile("", "", "");
-    }
-    else {
+    } else {
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       return SFile.fromJson(data);
     }
   }
-
 }
 
-Future<List> getFiles(String _folder) async {
+Future<List> getFiles(String folder) async {
   List files = [];
   QuerySnapshot? query;
 
-  if (_folder != "") {
-    query = await dbFile.where("folder", isEqualTo: _folder).get();
+  if (folder != "") {
+    query = await dbFile.where("folder", isEqualTo: folder).get();
   } else {
     query = await dbFile.where("folder", isEqualTo: "").get();
   }
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _file = SFile.fromJson(data);
-    files.add(_file);
+    final file = SFile.fromJson(data);
+    files.add(file);
   }
   return files;
 }

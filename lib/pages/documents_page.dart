@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -105,10 +104,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
         selectFile(currentFolder);
       },
       style: btnStyle,
-      // FilledButton.styleFrom(
-      //   side: const BorderSide(width: 0, color: Color(0xffffffff)),
-      //   backgroundColor: const Color(0xffffffff),
-      // ),
       child: const Column(
         children: [
           Icon(Icons.add, color: Colors.black54),
@@ -120,32 +115,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
         ],
       ),
     );
-    /*return ElevatedButton(
-      onPressed: () {
-        selectFile(currentFolder);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          customText(
-            "Add File",
-            14,
-            textColor: Colors.black,
-          ),
-        ],
-      ),
-    );*/
   }
 
   Future selectFile(currentFolder) async {
@@ -170,6 +139,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         setState(() {
           uploadTask = ref.putData(pickedFileBytes!);
         });
+        await uploadTask;
 
         String fileUrl = await ref.getDownloadURL();
 
@@ -270,7 +240,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
     return FilledButton(
       onPressed: () {
-        _folderEditDialog(context, nameController, null, currentFolder);
+        _folderEditDialog(
+            context, nameController, Folder("", ""), currentFolder);
       },
       style: btnStyle,
       child: const Column(
@@ -287,19 +258,16 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
   Widget folderList(context, currentFolder) {
-    String? parentUuid;
-    if (currentFolder == null) {
-      parentUuid = "";
-    } else {
-      parentUuid = currentFolder.uuid;
-    }
+    String parentUuid = "";
+    if (currentFolder != null) parentUuid = currentFolder.uuid;
+
     return FutureBuilder(
         future: getFolders(parentUuid!),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             folders = snapshot.data!;
 
-            return GridView.builder(
+            /*return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   childAspectRatio: 5,
@@ -315,6 +283,28 @@ class _DocumentsPageState extends State<DocumentsPage> {
                         "/documents", {"parent": cFolder}),*/
                     folderPopUpBtn(context, folders[index], currentFolder)
                   ]);
+                });*/
+            return ListView.builder(
+                //padding: const EdgeInsets.all(8),
+                itemCount: folders.length,
+                scrollDirection: Axis.horizontal,
+                //shrinkWrap: true,
+                itemBuilder: (BuildContext context, int index) {
+                  Folder? cFolder = folders[index];
+                  return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 60,
+                          child: goPage(
+                              context,
+                              folders[index].name,
+                              DocumentsPage(currentFolder: cFolder),
+                              Icons.folder,
+                              extraction: () {}),
+                        ),
+                        folderPopUpBtn(context, folders[index], currentFolder)
+                      ]);
                 });
           } else {
             return const Center(
@@ -381,86 +371,74 @@ class _DocumentsPageState extends State<DocumentsPage> {
 /*-------------------------------------------------------------
                         FOLDERS Dialogs
 ---------------------------------------------------------------*/
+  void saveFolder(List args) async {
+    String folderUuid = "";
+    if (currentFolder != null) folderUuid = currentFolder!.uuid;
+    Folder folder = args[0];
+    folder.save();
+    loadFolders(folderUuid);
+    Navigator.pop(context);
+  }
+
   Future<void> _folderEditDialog(
       context, controller, folder, currentFolder) async {
-    String folderUuid = "";
-    if (currentFolder != null) folderUuid = currentFolder.uuid;
-
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar(
               (currentFolder != null) ? 'Editar carpeta' : 'Nueva carpeta'),
           content: SingleChildScrollView(
             child: SizedBox(
               width: 250,
-              child: TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  hintText: "Nombre",
-                ),
-              ),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomTextField(
+                      labelText: "Nombre",
+                      initial: folder.name,
+                      size: 250,
+                      fieldValue: (String val) {
+                        setState(() => folder.name = val);
+                      },
+                    )
+                  ]),
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                if (folder != null) {
-                  folder.name = controller.text;
-                  folder.save();
-                } else {
-                  String parent =
-                      (currentFolder != null) ? currentFolder.uuid : "";
-                  Folder _folder = Folder(controller.text, parent);
-                  _folder.save();
-                }
-                loadFolders(folderUuid);
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            dialogsBtns(context, saveFolder, folder),
           ],
         );
       },
     );
   }
 
+  void deleteFolder(List args) async {
+    String folderUuid = "";
+    if (currentFolder != null) folderUuid = currentFolder!.uuid;
+    Folder folder = args[0];
+    folder.delete();
+    loadFolders(folderUuid);
+    Navigator.pop(context);
+  }
+
   Future<void> _confirmRemoveDialog(context, folder, currentFolder) async {
-    String _folderUuid = (currentFolder != null) ? currentFolder.uuid : "";
+    //String folderUuid = (currentFolder != null) ? currentFolder.uuid : "";
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Borrar carpeta'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Borrar carpeta"),
           content: const SingleChildScrollView(
             child: Text("Esta seguro/a de que desea borrar este elemento?"),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Borrar'),
-              onPressed: () async {
-                folder.delete();
-                loadFolders(_folderUuid);
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            dialogsBtns(context, deleteFolder, folder),
           ],
         );
       },
@@ -603,51 +581,52 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
-  Future<void> _fileEditDialog(context, controller, file, currentFolder) async {
-    String _folderUuid = "";
-    if (currentFolder != null) _folderUuid = currentFolder.uuid;
+  void saveFile(List args) async {
+    String folderUuid = "";
+    if (currentFolder != null) folderUuid = currentFolder!.uuid;
+    SFile file = args[0];
+    file.save();
+    loadFiles(folderUuid);
+    Navigator.pop(context);
+  }
 
+  Future<void> _fileEditDialog(context, controller, file, currentFolder) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cambiar nombre del fichero'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Cambiar nombre del fichero"),
           content: SingleChildScrollView(
               child: Row(children: [
-            SizedBox(
-              width: 250,
-              child: TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  hintText: "Nombre",
-                ),
-              ),
-            ),
-            //Text(_fileName),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Nombre",
+                initial: file.name,
+                size: 250,
+                fieldValue: (String val) {
+                  setState(() => file.name = val);
+                },
+              )
+            ]),
           ])),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                if (file != null) {
-                  file.name = controller.text;
-                  file.save();
-                  loadFiles(_folderUuid);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            dialogsBtns(context, saveFile, file),
           ],
         );
       },
     );
+  }
+
+  void deleteFile(List args) async {
+    String folderUuid = "";
+    if (currentFolder != null) folderUuid = currentFolder!.uuid;
+    SFile file = args[0];
+    FirebaseStorage.instance.refFromURL(file.link).delete();
+    file.delete();
+    loadFiles(folderUuid);
+    Navigator.pop(context);
   }
 
   Future<void> _confirmFileRemoveDialog(context, file, currentFolder) async {
@@ -656,27 +635,13 @@ class _DocumentsPageState extends State<DocumentsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Remove File'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Borrar fichero"),
           content: const SingleChildScrollView(
             child: Text("Esta seguro/a de que desea borrar este elemento?"),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Remove'),
-              onPressed: () async {
-                file.delete();
-                String folderUuid =
-                    (currentFolder != null) ? currentFolder.uuid : "";
-                loadFiles(folderUuid);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            dialogsBtns(context, deleteFile, file),
           ],
         );
       },
