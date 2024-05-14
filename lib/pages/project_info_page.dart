@@ -724,7 +724,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void callFinancierEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
-    List<KeyValue> financiers = await getOrganizationsHash();
+    //List<KeyValue> financiers = await getOrganizationsHash();
+    List<KeyValue> financiers = await getFinanciersHash();
     editProjectFinancierDialog(context, project, financiers);
   }
 
@@ -773,7 +774,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void savePartner(List args) async {
     project!.updateProjectPartners();
-    Contact.getByUuid(args[0].text).then((value) {
+    Organization.byUuid(args[0].text).then((value) {
       project?.partnersObj.add(value);
       setState(() {});
     });
@@ -794,7 +795,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void callPartnerEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
     //List<KeyValue> contacts = await getContactsHash();
-    List<KeyValue> orgs = await getOrganizationsHash();
+    //List<KeyValue> orgs = await getOrganizationsHash();
+    List<KeyValue> orgs = await getPartnersHash();
     editProjectPartnerDialog(context, project, orgs);
     //editProjectPartnerDialog(context, project, contacts);
   }

@@ -88,8 +88,11 @@ class _FinnsPageState extends State<FinnsPage> {
 
   double getDistrib(String finnUuid, [String? partnerUuid]) {
     Map<String, String> equivalencies = {};
-    for (Contact partner in _project!.partnersObj) {
+    /*for (Contact partner in _project!.partnersObj) {
       equivalencies[partner.uuid] = partner.organization;
+    }*/
+    for (Organization partner in _project!.partnersObj) {
+      equivalencies[partner.uuid] = partner.uuid;
     }
     double distrib = 0;
     SFinn finn = finnUuidHash[finnUuid]!;
@@ -267,7 +270,8 @@ class _FinnsPageState extends State<FinnsPage> {
     double percentExecuted = 0;
 
     List<Widget> sourceRows = [];
-    for (Contact partner in _project!.partnersObj) {
+    //for (Contact partner in _project!.partnersObj) {
+    for (Organization partner in _project!.partnersObj) {
       double executedByPartnerAmount = 0;
       if (invoicesSummary.containsKey(partner.uuid)) {
         executedByPartnerAmount = invoicesSummary[partner.uuid]!['total'];
@@ -376,7 +380,8 @@ class _FinnsPageState extends State<FinnsPage> {
                 flex: 1,
                 child: Text("Ejecución",
                     textAlign: TextAlign.start, style: headerListStyle)),
-            for (Contact partner in _project!.partnersObj)
+            //for (Contact partner in _project!.partnersObj)
+            for (Organization partner in _project!.partnersObj)
               Expanded(
                   flex: 1,
                   child: Text(partner.name,
@@ -479,7 +484,8 @@ class _FinnsPageState extends State<FinnsPage> {
                           : (getDistrib(finn.uuid) > getAporte(finn.uuid))
                               ? leafStyle.copyWith(color: dangerColor)
                               : leafStyle)),
-              for (Contact partner in _project!.partnersObj)
+              //for (Contact partner in _project!.partnersObj)
+              for (Organization partner in _project!.partnersObj)
                 Expanded(
                     flex: 1,
                     child: withChildrens.contains(finn.name)

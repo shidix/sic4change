@@ -10,7 +10,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
-  final List<Contact>? partners;
+  //final List<Contact>? partners;
+  final List<Organization>? partners;
 
   const InvoiceForm({Key? key, this.existingInvoice, this.partners})
       : super(key: key);
@@ -320,7 +321,8 @@ class _BankTransferFormState extends State<BankTransferForm> {
     List<DropdownMenuItem<Object>>? contacts = [];
     contacts.add(const DropdownMenuItem(
         value: "", child: Text("Selecciona un receptor")));
-    for (Contact contact in widget.project!.partnersObj) {
+    //for (Contact contact in widget.project!.partnersObj) {
+    for (Organization contact in widget.project!.partnersObj) {
       contacts.add(
           DropdownMenuItem(value: contact.uuid, child: Text(contact.name)));
     }

@@ -111,13 +111,14 @@ class _TransfersPageState extends State<TransfersPage> {
     );
   }
 
-  Contact getContact(uuid) {
+  //Contact getContact(uuid) {
+  Organization getContact(uuid) {
     for (var partner in currentProject!.partnersObj) {
       if (partner.uuid == uuid) {
         return partner;
       }
     }
-    return Contact("");
+    return Organization("");
     //return Contact("", "", "", "", "");
   }
 

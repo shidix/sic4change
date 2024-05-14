@@ -41,7 +41,7 @@ class SProject {
   Contact managerObj = Contact("");
   Programme programmeObj = Programme("");
   List<Organization> financiersObj = [];
-  List<Contact> partnersObj = [];
+  List<Organization> partnersObj = [];
   ProjectDates datesObj = ProjectDates("");
   ProjectLocation locationObj = ProjectLocation("");
 
@@ -377,18 +377,18 @@ class SProject {
     return items;
   }
 
-  Future<List<Contact>> getPartners() async {
+  //Future<List<Contact>> getPartners() async {
+  Future<List<Organization>> getPartners() async {
     if (partnersObj.isEmpty) {
-      List<Contact> parList = [];
+      List<Organization> parList = [];
       for (String par in partners) {
         try {
-          QuerySnapshot query =
-              await dbContacts.where("uuid", isEqualTo: par).get();
-          final _doc = query.docs.first;
-          final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-          data["id"] = _doc.id;
-          Contact _contact = Contact.fromJson(data);
-          parList.add(_contact);
+          QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: par).get();
+          final doc = query.docs.first;
+          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data["id"] = doc.id;
+          Organization org = Organization.fromJson(data);
+          parList.add(org);
         } catch (e) {}
       }
       return parList;

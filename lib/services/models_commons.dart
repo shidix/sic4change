@@ -203,6 +203,34 @@ Future<List<KeyValue>> getOrganizationsHash() async {
   return items;
 }
 
+Future<List<KeyValue>> getFinanciersHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbOrg.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Organization item = Organization.fromJson(data);
+    if (item.financier) {
+      items.add(item.toKeyValue());
+    }
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getPartnersHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbOrg.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Organization item = Organization.fromJson(data);
+    if (item.partner) {
+      items.add(item.toKeyValue());
+    }
+  }
+  return items;
+}
+
 Future<List> searchOrganizations(name) async {
   List<Organization> items = [];
   QuerySnapshot? query;
