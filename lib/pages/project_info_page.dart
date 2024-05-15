@@ -509,7 +509,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
                     labelText: 'Nombre',
-                    size: 220,
+                    size: 900,
+                    minLines: 2,
+                    maxLines: 9999,
                     initial: proj.name,
                     fieldValue: (String val) {
                       proj.name = val;
@@ -519,11 +521,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     },
                   ),
                 ]),
-                space(width: 20),
+              ]),
+              Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
                     labelText: 'Descripción',
-                    size: 220,
+                    size: 900,
+                    minLines: 2,
+                    maxLines: 9999,
                     initial: proj.description,
                     fieldValue: (String val) {
                       proj.description = val;
@@ -533,7 +538,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     },
                   ),
                 ]),
-                space(width: 20),
+              ]),
+              Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
                     labelText: 'Tipología',

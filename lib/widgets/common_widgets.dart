@@ -1632,18 +1632,25 @@ class CustomTextField extends StatelessWidget {
     required this.initial,
     required this.size,
     required this.fieldValue,
+    this.minLines = 1,
+    this.maxLines = 1,
   }) : super(key: key);
 
   final String labelText;
   final String initial;
   final double size;
   final ValueChanged<String> fieldValue;
+  final int minLines;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
+    int? mLines = (maxLines < 9999) ? maxLines : null;
     return SizedBox(
       width: size,
       child: TextFormField(
+        minLines: minLines,
+        maxLines: mLines,
         initialValue: (initial != "") ? initial : "",
         decoration: InputDecoration(labelText: labelText),
         onChanged: (val) {

@@ -6,7 +6,6 @@ import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
@@ -369,36 +368,28 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  Widget projectCardDatasHeader(context, _project) {
+  Widget projectCardDatasHeader(context, project) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              _project.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            Text(
-              _project.typeObj.name.toUpperCase(),
-              style: const TextStyle(fontSize: 15, color: Colors.blueGrey),
-            ),
+            customText(project.name, 20, bold: FontWeight.bold),
+            customText(project.typeObj.name.toUpperCase(), 15,
+                textColor: mainColor),
             IconButton(
               icon: const Icon(Icons.remove_circle_outline),
               tooltip: 'Eliminar proyecto',
               onPressed: () {
-                projectRemoveDialog(context, _project);
+                projectRemoveDialog(context, project);
               },
             ),
           ],
         ),
         space(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(
-            _project.description,
-            style: const TextStyle(fontSize: 15),
-          ),
+          Flexible(child: customText(project.description, 15)),
         ]),
       ],
     );
@@ -458,12 +449,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ]);
   }
 
-  Widget projectCardDatasPartners(SProject _project) {
-    List list = _project.partners;
+  Widget projectCardDatasPartners(SProject project) {
+    List list = project.partners;
     List partners = [];
-    if (_project.partnersObj.isNotEmpty) {
+    if (project.partnersObj.isNotEmpty) {
       for (var uuid in list) {
-        partners.add((getObject(_project.partnersObj, uuid) as Contact).name);
+        partners
+            .add((getObject(project.partnersObj, uuid) as Organization).name);
       }
     }
 
