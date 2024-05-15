@@ -331,6 +331,19 @@ Future<List> getContactsByOrg(org) async {
   return items;
 }
 
+Future<List<KeyValue>> getContactsByOrgHash(org) async {
+  List<KeyValue> items = [];
+  QuerySnapshot? query =
+      await dbContacts.where("organization", isEqualTo: org).get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    Contact item = Contact.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                           COMPANIES
 //--------------------------------------------------------------

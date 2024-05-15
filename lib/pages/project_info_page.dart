@@ -11,6 +11,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_info_menu_widget.dart';
 
+String s4cUuid = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
 const projectInfoTitle = "Detalles del Proyecto";
 //SProject? project;
 bool projLoading = true;
@@ -487,7 +488,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     List<KeyValue> ambits = await getAmbitsHash();
     List<KeyValue> types = await getProjectTypesHash();
     List<KeyValue> status = await getProjectStatusHash();
-    List<KeyValue> contacts = await getContactsHash();
+    List<KeyValue> contacts = await getContactsByOrgHash(s4cUuid);
     List<KeyValue> programmes = await getProgrammesHash();
     editProjectDialog(
         context, project, ambits, types, status, contacts, programmes);

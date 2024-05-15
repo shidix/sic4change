@@ -14,6 +14,7 @@ List contacts = [];
 String currentOrg = "Ninguna seleccionada";
 bool orgsLoading = false;
 bool contactsLoading = false;
+Widget? _mainMenu;
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -96,6 +97,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   void initState() {
+    _mainMenu = mainMenu(context, "/contacts");
     loadOrgs();
     loadContacts("");
     super.initState();
@@ -106,7 +108,8 @@ class _ContactsPageState extends State<ContactsPage> {
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [
-        mainMenu(context, "/contacts"),
+        //mainMenu(context, "/contacts"),
+        _mainMenu!,
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Container(
             padding: const EdgeInsets.all(20),
