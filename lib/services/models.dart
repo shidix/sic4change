@@ -9,6 +9,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -432,6 +433,36 @@ class SProject {
     partnersObj = await getPartners();
     datesObj = await getDates();
     locationObj = await getLocation();
+    changeStatus();
+  }
+
+  void setStatus(ProjectStatus st) {
+    status = st.uuid;
+    statusObj = st;
+    save();
+  }
+
+  void changeStatus() async {
+    print("--1--");
+    DateTime now = DateTime.now();
+    print(now);
+    if (now.compareTo(datesObj.justification) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
+      setStatus(st);
+      print("justi");
+    } else if (now.compareTo(datesObj.end) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusEnds);
+      setStatus(st);
+      print("fin");
+    } else if (now.compareTo(datesObj.start) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusStart);
+      setStatus(st);
+      print("inicio");
+    } else if (now.compareTo(datesObj.approved) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
+      setStatus(st);
+      print("aprobar");
+    }
   }
 
   Color getStatusColor() {
@@ -646,6 +677,17 @@ class ProjectStatus {
 
   Future<void> delete() async {
     await dbProjectStatus.doc(id).delete();
+  }
+
+  static Future<ProjectStatus> byUuid(uuid) async {
+    ProjectStatus item = ProjectStatus("");
+    await dbProjectStatus.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ProjectStatus.fromJson(data);
+    });
+    return item;
   }
 }
 

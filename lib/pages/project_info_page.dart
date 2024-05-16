@@ -544,7 +544,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
                     labelText: 'Tipología',
-                    size: 220,
+                    size: 440,
                     selected: proj.typeObj.toKeyValue(),
                     options: types,
                     onSelectedOpt: (String val) {
@@ -559,7 +559,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
                     labelText: 'Presupuesto',
-                    size: 220,
+                    size: 440,
                     initial: proj.budget,
                     fieldValue: (String val) {
                       proj.budget = val;
