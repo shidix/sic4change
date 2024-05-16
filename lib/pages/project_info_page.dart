@@ -1,5 +1,6 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_page.dart';
@@ -7,6 +8,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_location.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_info_menu_widget.dart';
@@ -26,6 +28,7 @@ class ProjectInfoPage extends StatefulWidget {
 
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
   SProject? project;
+  Profile? profile;
 
   void loadProject() async {
     setState(() {
@@ -42,10 +45,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     });
   }
 
+  void getProfile(user) async {
+    await Profile.getProfile(user.email!).then((value) {
+      profile = value;
+    });
+  }
+
   @override
   initState() {
     super.initState();
     project = widget.project;
+
+    final user = FirebaseAuth.instance.currentUser!;
+    getProfile(user);
   }
 
   @override
@@ -495,7 +507,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Future<void> editProjectDialog(
-      context, proj, ambits, types, status, contacts, programmes) {
+      context, proj, ambits, types, status, contacts, programmes) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -506,6 +518,26 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           title: s4cTitleBar('Modificar proyecto'),
           content: SingleChildScrollView(
             child: Column(children: [
+              profile!.mainRole == "Admin"
+                  ? Row(children: <Widget>[
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomDropdown(
+                              labelText: 'Estado',
+                              size: 440,
+                              selected: proj.statusObj.toKeyValue(),
+                              options: status,
+                              onSelectedOpt: (String val) {
+                                proj.status = val;
+                                /*setState(() {
+                        proj.type = val;
+                      });*/
+                              },
+                            ),
+                          ]),
+                    ])
+                  : customText("", 14),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
@@ -645,23 +677,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               space(height: 20),
               Row(
                 children: <Widget>[
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomDropdown(
-                          labelText: 'Estado',
-                          size: 220,
-                          selected: proj.statusObj.toKeyValue(),
-                          options: status,
-                          onSelectedOpt: (String val) {
-                            proj.status = val;
-                            /*setState(() {
-                        proj.type = val;
-                      });*/
-                          },
-                        ),
-                      ]),
-                  space(width: 20),
                   customText("Auditoría:", 16, textColor: Colors.blue),
                   FormField<bool>(builder: (FormFieldState<bool> state) {
                     return Checkbox(

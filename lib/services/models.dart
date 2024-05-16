@@ -443,25 +443,19 @@ class SProject {
   }
 
   void changeStatus() async {
-    print("--1--");
     DateTime now = DateTime.now();
-    print(now);
     if (now.compareTo(datesObj.justification) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
       setStatus(st);
-      print("justi");
     } else if (now.compareTo(datesObj.end) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusEnds);
       setStatus(st);
-      print("fin");
     } else if (now.compareTo(datesObj.start) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusStart);
       setStatus(st);
-      print("inicio");
     } else if (now.compareTo(datesObj.approved) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
       setStatus(st);
-      print("aprobar");
     }
   }
 
