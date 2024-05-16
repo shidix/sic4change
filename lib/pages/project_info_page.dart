@@ -9,6 +9,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_info_menu_widget.dart';
@@ -29,6 +30,7 @@ class ProjectInfoPage extends StatefulWidget {
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
   SProject? project;
   Profile? profile;
+  bool _canEdit = false;
 
   void loadProject() async {
     setState(() {
@@ -48,7 +50,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void getProfile(user) async {
     await Profile.getProfile(user.email!).then((value) {
       profile = value;
+
+      setState(() {
+        _canEdit = canEdit();
+      });
     });
+  }
+
+  bool canEdit() {
+    return profile!.mainRole == "Admin" ||
+        (project!.status != statusDenied && project!.status != statusClose);
   }
 
   @override
@@ -94,8 +105,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             customText(project.name, 20),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtn(context, _callProjectEditDialog, project,
-                  icon: Icons.edit, text: "Editar"),
+              _canEdit
+                  ? addBtn(context, _callProjectEditDialog, project,
+                      icon: Icons.edit, text: "Editar")
+                  : customText("", 10),
               space(width: 10),
               //returnBtn(context),
               goPage(context, "Volver", const ProjectsPage(),

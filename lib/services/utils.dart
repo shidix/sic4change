@@ -4,6 +4,8 @@ import 'package:sic4change/services/models_commons.dart';
 const String statusApproved = "3";
 const String statusStart = "4";
 const String statusJustification = "5";
+const String statusClose = "6";
+const String statusDenied = "7";
 const String statusEnds = "8";
 
 const List<String> MONTHS = [
