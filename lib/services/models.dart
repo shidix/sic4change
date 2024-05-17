@@ -444,6 +444,10 @@ class SProject {
 
   void changeStatus() async {
     DateTime now = DateTime.now();
+    /*if (now.compareTo(datesObj.delivery) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusDelivery);
+      setStatus(st);
+    } else if (now.compareTo(datesObj.justification) > 0) {*/
     if (now.compareTo(datesObj.justification) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
       setStatus(st);
@@ -801,6 +805,85 @@ Future<ProjectDates> getProjectDatesByProject(String _project) async {
   final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
   data["id"] = dbRes.id;
   return ProjectDates.fromJson(data);
+}
+
+//--------------------------------------------------------------
+//                       PROJECT DATES TRACING
+//--------------------------------------------------------------
+CollectionReference dbDatesTra = db.collection("s4c_project_dates_tracing");
+
+class ProjectDatesTracing {
+  String id = "";
+  String uuid = "";
+  DateTime date = DateTime.now();
+  String project = "";
+
+  ProjectDatesTracing(this.project);
+
+  ProjectDatesTracing.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        date = json["date"].toDate(),
+        project = json["project"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'date': date,
+        'project': project,
+      };
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbDatesTra.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbDatesTra.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbDatesTra.doc(id).delete();
+  }
+}
+
+Future<List> getProjectDatesTracing() async {
+  List items = [];
+  QuerySnapshot query = await dbDatesTra.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesTracing.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+/*Future<ProjectDatesTracing> getProjectDatesTracingById(String id) async {
+  DocumentSnapshot doc = await dbDatesTra.doc(id).get();
+  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  data["id"] = doc.id;
+  return ProjectDatesTracing.fromJson(data);
+}*/
+
+Future<List> getProjectDatesTracingByProject(String project) async {
+  List items = [];
+  QuerySnapshot query =
+      await dbDatesTra.where("project", isEqualTo: project).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesTracing.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
 }
 
 //--------------------------------------------------------------

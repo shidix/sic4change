@@ -7,6 +7,7 @@ const String statusJustification = "5";
 const String statusClose = "6";
 const String statusDenied = "7";
 const String statusEnds = "8";
+const String statusDelivery = "9";
 
 const List<String> MONTHS = [
   "Enero",

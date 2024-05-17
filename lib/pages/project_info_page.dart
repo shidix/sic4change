@@ -170,7 +170,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Responsable del proyecto", 14,
                       bold: FontWeight.bold),
                   space(height: 5),
-                  //customText(_project.managerObj.name, 14),
+                  customText(_project.managerObj.name, 14),
                 ],
               )),
           const VerticalDivider(
@@ -392,6 +392,45 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         }));
   }
 
+  Widget projectTracingHeader(context, project) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Informes de seguimiento", 15, bold: FontWeight.bold),
+      addBtnRow(context, callDatesTracingEditDialog, {"project": project},
+          text: "Añadir informe de seguimiento",
+          icon: Icons.add_circle_outline),
+    ]);
+  }
+
+  Widget projectTracing(context, project) {
+    return FutureBuilder(
+        future: getProjectDatesTracingByProject(project.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            List dates = snapshot.data!;
+            return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: dates.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        customText(
+                            DateFormat("dd-MM-yyyy").format(dates[index].date),
+                            14),
+                        removeBtn(context, removeDateTracingDialog,
+                            {"dateTracing": dates[index]}),
+                      ]);
+                });
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(
         future: getProjectLocationByProject(project.uuid),
@@ -462,7 +501,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customText("Ámbito del proyecto", 14, bold: FontWeight.bold),
                 space(height: 5),
-                customText(proj.ambit, 14),
+                customText(proj.ambitObj.name, 14),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
@@ -482,6 +521,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 customRowDivider(),
                 space(height: 5),
                 projectInfoDates(context, proj),
+                space(height: 5),
+                customRowDivider(),
+                space(height: 5),
+                projectTracingHeader(context, proj),
+                projectTracing(context, proj),
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
@@ -973,6 +1017,61 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             );
           }),
           actions: <Widget>[dialogsBtns(context, saveDates, dates)],
+        );
+      },
+    );
+  }
+
+  /*--------------------------------------------------------------------*/
+  /*                           DATES TRACING                            */
+  /*--------------------------------------------------------------------*/
+  void saveDateTracing(List args) async {
+    ProjectDatesTracing datesTracing = args[0];
+    datesTracing.save();
+    loadProject();
+
+    Navigator.pop(context);
+  }
+
+  void removeDateTracingDialog(context, Map<String, dynamic> args) {
+    customRemoveDialog(context, args["dateTracing"], loadProject, null);
+  }
+
+  void callDatesTracingEditDialog(context, args) async {
+    SProject project = args["project"];
+    ProjectDatesTracing pdt = ProjectDatesTracing(project.uuid);
+    editProjectDatesTracingDialog(context, pdt);
+  }
+
+  Future<void> editProjectDatesTracingDialog(context, dateTracing) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nueva fecha'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Informe de seguimiento',
+                        selectedDate: dateTracing.date,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dateTracing.date = date;
+                          });
+                        },
+                      )),
+                ]),
+              ]),
+            );
+          }),
+          actions: <Widget>[dialogsBtns(context, saveDateTracing, dateTracing)],
         );
       },
     );
