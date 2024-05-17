@@ -224,53 +224,53 @@ class SProject {
   }
 
   Future<Ambit> getAmbit() async {
-    try {
-      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Ambit.fromJson(data);
-    } catch (e) {
+    //try {
+    QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
+    final doc = query.docs.first;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    return Ambit.fromJson(data);
+    /*} catch (e) {
       return Ambit("");
-    }
+    }*/
   }
 
   Future<ProjectType> getProjectType() async {
-    if (typeObj.name == "") {
-      try {
-        QuerySnapshot query =
-            await dbProjectType.where("uuid", isEqualTo: type).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        return ProjectType.fromJson(data);
-      } catch (e) {
-        return ProjectType("");
-      }
-    } else {
-      return typeObj;
+    //if (typeObj.name == "") {
+    try {
+      QuerySnapshot query =
+          await dbProjectType.where("uuid", isEqualTo: type).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ProjectType.fromJson(data);
+    } catch (e) {
+      return ProjectType("");
     }
+    /*} else {
+      return typeObj;
+    }*/
   }
 
   Future<ProjectStatus> getProjectStatus() async {
-    if (statusObj.name == "") {
-      try {
-        QuerySnapshot query =
-            await dbProjectStatus.where("uuid", isEqualTo: status).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        return ProjectStatus.fromJson(data);
-      } catch (e) {
-        return ProjectStatus("");
-      }
-    } else {
-      return statusObj;
+    //if (statusObj.name == "") {
+    try {
+      QuerySnapshot query =
+          await dbProjectStatus.where("uuid", isEqualTo: status).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ProjectStatus.fromJson(data);
+    } catch (e) {
+      return ProjectStatus("");
     }
+    /*} else {
+      return statusObj;
+    }*/
   }
 
   Future<Contact> getManager() async {
-    /*try {
+    try {
       QuerySnapshot query =
           await dbContacts.where("uuid", isEqualTo: manager).get();
       final doc = query.docs.first;
@@ -278,8 +278,9 @@ class SProject {
       data["id"] = doc.id;
       return Contact.fromJson(data);
     } catch (e) {
-      return Contact("", "", "", "", "");*/
-    if (managerObj.name == "") {
+      return Contact("");
+    }
+    /*if (managerObj.name == "") {
       try {
         QuerySnapshot query =
             await dbContacts.where("uuid", isEqualTo: manager).get();
@@ -292,11 +293,11 @@ class SProject {
       }
     } else {
       return managerObj;
-    }
+    }*/
   }
 
   Future<Programme> getProgramme() async {
-    /*try {
+    try {
       QuerySnapshot query =
           await dbProgramme.where("uuid", isEqualTo: programme).get();
       final doc = query.docs.first;
@@ -304,8 +305,9 @@ class SProject {
       data["id"] = doc.id;
       return Programme.fromJson(data);
     } catch (e) {
-      return Programme("");*/
-    if (programmeObj.name == "") {
+      return Programme("");
+    }
+    /*if (programmeObj.name == "") {
       try {
         QuerySnapshot query =
             await dbProgramme.where("uuid", isEqualTo: programme).get();
@@ -318,7 +320,7 @@ class SProject {
       }
     } else {
       return programmeObj;
-    }
+    }*/
   }
 
   Future<List<Organization>> getFinanciers() async {

@@ -366,8 +366,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       customText("Inicio", 14, bold: FontWeight.bold),
                       customText("Finalización", 14, bold: FontWeight.bold),
                       customText("Justificación", 14, bold: FontWeight.bold),
-                      customText("Informes de seguimiento", 14,
-                          bold: FontWeight.bold),
+                      /*customText("Informes de seguimiento", 14,
+                          bold: FontWeight.bold),*/
                     ]),
                     TableRow(children: [
                       customText(
@@ -379,8 +379,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       customText(
                           DateFormat("dd-MM-yyyy").format(dates.justification),
                           14),
-                      customText(
-                          DateFormat("dd-MM-yyyy").format(dates.delivery), 14),
+                      /*customText(
+                          DateFormat("dd-MM-yyyy").format(dates.delivery), 14),*/
                     ])
                   ]),
             ]);
@@ -474,7 +474,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Widget projectInfoDetails(context, args) {
-    SProject proj = args["project"];
+    //SProject proj = args["project"];
+    SProject proj = project!;
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -998,7 +999,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                         },
                       )),
                 ]),
-                space(width: 20),
+                /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SizedBox(
                       width: 220,
@@ -1012,7 +1013,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                         },
                       )),
                 ]),
-                space(width: 20),
+                space(width: 20),*/
               ]),
             );
           }),
