@@ -889,6 +889,150 @@ Future<List> getProjectDatesTracingByProject(String project) async {
 }
 
 //--------------------------------------------------------------
+//                       PROJECT DATES AUDIT
+//--------------------------------------------------------------
+CollectionReference dbDatesAudit = db.collection("s4c_project_dates_audit");
+
+class ProjectDatesAudit {
+  String id = "";
+  String uuid = "";
+  DateTime date = DateTime.now();
+  String project = "";
+
+  ProjectDatesAudit(this.project);
+
+  ProjectDatesAudit.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        date = json["date"].toDate(),
+        project = json["project"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'date': date,
+        'project': project,
+      };
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbDatesAudit.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbDatesAudit.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbDatesAudit.doc(id).delete();
+  }
+}
+
+Future<List> getProjectDatesAudit() async {
+  List items = [];
+  QuerySnapshot query = await dbDatesAudit.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesAudit.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+Future<List> getProjectDatesAuditByProject(String project) async {
+  List items = [];
+  QuerySnapshot query =
+      await dbDatesAudit.where("project", isEqualTo: project).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesAudit.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+//--------------------------------------------------------------
+//                       PROJECT DATES EVALUATION
+//--------------------------------------------------------------
+CollectionReference dbDatesEval = db.collection("s4c_project_dates_eval");
+
+class ProjectDatesEval {
+  String id = "";
+  String uuid = "";
+  DateTime date = DateTime.now();
+  String project = "";
+
+  ProjectDatesEval(this.project);
+
+  ProjectDatesEval.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        date = json["date"].toDate(),
+        project = json["project"];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'date': date,
+        'project': project,
+      };
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbDatesEval.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbDatesEval.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbDatesEval.doc(id).delete();
+  }
+}
+
+Future<List> getProjectDatesEval() async {
+  List items = [];
+  QuerySnapshot query = await dbDatesEval.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesEval.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+Future<List> getProjectDatesEvalByProject(String project) async {
+  List items = [];
+  QuerySnapshot query =
+      await dbDatesEval.where("project", isEqualTo: project).get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProjectDatesEval.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+//--------------------------------------------------------------
 //                       PROJECT LOCATION
 //--------------------------------------------------------------
 CollectionReference dbLocation = db.collection("s4c_project_location");

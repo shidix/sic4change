@@ -217,31 +217,153 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     );
   }
 
-  Widget projectAuditEvaluation(context, _project) {
-    var audit = _project.audit == true ? "Si" : "No";
-    var evaluation = _project.evaluation == true ? "Si" : "No";
+  Widget projectDatesAuditHeader(context, project) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Fechas de auditorías", 15, bold: FontWeight.bold),
+      addBtnRow(context, callDatesAuditEditDialog, {"project": project},
+          text: "Añadir auditoría", icon: Icons.add_circle_outline),
+    ]);
+  }
+
+  Widget projectDatesAudit(context, project) {
+    return FutureBuilder(
+        future: getProjectDatesAuditByProject(project.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            List dates = snapshot.data!;
+            return SizedBox(
+              width: double.infinity,
+              child: DataTable(
+                sortColumnIndex: 0,
+                showCheckboxColumn: false,
+                headingRowHeight: 0,
+                columns: [
+                  DataColumn(label: customText("", 14)),
+                  DataColumn(
+                    label: customText("", 14),
+                  ),
+                ],
+                rows: dates
+                    .map(
+                      (date) => DataRow(cells: [
+                        DataCell(
+                          customText(
+                              DateFormat("dd-MM-yyyy").format(date.date), 14),
+                        ),
+                        DataCell(Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              removeBtn(context, removeDateAuditDialog,
+                                  {"dateAudit": date}),
+                            ]))
+                      ]),
+                    )
+                    .toList(),
+              ),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
+  Widget projectDatesEvalHeader(context, project) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Fechas de evaluación", 15, bold: FontWeight.bold),
+      addBtnRow(context, callDatesEvalEditDialog, {"project": project},
+          text: "Añadir evaluación", icon: Icons.add_circle_outline),
+    ]);
+  }
+
+  Widget projectDatesEval(context, project) {
+    return FutureBuilder(
+        future: getProjectDatesEvalByProject(project.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            List dates = snapshot.data!;
+            return SizedBox(
+              width: double.infinity,
+              child: DataTable(
+                sortColumnIndex: 0,
+                showCheckboxColumn: false,
+                headingRowHeight: 0,
+                columns: [
+                  DataColumn(label: customText("", 14)),
+                  DataColumn(
+                    label: customText("", 14),
+                  ),
+                ],
+                rows: dates
+                    .map(
+                      (date) => DataRow(cells: [
+                        DataCell(
+                          customText(
+                              DateFormat("dd-MM-yyyy").format(date.date), 14),
+                        ),
+                        DataCell(Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              removeBtn(context, removeDateEvalDialog,
+                                  {"dateEval": date}),
+                            ]))
+                      ]),
+                    )
+                    .toList(),
+              ),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
+  Widget projectAuditEvaluation(context, project) {
+    var audit = project.audit == true ? "Si" : "No";
+    var evaluation = project.evaluation == true ? "Si" : "No";
     return IntrinsicHeight(
       child: Row(
         children: [
           SizedBox(
-              width: MediaQuery.of(context).size.width / 2,
+              width: MediaQuery.of(context).size.width / 2.2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   customText("Auditoría", 14, bold: FontWeight.bold),
                   space(height: 5),
                   customText(audit, 14),
+                  space(height: 5),
+                  project.audit
+                      ? projectDatesAuditHeader(context, project)
+                      : Container(),
+                  project.audit
+                      ? projectDatesAudit(context, project)
+                      : Container(),
                 ],
               )),
           const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Evaluación", 14, bold: FontWeight.bold),
-            space(height: 5),
-            customText(evaluation, 14),
-          ]),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 2.1,
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Evaluación", 14, bold: FontWeight.bold),
+              space(height: 5),
+              customText(evaluation, 14),
+              space(height: 5),
+              project.evaluation
+                  ? projectDatesEvalHeader(context, project)
+                  : Container(),
+              project.evaluation
+                  ? projectDatesEval(context, project)
+                  : Container(),
+            ]),
+          ),
         ],
       ),
     );
@@ -1018,6 +1140,116 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             );
           }),
           actions: <Widget>[dialogsBtns(context, saveDates, dates)],
+        );
+      },
+    );
+  }
+
+  /*--------------------------------------------------------------------*/
+  /*                           DATES AUDIT                              */
+  /*--------------------------------------------------------------------*/
+  void saveDateAudit(List args) async {
+    ProjectDatesAudit datesAudit = args[0];
+    datesAudit.save();
+    loadProject();
+
+    Navigator.pop(context);
+  }
+
+  void removeDateAuditDialog(context, Map<String, dynamic> args) {
+    customRemoveDialog(context, args["dateAudit"], loadProject, null);
+  }
+
+  void callDatesAuditEditDialog(context, args) async {
+    SProject project = args["project"];
+    ProjectDatesAudit pdt = ProjectDatesAudit(project.uuid);
+    editProjectDatesAuditDialog(context, pdt);
+  }
+
+  Future<void> editProjectDatesAuditDialog(context, dateAudit) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nueva fecha'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Fecha de auditoría',
+                        selectedDate: dateAudit.date,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dateAudit.date = date;
+                          });
+                        },
+                      )),
+                ]),
+              ]),
+            );
+          }),
+          actions: <Widget>[dialogsBtns(context, saveDateAudit, dateAudit)],
+        );
+      },
+    );
+  }
+
+  /*--------------------------------------------------------------------*/
+  /*                           DATES EVALUATION                         */
+  /*--------------------------------------------------------------------*/
+  void saveDateEval(List args) async {
+    ProjectDatesEval datesEval = args[0];
+    datesEval.save();
+    loadProject();
+
+    Navigator.pop(context);
+  }
+
+  void removeDateEvalDialog(context, Map<String, dynamic> args) {
+    customRemoveDialog(context, args["dateEval"], loadProject, null);
+  }
+
+  void callDatesEvalEditDialog(context, args) async {
+    SProject project = args["project"];
+    ProjectDatesEval pdt = ProjectDatesEval(project.uuid);
+    editProjectDatesEvalDialog(context, pdt);
+  }
+
+  Future<void> editProjectDatesEvalDialog(context, dateEval) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nueva fecha'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Fecha de evaluación',
+                        selectedDate: dateEval.date,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            dateEval.date = date;
+                          });
+                        },
+                      )),
+                ]),
+              ]),
+            );
+          }),
+          actions: <Widget>[dialogsBtns(context, saveDateEval, dateEval)],
         );
       },
     );
