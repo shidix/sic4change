@@ -639,23 +639,27 @@ class _GoalsPageState extends State<GoalsPage>
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Indicador de resultado"),
           content: SingleChildScrollView(
-              child: Row(children: <Widget>[
+              child: Column(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
                 initial: indicator.name,
-                size: 220,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
                 fieldValue: (String val) {
                   setState(() => indicator.name = val);
                 },
               )
             ]),
-            space(width: 20),
+            space(height: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Valor",
                 initial: indicator.value,
-                size: 220,
+                size: 900,
+                minLines: 1,
+                maxLines: 1,
                 fieldValue: (String val) {
                   setState(() => indicator.value = val);
                 },
@@ -704,7 +708,7 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
-        columnSpacing: 690,
+        //columnSpacing: 690,
         headingRowColor:
             MaterialStateColor.resolveWith((states) => headerListBgColor),
         columns: [
@@ -717,12 +721,13 @@ class _GoalsPageState extends State<GoalsPage>
                 bold: FontWeight.bold, textColor: headerListTitleColor),
             tooltip: "Valor",
           ),
-          DataColumn(
+          DataColumn(label: Container()),
+          /*DataColumn(
               label: customText("Acciones", 14,
                   bold: FontWeight.bold,
                   textColor: headerListTitleColor,
                   align: TextAlign.end),
-              tooltip: "Acciones"),
+              tooltip: "Acciones"),*/
         ],
         rows: indicators
             .map(
@@ -776,7 +781,9 @@ class _GoalsPageState extends State<GoalsPage>
               CustomTextField(
                 labelText: "Nombre",
                 initial: activity.name,
-                size: 220,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
                 fieldValue: (String val) {
                   setState(() => activity.name = val);
                 },
@@ -825,7 +832,7 @@ class _GoalsPageState extends State<GoalsPage>
       child: DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
-        columnSpacing: 1320,
+        //columnSpacing: 1320,
         headingRowColor:
             MaterialStateColor.resolveWith((states) => headerListBgColor),
         columns: [
@@ -833,10 +840,11 @@ class _GoalsPageState extends State<GoalsPage>
               label: customText("Nombre", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Nombre"),
-          DataColumn(
+          DataColumn(label: Container()),
+          /*DataColumn(
               label: customText("Acciones", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Acciones"),
+              tooltip: "Acciones"),*/
         ],
         rows: items
             .map(
