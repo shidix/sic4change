@@ -121,29 +121,8 @@ class _GoalsPageState extends State<GoalsPage>
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Objetivo"),
           content: SingleChildScrollView(
-              child: Row(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: goal.name,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => goal.name = val);
-                },
-              )
-            ]),
-            space(width: 20),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Descripción",
-                initial: goal.description,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => goal.description = val);
-                },
-              )
-            ]),
-            Column(children: [
+              child: Column(children: <Widget>[
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               customText("Principal", 12),
               FormField<bool>(builder: (FormFieldState<bool> state) {
                 return Checkbox(
@@ -156,6 +135,32 @@ class _GoalsPageState extends State<GoalsPage>
                   },
                 );
               })
+            ]),
+            space(height: 10),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Nombre",
+                initial: goal.name,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
+                fieldValue: (String val) {
+                  setState(() => goal.name = val);
+                },
+              )
+            ]),
+            space(height: 10),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Descripción",
+                initial: goal.description,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
+                fieldValue: (String val) {
+                  setState(() => goal.description = val);
+                },
+              )
             ]),
           ])),
           actions: <Widget>[
@@ -398,28 +403,30 @@ class _GoalsPageState extends State<GoalsPage>
               : 'Añadiendo Resultado'),
           content: SingleChildScrollView(
               child: Column(children: [
-            Row(children: <Widget>[
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: result.name,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => result.name = val);
-                  },
-                )
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Descripción",
-                  initial: result.description,
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => result.description = val);
-                  },
-                )
-              ]),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Nombre",
+                initial: result.name,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
+                fieldValue: (String val) {
+                  setState(() => result.name = val);
+                },
+              )
+            ]),
+            space(width: 20),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Descripción",
+                initial: result.description,
+                size: 900,
+                minLines: 2,
+                maxLines: 9999,
+                fieldValue: (String val) {
+                  setState(() => result.description = val);
+                },
+              )
             ]),
             space(height: 20),
             Row(children: <Widget>[
@@ -427,7 +434,9 @@ class _GoalsPageState extends State<GoalsPage>
                 CustomTextField(
                   labelText: "Fuente",
                   initial: result.source,
-                  size: 220,
+                  size: 900,
+                  minLines: 2,
+                  maxLines: 9999,
                   fieldValue: (String val) {
                     setState(() => result.source = val);
                   },
