@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_marco.dart';
@@ -776,7 +777,7 @@ class _GoalsPageState extends State<GoalsPage>
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Actividad"),
           content: SingleChildScrollView(
-              child: Row(children: <Widget>[
+              child: Column(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
@@ -789,6 +790,49 @@ class _GoalsPageState extends State<GoalsPage>
                 },
               )
             ]),
+            space(height: 10),
+            Row(
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Usuarios",
+                    initial: activity.users,
+                    size: 900,
+                    fieldValue: (String val) {
+                      setState(() => activity.users = val);
+                    },
+                  )
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Aprobación',
+                        selectedDate: activity.iniDate,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            activity.iniDate = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 220,
+                      child: DateTimePicker(
+                        labelText: 'Aprobación',
+                        selectedDate: activity.endDate,
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            activity.endDate = date;
+                          });
+                        },
+                      )),
+                ]),
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveActivity, activity),
@@ -840,6 +884,18 @@ class _GoalsPageState extends State<GoalsPage>
               label: customText("Nombre", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Nombre"),
+          DataColumn(
+              label: customText("Inicio", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Inicio"),
+          DataColumn(
+              label: customText("Fin", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Fin"),
+          DataColumn(
+              label: customText("Usuarios", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Usuarios"),
           DataColumn(label: Container()),
           /*DataColumn(
               label: customText("Acciones", 14,
@@ -850,6 +906,11 @@ class _GoalsPageState extends State<GoalsPage>
             .map(
               (item) => DataRow(cells: [
                 DataCell(customText("${item.name}", 14)),
+                DataCell(customText(
+                    DateFormat("dd-MM-yyyy").format(item.iniDate), 14)),
+                DataCell(customText(
+                    DateFormat("dd-MM-yyyy").format(item.endDate), 14)),
+                DataCell(customText("${item.users}", 14)),
                 DataCell(
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   /*goPageIcon(context, "Ver", Icons.view_compact,

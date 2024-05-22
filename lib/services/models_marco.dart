@@ -303,6 +303,9 @@ class Activity {
   String uuid = "";
   String name = "";
   String result = "";
+  String users = "";
+  DateTime iniDate = DateTime.now();
+  DateTime endDate = DateTime.now();
 
   Activity(this.result);
 
@@ -310,12 +313,18 @@ class Activity {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
+        users = json['users'],
+        iniDate = json["iniDate"].toDate(),
+        endDate = json["endDate"].toDate(),
         result = json['result'];
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'users': users,
+        'iniDate': iniDate,
+        'endDate': endDate,
         'result': result,
       };
 
