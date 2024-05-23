@@ -88,7 +88,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mainMenu(context),
-          projectInfoHeader(context, project),
+          projectInfoHeader(context),
           profileMenu(context, project, "info"),
           projLoading
               ? contentTab(context, projectInfoDetails, {"project": project})
@@ -98,12 +98,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     );
   }
 
-  Widget projectInfoHeader(context, project) {
+  //Widget projectInfoHeader(context, project) {
+  Widget projectInfoHeader(context) {
     return Container(
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            customText(project.name, 20),
+            customText(project!.name, 20),
+            customText(project!.statusObj.name, 18, textColor: mainColor),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               _canEdit
                   ? addBtn(context, _callProjectEditDialog, project,
@@ -129,7 +131,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 ),
                 space(width: 50),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto total:   ${project.budget} €", 16),
+                  customText("Presupuesto total:   ${project!.budget} €", 16),
                   space(height: 5),
                   customLinearPercent(context, 2.3, 0.8, blueColor),
                 ]),
@@ -186,7 +188,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     space(height: 5),
                     customText(_project.programmeObj.name, 14),
                   ])),
-          const VerticalDivider(
+          /*const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
@@ -198,20 +200,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     customText("Estado", 14, bold: FontWeight.bold),
                     space(height: 5),
                     customText(_project.statusObj.name, 14),
-                  ])),
-
-          /*const VerticalDivider(
-            width: 10,
-            color: Colors.grey,
-          ),
-          space(width: 10),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Editar proyecto',
-            onPressed: () {
-              _callProjectEditDialog(context, _project);
-            },
-          )*/
+                  ])),*/
         ],
       ),
     );
@@ -483,26 +472,73 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
+                    (project.status == "12")
+                        ? TableRow(children: [
+                            customText("Presentación", 14,
+                                bold: FontWeight.bold),
+                            customText("Aprobación", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                          ])
+                        : TableRow(children: [
+                            customText("Presentación", 14,
+                                bold: FontWeight.bold),
+                            customText("Aprobación", 14, bold: FontWeight.bold),
+                            customText("Inicio", 14, bold: FontWeight.bold),
+                            customText("Finalización", 14,
+                                bold: FontWeight.bold),
+                            customText("Justificación", 14,
+                                bold: FontWeight.bold),
+                          ]),
+                    (project.status == "12")
+                        ? TableRow(children: [
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.sended),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.approved),
+                                14),
+                            customText("", 14),
+                            customText("", 14),
+                            customText("", 14),
+                          ])
+                        : TableRow(children: [
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.sended),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.approved),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.start),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.end), 14),
+                            customText(
+                                DateFormat("dd-MM-yyyy")
+                                    .format(dates.justification),
+                                14),
+                          ])
+                  ]),
+              space(height: 10),
+              Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
                     TableRow(children: [
-                      customText("Aprobación", 14, bold: FontWeight.bold),
-                      customText("Inicio", 14, bold: FontWeight.bold),
-                      customText("Finalización", 14, bold: FontWeight.bold),
-                      customText("Justificación", 14, bold: FontWeight.bold),
-                      /*customText("Informes de seguimiento", 14,
-                          bold: FontWeight.bold),*/
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("Denegación", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
                     ]),
                     TableRow(children: [
+                      customText("", 14),
                       customText(
-                          DateFormat("dd-MM-yyyy").format(dates.approved), 14),
-                      customText(
-                          DateFormat("dd-MM-yyyy").format(dates.start), 14),
-                      customText(
-                          DateFormat("dd-MM-yyyy").format(dates.end), 14),
-                      customText(
-                          DateFormat("dd-MM-yyyy").format(dates.justification),
-                          14),
-                      /*customText(
-                          DateFormat("dd-MM-yyyy").format(dates.delivery), 14),*/
+                          DateFormat("dd-MM-yyyy").format(dates.reject), 14),
+                      customText("", 14),
+                      customText("", 14),
+                      customText("", 14),
                     ])
                   ]),
             ]);
@@ -575,14 +611,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   children: [
                     TableRow(children: [
                       customText("País", 14, bold: FontWeight.bold),
-                      customText("Provincia", 14, bold: FontWeight.bold),
                       customText("Comunidad", 14, bold: FontWeight.bold),
+                      customText("Provincia", 14, bold: FontWeight.bold),
                       customText("Municipio", 14, bold: FontWeight.bold),
                     ]),
                     TableRow(children: [
                       customText(loc.countryObj.name, 14),
-                      customText(loc.provinceObj.name, 14),
                       customText(loc.regionObj.name, 14),
+                      customText(loc.provinceObj.name, 14),
                       customText(loc.townObj.name, 14),
                     ])
                   ])
@@ -1065,63 +1101,106 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
             return SingleChildScrollView(
-              child: Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Aprobación',
-                        selectedDate: dates.approved,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            dates.approved = date;
-                          });
-                        },
-                      )),
+              child: Column(children: [
+                Row(children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Presentación',
+                              selectedDate: dates.sended,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates.sended = date;
+                                });
+                              },
+                            )),
+                      ]),
+                  space(width: 20),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Aprobación',
+                              selectedDate: dates.approved,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates.approved = date;
+                                });
+                              },
+                            )),
+                      ]),
+                  space(width: 20),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Denegación',
+                              selectedDate: dates!.reject,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates!.reject = date;
+                                });
+                              },
+                            )),
+                      ]),
                 ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Inicio',
-                        selectedDate: dates!.start,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            dates!.start = date;
-                          });
-                        },
-                      )),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Fin',
-                        selectedDate: dates!.end,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            dates!.end = date;
-                          });
-                        },
-                      )),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Justificación',
-                        selectedDate: dates!.justification,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            dates!.justification = date;
-                          });
-                        },
-                      )),
-                ]),
-                /*space(width: 20),
+                space(height: 10),
+                Row(children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Inicio',
+                              selectedDate: dates!.start,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates!.start = date;
+                                });
+                              },
+                            )),
+                      ]),
+                  space(width: 20),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Fin',
+                              selectedDate: dates!.end,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates!.end = date;
+                                });
+                              },
+                            )),
+                      ]),
+                  space(width: 20),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                            width: 220,
+                            child: DateTimePicker(
+                              labelText: 'Justificación',
+                              selectedDate: dates!.justification,
+                              onSelectedDate: (DateTime date) {
+                                setState(() {
+                                  dates!.justification = date;
+                                });
+                              },
+                            )),
+                      ]),
+                  /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SizedBox(
                       width: 220,
@@ -1136,6 +1215,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       )),
                 ]),
                 space(width: 20),*/
+                ]),
               ]),
             );
           }),

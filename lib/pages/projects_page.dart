@@ -299,6 +299,22 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Widget projectList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
+        child: SizedBox(
+            height: 900,
+            child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1.1,
+                ),
+                itemCount: prList.length,
+                itemBuilder: (_, index) {
+                  return projectCard(context, prList[index]);
+                })));
+
+    /*return Container(
+        padding: const EdgeInsets.only(left: 20, right: 20),
         child: Builder(builder: ((context) {
           if (prList.isNotEmpty) {
             return SizedBox(
@@ -320,7 +336,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               child: CircularProgressIndicator(),
             );
           }
-        })));
+        })));*/
   }
 
   // Widget projectList2(context) {
@@ -353,7 +369,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   //           })));
   // }
 
-  Widget projectCard(context, _project) {
+  Widget projectCard(context, project) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -361,7 +377,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             color: Colors.grey,
           ),
           borderRadius: const BorderRadius.all(Radius.circular(10))),
-      child: projectCardDatas(context, _project),
+      child: projectCardDatas(context, project),
       /*child: SingleChildScrollView(
         child: projectCardDatas(context, _project),
       ),*/
@@ -408,44 +424,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Financiador/es:", 16, textColor: Colors.grey),
-        /*IconButton(
-          icon: const Icon(Icons.add),
-          tooltip: 'Añadir financiador',
-          onPressed: () {
-            _callFinancierEditDialog(context, _project);
-          },
-        )*/
       ]),
       Row(
         children: [Text(financiers.join(', '))],
       )
-      // ListView.builder(
-      //     //padding: const EdgeInsets.all(8),
-      //     scrollDirection: Axis.vertical,
-      //     shrinkWrap: true,
-      //     itemCount: _list.length,
-      //     itemBuilder: (BuildContext context, int index) {
-      //       return Container(
-      //           padding: const EdgeInsets.all(5),
-      //           child: Row(
-      //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //               children: [
-      //                 Text((getObject(_project.financiersObj, _list[index])
-      //                         as Financier)
-      //                     .name),
-      //                 /*IconButton(
-      //                   icon: const Icon(
-      //                     Icons.remove,
-      //                     size: 12,
-      //                   ),
-      //                   tooltip: 'Eliminar financiador',
-      //                   onPressed: () async {
-      //                     _project.financiers.remove(_list[index]);
-      //                     _removeFinancier(context, _project);
-      //                   },
-      //                 )*/
-      //               ]));
-      //     })
     ]);
   }
 
@@ -462,46 +444,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),
-        /*IconButton(
-          icon: const Icon(Icons.add),
-          tooltip: 'Añadir socio',
-          onPressed: () {
-            _callPartnerEditDialog(context, _project);
-          },
-        )*/
       ]),
       Row(children: [
         Text(
           partners.join(", "),
         )
       ]),
-      // ListView.builder(
-      //     //padding: const EdgeInsets.all(8),
-      //     scrollDirection: Axis.vertical,
-      //     shrinkWrap: true,
-      //     itemCount: _list.length,
-      //     itemBuilder: (BuildContext context, int index) {
-      //       return Container(
-      //           padding: EdgeInsets.all(5),
-      //           child: Row(
-      //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //               children: [
-      //                 Text((getObject(_project.partnersObj, _list[index])
-      //                         as Contact)
-      //                     .name),
-      //                 /*IconButton(
-      //                   icon: const Icon(
-      //                     Icons.remove,
-      //                     size: 12,
-      //                   ),
-      //                   tooltip: 'Eliminar socio',
-      //                   onPressed: () async {
-      //                     _project.partners.remove(_list[index]);
-      //                     _removePartner(context, _project);
-      //                   },
-      //                 )*/
-      //               ]));
-      //     })
     ]);
   }
 
@@ -518,7 +466,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
     execVsBudget = (execVsBudget * 100).round() / 100;
     execVsAssigned = (execVsAssigned * 100).round() / 100;
 
-    return Column(
+    return SingleChildScrollView(
+        child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -610,7 +559,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         const Divider(color: Colors.grey),
       ],
-    );
+    ));
   }
 
   void callProjectDialog(context, args) {

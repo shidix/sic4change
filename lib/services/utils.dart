@@ -8,6 +8,9 @@ const String statusClose = "6";
 const String statusDenied = "7";
 const String statusEnds = "8";
 const String statusDelivery = "9";
+const String statusEdition = "10";
+const String statusSended = "11";
+const String statusReject = "12";
 
 const List<String> MONTHS = [
   "Enero",

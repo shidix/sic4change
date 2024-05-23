@@ -450,7 +450,14 @@ class SProject {
       ProjectStatus st = await ProjectStatus.byUuid(statusDelivery);
       setStatus(st);
     } else if (now.compareTo(datesObj.justification) > 0) {*/
-    if (now.compareTo(datesObj.justification) > 0) {
+
+    if (now.compareTo(datesObj.reject) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusReject);
+      setStatus(st);
+    } else if (now.compareTo(datesObj.sended) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusSended);
+      setStatus(st);
+    } else if (now.compareTo(datesObj.justification) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
       setStatus(st);
     } else if (now.compareTo(datesObj.end) > 0) {
@@ -461,6 +468,9 @@ class SProject {
       setStatus(st);
     } else if (now.compareTo(datesObj.approved) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
+      setStatus(st);
+    } else {
+      ProjectStatus st = await ProjectStatus.byUuid(statusEdition);
       setStatus(st);
     }
   }
@@ -732,6 +742,8 @@ class ProjectDates {
   DateTime end = DateTime.now();
   DateTime justification = DateTime.now();
   DateTime delivery = DateTime.now();
+  DateTime sended = DateTime.now();
+  DateTime reject = DateTime.now();
   String project = "";
 
   ProjectDates(this.project);
@@ -744,6 +756,8 @@ class ProjectDates {
         end = json["end"].toDate(),
         justification = json["justification"].toDate(),
         delivery = json["delivery"].toDate(),
+        sended = json["sended"].toDate(),
+        reject = json["reject"].toDate(),
         project = json["project"];
 
   Map<String, dynamic> toJson() => {
@@ -754,6 +768,8 @@ class ProjectDates {
         'end': end,
         'justification': justification,
         'delivery': delivery,
+        'sended': sended,
+        'reject': reject,
         'project': project,
       };
 
@@ -789,9 +805,9 @@ Future<List> getProjectDates() async {
 }
 
 Future<ProjectDates> getProjectDatesById(String id) async {
-  DocumentSnapshot _doc = await dbDates.doc(id).get();
-  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-  data["id"] = _doc.id;
+  DocumentSnapshot doc = await dbDates.doc(id).get();
+  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  data["id"] = doc.id;
   return ProjectDates.fromJson(data);
 }
 
