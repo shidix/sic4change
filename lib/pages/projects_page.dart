@@ -445,7 +445,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        customText("Socios del proyecto/programa:", 16, textColor: Colors.grey),
+        customText("Socios del proyecto:", 16, textColor: Colors.grey),
       ]),
       Row(children: [
         Text(
