@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
@@ -539,6 +541,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 {"project": project}),*/
             goPage(context, "+ Info", ProjectInfoPage(project: project),
                 Icons.info,
+                style: "bigBtn", extraction: () {}),
+            goPage(context, "Documentos",
+                DocumentsPage(currentFolder: project.folderObj), Icons.info,
                 style: "bigBtn", extraction: () {}),
             goPage(context, "Marco técnico", GoalsPage(project: project),
                 Icons.task,

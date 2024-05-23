@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/utils.dart';
@@ -30,6 +31,7 @@ class SProject {
   String programme = "";
   String announcement = "";
   String ambit = "";
+  String folder = "";
   bool audit = false;
   bool evaluation = false;
   List financiers = [];
@@ -45,6 +47,7 @@ class SProject {
   List<Organization> partnersObj = [];
   ProjectDates datesObj = ProjectDates("");
   ProjectLocation locationObj = ProjectLocation("");
+  Folder folderObj = Folder("", "");
 
   double dblbudget = 0;
 
@@ -79,6 +82,7 @@ class SProject {
     item.evaluation = json['evaluation'];
     item.financiers = json['financiers'];
     item.partners = json['partners'];
+    item.folder = json['folder'];
     if (!json.containsKey("execBudget")) {
       item.execBudget = 0;
     } else {
@@ -110,6 +114,7 @@ class SProject {
         'partners': partners,
         'execBudget': execBudget,
         'assignedBudget': assignedBudget,
+        'folder': folder,
       };
 
   KeyValue toKeyValue() {
@@ -145,6 +150,7 @@ class SProject {
     partnersObj = await getPartners();
     datesObj = await getDates();
     locationObj = await getLocation();
+    folderObj = await getFolder();
     return this;
   }
 
@@ -435,6 +441,7 @@ class SProject {
     partnersObj = await getPartners();
     datesObj = await getDates();
     locationObj = await getLocation();
+    folderObj = await getFolder();
     changeStatus();
   }
 
@@ -478,6 +485,25 @@ class SProject {
   Color getStatusColor() {
     int color = int.parse("0xff${statusObj.color}");
     return Color(color);
+  }
+
+  Future<Folder> createFolder() async {
+    Folder f = Folder(name, "");
+    f.save();
+    folder = f.uuid;
+    save();
+    return f;
+  }
+
+  Future<Folder> getFolder() async {
+    if (folder == "") {
+      return createFolder();
+    }
+    Folder? f = await getFolderByUuid(folder);
+    if (f == null) {
+      return createFolder();
+    }
+    return f;
   }
 }
 
