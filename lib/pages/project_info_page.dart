@@ -310,14 +310,85 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         }));
   }
 
+  Widget projectTracingHeader(context, project) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Fechas de informes", 15, bold: FontWeight.bold),
+      addBtnRow(context, callDatesTracingEditDialog, {"project": project},
+          text: "Añadir informe de seguimiento",
+          icon: Icons.add_circle_outline),
+    ]);
+  }
+
+  Widget projectTracing(context, project) {
+    return FutureBuilder(
+        future: getProjectDatesTracingByProject(project.uuid),
+        builder: ((context, snapshot) {
+          if (snapshot.hasData) {
+            List dates = snapshot.data!;
+            return SizedBox(
+              width: double.infinity,
+              child: DataTable(
+                sortColumnIndex: 0,
+                showCheckboxColumn: false,
+                headingRowHeight: 0,
+                columns: [
+                  DataColumn(label: customText("", 14)),
+                  DataColumn(
+                    label: customText("", 14),
+                  ),
+                ],
+                rows: dates
+                    .map(
+                      (date) => DataRow(cells: [
+                        DataCell(
+                          customText(
+                              DateFormat("dd-MM-yyyy").format(date.date), 14),
+                        ),
+                        DataCell(Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              removeBtn(context, removeDateEvalDialog,
+                                  {"dateEval": date}),
+                            ]))
+                      ]),
+                    )
+                    .toList(),
+              ),
+            );
+
+            /*return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: dates.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        customText(
+                            DateFormat("dd-MM-yyyy").format(dates[index].date),
+                            14),
+                        removeBtn(context, removeDateTracingDialog,
+                            {"dateTracing": dates[index]}),
+                      ]);
+                });*/
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }
+
   Widget projectAuditEvaluation(context, project) {
     var audit = project.audit == true ? "Si" : "No";
     var evaluation = project.evaluation == true ? "Si" : "No";
     return IntrinsicHeight(
       child: Row(
         children: [
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 2.2,
+          Container(
+              padding: const EdgeInsets.only(left: 10),
+              width: MediaQuery.of(context).size.width / 3.2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -337,8 +408,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             width: 10,
             color: Colors.grey,
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width / 2.1,
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            width: MediaQuery.of(context).size.width / 3.2,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               customText("Evaluación", 14, bold: FontWeight.bold),
@@ -351,6 +423,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               project.evaluation
                   ? projectDatesEval(context, project)
                   : Container(),
+            ]),
+          ),
+          const VerticalDivider(
+            width: 10,
+            color: Colors.grey,
+          ),
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            width: MediaQuery.of(context).size.width / 3.2,
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              customText("Informes de seguimiento", 14, bold: FontWeight.bold),
+              space(height: 5),
+              projectTracingHeader(context, project),
+              projectTracing(context, project),
             ]),
           ),
         ],
@@ -550,45 +637,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         }));
   }
 
-  Widget projectTracingHeader(context, project) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Informes de seguimiento", 15, bold: FontWeight.bold),
-      addBtnRow(context, callDatesTracingEditDialog, {"project": project},
-          text: "Añadir informe de seguimiento",
-          icon: Icons.add_circle_outline),
-    ]);
-  }
-
-  Widget projectTracing(context, project) {
-    return FutureBuilder(
-        future: getProjectDatesTracingByProject(project.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            List dates = snapshot.data!;
-            return ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: dates.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        customText(
-                            DateFormat("dd-MM-yyyy").format(dates[index].date),
-                            14),
-                        removeBtn(context, removeDateTracingDialog,
-                            {"dateTracing": dates[index]}),
-                      ]);
-                });
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }
-
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(
         future: getProjectLocationByProject(project.uuid),
@@ -680,11 +728,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 customRowDivider(),
                 space(height: 5),
                 projectInfoDates(context, proj),
-                space(height: 5),
+                /*space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 projectTracingHeader(context, proj),
-                projectTracing(context, proj),
+                projectTracing(context, proj),*/
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
