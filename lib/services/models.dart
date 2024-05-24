@@ -172,7 +172,7 @@ class SProject {
       DateTime _approved = DateTime.parse(datesObj.approved);*/
       DateTime today = DateTime.now();
       if (today.isBefore(datesObj.start)) return "Sin iniciar";
-      if (today.isBefore(datesObj.approved)) return "Sin aprobar";
+      if (today.isBefore(datesObj.approved!)) return "Sin aprobar";
       if (today.isAfter(datesObj.end)) return "Finalizado";
       return "En proceso";
     } catch (e) {
@@ -473,7 +473,7 @@ class SProject {
     } else if (now.compareTo(datesObj.start) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusStart);
       setStatus(st);
-    } else if (now.compareTo(datesObj.approved) > 0) {
+    } else if (now.compareTo(datesObj.approved!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
       setStatus(st);
     } else {
@@ -763,13 +763,20 @@ CollectionReference dbDates = db.collection("s4c_project_dates");
 class ProjectDates {
   String id = "";
   String uuid = "";
-  DateTime approved = DateTime.now();
+  DateTime? approved;
+  DateTime? start;
+  DateTime? end;
+  DateTime? justification;
+  DateTime? delivery;
+  DateTime? sended;
+  DateTime? reject;
+  /*DateTime approved = DateTime.now();
   DateTime start = DateTime.now();
   DateTime end = DateTime.now();
   DateTime justification = DateTime.now();
   DateTime delivery = DateTime.now();
   DateTime sended = DateTime.now();
-  DateTime reject = DateTime.now();
+  DateTime reject = DateTime.now();*/
   String project = "";
 
   ProjectDates(this.project);

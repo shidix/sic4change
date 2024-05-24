@@ -1599,8 +1599,8 @@ class _HomePageState extends State<HomePage> {
                                           padding:
                                               const EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            DateFormat('dd-MM-yyyy')
-                                                .format(project.datesObj.start),
+                                            DateFormat('dd-MM-yyyy').format(
+                                                project.datesObj.start!),
                                             //project.datesObj.start,
                                             style: normalText,
                                             textAlign: TextAlign.center,
@@ -1613,7 +1613,7 @@ class _HomePageState extends State<HomePage> {
                                               const EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             DateFormat('dd-MM-yyyy')
-                                                .format(project.datesObj.end),
+                                                .format(project.datesObj.end!),
                                             //project.datesObj.end,
                                             style: normalText,
                                             textAlign: TextAlign.center,

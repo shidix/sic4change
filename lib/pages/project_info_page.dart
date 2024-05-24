@@ -581,10 +581,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     (project.status == "12")
                         ? TableRow(children: [
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.sended),
+                                DateFormat("dd-MM-yyyy").format(dates.sended!),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.approved),
+                                DateFormat("dd-MM-yyyy")
+                                    .format(dates.approved!),
                                 14),
                             customText("", 14),
                             customText("", 14),
@@ -592,19 +593,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                           ])
                         : TableRow(children: [
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.sended),
+                                DateFormat("dd-MM-yyyy").format(dates.sended!),
                                 14),
-                            customText(
-                                DateFormat("dd-MM-yyyy").format(dates.approved),
-                                14),
-                            customText(
-                                DateFormat("dd-MM-yyyy").format(dates.start),
-                                14),
-                            customText(
-                                DateFormat("dd-MM-yyyy").format(dates.end), 14),
                             customText(
                                 DateFormat("dd-MM-yyyy")
-                                    .format(dates.justification),
+                                    .format(dates.approved!),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.start!),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy").format(dates.end!),
+                                14),
+                            customText(
+                                DateFormat("dd-MM-yyyy")
+                                    .format(dates.justification!),
                                 14),
                           ])
                   ]),
@@ -622,7 +625,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     TableRow(children: [
                       customText("", 14),
                       customText(
-                          DateFormat("dd-MM-yyyy").format(dates.reject), 14),
+                          DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
                       customText("", 14),
                       customText("", 14),
                       customText("", 14),
