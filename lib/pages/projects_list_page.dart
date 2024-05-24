@@ -8,6 +8,7 @@ import 'package:sic4change/widgets/project_list_menu_widget.dart';
 
 const projectTitle = "Proyectos";
 bool loading = false;
+Widget? _mainMenu;
 
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key, this.prList, this.prType});
@@ -23,6 +24,18 @@ class _ProjectListPageState extends State<ProjectListPage> {
   List prList = [];
   List programList = [];
   String? prType = "Proyecto";
+
+  void setLoading() {
+    setState(() {
+      loading = true;
+    });
+  }
+
+  void stopLoading() {
+    setState(() {
+      loading = false;
+    });
+  }
 
   void loadProgrammes() async {
     await getProgrammes().then((val) {
@@ -41,21 +54,23 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   void initState() {
     super.initState();
+    setLoading();
+
+    _mainMenu = mainMenu(context, "/projects");
+
     if (widget.prType != null) {
       prType = widget.prType;
     } else {
       prType = "Proyecto";
     }
-    setState(() {
-      loading = true;
-    });
+
     //getProjects().then((val) {
     getProjectsByType(prType!).then((val) {
       if (mounted) {
         setState(() {
           prList = val;
-          loading = false;
         });
+        stopLoading();
         for (SProject item in prList) {
           item.loadObjs().then((value) {
             if (mounted) {
@@ -77,7 +92,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context, "/projects"),
+          _mainMenu!,
+          //mainMenu(context, "/projects"),
           projectSearch(),
           Container(
               padding: const EdgeInsets.all(10),
@@ -307,25 +323,33 @@ class _ProjectListPageState extends State<ProjectListPage> {
                 rows: prList
                     .map(
                       (proj) => DataRow(cells: [
-                        //DataCell(customText(proj.id, 14)),
                         DataCell(customText(proj.getCode(), 14)),
                         DataCell(customText(proj.name, 14)),
                         DataCell(customText(proj.statusObj.name, 14,
                             textColor: proj.getStatusColor())),
                         DataCell(customText(proj.managerObj.name, 14)),
-                        //DataCell(customText(proj.ambitObj.name, 14)),
                         DataCell(customText(proj.budget, 14)),
                         DataCell(
                             customText(proj.locationObj.countryObj.name, 14)),
                         DataCell(customText(proj.getFinanciersStr(), 14)),
-                        DataCell(customText(
-                            DateFormat('yyyy').format(proj.datesObj.approved),
-                            14)),
+                        (proj.datesObj.approved == null)
+                            ? DataCell(Container())
+                            : DataCell(customText(
+                                DateFormat('yyyy')
+                                    .format(proj.datesObj.approved),
+                                14)),
                         DataCell(Row(children: [
                           goPageIcon(context, "Ver", Icons.info_outline,
                               ProjectInfoPage(project: proj)),
                           //removeBtn(context, removeTaskDialog, {"task": task})
                         ]))
+
+                        /*DataCell(customText(proj.getCode(), 14)),
+                        DataCell(Row(children: [
+                          goPageIcon(context, "Ver", Icons.info_outline,
+                              ProjectInfoPage(project: proj)),
+                          //removeBtn(context, removeTaskDialog, {"task": task})
+                        ]))*/
                       ]),
                     )
                     .toList());
