@@ -230,15 +230,15 @@ class SProject {
   }
 
   Future<Ambit> getAmbit() async {
-    //try {
-    QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
-    final doc = query.docs.first;
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    return Ambit.fromJson(data);
-    /*} catch (e) {
+    try {
+      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Ambit.fromJson(data);
+    } catch (e) {
       return Ambit("");
-    }*/
+    }
   }
 
   Future<ProjectType> getProjectType() async {
