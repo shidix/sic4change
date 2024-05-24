@@ -171,9 +171,9 @@ class SProject {
       DateTime _end = DateTime.parse(datesObj.end);
       DateTime _approved = DateTime.parse(datesObj.approved);*/
       DateTime today = DateTime.now();
-      if (today.isBefore(datesObj.start)) return "Sin iniciar";
+      if (today.isBefore(datesObj.start!)) return "Sin iniciar";
       if (today.isBefore(datesObj.approved!)) return "Sin aprobar";
-      if (today.isAfter(datesObj.end)) return "Finalizado";
+      if (today.isAfter(datesObj.end!)) return "Finalizado";
       return "En proceso";
     } catch (e) {
       return "Finalizado";
@@ -183,7 +183,7 @@ class SProject {
   String getCode() {
     String code = "";
     if (financiersObj.isNotEmpty) code += "${financiersObj.first.name}_";
-    code += "${datesObj.start.year}_";
+    code += "${datesObj.start!.year}_";
     if (partnersObj.isNotEmpty) code += "${partnersObj.first.name}_";
     code += "${locationObj.countryObj.name}_";
     code += "${programmeObj.name}_";
@@ -458,19 +458,19 @@ class SProject {
       setStatus(st);
     } else if (now.compareTo(datesObj.justification) > 0) {*/
 
-    if (now.compareTo(datesObj.reject) > 0) {
+    if (now.compareTo(datesObj.reject!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusReject);
       setStatus(st);
-    } else if (now.compareTo(datesObj.sended) > 0) {
+    } else if (now.compareTo(datesObj.sended!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusSended);
       setStatus(st);
-    } else if (now.compareTo(datesObj.justification) > 0) {
+    } else if (now.compareTo(datesObj.justification!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
       setStatus(st);
-    } else if (now.compareTo(datesObj.end) > 0) {
+    } else if (now.compareTo(datesObj.end!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusEnds);
       setStatus(st);
-    } else if (now.compareTo(datesObj.start) > 0) {
+    } else if (now.compareTo(datesObj.start!) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusStart);
       setStatus(st);
     } else if (now.compareTo(datesObj.approved!) > 0) {
