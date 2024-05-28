@@ -581,11 +581,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     (project.status == "12")
                         ? TableRow(children: [
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.sended!),
+                                //DateFormat("dd-MM-yyyy").format(dates.sended),
+                                dates.getSendedStr(),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy")
-                                    .format(dates.approved!),
+                                //DateFormat("dd-MM-yyyy").format(dates.approved),
+                                dates.getApprovedStr(),
                                 14),
                             customText("", 14),
                             customText("", 14),
@@ -593,21 +594,25 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                           ])
                         : TableRow(children: [
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.sended!),
+                                //DateFormat("dd-MM-yyyy").format(dates.sended),
+                                dates.getSendedStr(),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy")
-                                    .format(dates.approved!),
+                                //DateFormat("dd-MM-yyyy").format(dates.approved),
+                                dates.getApprovedStr(),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.start!),
+                                //DateFormat("dd-MM-yyyy").format(dates.start),
+                                dates.getStartStr(),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy").format(dates.end!),
+                                //DateFormat("dd-MM-yyyy").format(dates.end), 14),
+                                dates.getEndStr(),
                                 14),
                             customText(
-                                DateFormat("dd-MM-yyyy")
-                                    .format(dates.justification!),
+                                /*DateFormat("dd-MM-yyyy")
+                                    .format(dates.justification),*/
+                                dates.getJustificationStr(),
                                 14),
                           ])
                   ]),
@@ -625,7 +630,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     TableRow(children: [
                       customText("", 14),
                       customText(
-                          DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
+                          //DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
+                          dates.getRejectStr(),
+                          14),
                       customText("", 14),
                       customText("", 14),
                       customText("", 14),
@@ -1161,7 +1168,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Presentación',
-                              selectedDate: dates.sended,
+                              selectedDate: dates.getSended(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates.sended = date;
@@ -1177,7 +1184,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Aprobación',
-                              selectedDate: dates.approved,
+                              selectedDate: dates.getApproved(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates.approved = date;
@@ -1193,7 +1200,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Denegación',
-                              selectedDate: dates!.reject,
+                              selectedDate: dates.getReject(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates!.reject = date;
@@ -1211,7 +1218,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Inicio',
-                              selectedDate: dates!.start,
+                              selectedDate: dates.getStart(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates!.start = date;
@@ -1227,7 +1234,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Fin',
-                              selectedDate: dates!.end,
+                              selectedDate: dates.getEnd(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates!.end = date;
@@ -1243,7 +1250,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                             width: 220,
                             child: DateTimePicker(
                               labelText: 'Justificación',
-                              selectedDate: dates!.justification,
+                              selectedDate: dates.getJustification(),
                               onSelectedDate: (DateTime date) {
                                 setState(() {
                                   dates!.justification = date;

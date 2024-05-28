@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -759,17 +760,19 @@ Future<List<KeyValue>> getProjectStatusHash() async {
 //                       PROJECT DATES
 //--------------------------------------------------------------
 CollectionReference dbDates = db.collection("s4c_project_dates");
+DateTime maxDate = DateTime(2100, 12, 31);
+DateTime limitDate = DateTime(2100, 12, 30);
 
 class ProjectDates {
   String id = "";
   String uuid = "";
-  DateTime? approved;
+  /*DateTime? approved;
   DateTime? start;
   DateTime? end;
   DateTime? justification;
   DateTime? delivery;
   DateTime? sended;
-  DateTime? reject;
+  DateTime? reject;*/
   /*DateTime approved = DateTime.now();
   DateTime start = DateTime.now();
   DateTime end = DateTime.now();
@@ -777,6 +780,13 @@ class ProjectDates {
   DateTime delivery = DateTime.now();
   DateTime sended = DateTime.now();
   DateTime reject = DateTime.now();*/
+  DateTime approved = maxDate;
+  DateTime start = maxDate;
+  DateTime end = maxDate;
+  DateTime justification = maxDate;
+  DateTime delivery = maxDate;
+  DateTime sended = maxDate;
+  DateTime reject = maxDate;
   String project = "";
 
   ProjectDates(this.project);
@@ -791,6 +801,16 @@ class ProjectDates {
         delivery = json["delivery"].toDate(),
         sended = json["sended"].toDate(),
         reject = json["reject"].toDate(),
+
+        /*approved = (json["approved"] != null) ? json["approved"].toDate() : "",
+        start = (json["start"] != null) ? json["start"].toDate() : "",
+        end = (json["end"] != null) ? json["end"].toDate() : "",
+        justification = (json["justification"] != null)
+            ? json["justification"].toDate()
+            : "",
+        delivery = (json["delivery"] != null) ? json["delivery"].toDate() : "",
+        sended = (json["sended"] != null) ? json["sended"].toDate() : "",
+        reject = (json["reject"] != null) ? json["reject"].toDate() : "",*/
         project = json["project"];
 
   Map<String, dynamic> toJson() => {
@@ -821,6 +841,78 @@ class ProjectDates {
   Future<void> delete() async {
     await dbDates.doc(id).delete();
   }
+
+  DateTime getApproved() {
+    return approved.compareTo(limitDate) > 0 ? DateTime.now() : approved;
+  }
+
+  DateTime getStart() {
+    return start.compareTo(limitDate) > 0 ? DateTime.now() : start;
+  }
+
+  DateTime getEnd() {
+    return end.compareTo(limitDate) > 0 ? DateTime.now() : end;
+  }
+
+  DateTime getJustification() {
+    return justification.compareTo(limitDate) > 0
+        ? DateTime.now()
+        : justification;
+  }
+
+  DateTime getDelivery() {
+    return delivery.compareTo(limitDate) > 0 ? DateTime.now() : delivery;
+  }
+
+  DateTime getSended() {
+    return sended.compareTo(limitDate) > 0 ? DateTime.now() : sended;
+  }
+
+  DateTime getReject() {
+    return reject.compareTo(limitDate) > 0 ? DateTime.now() : reject;
+  }
+
+  String getApprovedStr() {
+    return approved.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(approved);
+  }
+
+  String getStartStr() {
+    return start.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(start);
+  }
+
+  String getEndStr() {
+    return end.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(end);
+  }
+
+  String getJustificationStr() {
+    return justification.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(justification);
+  }
+
+  String getDeliveryStr() {
+    return delivery.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(delivery);
+  }
+
+  String getSendedStr() {
+    return sended.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(sended);
+  }
+
+  String getRejectStr() {
+    return reject.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(reject);
+  }
 }
 
 Future<List> getProjectDates() async {
@@ -844,11 +936,11 @@ Future<ProjectDates> getProjectDatesById(String id) async {
   return ProjectDates.fromJson(data);
 }
 
-Future<ProjectDates> getProjectDatesByProject(String _project) async {
+Future<ProjectDates> getProjectDatesByProject(String project) async {
   QuerySnapshot query =
-      await dbDates.where("project", isEqualTo: _project).get();
+      await dbDates.where("project", isEqualTo: project).get();
   if (query.docs.isEmpty) {
-    ProjectDates dates = ProjectDates(_project);
+    ProjectDates dates = ProjectDates(project);
     dates.save();
     return dates;
   }
@@ -1184,6 +1276,7 @@ class ProjectLocation {
       data["id"] = doc.id;
       return Town.fromJson(data);
     } catch (e) {
+      print(e);
       return Town("");
     }
   }
