@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -90,7 +91,19 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   Future<void> riskEditDialog(context, Map<String, dynamic> args) {
+
+    bool _showExtraInfo = true;
     Risk risk = args["risk"];
+        Widget container = Container(
+                                  padding: const EdgeInsets.only(top: 20),
+                                  child: CustomTextField(
+                                    labelText: "Información adicional",
+                                    initial: risk.extraInfo.entries.join("\n"),
+                                    size: 220,
+                                    fieldValue: (String val) { },
+                                  ),
+                              );
+    print(risk.extraInfo);
 
     return showDialog<void>(
       context: context,
@@ -101,43 +114,54 @@ class _RisksPageState extends State<RisksPage> {
           title: s4cTitleBar(
               (risk.name != "") ? 'Editando Riesgo' : 'Añadiendo Riesgo'),
           content: SingleChildScrollView(
-              child: Row(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: risk.name,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => risk.name = val);
-                },
-              )
-            ]),
-            space(width: 20),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Descripción",
-                initial: risk.description,
-                size: 220,
-                fieldValue: (String val) {
-                  setState(() => risk.description = val);
-                },
-              )
-            ]),
-            Column(children: [
-              customText("¿Ocurrió?", 12),
-              FormField<bool>(builder: (FormFieldState<bool> state) {
-                return Checkbox(
-                  value: risk.occur,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      risk.occur = value!;
-                      state.didChange(risk.occur);
-                    });
-                  },
-                );
-              })
-            ]),
-          ])),
+            child: Column( children: [
+              Row(children: <Widget>[
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Nombre",
+                    initial: risk.name,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => risk.name = val);
+                    },
+                  )
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Descripción",
+                    initial: risk.description,
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => risk.description = val);
+                    },
+                  )
+                ]),
+                Column(children: [
+                  SizedBox(
+                      width: 220,
+                      child: CustomSelectFormField(
+                          labelText: "¿Ocurrió?",
+                          initial: risk.occur,
+                          options: List<KeyValue>.from([
+                            KeyValue("No", "No"),
+                            KeyValue("Parcialmente", "Parcialmente"),
+                            KeyValue("Sí", "Sí")
+                          ]),
+                          onSelectedOpt: (String val) {
+                            setState(() { 
+                              risk.occur = val; 
+                              _showExtraInfo = (val == "No") ? false : true;
+
+                            });
+                          }
+                      ))]),
+              ]),
+              Visibility(
+                visible: _showExtraInfo,
+                child: 
+              Row(children: [container],))])
+            ),
           actions: <Widget>[dialogsBtns(context, saveRisk, risk)],
         );
       },
@@ -187,7 +211,7 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   Widget riskRow(context, risk, project) {
-    Icon occurIcon = (risk.occur)
+    Icon occurIcon = (risk.occur == "Sí")
         ? const Icon(Icons.check_circle_outline, color: Colors.green)
         : const Icon(Icons.remove_circle_outline, color: Colors.red);
     return Row(
