@@ -9,13 +9,16 @@ CollectionReference dbProject = db.collection("s4c_projects");
 //--------------------------------------------------------------
 CollectionReference dbRisk = db.collection("s4c_risks");
 
+
 class Risk {
   String id = "";
   String uuid = "";
   String name = "";
   String description = "";
-  bool occur = false;
+  String occur = "No";
   String project = "";
+  Map<String, dynamic> extraInfo = {};
+  
 
   Risk(this.project);
 
@@ -25,7 +28,8 @@ class Risk {
         name = json['name'],
         description = json['description'],
         occur = json['occur'],
-        project = json['project'];
+        project = json['project'],
+        extraInfo = json['extraInfo'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -34,6 +38,7 @@ class Risk {
         'description': description,
         'occur': occur,
         'project': project,
+        'extraInfo': extraInfo,
       };
 
   Future<void> save() async {
