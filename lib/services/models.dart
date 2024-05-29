@@ -563,20 +563,22 @@ Future<SProject?> getProjectByUuid(String uuid) async {
 }
 
 Future<List> getProjectsByType(String type) async {
+  List items = [];
   QuerySnapshot query =
       await dbProjectType.where("name", isEqualTo: type).get();
-  final doc = query.docs.first;
-  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  data["id"] = doc.id;
-  ProjectType pt = ProjectType.fromJson(data);
-
-  List items = [];
-  query = await dbProject.where("type", isEqualTo: pt.uuid).get();
-  for (var doc in query.docs) {
+  if (query.docs.isNotEmpty) {
+    final doc = query.docs.first;
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final item = SProject.fromJson(data);
-    items.add(item);
+    ProjectType pt = ProjectType.fromJson(data);
+
+    query = await dbProject.where("type", isEqualTo: pt.uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = SProject.fromJson(data);
+      items.add(item);
+    }
   }
   return items;
 }
