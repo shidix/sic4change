@@ -1,8 +1,10 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:googleapis/transcoder/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -23,6 +25,8 @@ class RisksPage extends StatefulWidget {
 
 class _RisksPageState extends State<RisksPage> {
   SProject? project;
+  List goals = [];
+  List<Row> containerRisk = [];
   void loadRisks(value) async {
     await getRisksByProject(value).then((val) {
       risks = val;
@@ -30,10 +34,21 @@ class _RisksPageState extends State<RisksPage> {
     setState(() {});
   }
 
+  void loadGoals() async {
+    await getGoalsByProject(project!.uuid).then((val) {
+      goals = val;
+    });
+    setState(() {});
+  }
+
   @override
   initState() {
     super.initState();
+
     project = widget.project;
+    getGoalsByProject(project!.uuid).then((val) {
+      goals = val;
+    });
   }
 
   @override
@@ -91,19 +106,209 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   Future<void> riskEditDialog(context, Map<String, dynamic> args) {
-
-    bool _showExtraInfo = true;
     Risk risk = args["risk"];
-        Widget container = Container(
-                                  padding: const EdgeInsets.only(top: 20),
-                                  child: CustomTextField(
-                                    labelText: "Información adicional",
-                                    initial: risk.extraInfo.entries.join("\n"),
-                                    size: 220,
-                                    fieldValue: (String val) { },
-                                  ),
-                              );
-    print(risk.extraInfo);
+    List<KeyValue> goalsOptions = [KeyValue("Ninguno", "Ninguno")];
+    for (var goal in goals) {
+      goalsOptions
+          .add(KeyValue(goal.name.split('.')[0], goal.name.split('.')[0]));
+    }
+    if (!risk.extraInfo.containsKey("mitigations")) {
+      risk.extraInfo["mitigations"] = [];
+    }
+    List<Row> mitigationsList = [];
+    int counter = 0;
+    for (var mitigation in risk.extraInfo["mitigations"]) {
+      counter += 1;
+      mitigationsList.add(Row(children: [
+        Expanded(
+            flex: 3,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 0, top: 10),
+                child: CustomTextField(
+                  labelText: "Descripción",
+                  initial: risk.extraInfo["mitigations"][counter]
+                      ["description"],
+                  size: 220,
+                  maxLines: 5,
+                  fieldValue: (String val) {
+                    setState(() => mitigation["description"] = val);
+                  },
+                ))),
+        Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 10),
+                child: CustomSelectFormField(
+                    labelText: "Implementada",
+                    initial: mitigation["implemented"],
+                    options: List<KeyValue>.from([
+                      KeyValue("Preventiva", "Sí"),
+                      KeyValue("Correctiva", "No"),
+                    ]),
+                    onSelectedOpt: (String val) {
+                      setState(() => mitigation["implemented"] = val);
+                    }))),
+        Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 10),
+                child: CustomTextField(
+                    labelText: "Fecha",
+                    initial: mitigation["date"],
+                    size: 220,
+                    fieldValue: (String val) {
+                      setState(() => mitigation["date"] = val);
+                    }))),
+        Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 10),
+                child: CustomTextField(
+                  labelText: "Responsable",
+                  initial: mitigation["responsible"],
+                  size: 220,
+                  fieldValue: (String val) {
+                    setState(() => mitigation["responsible"] = val);
+                  },
+                )))
+      ]));
+    }
+
+    if (risk.occur != "No") {
+      containerRisk = [
+        Row(
+          children: [
+            Expanded(
+                flex: 3,
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 0, top: 10),
+                    child: CustomTextField(
+                      labelText: "Descripción",
+                      initial: risk.description,
+                      size: 220,
+                      maxLines: 5,
+                      fieldValue: (String val) {
+                        setState(() => risk.description = val);
+                      },
+                    ))),
+          ],
+        ),
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 0, top: 20),
+                  child: CustomSelectFormField(
+                      labelText: "Relacionado con Marco Lógico",
+                      initial: risk.extraInfo["marco_logico"] ?? "No",
+                      options: List<KeyValue>.from([
+                        KeyValue("No", "No"),
+                        KeyValue("Sí", "Sí"),
+                      ]),
+                      onSelectedOpt: (String val) {
+                        risk.extraInfo["marco_logico"] = val;
+                      }))),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 20, top: 20),
+                  child: CustomSelectFormField(
+                      labelText: "Objetivo",
+                      initial: risk.extraInfo["objetivo"] ?? "Ninguno",
+                      options: goalsOptions,
+                      onSelectedOpt: (String val) {
+                        risk.extraInfo["objetivo"] = val;
+                      }))),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 20, top: 20),
+                  child: CustomSelectFormField(
+                      labelText: "Probabilidad",
+                      initial: risk.extraInfo["prob"] ?? "1",
+                      options: List<KeyValue>.from([
+                        KeyValue("1", "1"),
+                        KeyValue("2", "2"),
+                        KeyValue("3", "3"),
+                        KeyValue("4", "4"),
+                      ]),
+                      onSelectedOpt: (String val) {
+                        setState(() {
+                          risk.extraInfo["prob"] = val;
+                          risk.extraInfo["risk"] =
+                              (int.parse(risk.extraInfo["prob"]!) *
+                                      int.parse(risk.extraInfo["impact"]!))
+                                  .toString();
+                        });
+                      }))),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 20, top: 20),
+                  child: CustomSelectFormField(
+                      labelText: "Impacto",
+                      initial: risk.extraInfo["impact"] ?? "1",
+                      options: List<KeyValue>.from([
+                        KeyValue("1", "1"),
+                        KeyValue("2", "2"),
+                        KeyValue("3", "3"),
+                        KeyValue("4", "4"),
+                      ]),
+                      onSelectedOpt: (String val) {
+                        setState(() {
+                          risk.extraInfo["impact"] = val;
+                          risk.extraInfo["risk"] =
+                              (int.parse(risk.extraInfo["prob"]!) *
+                                      int.parse(risk.extraInfo["impact"]!))
+                                  .toString();
+                        });
+                      }))),
+        ]),
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 0, top: 20),
+                  child: CustomTextField(
+                      labelText: "Descripción de los ocurrido",
+                      initial: risk.extraInfo["history"] ?? "",
+                      size: 220,
+                      maxLines: 5,
+                      fieldValue: (String val) {
+                        setState(() => risk.extraInfo["history"] = val);
+                      }))),
+        ])
+      ];
+      containerRisk += mitigationsList;
+      containerRisk += [
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 0, top: 20),
+                  child: CustomTextField(
+                      labelText: "Observaciones",
+                      initial: risk.extraInfo["observations"] ?? "",
+                      size: 220,
+                      maxLines: 5,
+                      fieldValue: (String val) {
+                        setState(() => risk.extraInfo["observations"] = val);
+                      }))),
+        ]),
+      ];
+    } else {
+      containerRisk = [];
+    }
+
+    if (!risk.extraInfo.containsKey("impact")) {
+      risk.extraInfo["impact"] = "1";
+    }
+    if (!risk.extraInfo.containsKey("prob")) {
+      risk.extraInfo["prob"] = "1";
+    }
+    if (!risk.extraInfo.containsKey("risk")) {
+      risk.extraInfo["risk"] = "1";
+    }
 
     return showDialog<void>(
       context: context,
@@ -114,54 +319,46 @@ class _RisksPageState extends State<RisksPage> {
           title: s4cTitleBar(
               (risk.name != "") ? 'Editando Riesgo' : 'Añadiendo Riesgo'),
           content: SingleChildScrollView(
-            child: Column( children: [
-              Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Nombre",
-                    initial: risk.name,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => risk.name = val);
-                    },
-                  )
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Descripción",
-                    initial: risk.description,
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => risk.description = val);
-                    },
-                  )
-                ]),
-                Column(children: [
-                  SizedBox(
-                      width: 220,
-                      child: CustomSelectFormField(
-                          labelText: "¿Ocurrió?",
-                          initial: risk.occur,
-                          options: List<KeyValue>.from([
-                            KeyValue("No", "No"),
-                            KeyValue("Parcialmente", "Parcialmente"),
-                            KeyValue("Sí", "Sí")
-                          ]),
-                          onSelectedOpt: (String val) {
-                            setState(() { 
-                              risk.occur = val; 
-                              _showExtraInfo = (val == "No") ? false : true;
-
-                            });
-                          }
-                      ))]),
-              ]),
-              Visibility(
-                visible: _showExtraInfo,
-                child: 
-              Row(children: [container],))])
-            ),
+              child: Column(
+            children: [
+                  Row(children: <Widget>[
+                    Expanded(
+                        flex: 1,
+                        child: CustomTextField(
+                          labelText: "Nombre",
+                          initial: risk.name,
+                          size: 220,
+                          fieldValue: (String val) {
+                            setState(() => risk.name = val);
+                          },
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: Container(),
+                    ),
+                    Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: CustomSelectFormField(
+                                labelText: "¿Ocurrió?",
+                                initial: risk.occur,
+                                options: List<KeyValue>.from([
+                                  KeyValue("No", "No"),
+                                  KeyValue("Parcialmente", "Parcialmente"),
+                                  KeyValue("Sí", "Sí")
+                                ]),
+                                onSelectedOpt: (String val) {
+                                  if (val != risk.occur) {
+                                    risk.occur = val;
+                                    Navigator.of(context).pop();
+                                    riskEditDialog(context, {"risk": risk});
+                                  }
+                                }))),
+                  ]),
+                ] +
+                containerRisk,
+          )),
           actions: <Widget>[dialogsBtns(context, saveRisk, risk)],
         );
       },
@@ -192,10 +389,11 @@ class _RisksPageState extends State<RisksPage> {
                                 height: 100,
                                 padding:
                                     const EdgeInsets.only(top: 20, bottom: 10),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   border: Border(
-                                      bottom: BorderSide(
-                                          color: Color(0xffdfdfdf), width: 1)),
+                                    bottom: BorderSide(
+                                        color: Colors.grey[300]!, width: 1),
+                                  ),
                                 ),
                                 child: riskRow(context, risk, project),
                               );
@@ -213,7 +411,9 @@ class _RisksPageState extends State<RisksPage> {
   Widget riskRow(context, risk, project) {
     Icon occurIcon = (risk.occur == "Sí")
         ? const Icon(Icons.check_circle_outline, color: Colors.green)
-        : const Icon(Icons.remove_circle_outline, color: Colors.red);
+        : (risk.occur == "Parcialmente")
+            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
+            : const Icon(Icons.remove_circle_outline, color: Colors.red);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

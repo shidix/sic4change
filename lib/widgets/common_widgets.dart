@@ -1652,7 +1652,9 @@ class CustomTextField extends StatelessWidget {
         minLines: minLines,
         maxLines: mLines,
         initialValue: (initial != "") ? initial : "",
-        decoration: InputDecoration(labelText: labelText),
+        decoration: InputDecoration(
+            labelText: labelText,
+            contentPadding: const EdgeInsets.only(bottom: 4)),
         onChanged: (val) {
           fieldValue(val);
         },
