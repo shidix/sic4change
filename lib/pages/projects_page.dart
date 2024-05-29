@@ -575,7 +575,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void saveProject(List args) async {
     SProject project = args[0];
     await project.save();
-    project.changeStatus();
+    //project.changeStatus();
 
     Navigator.pop(context);
     Navigator.push(
