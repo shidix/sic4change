@@ -992,6 +992,20 @@ Widget addBtnRow(context, action, args,
       ));
 }
 
+Widget listBtn(context, action, args,
+    {text = 'Listado', icon = Icons.list, iconSize = 20}) {
+  return IconButton(
+    icon: Icon(
+      icon,
+      size: iconSize,
+    ),
+    tooltip: text,
+    onPressed: () {
+      action(context, args);
+    },
+  );
+}
+
 Widget editBtn(context, action, args,
     {text = editText, icon = Icons.edit, iconSize = 20}) {
   return IconButton(

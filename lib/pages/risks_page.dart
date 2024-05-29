@@ -14,6 +14,8 @@ import 'package:sic4change/widgets/path_header_widget.dart';
 
 const riskPageTitle = "Riesgos";
 List risks = [];
+Map<String, List> mitigations = {};
+Map<String, Widget> panelMitigations = {};
 
 class RisksPage extends StatefulWidget {
   final SProject? project;
@@ -30,6 +32,13 @@ class _RisksPageState extends State<RisksPage> {
   void loadRisks(value) async {
     await getRisksByProject(value).then((val) {
       risks = val;
+      for (Risk risk in risks) {
+        if (!risk.extraInfo.containsKey("mitigations")) {
+          risk.extraInfo["mitigations"] = [];
+        }
+        mitigations[risk.uuid] = risk.extraInfo["mitigations"];
+      }
+      
     });
     setState(() {});
   }
@@ -386,7 +395,7 @@ class _RisksPageState extends State<RisksPage> {
                             itemBuilder: (BuildContext context, int index) {
                               Risk risk = risks[index];
                               return Container(
-                                height: 100,
+                                // height: 100,
                                 padding:
                                     const EdgeInsets.only(top: 20, bottom: 10),
                                 decoration: BoxDecoration(
@@ -414,7 +423,9 @@ class _RisksPageState extends State<RisksPage> {
         : (risk.occur == "Parcialmente")
             ? const Icon(Icons.check_circle_outline, color: Colors.orange)
             : const Icon(Icons.remove_circle_outline, color: Colors.red);
-    return Row(
+
+    Row riskContent = 
+    Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         SizedBox(
@@ -441,10 +452,56 @@ class _RisksPageState extends State<RisksPage> {
         Row(children: [
           editBtn(context, riskEditDialog, {"risk": risk}),
           removeBtn(context, removeRiskDialog,
-              {"risk": risk, "project": project.uuid})
+              {"risk": risk, "project": project.uuid}),
+          listBtn(context, toogleActions, {"risk": risk}, text: "Mitigaciones"),
         ])
       ],
     );
+    Widget panel = Container();
+    if (panelMitigations.keys.contains(risk.uuid)) {
+      panel = panelMitigations[risk.uuid]!;
+    } 
+
+    return Column(children: [ riskContent, 
+                              space(height: 10),    
+                              panel],);
+
+  }
+
+
+
+  void toogleActions(context, args) {
+    Risk risk = args["risk"];
+    if (panelMitigations.keys.contains(args["risk"].uuid)) {
+      panelMitigations.remove(args["risk"].uuid);
+    } else {
+      List<Widget> mitigationsList = [];
+      int counter = 0;
+
+      mitigationsList.add( 
+        Row(children: [
+          Expanded(flex: 3, child: customText("Descripción", 24, bold: FontWeight.bold)),
+          Expanded(flex: 1, child: customText("Implementada", 24, bold: FontWeight.bold)),
+          Expanded(flex: 1, child: customText("Fecha", 24, bold: FontWeight.bold)),
+        ],));
+      
+      for (var mitigation in risk.extraInfo["mitigations"]) {
+        
+        mitigationsList.add(
+          Row(children: [
+            Expanded(flex: 3, child: customText(mitigation["description"], 16)),
+            Expanded(flex: 1, child: (mitigation["implemented"]) ? const Icon(Icons.check_circle_outline, color: Colors.green) : const Icon(Icons.remove_circle_outline, color: Colors.red)),
+            Expanded(flex: 1, child: customText(mitigation["date"], 16)),
+          ],));
+          counter += 1;
+      }
+      // mitigationsList.add(addBtn(context, mitigationEditDialog, {"mitigation": Mitigation(risk.uuid)}));
+      panelMitigations[risk.uuid] = Column(children: mitigationsList);
+
+
+    } 
+  
+    setState(() {});
   }
 
   void removeRiskDialog(context, args) {
