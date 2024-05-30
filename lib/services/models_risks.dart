@@ -9,7 +9,6 @@ CollectionReference dbProject = db.collection("s4c_projects");
 //--------------------------------------------------------------
 CollectionReference dbRisk = db.collection("s4c_risks");
 
-
 class Risk {
   String id = "";
   String uuid = "";
@@ -18,28 +17,61 @@ class Risk {
   String occur = "No";
   String project = "";
   Map<String, dynamic> extraInfo = {};
-  
 
   Risk(this.project);
 
-  Risk.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        occur = json['occur'],
-        project = json['project'],
-        extraInfo = json['extraInfo'];
+  static Risk fromJson(Map<String, dynamic> json) {
+    Risk item = Risk(json['project']);
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    item.description = json['description'];
+    item.occur = json['occur'];
+    item.project = json['project'];
+    item.extraInfo = json['extraInfo'];
+    if (!item.extraInfo.keys.contains("impact")) {
+      item.extraInfo["impact"] = "";
+    }
+    if (!item.extraInfo.keys.contains("probability")) {
+      item.extraInfo["probability"] = "";
+    }
+    if (!item.extraInfo.keys.contains("mitigations")) {
+      item.extraInfo["mitigations"] = {};
+    }
+    if (!item.extraInfo.keys.contains("risk")) {
+      item.extraInfo["risk"] = "";
+    }
+    if (!item.extraInfo.keys.contains("history")) {
+      item.extraInfo["history"] = "";
+    }
+    if (!item.extraInfo.keys.contains("observations")) {
+      item.extraInfo["observations"] = "";
+    }
+    return item;
+  }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'description': description,
-        'occur': occur,
-        'project': project,
-        'extraInfo': extraInfo,
+  Map<String, dynamic> toJson() {
+    if (extraInfo.isEmpty) {
+      extraInfo = {
+        "impact": "",
+        "probability": "",
+        "mitigations": {},
+        "risk": "",
+        "history": "",
+        "observations": ""
       };
+    }
+
+    return {
+      'id': id,
+      'uuid': uuid,
+      'name': name,
+      'description': description,
+      'occur': occur,
+      'project': project,
+      'extraInfo': extraInfo,
+    };
+  }
 
   Future<void> save() async {
     if (id == "") {
