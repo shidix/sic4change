@@ -8,6 +8,7 @@ import 'package:sic4change/widgets/project_info_menu_widget.dart';
 const reformulationTitle = "Detalles del Proyecto";
 //SProject? _project;
 List refList = [];
+Widget? _mainMenu;
 
 class ReformulationPage extends StatefulWidget {
   final SProject? project;
@@ -31,6 +32,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
   initState() {
     super.initState();
     project = widget.project;
+    _mainMenu = mainMenu(context);
   }
 
   @override
@@ -40,7 +42,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context),
+          //mainMenu(context),
+          _mainMenu!,
           projectInfoHeader(context, project),
           profileMenu(context, project, "reformulation"),
           contentTab(context, reformulationList, null)
@@ -93,20 +96,6 @@ class _ReformulationPageState extends State<ReformulationPage> {
         ]));
   }
 
-  /*Widget projectInfoMenu(context, project) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Row(
-        children: [
-          menuTab(context, "Datos generales", "/project_info",
-              {'project': project}),
-          menuTabSelect(context, "Comunicación con el financiador",
-              "/project_reformulation", {'project': project}),
-        ],
-      ),
-    );
-  }*/
-
 /*-------------------------------------------------------------
                        REFORMULATION
 -------------------------------------------------------------*/
@@ -117,7 +106,50 @@ class _ReformulationPageState extends State<ReformulationPage> {
           if (snapshot.hasData) {
             refList = snapshot.data!;
             if (refList.isNotEmpty) {
-              return ListView.builder(
+              return SizedBox(
+                width: double.infinity,
+                child: DataTable(
+                  sortColumnIndex: 0,
+                  showCheckboxColumn: false,
+                  //headingRowHeight: 0,
+                  columns: [
+                    DataColumn(
+                        label: customText("Financiador", 14,
+                            bold: FontWeight.bold)),
+                    DataColumn(
+                        label: customText("Descripción", 14,
+                            bold: FontWeight.bold)),
+                    DataColumn(
+                        label: customText("Estado", 14, bold: FontWeight.bold)),
+                    DataColumn(
+                      label: customText("", 14),
+                    ),
+                  ],
+                  rows: refList
+                      .map(
+                        (ref) => DataRow(cells: [
+                          DataCell(
+                            customText(ref.financierObj.name, 14),
+                          ),
+                          DataCell(
+                            customText(ref.description, 14),
+                          ),
+                          DataCell(
+                            customText(ref.statusObj.name, 14),
+                          ),
+                          DataCell(Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                reformulationRowOptions(context, ref),
+                                /*removeBtn(context, removeDateAuditDialog,
+                                  {"dateAudit": date}),*/
+                              ]))
+                        ]),
+                      )
+                      .toList(),
+                ),
+              );
+              /*return ListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: refList.length,
                   itemBuilder: (BuildContext context, int index) {
@@ -132,9 +164,10 @@ class _ReformulationPageState extends State<ReformulationPage> {
                       ),
                       child: reformulationRow(context, ref),
                     );
-                  });
-            } else
+                  });*/
+            } else {
               return const Text("");
+            }
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -143,7 +176,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         }));
   }
 
-  Widget reformulationRow(context, ref) {
+  /*Widget reformulationRow(context, ref) {
     return Container(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -161,9 +194,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
               ],
             ),
             space(height: 20),
-            customText("Reformulaciones", 14, bold: FontWeight.bold),
+            customText("Tipo de comunicación", 14, bold: FontWeight.bold),
             space(height: 5),
-            customText(ref.reformulation, 14),
+            customText(ref.typeObj.name, 14),
             space(height: 10),
             customRowDivider(),
             space(height: 10),
@@ -176,29 +209,17 @@ class _ReformulationPageState extends State<ReformulationPage> {
             customText("Solicitud de subcontratación", 14,
                 bold: FontWeight.bold),
             space(height: 5),
-            customText(ref.request, 14),
-            /*Text(
+            customText(ref.request, 14),*/
+  /*Text(
           'Fuente',
           style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-        ),*/
+        ),
           ],
         ));
-  }
+  }*/
 
   Widget reformulationRowOptions(context, ref) {
     return Row(children: [
-      /*IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Editar',
-          onPressed: () async {
-            callEditDialog(context, ref);
-          }),
-      IconButton(
-          icon: const Icon(Icons.remove_circle),
-          tooltip: 'Borrar',
-          onPressed: () {
-            removeReformulationDialog(context, ref);
-          }),*/
       editBtn(context, callEditDialog, {'ref': ref}),
       removeBtn(context, removeReformulationDialog, {"ref": ref})
     ]);
@@ -207,28 +228,6 @@ class _ReformulationPageState extends State<ReformulationPage> {
 /*-------------------------------------------------------------
                        EDIT REFORMULATION
 -------------------------------------------------------------*/
-  /*Widget addBtn2(context) {
-    return FilledButton(
-      onPressed: () {
-        callEditDialog(context, null);
-      },
-      style: FilledButton.styleFrom(
-        side: const BorderSide(width: 0, color: Color(0xffffffff)),
-        backgroundColor: const Color(0xffffffff),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.add, color: Colors.black54),
-          SizedBox(height: 5),
-          Text(
-            "Añadir",
-            style: TextStyle(color: Colors.black54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }*/
-
   void saveReformulation(List args) async {
     Reformulation ref = args[0];
     ref.save();
@@ -239,35 +238,21 @@ class _ReformulationPageState extends State<ReformulationPage> {
 
   void callEditDialog(context, args) async {
     Reformulation ref = args["ref"];
-    List<KeyValue> financierList = [];
+    //List<KeyValue> financierList = [];
 
-    //await getFinanciers().then((value) async {
-    await getOrganizations().then((value) async {
+    /*await getOrganizations().then((value) async {
       for (Organization item in value) {
         financierList.add(item.toKeyValue());
       }
       _editDialog(context, ref, financierList);
-    });
+    });*/
+    List<KeyValue> financierList = await getFinanciersHash();
+    List<KeyValue> typeList = await getReformulationTypesHash();
+    List<KeyValue> statusList = await getReformulationStatusHash();
+    _editDialog(context, ref, financierList, typeList, statusList);
   }
 
-  Future<void> _editDialog(context, ref, financierList) {
-    /*TextEditingController financierController = TextEditingController(text: "");
-    TextEditingController reformulationController =
-        TextEditingController(text: "");
-    TextEditingController correctionController =
-        TextEditingController(text: "");
-    TextEditingController requestController = TextEditingController(text: "");
-    KeyValue fin = KeyValue("", "");*/
-
-    /*if (ref != null) {
-      financierController = TextEditingController(text: ref.financier);
-      reformulationController = TextEditingController(text: ref.reformulation);
-      correctionController = TextEditingController(text: ref.correction);
-      requestController = TextEditingController(text: ref.request);
-      Financier financier = ref.financierObj;
-      fin = financier.toKeyValue();
-    }*/
-
+  Future<void> _editDialog(context, ref, financierList, typeList, statusList) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -281,9 +266,6 @@ class _ReformulationPageState extends State<ReformulationPage> {
               child: Column(children: [
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Financiador:", 16, textColor: Colors.blue),
-                customDropdownField(financierController, financierList, fin,
-                    "Selecciona financiador"),*/
                 CustomDropdown(
                   labelText: 'Financiador',
                   size: 220,
@@ -299,134 +281,104 @@ class _ReformulationPageState extends State<ReformulationPage> {
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Reformulaciones:", 16, textColor: Colors.blue),
-                customTextField(reformulationController, "Reformulaciones"),*/
-                CustomTextField(
-                  labelText: 'Reformulaciones',
-                  size: 220,
-                  initial: ref.reformulation,
-                  fieldValue: (String val) {
-                    ref.reformulation = val;
-                    /*setState(() {
-                        proj.budget = val;
-                      });*/
+                CustomDropdown(
+                  labelText: 'Tipo',
+                  size: 210,
+                  selected: ref.typeObj.toKeyValue(),
+                  options: typeList,
+                  onSelectedOpt: (String val) {
+                    ref.type = val;
                   },
                 ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Subsanación:", 16, textColor: Colors.blue),
-                customTextField(correctionController, "Subsanación"),*/
+                CustomDropdown(
+                  labelText: 'Estado',
+                  size: 210,
+                  selected: ref.statusObj.toKeyValue(),
+                  options: statusList,
+                  onSelectedOpt: (String val) {
+                    ref.status = val;
+                  },
+                ),
+              ]),
+            ]),
+            space(height: 10),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SizedBox(
+                    width: 320,
+                    child: DateTimePicker(
+                      labelText: 'Presentación',
+                      selectedDate: ref.getPresentation(),
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          ref.presentationDate = date;
+                        });
+                      },
+                    )),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SizedBox(
+                    width: 320,
+                    child: DateTimePicker(
+                      labelText: 'Resolución',
+                      selectedDate: ref.getResolution(),
+                      onSelectedDate: (DateTime date) {
+                        setState(() {
+                          ref.resolutionDate = date;
+                        });
+                      },
+                    )),
+              ]),
+            ]),
+            space(height: 10),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: 'Descripción',
+                  size: 660,
+                  initial: ref.description,
+                  fieldValue: (String val) {
+                    ref.description = val;
+                  },
+                ),
+              ]),
+              /*space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: 'Subsanación',
                   size: 220,
                   initial: ref.correction,
                   fieldValue: (String val) {
                     ref.correction = val;
-                    /*setState(() {
-                        proj.budget = val;
-                      });*/
                   },
                 ),
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                /*customText("Solicitud de subcontratación:", 16,
-                    textColor: Colors.blue),
-                customTextField(
-                    requestController, "Solicitud de subcontratación"),*/
                 CustomTextField(
                   labelText: 'Solicitud de subcontratación',
                   size: 220,
                   initial: ref.request,
                   fieldValue: (String val) {
                     ref.request = val;
-                    /*setState(() {
-                        proj.budget = val;
-                      });*/
                   },
                 ),
-              ])
+              ])*/
             ]),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveReformulation, ref),
-            /*actions: <Widget>[
-            TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                saveReformulation(
-                    context,
-                    ref,
-                    financierController.text,
-                    reformulationController.text,
-                    correctionController.text,
-                    requestController.text);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),*/
           ],
         );
       },
     );
   }
-
-  /*void saveReformulation(
-    context,
-    ref,
-    financier,
-    reformulation,
-    correction,
-    request,
-  ) async {
-    ref ??= Reformulation(project!.uuid);
-    ref.financier = financier;
-    ref.reformulation = reformulation;
-    ref.correction = correction;
-    ref.request = request;
-    ref.save();
-    loadReformulations();
-    Navigator.pop(context);
-  }*/
 
   void removeReformulationDialog(context, args) {
     customRemoveDialog(context, args["ref"], loadReformulations, null);
   }
-
-  /*Future<void> removeReformulationDialog(context, ref) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // <-- SEE HERE
-          title: const Text('Borrar reformulación'),
-          content: const SingleChildScrollView(
-            child: Text("Esta seguro/a de que desea borrar este elemento?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Borrar'),
-              onPressed: () async {
-                ref.delete();
-                loadReformulations();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
 }

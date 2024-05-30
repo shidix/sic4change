@@ -1278,7 +1278,6 @@ class ProjectLocation {
       data["id"] = doc.id;
       return Town.fromJson(data);
     } catch (e) {
-      print(e);
       return Town("");
     }
   }
@@ -1431,33 +1430,50 @@ CollectionReference dbReformulation =
 class Reformulation {
   String id = "";
   String uuid = "";
-  String reformulation = "";
-  String correction = "";
-  String request = "";
+  //String reformulation = "";
+  //String correction = "";
+  //String request = "";
   String project = "";
   String financier = "";
+  String type = "";
+  String status = "";
+  String description = "";
+  DateTime presentationDate = maxDate;
+  DateTime resolutionDate = maxDate;
   //SProject projectObj = SProject("", "");
-  SProject projectObj = SProject("");
   //Financier financierObj = Financier("");
+  SProject projectObj = SProject("");
   Organization financierObj = Organization("");
+  ReformulationType typeObj = ReformulationType();
+  ReformulationStatus statusObj = ReformulationStatus();
 
   Reformulation(this.project);
 
   Reformulation.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        reformulation = json['reformulation'],
+        /*reformulation = json['reformulation'],
         correction = json['correction'],
-        request = json['request'],
+        request = json['request'],*/
+        type = json['type'],
+        status = json['status'],
+        description = json['description'],
+        presentationDate = json["presentationDate"].toDate(),
+        resolutionDate = json["resolutionDate"].toDate(),
         project = json['project'],
         financier = json['financier'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
-        'reformulation': reformulation,
+        /*'reformulation': reformulation,
         'correction': correction,
-        'request': request,
+        'request': request,*/
+        'type': type,
+        'status': status,
+        'description': description,
+        'presentationDate': presentationDate,
+        'resolutionDate': resolutionDate,
         'project': project,
         'financier': financier,
       };
@@ -1468,7 +1484,7 @@ class Reformulation {
 
   Future<void> save() async {
     if (id == "") {
-      var newUuid = Uuid();
+      var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbReformulation.add(data);
@@ -1507,6 +1523,44 @@ class Reformulation {
       return Organization("");
     }
   }
+
+  Future<ReformulationType> getType() async {
+    try {
+      QuerySnapshot query =
+          await dbReformulationType.where("uuid", isEqualTo: type).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ReformulationType.fromJson(data);
+    } catch (e) {
+      return ReformulationType();
+    }
+  }
+
+  Future<ReformulationStatus> getStatus() async {
+    try {
+      QuerySnapshot query =
+          await dbReformulationStatus.where("uuid", isEqualTo: status).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return ReformulationStatus.fromJson(data);
+    } catch (e) {
+      return ReformulationStatus();
+    }
+  }
+
+  DateTime getPresentation() {
+    return presentationDate.compareTo(limitDate) > 0
+        ? DateTime.now()
+        : presentationDate;
+  }
+
+  DateTime getResolution() {
+    return resolutionDate.compareTo(limitDate) > 0
+        ? DateTime.now()
+        : resolutionDate;
+  }
 }
 
 Future<List> getReformulations() async {
@@ -1519,6 +1573,8 @@ Future<List> getReformulations() async {
     final item = Reformulation.fromJson(data);
     item.projectObj = await item.getProject();
     item.financierObj = await item.getFinancier();
+    item.typeObj = await item.getType();
+    item.statusObj = await item.getStatus();
     items.add(item);
   }
 
@@ -1533,12 +1589,156 @@ Future<List> getReformulationsByProject(uuid) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Reformulation.fromJson(data);
-    _item.projectObj = await _item.getProject();
-    _item.financierObj = await _item.getFinancier();
-    items.add(_item);
+    final item = Reformulation.fromJson(data);
+    item.projectObj = await item.getProject();
+    item.financierObj = await item.getFinancier();
+    item.typeObj = await item.getType();
+    item.statusObj = await item.getStatus();
+    items.add(item);
   }
 
+  return items;
+}
+
+//--------------------------------------------------------------
+//                       PROJECT REFORMULATION TYPE
+//--------------------------------------------------------------
+CollectionReference dbReformulationType =
+    db.collection("s4c_project_reformulation_type");
+
+class ReformulationType {
+  String id = "";
+  String uuid = "";
+  String name = "";
+
+  ReformulationType();
+
+  ReformulationType.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbReformulationType.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbReformulationType.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbReformulationType.doc(id).delete();
+  }
+}
+
+Future<List> getReformulationTypes() async {
+  List items = [];
+  QuerySnapshot query = await dbReformulationType.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ReformulationType.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+Future<List<KeyValue>> getReformulationTypesHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbReformulationType.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    ReformulationType item = ReformulationType.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+  return items;
+}
+
+//--------------------------------------------------------------
+//                       PROJECT REFORMULATION STATUS
+//--------------------------------------------------------------
+CollectionReference dbReformulationStatus =
+    db.collection("s4c_project_reformulation_status");
+
+class ReformulationStatus {
+  String id = "";
+  String uuid = "";
+  String name = "";
+
+  ReformulationStatus();
+
+  ReformulationStatus.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbReformulationStatus.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbReformulationStatus.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbReformulationStatus.doc(id).delete();
+  }
+}
+
+Future<List> getReformulationStatus() async {
+  List items = [];
+  QuerySnapshot query = await dbReformulationStatus.get();
+
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ReformulationStatus.fromJson(data);
+    items.add(item);
+  }
+
+  return items;
+}
+
+Future<List<KeyValue>> getReformulationStatusHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot query = await dbReformulationStatus.get();
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    ReformulationStatus item = ReformulationStatus.fromJson(data);
+    items.add(item.toKeyValue());
+  }
   return items;
 }
 

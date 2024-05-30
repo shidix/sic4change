@@ -112,6 +112,7 @@ class Contact {
       data["id"] = doc.id;
       positionObj = Position.fromJson(data);
     } catch (e) {
+      print(e);
       //return Position("");
     }
   }

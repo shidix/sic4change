@@ -576,8 +576,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     SProject project = args[0];
     ProjectStatus st = await ProjectStatus.byUuid(statusEdition);
     project.status = st.uuid;
-    await project.save();
-    //project.changeStatus();
+    project.save();
 
     Navigator.pop(context);
     Navigator.push(
