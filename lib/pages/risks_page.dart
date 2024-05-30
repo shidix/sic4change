@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:googleapis/transcoder/v1.dart';
+import 'package:googleapis/youtubereporting/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_marco.dart';
@@ -127,7 +128,6 @@ class _RisksPageState extends State<RisksPage> {
     List<Row> mitigationsList = [];
     int counter = 0;
     for (var mitigation in risk.extraInfo["mitigations"]) {
-      counter += 1;
       mitigationsList.add(Row(children: [
         Expanded(
             flex: 3,
@@ -149,13 +149,13 @@ class _RisksPageState extends State<RisksPage> {
                 padding: const EdgeInsets.only(left: 20, top: 10),
                 child: CustomSelectFormField(
                     labelText: "Implementada",
-                    initial: mitigation["implemented"],
+                    initial: mitigation["implemented"] ? "Sí" : "No",
                     options: List<KeyValue>.from([
-                      KeyValue("Preventiva", "Sí"),
-                      KeyValue("Correctiva", "No"),
+                      KeyValue("Sí", "Sí"),
+                      KeyValue("No", "No"),
                     ]),
                     onSelectedOpt: (String val) {
-                      setState(() => mitigation["implemented"] = val);
+                      setState(() => mitigation["implemented"] = (val == "Sí"));
                     }))),
         Expanded(
             flex: 1,
@@ -181,6 +181,7 @@ class _RisksPageState extends State<RisksPage> {
                   },
                 )))
       ]));
+      counter += 1;
     }
 
     if (risk.occur != "No") {
@@ -286,9 +287,10 @@ class _RisksPageState extends State<RisksPage> {
                       fieldValue: (String val) {
                         setState(() => risk.extraInfo["history"] = val);
                       }))),
-        ])
+        ]),
+        
       ];
-      containerRisk += mitigationsList;
+
       containerRisk += [
         Row(children: [
           Expanded(
@@ -305,6 +307,11 @@ class _RisksPageState extends State<RisksPage> {
                       }))),
         ]),
       ];
+
+      containerRisk += [ 
+        Row(children:[Expanded(flex:1, child:space(height: 40,))]),
+        Row(children: [Expanded(flex:1, child: customText("Medidas correctoras", 16, bold: FontWeight.bold))],),] + 
+        mitigationsList;
     } else {
       containerRisk = [];
     }
@@ -453,14 +460,48 @@ class _RisksPageState extends State<RisksPage> {
           editBtn(context, riskEditDialog, {"risk": risk}),
           removeBtn(context, removeRiskDialog,
               {"risk": risk, "project": project.uuid}),
-          listBtn(context, toogleActions, {"risk": risk}, text: "Mitigaciones"),
         ])
       ],
     );
+
+    List<Widget> mitigationsList = [space(height: 20)];
+    int counter = 0;
+
+    mitigationsList.add( 
+      Row(children: [
+        Expanded(flex: 6, child: customText("Medidas correctoras", 16, bold: FontWeight.bold)),
+        Expanded(flex: 2, child: customText("Implementada", 16, bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(flex: 2, child: customText("Fecha", 16, bold: FontWeight.bold)),
+        Expanded(flex: 2, child: customText("Responsable", 16, bold: FontWeight.bold)),
+
+        Expanded(flex: 1, child: addBtnRow(context, mitigationEditDialog, {'risk': risk, 'index':-1})),
+
+      ],));
+    
+    for (var mitigation in risk.extraInfo["mitigations"]) {
+      
+      mitigationsList.add(
+        Row(children: [
+          Expanded(flex: 6, child: customText(mitigation["description"], 12)),
+          Expanded(flex: 2, child: Align(alignment: Alignment.center, child: (mitigation["implemented"]) ? const Icon(Icons.check_circle_outline, color: Colors.green) : const Icon(Icons.remove_circle_outline, color: Colors.red))),
+          Expanded(flex: 2, child: customText(mitigation["date"], 12)),
+          Expanded(flex: 2, child: customText(mitigation["responsible"], 12)),
+          Expanded(flex: 1, child: Align(alignment:Alignment.centerRight, child: Row(children: [
+            editBtn(context, mitigationEditDialog, {"risk": risk, "index": counter}),
+            removeBtn(context, removeMitigationDialog, {"risk": risk, "index":counter}),
+          ])))
+        ],));
+        counter += 1;
+    }
+    // mitigationsList.add(addBtn(context, mitigationEditDialog, {"mitigation": Mitigation(risk.uuid)}));
+    panelMitigations[risk.uuid] = Column(children: mitigationsList);
+
     Widget panel = Container();
     if (panelMitigations.keys.contains(risk.uuid)) {
       panel = panelMitigations[risk.uuid]!;
     } 
+
+
 
     return Column(children: [ riskContent, 
                               space(height: 10),    
@@ -468,41 +509,163 @@ class _RisksPageState extends State<RisksPage> {
 
   }
 
-
-
-  void toogleActions(context, args) {
+  Future<void> removeMitigationDialog(context, args) {
+    int index = args["index"];
     Risk risk = args["risk"];
-    if (panelMitigations.keys.contains(args["risk"].uuid)) {
-      panelMitigations.remove(args["risk"].uuid);
-    } else {
-      List<Widget> mitigationsList = [];
-      int counter = 0;
-
-      mitigationsList.add( 
-        Row(children: [
-          Expanded(flex: 3, child: customText("Descripción", 24, bold: FontWeight.bold)),
-          Expanded(flex: 1, child: customText("Implementada", 24, bold: FontWeight.bold)),
-          Expanded(flex: 1, child: customText("Fecha", 24, bold: FontWeight.bold)),
-        ],));
-      
-      for (var mitigation in risk.extraInfo["mitigations"]) {
-        
-        mitigationsList.add(
-          Row(children: [
-            Expanded(flex: 3, child: customText(mitigation["description"], 16)),
-            Expanded(flex: 1, child: (mitigation["implemented"]) ? const Icon(Icons.check_circle_outline, color: Colors.green) : const Icon(Icons.remove_circle_outline, color: Colors.red)),
-            Expanded(flex: 1, child: customText(mitigation["date"], 16)),
-          ],));
-          counter += 1;
-      }
-      // mitigationsList.add(addBtn(context, mitigationEditDialog, {"mitigation": Mitigation(risk.uuid)}));
-      panelMitigations[risk.uuid] = Column(children: mitigationsList);
-
-
-    } 
-  
-    setState(() {});
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Eliminar Mitigación'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                customText(
+                    '¿Está seguro de que desea eliminar la mitigación?', 16),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: customText('Cancelar', 16),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: customText('Eliminar', 16),
+              onPressed: () {
+                risk.extraInfo["mitigations"].removeAt(index);
+                risk.save();
+                setState(() { });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
+
+  Future<void> mitigationEditDialog(context, args) {
+    Risk risk = args["risk"];
+    int index = args["index"];
+
+    Map<String, dynamic> mitigation = {
+      "description": "",
+      "implemented": false,
+      "date": "",
+      "responsible": "",
+    };
+
+    if (index >= 0) {
+          mitigation = risk.extraInfo["mitigations"][args["index"]];
+    }
+
+
+
+    return showDialog<Risk>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar(
+              (mitigation["description"] != "") ? 'Editando Mitigación' : 'Añadiendo Mitigación'),
+          content: SingleChildScrollView(
+            child: SizedBox(width:MediaQuery.of(context).size.width * 0.6, child: Column(
+              children: [
+                Row(children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 0, top: 10),
+                          child:CustomTextField(
+                  labelText: "Descripción",
+                  initial: mitigation["description"],
+                  size: MediaQuery.of(context).size.width * 0.6,
+                  maxLines: 5,
+                  fieldValue: (String val) {
+                    mitigation["description"] = val;
+                  },
+                ),)),]),
+                Row( children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 0, top: 10),
+                          child:
+                            CustomSelectFormField(
+                                labelText: "Implementada",
+                                initial: mitigation["implemented"] ? "Sí" : "No",
+                                options: List<KeyValue>.from([
+                                  KeyValue("Sí", "Sí"),
+                                  KeyValue("No", "No"),
+                                ]),
+                                onSelectedOpt: (String val) {
+                                  mitigation["implemented"] = (val == "Sí");
+                                }))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 20, top: 10),
+                          child:
+                            CustomTextField(
+                                labelText: "Fecha",
+                                initial: mitigation["date"],
+                                size: 220,
+                                fieldValue: (String val) {
+                                  mitigation["date"] = val;
+                                }))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 20, top: 10),
+                          child:
+                            CustomTextField(
+                              labelText: "Responsable",
+                              initial: mitigation["responsible"],
+                              size: 220,
+                              fieldValue: (String val) {
+                                mitigation["responsible"] = val;
+                              },
+                  )))]),
+              ],
+            ),
+          )),
+          actions: <Widget>[
+            TextButton(
+              child: customText('Cancelar', 16),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: customText('Guardar', 16),
+              onPressed: () {
+                if (mitigation["description"] != "") {
+                  if (index >= 0) {
+                    risk.extraInfo["mitigations"][index] = mitigation;
+                  } else {
+                    risk.extraInfo["mitigations"].add(mitigation);
+                  }
+                  risk.save();
+                  // loadRisks(risk.project);
+                  Navigator.of(context).pop(risk);
+                  setState(() {
+                    
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void removeRiskDialog(context, args) {
     customRemoveDialog(context, args["risk"], loadRisks, args["project"]);

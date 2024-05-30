@@ -9,53 +9,6 @@ CollectionReference dbProject = db.collection("s4c_projects");
 //--------------------------------------------------------------
 CollectionReference dbRisk = db.collection("s4c_risks");
 
-class MitigationTracking {
-  String description = "";
-  DateTime date = DateTime.now();
-
-  MitigationTracking();
-
-  MitigationTracking.fromJson(Map<String, dynamic> json)
-      : 
-        description = json['description'],
-        date = json['date'].toDate();
-        
-
-  Map<String, dynamic> toJson() => {
-        'description': description,
-        'date': date,
-      };
-}
-
-
-class Mitigation {
-  String name = "";
-  String description = "";
-  String responsible = "";
-  DateTime date = DateTime.now();
-  String status = "No implementada";
-  List trackings = [];
-
-  Mitigation();
-
-  Mitigation.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
-        description = json['description'],
-        responsible = json['responsible'],
-        date = json['date'],
-        status = json['status'],
-        trackings = json['trackings'];
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'description': description,
-        'responsible': responsible,
-        'date': date,
-        'status': status,
-        'trackings': [ for (MitigationTracking tracking in trackings) tracking.toJson() ],
-      };
-}
-
 
 class Risk {
   String id = "";
