@@ -13,11 +13,101 @@ class RisksTracksForm extends StatefulWidget {
 
 class _RisksTracksFormState extends State<RisksTracksForm> {
   Map<String, dynamic> tracking = {"description": "", "date": ""};
+  Widget newItemContainer = Container();
+  Widget btnNewTracking = Container();
 
   @override
   void initState() {
     super.initState();
     tracking = {"description": "", "date": ""};
+    resetNewItemContainer();
+  }
+
+  void resetNewItemContainer() {
+    newItemContainer = Container();
+    btnNewTracking = actionButton(context, "Nuevo seguimiento", () {
+      populateNewItemContainer();
+    }, Icons.add_outlined, null);
+    setState(() {});
+  }
+
+  void populateNewItemContainer() {
+    btnNewTracking = Container();
+
+    Widget error = Container();
+    if ((tracking["description"] == "") ^ (tracking["date"] == "")) {
+      error = Row(children: [
+        Expanded(
+            flex: 1,
+            child: customText("Debe completar todos los campos", 14,
+                textColor: Colors.red))
+      ]);
+    }
+
+    newItemContainer = Column(children: [
+      Row(children: [
+        Expanded(
+            flex: 1,
+            child: customText("Nuevo seguimiento", 16,
+                bold: FontWeight.bold, textColor: mainColor))
+      ]),
+      const Row(children: [Expanded(flex: 1, child: Divider())]),
+      Row(
+        children: [
+          Expanded(
+              flex: 7,
+              child: CustomTextField(
+                  labelText: 'Descripción 2',
+                  initial: tracking["description"],
+                  size: 220,
+                  fieldValue: (String val) {
+                    tracking["description"] = val;
+                  })),
+          Expanded(
+              flex: 2,
+              child: CustomTextField(
+                  labelText: 'Fecha (dd-mm-aaaa)',
+                  initial: tracking["date"],
+                  size: 220,
+                  fieldValue: (String val) {
+                    tracking["date"] = val;
+                  })),
+          Expanded(
+              flex: 1,
+              child: Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    saveBtn(context, () {
+                      Risk risk = widget.risk!;
+                      Map<String, dynamic> mitigation =
+                          risk.extraInfo["mitigations"][widget.index!];
+                      if (tracking["description"] == "" &&
+                          tracking["date"] == "") {
+                        resetNewItemContainer();
+                        return;
+                      }
+                      if (tracking["description"] == "" ||
+                          tracking["date"] == "") {
+                        populateNewItemContainer();
+                        return;
+                      } else {
+                        mitigation["trackings"].add(tracking);
+
+                        risk.save();
+                        tracking = {"description": "", "date": ""};
+                        resetNewItemContainer();
+                      }
+                    }, null)
+                  ],
+                ),
+              )),
+        ],
+      ),
+      error,
+      Row(children: [Expanded(flex: 1, child: space(height: 40))]),
+    ]);
+    setState(() {});
   }
 
   void removeTracking(context, args) {
@@ -41,60 +131,17 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
       mitigation["trackings"] = [];
     }
 
-    List<Row> trackingList = [
-      Row(children: [
-        Expanded(
-            flex: 1,
-            child: customText("Nuevo seguimiento ${DateTime.now()}", 16,
-                bold: FontWeight.bold, textColor: mainColor))
-      ]),
-    ];
-
-    // add header for list of trackings
-
-    trackingList.add(Row(
-      children: [
-        Expanded(
-            flex: 7,
-            child: CustomTextField(
-                labelText: 'Descripción',
-                initial: tracking["description"],
-                size: 220,
-                fieldValue: (String val) {
-                  tracking["description"] = val;
-                })),
-        Expanded(
-            flex: 2,
-            child: CustomTextField(
-                labelText: 'Fecha (dd-mm-aaaa)',
-                initial: "",
-                size: 220,
-                fieldValue: (String val) {
-                  tracking["date"] = val;
-                })),
-        Expanded(
-            flex: 1,
-            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              saveBtn(context, () {
-                mitigation["trackings"].add(tracking);
-                risk.save();
-                tracking = {"description": "", "date": ""};
-
-                setState(() {});
-              }, null)
-            ])),
-      ],
-    ));
+    List<Row> trackingList = [];
 
     trackingList += [
-      Row(children: [Expanded(flex: 1, child: space(height: 40))]),
+      Row(children: [Expanded(flex: 1, child: space(height: 10))]),
       Row(children: [
         Expanded(
             flex: 1,
             child: customText("Listado de seguimientos", 16,
                 bold: FontWeight.bold, textColor: mainColor))
       ]),
-      Row(children: [Expanded(flex: 1, child: Divider())]),
+      const Row(children: [Expanded(flex: 1, child: Divider())]),
     ];
     trackingList.add(Row(
       children: [
@@ -126,16 +173,39 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
               child: customText(tracking["date"], 14, align: TextAlign.center)),
           Expanded(
               flex: 1,
-              child: removeBtn(context, removeTracking,
+              child: removeConfirmBtn(context, removeTracking,
                   {"mitigation": mitigation, "index": counter, "risk": risk}))
         ],
       ));
       counter += 1;
     }
+    if (counter == 0) {
+      trackingList.add(Row(children: [
+        Expanded(
+            flex: 1, child: customText("No hay seguimientos registrados", 14))
+      ]));
+    }
+    trackingList
+        .add(Row(children: [Expanded(flex: 1, child: space(height: 40))]));
+    trackingList.add(Row(children: [
+      Expanded(flex: 3, child: Container()),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              child: btnNewTracking)),
+      Expanded(
+          flex: 1,
+          child: Padding(
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              child: actionButton(context, 'Cerrar', () {
+                Navigator.of(context).pop();
+              }, Icons.cancel, null))),
+    ]));
 
     return SingleChildScrollView(
       child: Column(
-        children: trackingList,
+        children: [newItemContainer] + trackingList,
       ),
     );
   }

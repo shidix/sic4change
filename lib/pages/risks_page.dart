@@ -669,14 +669,18 @@ class _RisksPageState extends State<RisksPage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Seguimiento de la medida correctora'),
           content: RisksTracksForm(risk: args["risk"], index: args["index"]),
-          actions: <Widget>[
-            TextButton(
-              child: customText('Close', 16),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-          ],
+          // actions: <Widget>[
+          //   actionButtonVertical(context, "Cerrar", () {
+          //     Navigator.of(context).pop(false);
+          //   }, Icons.close, null),
+
+          //   // TextButton(
+          //   //   child: customText('Close', 16),
+          //   //   onPressed: () {
+          //   //     Navigator.of(context).pop(false);
+          //   //   },
+          //   // ),
+          // ],
         );
       },
     );
