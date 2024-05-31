@@ -1668,10 +1668,6 @@ class CustomTextField extends StatelessWidget {
   final int minLines;
   final int maxLines;
 
-  void resetField() {
-    fieldValue("");
-  }
-
   @override
   Widget build(BuildContext context) {
     int? mLines = (maxLines < 9999) ? maxLines : null;
