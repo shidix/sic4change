@@ -257,16 +257,18 @@ class _GoalsPageState extends State<GoalsPage>
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${goal.name}'),
-              space(height: 10),
-              customLinearPercent(context, 2, 0.8, Colors.blue),
-            ],
-          ),
-          goalRowOptions(context, goal, project),
+          Expanded(
+              flex: 15,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${goal.name}'),
+                  space(height: 10),
+                  customLinearPercent(context, 2, 0.8, Colors.blue),
+                ],
+              )),
+          Expanded(flex: 1, child: goalRowOptions(context, goal, project)),
         ],
       ),
       customCollapse(context, "Resultados", resultList, goal, expanded: false)

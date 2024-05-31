@@ -1020,6 +1020,17 @@ Widget editBtn(context, action, args,
   );
 }
 
+Widget iconBtn(context, action, args,
+    {text = '', icon = Icons.info, iconSize = 20}) {
+  return IconButton(
+    icon: Icon(icon, size: iconSize),
+    tooltip: text,
+    onPressed: () {
+      action(context, args);
+    },
+  );
+}
+
 Widget removeBtn(context, action, args,
     {text = removeText, icon = Icons.remove_circle, iconSize = 20}) {
   return IconButton(
@@ -1656,6 +1667,10 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String> fieldValue;
   final int minLines;
   final int maxLines;
+
+  void resetField() {
+    fieldValue("");
+  }
 
   @override
   Widget build(BuildContext context) {

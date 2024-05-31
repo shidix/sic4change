@@ -20,6 +20,36 @@ class Risk {
 
   Risk(this.project);
 
+  void checkExtraInfo() {
+    if (!extraInfo.keys.contains("impact")) {
+      extraInfo["impact"] = "";
+    }
+    if (!extraInfo.keys.contains("probability")) {
+      extraInfo["probability"] = "";
+    }
+    if (!extraInfo.keys.contains("mitigations")) {
+      extraInfo["mitigations"] = {};
+    }
+    if (!extraInfo.keys.contains("risk")) {
+      extraInfo["risk"] = "";
+    }
+    if (!extraInfo.keys.contains("history")) {
+      extraInfo["history"] = "";
+    }
+    if (!extraInfo.keys.contains("observations")) {
+      extraInfo["observations"] = "";
+    }
+    if (!extraInfo.keys.contains("marco_logico")) {
+      extraInfo["marco_logico"] = "No";
+    }
+    if (!extraInfo.keys.contains("objetivo")) {
+      extraInfo["objetivo"] = "";
+    }
+    if (!extraInfo.keys.contains("fixed")) {
+      extraInfo["fixed"] = "No";
+    }
+  }
+
   static Risk fromJson(Map<String, dynamic> json) {
     Risk item = Risk(json['project']);
     item.id = json["id"];
@@ -29,24 +59,7 @@ class Risk {
     item.occur = json['occur'];
     item.project = json['project'];
     item.extraInfo = json['extraInfo'];
-    if (!item.extraInfo.keys.contains("impact")) {
-      item.extraInfo["impact"] = "";
-    }
-    if (!item.extraInfo.keys.contains("probability")) {
-      item.extraInfo["probability"] = "";
-    }
-    if (!item.extraInfo.keys.contains("mitigations")) {
-      item.extraInfo["mitigations"] = {};
-    }
-    if (!item.extraInfo.keys.contains("risk")) {
-      item.extraInfo["risk"] = "";
-    }
-    if (!item.extraInfo.keys.contains("history")) {
-      item.extraInfo["history"] = "";
-    }
-    if (!item.extraInfo.keys.contains("observations")) {
-      item.extraInfo["observations"] = "";
-    }
+    item.checkExtraInfo();
     return item;
   }
 
@@ -61,6 +74,8 @@ class Risk {
         "observations": ""
       };
     }
+
+    checkExtraInfo();
 
     return {
       'id': id,

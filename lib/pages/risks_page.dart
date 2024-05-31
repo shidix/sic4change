@@ -1,8 +1,10 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:googleapis/transcoder/v1.dart';
 import 'package:googleapis/youtubereporting/v1.dart';
+import 'package:sic4change/pages/risks_tracks_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_marco.dart';
@@ -27,6 +29,7 @@ class RisksPage extends StatefulWidget {
 }
 
 class _RisksPageState extends State<RisksPage> {
+  Risk? riskSelected;
   SProject? project;
   List goals = [];
   List<Row> containerRisk = [];
@@ -121,67 +124,68 @@ class _RisksPageState extends State<RisksPage> {
       goalsOptions
           .add(KeyValue(goal.name.split('.')[0], goal.name.split('.')[0]));
     }
-    if (!risk.extraInfo.containsKey("mitigations")) {
-      risk.extraInfo["mitigations"] = [];
-    }
-    List<Row> mitigationsList = [];
-    int counter = 0;
-    for (var mitigation in risk.extraInfo["mitigations"]) {
-      mitigationsList.add(Row(children: [
-        Expanded(
-            flex: 3,
-            child: Padding(
-                padding: const EdgeInsets.only(left: 0, top: 10),
-                child: CustomTextField(
-                  labelText: "Descripción",
-                  initial: risk.extraInfo["mitigations"][counter]
-                      ["description"],
-                  size: 220,
-                  maxLines: 5,
-                  fieldValue: (String val) {
-                    setState(() => mitigation["description"] = val);
-                  },
-                ))),
-        Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 10),
-                child: CustomSelectFormField(
-                    labelText: "Implementada",
-                    initial: mitigation["implemented"] ? "Sí" : "No",
-                    options: List<KeyValue>.from([
-                      KeyValue("Sí", "Sí"),
-                      KeyValue("No", "No"),
-                    ]),
-                    onSelectedOpt: (String val) {
-                      setState(() => mitigation["implemented"] = (val == "Sí"));
-                    }))),
-        Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 10),
-                child: CustomTextField(
-                    labelText: "Fecha",
-                    initial: mitigation["date"],
-                    size: 220,
-                    fieldValue: (String val) {
-                      setState(() => mitigation["date"] = val);
-                    }))),
-        Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 10),
-                child: CustomTextField(
-                  labelText: "Responsable",
-                  initial: mitigation["responsible"],
-                  size: 220,
-                  fieldValue: (String val) {
-                    setState(() => mitigation["responsible"] = val);
-                  },
-                )))
-      ]));
-      counter += 1;
-    }
+    // if (!risk.extraInfo.containsKey("mitigations")) {
+    //   risk.extraInfo["mitigations"] = [];
+    // }
+
+    // List<Row> mitigationsList = [];
+    // int counter = 0;
+    // for (var mitigation in risk.extraInfo["mitigations"]) {
+    //   mitigationsList.add(Row(children: [
+    //     Expanded(
+    //         flex: 3,
+    //         child: Padding(
+    //             padding: const EdgeInsets.only(left: 0, top: 10),
+    //             child: CustomTextField(
+    //               labelText: "Descripción",
+    //               initial: risk.extraInfo["mitigations"][counter]
+    //                   ["description"],
+    //               size: 220,
+    //               maxLines: 5,
+    //               fieldValue: (String val) {
+    //                 setState(() => mitigation["description"] = val);
+    //               },
+    //             ))),
+    //     Expanded(
+    //         flex: 1,
+    //         child: Padding(
+    //             padding: const EdgeInsets.only(left: 20, top: 10),
+    //             child: CustomSelectFormField(
+    //                 labelText: "Implementada",
+    //                 initial: mitigation["implemented"] ? "Sí" : "No",
+    //                 options: List<KeyValue>.from([
+    //                   KeyValue("Sí", "Sí"),
+    //                   KeyValue("No", "No"),
+    //                 ]),
+    //                 onSelectedOpt: (String val) {
+    //                   setState(() => mitigation["implemented"] = (val == "Sí"));
+    //                 }))),
+    //     Expanded(
+    //         flex: 1,
+    //         child: Padding(
+    //             padding: const EdgeInsets.only(left: 20, top: 10),
+    //             child: CustomTextField(
+    //                 labelText: "Fecha",
+    //                 initial: mitigation["date"],
+    //                 size: 220,
+    //                 fieldValue: (String val) {
+    //                   setState(() => mitigation["date"] = val);
+    //                 }))),
+    //     Expanded(
+    //         flex: 1,
+    //         child: Padding(
+    //             padding: const EdgeInsets.only(left: 20, top: 10),
+    //             child: CustomTextField(
+    //               labelText: "Responsable",
+    //               initial: mitigation["responsible"],
+    //               size: 220,
+    //               fieldValue: (String val) {
+    //                 setState(() => mitigation["responsible"] = val);
+    //               },
+    //             )))
+    //   ]));
+    //   counter += 1;
+    // }
 
     if (risk.occur != "No") {
       containerRisk = [
@@ -307,23 +311,15 @@ class _RisksPageState extends State<RisksPage> {
       ];
 
       containerRisk += [
-            Row(children: [
-              Expanded(
-                  flex: 1,
-                  child: space(
-                    height: 40,
-                  ))
-            ]),
-            Row(
-              children: [
-                Expanded(
-                    flex: 1,
-                    child: customText("Medidas correctoras", 16,
-                        bold: FontWeight.bold))
-              ],
-            ),
-          ] +
-          mitigationsList;
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: space(
+                height: 40,
+              ))
+        ]),
+      ];
+      // + mitigationsList;
     } else {
       containerRisk = [];
     }
@@ -351,7 +347,7 @@ class _RisksPageState extends State<RisksPage> {
             children: [
                   Row(children: <Widget>[
                     Expanded(
-                        flex: 1,
+                        flex: 3,
                         child: CustomTextField(
                           labelText: "Nombre",
                           initial: risk.name,
@@ -383,6 +379,23 @@ class _RisksPageState extends State<RisksPage> {
                                     riskEditDialog(context, {"risk": risk});
                                   }
                                 }))),
+                    Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CustomSelectFormField(
+                            labelText: "¿Se corrigió?",
+                            initial: risk.extraInfo["fixed"] ?? "No",
+                            options: List<KeyValue>.from([
+                              KeyValue("No", "No"),
+                              KeyValue("Parcialmente", "Parcialmente"),
+                              KeyValue("Sí", "Sí")
+                            ]),
+                            onSelectedOpt: (String val) {
+                              risk.extraInfo["fixed"] = val;
+                            },
+                          ),
+                        )),
                   ]),
                 ] +
                 containerRisk,
@@ -442,34 +455,69 @@ class _RisksPageState extends State<RisksPage> {
         : (risk.occur == "Parcialmente")
             ? const Icon(Icons.check_circle_outline, color: Colors.orange)
             : const Icon(Icons.remove_circle_outline, color: Colors.red);
-
-    List<Widget> riskContent = [
-      Row(children: [
-        Expanded(flex: 12, child: customText('', 16, bold: FontWeight.bold)),
-        Expanded(
-            flex: 1,
-            child: Align(
-                alignment: Alignment.centerRight,
-                child: Row(children: [
-                  editBtn(context, riskEditDialog, {"risk": risk}),
-                  removeBtn(context, removeRiskDialog,
-                      {"risk": risk, "project": project.uuid}),
-                ])))
-      ]),
-      Row(children: [
-        Expanded(
-            flex: 12,
-            child: customText('${risk.name}', 16, bold: FontWeight.bold)),
-        Expanded(
-            flex: 1,
-            child: customText('¿Ocurrió?', 16,
-                bold: FontWeight.bold, align: TextAlign.center)),
-      ]),
-      Row(children: [
-        Expanded(flex: 12, child: customText(risk.description, 14)),
-        Expanded(flex: 1, child: occurIcon),
-      ]),
-    ];
+    Icon fixedRisk = (risk.extraInfo["fixed"] == "Sí")
+        ? const Icon(Icons.check_circle_outline, color: Colors.green)
+        : (risk.extraInfo["fixed"] == "Parcialmente")
+            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
+            : const Icon(Icons.remove_circle_outline, color: Colors.red);
+    List<Widget> riskContent = [];
+    if (risk.occur == "No") {
+      riskContent = [
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: customText('¿Ocurrió?', 16,
+                  bold: FontWeight.bold, align: TextAlign.center)),
+          Expanded(
+              flex: 11,
+              child: customText('${risk.name}', 16, bold: FontWeight.bold)),
+          Expanded(
+              flex: 1,
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(children: [
+                    editBtn(context, riskEditDialog, {"risk": risk}),
+                    removeBtn(context, removeRiskDialog,
+                        {"risk": risk, "project": project.uuid}),
+                  ]))),
+        ]),
+        Row(children: [
+          Expanded(flex: 1, child: occurIcon),
+          Expanded(flex: 12, child: customText(risk.description, 14)),
+        ]),
+      ];
+    } else {
+      riskContent = [
+        Row(children: [
+          Expanded(
+              flex: 8,
+              child: customText('${risk.name}', 16, bold: FontWeight.bold)),
+          Expanded(
+              flex: 2,
+              child: customText('¿Ocurrió?', 16,
+                  bold: FontWeight.bold, align: TextAlign.center)),
+          Expanded(
+              flex: 2,
+              child: customText('¿Se corrigió?', 16,
+                  bold: FontWeight.bold, align: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(children: [
+                    editBtn(context, riskEditDialog, {"risk": risk}),
+                    removeBtn(context, removeRiskDialog,
+                        {"risk": risk, "project": project.uuid}),
+                  ]))),
+        ]),
+        Row(children: [
+          Expanded(flex: 8, child: customText(risk.description, 14)),
+          Expanded(flex: 2, child: occurIcon),
+          Expanded(flex: 2, child: fixedRisk),
+          Expanded(flex: 1, child: Container()),
+        ]),
+      ];
+    }
 
     if (risk.occur != "No") {
       riskContent += [
@@ -541,9 +589,11 @@ class _RisksPageState extends State<RisksPage> {
     mitigationsList.add(Row(
       children: [
         Expanded(
-            flex: 8,
-            child:
-                customText("Medidas correctoras", 14, bold: FontWeight.bold)),
+            flex: 7,
+            child: customText(
+                "Medidas correctoras (${risk.extraInfo["mitigations"].length})",
+                14,
+                bold: FontWeight.bold)),
         Expanded(
             flex: 2,
             child: customText("Responsable", 14, bold: FontWeight.bold)),
@@ -556,16 +606,18 @@ class _RisksPageState extends State<RisksPage> {
             child: customText("Fecha", 14,
                 bold: FontWeight.bold, align: TextAlign.center)),
         Expanded(
-            flex: 1,
-            child: addBtnRow(
-                context, mitigationEditDialog, {'risk': risk, 'index': -1})),
+            flex: 2,
+            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              addBtnRow(
+                  context, mitigationEditDialog, {'risk': risk, 'index': -1})
+            ])),
       ],
     ));
 
     for (var mitigation in risk.extraInfo["mitigations"]) {
       mitigationsList.add(Row(
         children: [
-          Expanded(flex: 8, child: customText(mitigation["description"], 12)),
+          Expanded(flex: 7, child: customText(mitigation["description"], 12)),
           Expanded(flex: 2, child: customText(mitigation["responsible"], 12)),
           Expanded(
               flex: 1,
@@ -574,22 +626,23 @@ class _RisksPageState extends State<RisksPage> {
                   child: (mitigation["implemented"])
                       ? const Icon(Icons.check_circle_outline,
                           color: Colors.green)
-                      : const Icon(Icons.remove_circle_outline,
+                      : const Icon(Icons.dangerous_outlined,
                           color: Colors.red))),
           Expanded(
               flex: 1,
               child:
                   customText(mitigation["date"], 12, align: TextAlign.center)),
           Expanded(
-              flex: 1,
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(children: [
-                    editBtn(context, mitigationEditDialog,
-                        {"risk": risk, "index": counter}),
-                    removeBtn(context, removeMitigationDialog,
-                        {"risk": risk, "index": counter}),
-                  ])))
+              flex: 2,
+              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                editBtn(context, mitigationEditDialog,
+                    {"risk": risk, "index": counter}),
+                removeBtn(context, removeMitigationDialog,
+                    {"risk": risk, "index": counter}),
+                iconBtn(context, trackingListDialog,
+                    {"risk": risk, "index": counter},
+                    icon: Icons.center_focus_strong, text: "Seguimiento"),
+              ]))
         ],
       ));
       counter += 1;
@@ -604,6 +657,28 @@ class _RisksPageState extends State<RisksPage> {
 
     return Column(
       children: riskContent + [space(height: 10), panel],
+    );
+  }
+
+  Future<void> trackingListDialog(context, args) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Seguimiento de la medida correctora'),
+          content: RisksTracksForm(risk: args["risk"], index: args["index"]),
+          actions: <Widget>[
+            TextButton(
+              child: customText('Close', 16),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
