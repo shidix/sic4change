@@ -384,8 +384,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Widget projectAuditEvaluation(context, project) {
-    var audit = project.audit == true ? "Si" : "No";
-    var evaluation = project.evaluation == true ? "Si" : "No";
+    var audit = project.audit == true ? "Sí" : "No";
+    var evaluation = project.evaluation == true ? "Sí" : "No";
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -395,9 +395,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  customText("Auditoría", 14, bold: FontWeight.bold),
-                  space(height: 5),
-                  customText(audit, 14),
+                  Row(children: [
+                    customText("Auditoría: ", 14, bold: FontWeight.bold),
+                    space(width: 10),
+                    customText(audit, 14),
+                  ]),
                   space(height: 5),
                   project.audit
                       ? projectDatesAuditHeader(context, project)
@@ -416,9 +418,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             width: MediaQuery.of(context).size.width / 3.2,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Evaluación", 14, bold: FontWeight.bold),
-              space(height: 5),
-              customText(evaluation, 14),
+              Row(children: [
+                customText("Evaluación: ", 14, bold: FontWeight.bold),
+                space(width: 10),
+                customText(evaluation, 14),
+              ]),
               space(height: 5),
               project.evaluation
                   ? projectDatesEvalHeader(context, project)

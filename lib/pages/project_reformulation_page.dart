@@ -11,6 +11,7 @@ const reformulationTitle = "Detalles del Proyecto";
 //SProject? _project;
 List refList = [];
 Widget? _mainMenu;
+bool refLoading = false;
 
 class ReformulationPage extends StatefulWidget {
   final SProject? project;
@@ -24,10 +25,18 @@ class _ReformulationPageState extends State<ReformulationPage> {
   SProject? project;
 
   void loadReformulations() async {
+    setState(() {
+      refLoading = true;
+    });
     await getReformulationsByProject(project!.uuid).then((val) {
       refList = val;
+      setState(() {
+        refLoading = false;
+      });
+      for (Reformulation item in refList) {
+        item.loadObjs();
+      }
     });
-    setState(() {});
   }
 
   @override
@@ -48,7 +57,11 @@ class _ReformulationPageState extends State<ReformulationPage> {
           _mainMenu!,
           projectInfoHeader(context, project),
           profileMenu(context, project, "reformulation"),
-          contentTab(context, reformulationList, null)
+          refLoading
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : contentTab(context, reformulationList, null)
         ],
       ),
     );
@@ -76,20 +89,16 @@ class _ReformulationPageState extends State<ReformulationPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    customText("En ejecución:", 16, textColor: Colors.green),
+                    customText("En ejecución:", 16),
                     space(height: 5),
-                    customLinearPercent(context, 2.3, 0.8, Colors.green),
+                    customLinearPercent(context, 2.3, 0.8, percentBarPrimary),
                   ],
                 ),
                 space(width: 50),
-                /* VerticalDivider(
-                  width: 10,
-                  color: Colors.grey,
-                ),*/
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto total:   ${project.budget} €", 16),
+                  customText("Presupuesto total:   ${project!.budget} €", 16),
                   space(height: 5),
-                  customLinearPercent(context, 2.3, 0.8, Colors.blue),
+                  customLinearPercent(context, 2.3, 0.8, blueColor),
                 ]),
               ],
             ),
@@ -222,14 +231,17 @@ class _ReformulationPageState extends State<ReformulationPage> {
                         14),
                   ],
                 ),
-                Row(
-                  children: [
-                    customText('Resolución: ', 14, bold: FontWeight.bold),
-                    customText(
-                        DateFormat("dd-MM-yyyy").format(ref.resolutionDate),
-                        14),
-                  ],
-                ),
+                ref.statusObj.uuid == "2"
+                    ? Row(
+                        children: [
+                          customText('Resolución: ', 14, bold: FontWeight.bold),
+                          customText(
+                              DateFormat("dd-MM-yyyy")
+                                  .format(ref.resolutionDate),
+                              14),
+                        ],
+                      )
+                    : Container(),
                 reformulationRowOptions(context, ref),
               ],
             ),
@@ -297,7 +309,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
   void saveReformulation(List args) async {
     Reformulation ref = args[0];
     ref.save();
-    ref.getFolder();
+    //ref.getFolder();
     loadReformulations();
 
     Navigator.pop(context);
@@ -313,7 +325,13 @@ class _ReformulationPageState extends State<ReformulationPage> {
       }
       _editDialog(context, ref, financierList);
     });*/
-    List<KeyValue> financierList = await getFinanciersHash();
+    //List<KeyValue> financierList = await getFinanciersHash();
+    List<KeyValue> financierList = [];
+    SProject project = await ref.getProject();
+    List<Organization> finList = await project.getFinanciers();
+    for (Organization fin in finList) {
+      financierList.add(fin.toKeyValue());
+    }
     List<KeyValue> typeList = await getReformulationTypesHash();
     List<KeyValue> statusList = await getReformulationStatusHash();
     _editDialog(context, ref, financierList, typeList, statusList);
@@ -329,91 +347,93 @@ class _ReformulationPageState extends State<ReformulationPage> {
           title: (ref != null)
               ? s4cTitleBar("Editar comunicación")
               : s4cTitleBar("Añadir comunicación"),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Financiador',
-                  size: 220,
-                  selected: ref.financierObj.toKeyValue(),
-                  options: financierList,
-                  onSelectedOpt: (String val) {
-                    ref.financier = val;
-                    /*setState(() {
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Column(children: [
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomDropdown(
+                    labelText: 'Financiador',
+                    size: 220,
+                    selected: ref.financierObj.toKeyValue(),
+                    options: financierList,
+                    onSelectedOpt: (String val) {
+                      ref.financier = val;
+                      /*setState(() {
                         proj.type = val;
                       });*/
-                  },
-                ),
+                    },
+                  ),
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomDropdown(
+                    labelText: 'Tipo',
+                    size: 210,
+                    selected: ref.typeObj.toKeyValue(),
+                    options: typeList,
+                    onSelectedOpt: (String val) {
+                      ref.type = val;
+                    },
+                  ),
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomDropdown(
+                    labelText: 'Estado',
+                    size: 210,
+                    selected: ref.statusObj.toKeyValue(),
+                    options: statusList,
+                    onSelectedOpt: (String val) {
+                      ref.status = val;
+                    },
+                  ),
+                ]),
               ]),
-              space(width: 10),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Tipo',
-                  size: 210,
-                  selected: ref.typeObj.toKeyValue(),
-                  options: typeList,
-                  onSelectedOpt: (String val) {
-                    ref.type = val;
-                  },
-                ),
+              space(height: 10),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 320,
+                      child: DateTimePicker(
+                        labelText: 'Presentación',
+                        selectedDate: ref.getPresentation(),
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            ref.presentationDate = date;
+                          });
+                        },
+                      )),
+                ]),
+                space(width: 20),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                      width: 320,
+                      child: DateTimePicker(
+                        labelText: 'Resolución',
+                        selectedDate: ref.getResolution(),
+                        onSelectedDate: (DateTime date) {
+                          setState(() {
+                            ref.resolutionDate = date;
+                          });
+                        },
+                      )),
+                ]),
               ]),
-              space(width: 10),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Estado',
-                  size: 210,
-                  selected: ref.statusObj.toKeyValue(),
-                  options: statusList,
-                  onSelectedOpt: (String val) {
-                    ref.status = val;
-                  },
-                ),
-              ]),
-            ]),
-            space(height: 10),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                    width: 320,
-                    child: DateTimePicker(
-                      labelText: 'Presentación',
-                      selectedDate: ref.getPresentation(),
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          ref.presentationDate = date;
-                        });
-                      },
-                    )),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                    width: 320,
-                    child: DateTimePicker(
-                      labelText: 'Resolución',
-                      selectedDate: ref.getResolution(),
-                      onSelectedDate: (DateTime date) {
-                        setState(() {
-                          ref.resolutionDate = date;
-                        });
-                      },
-                    )),
-              ]),
-            ]),
-            space(height: 10),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: 'Descripción',
-                  size: 660,
-                  initial: ref.description,
-                  fieldValue: (String val) {
-                    ref.description = val;
-                  },
-                ),
-              ]),
-              /*space(width: 10),
+              space(height: 10),
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: 'Descripción',
+                    size: 660,
+                    initial: ref.description,
+                    fieldValue: (String val) {
+                      ref.description = val;
+                    },
+                  ),
+                ]),
+                /*space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
                   labelText: 'Subsanación',
@@ -435,8 +455,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
                   },
                 ),
               ])*/
-            ]),
-          ])),
+              ]),
+            ]));
+          }),
           actions: <Widget>[
             dialogsBtns(context, saveReformulation, ref),
           ],

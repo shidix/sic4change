@@ -354,7 +354,9 @@ class SProject {
           data["id"] = doc.id;
           Organization financier = Organization.fromJson(data);
           finList.add(financier);
-        } catch (e) {}
+        } catch (e) {
+          print(e);
+        }
       }
       return finList;
     } else {
@@ -1502,6 +1504,14 @@ class Reformulation {
     await dbReformulation.doc(id).delete();
   }
 
+  Future<void> loadObjs() async {
+    projectObj = await getProject();
+    financierObj = await getFinancier();
+    typeObj = await getType();
+    statusObj = await getStatus();
+    folderObj = await getFolder();
+  }
+
   Future<SProject> getProject() async {
     try {
       QuerySnapshot query =
@@ -1596,11 +1606,11 @@ Future<List> getReformulations() async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     final item = Reformulation.fromJson(data);
-    item.projectObj = await item.getProject();
+    /*item.projectObj = await item.getProject();
     item.financierObj = await item.getFinancier();
     item.typeObj = await item.getType();
     item.statusObj = await item.getStatus();
-    item.folderObj = await item.getFolder();
+    item.folderObj = await item.getFolder();*/
     items.add(item);
   }
 
