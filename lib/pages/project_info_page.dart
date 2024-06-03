@@ -18,6 +18,7 @@ String s4cUuid = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
 const projectInfoTitle = "Detalles del Proyecto";
 //SProject? project;
 bool projLoading = true;
+Widget? _mainMenu;
 
 class ProjectInfoPage extends StatefulWidget {
   final SProject? project;
@@ -66,6 +67,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   initState() {
     super.initState();
     project = widget.project;
+    _mainMenu = mainMenu(context);
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
@@ -87,7 +89,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          mainMenu(context),
+          //mainMenu(context),
+          _mainMenu!,
           projectInfoHeader(context),
           profileMenu(context, project, "info"),
           projLoading

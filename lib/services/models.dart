@@ -1438,6 +1438,7 @@ class Reformulation {
   String type = "";
   String status = "";
   String description = "";
+  String folder = "";
   DateTime presentationDate = maxDate;
   DateTime resolutionDate = maxDate;
   //SProject projectObj = SProject("", "");
@@ -1446,6 +1447,7 @@ class Reformulation {
   Organization financierObj = Organization("");
   ReformulationType typeObj = ReformulationType();
   ReformulationStatus statusObj = ReformulationStatus();
+  Folder folderObj = Folder("", "");
 
   Reformulation(this.project);
 
@@ -1458,6 +1460,7 @@ class Reformulation {
         type = json['type'],
         status = json['status'],
         description = json['description'],
+        folder = json['folder'],
         presentationDate = json["presentationDate"].toDate(),
         resolutionDate = json["resolutionDate"].toDate(),
         project = json['project'],
@@ -1472,6 +1475,7 @@ class Reformulation {
         'type': type,
         'status': status,
         'description': description,
+        'folder': folder,
         'presentationDate': presentationDate,
         'resolutionDate': resolutionDate,
         'project': project,
@@ -1507,6 +1511,7 @@ class Reformulation {
       data["id"] = doc.id;
       return SProject.fromJson(data);
     } catch (e) {
+      print(e);
       return SProject("");
     }
   }
@@ -1561,6 +1566,26 @@ class Reformulation {
         ? DateTime.now()
         : resolutionDate;
   }
+
+  Future<Folder> createFolder() async {
+    projectObj = await getProject();
+    Folder f = Folder("Comunicacion-$uuid", projectObj.folder);
+    f.save();
+    folder = f.uuid;
+    save();
+    return f;
+  }
+
+  Future<Folder> getFolder() async {
+    if (folder == "") {
+      return createFolder();
+    }
+    Folder? f = await getFolderByUuid(folder);
+    if (f == null) {
+      return createFolder();
+    }
+    return f;
+  }
 }
 
 Future<List> getReformulations() async {
@@ -1575,6 +1600,7 @@ Future<List> getReformulations() async {
     item.financierObj = await item.getFinancier();
     item.typeObj = await item.getType();
     item.statusObj = await item.getStatus();
+    item.folderObj = await item.getFolder();
     items.add(item);
   }
 
@@ -1594,6 +1620,7 @@ Future<List> getReformulationsByProject(uuid) async {
     item.financierObj = await item.getFinancier();
     item.typeObj = await item.getType();
     item.statusObj = await item.getStatus();
+    item.folderObj = await item.getFolder();
     items.add(item);
   }
 

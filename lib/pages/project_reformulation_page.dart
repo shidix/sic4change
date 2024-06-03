@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -106,7 +108,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
           if (snapshot.hasData) {
             refList = snapshot.data!;
             if (refList.isNotEmpty) {
-              return SizedBox(
+              /*return SizedBox(
                 width: double.infinity,
                 child: DataTable(
                   sortColumnIndex: 0,
@@ -145,11 +147,12 @@ class _ReformulationPageState extends State<ReformulationPage> {
                                   {"dateAudit": date}),*/
                               ]))
                         ]),
+
                       )
                       .toList(),
                 ),
-              );
-              /*return ListView.builder(
+              );*/
+              return ListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: refList.length,
                   itemBuilder: (BuildContext context, int index) {
@@ -163,8 +166,14 @@ class _ReformulationPageState extends State<ReformulationPage> {
                                 BorderSide(color: Color(0xffdfdfdf), width: 2)),
                       ),
                       child: reformulationRow(context, ref),
+                      /*child: customCollapse(
+                          context,
+                          "Comunicación con el financiador: ${ref.financierObj.name}",
+                          reformulationDetails,
+                          ref,
+                          expanded: false),*/
                     );
-                  });*/
+                  });
             } else {
               return const Text("");
             }
@@ -176,7 +185,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         }));
   }
 
-  /*Widget reformulationRow(context, ref) {
+  Widget reformulationRow(context, ref) {
     return Container(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -186,18 +195,53 @@ class _ReformulationPageState extends State<ReformulationPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                customText(
-                    'Comunicación con el financiador: ${ref.financierObj.name}',
-                    16,
-                    textColor: const Color(0xff00809a)),
+                Row(
+                  children: [
+                    customText('Financiador: ', 14, bold: FontWeight.bold),
+                    space(width: 5),
+                    customText('${ref.financierObj.name}', 14),
+                  ],
+                ),
+                Row(
+                  children: [
+                    customText('Tipología: ', 14, bold: FontWeight.bold),
+                    customText('${ref.typeObj.name}', 14),
+                  ],
+                ),
+                Row(
+                  children: [
+                    customText('Estado: ', 14, bold: FontWeight.bold),
+                    customText('${ref.statusObj.name}', 14),
+                  ],
+                ),
+                Row(
+                  children: [
+                    customText('Presentación: ', 14, bold: FontWeight.bold),
+                    customText(
+                        DateFormat("dd-MM-yyyy").format(ref.presentationDate),
+                        14),
+                  ],
+                ),
+                Row(
+                  children: [
+                    customText('Resolución: ', 14, bold: FontWeight.bold),
+                    customText(
+                        DateFormat("dd-MM-yyyy").format(ref.resolutionDate),
+                        14),
+                  ],
+                ),
                 reformulationRowOptions(context, ref),
               ],
             ),
-            space(height: 20),
-            customText("Tipo de comunicación", 14, bold: FontWeight.bold),
-            space(height: 5),
-            customText(ref.typeObj.name, 14),
-            space(height: 10),
+            Row(
+              children: [
+                customText('Descripción: ', 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText('${ref.description}', 14),
+              ],
+            ),
+
+            /*space(height: 10),
             customRowDivider(),
             space(height: 10),
             customText("Subsanación", 14, bold: FontWeight.bold),
@@ -210,20 +254,42 @@ class _ReformulationPageState extends State<ReformulationPage> {
                 bold: FontWeight.bold),
             space(height: 5),
             customText(ref.request, 14),*/
-  /*Text(
+            /*Text(
           'Fuente',
           style: TextStyle(color: Colors.blueGrey, fontSize: 16),
-        ),
+        ),*/
           ],
         ));
-  }*/
+  }
 
   Widget reformulationRowOptions(context, ref) {
     return Row(children: [
+      /*customCollapse(context, "Resultados", reformulationDetails, ref,
+          expanded: false),*/
+      goPageIcon(context, "Documentos", Icons.document_scanner_outlined,
+          DocumentsPage(currentFolder: ref.folderObj)),
       editBtn(context, callEditDialog, {'ref': ref}),
       removeBtn(context, removeReformulationDialog, {"ref": ref})
     ]);
   }
+
+  /*Widget reformulationDetails(context, ref) {
+    return Row(
+      children: [
+        customText("Fecha de presentación", 14),
+        space(width: 10),
+        customText(DateFormat("dd-MM-yyyy").format(ref.presentationDate), 14),
+        space(width: 10),
+        customText("Fecha de resolución", 14),
+        space(width: 10),
+        customText(DateFormat("dd-MM-yyyy").format(ref.resolutionDate), 14),
+        space(width: 10),
+        customText("Tipo de comunicación", 14),
+        space(width: 10),
+        customText(ref.financierObj.name, 14)
+      ],
+    );
+  }*/
 
 /*-------------------------------------------------------------
                        EDIT REFORMULATION
@@ -231,6 +297,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
   void saveReformulation(List args) async {
     Reformulation ref = args[0];
     ref.save();
+    ref.getFolder();
     loadReformulations();
 
     Navigator.pop(context);
@@ -260,8 +327,8 @@ class _ReformulationPageState extends State<ReformulationPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: (ref != null)
-              ? s4cTitleBar("Editar reformualción")
-              : s4cTitleBar("Añadir reformualción"),
+              ? s4cTitleBar("Editar comunicación")
+              : s4cTitleBar("Añadir comunicación"),
           content: SingleChildScrollView(
               child: Column(children: [
             Row(children: [
