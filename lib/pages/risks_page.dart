@@ -614,6 +614,9 @@ class _RisksPageState extends State<RisksPage> {
       ],
     ));
 
+    print("Mitigations is empty? ${risk.extraInfo["mitigations"].isEmpty}");
+    print(risk.extraInfo["mitigations"]);
+
     for (var mitigation in risk.extraInfo["mitigations"]) {
       mitigationsList.add(Row(
         children: [
@@ -669,18 +672,6 @@ class _RisksPageState extends State<RisksPage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Seguimiento de la medida correctora'),
           content: RisksTracksForm(risk: args["risk"], index: args["index"]),
-          // actions: <Widget>[
-          //   actionButtonVertical(context, "Cerrar", () {
-          //     Navigator.of(context).pop(false);
-          //   }, Icons.close, null),
-
-          //   // TextButton(
-          //   //   child: customText('Close', 16),
-          //   //   onPressed: () {
-          //   //     Navigator.of(context).pop(false);
-          //   //   },
-          //   // ),
-          // ],
         );
       },
     );
