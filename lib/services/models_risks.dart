@@ -28,7 +28,7 @@ class Risk {
       extraInfo["probability"] = "";
     }
     if (!extraInfo.keys.contains("mitigations")) {
-      extraInfo["mitigations"] = {};
+      extraInfo["mitigations"] = [];
     }
     if (!extraInfo.keys.contains("risk")) {
       extraInfo["risk"] = "";
@@ -68,7 +68,7 @@ class Risk {
       extraInfo = {
         "impact": "",
         "probability": "",
-        "mitigations": {},
+        "mitigations": [],
         "risk": "",
         "history": "",
         "observations": ""
