@@ -55,14 +55,16 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
       Row(
         children: [
           Expanded(
-              flex: 7,
-              child: CustomTextField(
-                  labelText: 'Descripción 2',
-                  initial: tracking["description"],
-                  size: 220,
-                  fieldValue: (String val) {
-                    tracking["description"] = val;
-                  })),
+              flex: 6,
+              child: Padding(
+                  padding: EdgeInsets.only(right: 10),
+                  child: CustomTextField(
+                      labelText: 'Descripción',
+                      initial: tracking["description"],
+                      size: 220,
+                      fieldValue: (String val) {
+                        tracking["description"] = val;
+                      }))),
           Expanded(
               flex: 2,
               child: CustomTextField(
@@ -102,6 +104,18 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
                   ],
                 ),
               )),
+          Expanded(
+              flex: 1,
+              child: Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    actionButtonVertical(context, 'Cancelar', () {
+                      resetNewItemContainer();
+                    }, Icons.cancel, null)
+                  ],
+                ),
+              ))
         ],
       ),
       error,
@@ -143,48 +157,52 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
       ]),
       const Row(children: [Expanded(flex: 1, child: Divider())]),
     ];
-    trackingList.add(Row(
-      children: [
-        Expanded(
-            flex: 7,
-            child: customText('Descripción', 14, bold: FontWeight.bold)),
-        Expanded(
-            flex: 2,
-            child: customText('Fecha', 14,
-                align: TextAlign.center, bold: FontWeight.bold)),
-        Expanded(flex: 1, child: Container())
-      ],
-    ));
 
-    int counter = 0;
-    for (var tracking in mitigation["trackings"]) {
-      if (!tracking.containsKey("date")) {
-        tracking["date"] = "";
-      }
-      if (!tracking.containsKey("description")) {
-        tracking["description"] = "";
-      }
-
-      trackingList.add(Row(
-        children: [
-          Expanded(flex: 7, child: customText(tracking["description"], 14)),
-          Expanded(
-              flex: 2,
-              child: customText(tracking["date"], 14, align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: removeConfirmBtn(context, removeTracking,
-                  {"mitigation": mitigation, "index": counter, "risk": risk}))
-        ],
-      ));
-      counter += 1;
-    }
-    if (counter == 0) {
+    if (mitigation["trackings"].isEmpty) {
       trackingList.add(Row(children: [
         Expanded(
             flex: 1, child: customText("No hay seguimientos registrados", 14))
       ]));
+    } else {
+      trackingList.add(Row(
+        children: [
+          Expanded(
+              flex: 7,
+              child: customText('Descripción', 14, bold: FontWeight.bold)),
+          Expanded(
+              flex: 2,
+              child: customText('Fecha', 14,
+                  align: TextAlign.center, bold: FontWeight.bold)),
+          Expanded(flex: 1, child: Container())
+        ],
+      ));
+
+      int counter = 0;
+      for (var tracking in mitigation["trackings"]) {
+        if (!tracking.containsKey("date")) {
+          tracking["date"] = "";
+        }
+        if (!tracking.containsKey("description")) {
+          tracking["description"] = "";
+        }
+
+        trackingList.add(Row(
+          children: [
+            Expanded(flex: 7, child: customText(tracking["description"], 14)),
+            Expanded(
+                flex: 2,
+                child:
+                    customText(tracking["date"], 14, align: TextAlign.center)),
+            Expanded(
+                flex: 1,
+                child: removeConfirmBtn(context, removeTracking,
+                    {"mitigation": mitigation, "index": counter, "risk": risk}))
+          ],
+        ));
+        counter += 1;
+      }
     }
+
     trackingList
         .add(Row(children: [Expanded(flex: 1, child: space(height: 40))]));
     trackingList.add(Row(children: [
