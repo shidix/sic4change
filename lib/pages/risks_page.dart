@@ -1,9 +1,9 @@
-import 'dart:collection';
+// import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
-import 'package:googleapis/transcoder/v1.dart';
-import 'package:googleapis/youtubereporting/v1.dart';
+// import 'package:googleapis/photoslibrary/v1.dart';
+// import 'package:googleapis/transcoder/v1.dart';
+// import 'package:googleapis/youtubereporting/v1.dart';
 import 'package:sic4change/pages/risks_tracks_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -283,7 +283,7 @@ class _RisksPageState extends State<RisksPage> {
               child: Padding(
                   padding: const EdgeInsets.only(left: 0, top: 20),
                   child: CustomTextField(
-                      labelText: "Descripción de los ocurrido",
+                      labelText: "Descripción de lo ocurrido",
                       initial: risk.extraInfo["history"] ?? "",
                       size: 220,
                       maxLines: 5,
