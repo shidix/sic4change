@@ -1,6 +1,7 @@
 // import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
 // import 'package:googleapis/transcoder/v1.dart';
 // import 'package:googleapis/youtubereporting/v1.dart';
@@ -65,14 +66,6 @@ class _RisksPageState extends State<RisksPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*if (ModalRoute.of(context)!.settings.arguments != null) {
-      Map args = ModalRoute.of(context)!.settings.arguments as Map;
-      project = args["project"];
-    } else {
-      project = null;
-    }
-
-    if (project == null) return const Page404();*/
 
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -91,10 +84,6 @@ class _RisksPageState extends State<RisksPage> {
 -------------------------------------------------------------*/
   Widget riskHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-      /*Container(
-        padding: const EdgeInsets.only(left: 40),
-        child: customText(riskPageTitle, 20),
-      ),*/
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -124,68 +113,6 @@ class _RisksPageState extends State<RisksPage> {
       goalsOptions
           .add(KeyValue(goal.name.split('.')[0], goal.name.split('.')[0]));
     }
-    // if (!risk.extraInfo.containsKey("mitigations")) {
-    //   risk.extraInfo["mitigations"] = [];
-    // }
-
-    // List<Row> mitigationsList = [];
-    // int counter = 0;
-    // for (var mitigation in risk.extraInfo["mitigations"]) {
-    //   mitigationsList.add(Row(children: [
-    //     Expanded(
-    //         flex: 3,
-    //         child: Padding(
-    //             padding: const EdgeInsets.only(left: 0, top: 10),
-    //             child: CustomTextField(
-    //               labelText: "Descripción",
-    //               initial: risk.extraInfo["mitigations"][counter]
-    //                   ["description"],
-    //               size: 220,
-    //               maxLines: 5,
-    //               fieldValue: (String val) {
-    //                 setState(() => mitigation["description"] = val);
-    //               },
-    //             ))),
-    //     Expanded(
-    //         flex: 1,
-    //         child: Padding(
-    //             padding: const EdgeInsets.only(left: 20, top: 10),
-    //             child: CustomSelectFormField(
-    //                 labelText: "Implementada",
-    //                 initial: mitigation["implemented"] ? "Sí" : "No",
-    //                 options: List<KeyValue>.from([
-    //                   KeyValue("Sí", "Sí"),
-    //                   KeyValue("No", "No"),
-    //                 ]),
-    //                 onSelectedOpt: (String val) {
-    //                   setState(() => mitigation["implemented"] = (val == "Sí"));
-    //                 }))),
-    //     Expanded(
-    //         flex: 1,
-    //         child: Padding(
-    //             padding: const EdgeInsets.only(left: 20, top: 10),
-    //             child: CustomTextField(
-    //                 labelText: "Fecha",
-    //                 initial: mitigation["date"],
-    //                 size: 220,
-    //                 fieldValue: (String val) {
-    //                   setState(() => mitigation["date"] = val);
-    //                 }))),
-    //     Expanded(
-    //         flex: 1,
-    //         child: Padding(
-    //             padding: const EdgeInsets.only(left: 20, top: 10),
-    //             child: CustomTextField(
-    //               labelText: "Responsable",
-    //               initial: mitigation["responsible"],
-    //               size: 220,
-    //               fieldValue: (String val) {
-    //                 setState(() => mitigation["responsible"] = val);
-    //               },
-    //             )))
-    //   ]));
-    //   counter += 1;
-    // }
 
     if (risk.occur != "No") {
       containerRisk = [
@@ -614,8 +541,6 @@ class _RisksPageState extends State<RisksPage> {
       ],
     ));
 
-    print("Mitigations is empty? ${risk.extraInfo["mitigations"].isEmpty}");
-    print(risk.extraInfo["mitigations"]);
 
     for (var mitigation in risk.extraInfo["mitigations"]) {
       mitigationsList.add(Row(
@@ -634,7 +559,7 @@ class _RisksPageState extends State<RisksPage> {
           Expanded(
               flex: 1,
               child:
-                  customText(mitigation["date"], 12, align: TextAlign.center)),
+                  customText(DateFormat('dd/MM/yyyy').format(mitigation["date"]), 12, align: TextAlign.center)),
           Expanded(
               flex: 2,
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -686,12 +611,12 @@ class _RisksPageState extends State<RisksPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Eliminar Mitigación'),
+          title: s4cTitleBar('Eliminar Medida correctora'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 customText(
-                    '¿Está seguro de que desea eliminar la mitigación?', 16),
+                    '¿Está seguro de que desea eliminar la medida correctora?', 16),
               ],
             ),
           ),
@@ -739,8 +664,8 @@ class _RisksPageState extends State<RisksPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((mitigation["description"] != "")
-              ? 'Editando Mitigación'
-              : 'Añadiendo Mitigación'),
+              ? 'Editando Medida correctora'
+              : 'Añadiendo Medida correctora'),
           content: SingleChildScrollView(
               child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.6,
@@ -777,17 +702,44 @@ class _RisksPageState extends State<RisksPage> {
                               onSelectedOpt: (String val) {
                                 mitigation["implemented"] = (val == "Sí");
                               }))),
+                  // Expanded(
+                  //     flex: 1,
+                  //     child: Padding(
+                  //         padding: const EdgeInsets.only(left: 20, top: 10),
+                  //         child: CustomTextField(
+                  //             labelText: "Fecha",
+                  //             initial: mitigation["date"],
+                  //             size: 220,
+                  //             fieldValue: (String val) {
+                  //               mitigation["date"] = val;
+                  //             }))),
                   Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(left: 20, top: 10),
-                          child: CustomTextField(
-                              labelText: "Fecha",
-                              initial: mitigation["date"],
-                              size: 220,
-                              fieldValue: (String val) {
-                                mitigation["date"] = val;
-                              }))),
+                    flex: 1,
+                    child: ListTile(
+                      leading: const Icon(Icons.date_range),
+                      title: const Text("Fecha"),
+                      subtitle: Text(
+                          DateFormat('dd/MM/yyyy').format(mitigation["date"])),
+                      onTap: 
+                          () async {
+                              DateTime dateTracking = mitigation["date"];
+                              final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: dateTracking,
+                                  firstDate: DateTime(2015, 8),
+                                  lastDate: DateTime(2101));
+                              if (picked != null &&
+
+                                  picked != dateTracking &&
+                                  mounted) {
+                                setState(() {
+                                  mitigation["date"] = picked;
+                                });
+                              }
+                            }
+                          ,
+                    )),
+
                   Expanded(
                       flex: 1,
                       child: Padding(
