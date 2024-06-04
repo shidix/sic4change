@@ -152,6 +152,7 @@ class SProject {
     datesObj = await getDates();
     locationObj = await getLocation();
     folderObj = await getFolder();
+    //changeStatus();
     return this;
   }
 
@@ -161,6 +162,10 @@ class SProject {
 
   Future<void> updateProjectPartners() async {
     await dbProject.doc(id).update({"partners": partners});
+  }
+
+  int statusInt() {
+    return int.parse(status);
   }
 
   String getStatus() {
@@ -445,7 +450,7 @@ class SProject {
     datesObj = await getDates();
     locationObj = await getLocation();
     folderObj = await getFolder();
-    changeStatus();
+    //changeStatus();
   }
 
   void setStatus(ProjectStatus st) {
@@ -454,29 +459,32 @@ class SProject {
     save();
   }
 
-  void changeStatus() async {
+  void changeStatus(dates) async {
     DateTime now = DateTime.now();
     /*if (now.compareTo(datesObj.delivery) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusDelivery);
       setStatus(st);
     } else if (now.compareTo(datesObj.justification) > 0) {*/
 
-    if (now.compareTo(datesObj.reject!) > 0) {
+    if (now.compareTo(dates.reject) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusReject);
       setStatus(st);
-    } else if (now.compareTo(datesObj.sended!) > 0) {
+    } else if (now.compareTo(dates.refuse) > 0) {
+      ProjectStatus st = await ProjectStatus.byUuid(statusRefuse);
+      setStatus(st);
+    } else if (now.compareTo(dates.sended) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusSended);
       setStatus(st);
-    } else if (now.compareTo(datesObj.justification!) > 0) {
+    } else if (now.compareTo(dates.justification) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusJustification);
       setStatus(st);
-    } else if (now.compareTo(datesObj.end!) > 0) {
+    } else if (now.compareTo(dates.end) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusEnds);
       setStatus(st);
-    } else if (now.compareTo(datesObj.start!) > 0) {
+    } else if (now.compareTo(dates.start) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusStart);
       setStatus(st);
-    } else if (now.compareTo(datesObj.approved!) > 0) {
+    } else if (now.compareTo(dates.approved) > 0) {
       ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
       setStatus(st);
     } else {
@@ -791,6 +799,7 @@ class ProjectDates {
   DateTime delivery = maxDate;
   DateTime sended = maxDate;
   DateTime reject = maxDate;
+  DateTime refuse = maxDate;
   String project = "";
 
   ProjectDates(this.project);
@@ -805,6 +814,7 @@ class ProjectDates {
         delivery = json["delivery"].toDate(),
         sended = json["sended"].toDate(),
         reject = json["reject"].toDate(),
+        refuse = json["refuse"].toDate(),
 
         /*approved = (json["approved"] != null) ? json["approved"].toDate() : "",
         start = (json["start"] != null) ? json["start"].toDate() : "",
@@ -827,6 +837,7 @@ class ProjectDates {
         'delivery': delivery,
         'sended': sended,
         'reject': reject,
+        'refuse': refuse,
         'project': project,
       };
 
@@ -876,6 +887,10 @@ class ProjectDates {
     return reject.compareTo(limitDate) > 0 ? DateTime.now() : reject;
   }
 
+  DateTime getRefuse() {
+    return refuse.compareTo(limitDate) > 0 ? DateTime.now() : refuse;
+  }
+
   String getApprovedStr() {
     return approved.compareTo(limitDate) > 0
         ? ""
@@ -916,6 +931,12 @@ class ProjectDates {
     return reject.compareTo(limitDate) > 0
         ? ""
         : DateFormat("dd-MM-yyyy").format(reject);
+  }
+
+  String getRefuseStr() {
+    return refuse.compareTo(limitDate) > 0
+        ? ""
+        : DateFormat("dd-MM-yyyy").format(refuse);
   }
 }
 

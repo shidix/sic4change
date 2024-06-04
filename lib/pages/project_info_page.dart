@@ -60,7 +60,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   bool canEdit() {
     return profile!.mainRole == "Admin" ||
-        (project!.status != statusDenied && project!.status != statusClose);
+        (project!.status != statusReject && project!.status != statusClose);
   }
 
   @override
@@ -484,20 +484,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     customText('${project?.financiersObj[index].name}', 14),
                     removeBtn(context, removeFinancierDialog,
                         {"financier": project?.financiersObj[index]})
-                    /*IconButton(
-                      icon: const Icon(
-                        Icons.remove_circle,
-                        size: 14,
-                      ),
-                      tooltip: 'Eliminar financiador',
-                      onPressed: () async {
-                        project!.financiers
-                            .remove(project!.financiersObj[index].uuid);
-                        project!.updateProjectFinanciers();
-                        //loadProject(project);
-                        //                    _removeFinancier(context, _project);
-                      },
-                    )*/
                   ]));
         });
   }
@@ -507,13 +493,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       customText("Socios", 15, bold: FontWeight.bold),
       addBtnRow(context, callPartnerEditDialog, {"project": project},
           text: "Añadir socio", icon: Icons.add_circle_outline),
-      /*IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Añadir socio',
-        onPressed: () {
-          callPartnerEditDialog(context, project);
-        },
-      )*/
     ]);
   }
 
@@ -530,18 +509,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 customText('${project.partnersObj[index].name}', 14),
                 removeBtn(context, removePartnerDialog,
                     {"partner": project?.partnersObj[index]}),
-                /*IconButton(
-                  icon: const Icon(
-                    Icons.remove,
-                    size: 12,
-                  ),
-                  tooltip: 'Eliminar financiador',
-                  onPressed: () async {
-                    project.partners.remove(project.partnersObj[index].uuid);
-                    project.updateProjectPartners();
-                    loadProject();
-                  },
-                )*/
               ]);
         });
   }
@@ -563,7 +530,66 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   },
                 )
               ]),
-              Table(
+              Row(children: [
+                (project.statusInt() > 1)
+                    ? Row(children: [
+                        customText("Presentación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getSendedStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() == 3)
+                    ? Row(children: [
+                        customText("Denegación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getRejectStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() == 4)
+                    ? Row(children: [
+                        customText("Rechazo: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getRefuseStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Aprobación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getApprovedStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Inicio: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getStartStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Finalización: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getEndStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Justificación: ", 14,
+                            bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getJustificationStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+              ]),
+              /*Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     (project.status == "12")
@@ -644,7 +670,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       customText("", 14),
                       customText("", 14),
                     ])
-                  ]),
+                  ]),*/
             ]);
           } else {
             return const Center(
@@ -1064,17 +1090,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PARTNERS                                 */
   /*--------------------------------------------------------------------*/
-  /*void savePartner(List args) async {
-    SProject project = args[0];
-    project.updateProjectPartners();
-    loadProject();
-  }*/
-
-  /*void _removePartner(context, project) async {
-    project.updateProjectPartners();
-    loadProject(project);
-  }*/
-
   void savePartner(List args) async {
     project!.updateProjectPartners();
     Organization.byUuid(args[0].text).then((value) {
@@ -1142,6 +1157,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void saveDates(List args) async {
     ProjectDates dates = args[0];
     dates.save();
+    project!.changeStatus(dates);
     loadProject();
 
     Navigator.pop(context);
@@ -1149,13 +1165,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void callDatesEditDialog(context, project) async {
     ProjectDates dates = await getProjectDatesByProject(project.uuid);
-    editProjectDatesDialog(context, dates);
+    editProjectDatesDialog(context, dates, project);
     /*await getProjectDatesByProject(project.uuid).then((value) async {
       editProjectDatesDialog(context, value);
     });*/
   }
 
-  Future<void> editProjectDatesDialog(context, dates) {
+  Future<void> editProjectDatesDialog(context, dates, project) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1183,89 +1199,112 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                               },
                             )),
                       ]),
-                  space(width: 20),
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: 220,
-                            child: DateTimePicker(
-                              labelText: 'Aprobación',
-                              selectedDate: dates.getApproved(),
-                              onSelectedDate: (DateTime date) {
-                                setState(() {
-                                  dates.approved = date;
-                                });
-                              },
-                            )),
-                      ]),
-                  space(width: 20),
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: 220,
-                            child: DateTimePicker(
-                              labelText: 'Denegación',
-                              selectedDate: dates.getReject(),
-                              onSelectedDate: (DateTime date) {
-                                setState(() {
-                                  dates!.reject = date;
-                                });
-                              },
-                            )),
-                      ]),
                 ]),
                 space(height: 10),
                 Row(children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: 220,
-                            child: DateTimePicker(
-                              labelText: 'Inicio',
-                              selectedDate: dates.getStart(),
-                              onSelectedDate: (DateTime date) {
-                                setState(() {
-                                  dates!.start = date;
-                                });
-                              },
-                            )),
-                      ]),
-                  space(width: 20),
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: 220,
-                            child: DateTimePicker(
-                              labelText: 'Fin',
-                              selectedDate: dates.getEnd(),
-                              onSelectedDate: (DateTime date) {
-                                setState(() {
-                                  dates!.end = date;
-                                });
-                              },
-                            )),
-                      ]),
-                  space(width: 20),
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                            width: 220,
-                            child: DateTimePicker(
-                              labelText: 'Justificación',
-                              selectedDate: dates.getJustification(),
-                              onSelectedDate: (DateTime date) {
-                                setState(() {
-                                  dates!.justification = date;
-                                });
-                              },
-                            )),
-                      ]),
-                  /*space(width: 20),
+                  (project.statusInt() == 2 || project.statusInt() >= 5)
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Aprobación',
+                                    selectedDate: dates.getApproved(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates.approved = date;
+                                      });
+                                    },
+                                  )),
+                            ])
+                      : Container(),
+                  (project.statusInt() == 2 || project.statusInt() == 3)
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Denegación',
+                                    selectedDate: dates.getReject(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates.reject = date;
+                                      });
+                                    },
+                                  )),
+                            ])
+                      : Container(),
+                  (project.statusInt() == 2 || project.statusInt() == 4)
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Rechazo',
+                                    selectedDate: dates.getRefuse(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates.refuse = date;
+                                      });
+                                    },
+                                  )),
+                            ])
+                      : Container(),
+                ]),
+                space(height: 10),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Inicio',
+                                    selectedDate: dates.getStart(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates!.start = date;
+                                      });
+                                    },
+                                  )),
+                            ]),
+                        space(width: 20),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Fin',
+                                    selectedDate: dates.getEnd(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates!.end = date;
+                                      });
+                                    },
+                                  )),
+                            ]),
+                        space(width: 20),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                  width: 220,
+                                  child: DateTimePicker(
+                                    labelText: 'Justificación',
+                                    selectedDate: dates.getJustification(),
+                                    onSelectedDate: (DateTime date) {
+                                      setState(() {
+                                        dates!.justification = date;
+                                      });
+                                    },
+                                  )),
+                            ]),
+                        /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SizedBox(
                       width: 220,
@@ -1280,7 +1319,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       )),
                 ]),
                 space(width: 20),*/
-                ]),
+                      ])
+                    : Container(),
               ]),
             );
           }),
