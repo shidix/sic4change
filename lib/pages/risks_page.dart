@@ -1,5 +1,6 @@
 // import 'dart:collection';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
@@ -543,6 +544,19 @@ class _RisksPageState extends State<RisksPage> {
 
 
     for (var mitigation in risk.extraInfo["mitigations"]) {
+      if (mitigation["date"] is String) {
+        try {
+          mitigation["date"] = DateFormat("dd/MM/yyyy").parse(mitigation["date"].replaceAll("-", "/"));  
+        } catch (e) {
+          mitigation["date"] = DateTime.now();
+        }
+        if ( (DateTime(2015).isAfter(mitigation["date"])) || ((DateTime(DateTime.now().year + 5).isAfter(mitigation["date"])))) {
+          mitigation["date"] = DateTime.now();
+        }
+      }
+      if (mitigation["date"] is Timestamp) {
+        mitigation["date"] = mitigation["date"].toDate();
+      }
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
