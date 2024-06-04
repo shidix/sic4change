@@ -521,7 +521,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             var dates = snapshot.data!;
             return Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Fechas", 15, bold: FontWeight.bold),
+                customText("Plazos", 15, bold: FontWeight.bold),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   tooltip: 'Editar fechas',
@@ -1178,7 +1178,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Modificar fechas'),
+          title: s4cTitleBar('Modificar plazos'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
             return SingleChildScrollView(

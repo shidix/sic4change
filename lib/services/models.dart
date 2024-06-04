@@ -488,7 +488,7 @@ class SProject {
       ProjectStatus st = await ProjectStatus.byUuid(statusApproved);
       setStatus(st);
     } else {
-      ProjectStatus st = await ProjectStatus.byUuid(statusEdition);
+      ProjectStatus st = await ProjectStatus.byUuid(statusFormulation);
       setStatus(st);
     }
   }

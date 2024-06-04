@@ -1,16 +1,15 @@
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-const String statusEdition = "0"; //Edición
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
 const String statusReject = "3"; //Denegado
 const String statusRefuse = "4"; //Rechazado
 const String statusApproved = "5"; // Aprobado
 const String statusStart = "6"; //En ejecución
-const String statusJustification = "7"; //En evaluación de justificación
-const String statusClose = "8"; //Cerrado
-const String statusEnds = "9"; //Finalización
+const String statusEnds = "7"; //Finalización
+const String statusJustification = "8"; //En evaluación de justificación
+const String statusClose = "9"; //Cerrado
 const String statusDelivery = "10"; //En seguimiento
 
 const List<String> MONTHS = [
