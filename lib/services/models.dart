@@ -516,6 +516,24 @@ class SProject {
     }
     return f;
   }
+
+  double getExecVsAssigned() {
+    double execVsAssigned =
+        (assignedBudget != 0) ? execBudget / assignedBudget : 0;
+    execVsAssigned = (execVsAssigned > 1) ? 1 : execVsAssigned;
+    execVsAssigned = (execVsAssigned * 100).round() / 100;
+
+    return execVsAssigned;
+  }
+
+  double getExecVsBudget() {
+    double prjBudget = fromCurrency(budget);
+    double execVsBudget = (prjBudget != 0) ? execBudget / prjBudget : 0;
+    execVsBudget = (execVsBudget > 1) ? 1 : execVsBudget;
+    execVsBudget = (execVsBudget * 100).round() / 100;
+
+    return execVsBudget;
+  }
 }
 
 Future<List> getProjects() async {

@@ -65,7 +65,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void getProfile(user) async {
     await Profile.getProfile(user.email!).then((value) {
       profile = value;
-      print(profile?.mainRole);
+      //print(profile?.mainRole);
     });
   }
 
@@ -181,8 +181,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 children: [
                                   //Image.network(programme.logo),
                                   InkWell(
-                                    child: Container(
-                                        child: Image.network(programme.logo)),
+                                    child: Image.network(programme.logo),
                                     onTap: () {
                                       Navigator.push(
                                           context,
@@ -455,7 +454,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectCardDatas(context, SProject project) {
-    double prjBudget = fromCurrency(project.budget);
+    /*double prjBudget = fromCurrency(project.budget);
     double execVsBudget = (prjBudget != 0) ? project.execBudget / prjBudget : 0;
     double execVsAssigned = (project.assignedBudget != 0)
         ? project.execBudget / project.assignedBudget
@@ -465,7 +464,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     execVsAssigned = (execVsAssigned > 1) ? 1 : execVsAssigned;
 
     execVsBudget = (execVsBudget * 100).round() / 100;
-    execVsAssigned = (execVsAssigned * 100).round() / 100;
+    execVsAssigned = (execVsAssigned * 100).round() / 100;*/
 
     return SingleChildScrollView(
         child: Column(
@@ -486,8 +485,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       "En ejecución: ${toCurrency(project.assignedBudget)}",
                       16),
                   space(height: 5),
-                  customLinearPercent(
-                      context, 4.5, execVsAssigned, percentBarPrimary),
+                  /*customLinearPercent(
+                      context, 4.5, execVsAssigned, percentBarPrimary),*/
+                  customLinearPercent(context, 4.5, project.getExecVsAssigned(),
+                      percentBarPrimary),
                 ],
               ),
               const VerticalDivider(
@@ -497,7 +498,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 customText("Presupuesto total:   ${project.budget} €", 16),
                 space(height: 5),
-                customLinearPercent(context, 4.5, execVsBudget, blueColor),
+                //customLinearPercent(context, 4.5, execVsBudget, blueColor),
+                customLinearPercent(
+                    context, 4.5, project.getExecVsBudget(), blueColor),
               ]),
             ],
           ),

@@ -129,14 +129,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   children: [
                     customText("En ejecución:", 16),
                     space(height: 5),
-                    customLinearPercent(context, 2.3, 0.8, percentBarPrimary),
+                    customLinearPercent(context, 2.3,
+                        project!.getExecVsAssigned(), percentBarPrimary),
                   ],
                 ),
                 space(width: 50),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Presupuesto total:   ${project!.budget} €", 16),
                   space(height: 5),
-                  customLinearPercent(context, 2.3, 0.8, blueColor),
+                  customLinearPercent(
+                      context, 2.3, project!.getExecVsBudget(), blueColor),
                 ]),
               ],
             ),

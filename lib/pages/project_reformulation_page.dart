@@ -55,7 +55,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         children: [
           //mainMenu(context),
           _mainMenu!,
-          projectInfoHeader(context, project),
+          projectInfoHeader(context),
           profileMenu(context, project, "reformulation"),
           refLoading
               ? const Center(
@@ -67,17 +67,17 @@ class _ReformulationPageState extends State<ReformulationPage> {
     );
   }
 
-  Widget projectInfoHeader(context, project) {
+  Widget projectInfoHeader(context) {
     return Container(
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(project.name, style: const TextStyle(fontSize: 20)),
+            Text(project!.name, style: const TextStyle(fontSize: 20)),
             Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   addBtn(context, callEditDialog,
-                      {"ref": Reformulation(project.uuid)}),
+                      {"ref": Reformulation(project!.uuid)}),
                   space(width: 10),
                   returnBtn(context),
                 ]))
@@ -91,14 +91,16 @@ class _ReformulationPageState extends State<ReformulationPage> {
                   children: [
                     customText("En ejecución:", 16),
                     space(height: 5),
-                    customLinearPercent(context, 2.3, 0.8, percentBarPrimary),
+                    customLinearPercent(context, 2.3,
+                        project!.getExecVsAssigned(), percentBarPrimary),
                   ],
                 ),
                 space(width: 50),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Presupuesto total:   ${project!.budget} €", 16),
                   space(height: 5),
-                  customLinearPercent(context, 2.3, 0.8, blueColor),
+                  customLinearPercent(
+                      context, 2.3, project!.getExecVsBudget(), blueColor),
                 ]),
               ],
             ),
