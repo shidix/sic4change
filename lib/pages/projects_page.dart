@@ -574,7 +574,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void saveProject(List args) async {
     SProject project = args[0];
-    ProjectStatus st = await ProjectStatus.byUuid(statusEdition);
+    ProjectStatus st = await ProjectStatus.byUuid(statusFormulation);
     project.status = st.uuid;
     project.save();
 
