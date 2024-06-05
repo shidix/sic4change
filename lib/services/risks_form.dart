@@ -31,12 +31,20 @@ class _MitigationFormState extends State<MitigationForm> {
     if (!mitigation.containsKey("type")) {
       mitigation["type"] = "Mitigación";
     }
+    if (!mitigation.containsKey("fixed")) {
+      mitigation["fixed"] = "No";
+    }
+    if (! ["Sí", "No", "Parcialmente"].contains(mitigation["fixed"])) {
+      mitigation["fixed"] = "No";
+    }
 
     List<KeyValue> contactOptions = contacts.map((e) => KeyValue(e.uuid, e.name)).toList();
     List<String> uuidContacts = contacts.map((e) => e.uuid).toList();
     if (!uuidContacts.contains(mitigation["responsible"] )) {
-      contactOptions.insert(0,KeyValue(mitigation["responsible"], "<No asignado>"));
+      mitigation["responsible"] = "-";
+      contactOptions.insert(0,KeyValue("-", "<No asignado>"));
     }
+    
 
     return Form(
       key: _formKey,
@@ -62,6 +70,23 @@ class _MitigationFormState extends State<MitigationForm> {
                   )),
             ]),
             Row(children: [
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10, top: 10),
+                    child: CustomSelectFormField(
+                      labelText: "Corrección",
+                      initial: mitigation["fixed"],
+                      options: List<KeyValue>.from([
+                        KeyValue("Sí", "Sí"),
+                        KeyValue("No", "No"),
+                        KeyValue("Parcialmente", "Parcialmente"),
+                      ]),
+                      onSelectedOpt: (String val) {
+                        mitigation["fixed"] = val;
+                      },
+                    ),
+                  )),
               Expanded(
                   flex: 1,
                   child: Padding(

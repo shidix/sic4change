@@ -297,7 +297,7 @@ class _RisksPageState extends State<RisksPage> {
             children: [
                   Row(children: <Widget>[
                     Expanded(
-                        flex: 3,
+                        flex: 4,
                         child: CustomTextField(
                           labelText: "Nombre",
                           initial: risk.name,
@@ -329,23 +329,23 @@ class _RisksPageState extends State<RisksPage> {
                                     riskEditDialog(context, {"risk": risk});
                                   }
                                 }))),
-                    Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: CustomSelectFormField(
-                            labelText: "¿Se corrigió?",
-                            initial: risk.extraInfo["fixed"] ?? "No",
-                            options: List<KeyValue>.from([
-                              KeyValue("No", "No"),
-                              KeyValue("Parcialmente", "Parcialmente"),
-                              KeyValue("Sí", "Sí")
-                            ]),
-                            onSelectedOpt: (String val) {
-                              risk.extraInfo["fixed"] = val;
-                            },
-                          ),
-                        )),
+                    // Expanded(
+                    //     flex: 1,
+                    //     child: Padding(
+                    //       padding: const EdgeInsets.only(top: 10),
+                    //       child: CustomSelectFormField(
+                    //         labelText: "¿Se corrigió?",
+                    //         initial: risk.extraInfo["fixed"] ?? "No",
+                    //         options: List<KeyValue>.from([
+                    //           KeyValue("No", "No"),
+                    //           KeyValue("Parcialmente", "Parcialmente"),
+                    //           KeyValue("Sí", "Sí")
+                    //         ]),
+                    //         onSelectedOpt: (String val) {
+                    //           risk.extraInfo["fixed"] = val;
+                    //         },
+                    //       ),
+                    //     )),
                   ]),
                 ] +
                 containerRisk,
@@ -464,6 +464,8 @@ class _RisksPageState extends State<RisksPage> {
     List<Widget> mitigationsList = [space(height: 20)];
     int counter = 0;
 
+
+
     mitigationsList.add(Row(
       children: [
         Expanded(
@@ -472,6 +474,7 @@ class _RisksPageState extends State<RisksPage> {
                 "Medidas correctoras (${risk.extraInfo["mitigations"].length})",
                 14,
                 bold: FontWeight.bold)),
+        Expanded(flex:1, child:customText("Corrección", 14, bold: FontWeight.bold, align: TextAlign.center)),
         Expanded(
             flex: 2,
             child: customText("Responsable", 14, bold: FontWeight.bold)),
@@ -497,6 +500,14 @@ class _RisksPageState extends State<RisksPage> {
     ));
 
     for (var mitigation in risk.extraInfo["mitigations"]) {
+      if (!["Sí", "No", "Parcialmente"].contains(mitigation["fixed"])) {
+        mitigation["fixed"] = "No";
+      }
+      Icon fixedMitigation = (mitigation["fixed"] == "Sí")
+          ? const Icon(Icons.check_circle_outline, color: Colors.green)
+          : (mitigation["fixed"] == "Parcialmente")
+              ? const Icon(Icons.check_circle_outline, color: Colors.orange)
+              : const Icon(Icons.remove_circle_outline, color: Colors.red);
       if (mitigation["date"] is String) {
         try {
           mitigation["date"] = DateFormat("dd/MM/yyyy")
@@ -522,6 +533,11 @@ class _RisksPageState extends State<RisksPage> {
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
+          Expanded(
+              flex: 1,
+              child: Align(
+                  alignment: Alignment.center,
+                  child: fixedMitigation)),
           Expanded(flex: 2, child: customText((responsible as Contact).name, 12)),
           Expanded(
               flex: 1,
@@ -569,6 +585,20 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   Widget riskRow(context, risk, project) {
+    risk.extraInfo["fixed"] = "No";
+    for (Map<String,dynamic> mitigation in risk.extraInfo["mitigations"]) {
+      if (mitigation.containsKey("fixed")) {
+        if (mitigation["fixed"] == "Sí") {
+          risk.extraInfo["fixed"] = "Sí";
+          break;
+        }
+        if (mitigation["fixed"] == "Parcialmente") {
+          risk.extraInfo["fixed"] = "Parcialmente";
+        }
+      }
+
+    }
+
     Icon occurIcon = (risk.occur == "Sí")
         ? const Icon(Icons.check_circle_outline, color: Colors.green)
         : (risk.occur == "Parcialmente")
