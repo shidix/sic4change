@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -30,6 +31,24 @@ class Risk {
     if (!extraInfo.keys.contains("mitigations")) {
       extraInfo["mitigations"] = [];
     }
+    // else if (!extraInfo["mitigations"].isEmpty) {
+    //   for (var mitigation in extraInfo["mitigations"]) {
+    //     var date = mitigation["date"];
+    //     if (date is String) {
+    //       try {
+    //         mitigation["date"] = DateFormat('dd/MM/yyyy').parse(date.replaceAll("-", "/"));
+    //       } catch (e) {
+    //         mitigation["date"] = DateTime.now();
+    //       }
+    //     }
+    //     if (date is Timestamp) {
+    //       mitigation["date"] = date.toDate();
+    //     }
+    //     if ((mitigation["date"] < DateTime(2015)) || (mitigation["date"] > DateTime(DateTime.now().year + 5))) {
+    //       mitigation["date"] = DateTime.now();
+    //     }
+    //   }
+    // }
     if (!extraInfo.keys.contains("risk")) {
       extraInfo["risk"] = "";
     }

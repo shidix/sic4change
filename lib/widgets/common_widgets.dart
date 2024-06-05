@@ -1308,7 +1308,9 @@ Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
 Widget customCollapse(context, title, action, obj,
     {expanded = true, subtitle = ""}) {
   return ExpansionTile(
-    title: customText(title, 14, textColor: headerListTitleColor),
+    title: (title is String)
+        ? customText(title, 14, textColor: headerListTitleColor)
+        : title,
     subtitle: customText(subtitle, 14, textColor: headerListTitleColor),
     backgroundColor: headerListBgColor,
     collapsedBackgroundColor: headerListBgColor,
