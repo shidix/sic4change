@@ -33,9 +33,11 @@ class _MitigationFormState extends State<MitigationForm> {
     }
 
     List<KeyValue> contactOptions = contacts.map((e) => KeyValue(e.uuid, e.name)).toList();
-    if (!contactOptions.contains(KeyValue(mitigation["responsible"], ""))) {
+    List<String> uuidContacts = contacts.map((e) => e.uuid).toList();
+    if (!uuidContacts.contains(mitigation["responsible"] )) {
       contactOptions.insert(0,KeyValue(mitigation["responsible"], "<No asignado>"));
     }
+
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
