@@ -11,6 +11,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_risks.dart';
+import 'package:sic4change/services/risks_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -67,7 +68,6 @@ class _RisksPageState extends State<RisksPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
@@ -542,15 +542,16 @@ class _RisksPageState extends State<RisksPage> {
       ],
     ));
 
-
     for (var mitigation in risk.extraInfo["mitigations"]) {
       if (mitigation["date"] is String) {
         try {
-          mitigation["date"] = DateFormat("dd/MM/yyyy").parse(mitigation["date"].replaceAll("-", "/"));  
+          mitigation["date"] = DateFormat("dd/MM/yyyy")
+              .parse(mitigation["date"].replaceAll("-", "/"));
         } catch (e) {
           mitigation["date"] = DateTime.now();
         }
-        if ( (DateTime(2015).isAfter(mitigation["date"])) || ((DateTime(DateTime.now().year + 5).isAfter(mitigation["date"])))) {
+        if ((DateTime(2015).isAfter(mitigation["date"])) ||
+            ((DateTime(DateTime.now().year + 5).isAfter(mitigation["date"])))) {
           mitigation["date"] = DateTime.now();
         }
       }
@@ -572,8 +573,9 @@ class _RisksPageState extends State<RisksPage> {
                           color: Colors.red))),
           Expanded(
               flex: 1,
-              child:
-                  customText(DateFormat('dd/MM/yyyy').format(mitigation["date"]), 12, align: TextAlign.center)),
+              child: customText(
+                  DateFormat('dd/MM/yyyy').format(mitigation["date"]), 12,
+                  align: TextAlign.center)),
           Expanded(
               flex: 2,
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -630,7 +632,8 @@ class _RisksPageState extends State<RisksPage> {
             child: Column(
               children: [
                 customText(
-                    '¿Está seguro de que desea eliminar la medida correctora?', 16),
+                    '¿Está seguro de que desea eliminar la medida correctora?',
+                    16),
               ],
             ),
           ),
@@ -680,106 +683,12 @@ class _RisksPageState extends State<RisksPage> {
           title: s4cTitleBar((mitigation["description"] != "")
               ? 'Editando Medida correctora'
               : 'Añadiendo Medida correctora'),
-          content: SingleChildScrollView(
-              child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.6,
-            child: Column(
-              children: [
-                Row(children: [
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 0, top: 10),
-                        child: CustomTextField(
-                          labelText: "Descripción",
-                          initial: mitigation["description"],
-                          size: MediaQuery.of(context).size.width * 0.6,
-                          maxLines: 5,
-                          fieldValue: (String val) {
-                            mitigation["description"] = val;
-                          },
-                        ),
-                      )),
-                ]),
-                Row(children: [
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(left: 0, top: 10),
-                          child: CustomSelectFormField(
-                              labelText: "Implementada",
-                              initial: mitigation["implemented"] ? "Sí" : "No",
-                              options: List<KeyValue>.from([
-                                KeyValue("Sí", "Sí"),
-                                KeyValue("No", "No"),
-                              ]),
-                              onSelectedOpt: (String val) {
-                                mitigation["implemented"] = (val == "Sí");
-                              }))),
-                  // Expanded(
-                  //     flex: 1,
-                  //     child: Padding(
-                  //         padding: const EdgeInsets.only(left: 20, top: 10),
-                  //         child: CustomTextField(
-                  //             labelText: "Fecha",
-                  //             initial: mitigation["date"],
-                  //             size: 220,
-                  //             fieldValue: (String val) {
-                  //               mitigation["date"] = val;
-                  //             }))),
-                  Expanded(
-                    flex: 1,
-                    child: ListTile(
-                      leading: const Icon(Icons.date_range),
-                      title: const Text("Fecha"),
-                      subtitle: Text(
-                          DateFormat('dd/MM/yyyy').format(mitigation["date"])),
-                      onTap: 
-                          () async {
-                              DateTime dateTracking = mitigation["date"];
-                              final DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: dateTracking,
-                                  firstDate: DateTime(2015, 8),
-                                  lastDate: DateTime(2101));
-                              if (picked != null &&
-
-                                  picked != dateTracking &&
-                                  mounted) {
-                                setState(() {
-                                  mitigation["date"] = picked;
-                                });
-                              }
-                            }
-                          ,
-                    )),
-
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(left: 20, top: 10),
-                          child: CustomTextField(
-                            labelText: "Responsable",
-                            initial: mitigation["responsible"],
-                            size: 220,
-                            fieldValue: (String val) {
-                              mitigation["responsible"] = val;
-                            },
-                          )))
-                ]),
-              ],
-            ),
-          )),
+          content: MitigationForm(mitigation: mitigation),
           actions: <Widget>[
-            TextButton(
-              child: customText('Cancelar', 16),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: customText('Guardar', 16),
-              onPressed: () {
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              saveBtnForm(context, (args) {
+                mitigation = args[0];
+                risk = args[1];
                 if (mitigation["description"] != "") {
                   if (index >= 0) {
                     risk.extraInfo["mitigations"][index] = mitigation;
@@ -791,8 +700,31 @@ class _RisksPageState extends State<RisksPage> {
                   Navigator.of(context).pop(risk);
                   setState(() {});
                 }
-              },
-            ),
+              }, [mitigation, risk]),
+              cancelBtnForm(context),
+              // TextButton(
+              //   child: customText('Cancelar', 16),
+              //   onPressed: () {
+              //     Navigator.of(context).pop();
+              //   },
+              // ),
+              // TextButton(
+              //   child: customText('Guardar', 16),
+              //   onPressed: () {
+              //     if (mitigation["description"] != "") {
+              //       if (index >= 0) {
+              //         risk.extraInfo["mitigations"][index] = mitigation;
+              //       } else {
+              //         risk.extraInfo["mitigations"].add(mitigation);
+              //       }
+              //       risk.save();
+              //       // loadRisks(risk.project);
+              //       Navigator.of(context).pop(risk);
+              //       setState(() {});
+              //     }
+              //   },
+              // ),
+            ])
           ],
         );
       },
