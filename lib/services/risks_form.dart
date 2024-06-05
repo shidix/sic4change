@@ -58,15 +58,24 @@ class _MitigationFormState extends State<MitigationForm> {
                   flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 0, top: 10),
-                    child: CustomTextField(
+                    child: 
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:[
+                    CustomTextField(
                       labelText: "Descripción",
                       initial: mitigation["description"],
                       size: MediaQuery.of(context).size.width * 0.6,
                       maxLines: 5,
                       fieldValue: (String val) {
                         mitigation["description"] = val;
+                        setState(() {
+                          
+                        });
                       },
                     ),
+                    customText((mitigation["description"]=="")?"El campo no puede estar vacío":"",12, textColor: Colors.red, align: TextAlign.left)
+                    ])
                   )),
             ]),
             Row(children: [
