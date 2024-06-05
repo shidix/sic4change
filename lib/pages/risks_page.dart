@@ -464,6 +464,10 @@ class _RisksPageState extends State<RisksPage> {
             child: customText("Responsable", 14, bold: FontWeight.bold)),
         Expanded(
             flex: 1,
+            child: customText("Tipo", 14,
+                bold: FontWeight.bold)),
+        Expanded(
+            flex: 1,
             child: customText("Implementada", 14,
                 bold: FontWeight.bold, align: TextAlign.center)),
         Expanded(
@@ -495,10 +499,16 @@ class _RisksPageState extends State<RisksPage> {
       if (mitigation["date"] is Timestamp) {
         mitigation["date"] = mitigation["date"].toDate();
       }
+      if (!mitigation.containsKey("type")) {
+        mitigation["type"] = "Mitigación";
+      }
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
           Expanded(flex: 2, child: customText(mitigation["responsible"], 12)),
+          Expanded(
+              flex: 1,
+              child: customText(mitigation["type"], 12)),
           Expanded(
               flex: 1,
               child: Align(

@@ -23,6 +23,10 @@ class _MitigationFormState extends State<MitigationForm> {
 
   @override
   Widget build(BuildContext context) {
+
+    if (!mitigation.containsKey("type")) {
+      mitigation["type"] = "Mitigación";
+    }
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
@@ -50,7 +54,7 @@ class _MitigationFormState extends State<MitigationForm> {
               Expanded(
                   flex: 1,
                   child: Padding(
-                      padding: const EdgeInsets.only(left: 0, top: 10),
+                      padding: const EdgeInsets.only(left: 0, top: 10, right:10),
                       child: CustomSelectFormField(
                           labelText: "Implementada",
                           initial: mitigation["implemented"] ? "Sí" : "No",
@@ -61,6 +65,26 @@ class _MitigationFormState extends State<MitigationForm> {
                           onSelectedOpt: (String val) {
                             mitigation["implemented"] = (val == "Sí");
                           }))),
+              Expanded(flex: 1, child: 
+              
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: CustomSelectFormField(
+                  labelText: "Tipo",
+                  initial: mitigation["type"],
+                  options: List<KeyValue>.from([
+                    KeyValue("Mitigación", "Mitigación"),
+                    KeyValue("Transferencia", "Transferencia"),
+                    KeyValue("Evitación", "Evitación"),
+                    KeyValue("Aceptación", "Aceptación"),
+                    KeyValue("Contingencia", "Contingencia"),
+                  ]),
+                  onSelectedOpt: (String val) {
+                    mitigation["type"] = val;
+                  },
+                ),
+              )
+                  ),
               Expanded(
                   flex: 1,
                   child: ListTile(
