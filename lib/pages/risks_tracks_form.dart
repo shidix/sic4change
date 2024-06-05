@@ -5,7 +5,6 @@ import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-
 class RisksTracksForm extends StatefulWidget {
   final Risk? risk;
   final int? index;
@@ -21,6 +20,7 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
   Map<String, dynamic> tracking = {"description": "", "date": null};
   Widget newItemContainer = Container();
   Widget btnNewTracking = Container();
+  bool newTracking = false;
 
   @override
   void initState() {
@@ -32,7 +32,9 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
   void resetNewItemContainer() {
     newItemContainer = Container();
     btnNewTracking = actionButton(context, "Nuevo seguimiento", () {
-      populateNewItemContainer();
+      setState(() {
+        newTracking = true;
+      });
     }, Icons.add_outlined, null);
     setState(() {});
   }
@@ -75,33 +77,27 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
                       fieldValue: (String val) {
                         tracking["description"] = val;
                       }))),
-            Expanded(
-                    flex: 2,
-                    child: ListTile(
-                      leading: const Icon(Icons.date_range),
-                      title: const Text("Fecha"),
-                      subtitle: Text(
-                          DateFormat('dd/MM/yyyy').format(tracking["date"])),
-                      onTap: 
-                          () async {
-                              DateTime dateTracking = tracking["date"];
-                              final DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: dateTracking,
-                                  firstDate: DateTime(2015, 8),
-                                  lastDate: DateTime(2101));
-                              if (picked != null &&
+          Expanded(
+              flex: 2,
+              child: ListTile(
+                leading: const Icon(Icons.date_range),
+                title: const Text("Fecha"),
+                subtitle:
+                    Text(DateFormat('dd/MM/yyyy').format(tracking["date"])),
+                onTap: () async {
+                  DateTime dateTracking = tracking["date"];
+                  final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: dateTracking,
+                      firstDate: DateTime(2015, 8),
+                      lastDate: DateTime(2101));
+                  print(1);
 
-                                  picked != dateTracking &&
-                                  mounted) {
-                                setState(() {
-                                  tracking["date"] = picked;
-                                });
-                              }
-                            }
-                          ,
-                    )),
-
+                  setState(() {
+                    tracking["date"] = picked;
+                  });
+                },
+              )),
           Expanded(
               flex: 1,
               child: Container(
@@ -113,18 +109,16 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
                       Map<String, dynamic> mitigation =
                           risk.extraInfo["mitigations"][widget.index!];
                       if (tracking["description"] == "") {
-                        resetNewItemContainer();
-                        return;
-                      }
-                      if (tracking["description"] == "") {
-                        populateNewItemContainer();
+                        setState(() {});
                         return;
                       } else {
                         mitigation["trackings"].add(tracking);
 
                         risk.save();
-                        tracking = {"description": "", "date": null};
-                        resetNewItemContainer();
+                        tracking = {"description": "", "date": DateTime.now()};
+                        setState(() {
+                          newTracking = false;
+                        });
                       }
                     }, null)
                   ],
@@ -171,8 +165,10 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
       mitigation["trackings"] = [];
     }
 
-    if ((tracking["description"] != "") && (tracking["date"] != null)) {
+    if (newTracking) {
       populateNewItemContainer();
+    } else {
+      resetNewItemContainer();
     }
 
     // check if tracking["date"] is string
@@ -226,27 +222,27 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
         }
 
         if (tracking["date"] is Timestamp) {
-
-            tracking["date"] = tracking["date"].toDate();
-
+          tracking["date"] = tracking["date"].toDate();
         }
         if (tracking["date"] is String) {
           try {
             tracking["date"] = DateTime.parse(tracking["date"]);
           } catch (e) {
             // sustiruir los '-' por '/'
-            
-            tracking["date"] = DateFormat('dd/MM/yyyy').parse(tracking["date"].replaceAll('-','/') );
+
+            tracking["date"] = DateFormat('dd/MM/yyyy')
+                .parse(tracking["date"].replaceAll('-', '/'));
           }
-        } 
+        }
 
         trackingList.add(Row(
           children: [
             Expanded(flex: 7, child: customText(tracking["description"], 14)),
             Expanded(
                 flex: 2,
-                child:
-                    customText(DateFormat('dd/MM/yyyy').format(tracking["date"]), 14, align: TextAlign.center)),
+                child: customText(
+                    DateFormat('dd/MM/yyyy').format(tracking["date"]), 14,
+                    align: TextAlign.center)),
             Expanded(
                 flex: 1,
                 child: removeConfirmBtn(context, removeTracking,
@@ -275,13 +271,12 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
               }, Icons.cancel, null))),
     ]));
 
-    return Form(key: formKey, child:SingleChildScrollView(
-      child:
-      
-      Column(
+    return Form(
+      key: formKey,
+      child: SingleChildScrollView(
+          child: Column(
         children: [newItemContainer] + trackingList,
       )),
     );
   }
 }
-
