@@ -110,9 +110,22 @@ class _RisksPageState extends State<RisksPage> {
   Future<void> riskEditDialog(context, Map<String, dynamic> args) {
     Risk risk = args["risk"];
     List<KeyValue> goalsOptions = [KeyValue("Ninguno", "Ninguno")];
+    String goalSelected = "Ninguno";
     for (var goal in goals) {
-      goalsOptions
-          .add(KeyValue(goal.name.split('.')[0], goal.name.split('.')[0]));
+      if (!goal.name.contains(".")) {
+        goal.name = goal.name + ".";
+      }
+      String option = goal.name.split('.')[0];
+      if (option != "") {
+        goalsOptions.add(KeyValue(option, option));
+        if (option == risk.extraInfo["objetivo"]) {
+          goalSelected = option;
+        }
+      }
+    }
+
+    if (!(risk.extraInfo["marco_logico"] == "Sí")) {
+      risk.extraInfo["marco_logico"] = "No";
     }
 
     if (risk.occur != "No") {
@@ -141,7 +154,7 @@ class _RisksPageState extends State<RisksPage> {
                   padding: const EdgeInsets.only(left: 0, top: 20),
                   child: CustomSelectFormField(
                       labelText: "Relacionado con Marco Lógico",
-                      initial: risk.extraInfo["marco_logico"] ?? "No",
+                      initial: risk.extraInfo["marco_logico"],
                       options: List<KeyValue>.from([
                         KeyValue("No", "No"),
                         KeyValue("Sí", "Sí"),
@@ -155,7 +168,7 @@ class _RisksPageState extends State<RisksPage> {
                   padding: const EdgeInsets.only(left: 20, top: 20),
                   child: CustomSelectFormField(
                       labelText: "Objetivo",
-                      initial: risk.extraInfo["objetivo"] ?? "Ninguno",
+                      initial: goalSelected,
                       options: goalsOptions,
                       onSelectedOpt: (String val) {
                         risk.extraInfo["objetivo"] = val;
@@ -377,139 +390,67 @@ class _RisksPageState extends State<RisksPage> {
         }));
   }
 
-  Widget riskRow(context, risk, project) {
-    Icon occurIcon = (risk.occur == "Sí")
-        ? const Icon(Icons.check_circle_outline, color: Colors.green)
-        : (risk.occur == "Parcialmente")
-            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
-            : const Icon(Icons.remove_circle_outline, color: Colors.red);
-    Icon fixedRisk = (risk.extraInfo["fixed"] == "Sí")
-        ? const Icon(Icons.check_circle_outline, color: Colors.green)
-        : (risk.extraInfo["fixed"] == "Parcialmente")
-            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
-            : const Icon(Icons.remove_circle_outline, color: Colors.red);
-    List<Widget> riskContent = [];
-    if (risk.occur == "No") {
-      riskContent = [
-        Row(children: [
-          Expanded(
-              flex: 1,
-              child: customText('¿Ocurrió?', 16,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-          Expanded(
-              flex: 11,
-              child: customText('${risk.name}', 16, bold: FontWeight.bold)),
-          Expanded(
-              flex: 1,
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(children: [
-                    editBtn(context, riskEditDialog, {"risk": risk}),
-                    removeBtn(context, removeRiskDialog,
-                        {"risk": risk, "project": project.uuid}),
-                  ]))),
-        ]),
-        Row(children: [
-          Expanded(flex: 1, child: occurIcon),
-          Expanded(flex: 12, child: customText(risk.description, 14)),
-        ]),
-      ];
-    } else {
-      riskContent = [
-        Row(children: [
-          Expanded(
-              flex: 8,
-              child: customText('${risk.name}', 16, bold: FontWeight.bold)),
-          Expanded(
-              flex: 2,
-              child: customText('¿Ocurrió?', 16,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-          Expanded(
-              flex: 2,
-              child: customText('¿Se corrigió?', 16,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(children: [
-                    editBtn(context, riskEditDialog, {"risk": risk}),
-                    removeBtn(context, removeRiskDialog,
-                        {"risk": risk, "project": project.uuid}),
-                  ]))),
-        ]),
-        Row(children: [
-          Expanded(flex: 8, child: customText(risk.description, 14)),
-          Expanded(flex: 2, child: occurIcon),
-          Expanded(flex: 2, child: fixedRisk),
-          Expanded(flex: 1, child: Container()),
-        ]),
-      ];
-    }
-
-    if (risk.occur != "No") {
-      riskContent += [
-        space(height: 20),
-        Row(children: [
-          Expanded(
-              flex: 5,
-              child: customText("Relacionado con Marco Lógico", 14,
-                  bold: FontWeight.bold)),
-          Expanded(
-              flex: 5,
-              child: customText("Objetivo", 14, bold: FontWeight.bold)),
-          Expanded(
-              flex: 1,
-              child: customText("Probabilidad", 14,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: customText("Impacto", 14,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: customText("Combinado", 14,
-                  bold: FontWeight.bold, align: TextAlign.center)),
-        ]),
-        Row(children: [
-          Expanded(
-              flex: 5, child: customText(risk.extraInfo["marco_logico"], 14)),
-          Expanded(flex: 5, child: customText(risk.extraInfo["objetivo"], 14)),
-          Expanded(
-              flex: 1,
-              child: customText(risk.extraInfo["prob"], 14,
-                  align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: customText(risk.extraInfo["impact"], 14,
-                  align: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: customText(risk.extraInfo["risk"], 14,
-                  align: TextAlign.center)),
-        ]),
-        space(height: 10),
-        Row(children: [
-          Expanded(
-              flex: 1,
-              child: customText("Descripción de lo ocurrido", 14,
-                  bold: FontWeight.bold)),
-        ]),
-        Row(children: [
-          Expanded(flex: 1, child: customText(risk.extraInfo["history"], 14)),
-        ]),
-        space(height: 10),
-        Row(children: [
-          Expanded(
-              flex: 1,
-              child: customText("Observaciones", 14, bold: FontWeight.bold)),
-        ]),
-        Row(children: [
-          Expanded(
-              flex: 1, child: customText(risk.extraInfo["observations"], 14)),
-        ]),
-      ];
-    }
+  Widget toggleRisk(context, risk) {
+    List<Widget> riskContent = [
+      space(height: 20),
+      Row(children: [
+        Expanded(
+            flex: 5,
+            child: customText("Relacionado con Marco Lógico", 14,
+                bold: FontWeight.bold)),
+        Expanded(
+            flex: 5, child: customText("Objetivo", 14, bold: FontWeight.bold)),
+        Expanded(
+            flex: 1,
+            child: customText("Probabilidad", 14,
+                bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText("Impacto", 14,
+                bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText("Combinado", 14,
+                bold: FontWeight.bold, align: TextAlign.center)),
+      ]),
+      Row(children: [
+        Expanded(
+            flex: 5, child: customText(risk.extraInfo["marco_logico"], 14)),
+        Expanded(flex: 5, child: customText(risk.extraInfo["objetivo"], 14)),
+        Expanded(
+            flex: 1,
+            child: customText(risk.extraInfo["prob"], 14,
+                align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText(risk.extraInfo["impact"], 14,
+                align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText(risk.extraInfo["risk"], 14,
+                align: TextAlign.center)),
+      ]),
+      space(height: 10),
+      Row(children: [
+        Expanded(
+            flex: 1,
+            child: customText("Descripción de lo ocurrido", 14,
+                bold: FontWeight.bold)),
+      ]),
+      Row(children: [
+        Expanded(flex: 1, child: customText(risk.extraInfo["history"], 14)),
+      ]),
+      space(height: 10),
+      Row(children: [
+        Expanded(
+            flex: 1,
+            child: customText("Observaciones", 14, bold: FontWeight.bold)),
+      ]),
+      Row(children: [
+        Expanded(
+            flex: 1, child: customText(risk.extraInfo["observations"], 14)),
+      ]),
+    ];
 
     List<Widget> mitigationsList = [space(height: 20)];
     int counter = 0;
@@ -602,6 +543,55 @@ class _RisksPageState extends State<RisksPage> {
     return Column(
       children: riskContent + [space(height: 10), panel],
     );
+  }
+
+  Widget riskRow(context, risk, project) {
+    Icon occurIcon = (risk.occur == "Sí")
+        ? const Icon(Icons.check_circle_outline, color: Colors.green)
+        : (risk.occur == "Parcialmente")
+            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
+            : const Icon(Icons.remove_circle_outline, color: Colors.red);
+    Icon fixedRisk = (risk.extraInfo["fixed"] == "Sí")
+        ? const Icon(Icons.check_circle_outline, color: Colors.green)
+        : (risk.extraInfo["fixed"] == "Parcialmente")
+            ? const Icon(Icons.check_circle_outline, color: Colors.orange)
+            : const Icon(Icons.remove_circle_outline, color: Colors.red);
+    List<Widget> riskContent = [];
+
+    riskContent = [
+      Row(children: [
+        Expanded(
+            flex: 8,
+            child: customText('${risk.name}', 16, bold: FontWeight.bold)),
+        Expanded(
+            flex: 2,
+            child: customText('¿Ocurrió?', 16,
+                bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 2,
+            child: customText('¿Se corrigió?', 16,
+                bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: Align(
+                alignment: Alignment.centerRight,
+                child: Row(children: [
+                  editBtn(context, riskEditDialog, {"risk": risk}),
+                  removeBtn(context, removeRiskDialog,
+                      {"risk": risk, "project": project.uuid}),
+                ]))),
+      ]),
+      Row(children: [
+        Expanded(flex: 8, child: customText(risk.description, 14)),
+        Expanded(flex: 2, child: occurIcon),
+        Expanded(flex: 2, child: fixedRisk),
+        Expanded(flex: 1, child: Container()),
+      ]),
+    ];
+
+    return customCollapse(
+        context, Column(children: riskContent), toggleRisk, risk,
+        expanded: false);
   }
 
   Future<void> trackingListDialog(context, args) {
@@ -701,6 +691,7 @@ class _RisksPageState extends State<RisksPage> {
                   setState(() {});
                 }
               }, [mitigation, risk]),
+              space(width: 10),
               cancelBtnForm(context),
               // TextButton(
               //   child: customText('Cancelar', 16),
