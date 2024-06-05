@@ -65,14 +65,12 @@ class _RisksPageState extends State<RisksPage> {
     project = widget.project;
     Contact.getAll().then((val) {
       for (var contact in val) {
-        if ((project!.partners.contains(contact.organization)) || (project!.managerObj.organization == contact.organization)) {
+        if ((project!.partners.contains(contact.organization)) ||
+            (project!.managerObj.organization == contact.organization)) {
           contacts.add(contact);
         }
       }
-      print ("Contacts: $contacts");
     });
-
-    
 
     getGoalsByProject(project!.uuid).then((val) {
       goals = val;
@@ -464,8 +462,6 @@ class _RisksPageState extends State<RisksPage> {
     List<Widget> mitigationsList = [space(height: 20)];
     int counter = 0;
 
-
-
     mitigationsList.add(Row(
       children: [
         Expanded(
@@ -474,14 +470,14 @@ class _RisksPageState extends State<RisksPage> {
                 "Medidas correctoras (${risk.extraInfo["mitigations"].length})",
                 14,
                 bold: FontWeight.bold)),
-        Expanded(flex:1, child:customText("Corrección", 14, bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText("Corrección", 14,
+                bold: FontWeight.bold, align: TextAlign.center)),
         Expanded(
             flex: 2,
             child: customText("Responsable", 14, bold: FontWeight.bold)),
-        Expanded(
-            flex: 1,
-            child: customText("Tipo", 14,
-                bold: FontWeight.bold)),
+        Expanded(flex: 1, child: customText("Tipo", 14, bold: FontWeight.bold)),
         Expanded(
             flex: 1,
             child: customText("Implementada", 14,
@@ -526,7 +522,7 @@ class _RisksPageState extends State<RisksPage> {
       if (!mitigation.containsKey("type")) {
         mitigation["type"] = "Mitigación";
       }
-      Object responsible=(getObject(contacts, mitigation["responsible"]));
+      Object responsible = (getObject(contacts, mitigation["responsible"]));
       if (responsible == Null) {
         responsible = Contact('No asignado');
       }
@@ -535,13 +531,11 @@ class _RisksPageState extends State<RisksPage> {
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
           Expanded(
               flex: 1,
-              child: Align(
-                  alignment: Alignment.center,
-                  child: fixedMitigation)),
-          Expanded(flex: 2, child: customText((responsible as Contact).name, 12)),
+              child:
+                  Align(alignment: Alignment.center, child: fixedMitigation)),
           Expanded(
-              flex: 1,
-              child: customText(mitigation["type"], 12)),
+              flex: 2, child: customText((responsible as Contact).name, 12)),
+          Expanded(flex: 1, child: customText(mitigation["type"], 12)),
           Expanded(
               flex: 1,
               child: Align(
@@ -586,7 +580,7 @@ class _RisksPageState extends State<RisksPage> {
 
   Widget riskRow(context, risk, project) {
     risk.extraInfo["fixed"] = "No";
-    for (Map<String,dynamic> mitigation in risk.extraInfo["mitigations"]) {
+    for (Map<String, dynamic> mitigation in risk.extraInfo["mitigations"]) {
       if (mitigation.containsKey("fixed")) {
         if (mitigation["fixed"] == "Sí") {
           risk.extraInfo["fixed"] = "Sí";
@@ -596,7 +590,6 @@ class _RisksPageState extends State<RisksPage> {
           risk.extraInfo["fixed"] = "Parcialmente";
         }
       }
-
     }
 
     Icon occurIcon = (risk.occur == "Sí")
