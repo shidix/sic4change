@@ -9,9 +9,11 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/pages/risks_tracks_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_risks.dart';
 import 'package:sic4change/services/risks_form.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -34,6 +36,7 @@ class RisksPage extends StatefulWidget {
 class _RisksPageState extends State<RisksPage> {
   Risk? riskSelected;
   SProject? project;
+  List<Contact> contacts = [];
   List goals = [];
   List<Row> containerRisk = [];
   void loadRisks(value) async {
@@ -59,8 +62,18 @@ class _RisksPageState extends State<RisksPage> {
   @override
   initState() {
     super.initState();
-
     project = widget.project;
+    Contact.getAll().then((val) {
+      for (var contact in val) {
+        if ((project!.partners.contains(contact.organization)) || (project!.managerObj.organization == contact.organization)) {
+          contacts.add(contact);
+        }
+      }
+      print ("Contacts: $contacts");
+    });
+
+    
+
     getGoalsByProject(project!.uuid).then((val) {
       goals = val;
     });
@@ -502,10 +515,14 @@ class _RisksPageState extends State<RisksPage> {
       if (!mitigation.containsKey("type")) {
         mitigation["type"] = "Mitigación";
       }
+      Object responsible=(getObject(contacts, mitigation["responsible"]));
+      if (responsible == Null) {
+        responsible = Contact('No asignado');
+      }
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
-          Expanded(flex: 2, child: customText(mitigation["responsible"], 12)),
+          Expanded(flex: 2, child: customText((responsible as Contact).name, 12)),
           Expanded(
               flex: 1,
               child: customText(mitigation["type"], 12)),
@@ -679,7 +696,7 @@ class _RisksPageState extends State<RisksPage> {
           title: s4cTitleBar((mitigation["description"] != "")
               ? 'Editando Medida correctora'
               : 'Añadiendo Medida correctora'),
-          content: MitigationForm(mitigation: mitigation),
+          content: MitigationForm(mitigation: mitigation, contacts: contacts),
           actions: <Widget>[
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               saveBtnForm(context, (args) {
@@ -699,28 +716,6 @@ class _RisksPageState extends State<RisksPage> {
               }, [mitigation, risk]),
               space(width: 10),
               cancelBtnForm(context),
-              // TextButton(
-              //   child: customText('Cancelar', 16),
-              //   onPressed: () {
-              //     Navigator.of(context).pop();
-              //   },
-              // ),
-              // TextButton(
-              //   child: customText('Guardar', 16),
-              //   onPressed: () {
-              //     if (mitigation["description"] != "") {
-              //       if (index >= 0) {
-              //         risk.extraInfo["mitigations"][index] = mitigation;
-              //       } else {
-              //         risk.extraInfo["mitigations"].add(mitigation);
-              //       }
-              //       risk.save();
-              //       // loadRisks(risk.project);
-              //       Navigator.of(context).pop(risk);
-              //       setState(() {});
-              //     }
-              //   },
-              // ),
             ])
           ],
         );

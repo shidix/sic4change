@@ -78,8 +78,18 @@ DateTime truncDate(DateTime date) {
   return DateTime(date.year, date.month, date.day);
 }
 
-Object getObject(List items, String uuid) {
-  return items.firstWhere((item) => item.uuid == uuid);
+Object getObject(List items, String value, {String key = 'uuid'}) {
+  try {
+  if (key == "uuid") {
+    return items.firstWhere((item) => item.uuid == value);
+  }
+  else {
+    // get the first item that has the value in the key key
+    return items.firstWhere((item) => item.toJson()[key] == value);
+  }
+  } catch (e) {
+    return Null;
+  }
 }
 
 String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {

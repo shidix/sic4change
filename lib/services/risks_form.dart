@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 class MitigationForm extends StatefulWidget {
   final Map<String, dynamic> mitigation;
+  final List<Contact> contacts;
 
-  const MitigationForm({Key? key, required this.mitigation}) : super(key: key);
+  const MitigationForm({Key? key, required this.mitigation, required this.contacts}) : super(key: key);
 
   @override
   _MitigationFormState createState() => _MitigationFormState();
@@ -15,10 +17,12 @@ class MitigationForm extends StatefulWidget {
 class _MitigationFormState extends State<MitigationForm> {
   final _formKey = GlobalKey<FormState>();
   late Map<String, dynamic> mitigation;
+  late List<Contact> contacts;
   @override
   void initState() {
     super.initState();
     mitigation = widget.mitigation;
+    contacts = widget.contacts;
   }
 
   @override
@@ -26,6 +30,11 @@ class _MitigationFormState extends State<MitigationForm> {
 
     if (!mitigation.containsKey("type")) {
       mitigation["type"] = "Mitigación";
+    }
+
+    List<KeyValue> contactOptions = contacts.map((e) => KeyValue(e.uuid, e.name)).toList();
+    if (!contactOptions.contains(KeyValue(mitigation["responsible"], ""))) {
+      contactOptions.insert(0,KeyValue(mitigation["responsible"], "<No asignado>"));
     }
     return Form(
       key: _formKey,
@@ -106,18 +115,30 @@ class _MitigationFormState extends State<MitigationForm> {
                       }
                     },
                   )),
+              // Expanded with CustomSelectFormField and the info from the contacts KeyValue(contacts[i].uuid, contacts[i].name)
               Expanded(
                   flex: 1,
                   child: Padding(
-                      padding: const EdgeInsets.only(left: 20, top: 10),
-                      child: CustomTextField(
-                        labelText: "Responsable",
-                        initial: mitigation["responsible"],
-                        size: 220,
-                        fieldValue: (String val) {
-                          mitigation["responsible"] = val;
-                        },
-                      )))
+                      padding: const EdgeInsets.only(top: 10),
+                      child: CustomSelectFormField(
+                          labelText: "Responsable",
+                          initial: mitigation["responsible"],
+                          options: contactOptions,
+                          onSelectedOpt: (String val) {
+                            mitigation["responsible"] = val;
+                          }))),
+              // Expanded(
+              //     flex: 1,
+              //     child: Padding(
+              //         padding: const EdgeInsets.only(left: 20, top: 10),
+              //         child: CustomTextField(
+              //           labelText: "Responsable",
+              //           initial: mitigation["responsible"],
+              //           size: 220,
+              //           fieldValue: (String val) {
+              //             mitigation["responsible"] = val;
+              //           },
+              //         )))
             ]),
           ],
         ),
