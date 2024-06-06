@@ -152,7 +152,7 @@ class _RisksPageState extends State<RisksPage> {
                     size: 220,
                     maxLines: 5,
                     fieldValue: (String val) {
-                      setState(() => risk.description = val);
+                      risk.description = val;
                     },
                   ))),
         ],
@@ -197,13 +197,13 @@ class _RisksPageState extends State<RisksPage> {
                       KeyValue("4", "4"),
                     ]),
                     onSelectedOpt: (String val) {
-                      setState(() {
+
                         risk.extraInfo["prob"] = val;
                         risk.extraInfo["risk"] =
                             (int.parse(risk.extraInfo["prob"]!) *
                                     int.parse(risk.extraInfo["impact"]!))
                                 .toString();
-                      });
+                  
                     }))),
         Expanded(
             flex: 1,
@@ -219,13 +219,13 @@ class _RisksPageState extends State<RisksPage> {
                       KeyValue("4", "4"),
                     ]),
                     onSelectedOpt: (String val) {
-                      setState(() {
+                      
                         risk.extraInfo["impact"] = val;
                         risk.extraInfo["risk"] =
                             (int.parse(risk.extraInfo["prob"]!) *
                                     int.parse(risk.extraInfo["impact"]!))
                                 .toString();
-                      });
+                     
                     }))),
       ]),
       Row(children: [
@@ -239,8 +239,7 @@ class _RisksPageState extends State<RisksPage> {
                     size: 220,
                     maxLines: 5,
                     fieldValue: (String val) {
-                      setState(() => risk.extraInfo["history"] = val);
-                    }))),
+                      risk.extraInfo["history"] = val;}))),
       ]),
     ];
 
@@ -256,7 +255,7 @@ class _RisksPageState extends State<RisksPage> {
                     size: 220,
                     maxLines: 5,
                     fieldValue: (String val) {
-                      setState(() => risk.extraInfo["observations"] = val);
+                      risk.extraInfo["observations"] = val;
                     }))),
       ]),
     ];
@@ -301,7 +300,7 @@ class _RisksPageState extends State<RisksPage> {
                           initial: risk.name,
                           size: 220,
                           fieldValue: (String val) {
-                            setState(() => risk.name = val);
+                            risk.name = val;
                           },
                         )),
                     Expanded(
@@ -327,23 +326,6 @@ class _RisksPageState extends State<RisksPage> {
                                     riskEditDialog(context, {"risk": risk});
                                   }
                                 }))),
-                    // Expanded(
-                    //     flex: 1,
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.only(top: 10),
-                    //       child: CustomSelectFormField(
-                    //         labelText: "¿Se corrigió?",
-                    //         initial: risk.extraInfo["fixed"] ?? "No",
-                    //         options: List<KeyValue>.from([
-                    //           KeyValue("No", "No"),
-                    //           KeyValue("Parcialmente", "Parcialmente"),
-                    //           KeyValue("Sí", "Sí")
-                    //         ]),
-                    //         onSelectedOpt: (String val) {
-                    //           risk.extraInfo["fixed"] = val;
-                    //         },
-                    //       ),
-                    //     )),
                   ]),
                 ] +
                 containerRisk,
@@ -470,10 +452,7 @@ class _RisksPageState extends State<RisksPage> {
                 "Medidas correctoras (${risk.extraInfo["mitigations"].length})",
                 14,
                 bold: FontWeight.bold)),
-        Expanded(
-            flex: 1,
-            child: customText("Corrección", 14,
-                bold: FontWeight.bold, align: TextAlign.center)),
+
         Expanded(
             flex: 2,
             child: customText("Responsable", 14, bold: FontWeight.bold)),
@@ -485,6 +464,10 @@ class _RisksPageState extends State<RisksPage> {
         Expanded(
             flex: 1,
             child: customText("Fecha", 14,
+                bold: FontWeight.bold, align: TextAlign.center)),
+        Expanded(
+            flex: 1,
+            child: customText("Corrección", 14,
                 bold: FontWeight.bold, align: TextAlign.center)),
         Expanded(
             flex: 2,
@@ -529,10 +512,7 @@ class _RisksPageState extends State<RisksPage> {
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
-          Expanded(
-              flex: 1,
-              child:
-                  Align(alignment: Alignment.center, child: fixedMitigation)),
+
           Expanded(
               flex: 2, child: customText((responsible as Contact).name, 12)),
           Expanded(flex: 1, child: customText(mitigation["type"], 12)),
@@ -543,13 +523,17 @@ class _RisksPageState extends State<RisksPage> {
                   child: (mitigation["implemented"])
                       ? const Icon(Icons.check_circle_outline,
                           color: Colors.green)
-                      : const Icon(Icons.dangerous_outlined,
+                      : const Icon(Icons.remove_circle_outline,
                           color: Colors.red))),
           Expanded(
               flex: 1,
               child: customText(
                   DateFormat('dd/MM/yyyy').format(mitigation["date"]), 12,
                   align: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child:
+                  Align(alignment: Alignment.center, child: fixedMitigation)),
           Expanded(
               flex: 2,
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [

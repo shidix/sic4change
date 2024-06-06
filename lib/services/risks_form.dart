@@ -82,23 +82,6 @@ class _MitigationFormState extends State<MitigationForm> {
               Expanded(
                   flex: 1,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 10, top: 10),
-                    child: CustomSelectFormField(
-                      labelText: "Corrección",
-                      initial: mitigation["fixed"],
-                      options: List<KeyValue>.from([
-                        KeyValue("Sí", "Sí"),
-                        KeyValue("No", "No"),
-                        KeyValue("Parcialmente", "Parcialmente"),
-                      ]),
-                      onSelectedOpt: (String val) {
-                        mitigation["fixed"] = val;
-                      },
-                    ),
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Padding(
                       padding: const EdgeInsets.only(left: 0, top: 10, right:10),
                       child: CustomSelectFormField(
                           labelText: "Implementada",
@@ -132,8 +115,12 @@ class _MitigationFormState extends State<MitigationForm> {
                   ),
               Expanded(
                   flex: 1,
-                  child: ListTile(
+                  child: Padding (padding: EdgeInsets.only(bottom:7, right:10, left:10),
+                  child:
+    
+                  ListTile(
                     leading: const Icon(Icons.date_range),
+                    shape: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade500, width: 1.0)),
                     title: const Text("Fecha"),
                     subtitle: Text(
                         DateFormat('dd/MM/yyyy').format(mitigation["date"])),
@@ -150,12 +137,12 @@ class _MitigationFormState extends State<MitigationForm> {
                         });
                       }
                     },
-                  )),
-              // Expanded with CustomSelectFormField and the info from the contacts KeyValue(contacts[i].uuid, contacts[i].name)
+                  ))),
               Expanded(
                   flex: 1,
                   child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(top: 10, right:10),
+                      
                       child: CustomSelectFormField(
                           labelText: "Responsable",
                           initial: mitigation["responsible"],
@@ -163,18 +150,24 @@ class _MitigationFormState extends State<MitigationForm> {
                           onSelectedOpt: (String val) {
                             mitigation["responsible"] = val;
                           }))),
-              // Expanded(
-              //     flex: 1,
-              //     child: Padding(
-              //         padding: const EdgeInsets.only(left: 20, top: 10),
-              //         child: CustomTextField(
-              //           labelText: "Responsable",
-              //           initial: mitigation["responsible"],
-              //           size: 220,
-              //           fieldValue: (String val) {
-              //             mitigation["responsible"] = val;
-              //           },
-              //         )))
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10, top: 10),
+                    child: CustomSelectFormField(
+                      labelText: "Corrección",
+                      initial: mitigation["fixed"],
+                      options: List<KeyValue>.from([
+                        KeyValue("Sí", "Sí"),
+                        KeyValue("No", "No"),
+                        KeyValue("Parcialmente", "Parcialmente"),
+                      ]),
+                      onSelectedOpt: (String val) {
+                        mitigation["fixed"] = val;
+                      },
+                    ),
+                  )),                          
+
             ]),
           ],
         ),
