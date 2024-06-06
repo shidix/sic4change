@@ -31,24 +31,6 @@ class Risk {
     if (!extraInfo.keys.contains("mitigations")) {
       extraInfo["mitigations"] = [];
     }
-    // else if (!extraInfo["mitigations"].isEmpty) {
-    //   for (var mitigation in extraInfo["mitigations"]) {
-    //     var date = mitigation["date"];
-    //     if (date is String) {
-    //       try {
-    //         mitigation["date"] = DateFormat('dd/MM/yyyy').parse(date.replaceAll("-", "/"));
-    //       } catch (e) {
-    //         mitigation["date"] = DateTime.now();
-    //       }
-    //     }
-    //     if (date is Timestamp) {
-    //       mitigation["date"] = date.toDate();
-    //     }
-    //     if ((mitigation["date"] < DateTime(2015)) || (mitigation["date"] > DateTime(DateTime.now().year + 5))) {
-    //       mitigation["date"] = DateTime.now();
-    //     }
-    //   }
-    // }
     if (!extraInfo.keys.contains("risk")) {
       extraInfo["risk"] = "";
     }
@@ -122,28 +104,6 @@ class Risk {
   Future<void> delete() async {
     await dbRisk.doc(id).delete();
   }
-
-  /*Future<String> getProjectByGoal() async {
-    Goal _goal;
-    SProject _project;
-
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: uuid).get();
-    final _dbGoal = query.docs.first;
-    final Map<String, dynamic> data = _dbGoal.data() as Map<String, dynamic>;
-    data["id"] = _dbGoal.id;
-    _goal = Goal.fromJson(data);
-
-    QuerySnapshot query_p =
-        await dbProject.where("uuid", isEqualTo: _goal.project).get();
-    final _dbProject = query_p.docs.first;
-    final Map<String, dynamic> dataProject =
-        _dbProject.data() as Map<String, dynamic>;
-    dataProject["id"] = _dbProject.id;
-    _project = SProject.fromJson(dataProject);
-
-    return _project.name;
-    //return _project.name + " > " + _goal.name;
-  }*/
 }
 
 Future<List> getRisks() async {

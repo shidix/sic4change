@@ -784,63 +784,73 @@ class _GoalsPageState extends State<GoalsPage>
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar("Actividad"),
           content: SingleChildScrollView(
-              child: Column(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: activity.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  setState(() => activity.name = val);
-                },
-              )
-            ]),
-            space(height: 10),
-            Row(
-              children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Usuarios",
-                    initial: activity.users,
-                    size: 900,
-                    fieldValue: (String val) {
-                      setState(() => activity.users = val);
-                    },
-                  )
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Aprobación',
-                        selectedDate: activity.iniDate,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            activity.iniDate = date;
-                          });
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                Row(children: [
+                  Expanded(
+                      flex: 1,
+                      child: CustomTextField(
+                        labelText: "Nombre",
+                        initial: activity.name,
+                        size: 900,
+                        minLines: 2,
+                        maxLines: 9999,
+                        fieldValue: (String val) {
+                          setState(() => activity.name = val);
                         },
-                      )),
+                      ))
                 ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Aprobación',
-                        selectedDate: activity.endDate,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            activity.endDate = date;
-                          });
-                        },
-                      )),
-                ]),
-              ],
-            ),
-          ])),
+                space(height: 10),
+                Row(
+                  children: [
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            labelText: "Usuarios",
+                            initial: activity.users,
+                            size: 900,
+                            fieldValue: (String val) {
+                              setState(() => activity.users = val);
+                            },
+                          )
+                        ]),
+                    space(width: 20),
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                              width: 220,
+                              child: DateTimePicker(
+                                labelText: 'Aprobación',
+                                selectedDate: activity.iniDate,
+                                onSelectedDate: (DateTime date) {
+                                  setState(() {
+                                    activity.iniDate = date;
+                                  });
+                                },
+                              )),
+                        ]),
+                    space(width: 20),
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                              width: 220,
+                              child: DateTimePicker(
+                                labelText: 'Aprobación',
+                                selectedDate: activity.endDate,
+                                onSelectedDate: (DateTime date) {
+                                  setState(() {
+                                    activity.endDate = date;
+                                  });
+                                },
+                              )),
+                        ]),
+                  ],
+                ),
+              ])),
           actions: <Widget>[
             dialogsBtns(context, saveActivity, activity),
           ],

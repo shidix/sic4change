@@ -195,6 +195,12 @@ class Contact {
     return contactInfo;
   }
 
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "Contact: $name ($email)";
+  }
+
   static Future<Contact> byEmail(String email) async {
     try {
       QuerySnapshot query =
@@ -218,6 +224,17 @@ class Contact {
       item = Contact.fromJson(data);
     });
     return item;
+  }
+
+  static Future<List<Contact>> getAll() async {
+    List<Contact> items = [];
+    QuerySnapshot query = await dbContacts.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Contact.fromJson(data));
+    }
+    return items;
   }
 
   Future<void> loadObjs() async {
