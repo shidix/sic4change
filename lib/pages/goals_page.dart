@@ -63,21 +63,24 @@ class _GoalsPageState extends State<GoalsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        //mainMenu(context),
-        _mainMenu!,
-        //pathHeader(context, _project.name),
-        goalPath(context, project),
-        goalHeader(context, project),
-        marcoMenu(context, project, "marco"),
-        loadingGoal
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : contentTab(context, goalList, project),
-        footer(context),
-      ]),
-    );
+        body: SingleChildScrollView(
+      child: Column(
+          //crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //mainMenu(context),
+            //pathHeader(context, _project.name),
+            _mainMenu!,
+            goalPath(context, project),
+            goalHeader(context, project),
+            marcoMenu(context, project, "marco"),
+            loadingGoal
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : contentTabSized(context, goalList, project),
+            footer(context),
+          ]),
+    ));
   }
 
 /*-------------------------------------------------------------
@@ -184,33 +187,35 @@ class _GoalsPageState extends State<GoalsPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               verticalDirection: VerticalDirection.down,
               children: <Widget>[
-                Expanded(
-                    child: Container(
-                        padding: const EdgeInsets.all(15),
-                        child: ListView.builder(
-                            padding: const EdgeInsets.all(8),
-                            itemCount: goals.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              Goal goal = goals[index];
-                              if (goal.main) {
-                                return Column(children: [
-                                  Container(
-                                    padding: const EdgeInsets.only(
-                                        top: 20, bottom: 10),
-                                    decoration: rowDecoration,
-                                    child: goalRowMain(context, goal, project),
-                                  ),
-                                ]);
-                              } else {
-                                return Container(
-                                  //height: 100,
-                                  padding: const EdgeInsets.only(
-                                      top: 20, bottom: 10),
-                                  decoration: rowDecoration,
-                                  child: goalRow(context, goal, project),
-                                );
-                              }
-                            }))),
+                //Expanded(
+                //  child: Container(
+                Container(
+                    padding: const EdgeInsets.all(15),
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(8),
+                        itemCount: goals.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          Goal goal = goals[index];
+                          if (goal.main) {
+                            return Column(children: [
+                              Container(
+                                padding:
+                                    const EdgeInsets.only(top: 20, bottom: 10),
+                                decoration: rowDecoration,
+                                child: goalRowMain(context, goal, project),
+                              ),
+                            ]);
+                          } else {
+                            return Container(
+                              //height: 100,
+                              padding:
+                                  const EdgeInsets.only(top: 20, bottom: 10),
+                              decoration: rowDecoration,
+                              child: goalRow(context, goal, project),
+                            );
+                          }
+                        })) /*)*/,
               ],
             );
           } else {

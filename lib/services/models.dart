@@ -317,6 +317,7 @@ class SProject {
       data["id"] = doc.id;
       return Programme.fromJson(data);
     } catch (e) {
+      print(e);
       return Programme("");
     }
     /*if (programmeObj.name == "") {
