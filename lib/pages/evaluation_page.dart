@@ -125,36 +125,13 @@ class _EvaluationPageState extends State<EvaluationPage> {
       "Requerimiento/Necesidad",
     ];
 
-
-    String keyIndex = _keysDictionary[type % 6];
-    Map<String, dynamic> item;
-
-    // if (index >= 0) {
-    //   item = evaluation?.toJson()[keyIndex][index];
-    // } else {
-    //   item = {
-    //     'description': "",
-    //     'stakeholder': "",
-    //     'isRefML': "No",
-    //     'unit': "",
-    //     'relevance': 1,
-    //     'feasibility': 1,
-    //     'recipientResponse': "",
-    //     'improvementAction': "",
-    //     'deadline': DateTime.now(),
-    //     'verificationMethod': "",
-    //     'followUp': "",
-    //     'followUpDate': DateTime.now(),
-    //     'supervision': "",
-    //     'observations': "",
-    //   };
-    // }
-
     return showDialog<Evaluation>(
       context: context,
+
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+          
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((index >= 0)
               ? 'Editando ${_titlesDictionary[type % 2]}'
