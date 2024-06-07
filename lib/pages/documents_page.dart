@@ -266,7 +266,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     if (currentFolder != null) parentUuid = currentFolder.uuid;
 
     return FutureBuilder(
-        future: getFolders(parentUuid!),
+        future: getFolders(parentUuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             folders = snapshot.data!;

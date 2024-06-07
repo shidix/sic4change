@@ -75,15 +75,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*if (ModalRoute.of(context)!.settings.arguments != null) {
-      Map args = ModalRoute.of(context)!.settings.arguments as Map;
-      project = args["project"];
-    } else {
-      project = null;
-    }
-
-    if (project == null) return const Page404();*/
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -516,9 +507,84 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Widget projectInfoDates(context, project) {
+    ProjectDates dates = project.datesObj;
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        customText("Plazos", 15, bold: FontWeight.bold),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: 'Editar fechas',
+          onPressed: () {
+            callDatesEditDialog(context, project);
+          },
+        )
+      ]),
+      Row(children: [
+        (project.statusInt() > 1)
+            ? Row(children: [
+                customText("Presentación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getSendedStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() == 3)
+            ? Row(children: [
+                customText("Denegación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getRejectStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() == 4)
+            ? Row(children: [
+                customText("Rechazo: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getRefuseStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Aprobación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getApprovedStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Inicio: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getStartStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Finalización: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getEndStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Justificación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getJustificationStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+      ]),
+    ]);
+  }
+
+  /*Widget projectInfoDates(context, project) {
     return FutureBuilder(
         future: getProjectDatesByProject(project.uuid),
         builder: ((context, snapshot) {
+          print("--GGGGG---");
           if (snapshot.hasData) {
             var dates = snapshot.data!;
             return Column(children: [
@@ -680,7 +746,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             );
           }
         }));
-  }
+  }*/
 
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(
@@ -1166,14 +1232,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void callDatesEditDialog(context, project) async {
-    ProjectDates dates = await getProjectDatesByProject(project.uuid);
-    editProjectDatesDialog(context, dates, project);
-    /*await getProjectDatesByProject(project.uuid).then((value) async {
-      editProjectDatesDialog(context, value);
-    });*/
+    //ProjectDates dates = await getProjectDatesByProject(project.uuid);
+    //editProjectDatesDialog(context, dates, project);
+    editProjectDatesDialog(context, project);
   }
 
-  Future<void> editProjectDatesDialog(context, dates, project) {
+  //Future<void> editProjectDatesDialog(context, dates, project) {
+  Future<void> editProjectDatesDialog(context, project) {
+    ProjectDates dates = project.datesObj;
+    dates.sended = dates.getSended();
+    dates.approved = dates.getApproved();
+    dates.reject = dates.getReject();
+    dates.refuse = dates.getRefuse();
+    dates.start = dates.getStart();
+    dates.end = dates.getEnd();
+    dates.justification = dates.getJustification();
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1269,7 +1342,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                                     selectedDate: dates.getStart(),
                                     onSelectedDate: (DateTime date) {
                                       setState(() {
-                                        dates!.start = date;
+                                        dates.start = date;
                                       });
                                     },
                                   )),
@@ -1285,7 +1358,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                                     selectedDate: dates.getEnd(),
                                     onSelectedDate: (DateTime date) {
                                       setState(() {
-                                        dates!.end = date;
+                                        dates.end = date;
                                       });
                                     },
                                   )),
@@ -1301,7 +1374,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                                     selectedDate: dates.getJustification(),
                                     onSelectedDate: (DateTime date) {
                                       setState(() {
-                                        dates!.justification = date;
+                                        dates.justification = date;
                                       });
                                     },
                                   )),

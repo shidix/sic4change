@@ -47,7 +47,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         mainMenu(context),
-        pathHeader(context, project!.name),
+        pathHeader(context, project.name),
         bitacoraHeader(context, project),
         marcoMenu(context, project, "bitacora"),
         (bitacora != null)

@@ -575,19 +575,25 @@ class _ProjectsPageState extends State<ProjectsPage> {
     projectEditDialog(context, args["project"]);
   }
 
-  void saveProject(List args) async {
-    SProject project = args[0];
+  void setProjectStatus(project) async {
     ProjectStatus st = await ProjectStatus.byUuid(statusFormulation);
     project.status = st.uuid;
     project.save();
+  }
+
+  void saveProject(List args) {
+    SProject project = args[0];
+
+    setProjectStatus(project);
+    loadProjects();
 
     Navigator.pop(context);
-    Navigator.push(
+    /*Navigator.push(
         context,
         MaterialPageRoute(
             builder: ((context) => ProjectInfoPage(
                   project: project,
-                ))));
+                ))));*/
   }
 
   Future<void> projectEditDialog(context, project) {
