@@ -1241,12 +1241,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   Future<void> editProjectDatesDialog(context, project) {
     ProjectDates dates = project.datesObj;
     dates.sended = dates.getSended();
-    dates.approved = dates.getApproved();
-    dates.reject = dates.getReject();
-    dates.refuse = dates.getRefuse();
-    dates.start = dates.getStart();
-    dates.end = dates.getEnd();
-    dates.justification = dates.getJustification();
+    if (project.statusInt() == 2 || project.statusInt() >= 5) {
+      dates.approved = dates.getApproved();
+    }
+    if (project.statusInt() == 2 || project.statusInt() == 3) {
+      dates.reject = dates.getReject();
+    }
+    if (project.statusInt() == 2 || project.statusInt() == 4) {
+      dates.refuse = dates.getRefuse();
+    }
+    if (project.statusInt() >= 5) {
+      dates.start = dates.getStart();
+      dates.end = dates.getEnd();
+      dates.justification = dates.getJustification();
+    }
     return showDialog<void>(
       context: context,
       barrierDismissible: false,

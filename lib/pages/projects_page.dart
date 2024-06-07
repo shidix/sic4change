@@ -56,7 +56,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void loadProjects() async {
     setLoading();
     await getProjects().then((val) {
-      prList = val;
+      if (mounted) {
+        setState(() {
+          prList = val;
+        });
+        for (SProject item in prList) {
+          item.loadObjs().then((value) {
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        }
+      }
+      //prList = val;
     });
     setState(() {});
     stopLoading();
@@ -74,7 +86,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
     super.initState();
 
     _mainMenu = mainMenu(context, "/projects");
-    getProjects().then((val) {
+    loadProjects();
+    /*getProjects().then((val) {
       if (mounted) {
         setState(() {
           prList = val;
@@ -87,7 +100,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           });
         }
       }
-    });
+    });*/
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);

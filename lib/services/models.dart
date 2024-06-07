@@ -123,15 +123,12 @@ class SProject {
   }
 
   Future<void> save() async {
-    print("--save--");
     if (id == "") {
-      print("--new--");
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProject.add(data);
     } else {
-      print("--old--");
       Map<String, dynamic> data = toJson();
       dbProject.doc(id).set(data);
     }
