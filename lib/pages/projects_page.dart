@@ -392,6 +392,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             customText(project.name, 20, bold: FontWeight.bold),
+            customText(project.statusObj.name.toUpperCase(), 15,
+                textColor: mainColor),
             customText(project.typeObj.name.toUpperCase(), 15,
                 textColor: mainColor),
             IconButton(
