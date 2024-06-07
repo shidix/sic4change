@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
+
 FirebaseFirestore db = FirebaseFirestore.instance;
 
 CollectionReference dbBitacora = db.collection("s4c_bitacora");
 
-class Bitacora extends Object{ 
+class Bitacora extends Object {
   String id = "";
   String uuid = "";
   String projectUuid = "";
@@ -12,14 +13,12 @@ class Bitacora extends Object{
   List<dynamic> delays = [];
   List<dynamic> financial = [];
   List<dynamic> technicals = [];
-  List<dynamic> fromPartners  = [];
+  List<dynamic> fromPartners = [];
   List<dynamic> others = [];
-
 
   Bitacora(this.projectUuid);
 
   static Bitacora fromJson(Map<String, dynamic> json) {
-    
     Bitacora item = Bitacora(json['projectUuid']);
     item.id = json["id"];
     item.uuid = json["uuid"];
@@ -46,6 +45,11 @@ class Bitacora extends Object{
     };
   }
 
+  @override
+  String toString() {
+    return toJson().toString();
+  }
+
   Future<void> save() async {
     if (id == "") {
       var newUuid = const Uuid();
@@ -62,18 +66,15 @@ class Bitacora extends Object{
     await dbBitacora.doc(id).delete();
   }
 
-
   static Future<Bitacora?> byProjectUuid(String uuid) async {
-    QuerySnapshot query = await dbBitacora.where("projectUuid", isEqualTo: uuid).get();
-    if (!query.docs.isEmpty) {
+    QuerySnapshot query =
+        await dbBitacora.where("projectUuid", isEqualTo: uuid).get();
+    if (query.docs.isNotEmpty) {
       var first = query.docs.first;
-      return Bitacora.fromJson(first.data()  as Map<String, dynamic>);
+      Bitacora item = Bitacora.fromJson(first.data() as Map<String, dynamic>);
+      item.id = first.id;
+      return item;
     }
     return null;
-
   }
-
-
 }
-
-
