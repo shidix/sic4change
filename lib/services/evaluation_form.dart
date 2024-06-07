@@ -214,6 +214,23 @@ class _EvaluationFormState extends State<EvaluationForm> {
                 ))
             ]
           ),
+          Row(children:[
+
+            Expanded(flex:1, child: 
+              Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
+                CustomTextField(
+                  labelText: "Método de verificación",
+                  initial: item["verificationMethod"],
+                  size: 220,
+                  fieldValue: (value) {
+                    item["verificationMethod"] = value;
+                  },)
+                )),
+            // Expanded(flex:1, child:
+            //   Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
+                
+            ]
+          ),
 
 
           
