@@ -20,12 +20,9 @@ class BitacoraPage extends StatefulWidget {
 class _BitacoraPageState extends State<BitacoraPage> {
   late SProject project;
   Bitacora? bitacora;
-  /*void loadRisks(value) async {
-    await getRisksByProject(value).then((val) {
-      risks = val;
-    });
-    setState(() {});
-  }*/
+
+  final labelsHeader = [ "Fecha", "Descripción", "Cambio sustancial", "Aprobado" ];
+
 
   @override
   initState() {
@@ -102,7 +99,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   padding: const EdgeInsets.all(15),
                   child: customCollapse(
                       context,
-                      const Text("Retrasos",
+                      const Text("Retrasos producidos en la intevención y por qué",
                           style: TextStyle(fontSize: 18, color: mainColor)),
                       populateDelays,
                       bitacora,
@@ -114,7 +111,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   padding: const EdgeInsets.all(15),
                   child: customCollapse(
                       context,
-                      const Text("Aspectos financieros",
+                      const Text("Aspectos de gestión financiera/administrativa",
                           style: TextStyle(fontSize: 18, color: mainColor)),
                       populateFinancial,
                       bitacora,
@@ -138,7 +135,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   padding: const EdgeInsets.all(15),
                   child: customCollapse(
                       context,
-                      const Text("Aportes de los socios",
+                      const Text("Aspectos relacionados con los socios",
                           style: TextStyle(fontSize: 18, color: mainColor)),
                       populateFromPartners,
                       bitacora,
@@ -150,7 +147,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   padding: const EdgeInsets.all(15),
                   child: customCollapse(
                       context,
-                      const Text("Otros aspectos",
+                      const Text("Otros cambios/aspectos a recoger",
                           style: TextStyle(fontSize: 18, color: mainColor)),
                       populateOthers,
                       bitacora,
@@ -182,6 +179,8 @@ class _BitacoraPageState extends State<BitacoraPage> {
       "Aportes de los socios",
       "Otros aspectos"
     ];
+
+
     String keyIndex = _keysDictionary[type % 6];
     Map<String, dynamic> item;
 
@@ -241,24 +240,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 0})
             ]),
             for (var item in bitacora.summary) ...[
@@ -325,24 +324,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 1})
             ]),
             for (var item in bitacora.delays) ...[
@@ -409,24 +408,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 2})
             ]),
             for (var item in bitacora.financial) ...[
@@ -493,24 +492,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 3})
             ]),
             for (var item in bitacora.technicals) ...[
@@ -577,24 +576,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 4})
             ]),
             for (var item in bitacora.fromPartners) ...[
@@ -661,24 +660,24 @@ class _BitacoraPageState extends State<BitacoraPage> {
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Fecha", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[0], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 8,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Descripción", 16,
+                      child: customText(labelsHeader[1], 16,
                           bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: customText("Cambio", 16, bold: FontWeight.bold))),
+                      child: customText(labelsHeader[2], 16, bold: FontWeight.bold))),
               Expanded(
                   flex: 1,
                   child: Padding(
                       padding: const EdgeInsets.all(10),
                       child:
-                          customText("Aprobado", 16, bold: FontWeight.bold))),
+                          customText(labelsHeader[3], 16, bold: FontWeight.bold))),
               addBtnRow(context, bitacoraEditDialog, {"index": -1, "type": 5})
             ]),
             for (var item in bitacora.others) ...[
