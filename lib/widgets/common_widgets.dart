@@ -1306,16 +1306,42 @@ Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
 //                           COLLAPSE
 //--------------------------------------------------------------------------
 Widget customCollapse(context, title, action, obj,
-    {expanded = true, subtitle = ""}) {
+    {expanded = true, subtitle = "", style = "main"}) {
+      Map<String, Map<String, dynamic>> styles = {
+        "main": {
+          "titleColor": headerListTitleColor,
+          "bgColor": headerListBgColor,
+          "iconColor": headerListTitleColor
+        },
+        "danger": {
+          "titleColor": Colors.white,
+          "bgColor": Colors.red,
+          "iconColor": Colors.white
+        },
+        "warning": {
+          "titleColor": Colors.white,
+          "bgColor": Colors.orange,
+          "iconColor": Colors.white
+        },
+        "success": {
+          "titleColor": Colors.white,
+          "bgColor": Colors.green,
+          "iconColor": Colors.white
+        }
+      };
+
+      Map<String, dynamic> currentStyle = styles[style]!;
+
+      
   return ExpansionTile(
     title: (title is String)
-        ? customText(title, 14, textColor: headerListTitleColor)
+        ? customText(title, 14, textColor: currentStyle["titleColor"])
         : title,
-    subtitle: customText(subtitle, 14, textColor: headerListTitleColor),
-    backgroundColor: headerListBgColor,
-    collapsedBackgroundColor: headerListBgColor,
-    iconColor: headerListTitleColor,
-    collapsedIconColor: headerListTitleColor,
+    subtitle: customText(subtitle, 14, textColor: currentStyle["titleColor"]),
+    backgroundColor: currentStyle["bgColor"],
+    collapsedBackgroundColor: currentStyle["bgColor"],
+    iconColor: currentStyle["iconColor"],
+    collapsedIconColor: currentStyle["iconColor"],
     initiallyExpanded: expanded,
     shape: Border.all(color: Colors.transparent),
     children: [

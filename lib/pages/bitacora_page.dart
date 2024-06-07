@@ -20,9 +20,7 @@ class BitacoraPage extends StatefulWidget {
 class _BitacoraPageState extends State<BitacoraPage> {
   late SProject project;
   Bitacora? bitacora;
-
   final labelsHeader = [ "Fecha", "Descripción", "Cambio sustancial", "Aprobado" ];
-
 
   @override
   initState() {
@@ -52,7 +50,6 @@ class _BitacoraPageState extends State<BitacoraPage> {
             : Container(
                 alignment: Alignment.center,
                 child: const CircularProgressIndicator()),
-        //contentTab(context, bitacoraList, project),
         footer(context),
       ]),
     );
@@ -68,8 +65,6 @@ class _BitacoraPageState extends State<BitacoraPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //addBtn(context, riskEditDialog, {'risk': Risk(project.uuid)}),
-            //space(width: 10),
             returnBtn(context),
           ],
         ),
