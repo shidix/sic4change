@@ -11,8 +11,22 @@ import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
-//const riskPageTitle = "Riesgos";
-//List risks = [];
+// conclussion = {
+//   'description': "",
+//   'stakeholder': "",
+//   'isRefML': "No",
+//   'unit': "",
+//   'relevance': 1,
+//   'feasibility': 1,
+//   'recipientResponse': "",
+//   'improvementAction': "",
+//   'deadline': DateTime.now(),
+//   'verificationMethod': "",
+//   'followUp': "",
+//   'followUpDate': DateTime.now(),
+//   'supervision': "",
+//   'observations': "",
+// };
 
 class EvaluationPage extends StatefulWidget {
   final SProject project;
@@ -122,16 +136,12 @@ class _EvaluationPageState extends State<EvaluationPage> {
 
     return Column(
       children: [
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Descripción'),
-                  subtitle: Text(conclussion["description"] ?? ""),
-                )),
-          ),
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Padding(
+              padding: const EdgeInsets.only(right: 0, top: 0),
+              child: iconBtn(context, evaluationEditDialog,
+                  {"index": args["index"], "type": 0},
+                  icon: Icons.edit, text: "Editar")),
         ]),
         Row(children: [
           Expanded(
@@ -211,10 +221,60 @@ class _EvaluationPageState extends State<EvaluationPage> {
                 padding: const EdgeInsets.only(right: 0, top: 0),
                 child: ListTile(
                   title: const Text('Fecha límite'),
-                  subtitle: Text(
-                      DateFormat('dd/MM/yyyy').format(conclussion["deadline"])),
+                  subtitle: Text(DateFormat('dd/MM/yyyy')
+                      .format(getDate(conclussion["deadline"]))),
                 ),
               )),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Método de verificación'),
+                  subtitle: Text(conclussion["verificationMethod"] ?? ""),
+                ),
+              )),
+        ]),
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Seguimiento'),
+                  subtitle: Text(conclussion["followUp"] ?? ""),
+                )),
+          ),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Fecha de seguimiento'),
+                  subtitle: Text(DateFormat('dd/MM/yyyy')
+                      .format(getDate(conclussion["followUpDate"]))),
+                ),
+              )),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Supervisión'),
+                  subtitle: Text(conclussion["supervision"] ?? ""),
+                ),
+              )),
+        ]),
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Observaciones'),
+                  subtitle: Text(conclussion["observations"] ?? ""),
+                )),
+          ),
         ]),
       ],
     );
@@ -244,7 +304,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
             children: [
               customCollapse(context, conclussion["description"],
                   conclussionContent, {"index": index},
-                  style: "secondary", expanded: true),
+                  style: "secondary", expanded: false),
             ],
           ),
         ));

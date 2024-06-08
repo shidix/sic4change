@@ -151,6 +151,18 @@ Icon getIcon(bool value) {
   }
 }
 
+DateTime getDate(dynamic date) {
+  try {
+    return date.toDate();
+  } catch (e) {
+    try {
+      return DateTime.parse(date);
+    } catch (e) {
+      return date;
+    }
+  }
+}
+
 double currencyToDouble(String value) {
   if (value == '') {
     return 0.0;

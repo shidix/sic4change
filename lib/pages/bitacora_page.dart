@@ -216,14 +216,6 @@ class _BitacoraPageState extends State<BitacoraPage> {
     });
   }
 
-  DateTime getDate(dynamic date) {
-    try {
-      return date.toDate();
-    } catch (e) {
-      return date;
-    }
-  }
-
   Widget populateSummary(context, Bitacora bitacora) {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),

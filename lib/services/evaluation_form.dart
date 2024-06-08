@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_evaluation.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 class EvaluationForm extends StatefulWidget {
@@ -243,7 +244,7 @@ class _EvaluationFormState extends State<EvaluationForm> {
                     padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
                     child: CustomDateField(
                         labelText: 'Fecha límite',
-                        selectedDate: item["deadline"],
+                        selectedDate: getDate(item["deadline"]),
                         onSelectedDate: (value) {
                           item["deadline"] = value;
                           setState(() {});
@@ -268,7 +269,7 @@ class _EvaluationFormState extends State<EvaluationForm> {
                     padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
                     child: CustomDateField(
                         labelText: 'Fecha Seguimiento',
-                        selectedDate: item["followUpDate"],
+                        selectedDate: getDate(item["followUpDate"]),
                         onSelectedDate: (value) {
                           item["followUpDate"] = value;
                           setState(() {});
