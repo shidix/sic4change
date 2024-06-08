@@ -284,7 +284,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
     int index = args["index"];
     var conclussion = evaluation!.conclussions[index];
     return Padding(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.only(top: 0, bottom: 10, right: 10, left: 10),
         child: Container(
           padding: const EdgeInsets.all(10),
           margin: const EdgeInsets.only(bottom: 10),
