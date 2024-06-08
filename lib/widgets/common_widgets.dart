@@ -1,5 +1,6 @@
 // ignore_for_file: unused_import
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1307,32 +1308,36 @@ Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
 //--------------------------------------------------------------------------
 Widget customCollapse(context, title, action, obj,
     {expanded = true, subtitle = "", style = "main"}) {
-      Map<String, Map<String, dynamic>> styles = {
-        "main": {
-          "titleColor": headerListTitleColor,
-          "bgColor": headerListBgColor,
-          "iconColor": headerListTitleColor
-        },
-        "danger": {
-          "titleColor": Colors.white,
-          "bgColor": Colors.red,
-          "iconColor": Colors.white
-        },
-        "warning": {
-          "titleColor": Colors.white,
-          "bgColor": Colors.orange,
-          "iconColor": Colors.white
-        },
-        "success": {
-          "titleColor": Colors.white,
-          "bgColor": Colors.green,
-          "iconColor": Colors.white
-        }
-      };
+  Map<String, Map<String, dynamic>> styles = {
+    "main": {
+      "titleColor": headerListTitleColor,
+      "bgColor": headerListBgColor,
+      "iconColor": headerListTitleColor
+    },
+    "secondary": {
+      "titleColor": Colors.black87,
+      "bgColor": Colors.blue[50],
+      "iconColor": Colors.black87,
+    },
+    "danger": {
+      "titleColor": Colors.white,
+      "bgColor": Colors.red,
+      "iconColor": Colors.white
+    },
+    "warning": {
+      "titleColor": Colors.white,
+      "bgColor": Colors.orange,
+      "iconColor": Colors.white
+    },
+    "success": {
+      "titleColor": Colors.white,
+      "bgColor": Colors.green,
+      "iconColor": Colors.white
+    }
+  };
 
-      Map<String, dynamic> currentStyle = styles[style]!;
+  Map<String, dynamic> currentStyle = styles[style]!;
 
-      
   return ExpansionTile(
     title: (title is String)
         ? customText(title, 14, textColor: currentStyle["titleColor"])
@@ -1761,5 +1766,47 @@ class CustomSelectFormField extends StatelessWidget {
         return null;
       },
     );
+  }
+}
+
+class CustomDateField extends StatelessWidget {
+  const CustomDateField({
+    Key? key,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+    this.minYear = 2000,
+    this.maxYear = 2101,
+    this.bottom = 16,
+  }) : super(key: key);
+
+  final String labelText;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelectedDate;
+  final int minYear;
+  final int maxYear;
+  final double bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.only(bottom: bottom),
+        child: ListTile(
+          leading: const Icon(Icons.date_range),
+          shape: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+          title: Text(labelText),
+          subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: selectedDate,
+                firstDate: DateTime(minYear),
+                lastDate: DateTime(maxYear, 12, 31));
+            if (picked != null && picked != selectedDate) {
+              onSelectedDate(picked);
+            }
+          },
+        ));
   }
 }

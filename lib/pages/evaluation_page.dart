@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/evaluation_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_evaluation.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -22,7 +25,6 @@ class EvaluationPage extends StatefulWidget {
 class _EvaluationPageState extends State<EvaluationPage> {
   late SProject project;
   Evaluation? evaluation;
-
 
   @override
   initState() {
@@ -50,8 +52,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
         evaluationHeader(context, project),
         marcoMenu(context, project, "evaluation"),
         (evaluation == null)
-              ? const Center(child:CircularProgressIndicator())
-              : contentTab(context, contentEvaluation, evaluation),
+            ? const Center(child: CircularProgressIndicator())
+            : contentTab(context, contentEvaluation, evaluation),
         footer(context),
       ]),
     );
@@ -76,16 +78,20 @@ class _EvaluationPageState extends State<EvaluationPage> {
 
   Widget contentEvaluation(context, evaluation) {
     return SingleChildScrollView(
-      child: Padding(padding: const EdgeInsets.all(15),
-        child:
-      
-      Column(
-        children: [
-          customCollapse(context, 'Conclusiones/Recomendación evaluación', populateConclussions, evaluation),
-          const Divider(),
-          customCollapse(context, 'Necesidades y expectativas partes interesadas', populateRequirements, evaluation),
-        ],
-      )),
+      child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              customCollapse(context, 'Conclusiones/Recomendación evaluación',
+                  populateConclussions, evaluation),
+              const Divider(),
+              customCollapse(
+                  context,
+                  'Necesidades y expectativas partes interesadas',
+                  populateRequirements,
+                  evaluation),
+            ],
+          )),
     );
   }
 
@@ -93,22 +99,164 @@ class _EvaluationPageState extends State<EvaluationPage> {
     return Column(
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child:
-          addBtnRow(context, evaluationEditDialog, {"index": -1, "type": 0})),
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: addBtnRow(
+                  context, evaluationEditDialog, {"index": -1, "type": 0})),
         ]),
-
         for (var i = 0; i < obj.conclussions.length; i++)
-          customCollapse(context, 'Conclusión ${i + 1}', (context, args) {return Container();}, null),
+          conclussionCard(context, {"index": i}),
       ],
     );
+  }
+
+  Widget conclussionContent(context, args) {
+    Map<String, dynamic> conclussion = evaluation!.conclussions[args["index"]];
+
+    if (conclussion["deadline"] is String) {
+      conclussion["deadline"] =
+          DateFormat('dd/MM/yyyy').parse(conclussion["deadline"]);
+    } else if (conclussion["deadline"] is Timestamp) {
+      conclussion["deadline"] = (conclussion["deadline"] as Timestamp).toDate();
+    }
+
+    return Column(
+      children: [
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Descripción'),
+                  subtitle: Text(conclussion["description"] ?? ""),
+                )),
+          ),
+        ]),
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Partes interesadas'),
+                  subtitle: Text(conclussion["stakeholder"] ?? ""),
+                  titleTextStyle: TextTheme().bodyMedium,
+                  subtitleTextStyle: TextTheme().bodyLarge,
+                )),
+          ),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: Text('Referencia ML', style: TextTheme().bodyMedium),
+                  subtitle: Container(
+                      alignment: Alignment.centerLeft,
+                      child: getIcon(conclussion["isRefML"] == "Sí")),
+                ),
+              )),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Unidad'),
+                  subtitle: Text(conclussion["unit"] ?? ""),
+                ),
+              )),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Relevancia'),
+                  subtitle: Text(conclussion["relevance"].toString()),
+                ),
+              )),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Viabilidad'),
+                  subtitle: Text(conclussion["feasibility"].toString()),
+                ),
+              )),
+        ]),
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Respuesta del destinatario'),
+                  subtitle: Text(conclussion["recipientResponse"] ?? ""),
+                )),
+          ),
+        ]),
+        Row(children: [
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Acción de mejora'),
+                  subtitle: Text(conclussion["improvementAction"] ?? ""),
+                )),
+          ),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0, top: 0),
+                child: ListTile(
+                  title: const Text('Fecha límite'),
+                  subtitle: Text(
+                      DateFormat('dd/MM/yyyy').format(conclussion["deadline"])),
+                ),
+              )),
+        ]),
+      ],
+    );
+  }
+
+  Widget conclussionCard(context, args) {
+    int index = args["index"];
+    var conclussion = evaluation!.conclussions[index];
+    return Padding(
+        padding: EdgeInsets.all(20),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              customCollapse(context, conclussion["description"],
+                  conclussionContent, {"index": index},
+                  style: "secondary", expanded: true),
+            ],
+          ),
+        ));
   }
 
   Widget populateRequirements(context, Evaluation obj) {
     return Column(
       children: [
         for (var i = 0; i < obj.requirements.length; i++)
-          customCollapse(context, 'Requerimiento ${i + 1}', (context, args) {return Container();}, null),
+          customCollapse(context, 'Requerimiento ${i + 1}', (context, args) {
+            return Container();
+          }, null),
       ],
     );
   }
@@ -127,16 +275,15 @@ class _EvaluationPageState extends State<EvaluationPage> {
 
     return showDialog<Evaluation>(
       context: context,
-
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((index >= 0)
               ? 'Editando ${_titlesDictionary[type % 2]}'
               : 'Añadiendo ${_titlesDictionary[type % 2]}'),
-          content: EvaluationForm(evaluation: evaluation!, type: type, index: index),
+          content:
+              EvaluationForm(evaluation: evaluation!, type: type, index: index),
         );
       },
     ).then((value) {
@@ -145,6 +292,4 @@ class _EvaluationPageState extends State<EvaluationPage> {
       }
     });
   }
-
-
 }

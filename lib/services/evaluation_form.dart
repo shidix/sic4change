@@ -102,46 +102,54 @@ class _EvaluationFormState extends State<EvaluationForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(children:[
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
-                CustomTextField(
-                  labelText: "Descripción",
-                  initial: item["description"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["description"] = value;
-                  },)
-                ))
-            ]
-          ),
-          Row(children:[
-            Expanded(flex:2, child: 
-              Padding(padding: EdgeInsets.only(top:5, bottom:5, right: 10), child:          
-                CustomTextField(
-                  labelText: "Partes interesadas",
-                  initial: item["stakeholder"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["stakeholder"] = value;
-                  },)
-                )),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                    child: CustomTextField(
+                      labelText: "Descripción",
+                      initial: item["description"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["description"] = value;
+                      },
+                    )))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 2,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomTextField(
+                      labelText: "Partes interesadas",
+                      initial: item["stakeholder"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["stakeholder"] = value;
+                      },
+                    ))),
 
-            Expanded(flex:2, child:
-              Padding(padding: EdgeInsets.only(top:5, bottom:5, left: 10), child:          
-                CustomTextField(
-                  labelText: "Unidad",
-                  initial: item["unit"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["unit"] = value;
-                  },)
-                )),
+            Expanded(
+                flex: 2,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomTextField(
+                      labelText: "Unidad",
+                      initial: item["unit"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["unit"] = value;
+                      },
+                    ))),
 
-            Expanded(flex:1, child: 
-                  Padding(padding: EdgeInsets.only(top:5, bottom:5, left: 10), child:    
-                    CustomSelectFormField(
-                      labelText: (widget.type == 0)? "Referencial MML":"Necesidad",
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomSelectFormField(
+                      labelText:
+                          (widget.type == 0) ? "Referencial MML" : "Necesidad",
                       initial: item["isRefML"],
                       options: List<KeyValue>.from([
                         KeyValue("Sí", "Sí"),
@@ -149,95 +157,154 @@ class _EvaluationFormState extends State<EvaluationForm> {
                       ]),
                       onSelectedOpt: (value) {
                         item["isRefML"] = value;
-                      },)
-                    )
-                ),                
+                      },
+                    ))),
             // relevancia
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.only(top:5, bottom:5, left: 10), child:          
-                CustomSelectFormField(
-                  labelText: "Relevancia",
-                  initial: item["relevance"].toString(),
-                  options: List<KeyValue>.from([
-                    KeyValue("1", "1"),
-                    KeyValue("2", "2"),
-                    KeyValue("3", "3"),
-                    KeyValue("4", "4"),
-                  ]),
-                  onSelectedOpt: (value) {
-                    item["relevance"] = int.parse(value);
-                  },)
-                )),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomSelectFormField(
+                      labelText: "Relevancia",
+                      initial: item["relevance"].toString(),
+                      options: List<KeyValue>.from([
+                        KeyValue("1", "1"),
+                        KeyValue("2", "2"),
+                        KeyValue("3", "3"),
+                        KeyValue("4", "4"),
+                      ]),
+                      onSelectedOpt: (value) {
+                        item["relevance"] = int.parse(value);
+                      },
+                    ))),
             // factibilidad
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.only(top:5, bottom:5, left: 10), child:          
-                CustomSelectFormField(
-                  labelText: "Viabilidad",
-                  initial: item["feasibility"].toString(),
-                  options: List<KeyValue>.from([
-                    KeyValue("1", "1"),
-                    KeyValue("2", "2"),
-                    KeyValue("3", "3"),
-                    KeyValue("4", "4"),
-                  ]),
-                  onSelectedOpt: (value) {
-                    item["feasibility"] = int.parse(value);
-                  },)
-                )),
-
-            ]
-          ),
-
-          Row(children:[
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
-                CustomTextField(
-                  labelText: "Respuesta del receptor",
-                  initial: item["recipientResponse"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["recipientResponse"] = value;
-                  },)
-                ))
-            ]
-          ),
-          Row(children:[
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
-                CustomTextField(
-                  labelText: "Acción de mejora",
-                  initial: item["improvementAction"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["improvementAction"] = value;
-                  },)
-                ))
-            ]
-          ),
-          Row(children:[
-
-            Expanded(flex:1, child: 
-              Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
-                CustomTextField(
-                  labelText: "Método de verificación",
-                  initial: item["verificationMethod"],
-                  size: 220,
-                  fieldValue: (value) {
-                    item["verificationMethod"] = value;
-                  },)
-                )),
-            // Expanded(flex:1, child:
-            //   Padding(padding: EdgeInsets.symmetric(horizontal:0, vertical:5), child:          
-                
-            ]
-          ),
-
-
-          
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomSelectFormField(
+                      labelText: "Viabilidad",
+                      initial: item["feasibility"].toString(),
+                      options: List<KeyValue>.from([
+                        KeyValue("1", "1"),
+                        KeyValue("2", "2"),
+                        KeyValue("3", "3"),
+                        KeyValue("4", "4"),
+                      ]),
+                      onSelectedOpt: (value) {
+                        item["feasibility"] = int.parse(value);
+                      },
+                    ))),
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomTextField(
+                      labelText: "Respuesta del receptor",
+                      initial: item["recipientResponse"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["recipientResponse"] = value;
+                      },
+                    )))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomTextField(
+                      labelText: "Acción de mejora",
+                      initial: item["improvementAction"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["improvementAction"] = value;
+                      },
+                    )))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 3,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomTextField(
+                      labelText: "Método de verificación",
+                      initial: item["verificationMethod"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["verificationMethod"] = value;
+                      },
+                    ))),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomDateField(
+                        labelText: 'Fecha límite',
+                        selectedDate: item["deadline"],
+                        onSelectedDate: (value) {
+                          item["deadline"] = value;
+                          setState(() {});
+                        })))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 3,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    child: CustomTextField(
+                      labelText: "Seguimiento",
+                      initial: item["followUp"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["followUp"] = value;
+                      },
+                    ))),
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomDateField(
+                        labelText: 'Fecha Seguimiento',
+                        selectedDate: item["followUpDate"],
+                        onSelectedDate: (value) {
+                          item["followUpDate"] = value;
+                          setState(() {});
+                        })))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomTextField(
+                      labelText: "Supervisión",
+                      initial: item["supervision"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["supervision"] = value;
+                      },
+                    )))
+          ]),
+          Row(children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: EdgeInsets.only(top: 5, bottom: 5, right: 0),
+                    child: CustomTextField(
+                      labelText: "Observaciones",
+                      initial: item["observations"],
+                      size: 220,
+                      fieldValue: (value) {
+                        item["observations"] = value;
+                      },
+                    )))
+          ]),
           actions
         ],
       ),
     );
   }
 }
-        
