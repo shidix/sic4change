@@ -96,12 +96,27 @@ class _EvaluationPageState extends State<EvaluationPage> {
           padding: const EdgeInsets.all(15),
           child: Column(
             children: [
-              customCollapse(context, 'Conclusiones/Recomendación evaluación',
-                  populateConclussions, evaluation),
+              customCollapse(
+                  context,
+                  const Text(
+                    'Conclusiones/Recomendación evaluación',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor),
+                  ),
+                  populateConclussions,
+                  evaluation),
               const Divider(),
               customCollapse(
                   context,
-                  'Necesidades y expectativas partes interesadas',
+                  const Text(
+                    'Necesidades y expectativas partes interesadas',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: mainColor),
+                  ),
                   populateRequirements,
                   evaluation),
             ],
@@ -151,8 +166,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
                 child: ListTile(
                   title: const Text('Partes interesadas'),
                   subtitle: Text(conclussion["stakeholder"] ?? ""),
-                  titleTextStyle: TextTheme().bodyMedium,
-                  subtitleTextStyle: TextTheme().bodyLarge,
+                  titleTextStyle: const TextTheme().bodyMedium,
+                  subtitleTextStyle: const TextTheme().bodyLarge,
                 )),
           ),
           Expanded(
@@ -160,7 +175,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
               child: Padding(
                 padding: const EdgeInsets.only(right: 0, top: 0),
                 child: ListTile(
-                  title: Text('Referencia ML', style: TextTheme().bodyMedium),
+                  title: Text('Referencia ML',
+                      style: const TextTheme().bodyMedium),
                   subtitle: Container(
                       alignment: Alignment.centerLeft,
                       child: getIcon(conclussion["isRefML"] == "Sí")),
@@ -284,7 +300,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
     int index = args["index"];
     var conclussion = evaluation!.conclussions[index];
     return Padding(
-        padding: EdgeInsets.only(top: 0, bottom: 10, right: 10, left: 10),
+        padding: const EdgeInsets.only(top: 0, bottom: 10, right: 10, left: 10),
         child: Container(
           padding: const EdgeInsets.all(10),
           margin: const EdgeInsets.only(bottom: 10),
