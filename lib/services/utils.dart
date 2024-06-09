@@ -143,11 +143,11 @@ String showException(dynamic e) {
   }
 }
 
-Icon getIcon(bool value) {
+Icon getIcon(bool value, {double size = 24.0}) {
   if (value) {
-    return const Icon(Icons.check_circle_outline, color: Colors.green);
+    return Icon(Icons.check_circle_outline, color: Colors.green, size: size);
   } else {
-    return const Icon(Icons.remove_circle_outline, color: Colors.red);
+    return Icon(Icons.remove_circle_outline, color: Colors.red, size: size);
   }
 }
 

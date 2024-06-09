@@ -1810,3 +1810,23 @@ class CustomDateField extends StatelessWidget {
         ));
   }
 }
+
+Widget customTextLabel(context, String label, dynamic text) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 5.0),
+      Text(label,
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: mainColor, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 2.0),
+      (text is String)
+          ? Text(text, style: Theme.of(context).textTheme.titleMedium)
+          : text,
+      const SizedBox(height: 4.0),
+      const SizedBox(height: 2.0),
+    ],
+  );
+}

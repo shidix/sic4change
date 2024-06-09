@@ -149,151 +149,162 @@ class _EvaluationPageState extends State<EvaluationPage> {
       conclussion["deadline"] = (conclussion["deadline"] as Timestamp).toDate();
     }
 
-    return Column(
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          Padding(
-              padding: const EdgeInsets.only(right: 0, top: 0),
-              child: iconBtn(context, evaluationEditDialog,
-                  {"index": args["index"], "type": 0},
-                  icon: Icons.edit, text: "Editar")),
-        ]),
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Partes interesadas'),
-                  subtitle: Text(conclussion["stakeholder"] ?? ""),
-                  titleTextStyle: const TextTheme().bodyMedium,
-                  subtitleTextStyle: const TextTheme().bodyLarge,
-                )),
-          ),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: Text('Referencia ML',
-                      style: const TextTheme().bodyMedium),
-                  subtitle: Container(
-                      alignment: Alignment.centerLeft,
-                      child: getIcon(conclussion["isRefML"] == "Sí")),
+    return Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Padding(
+                  padding: const EdgeInsets.only(right: 0, top: 0),
+                  child: iconBtn(context, evaluationEditDialog,
+                      {"index": args["index"], "type": 0},
+                      icon: Icons.edit, text: "Editar")),
+            ]),
+            Row(children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Partes interesadas",
+                      conclussion["stakeholder"],
+                    )),
+              ),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Referencia ML",
+                      getIcon(conclussion["isRefML"] == "Sí", size: 18.0),
+                    ),
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Unidad",
+                      conclussion["unit"],
+                    ),
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Relevancia",
+                      conclussion["relevance"].toString(),
+                    ),
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Viabilidad",
+                      conclussion["feasibility"].toString(),
+                    ),
+                  )),
+            ]),
+            Row(children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Respuesta del destinatario",
+                      conclussion["recipientResponse"],
+                    )),
+              ),
+            ]),
+            Row(children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Acción de mejora",
+                      conclussion["improvementAction"] ?? "",
+                    )),
+              ),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Fecha límite",
+                      DateFormat('dd/MM/yyyy')
+                          .format(getDate(conclussion["deadline"])),
+                    ),
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 0, top: 0),
+                    child: customTextLabel(
+                      context,
+                      "Método de verificación",
+                      conclussion["verificationMethod"] ?? "",
+                    ),
+                  )),
+            ]),
+            Row(children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 0, top: 0),
+                  child: customTextLabel(
+                    context,
+                    "Seguimiento",
+                    conclussion["followUp"] ?? "",
+                  ),
                 ),
-              )),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Unidad'),
-                  subtitle: Text(conclussion["unit"] ?? ""),
+              ),
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 0, top: 0),
+                  child: customTextLabel(
+                    context,
+                    "Fecha de seguimiento",
+                    DateFormat('dd/MM/yyyy')
+                        .format(getDate(conclussion["followUpDate"])),
+                  ),
                 ),
-              )),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Relevancia'),
-                  subtitle: Text(conclussion["relevance"].toString()),
+              ),
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 0, top: 0),
+                  child: customTextLabel(
+                    context,
+                    "Supervisión",
+                    conclussion["supervision"] ?? "",
+                  ),
                 ),
-              )),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Viabilidad'),
-                  subtitle: Text(conclussion["feasibility"].toString()),
+              ),
+            ]),
+            Row(children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 0, top: 0),
+                  child: customTextLabel(context, "Observaciones",
+                      conclussion["observations"] ?? ""),
                 ),
-              )),
-        ]),
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Respuesta del destinatario'),
-                  subtitle: Text(conclussion["recipientResponse"] ?? ""),
-                )),
-          ),
-        ]),
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Acción de mejora'),
-                  subtitle: Text(conclussion["improvementAction"] ?? ""),
-                )),
-          ),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Fecha límite'),
-                  subtitle: Text(DateFormat('dd/MM/yyyy')
-                      .format(getDate(conclussion["deadline"]))),
-                ),
-              )),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Método de verificación'),
-                  subtitle: Text(conclussion["verificationMethod"] ?? ""),
-                ),
-              )),
-        ]),
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Seguimiento'),
-                  subtitle: Text(conclussion["followUp"] ?? ""),
-                )),
-          ),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Fecha de seguimiento'),
-                  subtitle: Text(DateFormat('dd/MM/yyyy')
-                      .format(getDate(conclussion["followUpDate"]))),
-                ),
-              )),
-          Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Supervisión'),
-                  subtitle: Text(conclussion["supervision"] ?? ""),
-                ),
-              )),
-        ]),
-        Row(children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 0, top: 0),
-                child: ListTile(
-                  title: const Text('Observaciones'),
-                  subtitle: Text(conclussion["observations"] ?? ""),
-                )),
-          ),
-        ]),
-      ],
-    );
+              ),
+            ]),
+          ],
+        ));
   }
 
   Widget conclussionCard(context, args) {
