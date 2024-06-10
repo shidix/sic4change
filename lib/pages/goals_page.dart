@@ -272,12 +272,12 @@ class _GoalsPageState extends State<GoalsPage>
             ],
           ),
           space(height: 10),
-          customCollapse(context, "Resultados", resultList, goal,
+          customCollapse2(context, "Resultados", resultList, goal,
               expanded: false,
               bgColor: headerListBgColorResult,
               txtColor: mainMenuBtnSelectedColor),
           space(height: 10),
-          customCollapse(context, "Indicadores", goalIndicators, goal,
+          customCollapse2(context, "Indicadores", goalIndicators, goal,
               expanded: false,
               bgColor: headerListBgColorIndicator,
               txtColor: mainMenuBtnSelectedColor)
@@ -484,7 +484,7 @@ class _GoalsPageState extends State<GoalsPage>
                       return Container(
                         padding: const EdgeInsets.only(top: 10, bottom: 10),
                         //decoration: rowDecorationGreen,
-                        child: customCollapse(
+                        child: customCollapse2(
                             context, result.name, resultRow, result,
                             expanded: false),
                         /*child: Column(children: [
@@ -920,7 +920,7 @@ class _GoalsPageState extends State<GoalsPage>
                     Activity activity = activities[index];
                     return Container(
                       padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      child: customCollapse(
+                      child: customCollapse2(
                           context, activity.name, resultActivityRow, activity,
                           expanded: false),
                     );
