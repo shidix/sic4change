@@ -1345,7 +1345,18 @@ Widget customCollapse(context, title, action, obj,
     }
   };
 
-  Map<String, dynamic> currentStyle = styles[style]!;
+
+  Map<String, dynamic> currentStyle;
+  if (style is String) {
+    style = style.toLowerCase();
+    if (!styles.containsKey(style)) {
+      style = "main";
+    }
+    currentStyle = styles[style]!;
+  }
+  else {
+    currentStyle = style;
+  }
 
   return ExpansionTile(
     title: (title is String)
