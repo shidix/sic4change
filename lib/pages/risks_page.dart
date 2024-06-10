@@ -63,6 +63,7 @@ class _RisksPageState extends State<RisksPage> {
   initState() {
     super.initState();
     project = widget.project;
+    risks = [];
     Contact.getAll().then((val) {
       for (var contact in val) {
         if ((project!.partners.contains(contact.organization)) ||
@@ -75,25 +76,28 @@ class _RisksPageState extends State<RisksPage> {
     getGoalsByProject(project!.uuid).then((val) {
       goals = val;
     });
+
+    getRisksByProject(project!.uuid).then((val) {
+      risks = val;
+      if (mounted) {
+        setState(() {
+          
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            mainMenu(context),
-            pathHeader(context, project!.name),
-            riskHeader(context, project),
-            marcoMenu(context, project, "risk"),
-            contentTab(context, riskList, project),
-            footer(context),
-          ],
-        ),
-      ),
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        mainMenu(context),
+        pathHeader(context, project!.name),
+        riskHeader(context, project),
+        marcoMenu(context, project, "risk"),
+        contentTab(context, riskList, project),
+        footer(context),
+      ]),
     );
   }
 
@@ -342,17 +346,58 @@ class _RisksPageState extends State<RisksPage> {
     );
   }
 
+  // Widget riskList2(context, project) {
+  //   return FutureBuilder(
+  //       future: getRisksByProject(project.uuid),
+  //       builder: ((context, snapshot) {
+  //         if (snapshot.hasData) {
+  //           risks = snapshot.data!;
+  //           return Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             mainAxisAlignment: MainAxisAlignment.start,
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             verticalDirection: VerticalDirection.down,
+  //             children: <Widget>[
+  //               Expanded(
+  //                   child: Container(
+  //                       padding: const EdgeInsets.all(15),
+  //                       child: ListView.builder(
+  //                           padding: const EdgeInsets.all(8),
+  //                           itemCount: risks.length,
+  //                           itemBuilder: (BuildContext context, int index) {
+  //                             Risk risk = risks[index];
+  //                             return Container(
+  //                               // height: 100,
+  //                               padding:
+  //                                   const EdgeInsets.only(top: 20, bottom: 10),
+  //                               decoration: BoxDecoration(
+  //                                 border: Border(
+  //                                   bottom: BorderSide(
+  //                                       color: Colors.grey[300]!, width: 1),
+  //                                 ),
+  //                               ),
+  //                               child: riskRow(context, risk, project),
+  //                             );
+  //                           }))),
+  //             ],
+  //           );
+  //         } else {
+  //           return const Center(
+  //             child: CircularProgressIndicator(),
+  //           );
+  //         }
+  //       }));
+  // }
+
   Widget riskList(context, project) {
-    return FutureBuilder(
-        future: getRisksByProject(project.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            risks = snapshot.data!;
-            return Column(
+
+      if (risks.isNotEmpty)
+      {
+        return Column(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
+//              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
-              verticalDirection: VerticalDirection.down,
+//              verticalDirection: VerticalDirection.down,
               children: <Widget>[
                 Expanded(
                     child: Container(
@@ -377,12 +422,11 @@ class _RisksPageState extends State<RisksPage> {
                             }))),
               ],
             );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+      } else {
+        return const Center(
+          child: Text("No hay riesgos registrados"),
+        );
+      };
   }
 
   Widget toggleRisk(context, risk) {
