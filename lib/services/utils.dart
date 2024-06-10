@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 
@@ -80,13 +81,12 @@ DateTime truncDate(DateTime date) {
 
 Object getObject(List items, String value, {String key = 'uuid'}) {
   try {
-  if (key == "uuid") {
-    return items.firstWhere((item) => item.uuid == value);
-  }
-  else {
-    // get the first item that has the value in the key key
-    return items.firstWhere((item) => item.toJson()[key] == value);
-  }
+    if (key == "uuid") {
+      return items.firstWhere((item) => item.uuid == value);
+    } else {
+      // get the first item that has the value in the key key
+      return items.firstWhere((item) => item.toJson()[key] == value);
+    }
   } catch (e) {
     return Null;
   }
@@ -139,6 +139,26 @@ String showException(dynamic e) {
       return 'ERROR ===:> [$error in ${stackTrace.toString()}]';
     } else {
       return 'WARNING ===:> $error';
+    }
+  }
+}
+
+Icon getIcon(bool value, {double size = 24.0}) {
+  if (value) {
+    return Icon(Icons.check_circle_outline, color: Colors.green, size: size);
+  } else {
+    return Icon(Icons.remove_circle_outline, color: Colors.red, size: size);
+  }
+}
+
+DateTime getDate(dynamic date) {
+  try {
+    return date.toDate();
+  } catch (e) {
+    try {
+      return DateTime.parse(date);
+    } catch (e) {
+      return date;
     }
   }
 }
