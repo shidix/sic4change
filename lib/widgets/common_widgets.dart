@@ -751,6 +751,9 @@ const TextStyle cardHeaderText = TextStyle(
 );
 
 const Color headerListBgColor = Color(0xffe5f2d7);
+const Color headerListBgColorResult = Color(0xffb8cda1);
+const Color headerListBgColorIndicator = Color(0xff81b8ac);
+const Color headerListBgColorActivity = Color(0xffc6e1f6);
 const Color headerListColor = Color(0xff0b0b0b);
 const Color cellsListColor = Color(0xff0b0b0b);
 const Color headerListTitleColor = Color(0xff327971);
@@ -804,6 +807,12 @@ BoxDecoration rowDecoration = const BoxDecoration(
 
 BoxDecoration rowDecorationGreen = const BoxDecoration(
   border: Border(bottom: BorderSide(color: Color(0xff00594f), width: 2)),
+);
+
+BoxDecoration tableDecoration = BoxDecoration(
+  //border: Border.all(color: Color(0xff999999), width: 1),
+  border: Border.all(color: const Color(0xffaaaaaa), width: 1),
+  borderRadius: const BorderRadius.all(Radius.circular(5)),
 );
 
 //--------------------------------------------------------------------------
@@ -1306,16 +1315,19 @@ Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
 //                           COLLAPSE
 //--------------------------------------------------------------------------
 Widget customCollapse(context, title, action, obj,
-    {expanded = true, subtitle = ""}) {
+    {expanded = true,
+    subtitle = "",
+    bgColor = headerListBgColor,
+    txtColor = headerListTitleColor}) {
   return ExpansionTile(
     title: (title is String)
-        ? customText(title, 14, textColor: headerListTitleColor)
+        ? customText(title, 14, textColor: txtColor, bold: FontWeight.bold)
         : title,
-    subtitle: customText(subtitle, 14, textColor: headerListTitleColor),
-    backgroundColor: headerListBgColor,
-    collapsedBackgroundColor: headerListBgColor,
-    iconColor: headerListTitleColor,
-    collapsedIconColor: headerListTitleColor,
+    //subtitle: customText(subtitle, 14, textColor: headerListTitleColor),
+    backgroundColor: bgColor,
+    collapsedBackgroundColor: bgColor,
+    iconColor: txtColor,
+    collapsedIconColor: txtColor,
     initiallyExpanded: expanded,
     shape: Border.all(color: Colors.transparent),
     children: [
