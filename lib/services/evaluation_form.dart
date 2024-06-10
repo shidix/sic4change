@@ -78,7 +78,6 @@ class _EvaluationFormState extends State<EvaluationForm> {
   @override
   Widget build(BuildContext context) {
     Row actions = Row(children: [
-      Expanded(flex: 3, child: Container()),
       Expanded(
           flex: 1,
           child: Padding(
@@ -150,7 +149,7 @@ class _EvaluationFormState extends State<EvaluationForm> {
                     padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomSelectFormField(
                       labelText:
-                          (widget.type == 0) ? "Referencial MML" : "Necesidad",
+                          (widget.type == 0) ? "Referencial ML" : "Necesidad",
                       initial: item["isRefML"],
                       options: List<KeyValue>.from([
                         KeyValue("Sí", "Sí"),

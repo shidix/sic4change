@@ -54,7 +54,6 @@ class _BitacoraFormState extends State<BitacoraForm> {
   @override
   Widget build(BuildContext context) {
     Row actions = Row(children: [
-      Expanded(flex: 3, child: Container()),
       Expanded(
           flex: 1,
           child: Padding(

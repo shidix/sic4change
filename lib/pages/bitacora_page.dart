@@ -46,7 +46,13 @@ class _BitacoraPageState extends State<BitacoraPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      body: SingleChildScrollView(
+        child:
+      
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        mainAxisSize: MainAxisSize.min,
+        children: [
         mainMenu(context),
         pathHeader(context, project.name),
         bitacoraHeader(context, project),
@@ -58,7 +64,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
                 child: const CircularProgressIndicator()),
         footer(context),
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------

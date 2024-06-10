@@ -80,14 +80,20 @@ class _RisksPageState extends State<RisksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        mainMenu(context),
-        pathHeader(context, project!.name),
-        riskHeader(context, project),
-        marcoMenu(context, project, "risk"),
-        contentTab(context, riskList, project),
-        footer(context),
-      ]),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            mainMenu(context),
+            pathHeader(context, project!.name),
+            riskHeader(context, project),
+            marcoMenu(context, project, "risk"),
+            contentTab(context, riskList, project),
+            footer(context),
+          ],
+        ),
+      ),
     );
   }
 

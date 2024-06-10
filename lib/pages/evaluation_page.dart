@@ -43,7 +43,13 @@ class _EvaluationPageState extends State<EvaluationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      body: SingleChildScrollView(
+        child:
+      
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        mainAxisSize: MainAxisSize.min,
+        children: [
         mainMenu(context),
         pathHeader(context, project!.name),
         evaluationHeader(context, project),
@@ -53,7 +59,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
             : contentTab(context, contentEvaluation, evaluation),
         footer(context),
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------
