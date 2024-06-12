@@ -135,11 +135,13 @@ String showException(dynamic e) {
   try {
     throw e; // Re-lanza la excepción para obtener la traza de la pila
   } catch (error, stackTrace) {
-    if (error is Exception) {
-      return 'ERROR ===:> [$error in ${stackTrace.toString()}]';
-    } else {
-      return 'WARNING ===:> $error';
-    }
+    return (error.toString() + stackTrace.toString());
+    // var trace = Trace.from(stackTrace);
+    // var frame = trace.frames.first;
+    // return ('${error.toString()} at ${frame.uri}:${frame.line}');
+    // print('Exception details: $error');
+    // print('File: ${frame.uri}');
+    // print('Line: ${frame.line}');
   }
 }
 

@@ -9,7 +9,89 @@ import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-class SFinn {
+class SFinnInfo extends Object {
+  String id;
+  String uuid;
+  String project;
+
+  List partidas = [];
+
+  // List<Map<String, dynamic>> contributions = [];
+  // List<Map<String, dynamic>> distributions = [];
+
+  SFinnInfo(this.id, this.uuid, this.project);
+
+  factory SFinnInfo.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("project")) {
+      json["project"] = "";
+    }
+    if (!json.containsKey("partidas")) {
+      json["partidas"] = [];
+    }
+    SFinnInfo item = SFinnInfo(json["id"], json["uuid"], json["project"]);
+    item.partidas = json["partidas"]
+        .map((e) => SFinn.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'project': project,
+        'partidas': partidas.map((e) => e.toJson()).toList(),
+      };
+
+  void save() {
+    final database = db.collection("s4c_finninfo");
+    if (id == "") {
+      id = uuid;
+      Map<String, dynamic> data = toJson();
+      database.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      database.doc(id).set(data);
+    }
+  }
+
+  void delete() {
+    final database = db.collection("s4c_finninfo");
+    if (id != "") {
+      database.doc(id).delete();
+    }
+  }
+
+  static Future<SFinnInfo?> byProject(String uuidProject) async {
+    try {
+      final database = db.collection("s4c_finninfo");
+      QuerySnapshot query =
+          await database.where('project', isEqualTo: uuidProject).get();
+      if (query.docs.isNotEmpty) {
+        SFinnInfo item =
+            SFinnInfo.fromJson(query.docs.first.data() as Map<String, dynamic>);
+        item.id = query.docs.first.id;
+        return item;
+      }
+    } catch (e) {
+      print("DBG ERROR: $e");
+    }
+    return null;
+  }
+
+  double getTotalContrib() {
+    double total = 0;
+    for (var partida in partidas) {
+      total += partida.getAmountContrib();
+    }
+    return total;
+  }
+
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+class SFinn extends Object {
   String id;
   String uuid;
   String name;
@@ -17,19 +99,22 @@ class SFinn {
   String parent;
   String project;
   String orgUuid;
+  double contribution;
   Organization? organization;
+  int level = -1;
+
+  List<dynamic> partidas = [];
+  List<dynamic> contributions = [];
+  List<dynamic> distributions = [];
 
   SFinn(this.id, this.uuid, this.name, this.description, this.parent,
       this.project,
-      {this.orgUuid = ""});
+      {this.orgUuid = "", this.contribution = 0.0});
 
   factory SFinn.fromJson(Map<String, dynamic> json) {
-    if (!json.containsKey("orgUuid") ||
-        json["orgUuid"] == "" ||
-        json["orgUuid"] == null) {
-      json["orgUuid"] = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
+    if (!json.containsKey("contribution")) {
+      json["contribution"] = 0.0;
     }
-
     SFinn partida = SFinn(
       json["id"],
       json["uuid"],
@@ -38,7 +123,26 @@ class SFinn {
       json['parent'],
       json['project'],
       orgUuid: json['orgUuid'],
+      contribution: json['contribution'],
     );
+
+    if (json.containsKey("partidas")) {
+      partida.partidas = json["partidas"]
+          .map((e) => SFinn.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    if (json.containsKey("contributions")) {
+      partida.contributions = json["contributions"]
+          .map((e) => FinnContribution.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    if (json.containsKey("distributions")) {
+      partida.distributions = json["distributions"]
+          .map((e) => FinnDistribution.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
     return partida;
   }
 
@@ -51,7 +155,7 @@ class SFinn {
     return organization!;
   }
 
-  Map<String, String> toJson() => {
+  Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
@@ -59,6 +163,8 @@ class SFinn {
         'parent': parent,
         'project': project,
         'orgUuid': orgUuid,
+        'contribution': contribution,
+        'partidas': partidas.map((e) => e.toJson()).toList(),
       };
 
   Future<List> getContrib() async {
@@ -72,6 +178,17 @@ class SFinn {
       }
     });
     return items;
+  }
+
+  double getAmountContrib() {
+    double total = 0;
+    for (SFinn partida in partidas) {
+      total += partida.getAmountContrib();
+    }
+    if (total == 0) {
+      total = contribution;
+    }
+    return total;
   }
 
   Future<Map<String, double>> getTotalContrib() async {
@@ -189,7 +306,18 @@ class SFinn {
     return items;
   }
 
-  int getLevel() {
+  int getLevel([int deep = 0]) {
+    if (parent == "") {
+      return deep;
+    } else {
+      if (level == -1) {
+        level = SFinn.byUuid(parent).getLevel(deep + 1);
+      }
+      return level;
+    }
+  }
+
+  int getLevel2() {
     RegExp punto = RegExp("\\.");
 
     // Obtener una lista de todos los resultados de la coincidencia
@@ -231,9 +359,7 @@ class SFinn {
   void recalculate() async {
     getChildrens().then((childrens) {
       if (childrens.isEmpty) {
-        FinnContribution.totalsByFinancier(project: project).then((value) {
-          print("DBG value: $value");
-        });
+        FinnContribution.totalsByFinancier(project: project).then((value) {});
       }
       ;
       // List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
@@ -336,7 +462,6 @@ class FinnContribution {
     double total = 0;
     for (var element in query.docs) {
       FinnContribution item = FinnContribution.fromJson(element.data());
-      print("item.amount: ${item.amount}");
       total += item.amount;
     }
     amount = total;
@@ -742,22 +867,22 @@ class Invoice {
   static Future<List> getByFinn(finn) async {
     List finnUuids = [];
     finnUuids = [finn];
-    /*if (finn.runtimeType is String) {
-      finnUuids = [finn];
-    } else {
-      finnUuids = finn;
-    }*/
+
     final collection = db.collection("s4c_invoices");
     List items = [];
     if (finnUuids.isEmpty) {
       return items;
     }
 
-    final query = await collection.where("finn", whereIn: finnUuids).get();
-    for (var element in query.docs) {
-      Invoice item = Invoice.fromJson(element.data());
-      item.id = element.id;
-      items.add(item);
+    try {
+      final query = await collection.where("finn", whereIn: finnUuids).get();
+      for (var element in query.docs) {
+        Invoice item = Invoice.fromJson(element.data());
+        item.id = element.id;
+        items.add(item);
+      }
+    } catch (e) {
+      print("DBG ERROR: $e");
     }
     items.sort((a, b) => a.date.compareTo(b.date));
 

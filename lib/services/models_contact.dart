@@ -125,7 +125,10 @@ class Contact {
       bool isSync = projects.length == projectsObj.length;
       int id_prj = 0;
       while ((isSync) && (id_prj < projectsObj.length)) {
-        isSync = (projects.contains(projectsObj[id_prj].uuid));
+        try {
+          isSync = (projects.contains(projectsObj[id_prj].uuid));
+        } catch (e) {}
+        ;
         id_prj++;
       }
       if (isSync) {
@@ -138,6 +141,9 @@ class Contact {
       try {
         QuerySnapshot query =
             await dbProject.where("uuid", isEqualTo: pr).get();
+        if (query.docs.isEmpty) {
+          continue;
+        }
         final doc = query.docs.first;
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
@@ -145,8 +151,9 @@ class Contact {
         // await projObj.reload();
         projectsObj.add(projObj);
         projObj.reload();
-      } catch (e) {
-        print(showException(e));
+      } catch (e, stacktrace) {
+        print(e);
+        print(stacktrace);
       }
     }
     return projectsObj;
