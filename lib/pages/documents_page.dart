@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -59,6 +60,11 @@ class _DocumentsPageState extends State<DocumentsPage> {
     } else {
       currentFolder = null;
     }*/
+    /*print("--1--");
+    print(Uri.base
+        .toString()); // http://localhost:8082/game.html?id=15&randomNumber=3.14
+    print(Uri.base.query); // id=15&randomNumber=3.14
+    print(Uri.base.queryParameters['currentFolder']);*/
 
     if (currentFolder != null) print(currentFolder!.name);
     return Scaffold(
@@ -271,24 +277,24 @@ class _DocumentsPageState extends State<DocumentsPage> {
           if (snapshot.hasData) {
             folders = snapshot.data!;
 
-            /*return GridView.builder(
+            return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  childAspectRatio: 5,
+                  childAspectRatio: 6,
                 ),
                 itemCount: folders.length,
                 itemBuilder: (_, index) {
                   Folder? cFolder = folders[index];
                   return Row(children: [
-                    goPage(context, folders[index].name,
+                    goPageDoc(context, folders[index].name,
                         DocumentsPage(currentFolder: cFolder), Icons.folder,
                         extraction: () {}),
                     /*customRowBtn(context, folders[index].name, Icons.folder,
                         "/documents", {"parent": cFolder}),*/
                     folderPopUpBtn(context, folders[index], currentFolder)
                   ]);
-                });*/
-            return ListView.builder(
+                });
+            /*return ListView.builder(
                 //padding: const EdgeInsets.all(8),
                 itemCount: folders.length,
                 scrollDirection: Axis.horizontal,
@@ -309,7 +315,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
                         ),
                         folderPopUpBtn(context, folders[index], currentFolder)
                       ]);
-                });
+                });*/
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -319,16 +325,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
 //enum SampleItem { itemOne, itemTwo }
-
-  Future<bool> folderHaveChildren(folder) async {
-    folders = await getFolders(folder);
-    files = await getFiles(folder);
-    if ((folders.isNotEmpty) || (files.isNotEmpty)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   Widget folderPopUpBtn(context, folder, currentFolder) {
     SampleItem? selectedMenu;
@@ -344,7 +340,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
           _folderEditDialog(context, nameController, folder, currentFolder);
         }
         if (selectedMenu == SampleItem.itemTwo) {
-          bool haveChildren = await folderHaveChildren(folder.uuid);
+          //bool haveChildren = await folderHaveChildren(folder.uuid);
+          bool haveChildren = await folder.haveChildren();
           if (!haveChildren) {
             _confirmRemoveDialog(context, folder, currentFolder);
           } else {

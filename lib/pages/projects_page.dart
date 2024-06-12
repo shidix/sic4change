@@ -7,6 +7,7 @@ import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
@@ -722,6 +723,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
       bt.delete();
     }
 
+    Folder? folder = await getFolderByUuid(project.folder);
+    bool haveChildren = await folder!.haveChildren();
+    if (!haveChildren) folder.delete();
+
     project.delete();
 
     loadProjects();
@@ -768,6 +773,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
                             space(height: 10),
                             customText(
                                 "- La información financiera asociada al proyecto (partidas, aportaciones...)",
+                                16),
+                            space(height: 20),
+                            customText(
+                                "- La carpeta del proyecto y todo lo que contiene",
                                 16),
                             space(height: 20),
                             customText(

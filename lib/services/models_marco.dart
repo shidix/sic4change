@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -119,6 +120,7 @@ class GoalIndicator {
   String base = "";
   String expected = "";
   String obtained = "";
+  String link = "";
   String goal = "";
 
   GoalIndicator(this.goal);
@@ -131,6 +133,7 @@ class GoalIndicator {
         base = json['base'],
         expected = json['expected'],
         obtained = json['obtained'],
+        link = json['link'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -141,6 +144,7 @@ class GoalIndicator {
         'base': base,
         'expected': expected,
         'obtained': obtained,
+        'link': link,
         'goal': goal,
       };
 
@@ -158,6 +162,12 @@ class GoalIndicator {
 
   Future<void> delete() async {
     await dbGoalIndicator.doc(id).delete();
+  }
+
+  Future<Folder?> getLink() async {
+    Folder? folder =
+        await getFolderByUuid("6e9d8f67-76e1-4437-b601-a2b104c8a6d6");
+    return folder;
   }
 }
 

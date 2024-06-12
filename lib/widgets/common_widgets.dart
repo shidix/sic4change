@@ -948,6 +948,28 @@ Widget goPage(context, btnName, newContext, icon,
       child: child);
 }
 
+Widget goPageDoc(context, btnName, newContext, icon,
+    {style = "", extraction = null}) {
+  Widget child = Container(
+      width: 250,
+      height: 50,
+      child: Row(
+        children: [
+          Icon(icon, color: subTitleColor),
+          space(width: 5),
+          customText(btnName, 12, textColor: subTitleColor),
+        ],
+      ));
+  return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: ((context) => newContext)));
+        extraction?.call();
+      },
+      style: btnStyle,
+      child: child);
+}
+
 Widget goPageIcon(context, btnText, icon, newContext, {iconSize = 20}) {
   return IconButton(
       icon: Icon(
@@ -1345,7 +1367,6 @@ Widget customCollapse(context, title, action, obj,
     }
   };
 
-
   Map<String, dynamic> currentStyle;
   if (style is String) {
     style = style.toLowerCase();
@@ -1353,8 +1374,7 @@ Widget customCollapse(context, title, action, obj,
       style = "main";
     }
     currentStyle = styles[style]!;
-  }
-  else {
+  } else {
     currentStyle = style;
   }
 
@@ -1396,7 +1416,6 @@ Widget customCollapse2(context, title, action, obj,
     ],
   );
 }
-
 
 //--------------------------------------------------------------------------
 //                           DIALOGS

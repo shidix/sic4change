@@ -54,6 +54,16 @@ class Folder {
   Future<void> delete() async {
     await dbFolder.doc(id).delete();
   }
+
+  Future<bool> haveChildren() async {
+    List folders = await getFolders(uuid);
+    List files = await getFiles(uuid);
+    if ((folders.isNotEmpty) || (files.isNotEmpty)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 Future<List> getFolders(String parent_uuid) async {
