@@ -43,22 +43,20 @@ class _EvaluationPageState extends State<EvaluationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child:
-      
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start, 
-        mainAxisSize: MainAxisSize.min,
-        children: [
-        mainMenu(context),
-        pathHeader(context, project!.name),
-        evaluationHeader(context, project),
-        marcoMenu(context, project, "evaluation"),
-        (evaluation == null)
-            ? const Center(child: CircularProgressIndicator())
-            : contentTab(context, contentEvaluation, evaluation),
-        footer(context),
-      ]),
+        body: SingleChildScrollView(
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            mainMenu(context),
+            pathHeader(context, project!.name),
+            evaluationHeader(context, project),
+            marcoMenu(context, project, "evaluation"),
+            (evaluation == null)
+                ? const Center(child: CircularProgressIndicator())
+                : contentTab(context, contentEvaluation, evaluation),
+            footer(context),
+          ]),
     ));
   }
 
@@ -137,19 +135,17 @@ class _EvaluationPageState extends State<EvaluationPage> {
     }
 
     if (item["deadline"] is String) {
-      item["deadline"] =
-          DateFormat('dd/MM/yyyy').parse(item["deadline"]);
+      item["deadline"] = DateFormat('dd/MM/yyyy').parse(item["deadline"]);
     } else if (item["deadline"] is Timestamp) {
       item["deadline"] = (item["deadline"] as Timestamp).toDate();
     }
-    
 
     return Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: 
-            [
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               Padding(
                   padding: const EdgeInsets.only(right: 0, top: 0),
                   child: iconBtn(context, evaluationEditDialog,
@@ -157,23 +153,23 @@ class _EvaluationPageState extends State<EvaluationPage> {
                       icon: Icons.edit, text: "Editar")),
               Padding(
                   padding: const EdgeInsets.only(right: 0, top: 0),
-                  child: removeConfirmBtn(context, removeItem, args) 
-                  ),
+                  child: removeConfirmBtn(context, removeItem, args)),
             ]),
             Row(children: [
               Expanded(
-                flex: (type == 0)?0:3,
+                flex: (type == 0) ? 0 : 3,
                 child: Padding(
                     padding: const EdgeInsets.only(right: 0, top: 0),
-                    child:  (type == 0)? Container():
-                    customTextLabel(
-                      context,
-                      "Partes interesadas",
-                      item["stakeholder"],
-                    )),
+                    child: (type == 0)
+                        ? Container()
+                        : customTextLabel(
+                            context,
+                            "Partes interesadas",
+                            item["stakeholder"],
+                          )),
               ),
               Expanded(
-                  flex: (type==0)?6:3,
+                  flex: (type == 0) ? 6 : 3,
                   child: Padding(
                     padding: const EdgeInsets.only(right: 0, top: 0),
                     child: customTextLabel(
@@ -188,11 +184,10 @@ class _EvaluationPageState extends State<EvaluationPage> {
                     padding: const EdgeInsets.only(right: 0, top: 0),
                     child: customTextLabel(
                       context,
-                      (type == 0)?"Referencia ML":"Necesidad",
+                      (type == 0) ? "Referencia ML" : "Necesidad",
                       getIcon(item["isRefML"] == "Sí", size: 18.0),
                     ),
                   )),
-
               Expanded(
                   flex: 1,
                   child: Padding(
@@ -300,8 +295,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
                 flex: 1,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 0, top: 0),
-                  child: customTextLabel(context, "Observaciones",
-                      item["observations"] ?? ""),
+                  child: customTextLabel(
+                      context, "Observaciones", item["observations"] ?? ""),
                 ),
               ),
             ]),
@@ -328,15 +323,15 @@ class _EvaluationPageState extends State<EvaluationPage> {
     args["type"] = 0;
     return itemContent(context, args);
   }
-  
+
   Widget conclussionCard(context, args) {
     int index = args["index"];
     var conclussion = evaluation!.conclussions[index];
-    Map<String, dynamic> styleCollapse = { 
+    Map<String, dynamic> styleCollapse = {
       "iconColor": mainMenuBtnSelectedColor,
       "bgColor": headerListBgColorIndicator,
       "titleColor": mainMenuBtnSelectedColor
-      };
+    };
     return Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 10, right: 10, left: 10),
         child: Container(
@@ -375,7 +370,6 @@ class _EvaluationPageState extends State<EvaluationPage> {
         ]),
         for (var i = 0; i < obj.requirements.length; i++)
           requirementCard(context, {"index": i}),
-
       ],
     );
   }
@@ -383,11 +377,11 @@ class _EvaluationPageState extends State<EvaluationPage> {
   Widget requirementCard(context, args) {
     int index = args["index"];
     var requirement = evaluation!.requirements[index];
-    Map<String, dynamic> styleCollapse = { 
+    Map<String, dynamic> styleCollapse = {
       "iconColor": mainMenuBtnSelectedColor,
       "bgColor": headerListBgColorIndicator,
       "titleColor": mainMenuBtnSelectedColor
-      };
+    };
     return Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 10, right: 10, left: 10),
         child: Container(
@@ -413,7 +407,6 @@ class _EvaluationPageState extends State<EvaluationPage> {
             ],
           ),
         ));
-
   }
 
   Widget requirementContent(context, args) {

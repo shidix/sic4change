@@ -697,8 +697,15 @@ class _BankTransferFormState extends State<BankTransferForm> {
 class SFinnForm extends StatefulWidget {
   final SFinn? existingFinn;
   final SProject? project;
+  final Map<String, Organization>? financiers;
+  final Organization? financier;
 
-  const SFinnForm({Key? key, this.existingFinn, this.project})
+  const SFinnForm(
+      {Key? key,
+      required this.existingFinn,
+      required this.project,
+      required this.financiers,
+      required this.financier})
       : super(key: key);
 
   @override
@@ -722,17 +729,32 @@ class _SFinnFormState extends State<SFinnForm> {
 
   @override
   Widget build(BuildContext context) {
-    List<DropdownMenuItem<Object>>? financiers = [];
-    financiers.add(const DropdownMenuItem(
-        value: "", child: Text("Selecciona un financiador")));
-    /*for (Financier financier in widget.project!.financiersObj) {
-      financiers.add(
-          DropdownMenuItem(value: financier.organization, child: Text(financier.name)));
-    }*/
-    for (Organization financier in widget.project!.financiersObj) {
-      financiers.add(
-          DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
+    List<KeyValue> financierOptions = [];
+    if (widget.financier != null) {
+      financierOptions
+          .add(KeyValue(widget.financier!.uuid, widget.financier!.name));
+    } else {
+      widget.financiers!.forEach((key, value) {
+        financierOptions.add(KeyValue(key, value.name));
+      });
     }
+
+    if (widget.financier != null) {
+      _finn.orgUuid = widget.financier!.uuid;
+    }
+
+    Widget financiersSelect = CustomSelectFormField(
+        labelText: "Financiador",
+        initial: (widget.financier != null)
+            ? widget.financier!.uuid
+            : (_finn.orgUuid == "")
+                ? financierOptions.first.key
+                : _finn.orgUuid,
+        options: financierOptions,
+        onSelectedOpt: (value) {
+          _finn.orgUuid = value.toString();
+        },
+        required: true);
 
     List<Widget> buttons;
 
@@ -756,6 +778,7 @@ class _SFinnFormState extends State<SFinnForm> {
     Widget cancelButton = actionButton(context, "Cancelar", () {
       Navigator.of(context).pop(null);
     }, Icons.cancel, null);
+
     if (widget.existingFinn!.id == "") {
       buttons = [
         Expanded(flex: 5, child: saveButton),
@@ -782,49 +805,63 @@ class _SFinnFormState extends State<SFinnForm> {
             children: [
               Row(
                 children: [
+                  // Expanded(
+                  //     flex: 3,
+                  //     child: Padding(
+                  //         padding: const EdgeInsets.only(right: 10),
+                  //         child: financiersSelect)),
                   Expanded(
-                      flex: 2,
-                      child: DropdownButtonFormField(
-                          value: _finn.orgUuid,
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: TextFormField(
+                          initialValue: _finn.name,
                           decoration:
-                              const InputDecoration(labelText: 'Financiador'),
-                          items: financiers,
+                              const InputDecoration(labelText: 'Código'),
                           validator: (value) {
-                            if (value == null || value == "") {
-                              return 'Por favor, seleccione un financiador';
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese un código de partida';
                             }
                             return null;
                           },
-                          onChanged: (value) {
-                            _finn.orgUuid = value.toString();
-                          })),
+                          onSaved: (value) => _finn.name = value!,
+                        ),
+                      )),
                   Expanded(
-                    flex: 1,
-                    child: TextFormField(
-                      initialValue: _finn.name,
-                      decoration: const InputDecoration(labelText: 'Código'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese un código de partida';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) => _finn.name = value!,
-                    ),
+                    flex: 2,
+                    child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: TextFormField(
+                          initialValue: _finn.description,
+                          decoration:
+                              const InputDecoration(labelText: 'Descripción'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese la descripción';
+                            }
+                            return null;
+                          },
+                          onSaved: (value) => _finn.description = value!,
+                        )),
                   ),
                   Expanded(
                     flex: 2,
                     child: TextFormField(
-                      initialValue: _finn.description,
-                      decoration:
-                          const InputDecoration(labelText: 'Descripción'),
+                      initialValue: _finn.contribution.toString(),
+                      decoration: const InputDecoration(labelText: 'Importe'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese la descripción';
+                          return 'Por favor, ingrese un importe';
                         }
                         return null;
                       },
-                      onSaved: (value) => _finn.description = value!,
+                      onChanged: (value) {
+                        _finn.contribution = currencyToDouble(value);
+                      },
+                      onSaved: (value) =>
+                          _finn.contribution = currencyToDouble(value!),
                     ),
                   )
                 ],

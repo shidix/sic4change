@@ -1364,7 +1364,12 @@ Widget customCollapse(context, title, action, obj,
       "titleColor": Colors.white,
       "bgColor": Colors.green,
       "iconColor": Colors.white
-    }
+    },
+    "level-2": {
+      "iconColor": mainMenuBtnSelectedColor,
+      "bgColor": headerListBgColorIndicator,
+      "titleColor": mainMenuBtnSelectedColor
+    },
   };
 
   Map<String, dynamic> currentStyle;

@@ -86,6 +86,9 @@ Future<List> getFolders(String parent_uuid) async {
 
 Future<Folder?> getFolderByUuid(String uuid) async {
   QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: uuid).get();
+  if (query.docs.isEmpty) {
+    return null;
+  }
   final doc = query.docs.first;
   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
   data["id"] = doc.id;
