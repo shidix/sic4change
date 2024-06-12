@@ -806,10 +806,14 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(0),
           child: Column(children: [
             Container(
-                color: headerListBgColorIndicator,
+                decoration: BoxDecoration(
+                    color: headerListBgColorIndicator,
+                    borderRadius: BorderRadius.circular(0.0),
+                    border: Border.all(
+                        color: headerListBgColorIndicator, width: 1.0)),
                 child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
@@ -898,7 +902,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 ])),
             const Divider(thickness: 1, color: Colors.grey),
             ...rows,
-            const Divider(thickness: 1, color: Colors.grey),
+            // const Divider(thickness: 1, color: Colors.grey),
           ]),
         ));
   }
