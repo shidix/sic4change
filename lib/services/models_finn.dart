@@ -42,12 +42,13 @@ class SFinnInfo extends Object {
         'partidas': partidas.map((e) => e.toJson()).toList(),
       };
 
-  void save() {
+  void save() async {
     final database = db.collection("s4c_finninfo");
     if (id == "") {
       id = uuid;
       Map<String, dynamic> data = toJson();
-      database.add(data);
+      database.add(data).then((value) => id = value.id);
+//      database.add(data);
     } else {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
@@ -114,6 +115,9 @@ class SFinn extends Object {
   factory SFinn.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("contribution")) {
       json["contribution"] = 0.0;
+    }
+    if (!json.containsKey("id")) {
+      json["id"] = "";
     }
     SFinn partida = SFinn(
       json["id"],
@@ -317,23 +321,13 @@ class SFinn extends Object {
     }
   }
 
-  int getLevel2() {
-    RegExp punto = RegExp("\\.");
-
-    // Obtener una lista de todos los resultados de la coincidencia
-    List<Match> separators = punto.allMatches(name).toList();
-
-    // Contar el número de coincidencias
-    return separators.length;
-  }
-
   static SFinn byUuid(String uuid) {
     final database = db.collection("s4c_finns");
     SFinn item = SFinn('', uuid, '', '', '', '');
     database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
       var first = querySnapshot.docs.first;
-      item.id = first.id;
       item = SFinn.fromJson(first.data());
+      item.id = first.id;
       Organization.byUuid(item.orgUuid).then((value) {
         item.organization = value;
       });
@@ -368,15 +362,14 @@ class SFinn extends Object {
     });
   }
 
-  void save() {
+  void save() async {
     final database = db.collection("s4c_finns");
     if (uuid == "") {
       uuid = const Uuid().v4();
-    }
-    if (id == "") {
-      id = uuid;
       Map<String, dynamic> data = toJson();
-      database.add(data);
+      await database.add(data).then((value) {
+        id = value.id;
+      });
     } else {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
@@ -877,6 +870,7 @@ class Invoice {
     try {
       final query = await collection.where("finn", whereIn: finnUuids).get();
       for (var element in query.docs) {
+        print("DBG 0001 ${element.data()}");
         Invoice item = Invoice.fromJson(element.data());
         item.id = element.id;
         items.add(item);

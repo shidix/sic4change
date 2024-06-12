@@ -805,11 +805,11 @@ class _SFinnFormState extends State<SFinnForm> {
             children: [
               Row(
                 children: [
-                  Expanded(
-                      flex: 2,
-                      child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: financiersSelect)),
+                  // Expanded(
+                  //     flex: 3,
+                  //     child: Padding(
+                  //         padding: const EdgeInsets.only(right: 10),
+                  //         child: financiersSelect)),
                   Expanded(
                       flex: 1,
                       child: Padding(
