@@ -695,16 +695,59 @@ class _GoalsPageState extends State<GoalsPage>
             space(height: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
-                labelText: "Valor",
-                initial: indicator.value,
+                labelText: "FFVV",
+                initial: indicator.source,
                 size: 900,
                 minLines: 1,
                 maxLines: 1,
                 fieldValue: (String val) {
-                  setState(() => indicator.value = val);
+                  setState(() => indicator.source = val);
                 },
               )
             ]),
+            space(height: 10),
+            Row(
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Línea Base",
+                    initial: indicator.base,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.base = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Esperado",
+                    initial: indicator.expected,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.expected = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Obtenido",
+                    initial: indicator.obtained,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.obtained = val);
+                    },
+                  )
+                ]),
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveResultIndicator, indicator),
@@ -760,9 +803,24 @@ class _GoalsPageState extends State<GoalsPage>
                     bold: FontWeight.bold, textColor: headerListTitleColor),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText("Valor", 14,
+              label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Valor",
+              tooltip: "FFVV",
+            ),
+            DataColumn(
+              label: customText("Línea Base", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Línea Base",
+            ),
+            DataColumn(
+              label: customText("Resultado Esperado", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Esperado",
+            ),
+            DataColumn(
+              label: customText("Resultado Obtenido", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -776,7 +834,10 @@ class _GoalsPageState extends State<GoalsPage>
               .map(
                 (indicator) => DataRow(cells: [
                   DataCell(Text(indicator.name)),
-                  DataCell(Text(indicator.value)),
+                  DataCell(Text(indicator.source)),
+                  DataCell(Text(indicator.base)),
+                  DataCell(Text(indicator.expected)),
+                  DataCell(Text(indicator.obtained)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,
@@ -859,7 +920,7 @@ class _GoalsPageState extends State<GoalsPage>
                           SizedBox(
                               width: 220,
                               child: DateTimePicker(
-                                labelText: 'Aprobación',
+                                labelText: 'Fecha de inicio',
                                 selectedDate: activity.iniDate,
                                 onSelectedDate: (DateTime date) {
                                   setState(() {
@@ -875,7 +936,7 @@ class _GoalsPageState extends State<GoalsPage>
                           SizedBox(
                               width: 220,
                               child: DateTimePicker(
-                                labelText: 'Aprobación',
+                                labelText: 'Fecha de fin',
                                 selectedDate: activity.endDate,
                                 onSelectedDate: (DateTime date) {
                                   setState(() {
@@ -1105,7 +1166,7 @@ class _GoalsPageState extends State<GoalsPage>
             space(height: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
-                labelText: "Fuente",
+                labelText: "FFVV",
                 initial: indicator.source,
                 size: 900,
                 minLines: 1,
@@ -1115,6 +1176,49 @@ class _GoalsPageState extends State<GoalsPage>
                 },
               )
             ]),
+            space(height: 10),
+            Row(
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Línea Base",
+                    initial: indicator.base,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.base = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Esperado",
+                    initial: indicator.expected,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.expected = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Obtenido",
+                    initial: indicator.obtained,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.obtained = val);
+                    },
+                  )
+                ]),
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveActivityIndicator, indicator),
@@ -1171,9 +1275,24 @@ class _GoalsPageState extends State<GoalsPage>
                     bold: FontWeight.bold, textColor: headerListTitleColor),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText("Fuente", 14,
+              label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Fuente",
+              tooltip: "FFVV",
+            ),
+            DataColumn(
+              label: customText("Línea Base", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Línea Base",
+            ),
+            DataColumn(
+              label: customText("Resultado Esperado", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Esperado",
+            ),
+            DataColumn(
+              label: customText("Resultado Obtenido", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1188,6 +1307,9 @@ class _GoalsPageState extends State<GoalsPage>
                 (indicator) => DataRow(cells: [
                   DataCell(Text(indicator.name)),
                   DataCell(Text(indicator.source)),
+                  DataCell(Text(indicator.base)),
+                  DataCell(Text(indicator.expected)),
+                  DataCell(Text(indicator.obtained)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,
@@ -1247,7 +1369,7 @@ class _GoalsPageState extends State<GoalsPage>
             space(height: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
-                labelText: "Fuente",
+                labelText: "FFVV",
                 initial: indicator.source,
                 size: 900,
                 minLines: 1,
@@ -1257,6 +1379,49 @@ class _GoalsPageState extends State<GoalsPage>
                 },
               )
             ]),
+            space(height: 10),
+            Row(
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Línea Base",
+                    initial: indicator.base,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.base = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Esperado",
+                    initial: indicator.expected,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.expected = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Resultado Obtenido",
+                    initial: indicator.obtained,
+                    size: 290,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      setState(() => indicator.obtained = val);
+                    },
+                  )
+                ]),
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveGoalIndicator, indicator),
@@ -1317,9 +1482,24 @@ class _GoalsPageState extends State<GoalsPage>
                     bold: FontWeight.bold, textColor: headerListTitleColor),
                 tooltip: "Nombre"),
             DataColumn(
-              label: customText("Fuente", 14,
+              label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Fuente",
+              tooltip: "FFVV",
+            ),
+            DataColumn(
+              label: customText("Línea Base", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Línea Base",
+            ),
+            DataColumn(
+              label: customText("Resultado Esperado", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Esperado",
+            ),
+            DataColumn(
+              label: customText("Resultado Obtenido", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1334,6 +1514,9 @@ class _GoalsPageState extends State<GoalsPage>
                 (indicator) => DataRow(cells: [
                   DataCell(Text(indicator.name)),
                   DataCell(Text(indicator.source)),
+                  DataCell(Text(indicator.base)),
+                  DataCell(Text(indicator.expected)),
+                  DataCell(Text(indicator.obtained)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,

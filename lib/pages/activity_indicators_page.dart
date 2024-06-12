@@ -119,10 +119,10 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
                 space(height: 20),
                 CustomTextField(
                   labelText: "Porcentaje",
-                  initial: indicator.percent,
+                  initial: indicator.base,
                   size: 220,
                   fieldValue: (String val) {
-                    setState(() => indicator.percent = val);
+                    setState(() => indicator.base = val);
                   },
                 ),
                 space(height: 20),

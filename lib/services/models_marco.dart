@@ -116,6 +116,9 @@ class GoalIndicator {
   String uuid = "";
   String name = "";
   String source = "";
+  String base = "";
+  String expected = "";
+  String obtained = "";
   String goal = "";
 
   GoalIndicator(this.goal);
@@ -125,6 +128,9 @@ class GoalIndicator {
         uuid = json["uuid"],
         name = json['name'],
         source = json['source'],
+        base = json['base'],
+        expected = json['expected'],
+        obtained = json['obtained'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -132,6 +138,9 @@ class GoalIndicator {
         'uuid': uuid,
         'name': name,
         'source': source,
+        'base': base,
+        'expected': expected,
+        'obtained': obtained,
         'goal': goal,
       };
 
@@ -301,7 +310,10 @@ class ResultIndicator {
   String id = "";
   String uuid = "";
   String name = "";
-  String value = "";
+  String source = "";
+  String base = "";
+  String expected = "";
+  String obtained = "";
   String result = "";
 
   ResultIndicator(this.result);
@@ -310,14 +322,20 @@ class ResultIndicator {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
-        value = json['value'],
+        source = json['source'],
+        expected = json['expected'],
+        obtained = json['obtained'],
+        base = json['base'],
         result = json['result'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
-        'value': value,
+        'source': source,
+        'base': base,
+        'expected': expected,
+        'obtained': obtained,
         'result': result,
       };
 
@@ -452,8 +470,10 @@ class ActivityIndicator {
   String id = "";
   String uuid = "";
   String name = "";
-  String percent = "";
   String source = "";
+  String base = "";
+  String expected = "";
+  String obtained = "";
   String activity = "";
 
   ActivityIndicator(this.activity);
@@ -462,23 +482,27 @@ class ActivityIndicator {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
-        percent = json['percent'],
         source = json['source'],
+        base = json['base'],
+        expected = json['expected'],
+        obtained = json['obtained'],
         activity = json['activity'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
-        'percent': percent,
         'source': source,
+        'base': base,
+        'expected': expected,
+        'obtained': obtained,
         'activity': activity,
       };
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbActivityIndicator.add(data);
     } else {
@@ -520,41 +544,34 @@ Future<List> getActivityIndicatorsByActivity(String _activity) async {
 
 Future<String> getProjectByActivityIndicator(String _uuid) async {
   QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
-  final _dbActivity = query.docs.first;
-  final Map<String, dynamic> data = _dbActivity.data() as Map<String, dynamic>;
-  data["id"] = _dbActivity.id;
-  Activity _activity = Activity.fromJson(data);
+  final dbAct = query.docs.first;
+  final Map<String, dynamic> data = dbAct.data() as Map<String, dynamic>;
+  data["id"] = dbAct.id;
+  Activity activity = Activity.fromJson(data);
 
-  QuerySnapshot query_r =
-      await dbResult.where("uuid", isEqualTo: _activity.result).get();
-  final _dbResult = query_r.docs.first;
-  final Map<String, dynamic> dataResult =
-      _dbResult.data() as Map<String, dynamic>;
-  dataResult["id"] = _dbResult.id;
-  Result _result = Result.fromJson(dataResult);
+  QuerySnapshot queryR =
+      await dbResult.where("uuid", isEqualTo: activity.result).get();
+  final dbRes = queryR.docs.first;
+  final Map<String, dynamic> dataResult = dbRes.data() as Map<String, dynamic>;
+  dataResult["id"] = dbRes.id;
+  Result result = Result.fromJson(dataResult);
 
-  QuerySnapshot query_g =
-      await dbGoal.where("uuid", isEqualTo: _result.goal).get();
-  final _dbGoal = query_g.docs.first;
-  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
-  dataGoal["id"] = _dbGoal.id;
-  Goal _goal = Goal.fromJson(dataGoal);
+  QuerySnapshot queryG =
+      await dbGoal.where("uuid", isEqualTo: result.goal).get();
+  final dbG = queryG.docs.first;
+  final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+  dataGoal["id"] = dbG.id;
+  Goal goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot query_p =
-      await dbProject.where("uuid", isEqualTo: _goal.project).get();
-  final _dbProject = query_p.docs.first;
+  QuerySnapshot queryP =
+      await dbProject.where("uuid", isEqualTo: goal.project).get();
+  final dbProj = queryP.docs.first;
   final Map<String, dynamic> dataProject =
-      _dbProject.data() as Map<String, dynamic>;
-  dataProject["id"] = _dbProject.id;
-  SProject _project = SProject.fromJson(dataProject);
+      dbProj.data() as Map<String, dynamic>;
+  dataProject["id"] = dbProj.id;
+  SProject project = SProject.fromJson(dataProject);
 
-  return _project.name +
-      " > " +
-      _goal.name +
-      " > " +
-      _result.name +
-      " > " +
-      _activity.name;
+  return "${project.name} > ${goal.name} > ${result.name} > ${activity.name}";
 }
 
 //--------------------------------------------------------------
