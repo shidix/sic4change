@@ -356,9 +356,6 @@ class SFinn extends Object {
         FinnContribution.totalsByFinancier(project: project).then((value) {});
       }
       ;
-      // List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
-
-      // FinnContribution.getSummaryByProject project)
     });
   }
 
