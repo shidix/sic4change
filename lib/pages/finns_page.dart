@@ -724,8 +724,8 @@ class _FinnsPageState extends State<FinnsPage> {
             const Divider(thickness: 1, color: Colors.grey),
             Container(
                 color: headerListBgColor,
-                child: const Row(children: [
-                  Expanded(
+                child: Row(children: [
+                  const Expanded(
                       flex: 5,
                       child: Padding(
                           padding:
@@ -737,12 +737,38 @@ class _FinnsPageState extends State<FinnsPage> {
                   Expanded(
                       flex: 2,
                       child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("Presupuesto",
-                              style: headerListStyle,
-                              textAlign: TextAlign.right))),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              iconBtn(context, (context, args) {}, [],
+                                  icon: Icons.info,
+                                  text: "Lo que se indica en la partida",
+                                  iconSize: 14),
+                              const Text("Nominal",
+                                  style: headerListStyle,
+                                  textAlign: TextAlign.right),
+                            ],
+                          ))),
                   Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              iconBtn(context, (context, args) {}, [],
+                                  icon: Icons.info,
+                                  text: "Lo que se suman las subpartidas",
+                                  iconSize: 14),
+                              const Text("Subpartidas",
+                                  style: headerListStyle,
+                                  textAlign: TextAlign.right),
+                            ],
+                          ))),
+                  const Expanded(
                       flex: 2,
                       child: Padding(
                           padding:
@@ -750,7 +776,7 @@ class _FinnsPageState extends State<FinnsPage> {
                           child: Text("Ejecutado",
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
-                  Expanded(
+                  const Expanded(
                       flex: 1,
                       child: Padding(
                           padding:
@@ -758,8 +784,8 @@ class _FinnsPageState extends State<FinnsPage> {
                           child: Text("%",
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
-                  Expanded(
-                      flex: 1,
+                  const Expanded(
+                      flex: 2,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -782,6 +808,19 @@ class _FinnsPageState extends State<FinnsPage> {
                                       ? cellsListStyle.copyWith(
                                           fontWeight: FontWeight.bold)
                                       : cellsListStyle))),
+                      Expanded(
+                          flex: 2,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 10),
+                              child: Text(
+                                toCurrency(finn.contribution),
+                                textAlign: TextAlign.right,
+                                style: (finn.getLevel() == 0)
+                                    ? cellsListStyle.copyWith(
+                                        fontWeight: FontWeight.bold)
+                                    : cellsListStyle,
+                              ))),
                       Expanded(
                           flex: 2,
                           child: Padding(
@@ -833,30 +872,34 @@ class _FinnsPageState extends State<FinnsPage> {
                                   )),
                       ),
                       Expanded(
-                        flex: 1,
+                        flex: 2,
                         child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 10),
-                            child: Row(children: [
-                              iconBtn(context, addFinnDialog, [item, finn],
-                                  icon: Icons.add),
-                              iconBtn(context, (context, finn) {
-                                _editFinnDialog(context, finn).then((value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  if (finn.id == "") {
-                                    finnList.remove(finn);
-                                    finnHash.remove(finn.name);
-                                    finnUuidHash.remove(finn.uuid);
-                                  }
-                                  finnSelected = null;
-                                  finnInfo.save();
-                                  reloadState();
-                                });
-                              }, finn, icon: Icons.edit_outlined),
-                              removeConfirmBtn(context, removeFinn, finn)
-                            ])),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  iconBtn(context, addFinnDialog, [item, finn],
+                                      icon: Icons.add,
+                                      text: 'Añadir subpartida'),
+                                  iconBtn(context, (context, finn) {
+                                    _editFinnDialog(context, finn)
+                                        .then((value) {
+                                      if (value == null) {
+                                        return;
+                                      }
+                                      if (finn.id == "") {
+                                        finnList.remove(finn);
+                                        finnHash.remove(finn.name);
+                                        finnUuidHash.remove(finn.uuid);
+                                      }
+                                      finnSelected = null;
+                                      finnInfo.save();
+                                      reloadState();
+                                    });
+                                  }, finn, icon: Icons.edit_outlined),
+                                  removeConfirmBtn(context, removeFinn, finn)
+                                ])),
                       ),
                     ])
                   : Container(),
@@ -885,8 +928,17 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget populateFinnanciersContainer() {
-    return customCollapse(context, "Aportes presupuestarios por financiador",
-        getInfoFinanciers, {});
+    return Padding(
+        padding: EdgeInsets.all(10),
+        child: customCollapse(
+            context,
+            const Text("Aportes presupuestarios por financiador",
+                style: TextStyle(
+                    fontSize: 18,
+                    color: mainColor,
+                    fontWeight: FontWeight.bold)),
+            getInfoFinanciers,
+            {}));
   }
 
   Future<double> invoicesByPartner() async {
@@ -974,7 +1026,7 @@ class _FinnsPageState extends State<FinnsPage> {
           children: [
             transferButton(context, project),
             space(width: 10),
-            finnAddBtn(context, project),
+            // finnAddBtn(context, project),
             space(width: 10),
             goPage(context, 'Volver', const ProjectsPage(),
                 Icons.arrow_circle_left_outlined),
@@ -984,10 +1036,10 @@ class _FinnsPageState extends State<FinnsPage> {
     ]);
   }
 
-  Widget finnAddBtn(context, _project) {
-    return actionButtonVertical(
-        context, 'Nueva partida', addFinnDialog, Icons.add, [null, null]);
-  }
+  // Widget finnAddBtn(context, _project) {
+  //   return actionButtonVertical(
+  //       context, 'Nueva partida', addFinnDialog, Icons.add, [null, null]);
+  // }
 
   Widget transferButton(context, _project) {
     void goTransfer(project) {
