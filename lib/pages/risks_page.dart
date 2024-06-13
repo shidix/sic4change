@@ -80,9 +80,7 @@ class _RisksPageState extends State<RisksPage> {
     getRisksByProject(project!.uuid).then((val) {
       risks = val;
       if (mounted) {
-        setState(() {
-          
-        });
+        setState(() {});
       }
     });
   }
@@ -90,14 +88,28 @@ class _RisksPageState extends State<RisksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        mainMenu(context),
-        pathHeader(context, project!.name),
-        riskHeader(context, project),
-        marcoMenu(context, project, "risk"),
-        contentTab(context, riskList, project),
-        footer(context),
-      ]),
+      body: SingleChildScrollView(
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              mainMenu(context),
+              pathHeader(context, project!.name),
+              riskHeader(context, project),
+              marcoMenu(context, project, "risk"),
+              contentTab(context, riskList, project),
+              footer(context),
+            ]),
+      ),
+
+      // Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      //   mainMenu(context),
+      //   pathHeader(context, project!.name),
+      //   riskHeader(context, project),
+      //   marcoMenu(context, project, "risk"),
+      //   contentTab(context, riskList, project),
+      //   footer(context),
+      // ]),
     );
   }
 
@@ -207,13 +219,11 @@ class _RisksPageState extends State<RisksPage> {
                       KeyValue("4", "4"),
                     ]),
                     onSelectedOpt: (String val) {
-
-                        risk.extraInfo["prob"] = val;
-                        risk.extraInfo["risk"] =
-                            (int.parse(risk.extraInfo["prob"]!) *
-                                    int.parse(risk.extraInfo["impact"]!))
-                                .toString();
-                  
+                      risk.extraInfo["prob"] = val;
+                      risk.extraInfo["risk"] =
+                          (int.parse(risk.extraInfo["prob"]!) *
+                                  int.parse(risk.extraInfo["impact"]!))
+                              .toString();
                     }))),
         Expanded(
             flex: 1,
@@ -229,13 +239,11 @@ class _RisksPageState extends State<RisksPage> {
                       KeyValue("4", "4"),
                     ]),
                     onSelectedOpt: (String val) {
-                      
-                        risk.extraInfo["impact"] = val;
-                        risk.extraInfo["risk"] =
-                            (int.parse(risk.extraInfo["prob"]!) *
-                                    int.parse(risk.extraInfo["impact"]!))
-                                .toString();
-                     
+                      risk.extraInfo["impact"] = val;
+                      risk.extraInfo["risk"] =
+                          (int.parse(risk.extraInfo["prob"]!) *
+                                  int.parse(risk.extraInfo["impact"]!))
+                              .toString();
                     }))),
       ]),
       Row(children: [
@@ -249,7 +257,8 @@ class _RisksPageState extends State<RisksPage> {
                     size: 220,
                     maxLines: 5,
                     fieldValue: (String val) {
-                      risk.extraInfo["history"] = val;}))),
+                      risk.extraInfo["history"] = val;
+                    }))),
       ]),
     ];
 
@@ -346,87 +355,24 @@ class _RisksPageState extends State<RisksPage> {
     );
   }
 
-  // Widget riskList2(context, project) {
-  //   return FutureBuilder(
-  //       future: getRisksByProject(project.uuid),
-  //       builder: ((context, snapshot) {
-  //         if (snapshot.hasData) {
-  //           risks = snapshot.data!;
-  //           return Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             mainAxisAlignment: MainAxisAlignment.start,
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             verticalDirection: VerticalDirection.down,
-  //             children: <Widget>[
-  //               Expanded(
-  //                   child: Container(
-  //                       padding: const EdgeInsets.all(15),
-  //                       child: ListView.builder(
-  //                           padding: const EdgeInsets.all(8),
-  //                           itemCount: risks.length,
-  //                           itemBuilder: (BuildContext context, int index) {
-  //                             Risk risk = risks[index];
-  //                             return Container(
-  //                               // height: 100,
-  //                               padding:
-  //                                   const EdgeInsets.only(top: 20, bottom: 10),
-  //                               decoration: BoxDecoration(
-  //                                 border: Border(
-  //                                   bottom: BorderSide(
-  //                                       color: Colors.grey[300]!, width: 1),
-  //                                 ),
-  //                               ),
-  //                               child: riskRow(context, risk, project),
-  //                             );
-  //                           }))),
-  //             ],
-  //           );
-  //         } else {
-  //           return const Center(
-  //             child: CircularProgressIndicator(),
-  //           );
-  //         }
-  //       }));
-  // }
-
   Widget riskList(context, project) {
-
-      if (risks.isNotEmpty)
-      {
-        return Column(
-              mainAxisSize: MainAxisSize.min,
-//              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-//              verticalDirection: VerticalDirection.down,
-              children: <Widget>[
-                Expanded(
-                    child: Container(
-                        padding: const EdgeInsets.all(15),
-                        child: ListView.builder(
-                            padding: const EdgeInsets.all(8),
-                            itemCount: risks.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              Risk risk = risks[index];
-                              return Container(
-                                // height: 100,
-                                padding:
-                                    const EdgeInsets.only(top: 20, bottom: 10),
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                        color: Colors.grey[300]!, width: 1),
-                                  ),
-                                ),
-                                child: riskRow(context, risk, project),
-                              );
-                            }))),
-              ],
-            );
-      } else {
-        return const Center(
-          child: Text("No hay riesgos registrados"),
-        );
-      };
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(10),
+          child: (risks.isNotEmpty)
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (Risk risk in risks) riskRow(context, risk, project),
+                  ],
+                )
+              : const Center(child: Text("No hay riesgos registrados")),
+        ),
+      ],
+    );
   }
 
   Widget toggleRisk(context, risk) {
@@ -502,7 +448,6 @@ class _RisksPageState extends State<RisksPage> {
                 "Medidas correctoras (${risk.extraInfo["mitigations"].length})",
                 14,
                 bold: FontWeight.bold)),
-
         Expanded(
             flex: 2,
             child: customText("Responsable", 14, bold: FontWeight.bold)),
@@ -562,7 +507,6 @@ class _RisksPageState extends State<RisksPage> {
       mitigationsList.add(Row(
         children: [
           Expanded(flex: 7, child: customText(mitigation["description"], 12)),
-
           Expanded(
               flex: 2, child: customText((responsible as Contact).name, 12)),
           Expanded(flex: 1, child: customText(mitigation["type"], 12)),
@@ -669,9 +613,11 @@ class _RisksPageState extends State<RisksPage> {
       ]),
     ];
 
-    return customCollapse(
-        context, Column(children: riskContent), toggleRisk, risk,
-        expanded: false);
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+        child: customCollapse(
+            context, Column(children: riskContent), toggleRisk, risk,
+            expanded: false));
   }
 
   Future<void> trackingListDialog(context, args) {
