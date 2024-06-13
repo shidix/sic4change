@@ -49,11 +49,14 @@ class _ProgrammePageState extends State<ProgrammePage> {
         finUUID[financier.name] = financier.uuid;
       }
     }
+
     finMap.forEach((key, value) async {
       double amount = 0;
       for (SProject project in projects) {
-        amount += await FinnContribution.getSummaryByFinancierAndProject(
-            finUUID[key], project.uuid);
+        SFinnInfo? finnInfo = await SFinnInfo.byProject(project.uuid);
+        if (finnInfo != null) {
+          amount += finnInfo.getContribByFinancier(finUUID[key]!);
+        }
       }
       finMap[key] = amount;
     });

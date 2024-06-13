@@ -87,6 +87,16 @@ class SFinnInfo extends Object {
     return total;
   }
 
+  double getContribByFinancier(String orgUuid) {
+    double total = 0;
+    for (SFinn partida in partidas) {
+      if (partida.orgUuid == orgUuid) {
+        total += partida.getAmountContrib();
+      }
+    }
+    return total;
+  }
+
   String toString() {
     return jsonEncode(toJson());
   }
@@ -171,6 +181,7 @@ class SFinn extends Object {
         'partidas': partidas.map((e) => e.toJson()).toList(),
       };
 
+/*
   Future<List> getContrib() async {
     final List<FinnContribution> items = [];
     final database = db.collection("s4c_finncontrib");
@@ -183,6 +194,7 @@ class SFinn extends Object {
     });
     return items;
   }
+*/
 
   double getAmountContrib() {
     double total = 0;
@@ -195,6 +207,7 @@ class SFinn extends Object {
     return total;
   }
 
+/*
   Future<Map<String, double>> getTotalContrib() async {
     final List<SFinn> childrens = await getChildrens();
     if (childrens.isEmpty) {
@@ -236,6 +249,7 @@ class SFinn extends Object {
       return items;
     }
   }
+*/
 
   String parentCode() {
     RegExp punto = RegExp("\\.");
@@ -313,12 +327,14 @@ class SFinn extends Object {
   int getLevel([int deep = 0]) {
     if (parent == "") {
       return deep;
-    } else {
-      if (level == -1) {
-        level = SFinn.byUuid(parent).getLevel(deep + 1);
-      }
-      return level;
     }
+    return SFinn.byUuid(parent).getLevel(deep + 1);
+    // else {
+    //   if (level == -1) {
+    //     level = SFinn.byUuid(parent).getLevel(deep + 1);
+    //   }
+    //   return level;
+    // }
   }
 
   static SFinn byUuid(String uuid) {
@@ -350,15 +366,6 @@ class SFinn extends Object {
     return items;
   }
 
-  void recalculate() async {
-    getChildrens().then((childrens) {
-      if (childrens.isEmpty) {
-        FinnContribution.totalsByFinancier(project: project).then((value) {});
-      }
-      ;
-    });
-  }
-
   void save() async {
     final database = db.collection("s4c_finns");
     if (uuid == "") {
@@ -368,8 +375,6 @@ class SFinn extends Object {
         id = value.id;
       });
     } else {
-      print("DBG 0001 $name $id");
-
       if (id == "") {
         final query = await database.where("uuid", isEqualTo: uuid).get();
         if (query.docs.isNotEmpty) {
@@ -388,200 +393,6 @@ class SFinn extends Object {
     }
   }
 
-  String toString() {
-    return jsonEncode(toJson());
-  }
-}
-
-/////////////////////
-
-class FinnContribution {
-  String id;
-  String financier;
-  double amount;
-  String finn;
-  String subject;
-  Organization? organization;
-
-  FinnContribution(
-      this.id, this.financier, this.amount, this.finn, this.subject);
-
-  FinnContribution.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        financier = json["financier"],
-        amount = json["amount"],
-        subject = json["subject"],
-        finn = json["finn"];
-
-  Future<Organization> getOrganization() async {
-    organization ??= await Organization.byUuid(financier);
-    return organization!;
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'financier': financier,
-        'amount': amount,
-        'subject': subject,
-        'finn': finn,
-      };
-
-  void save() async {
-    final collection = db.collection("s4c_finncontrib");
-
-    if (id == "") {
-      collection.add({
-        "id": const Uuid().v4(),
-        "financier": financier,
-        "amount": amount,
-        "finn": finn,
-        "subject": subject,
-      });
-    } else {
-      final query = await collection.where("id", isEqualTo: id).limit(1).get();
-      final item = query.docs.first;
-      Map<String, dynamic> data = toJson();
-      collection.doc(item.id).set(data);
-    }
-  }
-
-  void recalculate() async {
-    final collection = db.collection("s4c_finncontrib");
-    SFinn finn = SFinn.byUuid(this.finn);
-    List<SFinn> childrens = await finn.getChildrens();
-    if (childrens.isEmpty) {
-      return;
-    }
-    List<String> childrensUuid = childrens.map((e) => e.uuid).toList();
-    final query = await collection
-        .where("finn", whereIn: childrensUuid)
-        .where("financier", isEqualTo: financier)
-        .get();
-    double total = 0;
-    for (var element in query.docs) {
-      FinnContribution item = FinnContribution.fromJson(element.data());
-      total += item.amount;
-    }
-    amount = total;
-    save();
-  }
-
-  static Future<Map<String, double>> getSummaryByFinancier(financier) async {
-    final collection = db.collection("s4c_finncontrib");
-    final query =
-        await collection.where("financier", isEqualTo: financier).get();
-    double total = 0;
-    for (var element in query.docs) {
-      FinnContribution item = FinnContribution.fromJson(element.data());
-      total += item.amount;
-    }
-    return {
-      "total": total,
-    };
-  }
-
-  //static Future<Map<String, double>> getSummaryByFinancierAndProject(
-  static Future<double> getSummaryByFinancierAndProject(
-      finnancier, project) async {
-    List? finnList;
-    await SFinn.byProjectAndMain(project).then((value) {
-      finnList = value.map((e) => e.uuid).toList();
-    });
-
-    final collection = db.collection("s4c_finncontrib");
-    final query = await collection
-        .where("financier", isEqualTo: finnancier)
-        .where("finn", whereIn: finnList)
-        .get();
-    double total = 0;
-    for (var element in query.docs) {
-      FinnContribution item = FinnContribution.fromJson(element.data());
-      total += item.amount;
-    }
-    return total;
-    /*return {
-      "total": total,
-    };*/
-  }
-
-  static Future<Map<String, double>> totalsByFinancier({project}) async {
-    List? finnList;
-    if (project != null) {
-      await SFinn.byProjectAndMain(project).then((value) {
-        finnList = value.map((e) => e.uuid).toList();
-      });
-    }
-
-    Map<String, double> items = {};
-
-    final collection = db.collection("s4c_finncontrib");
-    final query = await collection.where("finn", whereIn: finnList).get();
-    for (var element in query.docs) {
-      FinnContribution item = FinnContribution.fromJson(element.data());
-      if (items.containsKey(item.financier)) {
-        items[item.financier] = items[item.financier]! + item.amount;
-      } else {
-        items[item.financier] = item.amount;
-      }
-    }
-    return items;
-  }
-
-  static Future<List> getByFinnAndFinancier(finn, financier) async {
-    final collection = db.collection("s4c_finncontrib");
-    final query = await collection
-        .where("finn", isEqualTo: finn)
-        .where('financier', isEqualTo: financier)
-        .get();
-    List items = [];
-    for (var element in query.docs) {
-      items.add(FinnContribution.fromJson(element.data()));
-    }
-    return items;
-  }
-
-  static Future<List> getByFinn(finn) async {
-    final collection = db.collection("s4c_finncontrib");
-    final query = await collection.where("finn", isEqualTo: finn).get();
-    List items = [];
-    for (var element in query.docs) {
-      items.add(FinnContribution.fromJson(element.data()));
-    }
-    return items;
-  }
-
-  static Future<List<FinnContribution>> getByProject(project) async {
-    final collection = db.collection("s4c_finncontrib");
-    List finnList = await SFinn.byProject(project);
-    List<FinnContribution> items = [];
-    if (finnList.isEmpty) {
-      return items;
-    }
-    final query = await collection
-        .where("finn", whereIn: finnList.map((e) => e.uuid))
-        .get();
-    for (var element in query.docs) {
-      items.add(FinnContribution.fromJson(element.data()));
-    }
-
-    // for (var finn in finnList) {
-    //   final query = await collection.where("finn", isEqualTo: finn.uuid).get();
-    //   for (var element in query.docs) {
-    //     items.add(FinnContribution.fromJson(element.data()));
-    //   }
-    // }
-
-    return items;
-  }
-
-  void delete() {
-    final database = db.collection("s4c_finncontrib");
-    if (id != "") {
-      database.doc(id).delete();
-    }
-  }
-
-  @override
   String toString() {
     return jsonEncode(toJson());
   }

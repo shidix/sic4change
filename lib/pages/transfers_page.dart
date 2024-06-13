@@ -462,16 +462,16 @@ class _TransfersPageState extends State<TransfersPage> {
     List<String> financiers = [];
     double totalAmount = fromCurrency(currentProject!.budget);
 
-    for (FinnContribution aporte in aportesItems!) {
-      if (!financiers.contains(aporte.financier)) {
-        financiers.add(aporte.financier);
-      }
-      if (!byFinancier.containsKey(aporte.financier)) {
-        byFinancier[aporte.financier] = 0;
-      }
-      byFinancier[aporte.financier] =
-          byFinancier[aporte.financier]! + aporte.amount;
-    }
+    // for (FinnContribution aporte in aportesItems!) {
+    //   if (!financiers.contains(aporte.financier)) {
+    //     financiers.add(aporte.financier);
+    //   }
+    //   if (!byFinancier.containsKey(aporte.financier)) {
+    //     byFinancier[aporte.financier] = 0;
+    //   }
+    //   byFinancier[aporte.financier] =
+    //       byFinancier[aporte.financier]! + aporte.amount;
+    // }
 
     headers.add(Row(children: [
       const Expanded(flex: 1, child: Text('Financiación', style: mainText)),

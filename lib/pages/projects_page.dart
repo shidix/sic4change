@@ -699,10 +699,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     List finList = await SFinn.byProject(project.uuid);
     for (SFinn finn in finList) {
-      List contribList = await FinnContribution.getByFinn(finn.uuid);
-      for (FinnContribution contrib in contribList) {
-        contrib.delete();
-      }
+      // List contribList = await FinnContribution.getByFinn(finn.uuid);
+      // for (FinnContribution contrib in contribList) {
+      //   contrib.delete();
+      // }
 
       List distList = await FinnDistribution.getByFinn(finn.uuid);
       for (FinnDistribution dist in distList) {

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/profile_form.dart';
@@ -19,6 +18,7 @@ class _OrgchartState extends State<Orgchart> {
   List<Profile> profiles = [];
   List<Profile> filteredProfiles = [];
 
+  @override
   void initState() {
     super.initState();
     getProfiles();
@@ -148,9 +148,8 @@ class _OrgchartState extends State<Orgchart> {
   }
 
   Widget buildProfileHeader() {
-    return Container(
-        child: ListTile(
-            title: Column(
+    return const ListTile(
+        title: Column(
       children: [
         Row(
           children: [
@@ -161,9 +160,9 @@ class _OrgchartState extends State<Orgchart> {
                 child: Text("Supervisores vacaciones", style: headerListStyle)),
           ],
         ),
-        const Divider(),
+        Divider(),
       ],
-    )));
+    ));
   }
 
   @override

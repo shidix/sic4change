@@ -1,10 +1,9 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers
+// ignore_for_file: non_constant_identifier_names
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_page.dart';
-import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -12,7 +11,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/profile_menu_widget.dart';
-import 'package:sic4change/widgets/project_info_menu_widget.dart';
 
 const profileTitle = "Detalles del Perfil";
 bool projLoading = true;
