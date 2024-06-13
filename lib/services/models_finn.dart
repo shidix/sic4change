@@ -324,11 +324,18 @@ class SFinn extends Object {
     return items;
   }
 
-  int getLevel([int deep = 0]) {
-    if (parent == "") {
-      return deep;
+  int getLevel() {
+    int deep = 0;
+    SFinn finn = this;
+    if (finn.name == "1.1.1") {
+      while (finn.parent != "") {
+        print("DBG 0001 ${finn.name} ${deep}");
+        deep++;
+        finn = SFinn.byUuid(finn.parent);
+      }
     }
-    return SFinn.byUuid(parent).getLevel(deep + 1);
+    return (deep);
+
     // else {
     //   if (level == -1) {
     //     level = SFinn.byUuid(parent).getLevel(deep + 1);

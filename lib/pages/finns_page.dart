@@ -41,6 +41,8 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map> invoicesSummary = {};
   List aportesItems = [];
   List distribItems = [];
+  Map<String, int> mapLevels = {};
+
   // Map<String, SFinn> finnHash = {};
   // Map<String, SFinn> finnUuidHash = {};
 
@@ -364,12 +366,16 @@ class _FinnsPageState extends State<FinnsPage> {
       return items;
     }
     List queue = finnInfo.partidas.map((e) => e).toList();
+    for (SFinn item in queue) {
+      mapLevels[item.uuid] = 0;
+    }
 
     while (queue.isNotEmpty) {
       SFinn item = queue.removeAt(0);
       items.add(item);
       int pos = 0;
       for (SFinn child in item.partidas) {
+        mapLevels[child.uuid] = mapLevels[item.uuid]! + 1;
         queue.insert(pos, child);
         pos += 1;
       }
@@ -410,7 +416,7 @@ class _FinnsPageState extends State<FinnsPage> {
     TextStyle currentStyle;
     for (SFinn finn in finnList) {
       if (finn.orgUuid == item.uuid) {
-        if (finn.getLevel() == 0) {
+        if (mapLevels[finn.uuid] == 0) {
           currentStyle = cellsListStyle.copyWith(fontWeight: FontWeight.bold);
         } else {
           currentStyle = cellsListStyle;
@@ -426,7 +432,8 @@ class _FinnsPageState extends State<FinnsPage> {
               flex: 5,
               child: Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 5.0 + 50.0 * (finn.getLevel()), vertical: 0),
+                      horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
+                      vertical: 0),
                   child: Text("${finn.name}. ${finn.description}",
                       style: currentStyle))),
           Expanded(
@@ -483,7 +490,7 @@ class _FinnsPageState extends State<FinnsPage> {
             flex: 2,
             child: Padding(
                 padding: EdgeInsets.only(
-                    left: 10, right: 10.0 + 50.0 * (finn.getLevel())),
+                    left: 10, right: 10.0 + 20.0 * (mapLevels[finn.uuid]!)),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   iconBtn(context, addFinnDialog, [item, finn],
                       icon: Icons.add, text: 'Añadir subpartida'),
