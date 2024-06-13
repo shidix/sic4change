@@ -85,21 +85,23 @@ class _FinnsPageState extends State<FinnsPage> {
           finnInfo = SFinnInfo("", const Uuid().v4(), _project!.uuid);
           finnInfo.save();
         }
+        aportesSummaryContainer = populateAportesSummaryContainer();
+
         if (mounted) {
           setState(() {
             finnList = getAllFinns();
           });
         }
       });
-    });
 
-    totalBudgetProject = fromCurrency(_project!.budget);
-    executedBudgetProject = 0;
-    invoicesContainer = Container(width: 0);
-    finnanciersContainer = populateFinnanciersContainer();
-    partnersContainer = populatePartnersContainer();
-    distribSummaryContainer = populateDistribSummaryContainer();
-    summaryContainer = populateSummaryContainer();
+      totalBudgetProject = fromCurrency(_project!.budget);
+      executedBudgetProject = 0;
+      invoicesContainer = Container(width: 0);
+      finnanciersContainer = populateFinnanciersContainer();
+      partnersContainer = populatePartnersContainer();
+      distribSummaryContainer = populateDistribSummaryContainer();
+      summaryContainer = populateSummaryContainer();
+    });
   }
 
   bool belongsTo(SFinn finn, String financierUuid) {
