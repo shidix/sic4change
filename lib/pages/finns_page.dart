@@ -42,6 +42,7 @@ class _FinnsPageState extends State<FinnsPage> {
   List aportesItems = [];
   List distribItems = [];
   Map<String, int> mapLevels = {};
+  Map<String, bool> mapOnHover = {};
 
   // Map<String, SFinn> finnHash = {};
   // Map<String, SFinn> finnUuidHash = {};
@@ -368,6 +369,7 @@ class _FinnsPageState extends State<FinnsPage> {
     List queue = finnInfo.partidas.map((e) => e).toList();
     for (SFinn item in queue) {
       mapLevels[item.uuid] = 0;
+      mapOnHover[item.uuid] = false;
     }
 
     while (queue.isNotEmpty) {
@@ -376,6 +378,7 @@ class _FinnsPageState extends State<FinnsPage> {
       int pos = 0;
       for (SFinn child in item.partidas) {
         mapLevels[child.uuid] = mapLevels[item.uuid]! + 1;
+        mapOnHover[child.uuid] = false;
         queue.insert(pos, child);
         pos += 1;
       }
@@ -414,13 +417,16 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget finnancierSummaryCard(Organization item) {
     List<Widget> rows = [];
     TextStyle currentStyle;
+    List mapStyles = [
+      FontWeight.w700,
+      FontWeight.w500,
+      FontWeight.w300,
+      FontWeight.w100,
+    ];
     for (SFinn finn in finnList) {
       if (finn.orgUuid == item.uuid) {
-        if (mapLevels[finn.uuid] == 0) {
-          currentStyle = cellsListStyle.copyWith(fontWeight: FontWeight.bold);
-        } else {
-          currentStyle = cellsListStyle;
-        }
+        currentStyle = cellsListStyle.copyWith(
+            fontWeight: mapStyles[mapLevels[finn.uuid]!]);
         if (finn.contribution > finn.getAmountContrib()) {
           currentStyle = currentStyle.copyWith(color: warningColor);
         } else if (finn.contribution < finn.getAmountContrib()) {
