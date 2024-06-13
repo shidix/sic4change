@@ -39,8 +39,8 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Map> invoicesSummary = {};
   List aportesItems = [];
   List distribItems = [];
-  Map<String, SFinn> finnHash = {};
-  Map<String, SFinn> finnUuidHash = {};
+  // Map<String, SFinn> finnHash = {};
+  // Map<String, SFinn> finnUuidHash = {};
 
   List<String> withChildrens = [];
 
@@ -65,44 +65,6 @@ class _FinnsPageState extends State<FinnsPage> {
     }
     return (equivalencies[financierUuid] == finn.orgUuid);
   }
-
-  // double getAporte(String finnUuid, [String? financierUuid]) {
-  //   Map<String, String> equivalencies = {};
-  //   for (Organization financier in financiers.values) {
-  //     if (_project!.financiers.contains(financier.uuid)) {
-  //       equivalencies[financier.uuid] = financier.uuid;
-  //     }
-  //   }
-  //   double aporte = 0;
-  //   try {
-  //     SFinn finn = finnUuidHash[finnUuid]!;
-  //     aportesItems.sort((a, b) {
-  //       a = finnUuidHash[a.finn];
-  //       b = finnUuidHash[b.finn];
-  //       return b.name.length.compareTo(a.name.length);
-  //     });
-  //     for (FinnContribution item in aportesItems) {
-  //       SFinn itemFinn = finnUuidHash[item.finn]!;
-  //       if (((itemFinn.name.startsWith(finn.name)) &&
-  //               (itemFinn.orgUuid == finn.orgUuid)) &&
-  //           (financierUuid == null ||
-  //               item.financier == financierUuid ||
-  //               equivalencies[item.financier] == financierUuid)) {
-  //         if (itemFinn.name != finn.name) {
-  //           aporte += item.amount;
-  //         } else {
-  //           if (aporte == 0) {
-  //             aporte += item.amount;
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } catch (e, stacktrace) {
-  //     print("Error: $e");
-  //     print(stacktrace);
-  //   }
-  //   return aporte;
-  // }
 
   double getDistrib(String finnUuid, [String? partnerUuid]) {
     Map<String, String> equivalencies = {};
@@ -137,15 +99,15 @@ class _FinnsPageState extends State<FinnsPage> {
     if (finnInfo.project == "") {
       return const Center(child: CircularProgressIndicator());
     } else {
-      for (Organization org in financiers.values) {
-        for (SFinn finn in finnInfo.partidas) {
-          if (finn.orgUuid == org.uuid) {
-            for (FinnContribution contribInfo in finn.contributions) {
-              aportesItems.add(contribInfo);
-            }
-          }
-        }
-      }
+      // for (Organization org in financiers.values) {
+      //   for (SFinn finn in finnInfo.partidas) {
+      //     if (finn.orgUuid == org.uuid) {
+      //       for (FinnContribution contribInfo in finn.contributions) {
+      //         aportesItems.add(contribInfo);
+      //       }
+      //     }
+      //   }
+      // }
 
       for (SFinn partida in finnInfo.partidas) {
         totalBudgetProject += partida.getAmountContrib();
@@ -251,25 +213,25 @@ class _FinnsPageState extends State<FinnsPage> {
       }
     }
 
-    for (FinnDistribution distribution in distribItems) {
-      if (!finnUuidHash.containsKey(distribution.finn)) {
-        distribution.delete();
-        continue;
-      }
-      SFinn finn = finnUuidHash[distribution.finn]!;
-      if (withChildrens.contains(finn.name)) {
-        continue;
-      } else {
-        if (distribTotalByPartner.containsKey(distribution.partner)) {
-          distribTotalByPartner[distribution.partner] =
-              distribTotalByPartner[distribution.partner]! +
-                  distribution.amount;
-        } else {
-          distribTotalByPartner[distribution.partner] = distribution.amount;
-        }
-        totalDistrib += distribution.amount;
-      }
-    }
+    // for (FinnDistribution distribution in distribItems) {
+    //   if (!finnUuidHash.containsKey(distribution.finn)) {
+    //     distribution.delete();
+    //     continue;
+    //   }
+    //   SFinn finn = finnUuidHash[distribution.finn]!;
+    //   if (withChildrens.contains(finn.name)) {
+    //     continue;
+    //   } else {
+    //     if (distribTotalByPartner.containsKey(distribution.partner)) {
+    //       distribTotalByPartner[distribution.partner] =
+    //           distribTotalByPartner[distribution.partner]! +
+    //               distribution.amount;
+    //     } else {
+    //       distribTotalByPartner[distribution.partner] = distribution.amount;
+    //     }
+    //     totalDistrib += distribution.amount;
+    //   }
+    // }
 
     // if (_project!.assignedBudget != totalDistrib) {
     //   _project!.assignedBudget = totalDistrib;
@@ -685,8 +647,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
     finn.delete();
     finnList.remove(finn);
-    finnHash.remove(finn.name);
-    finnUuidHash.remove(finn.uuid);
+    // finnHash.remove(finn.name);
+    // finnUuidHash.remove(finn.uuid);
     reloadState();
   }
 
@@ -779,8 +741,8 @@ class _FinnsPageState extends State<FinnsPage> {
                       }
                       if (finn.id == "") {
                         finnList.remove(finn);
-                        finnHash.remove(finn.name);
-                        finnUuidHash.remove(finn.uuid);
+                        // finnHash.remove(finn.name);
+                        // finnUuidHash.remove(finn.uuid);
                       }
                       finnSelected = null;
                       finnInfo.save();
@@ -1049,8 +1011,8 @@ class _FinnsPageState extends State<FinnsPage> {
                       }
                       if (finn.id == "") {
                         finnList.remove(finn);
-                        finnHash.remove(finn.name);
-                        finnUuidHash.remove(finn.uuid);
+                        // finnHash.remove(finn.name);
+                        // finnUuidHash.remove(finn.uuid);
                       }
                       finnSelected = null;
                       finnInfo.save();
@@ -1329,11 +1291,12 @@ class _FinnsPageState extends State<FinnsPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Próximamente'),
-            content: Text('Este contenido estará disponible próximamente.'),
+            title: const Text('Próximamente'),
+            content:
+                const Text('Este contenido estará disponible próximamente.'),
             actions: [
               TextButton(
-                child: Text('Cerrar'),
+                child: const Text('Cerrar'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -1358,8 +1321,8 @@ class _FinnsPageState extends State<FinnsPage> {
     _finn.save();
     if (!finnList.contains(_finn)) {
       finnList.add(_finn);
-      finnHash[_finn.name] = _finn;
-      finnUuidHash[_finn.uuid] = _finn;
+      // finnHash[_finn.name] = _finn;
+      // finnUuidHash[_finn.uuid] = _finn;
     }
     // finnList.sort((a, b) => (a.name).compareTo(b.name));
 
@@ -1478,12 +1441,12 @@ class _FinnsPageState extends State<FinnsPage> {
         ));
         invoicesItems.sort((a, b) => (a.date).compareTo(b.date));
         List invoicesToShow = [];
-        for (Invoice invoice in invoicesItems) {
-          SFinn finn = finnUuidHash[invoice.finn]!;
-          if (finn.name.startsWith(finnSelected!.name)) {
-            invoicesToShow.add(invoice);
-          }
-        }
+        // for (Invoice invoice in invoicesItems) {
+        //   SFinn finn = finnUuidHash[invoice.finn]!;
+        //   if (finn.name.startsWith(finnSelected!.name)) {
+        //     invoicesToShow.add(invoice);
+        //   }
+        // }
         for (Invoice invoice in invoicesToShow) {
           invoicesList.add(rowFromInvoice(invoice));
           if (!(invoice == invoicesToShow.last)) {
@@ -1582,11 +1545,11 @@ class _FinnsPageState extends State<FinnsPage> {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         child: Row(children: [
-          Expanded(
-              flex: 2,
-              child: Text(finnUuidHash.containsKey(invoice.finn)
-                  ? finnUuidHash[invoice.finn]!.name
-                  : '')),
+          // Expanded(
+          //     flex: 2,
+          //     child: Text(finnUuidHash.containsKey(invoice.finn)
+          //         ? finnUuidHash[invoice.finn]!.name
+          //         : '')),
           Expanded(flex: 2, child: Text(invoice.number)),
           Expanded(flex: 2, child: Text(invoice.code)),
           Expanded(
@@ -1860,8 +1823,8 @@ class _FinnsPageState extends State<FinnsPage> {
       if (value != null) {
         if (!finnList.contains(value)) {
           finnList.add(value);
-          finnHash[value.name] = value;
-          finnUuidHash[value.uuid] = value;
+          // finnHash[value.name] = value;
+          // finnUuidHash[value.uuid] = value;
         }
         if (parent == null) {
           for (SFinn finn in finnInfo.partidas) {

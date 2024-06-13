@@ -105,7 +105,7 @@ class SFinn extends Object {
   int level = -1;
 
   List<dynamic> partidas = [];
-  List<dynamic> contributions = [];
+  // List<dynamic> contributions = [];
   List<dynamic> distributions = [];
 
   SFinn(this.id, this.uuid, this.name, this.description, this.parent,
@@ -136,11 +136,11 @@ class SFinn extends Object {
           .toList();
     }
 
-    if (json.containsKey("contributions")) {
-      partida.contributions = json["contributions"]
-          .map((e) => FinnContribution.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
+    // if (json.containsKey("contributions")) {
+    //   partida.contributions = json["contributions"]
+    //       .map((e) => FinnContribution.fromJson(e as Map<String, dynamic>))
+    //       .toList();
+    // }
 
     if (json.containsKey("distributions")) {
       partida.distributions = json["distributions"]
@@ -368,6 +368,14 @@ class SFinn extends Object {
         id = value.id;
       });
     } else {
+      print("DBG 0001 $name $id");
+
+      if (id == "") {
+        final query = await database.where("uuid", isEqualTo: uuid).get();
+        if (query.docs.isNotEmpty) {
+          id = query.docs.first.id;
+        }
+      }
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
     }
