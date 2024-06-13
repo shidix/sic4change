@@ -397,6 +397,12 @@ class SFinn extends Object {
     final database = db.collection("s4c_finns");
     if (id != "") {
       database.doc(id).delete();
+    } else {
+      database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          doc.reference.delete();
+        }
+      });
     }
   }
 
