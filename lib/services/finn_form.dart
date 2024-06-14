@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -365,7 +364,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
       ];
     }
 
-    void update_exchange() {
+    void updateExchange() {
       if (_bankTransfer.amountIntermediary > 0.0) {
         _bankTransfer.exchangeIntermediary = _bankTransfer.amountDestination /
             (_bankTransfer.amountIntermediary -
@@ -467,7 +466,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         } catch (e) {
                           _bankTransfer.amountSource = 0.0;
                         }
-                        update_exchange();
+                        updateExchange();
                       },
                       onSaved: (value) =>
                           _bankTransfer.amountSource = fromCurrency(value!),
@@ -495,7 +494,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         } catch (e) {
                           _bankTransfer.commissionSource = 0.0;
                         }
-                        update_exchange();
+                        updateExchange();
                       },
                       onSaved: (value) =>
                           _bankTransfer.commissionSource = fromCurrency(value!),
@@ -548,7 +547,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         } catch (e) {
                           _bankTransfer.amountIntermediary = 0.0;
                         }
-                        update_exchange();
+                        updateExchange();
                       },
                       onSaved: (value) => _bankTransfer.amountIntermediary =
                           fromCurrency(value!),
@@ -578,7 +577,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         } catch (e) {
                           _bankTransfer.commissionIntermediary = 0.0;
                         }
-                        update_exchange();
+                        updateExchange();
                       },
                       onSaved: (value) => _bankTransfer.commissionIntermediary =
                           fromCurrency(value!),
@@ -630,7 +629,7 @@ class _BankTransferFormState extends State<BankTransferForm> {
                         } catch (e) {
                           _bankTransfer.amountDestination = 0.0;
                         }
-                        update_exchange();
+                        updateExchange();
                       },
                       onSaved: (value) => _bankTransfer.amountDestination =
                           double.parse(value!),
@@ -743,18 +742,18 @@ class _SFinnFormState extends State<SFinnForm> {
       _finn.orgUuid = widget.financier!.uuid;
     }
 
-    Widget financiersSelect = CustomSelectFormField(
-        labelText: "Financiador",
-        initial: (widget.financier != null)
-            ? widget.financier!.uuid
-            : (_finn.orgUuid == "")
-                ? financierOptions.first.key
-                : _finn.orgUuid,
-        options: financierOptions,
-        onSelectedOpt: (value) {
-          _finn.orgUuid = value.toString();
-        },
-        required: true);
+    // Widget financiersSelect = CustomSelectFormField(
+    //     labelText: "Financiador",
+    //     initial: (widget.financier != null)
+    //         ? widget.financier!.uuid
+    //         : (_finn.orgUuid == "")
+    //             ? financierOptions.first.key
+    //             : _finn.orgUuid,
+    //     options: financierOptions,
+    //     onSelectedOpt: (value) {
+    //       _finn.orgUuid = value.toString();
+    //     },
+    //     required: true);
 
     List<Widget> buttons;
 

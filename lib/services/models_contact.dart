@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as dev;
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_profile.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -61,7 +61,7 @@ class Contact {
 
   Future<void> save() async {
     if (id == "") {
-      var newUuid = Uuid();
+      var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContacts.add(data);
@@ -85,7 +85,7 @@ class Contact {
       organizationObj = Organization.fromJson(data);
       //return Organization.fromJson(data);
     } catch (e) {
-      print("Error [model contact - getOrganization]: $e");
+      dev.log("Error [model contact - getOrganization]: $e");
       //return Organization("");
     }
   }
@@ -112,7 +112,7 @@ class Contact {
       data["id"] = doc.id;
       positionObj = Position.fromJson(data);
     } catch (e) {
-      print(e);
+      dev.log(e.toString());
       //return Position("");
     }
   }
@@ -123,13 +123,14 @@ class Contact {
     }
     if (projectsObj.isNotEmpty) {
       bool isSync = projects.length == projectsObj.length;
-      int id_prj = 0;
-      while ((isSync) && (id_prj < projectsObj.length)) {
+      int idPrj = 0;
+      while ((isSync) && (idPrj < projectsObj.length)) {
         try {
-          isSync = (projects.contains(projectsObj[id_prj].uuid));
-        } catch (e) {}
-        ;
-        id_prj++;
+          isSync = (projects.contains(projectsObj[idPrj].uuid));
+        } catch (e) {
+          dev.log(e.toString());
+        }
+        idPrj++;
       }
       if (isSync) {
         return projectsObj;
@@ -152,8 +153,8 @@ class Contact {
         projectsObj.add(projObj);
         projObj.reload();
       } catch (e, stacktrace) {
-        print(e);
-        print(stacktrace);
+        dev.log(e.toString());
+        dev.log(stacktrace.toString());
       }
     }
     return projectsObj;
@@ -399,7 +400,7 @@ class Company {
   Future<void> save() async {
     if (id == "") {
       //id = uuid;
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbComp.add(data);
@@ -467,7 +468,7 @@ class Position {
   Future<void> save() async {
     if (id == "") {
       //id = uuid;
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbPos.add(data);

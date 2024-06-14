@@ -1786,7 +1786,15 @@ class CustomSelectFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (initial == "") {
+    String initialKey = "";
+
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].key == initial) {
+        initialKey = initial;
+        break;
+      }
+    }
+    if (initialKey == "") {
       options.insert(0, KeyValue("", "Seleccione una opción"));
     }
     List<DropdownMenuItem<String>> optionsDrop = options.map((e) {
@@ -1797,7 +1805,7 @@ class CustomSelectFormField extends StatelessWidget {
     }).toList();
 
     return DropdownButtonFormField(
-      value: initial,
+      value: initialKey,
       decoration: InputDecoration(
           labelText: labelText, contentPadding: const EdgeInsets.only(left: 5)),
       items: optionsDrop,

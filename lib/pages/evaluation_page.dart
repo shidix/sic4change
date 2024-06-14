@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -49,7 +51,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             mainMenu(context),
-            pathHeader(context, project!.name),
+            pathHeader(context, project.name),
             evaluationHeader(context, project),
             marcoMenu(context, project, "evaluation"),
             (evaluation == null)

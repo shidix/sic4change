@@ -106,7 +106,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 1,
                 child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
                     child: CustomTextField(
                       labelText: "Descripción",
                       initial: item["description"],
@@ -119,21 +120,25 @@ class _EvaluationFormState extends State<EvaluationForm> {
           Row(children: [
             Expanded(
                 flex: 2,
-                child: (widget.type == 0)? Container() : Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
-                    child: CustomTextField(
-                      labelText: "Partes interesadas",
-                      initial: item["stakeholder"],
-                      size: 220,
-                      fieldValue: (value) {
-                        item["stakeholder"] = value;
-                      },
-                    ))),
+                child: (widget.type == 0)
+                    ? Container()
+                    : Padding(
+                        padding:
+                            const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                        child: CustomTextField(
+                          labelText: "Partes interesadas",
+                          initial: item["stakeholder"],
+                          size: 220,
+                          fieldValue: (value) {
+                            item["stakeholder"] = value;
+                          },
+                        ))),
 
             Expanded(
                 flex: 2,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomTextField(
                       labelText: "Unidad/Dpto",
                       initial: item["unit"],
@@ -146,7 +151,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 1,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomSelectFormField(
                       labelText:
                           (widget.type == 0) ? "Referencial ML" : "Necesidad",
@@ -163,7 +169,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 1,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomSelectFormField(
                       labelText: "Relevancia",
                       initial: item["relevance"].toString(),
@@ -181,7 +188,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 1,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomSelectFormField(
                       labelText: "Viabilidad",
                       initial: item["feasibility"].toString(),
@@ -228,7 +236,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 3,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomTextField(
                       labelText: "Método de verificación",
                       initial: item["verificationMethod"],
@@ -253,7 +262,8 @@ class _EvaluationFormState extends State<EvaluationForm> {
             Expanded(
                 flex: 3,
                 child: Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5, right: 20),
+                    padding:
+                        const EdgeInsets.only(top: 5, bottom: 5, right: 20),
                     child: CustomTextField(
                       labelText: "Seguimiento",
                       initial: item["followUp"],

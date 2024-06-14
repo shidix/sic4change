@@ -181,9 +181,9 @@ class SProject {
       DateTime _end = DateTime.parse(datesObj.end);
       DateTime _approved = DateTime.parse(datesObj.approved);*/
       DateTime today = DateTime.now();
-      if (today.isBefore(datesObj.start!)) return "Sin iniciar";
-      if (today.isBefore(datesObj.approved!)) return "Sin aprobar";
-      if (today.isAfter(datesObj.end!)) return "Finalizado";
+      if (today.isBefore(datesObj.start)) return "Sin iniciar";
+      if (today.isBefore(datesObj.approved)) return "Sin aprobar";
+      if (today.isAfter(datesObj.end)) return "Finalizado";
       return "En proceso";
     } catch (e) {
       return "Finalizado";
@@ -193,7 +193,7 @@ class SProject {
   String getCode() {
     String code = "";
     if (financiersObj.isNotEmpty) code += "${financiersObj.first.name}_";
-    if (datesObj.start != null) code += "${datesObj.start!.year}_";
+    if (datesObj.start != null) code += "${datesObj.start.year}_";
     if (partnersObj.isNotEmpty) code += "${partnersObj.first.name}_";
     code += "${locationObj.countryObj.name}_";
     code += "${programmeObj.name}_";
