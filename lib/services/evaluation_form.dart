@@ -1,7 +1,6 @@
 // ignore_for_file: empty_catches
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_evaluation.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';

@@ -3,10 +3,8 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'dart:js_util';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/index.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';

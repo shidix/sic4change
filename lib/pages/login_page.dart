@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -64,7 +63,6 @@ class _LoginPageState extends State<LoginPage> {
     );*/
 
     try {
-      final user = FirebaseAuth.instance.currentUser!;
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
       } else {

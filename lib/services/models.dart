@@ -193,7 +193,7 @@ class SProject {
   String getCode() {
     String code = "";
     if (financiersObj.isNotEmpty) code += "${financiersObj.first.name}_";
-    if (datesObj.start != null) code += "${datesObj.start.year}_";
+    code += "${datesObj.start.year}_";
     if (partnersObj.isNotEmpty) code += "${partnersObj.first.name}_";
     code += "${locationObj.countryObj.name}_";
     code += "${programmeObj.name}_";

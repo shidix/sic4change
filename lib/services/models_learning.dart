@@ -1,4 +1,3 @@
-import 'dart:developer' as dev;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';

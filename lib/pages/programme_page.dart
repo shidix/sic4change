@@ -336,11 +336,11 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       Row(children: [
                         customText(
                             DateFormat("dd-MM-yyyy")
-                                .format(proj.datesObj.start!),
+                                .format(proj.datesObj.start),
                             14),
                         customText(" - ", 14),
                         customText(
-                            DateFormat("dd-MM-yyyy").format(proj.datesObj.end!),
+                            DateFormat("dd-MM-yyyy").format(proj.datesObj.end),
                             14)
                       ]),
                     ]),
