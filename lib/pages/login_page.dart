@@ -63,6 +63,8 @@ class _LoginPageState extends State<LoginPage> {
     );*/
 
     try {
+      final user = FirebaseAuth.instance.currentUser!;
+
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
       } else {
