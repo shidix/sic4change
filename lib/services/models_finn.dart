@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
@@ -74,7 +75,7 @@ class SFinnInfo extends Object {
         return item;
       }
     } catch (e) {
-      print("DBG ERROR: $e");
+      log("DBG ERROR: $e");
     }
     return null;
   }
@@ -97,6 +98,7 @@ class SFinnInfo extends Object {
     return total;
   }
 
+  @override
   String toString() {
     return jsonEncode(toJson());
   }
@@ -276,7 +278,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          print(e);
+          log(e.toString());
         }
       }
     });
@@ -316,7 +318,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          print(e);
+          log(e.toString());
         }
       }
     });
@@ -324,17 +326,16 @@ class SFinn extends Object {
     return items;
   }
 
-  int getLevel() {
-    int deep = 0;
-    SFinn finn = this;
-    if (finn.name == "1.1.1") {
-      while (finn.parent != "") {
-        print("DBG 0001 ${finn.name} ${deep}");
-        deep++;
-        finn = SFinn.byUuid(finn.parent);
-      }
-    }
-    return (deep);
+  // int getLevel() {
+  //   int deep = 0;
+  //   SFinn finn = this;
+  //   if (finn.name == "1.1.1") {
+  //     while (finn.parent != "") {
+  //       deep++;
+  //       finn = SFinn.byUuid(finn.parent);
+  //     }
+  //   }
+  //   return (deep);
 
     // else {
     //   if (level == -1) {
@@ -342,7 +343,7 @@ class SFinn extends Object {
     //   }
     //   return level;
     // }
-  }
+  // }
 
   static SFinn byUuid(String uuid) {
     final database = db.collection("s4c_finns");

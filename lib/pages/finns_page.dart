@@ -432,6 +432,9 @@ class _FinnsPageState extends State<FinnsPage> {
         } else if (finn.contribution < finn.getAmountContrib()) {
           currentStyle = currentStyle.copyWith(color: dangerColor);
         }
+        if ((mapLevels[finn.uuid] == 0) && (rows.isNotEmpty)) {
+          rows.add(Divider(thickness: 1, color: Colors.grey));
+        }
 
         rows.add(Row(children: [
           Expanded(
@@ -479,24 +482,26 @@ class _FinnsPageState extends State<FinnsPage> {
                     ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
                         ? Text(
                             "100%",
-                            style: dangerText.copyWith(
+                            style: currentStyle.copyWith(color: dangerColor,
                                 fontSize: dangerText.fontSize! - 2),
                             textAlign: TextAlign.right,
                           )
                         : Text(
                             "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
                             textAlign: TextAlign.right,
+                            style: currentStyle,
                           )
-                    : const Text(
+                    : Text(
                         "0%",
                         textAlign: TextAlign.right,
+                        style: currentStyle,
                       )),
           ),
           Expanded(
             flex: 2,
             child: Padding(
                 padding: EdgeInsets.only(
-                    left: 10, right: 10.0 + 20.0 * (mapLevels[finn.uuid]!)),
+                    left: 0, right: 10.0 + 15.0 * (mapLevels[finn.uuid]!)),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   iconBtn(context, addFinnDialog, [item, finn],
                       icon: Icons.add, text: 'Añadir subpartida'),
@@ -693,7 +698,7 @@ class _FinnsPageState extends State<FinnsPage> {
     TextStyle currentStyle;
     for (SFinn finn in finnList) {
       if (finn.orgUuid == item.uuid) {
-        if (finn.getLevel() == 0) {
+        if (mapLevels[finn.uuid] == 0) {
           currentStyle = cellsListStyle.copyWith(fontWeight: FontWeight.bold);
         } else {
           currentStyle = cellsListStyle;
@@ -706,10 +711,10 @@ class _FinnsPageState extends State<FinnsPage> {
 
         rows.add(Row(children: [
           Expanded(
-              flex: 5,
+              flex: 4,
               child: Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 5.0 + 50.0 * (finn.getLevel()), vertical: 0),
+                      horizontal: 5.0 + 50.0 * (mapLevels[finn.uuid]!), vertical: 0),
                   child: Text("${finn.name}. ${finn.description}",
                       style: currentStyle))),
           Expanded(
@@ -766,10 +771,12 @@ class _FinnsPageState extends State<FinnsPage> {
             flex: 2,
             child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, 
+                  
+                children: [
                   iconBtn(context, addFinnDialog, [item, finn],
-                      icon: Icons.add, text: 'Añadir subpartida'),
+                      icon: Icons.add, text: 'Añadir subpartida', iconSize: 20-2*mapLevels[finn.uuid]!),
                   iconBtn(context, (context, args) {
                     _editFinnDialog(context, finn).then((value) {
                       if (value == null) {
@@ -784,8 +791,8 @@ class _FinnsPageState extends State<FinnsPage> {
                       finnInfo.save();
                       reloadState();
                     });
-                  }, finn, icon: Icons.edit_outlined),
-                  removeConfirmBtn(context, removeFinn, finn)
+                  }, finn, icon: Icons.edit_outlined, iconSize: 20-2*mapLevels[finn.uuid]!),
+                  removeConfirmBtn(context, removeFinn, finn, iconSize: 20-2*mapLevels[finn.uuid]!)
                 ])),
           ),
         ]));
@@ -827,7 +834,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 color: headerListBgColor,
                 child: Row(children: [
                   const Expanded(
-                      flex: 5,
+                      flex: 4,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
