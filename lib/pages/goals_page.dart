@@ -804,28 +804,24 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1276,28 +1272,24 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1505,33 +1497,28 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Documentos", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Documentos",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(

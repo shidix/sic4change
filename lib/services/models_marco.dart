@@ -121,6 +121,7 @@ class GoalIndicator {
   String expected = "";
   String obtained = "";
   String folder = "";
+  String order = "";
   String goal = "";
   Folder? folderObj;
 
@@ -135,6 +136,7 @@ class GoalIndicator {
         expected = json['expected'],
         obtained = json['obtained'],
         folder = json['folder'],
+        order = json['order'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -146,6 +148,7 @@ class GoalIndicator {
         'expected': expected,
         'obtained': obtained,
         'folder': folder,
+        'order': order,
         'goal': goal,
       };
 
@@ -189,8 +192,13 @@ Future<List> getGoalIndicators() async {
 Future<List> getGoalIndicatorsByGoal(String goal) async {
   List<GoalIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbGoalIndicator.where("goal", isEqualTo: goal).get();
+  //QuerySnapshot query =
+  //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
+  QuerySnapshot query = await dbGoalIndicator
+      .orderBy("goal")
+      .orderBy("order", descending: true)
+      .where("goal", isEqualTo: goal)
+      .get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
