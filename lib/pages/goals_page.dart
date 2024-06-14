@@ -46,8 +46,10 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   void loadGoals() async {
+    //setLoading();
     await getGoalsByProject(project!.uuid).then((val) {
       goals = val;
+      //stopLoading();
     });
     setState(() {});
   }
@@ -1339,6 +1341,7 @@ class _GoalsPageState extends State<GoalsPage>
   -------------------------------------------------------------*/
   void saveGoalIndicator(List args) async {
     GoalIndicator indicator = args[0];
+    //indicator.getFolder();
     indicator.save();
     loadGoals();
 
@@ -1365,7 +1368,8 @@ class _GoalsPageState extends State<GoalsPage>
                 minLines: 2,
                 maxLines: 9999,
                 fieldValue: (String val) {
-                  setState(() => indicator.name = val);
+                  indicator.name = val;
+                  //setState(() => indicator.name = val);
                 },
               )
             ]),
@@ -1379,20 +1383,22 @@ class _GoalsPageState extends State<GoalsPage>
                   minLines: 1,
                   maxLines: 1,
                   fieldValue: (String val) {
-                    setState(() => indicator.source = val);
+                    indicator.source = val;
+                    //setState(() => indicator.source = val);
                   },
                 )
               ]),
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
-                  labelText: "Enlace",
-                  initial: indicator.link,
+                  labelText: "Documentos",
+                  initial: indicator.folder,
                   size: 440,
                   minLines: 1,
                   maxLines: 1,
                   fieldValue: (String val) {
-                    setState(() => indicator.link = val);
+                    indicator.folder = val;
+                    //setState(() => indicator.folder = val);
                   },
                 )
               ]),
@@ -1408,7 +1414,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.base = val);
+                      indicator.base = val;
+                      //setState(() => indicator.base = val);
                     },
                   )
                 ]),
@@ -1421,7 +1428,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.expected = val);
+                      indicator.expected = val;
+                      //setState(() => indicator.expected = val);
                     },
                   )
                 ]),
@@ -1434,7 +1442,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.obtained = val);
+                      indicator.obtained = val;
+                      //setState(() => indicator.obtained = val);
                     },
                   )
                 ]),
@@ -1537,8 +1546,15 @@ class _GoalsPageState extends State<GoalsPage>
                 (indicator) => DataRow(cells: [
                   DataCell(Text(indicator.name)),
                   DataCell(Text(indicator.source)),
-                  DataCell(goPageIcon(
-                      context, "Ver", Icons.view_compact, DocumentsPage())),
+                  (indicator.folderObj == null)
+                      ? DataCell(Container())
+                      : DataCell(goPageIcon(
+                          context,
+                          "Ver",
+                          Icons.folder,
+                          DocumentsPage(
+                            currentFolder: indicator.folderObj,
+                          ))),
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
                   DataCell(Text(indicator.obtained)),

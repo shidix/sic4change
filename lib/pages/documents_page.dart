@@ -28,6 +28,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   PlatformFile? pickedFile;
   Uint8List? pickedFileBytes;
   UploadTask? uploadTask;
+  String urlBase = "";
 
   void loadFolders(value) async {
     await getFolders(value).then((val) {
@@ -43,11 +44,24 @@ class _DocumentsPageState extends State<DocumentsPage> {
     setState(() {});
   }
 
+  /*void loadFolderByParent(parent) async {
+    if (parent != null) {
+      currentFolder = await getFolderByUuid(parent.replaceAll("/", ""));
+      setState(() {});
+    }
+  }*/
+
   @override
   initState() {
     super.initState();
     currentFolder = widget.currentFolder;
     _mainMenu = mainMenu(context, "/documents");
+    /*if (currentFolder == null) {
+      String? parent = Uri.base.queryParameters['parent'];
+      List url = Uri.base.toString().split("/");
+      urlBase = "${url[0]}//${url[2]}";
+      loadFolderByParent(parent);
+    }*/
   }
 
   @override
@@ -60,11 +74,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
     } else {
       currentFolder = null;
     }*/
-    /*print("--1--");
-    print(Uri.base
-        .toString()); // http://localhost:8082/game.html?id=15&randomNumber=3.14
-    print(Uri.base.query); // id=15&randomNumber=3.14
-    print(Uri.base.queryParameters['currentFolder']);*/
 
     if (currentFolder != null) print(currentFolder!.name);
     return Scaffold(
@@ -337,9 +346,12 @@ class _DocumentsPageState extends State<DocumentsPage> {
       onSelected: (SampleItem item) async {
         selectedMenu = item;
         if (selectedMenu == SampleItem.itemOne) {
-          _folderEditDialog(context, nameController, folder, currentFolder);
+          _linkFolderDialog(context, folder);
         }
         if (selectedMenu == SampleItem.itemTwo) {
+          _folderEditDialog(context, nameController, folder, currentFolder);
+        }
+        if (selectedMenu == SampleItem.itemThree) {
           //bool haveChildren = await folderHaveChildren(folder.uuid);
           bool haveChildren = await folder.haveChildren();
           if (!haveChildren) {
@@ -353,11 +365,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
         const PopupMenuItem<SampleItem>(
             value: SampleItem.itemOne,
             child: Row(children: [
+              Icon(Icons.link),
+              Text('Ver identificador'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemTwo,
+            child: Row(children: [
               Icon(Icons.edit),
               Text('Editar'),
             ])),
         const PopupMenuItem<SampleItem>(
-          value: SampleItem.itemTwo,
+          value: SampleItem.itemThree,
           child: Row(
             children: [
               Icon(Icons.remove_circle),
@@ -372,6 +390,31 @@ class _DocumentsPageState extends State<DocumentsPage> {
 /*-------------------------------------------------------------
                         FOLDERS Dialogs
 ---------------------------------------------------------------*/
+  Future<void> _linkFolderDialog(context, folder) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Identificador'),
+          content: SingleChildScrollView(
+              child: Row(children: [
+            //SelectableText("${urlBase}/?parent=${folder.uuid}/#/documents")
+            SelectableText("${folder.loc}")
+          ])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void saveFolder(List args) async {
     String folderUuid = "";
     if (currentFolder != null) folderUuid = currentFolder!.uuid;

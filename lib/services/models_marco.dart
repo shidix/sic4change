@@ -120,8 +120,9 @@ class GoalIndicator {
   String base = "";
   String expected = "";
   String obtained = "";
-  String link = "";
+  String folder = "";
   String goal = "";
+  Folder? folderObj;
 
   GoalIndicator(this.goal);
 
@@ -133,7 +134,7 @@ class GoalIndicator {
         base = json['base'],
         expected = json['expected'],
         obtained = json['obtained'],
-        link = json['link'],
+        folder = json['folder'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -144,7 +145,7 @@ class GoalIndicator {
         'base': base,
         'expected': expected,
         'obtained': obtained,
-        'link': link,
+        'folder': folder,
         'goal': goal,
       };
 
@@ -164,10 +165,10 @@ class GoalIndicator {
     await dbGoalIndicator.doc(id).delete();
   }
 
-  Future<Folder?> getLink() async {
-    Folder? folder =
-        await getFolderByUuid("6e9d8f67-76e1-4437-b601-a2b104c8a6d6");
-    return folder;
+  Future<void> getFolder() async {
+    if ((folder != "") && (folderObj == null)) {
+      folderObj = await Folder.byLoc(folder);
+    }
   }
 }
 
@@ -178,7 +179,9 @@ Future<List> getGoalIndicators() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(GoalIndicator.fromJson(data));
+    GoalIndicator item = GoalIndicator.fromJson(data);
+    item.getFolder();
+    items.add(item);
   }
   return items;
 }
@@ -191,7 +194,10 @@ Future<List> getGoalIndicatorsByGoal(String goal) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(GoalIndicator.fromJson(data));
+    GoalIndicator item = GoalIndicator.fromJson(data);
+    await item.getFolder();
+    items.add(item);
+    //items.add(GoalIndicator.fromJson(data));
   }
   return items;
 }

@@ -172,13 +172,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    try {
-      print(Uri.base.toString());
-      print(Uri.base.query);
-      print(Uri.base.queryParameters['project']); //
-    } catch (e) {
-      print(e);
-    }
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(
