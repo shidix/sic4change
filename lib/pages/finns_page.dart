@@ -500,7 +500,7 @@ class _FinnsPageState extends State<FinnsPage> {
                       )),
           ),
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Padding(
                 padding: EdgeInsets.only(
                     left: 0, right: 10.0 + 15.0 * (mapLevels[finn.uuid]!)),
@@ -520,7 +520,9 @@ class _FinnsPageState extends State<FinnsPage> {
                       reloadState();
                     });
                   }, finn, icon: Icons.edit_outlined),
-                  removeConfirmBtn(context, removeFinn, finn)
+                  removeConfirmBtn(context, removeFinn, finn),                  
+                  iconBtn(context, (context, args) {}, null, icon: Icons.send_outlined, text: 'Distribuir a socio'),
+
                 ])),
           ),
         ])));
@@ -625,7 +627,7 @@ class _FinnsPageState extends State<FinnsPage> {
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
                   const Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -692,7 +694,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 ? rows
                 : [
                     const Center(
-                        child: Text("No hay partidas financieras asignadas"))
+                        child: Text("No se ha efectuado ninguna asignación."))
                   ]));
   }
 
@@ -771,13 +773,14 @@ class _FinnsPageState extends State<FinnsPage> {
                       )),
           ),
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, 
                   
                 children: [
+                  iconBtn(context, (context, args) {}, null, icon: Icons.send_outlined, text: 'Distribuir a socio'),
                   iconBtn(context, addFinnDialog, [item, finn],
                       icon: Icons.add, text: 'Añadir subpartida', iconSize: 20-2*mapLevels[finn.uuid]!),
                   iconBtn(context, (context, args) {
@@ -801,7 +804,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]));
       }
     }
-    return Card(
+    return Card(    //Partner card
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(
@@ -830,7 +833,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         ]))),
             space(height: 10),
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtnRow(context, addFinnDialog, [item, null])
+              addBtnRow(context, addDistribDialog, [item, null])
             ]),
             const Divider(thickness: 1, color: Colors.grey),
             Container(
@@ -897,7 +900,7 @@ class _FinnsPageState extends State<FinnsPage> {
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
                   const Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -927,13 +930,38 @@ class _FinnsPageState extends State<FinnsPage> {
               "Distribución presupuestaria por socio (${_project!.partnersObj.length})",
               style: const TextStyle(
                   fontSize: 18, color: mainColor, fontWeight: FontWeight.bold)),
-          //getInfoPartners,
-          (context, args) {
-        return Container();
-      }, {},
+          getInfoPartners, {},
           subtitle: "Listado de partidas financieras asignadas a cada socio",
           expanded: false),
     );
+  }
+
+  Future<void> addDistribDialog(context) async {
+    return showDialog<Distribution>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Añadir distribución'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Próximamente'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        }).then((value) {
+          
+        });
+
+
   }
 
   Future<double> invoicesByPartner() async {
