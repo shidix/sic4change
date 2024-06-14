@@ -387,8 +387,8 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void removeFinn(context, finn) {
-    List items = [];
     List queue = [];
+
     for (SFinn item in finnInfo.partidas) {
       if (item.uuid == finn.uuid) {
         finnInfo.partidas.remove(item);
@@ -397,10 +397,10 @@ class _FinnsPageState extends State<FinnsPage> {
     }
     while (queue.isNotEmpty) {
       SFinn item = queue.removeAt(0);
-      items.add(item);
       for (SFinn child in item.partidas) {
         if (child.uuid == finn.uuid) {
           item.partidas.remove(child);
+          finnInfo.partidas.remove(child);
         }
         queue.add(child);
       }
@@ -409,8 +409,6 @@ class _FinnsPageState extends State<FinnsPage> {
 
     finn.delete();
     finnList.remove(finn);
-    // finnHash.remove(finn.name);
-    // finnUuidHash.remove(finn.uuid);
     reloadState();
   }
 
@@ -516,8 +514,6 @@ class _FinnsPageState extends State<FinnsPage> {
                       }
                       if (finn.id == "") {
                         finnList.remove(finn);
-                        // finnHash.remove(finn.name);
-                        // finnUuidHash.remove(finn.uuid);
                       }
                       finnSelected = null;
                       finnInfo.save();
