@@ -22,6 +22,7 @@ class Folder {
   String id = "";
   String uuid = "";
   String name = "";
+  String loc = "";
   String parent = "";
 
   Folder(this.name, this.parent);
@@ -30,12 +31,14 @@ class Folder {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
+        loc = json['loc'],
         parent = json['parent'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'loc': loc,
         'parent': parent,
       };
 
@@ -43,6 +46,7 @@ class Folder {
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
+      loc = await getLoc();
       Map<String, dynamic> data = toJson();
       dbFolder.add(data);
     } else {
@@ -53,6 +57,41 @@ class Folder {
 
   Future<void> delete() async {
     await dbFolder.doc(id).delete();
+  }
+
+  Future<bool> haveChildren() async {
+    List folders = await getFolders(uuid);
+    List files = await getFiles(uuid);
+    if ((folders.isNotEmpty) || (files.isNotEmpty)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<String> getLoc() async {
+    QuerySnapshot? query;
+
+    var loc = "";
+    do {
+      loc = getRandomString(4);
+      query = await dbFolder.where("loc", isEqualTo: loc).get();
+    } while (query.size > 0);
+    return loc;
+  }
+
+  static Future<Folder> byLoc(String loc) async {
+    QuerySnapshot? query;
+
+    query = await dbFolder.where("loc", isEqualTo: loc).get();
+    if (query.size == 0) {
+      return Folder("", "");
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return Folder.fromJson(data);
+    }
   }
 }
 
@@ -178,7 +217,7 @@ Future<List> getFiles(String folder) async {
   return files;
 }
 
-Future<String> getLoc() async {
+/*Future<String> getLoc() async {
   QuerySnapshot? query;
 
   var loc = "";
@@ -187,4 +226,4 @@ Future<String> getLoc() async {
     query = await dbFile.where("loc", isEqualTo: loc).get();
   } while (query.size > 0);
   return loc;
-}
+}*/

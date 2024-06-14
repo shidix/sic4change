@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -119,7 +120,9 @@ class GoalIndicator {
   String base = "";
   String expected = "";
   String obtained = "";
+  String folder = "";
   String goal = "";
+  Folder? folderObj;
 
   GoalIndicator(this.goal);
 
@@ -131,6 +134,7 @@ class GoalIndicator {
         base = json['base'],
         expected = json['expected'],
         obtained = json['obtained'],
+        folder = json['folder'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -141,6 +145,7 @@ class GoalIndicator {
         'base': base,
         'expected': expected,
         'obtained': obtained,
+        'folder': folder,
         'goal': goal,
       };
 
@@ -159,6 +164,12 @@ class GoalIndicator {
   Future<void> delete() async {
     await dbGoalIndicator.doc(id).delete();
   }
+
+  Future<void> getFolder() async {
+    if ((folder != "") && (folderObj == null)) {
+      folderObj = await Folder.byLoc(folder);
+    }
+  }
 }
 
 Future<List> getGoalIndicators() async {
@@ -168,7 +179,9 @@ Future<List> getGoalIndicators() async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(GoalIndicator.fromJson(data));
+    GoalIndicator item = GoalIndicator.fromJson(data);
+    item.getFolder();
+    items.add(item);
   }
   return items;
 }
@@ -181,7 +194,10 @@ Future<List> getGoalIndicatorsByGoal(String goal) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(GoalIndicator.fromJson(data));
+    GoalIndicator item = GoalIndicator.fromJson(data);
+    await item.getFolder();
+    items.add(item);
+    //items.add(GoalIndicator.fromJson(data));
   }
   return items;
 }

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -27,6 +28,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   PlatformFile? pickedFile;
   Uint8List? pickedFileBytes;
   UploadTask? uploadTask;
+  String urlBase = "";
 
   void loadFolders(value) async {
     await getFolders(value).then((val) {
@@ -42,11 +44,24 @@ class _DocumentsPageState extends State<DocumentsPage> {
     setState(() {});
   }
 
+  /*void loadFolderByParent(parent) async {
+    if (parent != null) {
+      currentFolder = await getFolderByUuid(parent.replaceAll("/", ""));
+      setState(() {});
+    }
+  }*/
+
   @override
   initState() {
     super.initState();
     currentFolder = widget.currentFolder;
     _mainMenu = mainMenu(context, "/documents");
+    /*if (currentFolder == null) {
+      String? parent = Uri.base.queryParameters['parent'];
+      List url = Uri.base.toString().split("/");
+      urlBase = "${url[0]}//${url[2]}";
+      loadFolderByParent(parent);
+    }*/
   }
 
   @override
@@ -271,24 +286,24 @@ class _DocumentsPageState extends State<DocumentsPage> {
           if (snapshot.hasData) {
             folders = snapshot.data!;
 
-            /*return GridView.builder(
+            return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  childAspectRatio: 5,
+                  childAspectRatio: 6,
                 ),
                 itemCount: folders.length,
                 itemBuilder: (_, index) {
                   Folder? cFolder = folders[index];
                   return Row(children: [
-                    goPage(context, folders[index].name,
+                    goPageDoc(context, folders[index].name,
                         DocumentsPage(currentFolder: cFolder), Icons.folder,
                         extraction: () {}),
                     /*customRowBtn(context, folders[index].name, Icons.folder,
                         "/documents", {"parent": cFolder}),*/
                     folderPopUpBtn(context, folders[index], currentFolder)
                   ]);
-                });*/
-            return ListView.builder(
+                });
+            /*return ListView.builder(
                 //padding: const EdgeInsets.all(8),
                 itemCount: folders.length,
                 scrollDirection: Axis.horizontal,
@@ -309,7 +324,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
                         ),
                         folderPopUpBtn(context, folders[index], currentFolder)
                       ]);
-                });
+                });*/
           } else {
             return const Center(
               child: CircularProgressIndicator(),
@@ -319,16 +334,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
 //enum SampleItem { itemOne, itemTwo }
-
-  Future<bool> folderHaveChildren(folder) async {
-    folders = await getFolders(folder);
-    files = await getFiles(folder);
-    if ((folders.isNotEmpty) || (files.isNotEmpty)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   Widget folderPopUpBtn(context, folder, currentFolder) {
     SampleItem? selectedMenu;
@@ -341,10 +346,14 @@ class _DocumentsPageState extends State<DocumentsPage> {
       onSelected: (SampleItem item) async {
         selectedMenu = item;
         if (selectedMenu == SampleItem.itemOne) {
-          _folderEditDialog(context, nameController, folder, currentFolder);
+          _linkFolderDialog(context, folder);
         }
         if (selectedMenu == SampleItem.itemTwo) {
-          bool haveChildren = await folderHaveChildren(folder.uuid);
+          _folderEditDialog(context, nameController, folder, currentFolder);
+        }
+        if (selectedMenu == SampleItem.itemThree) {
+          //bool haveChildren = await folderHaveChildren(folder.uuid);
+          bool haveChildren = await folder.haveChildren();
           if (!haveChildren) {
             _confirmRemoveDialog(context, folder, currentFolder);
           } else {
@@ -356,11 +365,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
         const PopupMenuItem<SampleItem>(
             value: SampleItem.itemOne,
             child: Row(children: [
+              Icon(Icons.link),
+              Text('Ver identificador'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemTwo,
+            child: Row(children: [
               Icon(Icons.edit),
               Text('Editar'),
             ])),
         const PopupMenuItem<SampleItem>(
-          value: SampleItem.itemTwo,
+          value: SampleItem.itemThree,
           child: Row(
             children: [
               Icon(Icons.remove_circle),
@@ -375,6 +390,31 @@ class _DocumentsPageState extends State<DocumentsPage> {
 /*-------------------------------------------------------------
                         FOLDERS Dialogs
 ---------------------------------------------------------------*/
+  Future<void> _linkFolderDialog(context, folder) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Identificador'),
+          content: SingleChildScrollView(
+              child: Row(children: [
+            //SelectableText("${urlBase}/?parent=${folder.uuid}/#/documents")
+            SelectableText("${folder.loc}")
+          ])),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void saveFolder(List args) async {
     String folderUuid = "";
     if (currentFolder != null) folderUuid = currentFolder!.uuid;

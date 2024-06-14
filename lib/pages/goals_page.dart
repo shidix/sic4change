@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -45,8 +46,10 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   void loadGoals() async {
+    //setLoading();
     await getGoalsByProject(project!.uuid).then((val) {
       goals = val;
+      //stopLoading();
     });
     setState(() {});
   }
@@ -272,10 +275,12 @@ class _GoalsPageState extends State<GoalsPage>
             ],
           ),
           space(height: 10),
-          customCollapse2(context, "Resultados", resultList, goal,
+          /*customCollapse2(context, "Resultados", resultList, goal,
               expanded: false,
               bgColor: headerListBgColorResult,
-              txtColor: mainMenuBtnSelectedColor),
+              txtColor: mainMenuBtnSelectedColor),*/
+          customCollapse(context, "Resultados", resultList, goal,
+              expanded: false, style: "main"),
           space(height: 10),
           customCollapse2(context, "Indicadores", goalIndicators, goal,
               expanded: false,
@@ -1336,6 +1341,7 @@ class _GoalsPageState extends State<GoalsPage>
   -------------------------------------------------------------*/
   void saveGoalIndicator(List args) async {
     GoalIndicator indicator = args[0];
+    //indicator.getFolder();
     indicator.save();
     loadGoals();
 
@@ -1362,22 +1368,40 @@ class _GoalsPageState extends State<GoalsPage>
                 minLines: 2,
                 maxLines: 9999,
                 fieldValue: (String val) {
-                  setState(() => indicator.name = val);
+                  indicator.name = val;
+                  //setState(() => indicator.name = val);
                 },
               )
             ]),
             space(height: 10),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "FFVV",
-                initial: indicator.source,
-                size: 900,
-                minLines: 1,
-                maxLines: 1,
-                fieldValue: (String val) {
-                  setState(() => indicator.source = val);
-                },
-              )
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "FFVV",
+                  initial: indicator.source,
+                  size: 440,
+                  minLines: 1,
+                  maxLines: 1,
+                  fieldValue: (String val) {
+                    indicator.source = val;
+                    //setState(() => indicator.source = val);
+                  },
+                )
+              ]),
+              space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Documentos",
+                  initial: indicator.folder,
+                  size: 440,
+                  minLines: 1,
+                  maxLines: 1,
+                  fieldValue: (String val) {
+                    indicator.folder = val;
+                    //setState(() => indicator.folder = val);
+                  },
+                )
+              ]),
             ]),
             space(height: 10),
             Row(
@@ -1390,7 +1414,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.base = val);
+                      indicator.base = val;
+                      //setState(() => indicator.base = val);
                     },
                   )
                 ]),
@@ -1403,7 +1428,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.expected = val);
+                      indicator.expected = val;
+                      //setState(() => indicator.expected = val);
                     },
                   )
                 ]),
@@ -1416,7 +1442,8 @@ class _GoalsPageState extends State<GoalsPage>
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
-                      setState(() => indicator.obtained = val);
+                      indicator.obtained = val;
+                      //setState(() => indicator.obtained = val);
                     },
                   )
                 ]),
@@ -1487,6 +1514,11 @@ class _GoalsPageState extends State<GoalsPage>
               tooltip: "FFVV",
             ),
             DataColumn(
+              label: customText("Documentos", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+              tooltip: "Documentos",
+            ),
+            DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
               tooltip: "Línea Base",
@@ -1514,6 +1546,15 @@ class _GoalsPageState extends State<GoalsPage>
                 (indicator) => DataRow(cells: [
                   DataCell(Text(indicator.name)),
                   DataCell(Text(indicator.source)),
+                  (indicator.folderObj == null)
+                      ? DataCell(Container())
+                      : DataCell(goPageIcon(
+                          context,
+                          "Ver",
+                          Icons.folder,
+                          DocumentsPage(
+                            currentFolder: indicator.folderObj,
+                          ))),
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
                   DataCell(Text(indicator.obtained)),
