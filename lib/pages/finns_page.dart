@@ -423,6 +423,7 @@ class _FinnsPageState extends State<FinnsPage> {
       FontWeight.w300,
       FontWeight.w100,
     ];
+    int counter = 0;
     for (SFinn finn in finnList) {
       if (finn.orgUuid == item.uuid) {
         currentStyle = cellsListStyle.copyWith(
@@ -433,10 +434,13 @@ class _FinnsPageState extends State<FinnsPage> {
           currentStyle = currentStyle.copyWith(color: dangerColor);
         }
         if ((mapLevels[finn.uuid] == 0) && (rows.isNotEmpty)) {
+          counter = 0;
           rows.add(Divider(thickness: 1, color: Colors.grey));
         }
 
-        rows.add(Row(children: [
+        rows.add(Container(
+          color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
+          child:Row(children: [
           Expanded(
               flex: 5,
               child: Padding(
@@ -523,8 +527,11 @@ class _FinnsPageState extends State<FinnsPage> {
                   removeConfirmBtn(context, removeFinn, finn)
                 ])),
           ),
-        ]));
+        ])));
+      
+        counter += 1;
       }
+
     }
 
     return Card(
