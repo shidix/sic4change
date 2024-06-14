@@ -46,24 +46,22 @@ class _BitacoraPageState extends State<BitacoraPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child:
-      
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start, 
-        mainAxisSize: MainAxisSize.min,
-        children: [
-        mainMenu(context),
-        pathHeader(context, project.name),
-        bitacoraHeader(context, project),
-        marcoMenu(context, project, "bitacora"),
-        (bitacora != null)
-            ? contentTab(context, contentBitacora, bitacora)
-            : Container(
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator()),
-        footer(context),
-      ]),
+        body: SingleChildScrollView(
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            mainMenu(context),
+            pathHeader(context, project.name),
+            bitacoraHeader(context, project),
+            marcoMenu(context, project, "bitacora"),
+            (bitacora != null)
+                ? contentTab(context, contentBitacora, bitacora)
+                : Container(
+                    alignment: Alignment.center,
+                    child: const CircularProgressIndicator()),
+            footer(context),
+          ]),
     ));
   }
 
@@ -86,93 +84,89 @@ class _BitacoraPageState extends State<BitacoraPage> {
 
   Widget contentBitacora(context, Bitacora bitacora) {
     return SingleChildScrollView(
-      child: (bitacora != null)
-          ? Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text("Resumen de los principales cambios",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateSummary,
-                      bitacora,
-                      subtitle:
-                          "(contexto, actores, modificaciones sustanciales o accidenteales)",
-                      expanded: true),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text(
-                          "Retrasos producidos en la intevención y por qué",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateDelays,
-                      bitacora,
-                      subtitle: "(causas, duración, impacto)",
-                      expanded: false),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text(
-                          "Aspectos de gestión financiera/administrativa",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateFinancial,
-                      bitacora,
-                      subtitle: "(presupuesto, gastos, ingresos)",
-                      expanded: false),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text("Aspectos técnicos",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateTechnicals,
-                      bitacora,
-                      subtitle: "(avances, problemas, soluciones)",
-                      expanded: false),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text("Aspectos relacionados con los socios",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateFromPartners,
-                      bitacora,
-                      subtitle: "(aportes, problemas, soluciones)",
-                      expanded: false),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: customCollapse(
-                      context,
-                      const Text("Otros cambios/aspectos a recoger",
-                          style: TextStyle(fontSize: 18, color: mainColor)),
-                      populateOthers,
-                      bitacora,
-                      subtitle: "(cualquier otro aspecto relevante)",
-                      expanded: false),
-                ),
-              ],
-            )
-          : const CircularProgressIndicator(),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Resumen de los principales cambios",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateSummary,
+                bitacora,
+                subtitle:
+                    "(contexto, actores, modificaciones sustanciales o accidenteales)",
+                expanded: true),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Retrasos producidos en la intevención y por qué",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateDelays,
+                bitacora,
+                subtitle: "(causas, duración, impacto)",
+                expanded: false),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Aspectos de gestión financiera/administrativa",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateFinancial,
+                bitacora,
+                subtitle: "(presupuesto, gastos, ingresos)",
+                expanded: false),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Aspectos técnicos",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateTechnicals,
+                bitacora,
+                subtitle: "(avances, problemas, soluciones)",
+                expanded: false),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Aspectos relacionados con los socios",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateFromPartners,
+                bitacora,
+                subtitle: "(aportes, problemas, soluciones)",
+                expanded: false),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: customCollapse(
+                context,
+                const Text("Otros cambios/aspectos a recoger",
+                    style: TextStyle(fontSize: 18, color: mainColor)),
+                populateOthers,
+                bitacora,
+                subtitle: "(cualquier otro aspecto relevante)",
+                expanded: false),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> bitacoraEditDialog(context, args) {
     int index = args["index"];
     int type = args["type"];
-    final _keysDictionary = [
+    final keysDictionary = [
       "summary",
       "delays",
       "financial",
@@ -180,7 +174,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
       "fromPartners",
       "others"
     ];
-    final _titlesDictionary = [
+    final titlesDictionary = [
       "Resumen",
       "Retrasos",
       "Aspectos financieros",
@@ -189,7 +183,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
       "Otros aspectos"
     ];
 
-    String keyIndex = _keysDictionary[type % 6];
+    String keyIndex = keysDictionary[type % 6];
     Map<String, dynamic> item;
 
     if (index >= 0) {
@@ -210,8 +204,8 @@ class _BitacoraPageState extends State<BitacoraPage> {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar((item["description"] != "")
-              ? 'Editando ${_titlesDictionary[type % 6]}'
-              : 'Añadiendo ${_titlesDictionary[type % 6]}'),
+              ? 'Editando ${titlesDictionary[type % 6]}'
+              : 'Añadiendo ${titlesDictionary[type % 6]}'),
           content: BitacoraForm(bitacora: bitacora!, type: type, index: index),
         );
       },

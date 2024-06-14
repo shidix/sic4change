@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names
 
 import 'dart:math';
 import 'dart:html' as html;
+import "dart:developer" as dev;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -221,7 +222,7 @@ class _HomePageState extends State<HomePage> {
 
   void printSummary(context) {
     setState(() {});
-    print("printSummary");
+    dev.log("printSummary");
   }
 
 /////////// WORKTIME ///////////
@@ -619,7 +620,7 @@ class _HomePageState extends State<HomePage> {
     try {
       month = args['month'];
     } catch (e) {
-      print(e);
+      dev.log(e.toString());
     }
 
     List<Workday> workdays = [];
@@ -1599,8 +1600,8 @@ class _HomePageState extends State<HomePage> {
                                           padding:
                                               const EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            DateFormat('dd-MM-yyyy').format(
-                                                project.datesObj.start!),
+                                            DateFormat('dd-MM-yyyy')
+                                                .format(project.datesObj.start),
                                             //project.datesObj.start,
                                             style: normalText,
                                             textAlign: TextAlign.center,
@@ -1613,7 +1614,7 @@ class _HomePageState extends State<HomePage> {
                                               const EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             DateFormat('dd-MM-yyyy')
-                                                .format(project.datesObj.end!),
+                                                .format(project.datesObj.end),
                                             //project.datesObj.end,
                                             style: normalText,
                                             textAlign: TextAlign.center,

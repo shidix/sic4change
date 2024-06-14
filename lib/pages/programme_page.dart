@@ -49,11 +49,14 @@ class _ProgrammePageState extends State<ProgrammePage> {
         finUUID[financier.name] = financier.uuid;
       }
     }
+
     finMap.forEach((key, value) async {
       double amount = 0;
       for (SProject project in projects) {
-        amount += await FinnContribution.getSummaryByFinancierAndProject(
-            finUUID[key], project.uuid);
+        SFinnInfo? finnInfo = await SFinnInfo.byProject(project.uuid);
+        if (finnInfo != null) {
+          amount += finnInfo.getContribByFinancier(finUUID[key]!);
+        }
       }
       finMap[key] = amount;
     });
@@ -333,11 +336,11 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       Row(children: [
                         customText(
                             DateFormat("dd-MM-yyyy")
-                                .format(proj.datesObj.start!),
+                                .format(proj.datesObj.start),
                             14),
                         customText(" - ", 14),
                         customText(
-                            DateFormat("dd-MM-yyyy").format(proj.datesObj.end!),
+                            DateFormat("dd-MM-yyyy").format(proj.datesObj.end),
                             14)
                       ]),
                     ]),

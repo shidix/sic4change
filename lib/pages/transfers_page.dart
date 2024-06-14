@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -462,16 +461,16 @@ class _TransfersPageState extends State<TransfersPage> {
     List<String> financiers = [];
     double totalAmount = fromCurrency(currentProject!.budget);
 
-    for (FinnContribution aporte in aportesItems!) {
-      if (!financiers.contains(aporte.financier)) {
-        financiers.add(aporte.financier);
-      }
-      if (!byFinancier.containsKey(aporte.financier)) {
-        byFinancier[aporte.financier] = 0;
-      }
-      byFinancier[aporte.financier] =
-          byFinancier[aporte.financier]! + aporte.amount;
-    }
+    // for (FinnContribution aporte in aportesItems!) {
+    //   if (!financiers.contains(aporte.financier)) {
+    //     financiers.add(aporte.financier);
+    //   }
+    //   if (!byFinancier.containsKey(aporte.financier)) {
+    //     byFinancier[aporte.financier] = 0;
+    //   }
+    //   byFinancier[aporte.financier] =
+    //       byFinancier[aporte.financier]! + aporte.amount;
+    // }
 
     headers.add(Row(children: [
       const Expanded(flex: 1, child: Text('Financiación', style: mainText)),
