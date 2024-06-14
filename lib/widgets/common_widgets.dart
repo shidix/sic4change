@@ -539,7 +539,8 @@ Widget actionButton(
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),
+          side: const BorderSide(color: Color(0xff8fbc8f))),
       backgroundColor: Colors.white,
     ),
     child: row,
