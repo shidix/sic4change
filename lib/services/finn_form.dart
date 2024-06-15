@@ -272,6 +272,143 @@ class _InvoiceFormState extends State<InvoiceForm> {
   }
 }
 
+class DistributionForm extends StatefulWidget {
+  final SFinnInfo info;
+  final SProject project;
+  final List<Organization> partners;
+  final int index;
+
+  const DistributionForm(
+      {Key? key, required this.info, required this.project, required this.partners, required this.index})
+      : super(key: key);
+
+  @override
+  createState() => _DistributionFormState();
+}
+
+class _DistributionFormState extends State<DistributionForm> {
+  final _formKey = GlobalKey<FormState>();
+  late SFinnInfo info;
+  late SProject project;
+  late List<Organization> partners;
+  late int index;
+  late Distribution item;
+
+  @override
+  void initState() {
+    super.initState();
+    info = widget.info;
+    project = widget.project;
+    partners = widget.partners;
+    index = widget.index;
+    if (index >= 0) {
+      item = info.distributions[index];
+    } else {
+      item = Distribution.getEmpty();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Map<String, Organization> mapPartners = {};
+    partners.forEach((partner) {
+      mapPartners[partner.uuid] = partner;
+    });
+    void saveDistribution() {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        if (index >= 0) {
+          info.distributions[index] = item;
+        } else {
+          info.distributions.add(item);
+        }
+        info.save();
+        Navigator.of(context).pop(info);
+      }
+    }
+
+    Distribution? removeDistribution() {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        if (index >= 0) {
+          info.distributions.removeAt(index);
+        }
+        info.save();
+        Navigator.of(context).pop(info);
+        return (item);
+      }
+      return null;
+    }
+
+    return Form(
+      key: _formKey,
+      child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: CustomSelectFormField(
+                      labelText: 'Socio',
+                      initial: item.partner!.uuid,
+                      options: partners
+                          .map((partner) => KeyValue(partner.uuid, partner.name))
+                          .toList(),
+                      onSelectedOpt: (value) {
+                        item.partner = mapPartners[value.toString()]!;
+                      },
+                      required: true,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: item.amount.toString(),
+                      decoration: const InputDecoration(labelText: 'Importe'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese un importe';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        item.amount = currencyToDouble(value);
+                      },
+                      onSaved: (value) =>
+                          item.amount = currencyToDouble(value!),
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: item.description,
+                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      onSaved: (value) => item.description = value!,
+                    )),
+              ]),
+              const SizedBox(height: 16.0),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: saveBtnForm(context, saveDistribution))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: cancelBtnForm(context))),
+              ]),
+            ],
+          )),
+    );
+  }
+
+}
+
 class BankTransferForm extends StatefulWidget {
   final BankTransfer? existingBankTransfer;
   final SProject? project;

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
@@ -15,6 +16,7 @@ class SFinnInfo extends Object {
   String project;
 
   List partidas = [];
+  List distributions = [];
 
   // List<Map<String, dynamic>> contributions = [];
   // List<Map<String, dynamic>> distributions = [];
@@ -28,10 +30,14 @@ class SFinnInfo extends Object {
     if (!json.containsKey("partidas")) {
       json["partidas"] = [];
     }
+    if (!json.containsKey("distributions")) {
+      json["distributions"] = [];
+    }
     SFinnInfo item = SFinnInfo(json["id"], json["uuid"], json["project"]);
     item.partidas = json["partidas"]
         .map((e) => SFinn.fromJson(e as Map<String, dynamic>))
         .toList();
+    item.distributions = json["distributions"].map((e) => Distribution.fromJson(e as Map<String, dynamic>)).toList();
     return item;
   }
 
@@ -40,6 +46,7 @@ class SFinnInfo extends Object {
         'uuid': uuid,
         'project': project,
         'partidas': partidas.map((e) => e.toJson()).toList(),
+        'distributions': distributions.map((e) => e.toJson()).toList(),
       };
 
   void save() async {
@@ -74,7 +81,7 @@ class SFinnInfo extends Object {
         return item;
       }
     } catch (e) {
-      print("DBG ERROR: $e");
+      log("DBG ERROR: $e");
     }
     return null;
   }
@@ -97,8 +104,24 @@ class SFinnInfo extends Object {
     return total;
   }
 
+  @override
   String toString() {
     return jsonEncode(toJson());
+  }
+
+  void updateDistribution(Distribution distribution) {
+    int index = distributions.indexWhere((element) => element.uuid == distribution.uuid);
+    if (index != -1) {
+      distributions[index] = distribution;
+    } else {
+      distributions.add(distribution);
+    }
+    save();
+  }
+
+  void deleteDistribution(Distribution distribution) {
+    distributions.removeWhere((element) => element.uuid == distribution.uuid);
+    save();
   }
 }
 
@@ -276,7 +299,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          print(e);
+          log(e.toString());
         }
       }
     });
@@ -316,7 +339,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          print(e);
+          log(e.toString());
         }
       }
     });
@@ -324,17 +347,16 @@ class SFinn extends Object {
     return items;
   }
 
-  int getLevel() {
-    int deep = 0;
-    SFinn finn = this;
-    if (finn.name == "1.1.1") {
-      while (finn.parent != "") {
-        print("DBG 0001 ${finn.name} ${deep}");
-        deep++;
-        finn = SFinn.byUuid(finn.parent);
-      }
-    }
-    return (deep);
+  // int getLevel() {
+  //   int deep = 0;
+  //   SFinn finn = this;
+  //   if (finn.name == "1.1.1") {
+  //     while (finn.parent != "") {
+  //       deep++;
+  //       finn = SFinn.byUuid(finn.parent);
+  //     }
+  //   }
+  //   return (deep);
 
     // else {
     //   if (level == -1) {
@@ -342,7 +364,7 @@ class SFinn extends Object {
     //   }
     //   return level;
     // }
-  }
+  // }
 
   static SFinn byUuid(String uuid) {
     final database = db.collection("s4c_finns");
@@ -1037,4 +1059,48 @@ class BankTransfer {
       collection.doc(id).delete();
     }
   }
+}
+
+class Distribution extends Object {
+  String uuid;
+  String project;
+  String? description;
+  SFinn? finn;
+  Organization? partner;
+  double amount;
+
+  Distribution( this.uuid, this.project, this.description, this.finn, this.partner,
+      this.amount);
+
+  factory Distribution.fromJson(Map<String, dynamic> json) {
+    return Distribution(
+      json["uuid"],
+      json["project"],
+      json["description"],
+      SFinn.fromJson(json["finn"]),
+      Organization.fromJson(json["partner"]),
+      json["amount"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+        'project': project,
+        'description': description,
+        'finn': (finn != null) ? finn!.toJson():[],
+        'partner': (partner != null) ? partner!.toJson():[],
+        'amount': amount,
+      };
+
+  factory Distribution.getEmpty() {
+    return Distribution(
+      const Uuid().v4(), // uuid
+      "", // project
+      "", // description
+      null, // finn
+      null, // partner
+      0, // amount
+    );
+  }
+
 }

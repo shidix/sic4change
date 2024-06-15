@@ -438,7 +438,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
               ? 'Editando ${_titlesDictionary[type % 2]}'
               : 'Añadiendo ${_titlesDictionary[type % 2]}'),
           content:
-              EvaluationForm(evaluation: evaluation!, type: type, index: index),
+              SingleChildScrollView(child: 
+              EvaluationForm(evaluation: evaluation!, type: type, index: index),)
         );
       },
     ).then((value) {

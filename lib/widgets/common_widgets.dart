@@ -539,7 +539,8 @@ Widget actionButton(
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),
+          side: const BorderSide(color: Color(0xff8fbc8f))),
       backgroundColor: Colors.white,
     ),
     child: row,
@@ -1078,9 +1079,9 @@ Widget removeBtn(context, action, args,
 }
 
 Widget removeConfirmBtn(context, action, args,
-    {text = removeText, icon = Icons.remove_circle}) {
+    {text = removeText, icon = Icons.remove_circle, iconSize = 20}) {
   return IconButton(
-    icon: Icon(icon),
+    icon: Icon(icon, size: iconSize),
     tooltip: text,
     onPressed: () async {
       bool confirmation = await showDialog(

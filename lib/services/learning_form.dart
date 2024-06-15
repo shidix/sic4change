@@ -41,7 +41,7 @@ class _LearningFormState extends State<LearningForm> {
                 flex: 3,
                 child: TextFormField(
                   initialValue: item?.description,
-                  decoration: InputDecoration(labelText: "Descripción"),
+                  decoration: const InputDecoration(labelText: "Descripción"),
                   onSaved: (value) {
                     item?.description = value!;
                   },

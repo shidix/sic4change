@@ -77,7 +77,10 @@ class _LearningsPageState extends State<LearningsPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
               children: [
-                    const Row(
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal:10, vertical:0),
+                      child:
+                    Row(
                       children: <Widget>[
                         Expanded(
                           flex: 6,
@@ -96,12 +99,17 @@ class _LearningsPageState extends State<LearningsPage> {
                         ),
                         Expanded(flex: 1, child: Text("")),
                       ],
-                    ),
+                    )),
                     const Divider()
                   ] +
                   List.generate(
                     learningInfo!.items.length,
-                    (index) => Row(children: [
+                    (index) => 
+
+                    Container(
+                      color: (index % 2 == 0) ? Colors.grey[100] : Colors.white,
+                      child: Padding(padding: const EdgeInsets.symmetric(horizontal:10, vertical:0), child:
+                    Row(children: [
                       Expanded(
                         flex: 6,
                         child: Text(learningInfo!.items[index].description,
@@ -128,7 +136,7 @@ class _LearningsPageState extends State<LearningsPage> {
                         ),
                       ),
                     ]),
-                  )));
+                  )))));
     }
 
     return Column(children: [
