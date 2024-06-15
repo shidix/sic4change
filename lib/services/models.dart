@@ -1884,6 +1884,17 @@ class Programme {
         await dbProject.where("programe", isEqualTo: uuid).get();
     projects = query.docs.length;
   }
+
+  static Future<Programme> byUuid(uuid) async {
+    Programme item = Programme("");
+    await dbProgramme.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Programme.fromJson(data);
+    });
+    return item;
+  }
 }
 
 Future<List> getProgrammes() async {
