@@ -524,8 +524,9 @@ class _FinnsPageState extends State<FinnsPage> {
                             });
                           }, finn, icon: Icons.edit_outlined),
                           removeConfirmBtn(context, removeFinn, finn),
-                          if (finn.partidas.isEmpty)
-                            iconBtn(context, (context, args) {}, null,
+                          if ((finn.partidas.isEmpty) &&
+                              (_project!.partners.isNotEmpty))
+                            iconBtn(context, addDistribDialog, finn,
                                 icon: Icons.send_outlined,
                                 text: 'Distribuir a socio'),
                         ])),
