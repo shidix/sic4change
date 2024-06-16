@@ -437,99 +437,103 @@ class _FinnsPageState extends State<FinnsPage> {
         }
 
         rows.add(Container(
-          color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
-          child:Row(children: [
-          Expanded(
-              flex: 5,
-              child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
-                      vertical: 0),
-                  child: Text("${finn.name}. ${finn.description}",
-                      style: currentStyle))),
-          Expanded(
-              flex: 2,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(toCurrency(finn.contribution),
-                      textAlign: TextAlign.right, style: currentStyle))),
-          Expanded(
-              flex: 2,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(
-                    toCurrency(finn.getAmountContrib()),
-                    textAlign: TextAlign.right,
-                    style: currentStyle,
-                  ))),
-          Expanded(
-              flex: 2,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(
-                    toCurrency(getDistrib(finn.uuid)),
-                    textAlign: TextAlign.right,
-                    style: currentStyle,
-                  ))),
-          Expanded(
-            flex: 1,
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                child: ((finn.getAmountContrib() != 0) &&
-                        (getDistrib(finn.uuid) != 0))
-                    ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
-                        ? Text(
-                            "100%",
-                            style: currentStyle.copyWith(color: dangerColor,
-                                fontSize: dangerText.fontSize! - 2),
-                            textAlign: TextAlign.right,
-                          )
-                        : Text(
-                            "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
-                            textAlign: TextAlign.right,
-                            style: currentStyle,
-                          )
-                    : Text(
-                        "0%",
+            color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
+            child: Row(children: [
+              Expanded(
+                  flex: 5,
+                  child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
+                          vertical: 0),
+                      child: Text("${finn.name}. ${finn.description}",
+                          style: currentStyle))),
+              Expanded(
+                  flex: 2,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 10),
+                      child: Text(toCurrency(finn.contribution),
+                          textAlign: TextAlign.right, style: currentStyle))),
+              Expanded(
+                  flex: 2,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 10),
+                      child: Text(
+                        toCurrency(finn.getAmountContrib()),
                         textAlign: TextAlign.right,
                         style: currentStyle,
-                      )),
-          ),
-          Expanded(
-            flex: 3,
-            child: Padding(
-                padding: EdgeInsets.only(
-                    left: 0, right: 10.0 + 15.0 * (mapLevels[finn.uuid]!)),
-                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  iconBtn(context, addFinnDialog, [item, finn],
-                      icon: Icons.add, text: 'Añadir subpartida'),
-                  iconBtn(context, (context, args) {
-                    _editFinnDialog(context, finn).then((value) {
-                      if (value == null) {
-                        return;
-                      }
-                      if (finn.id == "") {
-                        finnList.remove(finn);
-                      }
-                      finnSelected = null;
-                      finnInfo.save();
-                      reloadState();
-                    });
-                  }, finn, icon: Icons.edit_outlined),
-                  removeConfirmBtn(context, removeFinn, finn),                  
-                  iconBtn(context, (context, args) {}, null, icon: Icons.send_outlined, text: 'Distribuir a socio'),
+                      ))),
+              Expanded(
+                  flex: 2,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 10),
+                      child: Text(
+                        toCurrency(getDistrib(finn.uuid)),
+                        textAlign: TextAlign.right,
+                        style: currentStyle,
+                      ))),
+              Expanded(
+                flex: 1,
+                child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                    child: ((finn.getAmountContrib() != 0) &&
+                            (getDistrib(finn.uuid) != 0))
+                        ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
+                            ? Text(
+                                "100%",
+                                style: currentStyle.copyWith(
+                                    color: dangerColor,
+                                    fontSize: dangerText.fontSize! - 2),
+                                textAlign: TextAlign.right,
+                              )
+                            : Text(
+                                "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
+                                textAlign: TextAlign.right,
+                                style: currentStyle,
+                              )
+                        : Text(
+                            "0%",
+                            textAlign: TextAlign.right,
+                            style: currentStyle,
+                          )),
+              ),
+              Expanded(
+                flex: 3,
+                child: Padding(
+                    padding: EdgeInsets.only(
+                        left: 0, right: 10.0 + 15.0 * (mapLevels[finn.uuid]!)),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          iconBtn(context, addFinnDialog, [item, finn],
+                              icon: Icons.add, text: 'Añadir subpartida'),
+                          iconBtn(context, (context, args) {
+                            _editFinnDialog(context, finn).then((value) {
+                              if (value == null) {
+                                return;
+                              }
+                              if (finn.id == "") {
+                                finnList.remove(finn);
+                              }
+                              finnSelected = null;
+                              finnInfo.save();
+                              reloadState();
+                            });
+                          }, finn, icon: Icons.edit_outlined),
+                          removeConfirmBtn(context, removeFinn, finn),
+                          if (finn.partidas.isEmpty)
+                            iconBtn(context, (context, args) {}, null,
+                                icon: Icons.send_outlined,
+                                text: 'Distribuir a socio'),
+                        ])),
+              ),
+            ])));
 
-                ])),
-          ),
-        ])));
-      
         counter += 1;
       }
-
     }
 
     return Card(
@@ -719,7 +723,8 @@ class _FinnsPageState extends State<FinnsPage> {
               flex: 4,
               child: Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 5.0 + 50.0 * (mapLevels[finn.uuid]!), vertical: 0),
+                      horizontal: 5.0 + 50.0 * (mapLevels[finn.uuid]!),
+                      vertical: 0),
                   child: Text("${finn.name}. ${finn.description}",
                       style: currentStyle))),
           Expanded(
@@ -775,14 +780,14 @@ class _FinnsPageState extends State<FinnsPage> {
           Expanded(
             flex: 3,
             child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-                child: Row(mainAxisAlignment: MainAxisAlignment.end, 
-                  
-                children: [
-                  iconBtn(context, (context, args) {}, null, icon: Icons.send_outlined, text: 'Distribuir a socio'),
+                padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  iconBtn(context, (context, args) {}, null,
+                      icon: Icons.send_outlined, text: 'Distribuir a socio'),
                   iconBtn(context, addFinnDialog, [item, finn],
-                      icon: Icons.add, text: 'Añadir subpartida', iconSize: 20-2*mapLevels[finn.uuid]!),
+                      icon: Icons.add,
+                      text: 'Añadir subpartida',
+                      iconSize: 20 - 2 * mapLevels[finn.uuid]!),
                   iconBtn(context, (context, args) {
                     _editFinnDialog(context, finn).then((value) {
                       if (value == null) {
@@ -797,14 +802,18 @@ class _FinnsPageState extends State<FinnsPage> {
                       finnInfo.save();
                       reloadState();
                     });
-                  }, finn, icon: Icons.edit_outlined, iconSize: 20-2*mapLevels[finn.uuid]!),
-                  removeConfirmBtn(context, removeFinn, finn, iconSize: 20-2*mapLevels[finn.uuid]!)
+                  }, finn,
+                      icon: Icons.edit_outlined,
+                      iconSize: 20 - 2 * mapLevels[finn.uuid]!),
+                  removeConfirmBtn(context, removeFinn, finn,
+                      iconSize: 20 - 2 * mapLevels[finn.uuid]!)
                 ])),
           ),
         ]));
       }
     }
-    return Card(    //Partner card
+    return Card(
+        //Partner card
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
           side: const BorderSide(
@@ -930,7 +939,8 @@ class _FinnsPageState extends State<FinnsPage> {
               "Distribución presupuestaria por socio (${_project!.partnersObj.length})",
               style: const TextStyle(
                   fontSize: 18, color: mainColor, fontWeight: FontWeight.bold)),
-          getInfoPartners, {},
+          getInfoPartners,
+          {},
           subtitle: "Listado de partidas financieras asignadas a cada socio",
           expanded: false),
     );
@@ -957,11 +967,7 @@ class _FinnsPageState extends State<FinnsPage> {
               ),
             ],
           );
-        }).then((value) {
-          
-        });
-
-
+        }).then((value) {});
   }
 
   Future<double> invoicesByPartner() async {
