@@ -59,7 +59,9 @@ class _GoalsPageState extends State<GoalsPage>
     super.initState();
     project = widget.project;
     _mainMenu = mainMenu(context);
-    Goal.checkOE0(project!.uuid, project!.programme);
+    if (project!.programme != "") {
+      Goal.checkOE0(project!.uuid, project!.programme);
+    }
     //_tabController = TabController(vsync: this, length: 2);
     //_tabController = TabController(vsync: this, length: myTabs.length);
   }
