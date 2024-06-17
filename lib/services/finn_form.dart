@@ -275,11 +275,17 @@ class _InvoiceFormState extends State<InvoiceForm> {
 class DistributionForm extends StatefulWidget {
   final SFinnInfo info;
   final SProject project;
+  final SFinn finn;
   final List<Organization> partners;
   final int index;
 
   const DistributionForm(
-      {Key? key, required this.info, required this.project, required this.partners, required this.index})
+      {Key? key,
+      required this.info,
+      required this.project,
+      required this.finn,
+      required this.partners,
+      required this.index})
       : super(key: key);
 
   @override
@@ -290,30 +296,33 @@ class _DistributionFormState extends State<DistributionForm> {
   final _formKey = GlobalKey<FormState>();
   late SFinnInfo info;
   late SProject project;
-  late List<Organization> partners;
+  late SFinn finn;
+  late List<Organization> partners = widget.partners;
   late int index;
   late Distribution item;
+  Map<String, Organization> mapPartners = {};
 
   @override
   void initState() {
     super.initState();
     info = widget.info;
+    finn = widget.finn;
     project = widget.project;
     partners = widget.partners;
     index = widget.index;
+    mapPartners = {for (var e in partners) e.uuid: e};
+
     if (index >= 0) {
       item = info.distributions[index];
     } else {
       item = Distribution.getEmpty();
+      item.partner = partners[0];
+      item.finn = finn;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Map<String, Organization> mapPartners = {};
-    partners.forEach((partner) {
-      mapPartners[partner.uuid] = partner;
-    });
     void saveDistribution() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
@@ -340,6 +349,8 @@ class _DistributionFormState extends State<DistributionForm> {
       return null;
     }
 
+    List<Organization> partners = widget.partners;
+
     return Form(
       key: _formKey,
       child: SizedBox(
@@ -355,7 +366,8 @@ class _DistributionFormState extends State<DistributionForm> {
                       labelText: 'Socio',
                       initial: item.partner!.uuid,
                       options: partners
-                          .map((partner) => KeyValue(partner.uuid, partner.name))
+                          .map(
+                              (partner) => KeyValue(partner.uuid, partner.name))
                           .toList(),
                       onSelectedOpt: (value) {
                         item.partner = mapPartners[value.toString()]!;
@@ -364,30 +376,38 @@ class _DistributionFormState extends State<DistributionForm> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: item.amount.toString(),
-                      decoration: const InputDecoration(labelText: 'Importe'),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese un importe';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        item.amount = currencyToDouble(value);
-                      },
-                      onSaved: (value) =>
-                          item.amount = currencyToDouble(value!),
-                    )),
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: item.amount.toString(),
+                          decoration: const InputDecoration(
+                              labelText: 'Importe',
+                              contentPadding: EdgeInsets.only(bottom: 1)),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese un importe';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            item.amount = currencyToDouble(value);
+                          },
+                          onSaved: (value) =>
+                              item.amount = currencyToDouble(value!),
+                        ))),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: item.description,
-                      decoration: const InputDecoration(labelText: 'Descripción'),
-                      onSaved: (value) => item.description = value!,
-                    )),
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: item.description,
+                          decoration: const InputDecoration(
+                              labelText: 'Descripción',
+                              contentPadding: EdgeInsets.only(bottom: 1)),
+                          onSaved: (value) => item.description = value!,
+                        ))),
               ]),
               const SizedBox(height: 16.0),
               Row(children: [
@@ -406,7 +426,6 @@ class _DistributionFormState extends State<DistributionForm> {
           )),
     );
   }
-
 }
 
 class BankTransferForm extends StatefulWidget {

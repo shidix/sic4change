@@ -37,7 +37,9 @@ class SFinnInfo extends Object {
     item.partidas = json["partidas"]
         .map((e) => SFinn.fromJson(e as Map<String, dynamic>))
         .toList();
-    item.distributions = json["distributions"].map((e) => Distribution.fromJson(e as Map<String, dynamic>)).toList();
+    item.distributions = json["distributions"]
+        .map((e) => Distribution.fromJson(e as Map<String, dynamic>))
+        .toList();
     return item;
   }
 
@@ -110,7 +112,8 @@ class SFinnInfo extends Object {
   }
 
   void updateDistribution(Distribution distribution) {
-    int index = distributions.indexWhere((element) => element.uuid == distribution.uuid);
+    int index = distributions
+        .indexWhere((element) => element.uuid == distribution.uuid);
     if (index != -1) {
       distributions[index] = distribution;
     } else {
@@ -358,12 +361,12 @@ class SFinn extends Object {
   //   }
   //   return (deep);
 
-    // else {
-    //   if (level == -1) {
-    //     level = SFinn.byUuid(parent).getLevel(deep + 1);
-    //   }
-    //   return level;
-    // }
+  // else {
+  //   if (level == -1) {
+  //     level = SFinn.byUuid(parent).getLevel(deep + 1);
+  //   }
+  //   return level;
+  // }
   // }
 
   static SFinn byUuid(String uuid) {
@@ -522,18 +525,19 @@ class FinnDistribution {
   }
 
   static Future<List<FinnDistribution>> getByProject(project) async {
-    final collection = db.collection("s4c_finndistrib");
-    List finnList = await SFinn.byProject(project);
     List<FinnDistribution> items = [];
-    if (finnList.isEmpty) {
-      return items;
-    }
-    final query = await collection
-        .where("finn", whereIn: finnList.map((e) => e.uuid))
-        .get();
-    for (var element in query.docs) {
-      items.add(FinnDistribution.fromJson(element.data()));
-    }
+
+    final collection = db.collection("s4c_finndistrib");
+    // List finnList = await SFinn.byProject(project);
+    // if (finnList.isEmpty) {
+    //   return items;
+    // }
+    // final query = await collection
+    //     .where("finn", whereIn: finnList.map((e) => e.uuid))
+    //     .get();
+    // for (var element in query.docs) {
+    //   items.add(FinnDistribution.fromJson(element.data()));
+    // }
 
     return items;
   }
@@ -1069,8 +1073,8 @@ class Distribution extends Object {
   Organization? partner;
   double amount;
 
-  Distribution( this.uuid, this.project, this.description, this.finn, this.partner,
-      this.amount);
+  Distribution(this.uuid, this.project, this.description, this.finn,
+      this.partner, this.amount);
 
   factory Distribution.fromJson(Map<String, dynamic> json) {
     return Distribution(
@@ -1087,8 +1091,8 @@ class Distribution extends Object {
         'uuid': uuid,
         'project': project,
         'description': description,
-        'finn': (finn != null) ? finn!.toJson():[],
-        'partner': (partner != null) ? partner!.toJson():[],
+        'finn': (finn != null) ? finn!.toJson() : [],
+        'partner': (partner != null) ? partner!.toJson() : [],
         'amount': amount,
       };
 
@@ -1102,5 +1106,4 @@ class Distribution extends Object {
       0, // amount
     );
   }
-
 }
