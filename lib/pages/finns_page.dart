@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers
 
 import 'dart:collection';
+import 'dart:developer' as dev;
 import 'dart:html';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -531,6 +532,16 @@ class _FinnsPageState extends State<FinnsPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 0, horizontal: 10),
                       child: Text(
+                        toCurrency(finnInfo.getDistribByFinn(finn)),
+                        textAlign: TextAlign.right,
+                        style: currentStyle,
+                      ))),
+              Expanded(
+                  flex: 2,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 10),
+                      child: Text(
                         toCurrency(getDistrib(finn.uuid)),
                         textAlign: TextAlign.right,
                         style: currentStyle,
@@ -682,6 +693,19 @@ class _FinnsPageState extends State<FinnsPage> {
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text("Asignado",
+                                  style: headerListStyle,
+                                  textAlign: TextAlign.right),
+                            ],
+                          ))),
+                  Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                           child: Text("Ejecutado",
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
@@ -770,7 +794,7 @@ class _FinnsPageState extends State<FinnsPage> {
     TextStyle currentStyle;
     for (Distribution dist in finnInfo.distributions) {
       Organization financier = financiers[dist.finn!.orgUuid]!;
-      if (dist.partner == item) {
+      if (dist.partner!.uuid == item.uuid) {
         rows.add(Row(children: [
           Expanded(
               flex: 2,
@@ -782,133 +806,35 @@ class _FinnsPageState extends State<FinnsPage> {
             flex: 2,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text(dist.finn!.description, style: cellsListStyle),
+              child: Text("${dist.finn!.name}. ${dist.finn!.description}",
+                  style: cellsListStyle),
             ),
           ),
           Expanded(
             flex: 1,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text(toCurrency(dist.amount), style: cellsListStyle),
+              child: Text(
+                toCurrency(dist.amount),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
             ),
           ),
           Expanded(
             flex: 1,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text(toCurrency(dist.amount), style: cellsListStyle),
+              child: Text(
+                toCurrency(dist.amount),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
             ),
           ),
         ]));
       }
     }
-    // for (SFinn finn in finnList) {
-    //   if (finn.orgUuid == item.uuid) {
-    //     if (mapLevels[finn.uuid] == 0) {
-    //       currentStyle = cellsListStyle.copyWith(fontWeight: FontWeight.bold);
-    //     } else {
-    //       currentStyle = cellsListStyle;
-    //     }
-    //     if (finn.contribution > finn.getAmountContrib()) {
-    //       currentStyle = currentStyle.copyWith(color: warningColor);
-    //     } else if (finn.contribution < finn.getAmountContrib()) {
-    //       currentStyle = currentStyle.copyWith(color: dangerColor);
-    //     }
-
-    //     rows.add(Row(children: [
-    //       Expanded(
-    //           flex: 4,
-    //           child: Padding(
-    //               padding: EdgeInsets.symmetric(
-    //                   horizontal: 5.0 + 50.0 * (mapLevels[finn.uuid]!),
-    //                   vertical: 0),
-    //               child: Text("${finn.name}. ${finn.description}",
-    //                   style: currentStyle))),
-    //       Expanded(
-    //           flex: 2,
-    //           child: Padding(
-    //               padding:
-    //                   const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-    //               child: Text(toCurrency(finn.contribution),
-    //                   textAlign: TextAlign.right, style: currentStyle))),
-    //       Expanded(
-    //           flex: 2,
-    //           child: Padding(
-    //               padding:
-    //                   const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-    //               child: Text(
-    //                 toCurrency(finn.getAmountContrib()),
-    //                 textAlign: TextAlign.right,
-    //                 style: currentStyle,
-    //               ))),
-    //       Expanded(
-    //           flex: 2,
-    //           child: Padding(
-    //               padding:
-    //                   const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-    //               child: Text(
-    //                 toCurrency(getDistrib(finn.uuid)),
-    //                 textAlign: TextAlign.right,
-    //                 style: currentStyle,
-    //               ))),
-    //       Expanded(
-    //         flex: 1,
-    //         child: Padding(
-    //             padding:
-    //                 const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-    //             child: ((finn.getAmountContrib() != 0) &&
-    //                     (getDistrib(finn.uuid) != 0))
-    //                 ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
-    //                     ? Text(
-    //                         "100%",
-    //                         style: dangerText.copyWith(
-    //                             fontSize: dangerText.fontSize! - 2),
-    //                         textAlign: TextAlign.right,
-    //                       )
-    //                     : Text(
-    //                         "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
-    //                         textAlign: TextAlign.right,
-    //                       )
-    //                 : const Text(
-    //                     "0%",
-    //                     textAlign: TextAlign.right,
-    //                   )),
-    //       ),
-    //       Expanded(
-    //         flex: 3,
-    //         child: Padding(
-    //             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-    //             child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-    //               iconBtn(context, (context, args) {}, null,
-    //                   icon: Icons.send_outlined, text: 'Distribuir a socio'),
-    //               iconBtn(context, addFinnDialog, [item, finn],
-    //                   icon: Icons.add,
-    //                   text: 'Añadir subpartida',
-    //                   iconSize: 20 - 2 * mapLevels[finn.uuid]!),
-    //               iconBtn(context, (context, args) {
-    //                 _editFinnDialog(context, finn).then((value) {
-    //                   if (value == null) {
-    //                     return;
-    //                   }
-    //                   if (finn.id == "") {
-    //                     finnList.remove(finn);
-    //                     // finnHash.remove(finn.name);
-    //                     // finnUuidHash.remove(finn.uuid);
-    //                   }
-    //                   finnSelected = null;
-    //                   finnInfo.save();
-    //                   reloadState();
-    //                 });
-    //               }, finn,
-    //                   icon: Icons.edit_outlined,
-    //                   iconSize: 20 - 2 * mapLevels[finn.uuid]!),
-    //               removeConfirmBtn(context, removeFinn, finn,
-    //                   iconSize: 20 - 2 * mapLevels[finn.uuid]!)
-    //             ])),
-    //       ),
-    //     ]));
-    //   }
-    // }
     return Card(
         //Partner card
         shape: RoundedRectangleBorder(
@@ -937,10 +863,6 @@ class _FinnsPageState extends State<FinnsPage> {
                                 style: headerListStyle.copyWith(
                                     color: Colors.white)),
                           ]))),
-              // space(height: 10),
-              // // Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              // //   addBtnRow(context, addDistribDialog, [item, null])
-              // // ]),
               const Divider(thickness: 1, color: Colors.grey),
               Container(
                   color: headerListBgColor,
@@ -981,13 +903,13 @@ class _FinnsPageState extends State<FinnsPage> {
                                         textAlign: TextAlign.right))),
                             const Divider(thickness: 1, color: Colors.grey),
 
-                            ...rows,
-                            space(height: 40),
                             // const Divider(thickness: 1, color: Colors.grey),
                           ] +
                           [
                             space(height: 40),
                           ])),
+              ...rows,
+              space(height: 10),
             ])));
   }
 

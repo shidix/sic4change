@@ -301,9 +301,12 @@ class _DistributionFormState extends State<DistributionForm> {
   late int index;
   late Distribution item;
   Map<String, Organization> mapPartners = {};
+  double maxAllowed = 0;
 
   @override
   void initState() {
+    maxAllowed = widget.finn.getAmountContrib() -
+        widget.info.getDistribByFinn(widget.finn);
     super.initState();
     info = widget.info;
     finn = widget.finn;
@@ -377,17 +380,21 @@ class _DistributionFormState extends State<DistributionForm> {
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: EdgeInsets.only(left: 5),
+                        padding: const EdgeInsets.only(left: 5),
                         child: TextFormField(
                           initialValue: item.amount.toString(),
-                          decoration: const InputDecoration(
-                              labelText: 'Importe',
-                              contentPadding: EdgeInsets.only(bottom: 1)),
+                          decoration: InputDecoration(
+                              labelText:
+                                  'Importe (max: ${toCurrency(maxAllowed)})',
+                              contentPadding: const EdgeInsets.only(bottom: 1)),
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor, ingrese un importe';
+                            }
+                            if (currencyToDouble(value) > maxAllowed) {
+                              return 'Importe mayor que $toCurrency({maxAllowed})';
                             }
                             return null;
                           },
@@ -400,7 +407,7 @@ class _DistributionFormState extends State<DistributionForm> {
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: EdgeInsets.only(left: 5),
+                        padding: const EdgeInsets.only(left: 5),
                         child: TextFormField(
                           initialValue: item.description,
                           decoration: const InputDecoration(

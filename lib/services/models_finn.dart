@@ -106,6 +106,21 @@ class SFinnInfo extends Object {
     return total;
   }
 
+  double getDistribByFinn(SFinn finn) {
+    List<String> childrendsUuid = [];
+    for (SFinn child in finn.getChildren()) {
+      childrendsUuid.add(child.uuid);
+    }
+    childrendsUuid.add(finn.uuid);
+    double total = 0;
+    for (Distribution distrib in distributions) {
+      if (childrendsUuid.contains(distrib.finn!.uuid)) {
+        total += distrib.amount;
+      }
+    }
+    return total;
+  }
+
   @override
   String toString() {
     return jsonEncode(toJson());
@@ -347,6 +362,15 @@ class SFinn extends Object {
       }
     });
     items.sort((a, b) => a.name.compareTo(b.name));
+    return items;
+  }
+
+  List<SFinn> getChildren() {
+    List<SFinn> items = [];
+    for (SFinn item in partidas) {
+      items.add(item);
+      items.addAll(item.getChildren());
+    }
     return items;
   }
 
