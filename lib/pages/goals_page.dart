@@ -59,6 +59,9 @@ class _GoalsPageState extends State<GoalsPage>
     super.initState();
     project = widget.project;
     _mainMenu = mainMenu(context);
+    if (project!.programme != "") {
+      Goal.checkOE0(project!.uuid, project!.programme);
+    }
     //_tabController = TabController(vsync: this, length: 2);
     //_tabController = TabController(vsync: this, length: myTabs.length);
   }
@@ -266,12 +269,17 @@ class _GoalsPageState extends State<GoalsPage>
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${goal.name}'),
+                      customText(goal.name, 16),
                       space(height: 10),
                       customLinearPercent(context, 2, 0.8, Colors.blue),
+                      space(height: 10),
+                      customText(goal.description, 14),
                     ],
                   )),
-              Expanded(flex: 1, child: goalRowOptions(context, goal, project)),
+              (goal.name != "OE0")
+                  ? Expanded(
+                      flex: 1, child: goalRowOptions(context, goal, project))
+                  : Container(),
             ],
           ),
           space(height: 10),
@@ -804,28 +812,24 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1276,28 +1280,24 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1360,18 +1360,34 @@ class _GoalsPageState extends State<GoalsPage>
           title: s4cTitleBar("Indicador de objetivo"),
           content: SingleChildScrollView(
               child: Column(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: indicator.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  indicator.name = val;
-                  //setState(() => indicator.name = val);
-                },
-              )
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: indicator.name,
+                  size: 800,
+                  minLines: 2,
+                  maxLines: 9999,
+                  fieldValue: (String val) {
+                    indicator.name = val;
+                    //setState(() => indicator.name = val);
+                  },
+                )
+              ]),
+              space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Orden",
+                  initial: indicator.order,
+                  size: 100,
+                  minLines: 2,
+                  maxLines: 9999,
+                  fieldValue: (String val) {
+                    indicator.order = val;
+                    //setState(() => indicator.name = val);
+                  },
+                )
+              ]),
             ]),
             space(height: 10),
             Row(children: [
@@ -1505,33 +1521,32 @@ class _GoalsPageState extends State<GoalsPage>
           headingRowHeight: 40,
           columns: [
             DataColumn(
-                label: customText("Nombre", 14,
-                    bold: FontWeight.bold, textColor: headerListTitleColor),
-                tooltip: "Nombre"),
+              label: customText("Orden", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
+            DataColumn(
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(
               label: customText("FFVV", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "FFVV",
             ),
             DataColumn(
               label: customText("Documentos", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Documentos",
             ),
             DataColumn(
               label: customText("Línea Base", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Línea Base",
             ),
             DataColumn(
               label: customText("Resultado Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Esperado",
             ),
             DataColumn(
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
-              tooltip: "Resultado Obtenido",
             ),
             DataColumn(label: Container()),
             /*DataColumn(
@@ -1544,6 +1559,7 @@ class _GoalsPageState extends State<GoalsPage>
           rows: indicators
               .map(
                 (indicator) => DataRow(cells: [
+                  DataCell(Text(indicator.order)),
                   DataCell(Text(indicator.name)),
                   DataCell(Text(indicator.source)),
                   (indicator.folderObj == null)

@@ -76,6 +76,22 @@ class Goal {
     return project.name;
     //return _project.name + " > " + _goal.name;
   }
+
+  static Future<void> checkOE0(String project, String programme) async {
+    try {
+      QuerySnapshot query = await dbGoal
+          .where("project", isEqualTo: project)
+          .where("name", isEqualTo: "OE0")
+          .get();
+      query.docs.first;
+    } catch (e) {
+      Programme prog = await Programme.byUuid(programme);
+      Goal item = Goal(project);
+      item.name = "OE0";
+      item.description = prog.impact;
+      item.save();
+    }
+  }
 }
 
 Future<List> getGoals() async {
@@ -121,6 +137,7 @@ class GoalIndicator {
   String expected = "";
   String obtained = "";
   String folder = "";
+  String order = "";
   String goal = "";
   Folder? folderObj;
 
@@ -135,6 +152,7 @@ class GoalIndicator {
         expected = json['expected'],
         obtained = json['obtained'],
         folder = json['folder'],
+        order = json['order'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -146,6 +164,7 @@ class GoalIndicator {
         'expected': expected,
         'obtained': obtained,
         'folder': folder,
+        'order': order,
         'goal': goal,
       };
 
@@ -189,15 +208,24 @@ Future<List> getGoalIndicators() async {
 Future<List> getGoalIndicatorsByGoal(String goal) async {
   List<GoalIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbGoalIndicator.where("goal", isEqualTo: goal).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    GoalIndicator item = GoalIndicator.fromJson(data);
-    await item.getFolder();
-    items.add(item);
-    //items.add(GoalIndicator.fromJson(data));
+  //QuerySnapshot query =
+  //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
+  try {
+    QuerySnapshot query = await dbGoalIndicator
+        .orderBy("goal")
+        .orderBy("order", descending: true)
+        .where("goal", isEqualTo: goal)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      GoalIndicator item = GoalIndicator.fromJson(data);
+      await item.getFolder();
+      items.add(item);
+      //items.add(GoalIndicator.fromJson(data));
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }
