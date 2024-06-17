@@ -10,9 +10,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
   //final List<Contact>? partners;
-  final List<Organization>? partners;
+  final Organization partner;
 
-  const InvoiceForm({Key? key, this.existingInvoice, this.partners})
+  const InvoiceForm({Key? key, this.existingInvoice, required this.partner})
       : super(key: key);
 
   @override
@@ -78,20 +78,6 @@ class _InvoiceFormState extends State<InvoiceForm> {
                       decoration: const InputDecoration(labelText: 'Código'),
                       onSaved: (value) => _invoice.code = value!,
                     )),
-                Expanded(
-                    flex: 1,
-                    child: CustomSelectFormField(
-                      labelText: 'Socio',
-                      initial: _invoice.partner,
-                      options: widget.partners!
-                          .map(
-                              (partner) => KeyValue(partner.uuid, partner.name))
-                          .toList(),
-                      onSelectedOpt: (value) {
-                        _invoice.partner = value.toString();
-                      },
-                      required: true,
-                    ))
               ]),
               TextFormField(
                 initialValue: _invoice.concept,
@@ -211,33 +197,6 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     textAlign: TextAlign.right,
                   ),
                 ),
-                Expanded(
-                    flex: 1,
-                    child: TextFormField(
-                      textAlign: TextAlign.right,
-                      initialValue: _invoice.imputation.toStringAsFixed(2),
-                      decoration:
-                          const InputDecoration(labelText: 'Imputado (%)'),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, ingrese el % imputado';
-                        }
-                        if (double.parse(value) > 100) {
-                          return 'El % imputado no puede ser mayor que 100';
-                        }
-                        if (double.parse(value) < 1) {
-                          return 'El % imputado no puede ser menor que 1';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        _invoice.imputation = double.parse(value);
-                      },
-                      onSaved: (value) =>
-                          _invoice.imputation = double.parse(value!),
-                    )),
               ]),
               TextFormField(
                 initialValue: _invoice.document,

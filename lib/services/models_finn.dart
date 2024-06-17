@@ -455,6 +455,7 @@ class SFinn extends Object {
     }
   }
 
+  @override
   String toString() {
     return jsonEncode(toJson());
   }
@@ -551,7 +552,7 @@ class FinnDistribution {
   static Future<List<FinnDistribution>> getByProject(project) async {
     List<FinnDistribution> items = [];
 
-    final collection = db.collection("s4c_finndistrib");
+    // final collection = db.collection("s4c_finndistrib");
     // List finnList = await SFinn.byProject(project);
     // if (finnList.isEmpty) {
     //   return items;
@@ -579,12 +580,11 @@ class FinnDistribution {
   }
 }
 
-class Invoice {
+class Invoice extends Object {
   String id;
   String uuid;
   String number;
   String code;
-  String finn;
   String concept;
   DateTime date;
   DateTime paidDate;
@@ -594,32 +594,27 @@ class Invoice {
   String desglose;
   String provider;
   String document;
-  String partner;
   String currency;
-  double imputation;
 
   SFinn finnObj = SFinn.getEmpty();
   SProject projectObj = SProject("");
 
   Invoice(
-      this.id,
-      this.uuid,
-      this.number,
-      this.code,
-      this.finn,
-      this.concept,
-      this.date,
-      this.paidDate,
-      this.base,
-      this.taxes,
-      this.total,
-      this.desglose,
-      this.provider,
-      this.document,
-      this.partner,
-      this.currency,
-      {this.imputation = 100.0});
-
+    this.id,
+    this.uuid,
+    this.number,
+    this.code,
+    this.concept,
+    this.date,
+    this.paidDate,
+    this.base,
+    this.taxes,
+    this.total,
+    this.desglose,
+    this.provider,
+    this.document,
+    this.currency,
+  );
   factory Invoice.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("currency")) {
       json["currency"] = "EUR";
@@ -657,7 +652,6 @@ class Invoice {
       json["uuid"],
       json["number"],
       json["code"],
-      json["finn"],
       json["concept"],
       date,
       paidDate,
@@ -667,9 +661,7 @@ class Invoice {
       json["desglose"],
       json["provider"],
       json["document"],
-      json["partner"],
       json["currency"],
-      imputation: json["imputation"],
     );
   }
 
@@ -679,7 +671,6 @@ class Invoice {
       const Uuid().v4(), // uuid
       "", // number
       "", // code
-      "", // finn
       "", // concept
       DateTime.now(), // date
       DateTime.now(), // date
@@ -689,9 +680,7 @@ class Invoice {
       "", // desglose
       "", // provider
       "", // document
-      "", // partner
       "EUR", // currency
-      imputation: 100.0,
     );
   }
 
@@ -700,7 +689,6 @@ class Invoice {
         'uuid': uuid,
         'number': number,
         'code': code,
-        'finn': finn,
         'concept': concept,
         'date': DateFormat('yyyy-MM-dd').format(date),
         'paidDate': DateFormat('yyyy-MM-dd').format(paidDate),
@@ -710,9 +698,7 @@ class Invoice {
         'desglose': desglose,
         'provider': provider,
         'document': document,
-        'partner': partner,
         'currency': currency,
-        'imputation': imputation,
       };
 
   void save() async {
@@ -749,89 +735,15 @@ class Invoice {
     try {
       final query = await collection.where("finn", whereIn: finnUuids).get();
       for (var element in query.docs) {
-        print("DBG 0001 ${element.data()}");
         Invoice item = Invoice.fromJson(element.data());
         item.id = element.id;
         items.add(item);
       }
     } catch (e) {
-      print("DBG ERROR: $e");
+      log("DBG ERROR: $e");
     }
     items.sort((a, b) => a.date.compareTo(b.date));
 
-    return items;
-  }
-
-  static Future<Map<String, dynamic>> getSummaryByFinn(finn) async {
-    final collection = db.collection("s4c_invoices");
-    final query = await collection.where("finn", isEqualTo: finn).get();
-    double total = 0;
-    double taxes = 0;
-    double base = 0;
-    int count = 0;
-    for (var element in query.docs) {
-      Invoice item = Invoice.fromJson(element.data());
-      total += item.total * item.imputation * 0.01;
-      taxes += item.taxes * item.imputation * 0.01;
-      base += item.base * item.imputation * 0.01;
-      count++;
-    }
-    return {
-      "total": total,
-      "taxes": taxes,
-      "base": base,
-      "count": count,
-    };
-  }
-
-  static Future<Map<String, dynamic>> getSummaryByPartner(partner,
-      {project}) async {
-    final collection = db.collection("s4c_invoices");
-    QuerySnapshot<Map<String, dynamic>>? query;
-    if (project != null) {
-      List? finnList;
-      await SFinn.byProject(project).then((value) {
-        finnList = value.map((e) => e.uuid).toList();
-      });
-      query = await collection
-          .where("partner", isEqualTo: partner)
-          .where("finn", whereIn: finnList)
-          .get();
-    } else {
-      query = await collection.where("partner", isEqualTo: partner).get();
-    }
-
-    double total = 0;
-    double taxes = 0;
-    double base = 0;
-    int count = 0;
-    for (var element in query.docs) {
-      Invoice item = Invoice.fromJson(element.data());
-      total += item.total * item.imputation * 0.01;
-      taxes += item.taxes * item.imputation * 0.01;
-      base += item.base * item.imputation * 0.01;
-      count++;
-    }
-    return {
-      "total": total,
-      "taxes": taxes,
-      "base": base,
-      "count": count,
-    };
-  }
-
-  static Future<List> getByPartner(partner) async {
-    final collection = db.collection("s4c_invoices");
-    List items = [];
-    QuerySnapshot<Map<String, dynamic>>? query =
-        await collection.where("partner", isEqualTo: partner).get();
-    for (var element in query.docs) {
-      Invoice item = Invoice.fromJson(element.data());
-      item.id = element.id;
-      await item.getFinn();
-      await item.getProject();
-      items.add(item);
-    }
     return items;
   }
 
@@ -841,21 +753,6 @@ class Invoice {
     Invoice item = Invoice.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
-  }
-
-  Future<void> getFinn() async {
-    final collection = db.collection("s4c_finns");
-    final query = await collection.where("uuid", isEqualTo: finn).get();
-    SFinn item = SFinn.fromJson(query.docs.first.data());
-    finnObj = item;
-  }
-
-  Future<void> getProject() async {
-    final collection = db.collection("s4c_projects");
-    final query =
-        await collection.where("uuid", isEqualTo: finnObj.project).get();
-    SProject item = SProject.fromJson(query.docs.first.data());
-    projectObj = item;
   }
 
   @override
@@ -1096,19 +993,30 @@ class Distribution extends Object {
   SFinn? finn;
   Organization? partner;
   double amount;
+  List<Invoice> invoices = [];
+
+  Map<String, int> mapinvoices = {};
 
   Distribution(this.uuid, this.project, this.description, this.finn,
       this.partner, this.amount);
 
   factory Distribution.fromJson(Map<String, dynamic> json) {
-    return Distribution(
-      json["uuid"],
-      json["project"],
-      json["description"],
-      SFinn.fromJson(json["finn"]),
-      Organization.fromJson(json["partner"]),
-      json["amount"],
-    );
+    Distribution item = Distribution(
+        json["uuid"],
+        json["project"],
+        json["description"],
+        SFinn.fromJson(json["finn"]),
+        Organization.fromJson(json["partner"]),
+        json["amount"]);
+
+    if (json.containsKey("mapinvoices")) {
+      item.mapinvoices = json["mapinvoices"];
+      item.invoices = json["mapinvoices"]
+          .map((e) => Invoice.getByUuid(e["uuid"]) as Invoice)
+          .toList();
+    }
+
+    return item;
   }
 
   Map<String, dynamic> toJson() => {
@@ -1118,6 +1026,7 @@ class Distribution extends Object {
         'finn': (finn != null) ? finn!.toJson() : [],
         'partner': (partner != null) ? partner!.toJson() : [],
         'amount': amount,
+        'mapinvoices': mapinvoices,
       };
 
   factory Distribution.getEmpty() {

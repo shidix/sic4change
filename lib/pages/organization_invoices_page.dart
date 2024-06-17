@@ -25,15 +25,6 @@ class _OrganizationInvoicesPageState extends State<OrganizationInvoicesPage> {
   void initState() {
     super.initState();
     org = widget.org;
-    //loadContactTracking(contact?.uuid);
-    loadOrgInvoices();
-  }
-
-  void loadOrgInvoices() async {
-    await Invoice.getByPartner(org!.uuid).then((val) {
-      invoiceList = val;
-    });
-    setState(() {});
   }
 
   @override
