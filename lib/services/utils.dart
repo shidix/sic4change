@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -199,4 +201,14 @@ double currencyToDouble(String value) {
 
 double fromCurrency(String value) {
   return currencyToDouble(value);
+}
+
+String getTracker({int length = 5}) {
+  String chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  Random random = Random();
+  String code = '';
+  for (int i = 0; i < length; i++) {
+    code += chars[random.nextInt(chars.length)];
+  }
+  return code;
 }

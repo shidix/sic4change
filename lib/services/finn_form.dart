@@ -10,23 +10,38 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class InvoiceForm extends StatefulWidget {
   final Invoice? existingInvoice;
   //final List<Contact>? partners;
-  final Organization partner;
+  final Organization? partner;
+  final String? tracker;
 
-  const InvoiceForm({Key? key, this.existingInvoice, required this.partner})
-      : super(key: key);
+  const InvoiceForm({
+    Key? key,
+    this.existingInvoice,
+    this.partner,
+    this.tracker,
+  }) : super(key: key);
 
   @override
   createState() => _InvoiceFormState();
 }
 
 class _InvoiceFormState extends State<InvoiceForm> {
-  final _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Invoice _invoice;
 
   @override
   void initState() {
     super.initState();
-    _invoice = widget.existingInvoice ?? Invoice.getEmpty();
+    print("STARTING");
+    if (widget.existingInvoice == null) {
+      _invoice = Invoice.getEmpty();
+      _invoice.uuid = const Uuid().v4();
+      _invoice.currency = 'EUR';
+      _invoice.date = DateTime.now();
+      _invoice.paidDate = DateTime.now();
+      _invoice.tracker = widget.tracker!;
+    } else {
+      _invoice = widget.existingInvoice!;
+    }
   }
 
   @override
@@ -57,6 +72,34 @@ class _InvoiceFormState extends State<InvoiceForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: _invoice.tracker,
+                      decoration: const InputDecoration(labelText: 'Tracker'),
+                      onChanged: (value) {
+                        if (value.length == 5) {
+                          Invoice.byTracker(value!).then((value) {
+                            if (value != null) {
+                              _invoice = value;
+                              print(_invoice.id);
+                              _formKey = GlobalKey<FormState>();
+                              if (mounted) {
+                                setState(() {
+                                  _invoice = value;
+                                });
+                              }
+                            } else {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            }
+                          });
+                        }
+                      },
+                    ))
+              ]),
               Row(children: [
                 Expanded(
                     flex: 1,
@@ -107,27 +150,34 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.only(
+                            left: 5, right: 5, top: 5, bottom: 13),
                         child: DateTimePicker(
                           labelText: 'Fecha',
                           selectedDate: _invoice.date,
                           onSelectedDate: (DateTime value) {
-                            setState(() {
-                              _invoice.date = value;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _invoice.date = value;
+                              });
+                            }
+                            ;
                           },
                         ))),
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.only(
+                            left: 5, right: 5, top: 5, bottom: 13),
                         child: DateTimePicker(
                           labelText: 'Fecha Pago',
                           selectedDate: _invoice.paidDate,
                           onSelectedDate: (DateTime value) {
-                            setState(() {
-                              _invoice.paidDate = value;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _invoice.paidDate = value;
+                              });
+                            }
                           },
                         ))),
               ]),
@@ -206,19 +256,11 @@ class _InvoiceFormState extends State<InvoiceForm> {
               ),
               const SizedBox(height: 16.0),
               Row(children: [
-                Expanded(flex: _invoice.id == "" ? 3 : 2, child: Container()),
                 Expanded(
                     flex: 1,
                     child: Padding(
                         padding: const EdgeInsets.only(left: 5),
                         child: saveBtnForm(context, saveInvoice))),
-                _invoice.id == ""
-                    ? Container(width: 0)
-                    : Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: const EdgeInsets.only(left: 5),
-                            child: removeBtnForm(context, removeInvoice))),
                 Expanded(
                     flex: 1,
                     child: Padding(
@@ -326,7 +368,7 @@ class _DistributionFormState extends State<DistributionForm> {
                     flex: 1,
                     child: CustomSelectFormField(
                       labelText: 'Socio',
-                      initial: item.partner!.uuid,
+                      initial: item.partner.uuid,
                       options: partners
                           .map(
                               (partner) => KeyValue(partner.uuid, partner.name))

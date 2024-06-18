@@ -54,7 +54,6 @@ class SFinnInfo extends Object {
   void save() async {
     final database = db.collection("s4c_finninfo");
     if (id == "") {
-      id = uuid;
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) => id = value.id);
 //      database.add(data);
@@ -77,13 +76,13 @@ class SFinnInfo extends Object {
       QuerySnapshot query =
           await database.where('project', isEqualTo: uuidProject).get();
       if (query.docs.isNotEmpty) {
-        SFinnInfo item =
+        final item =
             SFinnInfo.fromJson(query.docs.first.data() as Map<String, dynamic>);
         item.id = query.docs.first.id;
         return item;
       }
     } catch (e) {
-      log("DBG ERROR: $e");
+      log('ERROR in SFinnInfo.byProject');
     }
     return null;
   }
@@ -113,9 +112,12 @@ class SFinnInfo extends Object {
     }
     childrendsUuid.add(finn.uuid);
     double total = 0;
+
     for (Distribution distrib in distributions) {
-      if (childrendsUuid.contains(distrib.finn!.uuid)) {
-        total += distrib.amount;
+      if (distrib.finn != null) {
+        if (childrendsUuid.contains(distrib.finn!.uuid)) {
+          total += distrib.amount;
+        }
       }
     }
     return total;
@@ -595,6 +597,7 @@ class Invoice extends Object {
   String provider;
   String document;
   String currency;
+  String tracker;
 
   SFinn finnObj = SFinn.getEmpty();
   SProject projectObj = SProject("");
@@ -614,6 +617,7 @@ class Invoice extends Object {
     this.provider,
     this.document,
     this.currency,
+    this.tracker,
   );
   factory Invoice.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("currency")) {
@@ -647,7 +651,7 @@ class Invoice extends Object {
         paidDate = DateTime.now();
       }
     }
-    return Invoice(
+    Invoice item = Invoice(
       json["id"],
       json["uuid"],
       json["number"],
@@ -662,7 +666,10 @@ class Invoice extends Object {
       json["provider"],
       json["document"],
       json["currency"],
+      json["tracker"],
     );
+
+    return item;
   }
 
   factory Invoice.getEmpty() {
@@ -681,6 +688,7 @@ class Invoice extends Object {
       "", // provider
       "", // document
       "EUR", // currency
+      "",
     );
   }
 
@@ -699,14 +707,30 @@ class Invoice extends Object {
         'provider': provider,
         'document': document,
         'currency': currency,
+        'tracker': tracker,
       };
+
+  static Future<String> newTracker() async {
+    final collection = db.collection("s4c_invoices");
+    String tracker = getTracker();
+    bool exists = true;
+    while (exists) {
+      final query = await collection.where("tracker", isEqualTo: tracker).get();
+      if (query.docs.isEmpty) {
+        exists = false;
+      } else {
+        tracker = getTracker();
+      }
+    }
+    return tracker;
+  }
 
   void save() async {
     final collection = db.collection("s4c_invoices");
+
     if (id == "") {
-      id = uuid;
       Map<String, dynamic> data = toJson();
-      collection.add(data);
+      collection.add(data).then((value) => id = value.id);
     } else {
       final item = await collection.doc(id).get();
       Map<String, dynamic> data = toJson();
@@ -720,6 +744,21 @@ class Invoice extends Object {
       collection.doc(id).delete();
     }
     id = "";
+  }
+
+  static Future<Invoice?> byTracker(String tracker) {
+    final collection = db.collection("s4c_invoices");
+    return collection
+        .where("tracker", isEqualTo: tracker)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final item = Invoice.fromJson(querySnapshot.docs.first.data());
+        item.id = querySnapshot.docs.first.id;
+        return item;
+      }
+      return null;
+    });
   }
 
   static Future<List> getByFinn(finn) async {
@@ -989,54 +1028,69 @@ class BankTransfer {
 class Distribution extends Object {
   String uuid;
   String project;
+  DateTime date = DateTime.now();
   String? description;
-  SFinn? finn;
-  Organization? partner;
+  SFinn finn;
+  Organization partner;
   double amount;
   List<Invoice> invoices = [];
 
-  Map<String, int> mapinvoices = {};
+  Map<String, dynamic> mapinvoices = {};
 
   Distribution(this.uuid, this.project, this.description, this.finn,
       this.partner, this.amount);
 
   factory Distribution.fromJson(Map<String, dynamic> json) {
-    Distribution item = Distribution(
-        json["uuid"],
-        json["project"],
-        json["description"],
-        SFinn.fromJson(json["finn"]),
-        Organization.fromJson(json["partner"]),
-        json["amount"]);
+    try {
+      Distribution item = Distribution(
+          json["uuid"],
+          json["project"],
+          json["description"],
+          SFinn.fromJson(json["finn"]),
+          Organization.fromJson(json["partner"]),
+          json["amount"]);
+      if (json.containsKey("date")) {
+        item.date = getDate(json["date"]);
+      }
 
-    if (json.containsKey("mapinvoices")) {
-      item.mapinvoices = json["mapinvoices"];
-      item.invoices = json["mapinvoices"]
-          .map((e) => Invoice.getByUuid(e["uuid"]) as Invoice)
-          .toList();
+      if (json.containsKey("mapinvoices")) {
+        if (json["mapinvoices"] is List) {
+          item.mapinvoices = {};
+        } else {
+          item.mapinvoices = json["mapinvoices"];
+          for (var element in item.mapinvoices.keys) {
+            item.invoices.add(Invoice.getByUuid(element) as Invoice);
+          }
+        }
+      }
+      return item;
+    } catch (e, stacktrace) {
+      print(e.toString());
+      print(stacktrace.toString());
     }
 
-    return item;
+    return getEmpty();
+  }
+
+  static Distribution getEmpty() {
+    return Distribution(
+      const Uuid().v4(),
+      "",
+      "",
+      SFinn.getEmpty(),
+      Organization.getEmpty(),
+      0,
+    );
   }
 
   Map<String, dynamic> toJson() => {
         'uuid': uuid,
         'project': project,
         'description': description,
-        'finn': (finn != null) ? finn!.toJson() : [],
-        'partner': (partner != null) ? partner!.toJson() : [],
+        'finn': finn.toJson(),
+        'partner': partner.toJson(),
+        'date': date,
         'amount': amount,
         'mapinvoices': mapinvoices,
       };
-
-  factory Distribution.getEmpty() {
-    return Distribution(
-      const Uuid().v4(), // uuid
-      "", // project
-      "", // description
-      null, // finn
-      null, // partner
-      0, // amount
-    );
-  }
 }
