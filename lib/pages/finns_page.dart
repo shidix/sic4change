@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers
-
+import 'dart:developer' as dev;
+import 'dart:html';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,13 +11,11 @@ import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
-import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -120,6 +119,35 @@ class _FinnsPageState extends State<FinnsPage> {
     return distrib;
   }
 
+  bool checkFinnInDistributions(finn) {
+    for (Distribution dist in finnInfo.distributions) {
+      if (dist.finn!.uuid == finn.uuid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void notAllowedDialog(context, msg) {
+    msg ??= "No se puede realizar la operación solicitada.";
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Operación no permitida'),
+            content: Text(msg),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cerrar'),
+              ),
+            ],
+          );
+        });
+  }
+
   Widget populateAportesSummaryContainer() {
     double percentExecuted = 0.0;
     totalBudgetProject = 0;
@@ -220,16 +248,6 @@ class _FinnsPageState extends State<FinnsPage> {
       distribTotalByPartner[partner] = 0;
     }
     invoicesSummary = {};
-    for (Invoice invoice in invoicesItems) {
-      if (invoicesSummary.containsKey(invoice.partner)) {
-        invoicesSummary[invoice.partner]!['total'] +=
-            invoice.total * invoice.imputation * 0.01;
-      } else {
-        invoicesSummary[invoice.partner] = {
-          "total": invoice.total * invoice.imputation * 0.01
-        };
-      }
-    }
 
     double totalExecuted = 0;
     double percentExecuted = 0;
@@ -333,13 +351,7 @@ class _FinnsPageState extends State<FinnsPage> {
         return a.orgUuid.compareTo(b.orgUuid);
       }
     });
-/*
-    if (aportesItems.isEmpty) {
-      await FinnContribution.getByProject(_project!.uuid).then((val) {
-        aportesItems = val;
-      });
-    }
-*/
+
     if (distribItems.isEmpty) {
       await FinnDistribution.getByProject(_project!.uuid).then((val) {
         distribItems = val;
@@ -392,6 +404,7 @@ class _FinnsPageState extends State<FinnsPage> {
     for (SFinn item in finnInfo.partidas) {
       if (item.uuid == finn.uuid) {
         finnInfo.partidas.remove(item);
+        finnInfo.save();
       }
       queue.add(item);
     }
@@ -412,6 +425,24 @@ class _FinnsPageState extends State<FinnsPage> {
     reloadState();
   }
 
+  List<SFinn> finnRecursive(SFinn finn) {
+    List<SFinn> items = [];
+    items.add(finn);
+    finn.partidas.sort(
+      (a, b) {
+        if (a.orgUuid == b.orgUuid) {
+          return a.name.compareTo(b.name);
+        } else {
+          return a.orgUuid.compareTo(b.orgUuid);
+        }
+      },
+    );
+    for (SFinn child in finn.partidas) {
+      items.addAll(finnRecursive(child));
+    }
+    return items;
+  }
+
   Widget finnancierSummaryCard(Organization item) {
     List<Widget> rows = [];
     TextStyle currentStyle;
@@ -421,46 +452,104 @@ class _FinnsPageState extends State<FinnsPage> {
       FontWeight.w300,
       FontWeight.w100,
     ];
+    List<SFinn> filtered = [];
+
+    finnInfo.partidas.sort((a, b) {
+      if (a.orgUuid == b.orgUuid) {
+        return a.name.compareTo(b.name);
+      } else {
+        return a.orgUuid.compareTo(b.orgUuid);
+      }
+    });
+
+    for (SFinn finn in finnInfo.partidas) {
+      if (finn.orgUuid == item.uuid) {
+        filtered.addAll(finnRecursive(finn));
+      }
+    }
+
     int counter = 0;
-    for (SFinn finn in finnList) {
+
+    for (SFinn finn in filtered) {
       if (finn.orgUuid == item.uuid) {
         currentStyle = cellsListStyle.copyWith(
             fontWeight: mapStyles[mapLevels[finn.uuid]!]);
-        if (finn.contribution > finn.getAmountContrib()) {
-          currentStyle = currentStyle.copyWith(color: warningColor);
-        } else if (finn.contribution < finn.getAmountContrib()) {
-          currentStyle = currentStyle.copyWith(color: dangerColor);
-        }
+        // if (finn.contribution > finn.getAmountContrib()) {
+        //   currentStyle = currentStyle.copyWith(color: warningColor);
+        // } else if (finn.contribution < finn.getAmountContrib()) {
+        //   currentStyle = currentStyle.copyWith(color: dangerColor);
+        // }
         if ((mapLevels[finn.uuid] == 0) && (rows.isNotEmpty)) {
           counter = 0;
-          rows.add(Divider(thickness: 1, color: Colors.grey));
+          rows.add(const Divider(thickness: 1, color: Colors.grey));
         }
 
         rows.add(Container(
             color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
             child: Row(children: [
               Expanded(
-                  flex: 5,
+                  flex: 7,
                   child: Padding(
                       padding: EdgeInsets.symmetric(
                           horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
                           vertical: 0),
                       child: Text("${finn.name}. ${finn.description}",
                           style: currentStyle))),
+              // Expanded(
+              //     flex: 2,
+              //     child: Padding(
+              //         padding: const EdgeInsets.symmetric(
+              //             vertical: 0, horizontal: 10),
+              //         child: Text(toCurrency(finn.contribution),
+              //             textAlign: TextAlign.right, style: currentStyle))),
               Expanded(
                   flex: 2,
                   child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 0, horizontal: 10),
-                      child: Text(toCurrency(finn.contribution),
-                          textAlign: TextAlign.right, style: currentStyle))),
+                      child: (finn.getAmountContrib() == finn.contribution)
+                          ? Text(
+                              toCurrency(finn.getAmountContrib()),
+                              textAlign: TextAlign.right,
+                              style: currentStyle,
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                (finn.contribution > finn.getAmountContrib())
+                                    ? Tooltip(
+                                        message:
+                                            'El valor nominal (${toCurrency(finn.contribution)}) es mayor que la suma de las subpartidas',
+                                        child: const Icon(
+                                          Icons.arrow_upward,
+                                          color: warningColor,
+                                          size: 14,
+                                        ))
+                                    : Tooltip(
+                                        message:
+                                            'El valor nominal (${toCurrency(finn.contribution)}) es menor que la suma de las subpartidas',
+                                        child: const Icon(Icons.arrow_downward,
+                                            color: dangerColor, size: 14)),
+                                space(width: 5),
+                                Text(
+                                  toCurrency(finn.getAmountContrib()),
+                                  textAlign: TextAlign.right,
+                                  style: (finn.contribution >
+                                          finn.getAmountContrib())
+                                      ? currentStyle.copyWith(
+                                          color: warningColor)
+                                      : currentStyle.copyWith(
+                                          color: dangerColor),
+                                ),
+                              ],
+                            ))),
               Expanded(
                   flex: 2,
                   child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 0, horizontal: 10),
                       child: Text(
-                        toCurrency(finn.getAmountContrib()),
+                        toCurrency(finnInfo.getDistribByFinn(finn)),
                         textAlign: TextAlign.right,
                         style: currentStyle,
                       ))),
@@ -523,10 +612,15 @@ class _FinnsPageState extends State<FinnsPage> {
                               reloadState();
                             });
                           }, finn, icon: Icons.edit_outlined),
-                          removeConfirmBtn(context, removeFinn, finn),
+                          ((finn.partidas.isEmpty) &&
+                                  (!checkFinnInDistributions(finn)))
+                              ? removeConfirmBtn(context, removeFinn, finn)
+                              : removeBtn(context, notAllowedDialog,
+                                  'Debe eliminar subpartidas'),
                           if ((finn.partidas.isEmpty) &&
                               (_project!.partners.isNotEmpty))
-                            iconBtn(context, addDistribDialog, finn,
+                            iconBtn(context, addDistribDialog,
+                                {'finn': finn, 'index': -1},
                                 icon: Icons.send_outlined,
                                 text: 'Distribuir a socio'),
                         ])),
@@ -571,9 +665,9 @@ class _FinnsPageState extends State<FinnsPage> {
             const Divider(thickness: 1, color: Colors.grey),
             Container(
                 color: headerListBgColor,
-                child: Row(children: [
-                  const Expanded(
-                      flex: 5,
+                child: const Row(children: [
+                  Expanded(
+                      flex: 7,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -581,19 +675,32 @@ class _FinnsPageState extends State<FinnsPage> {
                             "Partida",
                             style: headerListStyle,
                           ))),
+                  // Expanded(
+                  //     flex: 2,
+                  //     child: Padding(
+                  //         padding: const EdgeInsets.symmetric(
+                  //             horizontal: 5, vertical: 10),
+                  //         child: Row(
+                  //           mainAxisAlignment: MainAxisAlignment.end,
+                  //           children: [
+                  //             iconBtn(context, (context, args) {}, [],
+                  //                 icon: Icons.info,
+                  //                 text: "Lo que se indica en la partida",
+                  //                 iconSize: 14),
+                  //             const Text("Nominal",
+                  //                 style: headerListStyle,
+                  //                 textAlign: TextAlign.right),
+                  //           ],
+                  //         ))),
                   Expanded(
                       flex: 2,
                       child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              iconBtn(context, (context, args) {}, [],
-                                  icon: Icons.info,
-                                  text: "Lo que se indica en la partida",
-                                  iconSize: 14),
-                              const Text("Nominal",
+                              Text("Aportación",
                                   style: headerListStyle,
                                   textAlign: TextAlign.right),
                             ],
@@ -601,21 +708,17 @@ class _FinnsPageState extends State<FinnsPage> {
                   Expanded(
                       flex: 2,
                       child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              iconBtn(context, (context, args) {}, [],
-                                  icon: Icons.info,
-                                  text: "Lo que se suman las subpartidas",
-                                  iconSize: 14),
-                              const Text("Subpartidas",
+                              Text("Asignado",
                                   style: headerListStyle,
                                   textAlign: TextAlign.right),
                             ],
                           ))),
-                  const Expanded(
+                  Expanded(
                       flex: 2,
                       child: Padding(
                           padding:
@@ -623,7 +726,7 @@ class _FinnsPageState extends State<FinnsPage> {
                           child: Text("Ejecutado",
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
-                  const Expanded(
+                  Expanded(
                       flex: 1,
                       child: Padding(
                           padding:
@@ -631,7 +734,7 @@ class _FinnsPageState extends State<FinnsPage> {
                           child: Text("%",
                               style: headerListStyle,
                               textAlign: TextAlign.right))),
-                  const Expanded(
+                  Expanded(
                       flex: 3,
                       child: Padding(
                           padding:
@@ -683,14 +786,14 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   // Partners info
-
   Widget getInfoPartners(context, args) {
-    List<Row> rows = [];
+    List<Widget> rows = [];
     for (Organization partner in _project!.partnersObj) {
       rows.add(Row(children: [
         Expanded(flex: 1, child: partnerSummaryCard(partner)),
       ]));
     }
+
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -703,113 +806,79 @@ class _FinnsPageState extends State<FinnsPage> {
                   ]));
   }
 
+  void removeDistrib(context, dist) {
+    finnInfo.distributions.remove(dist);
+    finnInfo.save();
+    if (mounted) {
+      setState(() {
+        partnersContainer = populatePartnersContainer();
+      });
+    }
+  }
+
   Widget partnerSummaryCard(Organization item) {
     List<Widget> rows = [];
-    TextStyle currentStyle;
-    for (SFinn finn in finnList) {
-      if (finn.orgUuid == item.uuid) {
-        if (mapLevels[finn.uuid] == 0) {
-          currentStyle = cellsListStyle.copyWith(fontWeight: FontWeight.bold);
-        } else {
-          currentStyle = cellsListStyle;
-        }
-        if (finn.contribution > finn.getAmountContrib()) {
-          currentStyle = currentStyle.copyWith(color: warningColor);
-        } else if (finn.contribution < finn.getAmountContrib()) {
-          currentStyle = currentStyle.copyWith(color: dangerColor);
-        }
+    // TextStyle currentStyle;
+    List<Distribution> filtered = [];
+    for (Distribution dist in finnInfo.distributions) {
+      if (dist.partner!.uuid == item.uuid) {
+        filtered.add(dist);
+      }
+    }
 
+    filtered.sort((a, b) {
+      if (a.finn!.orgUuid == b.finn!.orgUuid) {
+        return a.finn!.name.compareTo(b.finn!.name);
+      } else {
+        return a.finn!.orgUuid.compareTo(b.finn!.orgUuid);
+      }
+    });
+
+    for (Distribution dist in filtered) {
+      Organization financier = financiers[dist.finn!.orgUuid]!;
+      if (dist.partner!.uuid == item.uuid) {
         rows.add(Row(children: [
           Expanded(
-              flex: 4,
-              child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 5.0 + 50.0 * (mapLevels[finn.uuid]!),
-                      vertical: 0),
-                  child: Text("${finn.name}. ${finn.description}",
-                      style: currentStyle))),
-          Expanded(
               flex: 2,
               child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(toCurrency(finn.contribution),
-                      textAlign: TextAlign.right, style: currentStyle))),
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                  child: Text(financier.name, style: cellsListStyle))),
           Expanded(
-              flex: 2,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(
-                    toCurrency(finn.getAmountContrib()),
-                    textAlign: TextAlign.right,
-                    style: currentStyle,
-                  ))),
-          Expanded(
-              flex: 2,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                  child: Text(
-                    toCurrency(getDistrib(finn.uuid)),
-                    textAlign: TextAlign.right,
-                    style: currentStyle,
-                  ))),
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text("${dist.finn!.name}. ${dist.finn!.description}",
+                  style: cellsListStyle),
+            ),
+          ),
           Expanded(
             flex: 1,
             child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                child: ((finn.getAmountContrib() != 0) &&
-                        (getDistrib(finn.uuid) != 0))
-                    ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
-                        ? Text(
-                            "100%",
-                            style: dangerText.copyWith(
-                                fontSize: dangerText.fontSize! - 2),
-                            textAlign: TextAlign.right,
-                          )
-                        : Text(
-                            "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
-                            textAlign: TextAlign.right,
-                          )
-                    : const Text(
-                        "0%",
-                        textAlign: TextAlign.right,
-                      )),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text(
+                toCurrency(dist.amount),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
+            ),
           ),
           Expanded(
-            flex: 3,
+            flex: 1,
             child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  iconBtn(context, (context, args) {}, null,
-                      icon: Icons.send_outlined, text: 'Distribuir a socio'),
-                  iconBtn(context, addFinnDialog, [item, finn],
-                      icon: Icons.add,
-                      text: 'Añadir subpartida',
-                      iconSize: 20 - 2 * mapLevels[finn.uuid]!),
-                  iconBtn(context, (context, args) {
-                    _editFinnDialog(context, finn).then((value) {
-                      if (value == null) {
-                        return;
-                      }
-                      if (finn.id == "") {
-                        finnList.remove(finn);
-                        // finnHash.remove(finn.name);
-                        // finnUuidHash.remove(finn.uuid);
-                      }
-                      finnSelected = null;
-                      finnInfo.save();
-                      reloadState();
-                    });
-                  }, finn,
-                      icon: Icons.edit_outlined,
-                      iconSize: 20 - 2 * mapLevels[finn.uuid]!),
-                  removeConfirmBtn(context, removeFinn, finn,
-                      iconSize: 20 - 2 * mapLevels[finn.uuid]!)
-                ])),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text(
+                toCurrency(dist.amount),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
+            ),
           ),
+          Expanded(
+              flex: 1,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [removeConfirmBtn(context, removeDistrib, dist)])),
         ]));
       }
     }
@@ -823,115 +892,77 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(0),
-          child: Column(children: [
-            Container(
-                decoration: BoxDecoration(
-                    color: headerListBgColorIndicator,
-                    borderRadius: BorderRadius.circular(0.0),
-                    border: Border.all(
-                        color: headerListBgColorIndicator, width: 1.0)),
-                child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(item.name,
-                              style: headerListStyle.copyWith(
-                                  color: Colors.white)),
-                        ]))),
-            space(height: 10),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtnRow(context, addDistribDialog, [item, null])
-            ]),
-            const Divider(thickness: 1, color: Colors.grey),
-            Container(
-                color: headerListBgColor,
-                child: Row(children: [
-                  const Expanded(
-                      flex: 4,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text(
-                            "Partida",
-                            style: headerListStyle,
-                          ))),
-                  Expanded(
-                      flex: 2,
-                      child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              iconBtn(context, (context, args) {}, [],
-                                  icon: Icons.info,
-                                  text: "Lo que se indica en la partida",
-                                  iconSize: 14),
-                              const Text("Nominal",
-                                  style: headerListStyle,
-                                  textAlign: TextAlign.right),
-                            ],
-                          ))),
-                  Expanded(
-                      flex: 2,
-                      child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              iconBtn(context, (context, args) {}, [],
-                                  icon: Icons.info,
-                                  text: "Lo que se suman las subpartidas",
-                                  iconSize: 14),
-                              Text("Subpartidas",
-                                  style: headerListStyle.copyWith(
-                                      color: Colors.white),
-                                  textAlign: TextAlign.right),
-                            ],
-                          ))),
-                  const Expanded(
-                      flex: 2,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("Ejecutado",
+            padding: const EdgeInsets.all(0),
+            child: Column(children: [
+              Container(
+                  decoration: BoxDecoration(
+                      color: headerListBgColorIndicator,
+                      borderRadius: BorderRadius.circular(0.0),
+                      border: Border.all(
+                          color: headerListBgColorIndicator, width: 1.0)),
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 0, vertical: 10),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(item.name,
+                                style: headerListStyle.copyWith(
+                                    color: Colors.white)),
+                          ]))),
+              const Divider(thickness: 1, color: Colors.grey),
+              Container(
+                  color: headerListBgColor,
+                  child: Row(children: [
+                    const Expanded(
+                        flex: 2,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text(
+                              "Financiador",
                               style: headerListStyle,
-                              textAlign: TextAlign.right))),
-                  const Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("%",
-                              style: headerListStyle,
-                              textAlign: TextAlign.right))),
-                  const Expanded(
-                      flex: 3,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("",
-                              style: headerListStyle,
-                              textAlign: TextAlign.right))),
-                ])),
-            const Divider(thickness: 1, color: Colors.grey),
-            ...rows,
-            // const Divider(thickness: 1, color: Colors.grey),
-          ]),
-        ));
+                            ))),
+                    const Expanded(
+                        flex: 2,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text("Partida",
+                                style: headerListStyle,
+                                textAlign: TextAlign.left))),
+                    const Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text("Asignado",
+                                style: headerListStyle,
+                                textAlign: TextAlign.right))),
+                    const Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text("Ejecutado",
+                                style: headerListStyle,
+                                textAlign: TextAlign.right))),
+                    // const Divider(thickness: 1, color: Colors.grey),
+                    Expanded(flex: 1, child: Container())
+                  ])),
+              const Divider(thickness: 1, color: Colors.grey),
+              ...rows,
+              space(height: 10),
+            ])));
   }
 
   Widget populatePartnersContainer() {
-    List<Widget> rows = [];
-    for (Organization partner in _project!.partnersObj) {
-      rows.add(Row(children: [
-        Expanded(flex: 1, child: partnerSummaryCard(partner)),
-      ]));
-    }
+    // List<Widget> rows = [];
+    // for (Organization partner in _project!.partnersObj) {
+    //   rows.add(Row(children: [
+    //     Expanded(flex: 1, child: partnerSummaryCard(partner)),
+    //   ]));
+    // }
     return Padding(
       padding: const EdgeInsets.all(10),
       child: customCollapse(
@@ -947,28 +978,32 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Future<void> addDistribDialog(context) async {
-    return showDialog<Distribution>(
+  Future<void> addDistribDialog(context, args) async {
+    SFinn finn = args['finn'];
+    int index = args['index'];
+    return showDialog<SFinnInfo>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Añadir distribución'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Próximamente'),
-              ],
+            content: SingleChildScrollView(
+              child: DistributionForm(
+                  info: finnInfo,
+                  finn: finn,
+                  project: _project!,
+                  partners: partners.values.toList(),
+                  index: index),
             ),
-            actions: [
-              TextButton(
-                child: const Text('Cerrar'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
           );
-        }).then((value) {});
+        }).then((value) {
+      if (value != null) {
+        if (mounted) {
+          setState(() {
+            partnersContainer = populatePartnersContainer();
+          });
+        }
+      }
+    });
   }
 
   Future<double> invoicesByPartner() async {
@@ -978,16 +1013,7 @@ class _FinnsPageState extends State<FinnsPage> {
       invoicesItems = value;
     });
     invoicesSummary = {};
-    for (Invoice invoice in invoicesItems) {
-      if (invoicesSummary.containsKey(invoice.partner)) {
-        invoicesSummary[invoice.partner]!['total'] +=
-            invoice.total * invoice.imputation * 0.01;
-      } else {
-        invoicesSummary[invoice.partner] = {
-          "total": invoice.total * invoice.imputation * 0.01
-        };
-      }
-    }
+
     for (var item in invoicesSummary.values) {
       executedBudgetProject += item['total']!;
     }
@@ -1129,127 +1155,7 @@ class _FinnsPageState extends State<FinnsPage> {
       return Text(title, textAlign: alignment, style: headerListStyle);
     }
 
-    if (finnSelected != null) {
-      invoicesList = [];
-      if (invoicesItems.isNotEmpty) {
-        Row header = Row(children: [
-          Expanded(flex: 2, child: headerField('Partida')),
-          Expanded(flex: 2, child: headerField('Número')),
-          Expanded(flex: 2, child: headerField('Código')),
-          Expanded(flex: 2, child: headerField('Fecha')),
-          Expanded(
-              flex: 4,
-              child: headerField(AppLocalizations.of(context)!.concept)),
-          Expanded(
-              flex: 2,
-              child: headerField(AppLocalizations.of(context)!.partner)),
-          Expanded(flex: 2, child: headerField('Base', TextAlign.end)),
-          Expanded(flex: 2, child: headerField('Impuestos', TextAlign.end)),
-          Expanded(flex: 2, child: headerField('Total', TextAlign.end)),
-          Expanded(flex: 1, child: headerField('%', TextAlign.end)),
-          Expanded(flex: 1, child: headerField('', TextAlign.end)),
-        ]);
-
-        invoicesList.add(header);
-        invoicesList.add(const Divider(
-          height: 5,
-          color: Colors.black,
-        ));
-        invoicesItems.sort((a, b) => (a.date).compareTo(b.date));
-        List invoicesToShow = [];
-
-        for (Invoice invoice in invoicesToShow) {
-          invoicesList.add(rowFromInvoice(invoice));
-          if (!(invoice == invoicesToShow.last)) {
-            invoicesList.add(const Divider(
-              height: 5,
-              color: Colors.grey,
-            ));
-          }
-        }
-      }
-
-      return SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Card(
-              child: Padding(
-            padding: const EdgeInsets.only(left: 10, top: 10),
-            child: Column(children: [
-              Row(children: [
-                Expanded(
-                    flex: 20,
-                    child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                            'Listado de Facturas. Partida ${finnSelected!.name} ${finnSelected!.description}',
-                            style: titleText))),
-                Expanded(
-                    flex: 1,
-                    child: Align(
-                        alignment: Alignment.centerRight,
-                        child: withChildrens.contains(finnSelected!.name)
-                            ? Container()
-                            : Tooltip(
-                                message:
-                                    AppLocalizations.of(context)!.addInvoice,
-                                child: IconButton(
-                                    onPressed: () {
-                                      _addInvoiceDialog(context, finnSelected!)
-                                          .then((value) {
-                                        if (value != null) {
-                                          if (!invoicesItems.contains(value)) {
-                                            invoicesItems.add(value);
-                                          }
-                                          reloadState();
-                                        }
-                                      });
-                                    },
-                                    icon: const Icon(
-                                        Icons.add_circle_outline))))),
-                Expanded(
-                    flex: 1,
-                    child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Tooltip(
-                            message: 'Cerrar listado',
-                            child: IconButton(
-                                onPressed: () {
-                                  finnSelected = null;
-                                  invoicesList = [];
-                                  reloadState();
-                                },
-                                icon: const Icon(
-                                    Icons.arrow_circle_left_outlined))))),
-              ]),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      physics: const BouncingScrollPhysics(),
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      children: (invoicesList.isNotEmpty)
-                          ? invoicesList
-                          : [
-                              const Center(
-                                  child: Padding(
-                                      padding: EdgeInsets.all(50),
-                                      child: Text(
-                                          'No hay facturas para esta partida',
-                                          style: mainText)))
-                            ],
-                    ),
-                  ),
-                ],
-              )
-            ]),
-          )));
-    } else {
-      return Container(width: double.infinity);
-    }
+    return Container(width: double.infinity);
   }
 
   Widget rowFromInvoice(Invoice invoice) {
@@ -1270,11 +1176,6 @@ class _FinnsPageState extends State<FinnsPage> {
           Expanded(
               flex: 2,
               child: Text(
-                  (getObject(_project!.partnersObj, invoice.partner) as Contact)
-                      .name)),
-          Expanded(
-              flex: 2,
-              child: Text(
                 toCurrency(invoice.base, invoice.currency),
                 textAlign: TextAlign.end,
               )),
@@ -1290,12 +1191,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 toCurrency(invoice.total, invoice.currency),
                 textAlign: TextAlign.end,
               )),
-          Expanded(
-              flex: 1,
-              child: Text(
-                "${invoice.imputation.toStringAsFixed(0)}%",
-                textAlign: TextAlign.end,
-              )),
+
           Expanded(
               flex: 1,
               child: Align(
@@ -1313,7 +1209,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]));
   }
 
-  Future<Invoice?> _addInvoiceDialog(context, SFinn finn) {
+  Future<Invoice?> _addInvoiceDialog(context, Distribution dist) {
     return showDialog<Invoice>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -1323,8 +1219,7 @@ class _FinnsPageState extends State<FinnsPage> {
           title: s4cTitleBar('Añadir factura a la partida', context),
           content: InvoiceForm(
             key: null,
-            partners: _project!.partnersObj,
-            existingInvoice: Invoice.getEmpty()..finn = finn.uuid,
+            partner: dist.partner!,
           ),
         );
       },
@@ -1340,7 +1235,7 @@ class _FinnsPageState extends State<FinnsPage> {
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Editar factura', context, Icons.edit),
             content: InvoiceForm(
-                existingInvoice: invoice, partners: _project!.partnersObj));
+                existingInvoice: invoice, partner: partners.values.first));
       },
     );
   }
