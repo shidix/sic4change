@@ -1,6 +1,7 @@
 // import 'dart:developer' as developer;
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/index.dart';
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
     '/task_info': (context) => const TaskInfoPage(),
     '/orgchart': (context) => const Orgchart(),
     '/profile': (context) => const ProfilePage(),
+    '/admin': (context) => const AdminPage(),
   };
 
   @override

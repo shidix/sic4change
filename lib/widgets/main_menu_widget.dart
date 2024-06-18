@@ -77,6 +77,8 @@ Widget mainMenuAdmin(context, [user, url]) {
                 : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        menuBtn(context, "Admin", Icons.settings, "/admin",
+            (url == "/admin") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           menuBtn(
