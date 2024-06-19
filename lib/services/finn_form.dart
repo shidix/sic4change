@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:googleapis/servicemanagement/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -66,7 +67,9 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     flex: 1,
                     child: TextFormField(
                       initialValue: _invoice.tracker,
-                      decoration: const InputDecoration(labelText: 'Tracker'),
+                      decoration: const InputDecoration(
+                          labelText:
+                              'Tracker (si existe, carga automáticamente los datos)'),
                       onChanged: (value) {
                         if (value.length == 5) {
                           Invoice.byTracker(value).then((value) {
@@ -441,11 +444,23 @@ class InvoiceDistributionForm extends StatefulWidget {
 class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late InvoiceDistrib invoiceDistrib;
+  late Invoice invoice;
 
   @override
   void initState() {
     super.initState();
     invoiceDistrib = widget.item;
+    invoice = Invoice.getEmpty();
+
+    Invoice.getByUuid(widget.item.invoice).then((value) {
+      invoice = value;
+      if (invoiceDistrib.taxes) {
+        invoiceDistrib.amount = invoice.total;
+      } else {
+        invoiceDistrib.amount = invoice.base;
+      }
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -467,6 +482,28 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: CustomSelectFormField(
+                      labelText: '¿Impuestos imputables?',
+                      initial: invoiceDistrib.taxes.toString(),
+                      options: [
+                        KeyValue("true", "Sí"),
+                        KeyValue("false", "No")
+                      ],
+                      onSelectedOpt: (value) {
+                        invoiceDistrib.taxes = value.toString() == "true";
+                        if (mounted) {
+                          setState(() {
+                            if (invoiceDistrib.taxes) {
+                              invoiceDistrib.amount = invoice.total;
+                            } else {
+                              invoiceDistrib.amount = invoice.base;
+                            }
+                          });
+                        }
+                      },
+                    )),
                 Expanded(
                     flex: 1,
                     child: Padding(
@@ -494,6 +531,13 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                           onSaved: (value) => invoiceDistrib.percentaje =
                               currencyToDouble(value!),
                         ))),
+                Expanded(
+                    flex: 1,
+                    child: ReadOnlyTextField(
+                        label: "Importe",
+                        textToShow:
+                            toCurrency(invoiceDistrib.amount, invoice.currency),
+                        textAlign: TextAlign.right)),
               ]),
               const SizedBox(height: 16.0),
               Row(children: [

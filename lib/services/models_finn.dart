@@ -802,27 +802,28 @@ class Invoice extends Object {
 }
 
 class InvoiceDistrib extends Object {
-  String id = "";
-  String uuid = "";
+  String id;
+  String uuid;
   String invoice;
   String distribution;
+  bool taxes = true;
   double percentaje;
+  double amount;
 
-  InvoiceDistrib(this.invoice, this.distribution, this.percentaje);
+  InvoiceDistrib(
+      this.id, this.uuid, this.invoice, this.distribution, this.percentaje,
+      [this.amount = 0, this.taxes = true]);
 
   factory InvoiceDistrib.fromJson(Map<String, dynamic> json) {
-    InvoiceDistrib item = InvoiceDistrib(
+    return InvoiceDistrib(
+      json["id"],
+      json["uuid"],
       json["invoice"],
       json["distribution"],
       json["percentaje"],
+      json["amount"],
+      json["taxes"],
     );
-    if (json.containsKey("id")) {
-      item.id = json["id"];
-    }
-    if (json.containsKey("uuid")) {
-      item.uuid = json["uuid"];
-    }
-    return item;
   }
 
   Map<String, dynamic> toJson() => {
@@ -831,6 +832,8 @@ class InvoiceDistrib extends Object {
         'invoice': invoice,
         'distribution': distribution,
         'percentaje': percentaje,
+        'amount': amount,
+        'taxes': taxes,
       };
 
   void save() async {
@@ -847,24 +850,37 @@ class InvoiceDistrib extends Object {
     }
   }
 
+  void remove() {
+    final collection = db.collection("s4c_invoicedistrib");
+    if (id != "") {
+      collection.doc(id).delete();
+    } else {
+      collection.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+    }
+  }
+
   @override
   String toString() {
     return toJson().toString();
   }
 
   static Future<InvoiceDistrib> getByDistributionAndInvoice(
-      distribution, invoice) async {
+      String distribution, String invoice) async {
     final collection = db.collection("s4c_invoicedistrib");
     final query = await collection
-        .where("distribution", isEqualTo: distribution!.uuid)
-        .where("invoice", isEqualTo: invoice!.uuid)
+        .where("distribution", isEqualTo: distribution)
+        .where("invoice", isEqualTo: invoice)
         .get();
     if (query.docs.isNotEmpty) {
-      InvoiceDistrib item = InvoiceDistrib.fromJson(query.docs.first.data());
-      item.id = query.docs.first.id;
-      return item;
+      Map<String, dynamic> data = query.docs.first.data();
+      data["id"] = query.docs.first.id;
+      return InvoiceDistrib.fromJson(data);
     } else {
-      return InvoiceDistrib(invoice, distribution, 100.0);
+      return InvoiceDistrib("", "", invoice, distribution, 100.0);
     }
   }
 
@@ -1146,7 +1162,9 @@ class Distribution extends Object {
         } else {
           item.mapinvoices = json["mapinvoices"];
           for (var element in item.mapinvoices.keys) {
-            item.invoices.add(Invoice.getByUuid(element) as Invoice);
+            Invoice.getByUuid(element).then((value) {
+              item.invoices.add(value);
+            });
           }
         }
       }
@@ -1214,5 +1232,14 @@ class Distribution extends Object {
     if (id != "") {
       collection.doc(id).delete();
     }
+  }
+
+  double getExecuted() {
+    double total = 0;
+    for (var invoice in mapinvoices.values) {
+      total += invoice["amount"] * invoice["percentaje"] * 0.01;
+    }
+
+    return total;
   }
 }

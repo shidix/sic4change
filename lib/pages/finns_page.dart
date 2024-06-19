@@ -624,7 +624,10 @@ class _FinnsPageState extends State<FinnsPage> {
                             iconBtn(context, addDistribDialog,
                                 {'finn': finn, 'index': -1},
                                 icon: Icons.send_outlined,
-                                text: 'Distribuir a socio'),
+                                text: 'Distribuir a socio')
+                          else
+                            iconBtn(context, (context, args) {}, null,
+                                icon: null, text: 'Con subpartidas'),
                         ])),
               ),
             ])));
@@ -677,23 +680,6 @@ class _FinnsPageState extends State<FinnsPage> {
                             "Partida",
                             style: headerListStyle,
                           ))),
-                  // Expanded(
-                  //     flex: 2,
-                  //     child: Padding(
-                  //         padding: const EdgeInsets.symmetric(
-                  //             horizontal: 5, vertical: 10),
-                  //         child: Row(
-                  //           mainAxisAlignment: MainAxisAlignment.end,
-                  //           children: [
-                  //             iconBtn(context, (context, args) {}, [],
-                  //                 icon: Icons.info,
-                  //                 text: "Lo que se indica en la partida",
-                  //                 iconSize: 14),
-                  //             const Text("Nominal",
-                  //                 style: headerListStyle,
-                  //                 textAlign: TextAlign.right),
-                  //           ],
-                  //         ))),
                   Expanded(
                       flex: 2,
                       child: Padding(
@@ -837,6 +823,8 @@ class _FinnsPageState extends State<FinnsPage> {
     });
 
     for (Distribution dist in filtered) {
+      double executed = dist.getExecuted();
+      double executedPercent = (dist.amount == 0) ? 0 : executed / dist.amount;
       Organization financier = financiers[dist.finn.orgUuid]!;
       if (dist.partner.uuid == item.uuid) {
         rows.add(Row(children: [
@@ -878,7 +866,18 @@ class _FinnsPageState extends State<FinnsPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
               child: Text(
-                toCurrency(dist.amount),
+                toCurrency(executed),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text(
+                "${(executedPercent * 100).toStringAsFixed(0)} %",
                 style: cellsListStyle,
                 textAlign: TextAlign.right,
               ),
@@ -966,6 +965,14 @@ class _FinnsPageState extends State<FinnsPage> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 5, vertical: 10),
                             child: Text("Ejecutado",
+                                style: headerListStyle,
+                                textAlign: TextAlign.right))),
+                    const Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text("%",
                                 style: headerListStyle,
                                 textAlign: TextAlign.right))),
                     // const Divider(thickness: 1, color: Colors.grey),
@@ -1215,20 +1222,28 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     ).then((value) {
       if (value != null) {
-        dist.mapinvoices[value!.uuid] = 100.0;
-        InvoiceDistrib.getByDistributionAndInvoice(dist, value).then((value) {
-          showDialog<void>(
+        InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, value.uuid)
+            .then((item) {
+          showDialog<InvoiceDistrib>(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('Porcentaje asignado'),
                 content: InvoiceDistributionForm(
                   key: null,
-                  item: value,
+                  item: item,
                 ),
               );
             },
-          );
+          ).then((value) {
+            if (value != null) {
+              dist.mapinvoices[value.invoice] = value.toJson();
+              dist.save();
+              finnInfo.distributions[finnInfo.distributions.indexOf(dist)] =
+                  dist;
+              finnInfo.save();
+            }
+          });
         });
       }
     });
