@@ -179,6 +179,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             customText("Nº Proyectos", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
+            customText(projects.length.toString(), 16,
+                bold: FontWeight.bold, textColor: headerListTitleColor),
             customText("Inversión total", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
             customText("-", 16,
@@ -268,7 +270,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            customText("Impacto", 16,
+            customText("Impacto (Objetivo Cero)", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
             customText(programme!.impact, 14),
           ],

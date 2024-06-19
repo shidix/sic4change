@@ -1885,6 +1885,14 @@ class Programme {
     projects = query.docs.length;
   }
 
+  Future<int> getProjectsByStatus(status) async {
+    QuerySnapshot query = await dbProject
+        .where("programe", isEqualTo: uuid)
+        .where("status", isEqualTo: status)
+        .get();
+    return query.docs.length;
+  }
+
   static Future<Programme> byUuid(uuid) async {
     Programme item = Programme("");
     await dbProgramme.where("uuid", isEqualTo: uuid).get().then((value) {
@@ -1904,9 +1912,9 @@ Future<List> getProgrammes() async {
   for (var doc in queryProgramme.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    final _item = Programme.fromJson(data);
-    _item.getProjects();
-    items.add(_item);
+    final item = Programme.fromJson(data);
+    await item.getProjects();
+    items.add(item);
   }
   return items;
 }
