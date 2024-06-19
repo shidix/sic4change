@@ -539,7 +539,8 @@ Widget actionButton(
     },
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
           side: const BorderSide(color: Color(0xff8fbc8f))),
       backgroundColor: Colors.white,
     ),
@@ -1836,7 +1837,10 @@ class CustomSelectFormField extends StatelessWidget {
         onSelectedOpt(value.toString());
       },
       validator: (value) {
-        if (value == null || value.isEmpty || (required && value == "")) {
+        if (value == null ||
+            value.isEmpty ||
+            (required && value == "") ||
+            (value == "--")) {
           return 'Por favor seleccione una opción';
         }
         return null;

@@ -31,7 +31,6 @@ class _InvoiceFormState extends State<InvoiceForm> {
   @override
   void initState() {
     super.initState();
-    print("STARTING");
     if (widget.existingInvoice == null) {
       _invoice = Invoice.getEmpty();
       _invoice.uuid = const Uuid().v4();
@@ -54,16 +53,6 @@ class _InvoiceFormState extends State<InvoiceForm> {
       }
     }
 
-    Invoice? removeInvoice() {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
-        _invoice.delete();
-        Navigator.of(context).pop(_invoice);
-        return (_invoice);
-      }
-      return null;
-    }
-
     return Form(
       key: _formKey,
       child: SizedBox(
@@ -80,10 +69,9 @@ class _InvoiceFormState extends State<InvoiceForm> {
                       decoration: const InputDecoration(labelText: 'Tracker'),
                       onChanged: (value) {
                         if (value.length == 5) {
-                          Invoice.byTracker(value!).then((value) {
+                          Invoice.byTracker(value).then((value) {
                             if (value != null) {
                               _invoice = value;
-                              print(_invoice.id);
                               _formKey = GlobalKey<FormState>();
                               if (mounted) {
                                 setState(() {
@@ -161,7 +149,6 @@ class _InvoiceFormState extends State<InvoiceForm> {
                                 _invoice.date = value;
                               });
                             }
-                            ;
                           },
                         ))),
                 Expanded(
@@ -294,7 +281,7 @@ class DistributionForm extends StatefulWidget {
 }
 
 class _DistributionFormState extends State<DistributionForm> {
-  final _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late SFinnInfo info;
   late SProject project;
   late SFinn finn;
@@ -330,6 +317,7 @@ class _DistributionFormState extends State<DistributionForm> {
     void saveDistribution() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
+        item.save();
         if (index >= 0) {
           info.distributions[index] = item;
         } else {
@@ -343,6 +331,7 @@ class _DistributionFormState extends State<DistributionForm> {
     Distribution? removeDistribution() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
+        item.delete();
         if (index >= 0) {
           info.distributions.removeAt(index);
         }
@@ -375,6 +364,7 @@ class _DistributionFormState extends State<DistributionForm> {
                           .toList(),
                       onSelectedOpt: (value) {
                         item.partner = mapPartners[value.toString()]!;
+                        if (mounted) setState(() {});
                       },
                       required: true,
                     )),
@@ -436,6 +426,94 @@ class _DistributionFormState extends State<DistributionForm> {
   }
 }
 
+class InvoiceDistributionForm extends StatefulWidget {
+  final InvoiceDistrib item;
+
+  const InvoiceDistributionForm({
+    Key? key,
+    required this.item,
+  }) : super(key: key);
+
+  @override
+  createState() => _InvoiceDistributionFormState();
+}
+
+class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late InvoiceDistrib invoiceDistrib;
+
+  @override
+  void initState() {
+    super.initState();
+    invoiceDistrib = widget.item;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    void saveDistribution() {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        invoiceDistrib.save();
+        Navigator.of(context).pop(invoiceDistrib);
+      }
+    }
+
+    return Form(
+      key: _formKey,
+      child: SizedBox(
+          width: 600,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: invoiceDistrib.percentaje.toString(),
+                          decoration: const InputDecoration(
+                              labelText: 'Porcentaje asignado',
+                              contentPadding: EdgeInsets.only(bottom: 1)),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese un porcentaje';
+                            }
+                            if ((currencyToDouble(value) < 0) ||
+                                (currencyToDouble(value) > 100)) {
+                              return 'Porcentaje debe estar entre 0 y 100';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            invoiceDistrib.percentaje = currencyToDouble(value);
+                          },
+                          onSaved: (value) => invoiceDistrib.percentaje =
+                              currencyToDouble(value!),
+                        ))),
+              ]),
+              const SizedBox(height: 16.0),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: saveBtnForm(context, saveDistribution))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: cancelBtnForm(context))),
+              ]),
+            ],
+          )),
+    );
+  }
+}
+
 class BankTransferForm extends StatefulWidget {
   final BankTransfer? existingBankTransfer;
   final SProject? project;
@@ -472,10 +550,6 @@ class _BankTransferFormState extends State<BankTransferForm> {
     List<DropdownMenuItem<Object>>? financiers = [];
     financiers.add(
         const DropdownMenuItem(value: "", child: Text("Selecciona un emisor")));
-    /*for (Financier financier in widget.project!.financiersObj) {
-      financiers.add(
-          DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));
-    }*/
     for (Organization financier in widget.project!.financiersObj) {
       financiers.add(
           DropdownMenuItem(value: financier.uuid, child: Text(financier.name)));

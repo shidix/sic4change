@@ -1,6 +1,4 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers
-import 'dart:developer' as dev;
-import 'dart:html';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -995,35 +993,6 @@ class _FinnsPageState extends State<FinnsPage> {
     );
   }
 
-  Future<void> addDistribDialog(context, args) async {
-    SFinn finn = args['finn'];
-    int index = args['index'];
-
-    return showDialog<SFinnInfo>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Añadir distribución'),
-            content: SingleChildScrollView(
-              child: DistributionForm(
-                  info: finnInfo,
-                  finn: finn,
-                  project: _project!,
-                  partners: partners.values.toList(),
-                  index: index),
-            ),
-          );
-        }).then((value) {
-      if (value != null) {
-        if (mounted) {
-          setState(() {
-            partnersContainer = populatePartnersContainer();
-          });
-        }
-      }
-    });
-  }
-
   Future<double> invoicesByPartner() async {
     // List finnUuids = finnList.map((e) => e.uuid).toList();
     List finnUuids = getAllFinns().map((e) => e.uuid).toList();
@@ -1227,6 +1196,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]));
   }
 
+// ------------------ DIALOGS ------------------
   Future<Invoice?> _addInvoiceDialog(context, Distribution dist) {
     return showDialog<Invoice>(
       context: context,
@@ -1246,8 +1216,21 @@ class _FinnsPageState extends State<FinnsPage> {
     ).then((value) {
       if (value != null) {
         dist.mapinvoices[value!.uuid] = 100.0;
+        InvoiceDistrib.getByDistributionAndInvoice(dist, value).then((value) {
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Porcentaje asignado'),
+                content: InvoiceDistributionForm(
+                  key: null,
+                  item: value,
+                ),
+              );
+            },
+          );
+        });
       }
-      ;
     });
   }
 
@@ -1339,5 +1322,35 @@ class _FinnsPageState extends State<FinnsPage> {
             ));
       },
     );
+  }
+
+  Future<void> addDistribDialog(context, args) async {
+    SFinn finn = args['finn'];
+    int index = args['index'];
+
+    return showDialog<SFinnInfo>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Añadir distribución'),
+            content: SingleChildScrollView(
+              child: DistributionForm(
+                  info: finnInfo,
+                  finn: finn,
+                  project: _project!,
+                  partners: partners.values.toList(),
+                  index: index),
+            ),
+          );
+        }).then((value) {
+      if (value != null) {
+        finnInfo = value;
+        if (mounted) {
+          setState(() {
+            partnersContainer = populatePartnersContainer();
+          });
+        }
+      }
+    });
   }
 }

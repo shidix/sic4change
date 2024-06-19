@@ -115,7 +115,7 @@ class SFinnInfo extends Object {
 
     for (Distribution distrib in distributions) {
       if (distrib.finn != null) {
-        if (childrendsUuid.contains(distrib.finn!.uuid)) {
+        if (childrendsUuid.contains(distrib.finn.uuid)) {
           total += distrib.amount;
         }
       }
@@ -729,6 +729,7 @@ class Invoice extends Object {
     final collection = db.collection("s4c_invoices");
 
     if (id == "") {
+      tracker = tracker.toUpperCase();
       Map<String, dynamic> data = toJson();
       collection.add(data).then((value) => id = value.id);
     } else {
@@ -749,7 +750,7 @@ class Invoice extends Object {
   static Future<Invoice?> byTracker(String tracker) {
     final collection = db.collection("s4c_invoices");
     return collection
-        .where("tracker", isEqualTo: tracker)
+        .where("tracker", isEqualTo: tracker.toUpperCase())
         .get()
         .then((querySnapshot) {
       if (querySnapshot.docs.isNotEmpty) {
@@ -797,6 +798,91 @@ class Invoice extends Object {
   @override
   String toString() {
     return jsonEncode(toJson());
+  }
+}
+
+class InvoiceDistrib extends Object {
+  String id = "";
+  String uuid = "";
+  String invoice;
+  String distribution;
+  double percentaje;
+
+  InvoiceDistrib(this.invoice, this.distribution, this.percentaje);
+
+  factory InvoiceDistrib.fromJson(Map<String, dynamic> json) {
+    InvoiceDistrib item = InvoiceDistrib(
+      json["invoice"],
+      json["distribution"],
+      json["percentaje"],
+    );
+    if (json.containsKey("id")) {
+      item.id = json["id"];
+    }
+    if (json.containsKey("uuid")) {
+      item.uuid = json["uuid"];
+    }
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'invoice': invoice,
+        'distribution': distribution,
+        'percentaje': percentaje,
+      };
+
+  void save() async {
+    final collection = db.collection("s4c_invoicedistrib");
+    if (uuid == "") {
+      uuid = const Uuid().v4();
+    }
+
+    if (id == "") {
+      Map<String, dynamic> data = toJson();
+      collection.add(data).then((value) => id = value.id);
+    } else {
+      collection.doc(id).set(toJson());
+    }
+  }
+
+  @override
+  String toString() {
+    return toJson().toString();
+  }
+
+  static Future<InvoiceDistrib> getByDistributionAndInvoice(
+      distribution, invoice) async {
+    final collection = db.collection("s4c_invoicedistrib");
+    final query = await collection
+        .where("distribution", isEqualTo: distribution!.uuid)
+        .where("invoice", isEqualTo: invoice!.uuid)
+        .get();
+    if (query.docs.isNotEmpty) {
+      InvoiceDistrib item = InvoiceDistrib.fromJson(query.docs.first.data());
+      item.id = query.docs.first.id;
+      return item;
+    } else {
+      return InvoiceDistrib(invoice, distribution, 100.0);
+    }
+  }
+
+  static Future<List<InvoiceDistrib>> getByInvoice(invoice) async {
+    final collection = db.collection("s4c_invoicedistrib");
+    final query = await collection.where("invoice", isEqualTo: invoice).get();
+    List<InvoiceDistrib> items = [];
+    for (var element in query.docs) {
+      items.add(InvoiceDistrib.fromJson(element.data()));
+    }
+    return items;
+  }
+
+  void delete() {
+    final collection = db.collection("s4c_invoicedistrib");
+    if (id != "") {
+      collection.doc(id).delete();
+    }
   }
 }
 
@@ -1026,6 +1112,7 @@ class BankTransfer {
 }
 
 class Distribution extends Object {
+  String id = "";
   String uuid;
   String project;
   DateTime date = DateTime.now();
@@ -1065,8 +1152,8 @@ class Distribution extends Object {
       }
       return item;
     } catch (e, stacktrace) {
-      print(e.toString());
-      print(stacktrace.toString());
+      log(e.toString());
+      log(stacktrace.toString());
     }
 
     return getEmpty();
@@ -1093,4 +1180,39 @@ class Distribution extends Object {
         'amount': amount,
         'mapinvoices': mapinvoices,
       };
+
+  static Future<Distribution> getByUuid(String uuid) async {
+    final collection = db.collection("s4c_distributions");
+    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    Distribution item = Distribution.fromJson(query.docs.first.data());
+    item.id = query.docs.first.id;
+    return item;
+  }
+
+  void save() async {
+    final collection = db.collection("s4c_distributions");
+    if (uuid == "") {
+      uuid = const Uuid().v4();
+    } else {
+      final query = await collection.where("uuid", isEqualTo: uuid).get();
+      if (query.docs.isNotEmpty) {
+        id = query.docs.first.id;
+      }
+
+      if (id == "") {
+        Map<String, dynamic> data = toJson();
+        collection.add(data).then((value) => id = value.id);
+      } else {
+        Map<String, dynamic> data = toJson();
+        collection.doc(id).set(data);
+      }
+    }
+  }
+
+  void delete() {
+    final collection = db.collection("s4c_distributions");
+    if (id != "") {
+      collection.doc(id).delete();
+    }
+  }
 }
