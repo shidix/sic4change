@@ -5,11 +5,16 @@ import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
 import 'package:sic4change/pages/admin_decision_page.dart';
+import 'package:sic4change/pages/admin_project_status_page.dart';
+import 'package:sic4change/pages/admin_project_type_page.dart';
 import 'package:sic4change/pages/admin_province_page.dart';
+import 'package:sic4change/pages/admin_reformulation_status_page.dart';
+import 'package:sic4change/pages/admin_reformulation_type_page.dart';
 import 'package:sic4change/pages/admin_region_page.dart';
 import 'package:sic4change/pages/admin_skateholder_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -58,10 +63,16 @@ class _AdminPageState extends State<AdminPage> {
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "LOCALIZACIÓN")),
           locationList(context),
+          space(height: 20),
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "CONTACTO")),
           contactList(context),
+          space(height: 20),
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: customTitle(context, "INICIATIVAS")),
+          projectList(context),
         ],
       ),
     ));
@@ -122,6 +133,33 @@ class _AdminPageState extends State<AdminPage> {
           }),
           goPage(context, "Skateholders", const StakeholderPage(),
               Icons.skateboarding,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+        ]));
+  }
+
+  Widget projectList(context) {
+    return Container(
+        padding: const EdgeInsets.only(left: 50, right: 50),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          goPage(context, "Estados de reformulación",
+              const ReformulationStatusPage(), Icons.read_more, style: "bigBtn",
+              extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Tipos de reformulación",
+              const ReformulationTypePage(), Icons.real_estate_agent,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Estados", const ProjectStatusPage(),
+              Icons.stacked_bar_chart,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Tipos", const ProjectTypePage(), Icons.type_specimen,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
