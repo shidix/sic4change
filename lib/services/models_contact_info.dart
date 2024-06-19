@@ -495,7 +495,7 @@ Future<List> getContactDecisions() async {
 //                           SKATEHOLDER
 //--------------------------------------------------------------
 CollectionReference dbContactSkatehoder =
-    db.collection("s4c_contact_skateholder");
+    db.collection("s4c_contact_stakeholder");
 
 class ContactStakeholder {
   String id = "";

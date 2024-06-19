@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/admin_categories_page.dart';
+import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
+import 'package:sic4change/pages/admin_decision_page.dart';
 import 'package:sic4change/pages/admin_province_page.dart';
 import 'package:sic4change/pages/admin_region_page.dart';
+import 'package:sic4change/pages/admin_skateholder_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -52,7 +57,11 @@ class _AdminPageState extends State<AdminPage> {
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "LOCALIZACIÓN")),
-          moduleList(context),
+          locationList(context),
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: customTitle(context, "CONTACTO")),
+          contactList(context),
         ],
       ),
     ));
@@ -61,7 +70,7 @@ class _AdminPageState extends State<AdminPage> {
 /*-------------------------------------------------------------
                      MODULES LIST
 -------------------------------------------------------------*/
-  Widget moduleList(context) {
+  Widget locationList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 50, right: 50),
         child:
@@ -87,6 +96,32 @@ class _AdminPageState extends State<AdminPage> {
           }),
           goPage(context, "Paises", const CountryPage(),
               Icons.location_city_outlined,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+        ]));
+  }
+
+  Widget contactList(context) {
+    return Container(
+        padding: const EdgeInsets.only(left: 50, right: 50),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          goPage(context, "Categorías", const CategoryPage(), Icons.category,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Cargos", const ChargePage(), Icons.cabin,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Capacidad de decisión", const DecisionPage(),
+              Icons.deblur,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Skateholders", const StakeholderPage(),
+              Icons.skateboarding,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
