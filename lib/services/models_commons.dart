@@ -173,6 +173,10 @@ class Organization {
     }
     return item;
   }
+
+  factory Organization.getEmpty() {
+    return Organization("");
+  }
 }
 
 Future<List> getOrganizations() async {

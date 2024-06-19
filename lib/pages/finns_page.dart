@@ -1,6 +1,4 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers
-import 'dart:developer' as dev;
-import 'dart:html';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -35,6 +33,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Organization> financiers = {};
   Map<String, Organization> partners = {};
   SFinnInfo finnInfo = SFinnInfo("", "", "");
+  String tracker = "";
 
   List finnList = [];
   Map<String, Map> invoicesSummary = {};
@@ -70,6 +69,9 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   void loadInitialData() {
+    Invoice.newTracker().then((val) {
+      tracker = val;
+    });
     getOrganizations().then((val) {
       for (Organization item in val) {
         if (_project!.financiers.contains(item.uuid)) {
@@ -121,7 +123,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
   bool checkFinnInDistributions(finn) {
     for (Distribution dist in finnInfo.distributions) {
-      if (dist.finn!.uuid == finn.uuid) {
+      if (dist.finn == finn.uuid) {
         return true;
       }
     }
@@ -821,22 +823,22 @@ class _FinnsPageState extends State<FinnsPage> {
     // TextStyle currentStyle;
     List<Distribution> filtered = [];
     for (Distribution dist in finnInfo.distributions) {
-      if (dist.partner!.uuid == item.uuid) {
+      if (dist.partner.uuid == item.uuid) {
         filtered.add(dist);
       }
     }
 
     filtered.sort((a, b) {
-      if (a.finn!.orgUuid == b.finn!.orgUuid) {
-        return a.finn!.name.compareTo(b.finn!.name);
+      if (a.finn.orgUuid == b.finn.orgUuid) {
+        return a.finn.name.compareTo(b.finn.name);
       } else {
-        return a.finn!.orgUuid.compareTo(b.finn!.orgUuid);
+        return a.finn.orgUuid.compareTo(b.finn.orgUuid);
       }
     });
 
     for (Distribution dist in filtered) {
-      Organization financier = financiers[dist.finn!.orgUuid]!;
-      if (dist.partner!.uuid == item.uuid) {
+      Organization financier = financiers[dist.finn.orgUuid]!;
+      if (dist.partner.uuid == item.uuid) {
         rows.add(Row(children: [
           Expanded(
               flex: 2,
@@ -848,8 +850,16 @@ class _FinnsPageState extends State<FinnsPage> {
             flex: 2,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text("${dist.finn!.name}. ${dist.finn!.description}",
+              child: Text("${dist.finn.name}. ${dist.finn.description}",
                   style: cellsListStyle),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text(DateFormat('dd/MM/yyyy').format(dist.date),
+                  style: cellsListStyle, textAlign: TextAlign.right),
             ),
           ),
           Expanded(
@@ -876,9 +886,15 @@ class _FinnsPageState extends State<FinnsPage> {
           ),
           Expanded(
               flex: 1,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [removeConfirmBtn(context, removeDistrib, dist)])),
+              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                iconBtn(context, _addInvoiceDialog, dist,
+                    icon: Icons.euro_outlined, text: 'Agregar factura'),
+                editBtn(context, addDistribDialog, {
+                  'finn': dist.finn,
+                  'index': finnInfo.distributions.indexOf(dist)
+                }),
+                removeConfirmBtn(context, removeDistrib, dist)
+              ])),
         ]));
       }
     }
@@ -933,10 +949,15 @@ class _FinnsPageState extends State<FinnsPage> {
                                 textAlign: TextAlign.left))),
                     const Expanded(
                         flex: 1,
+                        child: Text("Fecha",
+                            style: headerListStyle,
+                            textAlign: TextAlign.right)),
+                    const Expanded(
+                        flex: 1,
                         child: Padding(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 5, vertical: 10),
-                            child: Text("Asignado",
+                            child: Text("Importe",
                                 style: headerListStyle,
                                 textAlign: TextAlign.right))),
                     const Expanded(
@@ -957,12 +978,6 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   Widget populatePartnersContainer() {
-    // List<Widget> rows = [];
-    // for (Organization partner in _project!.partnersObj) {
-    //   rows.add(Row(children: [
-    //     Expanded(flex: 1, child: partnerSummaryCard(partner)),
-    //   ]));
-    // }
     return Padding(
       padding: const EdgeInsets.all(10),
       child: customCollapse(
@@ -976,34 +991,6 @@ class _FinnsPageState extends State<FinnsPage> {
           subtitle: "Listado de partidas financieras asignadas a cada socio",
           expanded: false),
     );
-  }
-
-  Future<void> addDistribDialog(context, args) async {
-    SFinn finn = args['finn'];
-    int index = args['index'];
-    return showDialog<SFinnInfo>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Añadir distribución'),
-            content: SingleChildScrollView(
-              child: DistributionForm(
-                  info: finnInfo,
-                  finn: finn,
-                  project: _project!,
-                  partners: partners.values.toList(),
-                  index: index),
-            ),
-          );
-        }).then((value) {
-      if (value != null) {
-        if (mounted) {
-          setState(() {
-            partnersContainer = populatePartnersContainer();
-          });
-        }
-      }
-    });
   }
 
   Future<double> invoicesByPartner() async {
@@ -1209,6 +1196,7 @@ class _FinnsPageState extends State<FinnsPage> {
         ]));
   }
 
+// ------------------ DIALOGS ------------------
   Future<Invoice?> _addInvoiceDialog(context, Distribution dist) {
     return showDialog<Invoice>(
       context: context,
@@ -1216,14 +1204,34 @@ class _FinnsPageState extends State<FinnsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: EdgeInsets.zero,
-          title: s4cTitleBar('Añadir factura a la partida', context),
+          title: s4cTitleBar('Añadir factura', context),
           content: InvoiceForm(
             key: null,
-            partner: dist.partner!,
+            existingInvoice: null,
+            partner: dist.partner,
+            tracker: tracker,
           ),
         );
       },
-    );
+    ).then((value) {
+      if (value != null) {
+        dist.mapinvoices[value!.uuid] = 100.0;
+        InvoiceDistrib.getByDistributionAndInvoice(dist, value).then((value) {
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Porcentaje asignado'),
+                content: InvoiceDistributionForm(
+                  key: null,
+                  item: value,
+                ),
+              );
+            },
+          );
+        });
+      }
+    });
   }
 
   Future<Invoice?> _editInvoiceDialog(context, Invoice invoice) {
@@ -1314,5 +1322,35 @@ class _FinnsPageState extends State<FinnsPage> {
             ));
       },
     );
+  }
+
+  Future<void> addDistribDialog(context, args) async {
+    SFinn finn = args['finn'];
+    int index = args['index'];
+
+    return showDialog<SFinnInfo>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Añadir distribución'),
+            content: SingleChildScrollView(
+              child: DistributionForm(
+                  info: finnInfo,
+                  finn: finn,
+                  project: _project!,
+                  partners: partners.values.toList(),
+                  index: index),
+            ),
+          );
+        }).then((value) {
+      if (value != null) {
+        finnInfo = value;
+        if (mounted) {
+          setState(() {
+            partnersContainer = populatePartnersContainer();
+          });
+        }
+      }
+    });
   }
 }
