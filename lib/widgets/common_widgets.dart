@@ -1055,9 +1055,9 @@ Widget editBtn(context, action, args,
 }
 
 Widget iconBtn(context, action, args,
-    {text = '', icon = Icons.info, iconSize = 20}) {
+    {text = '', icon = Icons.info, iconSize = 20, color = Colors.black}) {
   return IconButton(
-    icon: Icon(icon, size: iconSize),
+    icon: Icon(icon, size: iconSize, color: color),
     tooltip: text,
     onPressed: () {
       action(context, args);

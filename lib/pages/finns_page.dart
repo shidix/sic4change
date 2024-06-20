@@ -85,6 +85,9 @@ class _FinnsPageState extends State<FinnsPage> {
         if (val != null) {
           finnInfo = val;
           finnList = getAllFinns();
+          for (Distribution dist in finnInfo.distributions) {
+            dist.updateMapinvoices();
+          }
         } else {
           finnInfo = SFinnInfo("", const Uuid().v4(), _project!.uuid);
           finnInfo.save();
@@ -368,7 +371,7 @@ class _FinnsPageState extends State<FinnsPage> {
         aportesSummaryContainer = populateAportesSummaryContainer();
         distribSummaryContainer = populateDistribSummaryContainer();
         // finnContainer = populateFinnContainer();
-        invoicesContainer = populateInvoicesContainer();
+        // invoicesContainer = populateInvoicesContainer();
         finnanciersContainer = populateFinnanciersContainer();
         partnersContainer = populatePartnersContainer();
       });
@@ -624,7 +627,10 @@ class _FinnsPageState extends State<FinnsPage> {
                             iconBtn(context, addDistribDialog,
                                 {'finn': finn, 'index': -1},
                                 icon: Icons.send_outlined,
-                                text: 'Distribuir a socio'),
+                                text: 'Distribuir a socio')
+                          else
+                            iconBtn(context, (context, args) {}, null,
+                                icon: null, text: 'Con subpartidas'),
                         ])),
               ),
             ])));
@@ -677,23 +683,6 @@ class _FinnsPageState extends State<FinnsPage> {
                             "Partida",
                             style: headerListStyle,
                           ))),
-                  // Expanded(
-                  //     flex: 2,
-                  //     child: Padding(
-                  //         padding: const EdgeInsets.symmetric(
-                  //             horizontal: 5, vertical: 10),
-                  //         child: Row(
-                  //           mainAxisAlignment: MainAxisAlignment.end,
-                  //           children: [
-                  //             iconBtn(context, (context, args) {}, [],
-                  //                 icon: Icons.info,
-                  //                 text: "Lo que se indica en la partida",
-                  //                 iconSize: 14),
-                  //             const Text("Nominal",
-                  //                 style: headerListStyle,
-                  //                 textAlign: TextAlign.right),
-                  //           ],
-                  //         ))),
                   Expanded(
                       flex: 2,
                       child: Padding(
@@ -818,6 +807,193 @@ class _FinnsPageState extends State<FinnsPage> {
     }
   }
 
+  Future<void> listInvoices(context, Distribution? item) async {
+    List<Invoice> invoices = [];
+    if (item == null) {
+      invoices =
+          //await Invoice.all();
+          await Invoice.afterDate(DateTime(DateTime.now().year - 1, 1, 1));
+    } else {
+      invoices = item.invoices;
+    }
+    invoices.sort((a, b) => a.date.compareTo(b.date));
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: EdgeInsets.zero,
+            title: s4cTitleBar('Listado de facturas', context),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.85,
+              height: MediaQuery.of(context).size.height * 0.4,
+              child: ListView.builder(
+                itemCount: invoices.length + 1,
+                itemBuilder: (BuildContext context, int index) {
+                  if (index == 0) {
+                    if (item == null) {
+                      return Container(
+                          color: headerListBgColor,
+                          child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              child: Row(children: [
+                                Expanded(
+                                    flex: 1,
+                                    child: Text('Tracker',
+                                        style: headerListStyle)),
+                                Expanded(
+                                    flex: 1,
+                                    child:
+                                        Text('Número', style: headerListStyle)),
+                                Expanded(
+                                    flex: 1,
+                                    child:
+                                        Text('Fecha', style: headerListStyle)),
+                                Expanded(
+                                    flex: 1,
+                                    child:
+                                        Text('Base', style: headerListStyle)),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text('Impuestos',
+                                        style: headerListStyle)),
+                                Expanded(
+                                    flex: 1,
+                                    child:
+                                        Text('Total', style: headerListStyle)),
+                              ])));
+                    } else {
+                      return Container(
+                          color: headerListBgColor,
+                          child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Tracker',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Número',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Fecha',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child:
+                                          Text('Base', style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Impuestos',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Total',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text('% Imputado',
+                                        style: headerListStyle),
+                                  ),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('¿Impuestos?',
+                                          style: headerListStyle)),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Text('Imputado',
+                                          style: headerListStyle)),
+                                ],
+                              )));
+                    }
+                  }
+
+                  Invoice invoice = invoices[index - 1];
+                  InvoiceDistrib dist;
+                  if (item != null) {
+                    dist =
+                        InvoiceDistrib.fromJson(item.mapinvoices[invoice.uuid]);
+                  } else {
+                    dist = InvoiceDistrib('', '', invoice.uuid, '', 0);
+                  }
+
+                  double imputado = (dist.taxes)
+                      ? invoice.total * dist.percentaje * 0.01
+                      : invoice.base * dist.percentaje * 0.01;
+
+                  if (item == null) {
+                    return Container(
+                        color:
+                            (index % 2 == 0) ? Colors.white : Colors.grey[100],
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Row(
+                              children: [
+                                Expanded(flex: 1, child: Text(invoice.tracker)),
+                                Expanded(flex: 1, child: Text(invoice.number)),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(DateFormat('dd/MM/yyyy')
+                                        .format(invoice.date))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.base))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.taxes))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.total))),
+                              ],
+                            )));
+                  } else {
+                    return Container(
+                        color:
+                            (index % 2 == 0) ? Colors.white : Colors.grey[100],
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Row(
+                              children: [
+                                Expanded(flex: 1, child: Text(invoice.tracker)),
+                                Expanded(flex: 1, child: Text(invoice.number)),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(DateFormat('dd/MM/yyyy')
+                                        .format(invoice.date))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.base))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.taxes))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(toCurrency(invoice.total))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                        dist.percentaje.toStringAsFixed(2))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(dist.taxes ? 'Sí' : 'No')),
+                                Expanded(
+                                    flex: 1, child: Text(toCurrency(imputado))),
+                              ],
+                            )));
+                  }
+                },
+              ),
+            ),
+          );
+        });
+  }
+
   Widget partnerSummaryCard(Organization item) {
     List<Widget> rows = [];
     // TextStyle currentStyle;
@@ -837,6 +1013,8 @@ class _FinnsPageState extends State<FinnsPage> {
     });
 
     for (Distribution dist in filtered) {
+      double executed = dist.getExecuted();
+      double executedPercent = (dist.amount == 0) ? 0 : executed / dist.amount;
       Organization financier = financiers[dist.finn.orgUuid]!;
       if (dist.partner.uuid == item.uuid) {
         rows.add(Row(children: [
@@ -878,7 +1056,18 @@ class _FinnsPageState extends State<FinnsPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
               child: Text(
-                toCurrency(dist.amount),
+                toCurrency(executed),
+                style: cellsListStyle,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Text(
+                "${(executedPercent * 100).toStringAsFixed(0)} %",
                 style: cellsListStyle,
                 textAlign: TextAlign.right,
               ),
@@ -887,6 +1076,15 @@ class _FinnsPageState extends State<FinnsPage> {
           Expanded(
               flex: 1,
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                if (dist.mapinvoices.keys.isNotEmpty)
+                  iconBtn(context, listInvoices, dist,
+                      icon: Icons.list,
+                      text: '${dist.mapinvoices.keys.length} facturas')
+                else
+                  iconBtn(context, (context, args) {}, dist,
+                      icon: Icons.list,
+                      text: 'No hay facturas',
+                      color: Colors.grey),
                 iconBtn(context, _addInvoiceDialog, dist,
                     icon: Icons.euro_outlined, text: 'Agregar factura'),
                 editBtn(context, addDistribDialog, {
@@ -966,6 +1164,14 @@ class _FinnsPageState extends State<FinnsPage> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 5, vertical: 10),
                             child: Text("Ejecutado",
+                                style: headerListStyle,
+                                textAlign: TextAlign.right))),
+                    const Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 10),
+                            child: Text("%",
                                 style: headerListStyle,
                                 textAlign: TextAlign.right))),
                     // const Divider(thickness: 1, color: Colors.grey),
@@ -1103,24 +1309,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget invoicesButton(context, _project) {
     void goInvoices(project) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Próximamente'),
-            content:
-                const Text('Este contenido estará disponible próximamente.'),
-            actions: [
-              TextButton(
-                child: const Text('Cerrar'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      listInvoices(context, null);
     }
 
     return actionButtonVertical(
@@ -1137,13 +1326,13 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
 // ------------------ INVOICES ------------------
-  Widget populateInvoicesContainer() {
-    Text headerField(String title, [alignment = TextAlign.start]) {
-      return Text(title, textAlign: alignment, style: headerListStyle);
-    }
+  // Widget populateInvoicesContainer() {
+  //   Text headerField(String title, [alignment = TextAlign.start]) {
+  //     return Text(title, textAlign: alignment, style: headerListStyle);
+  //   }
 
-    return Container(width: double.infinity);
-  }
+  //   return Container(width: double.infinity);
+  // }
 
   Widget rowFromInvoice(Invoice invoice) {
     return Padding(
@@ -1215,22 +1404,36 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     ).then((value) {
       if (value != null) {
-        dist.mapinvoices[value!.uuid] = 100.0;
-        InvoiceDistrib.getByDistributionAndInvoice(dist, value).then((value) {
-          showDialog<void>(
+        InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, value.uuid)
+            .then((item) {
+          showDialog<InvoiceDistrib>(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('Porcentaje asignado'),
                 content: InvoiceDistributionForm(
                   key: null,
-                  item: value,
+                  item: item,
                 ),
               );
             },
-          );
+          ).then((value) {
+            if (value != null) {
+              dist.mapinvoices[value.invoice] = value.toJson();
+              dist.save();
+              finnInfo.distributions[finnInfo.distributions.indexOf(dist)] =
+                  dist;
+              finnInfo.save();
+              if (mounted) {
+                setState(() {
+                  partnersContainer = populatePartnersContainer();
+                });
+              }
+            }
+          });
         });
       }
+      return value;
     });
   }
 

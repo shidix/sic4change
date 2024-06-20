@@ -3,6 +3,7 @@
 import 'dart:math';
 import 'dart:html' as html;
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -206,7 +207,6 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
 
   void printSummary(context) {
     setState(() {});
-    print("printSummary");
   }
 
 /////////// WORKTIME ///////////
@@ -604,7 +604,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
     try {
       month = args['month'];
     } catch (e) {
-      print(e);
+      dev.log(e.toString());
     }
 
     List<Workday> workdays = [];
