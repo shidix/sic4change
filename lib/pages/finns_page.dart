@@ -371,7 +371,7 @@ class _FinnsPageState extends State<FinnsPage> {
         aportesSummaryContainer = populateAportesSummaryContainer();
         distribSummaryContainer = populateDistribSummaryContainer();
         // finnContainer = populateFinnContainer();
-        invoicesContainer = populateInvoicesContainer();
+        // invoicesContainer = populateInvoicesContainer();
         finnanciersContainer = populateFinnanciersContainer();
         partnersContainer = populatePartnersContainer();
       });
@@ -1326,13 +1326,13 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
 // ------------------ INVOICES ------------------
-  Widget populateInvoicesContainer() {
-    Text headerField(String title, [alignment = TextAlign.start]) {
-      return Text(title, textAlign: alignment, style: headerListStyle);
-    }
+  // Widget populateInvoicesContainer() {
+  //   Text headerField(String title, [alignment = TextAlign.start]) {
+  //     return Text(title, textAlign: alignment, style: headerListStyle);
+  //   }
 
-    return Container(width: double.infinity);
-  }
+  //   return Container(width: double.infinity);
+  // }
 
   Widget rowFromInvoice(Invoice invoice) {
     return Padding(
