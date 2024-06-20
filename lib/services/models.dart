@@ -1881,13 +1881,13 @@ class Programme {
 
   Future<void> getProjects() async {
     QuerySnapshot query =
-        await dbProject.where("programe", isEqualTo: uuid).get();
+        await dbProject.where("programme", isEqualTo: uuid).get();
     projects = query.docs.length;
   }
 
   Future<int> getProjectsByStatus(status) async {
     QuerySnapshot query = await dbProject
-        .where("programe", isEqualTo: uuid)
+        .where("programme", isEqualTo: uuid)
         .where("status", isEqualTo: status)
         .get();
     return query.docs.length;

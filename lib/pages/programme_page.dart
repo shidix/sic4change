@@ -6,6 +6,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -26,6 +27,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
   List projects = [];
   //List financiers = [];
   Map<String, double> financiers = {};
+  Map<String, int> projStatus = {};
 
   Future<Map<String, double>> getProgrammeFinanciers() async {
     /*List financiers = [];
@@ -70,9 +72,23 @@ class _ProgrammePageState extends State<ProgrammePage> {
     await getProjectsByProgramme(programme!.uuid).then((val) async {
       projects = val;
       financiers = await getProgrammeFinanciers();
-      setState(() {
-        loading = false;
-      });
+      projStatus["formulation"] =
+          await programme!.getProjectsByStatus(statusFormulation);
+      projStatus["sended"] = await programme!.getProjectsByStatus(statusSended);
+      projStatus["reject"] = await programme!.getProjectsByStatus(statusReject);
+      projStatus["refuse"] = await programme!.getProjectsByStatus(statusRefuse);
+      projStatus["approved"] =
+          await programme!.getProjectsByStatus(statusApproved);
+      projStatus["start"] = await programme!.getProjectsByStatus(statusStart);
+      projStatus["end"] = await programme!.getProjectsByStatus(statusEnds);
+      projStatus["justification"] =
+          await programme!.getProjectsByStatus(statusJustification);
+      projStatus["close"] = await programme!.getProjectsByStatus(statusClose);
+      projStatus["delivery"] =
+          await programme!.getProjectsByStatus(statusDelivery);
+    });
+    setState(() {
+      loading = false;
     });
   }
 
@@ -153,10 +169,21 @@ class _ProgrammePageState extends State<ProgrammePage> {
 
   Widget programmeSummary() {
     return Container(
-        decoration: const BoxDecoration(
-            border:
-                Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
-        child: Row(
+      decoration: const BoxDecoration(
+          border:
+              Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
+      child: Column(children: [
+        Container(
+          padding: const EdgeInsets.only(top: 20, left: 20),
+          child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            customText("Nº Proyectos", 16,
+                bold: FontWeight.bold, textColor: headerListTitleColor),
+            customText(projects.length.toString(), 16,
+                bold: FontWeight.bold, textColor: headerListTitleColor),
+          ]),
+        ),
+        projectByStatus(context),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -167,7 +194,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 width: MediaQuery.of(context).size.width * 0.4,
                 child: programmeFinancierList(context)),
           ],
-        ));
+        ),
+      ]),
+    );
   }
 
   Widget programmeProjectList(context) {
@@ -177,10 +206,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
           padding: const EdgeInsets.only(top: 20, left: 20),
           child:
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            customText("Nº Proyectos", 16,
+            /*customText("Nº Proyectos", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
             customText(projects.length.toString(), 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
+                bold: FontWeight.bold, textColor: headerListTitleColor),*/
             customText("Inversión total", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
             customText("-", 16,
@@ -256,6 +285,58 @@ class _ProgrammePageState extends State<ProgrammePage> {
               })
         ],
       ),
+    );
+  }
+
+  Widget projectByStatus(context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: SizedBox(
+          width: double.infinity,
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(children: [
+                  customText("En formulación: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['formulation']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Presentado: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['sended']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Denegado: ", 14, textColor: headerListTitleColor),
+                  customText("${projStatus['reject']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Rechazado: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['refuse']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Aprobado: ", 14, textColor: headerListTitleColor),
+                  customText("${projStatus['approved']}", 14,
+                      bold: FontWeight.bold),
+                ]),
+                TableRow(children: [
+                  customText("En ejecución: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['start']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Finalización: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['end']}", 14, bold: FontWeight.bold),
+                  customText("En evalución: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['justification']}", 14,
+                      bold: FontWeight.bold),
+                  customText("Cerrado: ", 14, textColor: headerListTitleColor),
+                  customText("${projStatus['close']}", 14,
+                      bold: FontWeight.bold),
+                  customText("En seguimiento: ", 14,
+                      textColor: headerListTitleColor),
+                  customText("${projStatus['delivery']}", 14,
+                      bold: FontWeight.bold),
+                ]),
+              ])),
     );
   }
 
