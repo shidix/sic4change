@@ -114,10 +114,8 @@ class SFinnInfo extends Object {
     double total = 0;
 
     for (Distribution distrib in distributions) {
-      if (distrib.finn != null) {
-        if (childrendsUuid.contains(distrib.finn.uuid)) {
-          total += distrib.amount;
-        }
+      if (childrendsUuid.contains(distrib.finn.uuid)) {
+        total += distrib.amount;
       }
     }
     return total;
@@ -632,7 +630,7 @@ class Invoice extends Object {
     }
     DateTime date = DateTime.now();
     try {
-      date = DateTime.parse(json["date"]);
+      date = getDate(json["date"]);
     } catch (e) {
       try {
         date = DateFormat('dd-MM-yyyy').parse(json["date"]);
@@ -643,7 +641,7 @@ class Invoice extends Object {
 
     DateTime paidDate = DateTime.now();
     try {
-      paidDate = DateTime.parse(json["paidDate"]);
+      paidDate = getDate(json["paidDate"]);
     } catch (e) {
       try {
         paidDate = DateFormat('dd-MM-yyyy').parse(json["paidDate"]);
@@ -698,8 +696,8 @@ class Invoice extends Object {
         'number': number,
         'code': code,
         'concept': concept,
-        'date': DateFormat('yyyy-MM-dd').format(date),
-        'paidDate': DateFormat('yyyy-MM-dd').format(paidDate),
+        'date': date,
+        'paidDate': paidDate,
         'base': base,
         'taxes': taxes,
         'total': total,
@@ -787,12 +785,64 @@ class Invoice extends Object {
     return items;
   }
 
+  static Future<List<Invoice>> afterDate(DateTime date) async {
+    final collection = db.collection("s4c_invoices");
+    List<Invoice> items = [];
+    final query =
+        await collection.where("date", isGreaterThanOrEqualTo: date).get();
+    print("query.docs.length: ${query.docs.length}");
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
+  static Future<List<Invoice>> all() async {
+    final collection = db.collection("s4c_invoices");
+    List<Invoice> items = [];
+    final query = await collection.get();
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
+  static Future<List<Invoice>> beforeDate(DateTime date) async {
+    final collection = db.collection("s4c_invoices");
+    List<Invoice> items = [];
+    final query =
+        await collection.where("date", isLessThanOrEqualTo: date).get();
+
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
   static Future<Invoice> getByUuid(uuid) async {
     final collection = db.collection("s4c_invoices");
     final query = await collection.where("uuid", isEqualTo: uuid).get();
     Invoice item = Invoice.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
+  }
+
+  static Future<List<Invoice>> getListUuids(listUuids) async {
+    final collection = db.collection("s4c_invoices");
+    List<Invoice> items = [];
+    final query = await collection.where("uuid", whereIn: listUuids).get();
+    for (var element in query.docs) {
+      Invoice item = Invoice.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
   }
 
   @override
@@ -1232,6 +1282,14 @@ class Distribution extends Object {
     if (id != "") {
       collection.doc(id).delete();
     }
+  }
+
+  void updateMapinvoices() async {
+    for (var invoice in mapinvoices.keys) {
+      InvoiceDistrib.getByDistributionAndInvoice(uuid, invoice)
+          .then((value) => mapinvoices[invoice] = value.toJson());
+    }
+    save();
   }
 
   double getExecuted() {
