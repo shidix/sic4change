@@ -737,12 +737,16 @@ class Invoice extends Object {
     }
   }
 
-  void delete() {
-    final collection = db.collection("s4c_invoices");
-    if (id != "") {
-      collection.doc(id).delete();
+  Future<bool> delete() async {
+    try {
+      final collection = db.collection("s4c_invoices");
+      if (id != "") {
+        await collection.doc(id).delete();
+      }
+      return true;
+    } catch (e) {
+      return false;
     }
-    id = "";
   }
 
   static Future<Invoice?> byTracker(String tracker) {
@@ -936,7 +940,15 @@ class InvoiceDistrib extends Object {
 
   static Future<List<InvoiceDistrib>> getByInvoice(invoice) async {
     final collection = db.collection("s4c_invoicedistrib");
-    final query = await collection.where("invoice", isEqualTo: invoice).get();
+
+    QuerySnapshot<Map<String, dynamic>> query;
+    if (invoice is List) {
+      query = await collection
+          .where("invoice", whereIn: invoice.map((e) => e.uuid).toList())
+          .get();
+    } else {
+      query = await collection.where("invoice", isEqualTo: invoice.uuid).get();
+    }
     List<InvoiceDistrib> items = [];
     for (var element in query.docs) {
       items.add(InvoiceDistrib.fromJson(element.data()));
@@ -1255,6 +1267,18 @@ class Distribution extends Object {
     Distribution item = Distribution.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
+  }
+
+  static Future<List<Distribution>> listByUuid(List<String> uuid) async {
+    final collection = db.collection("s4c_distributions");
+    List<Distribution> items = [];
+    final query = await collection.where("uuid", whereIn: uuid).get();
+    for (var element in query.docs) {
+      Distribution item = Distribution.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
   }
 
   void save() async {

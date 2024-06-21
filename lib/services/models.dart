@@ -539,6 +539,18 @@ class SProject {
 
     return execVsBudget;
   }
+
+  static Future<List<SProject>> listByUuid(List<String> uuids) async {
+    List<SProject> items = [];
+    QuerySnapshot query = await dbProject.where("uuid", whereIn: uuids).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = SProject.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
 }
 
 Future<List> getProjects() async {
