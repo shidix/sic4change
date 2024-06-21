@@ -387,7 +387,7 @@ class _DistributionFormState extends State<DistributionForm> {
                               return 'Por favor, ingrese un importe';
                             }
                             if (currencyToDouble(value) > maxAllowed) {
-                              return 'Importe mayor que $toCurrency({maxAllowed})';
+                              return 'Importe mayor que ${toCurrency(maxAllowed)}';
                             }
                             return null;
                           },
