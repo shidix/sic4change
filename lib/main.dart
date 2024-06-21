@@ -8,6 +8,7 @@ import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
@@ -66,6 +67,7 @@ class MyApp extends StatelessWidget {
     '/orgchart': (context) => const Orgchart(),
     '/profile': (context) => const ProfilePage(),
     '/admin': (context) => const AdminPage(),
+    '/invoices': (context) => InvoicePage(),
   };
 
   @override
