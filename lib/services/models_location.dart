@@ -36,7 +36,9 @@ class Country {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbCountry.add(data);
+      dbCountry.add(data).then((value) {
+        id = value.id;
+      });
     } else {
       Map<String, dynamic> data = toJson();
       dbCountry.doc(id).set(data);
@@ -45,6 +47,13 @@ class Country {
 
   Future<void> delete() async {
     await dbCountry.doc(id).delete();
+  }
+
+  static Future<Country?> byUuid(String uuid) {
+    return dbCountry.where("uuid", isEqualTo: uuid).get().then((value) =>
+        (value.docs.isNotEmpty)
+            ? Country.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            : null);
   }
 }
 

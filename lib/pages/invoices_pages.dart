@@ -78,6 +78,11 @@ class _InvoicePageState extends State<InvoicePage> {
         ],
         [
           1,
+          const Text('Tipo',
+              style: headerListStyle, textAlign: TextAlign.center)
+        ],
+        [
+          1,
           const Text('Total',
               style: headerListStyle, textAlign: TextAlign.right)
         ],
@@ -128,6 +133,13 @@ class _InvoicePageState extends State<InvoicePage> {
             Text(
               toCurrency(invoice.taxes, invoice.currency),
               textAlign: TextAlign.right,
+            )
+          ],
+          [
+            1,
+            Text(
+              (invoice.taxKind == null ? '--' : invoice.taxKind!.name),
+              textAlign: TextAlign.center,
             )
           ],
           [
@@ -186,8 +198,13 @@ class _InvoicePageState extends State<InvoicePage> {
             child: Column(children: widgetInvoices)));
   }
 
-  Future<Invoice?> addInvoiceDialog(context, Invoice invoice) async {
-    String tracker = await Invoice.newTracker();
+  Future<Invoice?> addInvoiceDialog(context, [Invoice? invoice]) async {
+    String tracker;
+    if (invoice == null) {
+      tracker = await Invoice.newTracker();
+    } else {
+      tracker = invoice.tracker;
+    }
     return showDialog<Invoice>(
       context: context,
       barrierDismissible: false, // user must tap button!

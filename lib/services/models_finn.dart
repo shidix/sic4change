@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
@@ -580,6 +581,96 @@ class FinnDistribution {
   }
 }
 
+class TaxKind extends Object {
+  String id;
+  String uuid;
+  String code;
+  String name;
+  double percentaje;
+  DateTime from;
+  DateTime to;
+  Country? country;
+
+  TaxKind(this.id, this.uuid, this.code, this.name, this.percentaje, this.from,
+      this.to, this.country);
+
+  factory TaxKind.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("country")) {
+      json["country"] = "";
+    }
+
+    TaxKind item = TaxKind(
+      json['id'],
+      json['uuid'],
+      json['code'],
+      json['name'],
+      json['percentaje'],
+      getDate(json['from']),
+      getDate(json['to']),
+      null,
+    );
+
+    Country.byUuid(json["country"]).then((value) {
+      item.country = value;
+    });
+
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'code': code,
+        'name': name,
+        'percentaje': percentaje,
+        'from': from,
+        'to': to,
+        'country': country?.uuid,
+      };
+
+  Future<TaxKind> save() async {
+    final collection = db.collection("s4c_taxkind");
+
+    (uuid == "") ? uuid = const Uuid().v4() : uuid = uuid;
+
+    if (id == "") {
+      collection.add(toJson()).then((value) => id = value.id);
+    } else {
+      final item = await collection.doc(id).get();
+      Map<String, dynamic> data = toJson();
+      collection.doc(item.id).set(data);
+    }
+    return this;
+  }
+
+  Future<bool> delete() async {
+    try {
+      final collection = db.collection("s4c_taxkind");
+      if (id != "") {
+        await collection.doc(id).delete();
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<TaxKind?> byUuid(String uuid) {
+    final collection = db.collection("s4c_taxkind");
+    return collection
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final item = TaxKind.fromJson(querySnapshot.docs.first.data());
+        item.id = querySnapshot.docs.first.id;
+        return item;
+      }
+      return null;
+    });
+  }
+}
+
 class Invoice extends Object {
   String id;
   String uuid;
@@ -596,6 +687,7 @@ class Invoice extends Object {
   String document;
   String currency;
   String tracker;
+  TaxKind? taxKind;
 
   SFinn finnObj = SFinn.getEmpty();
   SProject projectObj = SProject("");
@@ -666,6 +758,11 @@ class Invoice extends Object {
       json["currency"],
       json["tracker"],
     );
+    if (json.containsKey("taxKind")) {
+      TaxKind.byUuid(json["taxKind"]).then((value) {
+        item.taxKind = value;
+      });
+    }
 
     return item;
   }
@@ -706,6 +803,7 @@ class Invoice extends Object {
         'document': document,
         'currency': currency,
         'tracker': tracker,
+        'taxKind': taxKind?.uuid ?? ''
       };
 
   static Future<String> newTracker() async {
@@ -720,21 +818,27 @@ class Invoice extends Object {
         tracker = getTracker();
       }
     }
-    return tracker;
+    return tracker.toUpperCase();
   }
 
-  void save() async {
+  Future<Invoice> save() async {
     final collection = db.collection("s4c_invoices");
 
     if (id == "") {
       tracker = tracker.toUpperCase();
-      Map<String, dynamic> data = toJson();
-      collection.add(data).then((value) => id = value.id);
+      Invoice? item = await Invoice.byTracker(tracker);
+      if (item != null) {
+        id = item.id;
+        collection.doc(item.id).set(toJson());
+      } else {
+        collection.add(toJson()).then((value) => id = value.id);
+      }
     } else {
       final item = await collection.doc(id).get();
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
     }
+    return this;
   }
 
   Future<bool> delete() async {
