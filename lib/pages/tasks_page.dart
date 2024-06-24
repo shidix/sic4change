@@ -13,6 +13,7 @@ import 'package:sic4change/widgets/tasks_menu_widget.dart';
 const pageTaskTitle = "Tareas";
 List tasks = [];
 bool taskLoading = false;
+Widget? _mainMenu;
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -42,25 +43,28 @@ class _TasksPageState extends State<TasksPage> {
   void initState() {
     loadTasks();
     super.initState();
+    _mainMenu = mainMenu(context, "/tasks_user");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: [
-        mainMenu(context, "/tasks_user"),
+        body: SingleChildScrollView(
+      child: Column(children: [
+        //mainMenu(context, "/tasks_user"),
+        _mainMenu!,
         taskHeader(context),
         space(height: 20),
         taskMenu(context, "tasks"),
         //contactsHeader(context),
         taskLoading
-            ? contentTab(context, taskList, null)
+            ? contentTabSized(context, taskList, null)
             : const Center(
                 child: CircularProgressIndicator(),
               ),
         footer(context),
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------

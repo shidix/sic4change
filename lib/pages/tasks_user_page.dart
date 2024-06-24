@@ -26,15 +26,16 @@ class _TasksUserPageState extends State<TasksUserPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
     return Scaffold(
-      body: Column(children: [
+        body: SingleChildScrollView(
+      child: Column(children: [
         mainMenu(context, "/tasks_user"),
         taskHeader(context),
         space(height: 20),
         taskMenu(context, "taskUser"),
-        contentTab(context, taskList, user),
+        contentTabSized(context, taskList, user),
         footer(context)
       ]),
-    );
+    ));
   }
 
 /*-------------------------------------------------------------

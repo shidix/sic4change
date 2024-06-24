@@ -18,6 +18,7 @@ class Goal {
   String description = "";
   bool main = false;
   String project = "";
+  double indicatorsPercent = 0;
 
   /*Goal(
       this.id, this.uuid, this.name, this.description, this.main, this.project);*/
@@ -77,6 +78,29 @@ class Goal {
     //return _project.name + " > " + _goal.name;
   }
 
+  Future<void> getIndicatorsPercent() async {
+    QuerySnapshot query =
+        await dbGoalIndicator.where("goal", isEqualTo: uuid).get();
+    double totalExpected = 0;
+    double totalObtained = 0;
+    double total = 0;
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      GoalIndicator indicator = GoalIndicator.fromJson(data);
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
+    }
+    if (totalExpected > 0) total = totalObtained / totalExpected;
+    indicatorsPercent = total;
+  }
+
   static Future<void> checkOE0(String project, String programme) async {
     try {
       QuerySnapshot query = await dbGoal
@@ -118,7 +142,9 @@ Future<List> getGoalsByProject(String project) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(Goal.fromJson(data));
+    Goal item = Goal.fromJson(data);
+    await item.getIndicatorsPercent();
+    items.add(item);
   }
   return items;
 }
@@ -244,6 +270,7 @@ class Result {
   //String indicatorPercent = "";
   String source = "";
   String goal = "";
+  double indicatorsPercent = 0;
 
   /*Result(this.id, this.uuid, this.name, this.description, this.indicator_text,
       this.indicator_percent, this.source, this.goal);*/
@@ -315,6 +342,29 @@ class Result {
 
     return project.name + " > " + goal.name + " > " + result.name;
   }
+
+  Future<void> getIndicatorsPercent() async {
+    QuerySnapshot query =
+        await dbResultIndicator.where("result", isEqualTo: uuid).get();
+    double totalExpected = 0;
+    double totalObtained = 0;
+    double total = 0;
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ResultIndicator indicator = ResultIndicator.fromJson(data);
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
+    }
+    if (totalExpected > 0) total = totalObtained / totalExpected;
+    indicatorsPercent = total;
+  }
 }
 
 Future<List> getResults() async {
@@ -340,7 +390,9 @@ Future<List> getResultsByGoal(String goal) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(Result.fromJson(data));
+    Result item = Result.fromJson(data);
+    await item.getIndicatorsPercent();
+    items.add(item);
   }
   return items;
 }
@@ -439,6 +491,7 @@ class Activity {
   String users = "";
   DateTime iniDate = DateTime.now();
   DateTime endDate = DateTime.now();
+  double indicatorsPercent = 0;
 
   Activity(this.result);
 
@@ -476,6 +529,29 @@ class Activity {
   Future<void> delete() async {
     await dbActivity.doc(id).delete();
   }
+
+  Future<void> getIndicatorsPercent() async {
+    QuerySnapshot query =
+        await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
+    double totalExpected = 0;
+    double totalObtained = 0;
+    double total = 0;
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ActivityIndicator indicator = ActivityIndicator.fromJson(data);
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
+    }
+    if (totalExpected > 0) total = totalObtained / totalExpected;
+    indicatorsPercent = total;
+  }
 }
 
 Future<List> getActivities() async {
@@ -499,7 +575,9 @@ Future<List> getActivitiesByResult(result) async {
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(Activity.fromJson(data));
+    Activity item = Activity.fromJson(data);
+    await item.getIndicatorsPercent();
+    items.add(item);
   }
   return items;
 }

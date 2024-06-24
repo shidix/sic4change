@@ -26,6 +26,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Profile? profile;
   List projects = [];
   //List financiers = [];
+  double totalBudget = 0.0;
   Map<String, double> financiers = {};
   Map<String, int> projStatus = {};
 
@@ -90,6 +91,15 @@ class _ProgrammePageState extends State<ProgrammePage> {
     setState(() {
       loading = false;
     });
+    /*for (SProject p in projects) {
+      await p.totalBudget();
+      totalBudget = totalBudget + p.dblbudget;
+    }*/
+
+    for (SProject p in projects) {
+      totalBudget = totalBudget + fromCurrency(p.budget);
+    }
+    setState(() {});
   }
 
   void getProfile(user) async {
@@ -126,8 +136,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     programmeSummary(),
-                    programmeImpact(),
-                    programmeProjects(context),
+                    /*programmeImpact(),
+                    programmeProjects(context),*/
                   ],
                 )
           //programmeList(context),
@@ -212,7 +222,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 bold: FontWeight.bold, textColor: headerListTitleColor),*/
             customText("Inversión total", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
-            customText("-", 16,
+            customText("${currencyFormat.format(totalBudget)} €", 16,
                 bold: FontWeight.bold, textColor: headerListTitleColor),
           ]),
         ),
@@ -301,34 +311,48 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       textColor: headerListTitleColor),
                   customText("${projStatus['formulation']}", 14,
                       bold: FontWeight.bold),
-                  customText("Presentado: ", 14,
+                  customText("Presentados: ", 14,
                       textColor: headerListTitleColor),
                   customText("${projStatus['sended']}", 14,
                       bold: FontWeight.bold),
-                  customText("Denegado: ", 14, textColor: headerListTitleColor),
+                  customText("Denegados: ", 14,
+                      textColor: headerListTitleColor),
                   customText("${projStatus['reject']}", 14,
                       bold: FontWeight.bold),
-                  customText("Rechazado: ", 14,
+                  customText("Rechazados: ", 14,
                       textColor: headerListTitleColor),
                   customText("${projStatus['refuse']}", 14,
                       bold: FontWeight.bold),
-                  customText("Aprobado: ", 14, textColor: headerListTitleColor),
+                  customText("Aprobados: ", 14,
+                      textColor: headerListTitleColor),
                   customText("${projStatus['approved']}", 14,
                       bold: FontWeight.bold),
+                ]),
+                TableRow(children: [
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
+                  space(height: 10),
                 ]),
                 TableRow(children: [
                   customText("En ejecución: ", 14,
                       textColor: headerListTitleColor),
                   customText("${projStatus['start']}", 14,
                       bold: FontWeight.bold),
-                  customText("Finalización: ", 14,
+                  customText("Finalizados: ", 14,
                       textColor: headerListTitleColor),
                   customText("${projStatus['end']}", 14, bold: FontWeight.bold),
                   customText("En evalución: ", 14,
                       textColor: headerListTitleColor),
                   customText("${projStatus['justification']}", 14,
                       bold: FontWeight.bold),
-                  customText("Cerrado: ", 14, textColor: headerListTitleColor),
+                  customText("Cerrados: ", 14, textColor: headerListTitleColor),
                   customText("${projStatus['close']}", 14,
                       bold: FontWeight.bold),
                   customText("En seguimiento: ", 14,

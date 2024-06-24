@@ -30,6 +30,8 @@ const List<String> MONTHS = [
   "Diciembre "
 ];
 
+final currencyFormat = NumberFormat("#,##0.00", "es_ES");
+
 Map<String, KeyValue> CURRENCIES = {
   'EUR': KeyValue('EUR', '€'),
   'USD': KeyValue('USD', '\$'),

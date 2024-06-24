@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -11,7 +10,6 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
 const goalPageTitle = "Marco Lógico";
-List goals = [];
 bool loadingGoal = false;
 Widget? _mainMenu;
 
@@ -26,6 +24,7 @@ class GoalsPage extends StatefulWidget {
 class _GoalsPageState extends State<GoalsPage>
     with SingleTickerProviderStateMixin {
   SProject? project;
+  List? goals;
   /*late TabController tabController;
   static const List<Tab> myTabs = <Tab>[
     Tab(text: "Actividades"),
@@ -46,12 +45,12 @@ class _GoalsPageState extends State<GoalsPage>
   }
 
   void loadGoals() async {
-    //setLoading();
+    setLoading();
+
     await getGoalsByProject(project!.uuid).then((val) {
       goals = val;
-      //stopLoading();
+      stopLoading();
     });
-    setState(() {});
   }
 
   @override
@@ -59,6 +58,7 @@ class _GoalsPageState extends State<GoalsPage>
     super.initState();
     project = widget.project;
     _mainMenu = mainMenu(context);
+    loadGoals();
     if (project!.programme != "") {
       Goal.checkOE0(project!.uuid, project!.programme);
     }
@@ -84,7 +84,8 @@ class _GoalsPageState extends State<GoalsPage>
                     child: CircularProgressIndicator(),
                   )
                 //: contentTabSized(context, goalList, project),
-                : goalList(context, project),
+                //: goalList(context, project),
+                : goalList(context),
             footer(context),
           ]),
     ));
@@ -182,7 +183,7 @@ class _GoalsPageState extends State<GoalsPage>
     );
   }
 
-  Widget goalList(context, project) {
+  /*Widget goalList(context, project) {
     return FutureBuilder(
         future: getGoalsByProject(project.uuid),
         builder: ((context, snapshot) {
@@ -221,6 +222,28 @@ class _GoalsPageState extends State<GoalsPage>
             );
           }
         }));
+  }*/
+
+  Widget goalList(context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      verticalDirection: VerticalDirection.down,
+      children: <Widget>[
+        ListView.builder(
+            shrinkWrap: true,
+            itemCount: goals!.length,
+            itemBuilder: (BuildContext context, int index) {
+              Goal goal = goals?[index];
+              if (goal.main) {
+                return contentTabSized(context, goalRowMain, goal);
+              } else {
+                return contentTabSized(context, goalRow, goal);
+              }
+            })
+      ],
+    );
   }
 
   //Widget goalRowMain(context, goal, project) {
@@ -271,7 +294,9 @@ class _GoalsPageState extends State<GoalsPage>
                     children: [
                       customText(goal.name, 16),
                       space(height: 10),
-                      customLinearPercent(context, 2, 0.8, Colors.blue),
+                      customLinearPercent(
+                          context, 2, goal.indicatorsPercent, Colors.blue),
+                      //customLinearPercent(context, 2, 0.8, Colors.blue),
                       space(height: 10),
                       customText(goal.description, 14),
                     ],
@@ -532,6 +557,10 @@ class _GoalsPageState extends State<GoalsPage>
                   {"goal": result.goal, "result": result})
             ]),
           ]),
+          space(height: 10),
+          customLinearPercent(
+              context, 2, result.indicatorsPercent, Colors.blue),
+          space(height: 10),
           resultIndicatorsHeader(context, result),
           resultIndicators(context, result),
           space(height: 10),
@@ -1042,6 +1071,9 @@ class _GoalsPageState extends State<GoalsPage>
               removeBtn(context, removeActivityDialog, {"item": activity}),
             ]),
           ]),
+          space(height: 10),
+          customLinearPercent(
+              context, 2, activity.indicatorsPercent, Colors.blue),
           space(height: 10),
           activityIndicatorsHeader(context, activity),
           activityIndicators(context, activity),
