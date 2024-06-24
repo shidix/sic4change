@@ -12,6 +12,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 const programmeTitle = "Programas";
 bool loading = false;
+Widget? _mainMenu;
 
 class ProgrammePage extends StatefulWidget {
   final Programme? programme;
@@ -44,6 +45,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
 
     Map<String, double> finMap = {};
     Map<String, String> finUUID = {};
+    Map<String, dynamic> finnInfo = {};
+
     for (SProject project in projects) {
       List<Organization> finList = await project.getFinanciers();
       project.financiersObj = finList;
@@ -53,13 +56,16 @@ class _ProgrammePageState extends State<ProgrammePage> {
       }
     }
 
+    for (SProject project in projects) {
+      finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
+    }
+
     finMap.forEach((key, value) async {
       double amount = 0;
       for (SProject project in projects) {
-        SFinnInfo? finnInfo = await SFinnInfo.byProject(project.uuid);
-        if (finnInfo != null) {
-          amount += finnInfo.getContribByFinancier(finUUID[key]!);
-        }
+        try {
+          amount += finnInfo[project.uuid].getContribByFinancier(finUUID[key]!);
+        } catch (e) {}
       }
       finMap[key] = amount;
     });
@@ -113,6 +119,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
   void initState() {
     super.initState();
     programme = widget.programme;
+    _mainMenu = mainMenu(context, "/projects");
     loadProgrammeProjects();
 
     final user = FirebaseAuth.instance.currentUser!;
@@ -125,7 +132,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenu(context, "/projects"),
+          _mainMenu!,
           programmeHeader(),
           loading
               ? const Center(
@@ -136,8 +143,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     programmeSummary(),
-                    /*programmeImpact(),
-                    programmeProjects(context),*/
+                    programmeImpact(),
+                    programmeProjects(context),
                   ],
                 )
           //programmeList(context),
