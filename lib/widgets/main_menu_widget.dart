@@ -31,6 +31,8 @@ Widget mainMenuUser(context, [user, url]) {
             (url == "/documents")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
+        menuBtn(context, "Facturas", Icons.receipt, "/invoices",
+            (url == "/invoices") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         menuBtn(context, "Roles", Icons.group, "/orgchart",

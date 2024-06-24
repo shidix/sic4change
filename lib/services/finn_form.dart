@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/servicemanagement/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -388,7 +387,7 @@ class _DistributionFormState extends State<DistributionForm> {
                               return 'Por favor, ingrese un importe';
                             }
                             if (currencyToDouble(value) > maxAllowed) {
-                              return 'Importe mayor que $toCurrency({maxAllowed})';
+                              return 'Importe mayor que ${toCurrency(maxAllowed)}';
                             }
                             return null;
                           },

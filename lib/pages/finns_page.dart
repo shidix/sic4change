@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -479,11 +480,6 @@ class _FinnsPageState extends State<FinnsPage> {
       if (finn.orgUuid == item.uuid) {
         currentStyle = cellsListStyle.copyWith(
             fontWeight: mapStyles[mapLevels[finn.uuid]!]);
-        // if (finn.contribution > finn.getAmountContrib()) {
-        //   currentStyle = currentStyle.copyWith(color: warningColor);
-        // } else if (finn.contribution < finn.getAmountContrib()) {
-        //   currentStyle = currentStyle.copyWith(color: dangerColor);
-        // }
         if ((mapLevels[finn.uuid] == 0) && (rows.isNotEmpty)) {
           counter = 0;
           rows.add(const Divider(thickness: 1, color: Colors.grey));
@@ -493,20 +489,13 @@ class _FinnsPageState extends State<FinnsPage> {
             color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
             child: Row(children: [
               Expanded(
-                  flex: 7,
+                  flex: 6,
                   child: Padding(
                       padding: EdgeInsets.symmetric(
                           horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
                           vertical: 0),
                       child: Text("${finn.name}. ${finn.description}",
                           style: currentStyle))),
-              // Expanded(
-              //     flex: 2,
-              //     child: Padding(
-              //         padding: const EdgeInsets.symmetric(
-              //             vertical: 0, horizontal: 10),
-              //         child: Text(toCurrency(finn.contribution),
-              //             textAlign: TextAlign.right, style: currentStyle))),
               Expanded(
                   flex: 2,
                   child: Padding(
@@ -559,40 +548,33 @@ class _FinnsPageState extends State<FinnsPage> {
                         style: currentStyle,
                       ))),
               Expanded(
-                  flex: 2,
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 0, horizontal: 10),
-                      child: Text(
-                        toCurrency(getDistrib(finn.uuid)),
-                        textAlign: TextAlign.right,
-                        style: currentStyle,
-                      ))),
-              Expanded(
-                flex: 1,
+                flex: 3,
                 child: Padding(
                     padding:
                         const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                    child: ((finn.getAmountContrib() != 0) &&
-                            (getDistrib(finn.uuid) != 0))
-                        ? (getDistrib(finn.uuid) >= finn.getAmountContrib())
-                            ? Text(
-                                "100%",
-                                style: currentStyle.copyWith(
-                                    color: dangerColor,
-                                    fontSize: dangerText.fontSize! - 2),
-                                textAlign: TextAlign.right,
-                              )
-                            : Text(
-                                "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%",
-                                textAlign: TextAlign.right,
-                                style: currentStyle,
-                              )
-                        : Text(
-                            "0%",
+                    child: Row(children: [
+                      Expanded(
+                          flex: 3,
+                          child: Text(
+                            toCurrency(getDistrib(finn.uuid)),
                             textAlign: TextAlign.right,
                             style: currentStyle,
                           )),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          ((finn.getAmountContrib() != 0) &&
+                                  (getDistrib(finn.uuid) != 0))
+                              ? (getDistrib(finn.uuid) >=
+                                      finn.getAmountContrib())
+                                  ? "100%"
+                                  : "${(getDistrib(finn.uuid) / finn.getAmountContrib() * 100).toStringAsFixed(0)}%"
+                              : "0%",
+                          textAlign: TextAlign.right,
+                          style: currentStyle,
+                        ),
+                      )
+                    ])),
               ),
               Expanded(
                 flex: 3,
@@ -675,7 +657,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 color: headerListBgColor,
                 child: const Row(children: [
                   Expanded(
-                      flex: 7,
+                      flex: 6,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -710,21 +692,22 @@ class _FinnsPageState extends State<FinnsPage> {
                             ],
                           ))),
                   Expanded(
-                      flex: 2,
+                      flex: 3,
                       child: Padding(
                           padding:
                               EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("Ejecutado",
-                              style: headerListStyle,
-                              textAlign: TextAlign.right))),
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Text("%",
-                              style: headerListStyle,
-                              textAlign: TextAlign.right))),
+                          child: Row(children: [
+                            Expanded(
+                                flex: 3,
+                                child: Text("Ejecutado",
+                                    style: headerListStyle,
+                                    textAlign: TextAlign.right)),
+                            Expanded(
+                                flex: 1,
+                                child: Text("%",
+                                    style: headerListStyle,
+                                    textAlign: TextAlign.right)),
+                          ]))),
                   Expanded(
                       flex: 3,
                       child: Padding(
@@ -777,25 +760,6 @@ class _FinnsPageState extends State<FinnsPage> {
   }
 
   // Partners info
-  Widget getInfoPartners(context, args) {
-    List<Widget> rows = [];
-    for (Organization partner in _project!.partnersObj) {
-      rows.add(Row(children: [
-        Expanded(flex: 1, child: partnerSummaryCard(partner)),
-      ]));
-    }
-
-    return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: rows.isNotEmpty
-                ? rows
-                : [
-                    const Center(
-                        child: Text("No se ha efectuado ninguna asignación."))
-                  ]));
-  }
 
   void removeDistrib(context, dist) {
     finnInfo.distributions.remove(dist);
@@ -817,181 +781,263 @@ class _FinnsPageState extends State<FinnsPage> {
       invoices = item.invoices;
     }
     invoices.sort((a, b) => a.date.compareTo(b.date));
+
     return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            titlePadding: EdgeInsets.zero,
-            title: s4cTitleBar('Listado de facturas', context),
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: MediaQuery.of(context).size.height * 0.4,
-              child: ListView.builder(
-                itemCount: invoices.length + 1,
-                itemBuilder: (BuildContext context, int index) {
-                  if (index == 0) {
-                    if (item == null) {
-                      return Container(
-                          color: headerListBgColor,
-                          child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              child: Row(children: [
-                                Expanded(
-                                    flex: 1,
-                                    child: Text('Tracker',
-                                        style: headerListStyle)),
-                                Expanded(
-                                    flex: 1,
-                                    child:
-                                        Text('Número', style: headerListStyle)),
-                                Expanded(
-                                    flex: 1,
-                                    child:
-                                        Text('Fecha', style: headerListStyle)),
-                                Expanded(
-                                    flex: 1,
-                                    child:
-                                        Text('Base', style: headerListStyle)),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text('Impuestos',
-                                        style: headerListStyle)),
-                                Expanded(
-                                    flex: 1,
-                                    child:
-                                        Text('Total', style: headerListStyle)),
-                              ])));
-                    } else {
-                      return Container(
-                          color: headerListBgColor,
-                          child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Tracker',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Número',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Fecha',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child:
-                                          Text('Base', style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Impuestos',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Total',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Text('% Imputado',
-                                        style: headerListStyle),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('¿Impuestos?',
-                                          style: headerListStyle)),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('Imputado',
-                                          style: headerListStyle)),
-                                ],
-                              )));
-                    }
-                  }
+              titlePadding: EdgeInsets.zero,
+              title: s4cTitleBar('Listado de facturas', context),
+              content: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: MediaQuery.of(context).size.height * 0.4,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.green.shade50),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: ListView.builder(
+                    itemCount: invoices.length + 1,
+                    itemBuilder: (BuildContext context, int index) {
+                      if (index == 0) {
+                        if (item == null) {
+                          return Container(
+                              color: headerListBgColor,
+                              child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 10),
+                                  child: Row(children: [
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text('Tracker',
+                                            style: headerListStyle)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text('Número',
+                                            style: headerListStyle)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text('Fecha',
+                                            style: headerListStyle)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(
+                                          'Base',
+                                          style: headerListStyle,
+                                          textAlign: TextAlign.right,
+                                        )),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text('Impuestos',
+                                            style: headerListStyle,
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text('Total',
+                                            style: headerListStyle,
+                                            textAlign: TextAlign.right)),
+                                    Expanded(flex: 1, child: Text('')),
+                                  ])));
+                        } else {
+                          return Container(
+                              color: headerListBgColor,
+                              child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Tracker',
+                                              style: headerListStyle)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Número',
+                                              style: headerListStyle)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Fecha',
+                                              style: headerListStyle)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Base',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Impuestos',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Total',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                        flex: 1,
+                                        child: Text('% Imputado',
+                                            style: headerListStyle,
+                                            textAlign: TextAlign.right),
+                                      ),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('¿Taxes?',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.center)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text('Imputado',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.right)),
+                                      Expanded(flex: 1, child: Text('')),
+                                    ],
+                                  )));
+                        }
+                      }
 
-                  Invoice invoice = invoices[index - 1];
-                  InvoiceDistrib dist;
-                  if (item != null) {
-                    dist =
-                        InvoiceDistrib.fromJson(item.mapinvoices[invoice.uuid]);
-                  } else {
-                    dist = InvoiceDistrib('', '', invoice.uuid, '', 0);
-                  }
+                      Invoice invoice = invoices[index - 1];
+                      InvoiceDistrib dist;
+                      if (item != null) {
+                        dist = InvoiceDistrib.fromJson(
+                            item.mapinvoices[invoice.uuid]);
+                      } else {
+                        dist = InvoiceDistrib('', '', invoice.uuid, '', 0);
+                      }
 
-                  double imputado = (dist.taxes)
-                      ? invoice.total * dist.percentaje * 0.01
-                      : invoice.base * dist.percentaje * 0.01;
+                      double imputado = (dist.taxes)
+                          ? invoice.total * dist.percentaje * 0.01
+                          : invoice.base * dist.percentaje * 0.01;
 
-                  if (item == null) {
-                    return Container(
-                        color:
-                            (index % 2 == 0) ? Colors.white : Colors.grey[100],
-                        child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
-                            child: Row(
-                              children: [
-                                Expanded(flex: 1, child: Text(invoice.tracker)),
-                                Expanded(flex: 1, child: Text(invoice.number)),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(DateFormat('dd/MM/yyyy')
-                                        .format(invoice.date))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.base))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.taxes))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.total))),
-                              ],
-                            )));
-                  } else {
-                    return Container(
-                        color:
-                            (index % 2 == 0) ? Colors.white : Colors.grey[100],
-                        child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
-                            child: Row(
-                              children: [
-                                Expanded(flex: 1, child: Text(invoice.tracker)),
-                                Expanded(flex: 1, child: Text(invoice.number)),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(DateFormat('dd/MM/yyyy')
-                                        .format(invoice.date))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.base))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.taxes))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(toCurrency(invoice.total))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(
-                                        dist.percentaje.toStringAsFixed(2))),
-                                Expanded(
-                                    flex: 1,
-                                    child: Text(dist.taxes ? 'Sí' : 'No')),
-                                Expanded(
-                                    flex: 1, child: Text(toCurrency(imputado))),
-                              ],
-                            )));
-                  }
-                },
-              ),
-            ),
-          );
+                      Row buttons = Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // Button for edit invoice
+                          iconBtn(context, (context, args) {
+                            _editInvoiceDialog(context, args).then((value) {
+                              if (value == null) {
+                                return;
+                              }
+                              reloadState();
+                            });
+                          }, invoice,
+                              icon: Icons.edit_outlined,
+                              text: 'Editar factura'),
+                          // Button for remove invoice
+                          removeConfirmBtn(context, (context, args) {
+                            Invoice item = args as Invoice;
+                            item.delete();
+                            reloadState();
+                          }, invoice),
+                        ],
+                      );
+
+                      if (item == null) {
+                        return Container(
+                            color: (index % 2 == 0)
+                                ? Colors.white
+                                : Colors.grey[100],
+                            child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                        flex: 1, child: Text(invoice.tracker)),
+                                    Expanded(
+                                        flex: 1, child: Text(invoice.number)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(DateFormat('dd/MM/yyyy')
+                                            .format(invoice.date))),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.base),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.taxes),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.total),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(flex: 1, child: buttons),
+                                  ],
+                                )));
+                      } else {
+                        return Container(
+                            color: (index % 2 == 0)
+                                ? Colors.white
+                                : Colors.grey[100],
+                            child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                        flex: 1, child: Text(invoice.tracker)),
+                                    Expanded(
+                                        flex: 1, child: Text(invoice.number)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(DateFormat('dd/MM/yyyy')
+                                            .format(invoice.date))),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.base),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.taxes),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(invoice.total),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(
+                                            dist.percentaje.toStringAsFixed(2),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(dist.taxes ? 'Sí' : 'No',
+                                            textAlign: TextAlign.center)),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Text(toCurrency(imputado),
+                                            textAlign: TextAlign.right)),
+                                    Expanded(flex: 1, child: buttons),
+                                  ],
+                                )));
+                      }
+                    },
+                  ),
+                ),
+              ));
         });
+  }
+
+  Widget getInfoPartners(context, args) {
+    List<Widget> rows = [];
+    for (Organization partner in _project!.partnersObj) {
+      rows.add(Row(children: [
+        Expanded(flex: 1, child: partnerSummaryCard(partner)),
+      ]));
+    }
+
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: rows.isNotEmpty
+                ? rows
+                : [
+                    const Center(
+                        child: Text("No se ha efectuado ninguna asignación."))
+                  ]));
   }
 
   Widget partnerSummaryCard(Organization item) {
@@ -1052,29 +1098,31 @@ class _FinnsPageState extends State<FinnsPage> {
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text(
-                toCurrency(executed),
-                style: cellsListStyle,
-                textAlign: TextAlign.right,
-              ),
-            ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      toCurrency(executed),
+                      style: cellsListStyle,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      "${(executedPercent * 100).toStringAsFixed(0)} %",
+                      style: cellsListStyle,
+                      textAlign: TextAlign.right,
+                    ),
+                  )
+                ])),
           ),
           Expanded(
-            flex: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text(
-                "${(executedPercent * 100).toStringAsFixed(0)} %",
-                style: cellsListStyle,
-                textAlign: TextAlign.right,
-              ),
-            ),
-          ),
-          Expanded(
-              flex: 1,
+              flex: 2,
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 if (dist.mapinvoices.keys.isNotEmpty)
                   iconBtn(context, listInvoices, dist,
@@ -1159,23 +1207,25 @@ class _FinnsPageState extends State<FinnsPage> {
                                 style: headerListStyle,
                                 textAlign: TextAlign.right))),
                     const Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
-                            child: Text("Ejecutado",
-                                style: headerListStyle,
-                                textAlign: TextAlign.right))),
-                    const Expanded(
-                        flex: 1,
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
-                            child: Text("%",
-                                style: headerListStyle,
-                                textAlign: TextAlign.right))),
+                      flex: 2,
+                      child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                          child: Row(children: [
+                            Expanded(
+                                flex: 3,
+                                child: Text("Ejecutado",
+                                    style: headerListStyle,
+                                    textAlign: TextAlign.right)),
+                            Expanded(
+                                flex: 1,
+                                child: Text("%",
+                                    style: headerListStyle,
+                                    textAlign: TextAlign.right)),
+                          ])),
+                    ),
                     // const Divider(thickness: 1, color: Colors.grey),
-                    Expanded(flex: 1, child: Container())
+                    Expanded(flex: 2, child: Container())
                   ])),
               const Divider(thickness: 1, color: Colors.grey),
               ...rows,
@@ -1278,7 +1328,9 @@ class _FinnsPageState extends State<FinnsPage> {
           children: [
             transferButton(context, project),
             space(width: 10),
-            invoicesButton(context, project),
+            //invoicesButton(context, project),
+            goPage(
+                context, 'Facturas', const InvoicePage(), Icons.euro_outlined),
             space(width: 10),
             // finnAddBtn(context, project),
             // space(width: 10),

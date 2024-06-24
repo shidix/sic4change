@@ -1910,3 +1910,25 @@ Widget customTextLabel(context, String label, dynamic text) {
     ],
   );
 }
+
+Widget mainHeader(title, List<Widget> buttons) {
+  return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+    Container(
+      padding: (buttons.isNotEmpty)
+          ? const EdgeInsets.only(left: 40)
+          : EdgeInsets.all(40),
+      child: (title is String)
+          ? Text(title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.left)
+          : title,
+    ),
+    Container(
+      padding: const EdgeInsets.all(10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: buttons,
+      ),
+    ),
+  ]);
+}
