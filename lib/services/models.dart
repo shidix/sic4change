@@ -1943,3 +1943,81 @@ Future<List<KeyValue>> getProgrammesHash() async {
   }
   return items;
 }
+
+//--------------------------------------------------------------
+//                       PROGRAMME INDICATORS
+//--------------------------------------------------------------
+CollectionReference dbProgrammeIndicators =
+    db.collection("s4c_programmes_indicators");
+
+class ProgrammeIndicators {
+  String id = "";
+  String uuid = "";
+  String name = "";
+  int order = 0;
+  String programme;
+
+  ProgrammeIndicators(this.programme);
+
+  ProgrammeIndicators.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        name = json['name'],
+        order = json['order'],
+        programme = json['programme'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'name': name,
+        'order': order,
+        'programme': programme,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, name);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbProgrammeIndicators.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbProgrammeIndicators.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbProgrammeIndicators.doc(id).delete();
+  }
+}
+
+Future<List> getProgrammesIndicators(uuid) async {
+  List items = [];
+  QuerySnapshot queryProgrammeIndicators =
+      await dbProgrammeIndicators.where("programme", isEqualTo: uuid).get();
+
+  for (var doc in queryProgrammeIndicators.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProgrammeIndicators.fromJson(data);
+    items.add(item);
+  }
+  return items;
+}
+
+Future<List<KeyValue>> getProgrammesIndicatorsHash() async {
+  List<KeyValue> items = [];
+  QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators.get();
+
+  for (var doc in queryProgrammeIndicators.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProgrammeIndicators.fromJson(data);
+    items.add(item.toKeyValue());
+  }
+  return items;
+}

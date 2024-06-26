@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -26,6 +25,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Programme? programme;
   Profile? profile;
   List projects = [];
+  List indicators = [];
   //List financiers = [];
   double totalBudget = 0.0;
   Map<String, double> financiers = {};
@@ -57,7 +57,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     }
 
     for (SProject project in projects) {
-      finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
+      //finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
     }
 
     finMap.forEach((key, value) async {
@@ -108,6 +108,13 @@ class _ProgrammePageState extends State<ProgrammePage> {
     setState(() {});
   }
 
+  void loadIndicators() async {
+    await getProgrammesIndicators(programme!.uuid).then((val) async {
+      indicators = val;
+      setState(() {});
+    });
+  }
+
   void getProfile(user) async {
     await Profile.getProfile(user.email!).then((value) {
       profile = value;
@@ -121,6 +128,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     programme = widget.programme;
     _mainMenu = mainMenu(context, "/projects");
     loadProgrammeProjects();
+    loadIndicators();
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
@@ -382,9 +390,19 @@ class _ProgrammePageState extends State<ProgrammePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            customText("Impacto (Objetivo Cero)", 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                customText("Impacto (Objetivo Cero)", 16,
+                    bold: FontWeight.bold, textColor: headerListTitleColor),
+                addBtnRow(context, editProgrammeIndicatorDialog,
+                    {'indicator': ProgrammeIndicators(programme!.uuid)},
+                    text: "Añadir indicador", icon: Icons.add_circle_outline),
+              ],
+            ),
             customText(programme!.impact, 14),
+            space(height: 10),
+            goalIndicatorsRow(context, indicators),
           ],
         ));
   }
@@ -523,5 +541,119 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 .toList(),
           ),
         ));
+  }
+
+  /*-------------------------------------------------------------
+                            PROGRAMMES INDICATORS
+  -------------------------------------------------------------*/
+  void saveProgrammeIndicator(List args) async {
+    ProgrammeIndicators indicator = args[0];
+    indicator.save();
+    indicators.add(indicator);
+    setState(() {});
+
+    Navigator.pop(context);
+  }
+
+  Future<void> editProgrammeIndicatorDialog(
+      context, Map<String, dynamic> args) {
+    ProgrammeIndicators indicator = args["indicator"];
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Indicador de programa"),
+          content: SingleChildScrollView(
+              child: Column(children: <Widget>[
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Nombre",
+                  initial: indicator.name,
+                  size: 800,
+                  minLines: 2,
+                  maxLines: 9999,
+                  fieldValue: (String val) {
+                    indicator.name = val;
+                  },
+                )
+              ]),
+              space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Orden",
+                  initial: indicator.order.toString(),
+                  size: 100,
+                  fieldValue: (String val) {
+                    indicator.order = int.parse(val);
+                    //setState(() => indicator.name = val);
+                  },
+                )
+              ]),
+            ]),
+          ])),
+          actions: <Widget>[
+            dialogsBtns(context, saveProgrammeIndicator, indicator),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget goalIndicatorsRow(context, List indicators) {
+    return Container(
+      decoration: tableDecoration,
+      child: SizedBox(
+        width: double.infinity,
+        child: DataTable(
+          sortColumnIndex: 0,
+          showCheckboxColumn: false,
+          //columnSpacing: 690,
+          headingRowColor:
+              MaterialStateColor.resolveWith((states) => headerListBgColor),
+          headingRowHeight: 40,
+          columns: [
+            DataColumn(
+              label: customText("Orden", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
+            DataColumn(
+              label: customText("Nombre", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
+            DataColumn(label: Container()),
+          ],
+          rows: indicators
+              .map(
+                (indicator) => DataRow(cells: [
+                  DataCell(customText(indicator.order.toString(), 14)),
+                  DataCell(customText(indicator.name, 14)),
+                  DataCell(
+                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    editBtn(context, editProgrammeIndicatorDialog,
+                        {"indicator": indicator}),
+                    removeBtn(context, removeProgrammeIndicatorDialog,
+                        {"indicator": indicator})
+                  ]))
+                ]),
+              )
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  void updateProgrammeIndicator(args) {
+    ProgrammeIndicators indicator = args;
+    indicators.remove(indicator);
+    setState(() {});
+  }
+
+  void removeProgrammeIndicatorDialog(context, args) {
+    customRemoveDialog(context, args["indicator"], updateProgrammeIndicator,
+        args["indicator"]);
   }
 }
