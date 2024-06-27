@@ -60,6 +60,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   void loadInit() async {
     setLoading();
+    bool first = true;
     await getGoalsByProject(project!.uuid).then((val) async {
       goals = val;
       for (Goal goal in goals!) {
@@ -74,13 +75,20 @@ class _GoalsPageState extends State<GoalsPage>
           }
         }
         goalIndicatorList[goal.uuid] = await getGoalIndicatorsByGoal(goal.uuid);
+        if (first) {
+          first = false;
+          stopLoading();
+        } else {
+          setState(() {});
+        }
       }
     });
 
     if (project!.programme != "") {
       await Goal.checkOE0(project!.uuid, project!.programme);
     }
-    stopLoading();
+    setState(() {});
+    //stopLoading();
   }
 
   @override
