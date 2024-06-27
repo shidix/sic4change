@@ -510,7 +510,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget resultList(context, goal) {
     List resList = [];
-    if (!results.containsKey(goal.uuid) && results[goal.uuid] != null) {
+    if (results.containsKey(goal.uuid) && results[goal.uuid] != null) {
       resList = results[goal.uuid];
     }
     return Column(children: [
@@ -787,7 +787,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget resultIndicators(context, result) {
     List indicators = [];
-    if (!resultIndicatorList.containsKey(result.uuid) &&
+    if (resultIndicatorList.containsKey(result.uuid) &&
         resultIndicatorList[result.uuid] != null) {
       indicators = resultIndicatorList[result.uuid];
     }
@@ -989,7 +989,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget resultActivities(context, result) {
     List activities = [];
-    if (!resultActivityList.containsKey(result.uuid) &&
+    if (resultActivityList.containsKey(result.uuid) &&
         resultActivityList[result.uuid] != null) {
       activities = resultActivityList[result.uuid];
     }
@@ -1189,7 +1189,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget activityIndicators(context, activity) {
     List indicators = [];
-    if (!activityIndicatorList.containsKey(activity.uuid) &&
+    if (activityIndicatorList.containsKey(activity.uuid) &&
         activityIndicatorList[activity.uuid] != null) {
       indicators = activityIndicatorList[activity.uuid];
     }
@@ -1431,7 +1431,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   Widget goalIndicators(context, goal) {
     List indicators = [];
-    if (!goalIndicatorList.containsKey(goal.uuid) &&
+    if (goalIndicatorList.containsKey(goal.uuid) &&
         goalIndicatorList[goal.uuid] != null) {
       indicators = goalIndicatorList[goal.uuid];
     }
