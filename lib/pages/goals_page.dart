@@ -1181,7 +1181,7 @@ class _GoalsPageState extends State<GoalsPage>
   Widget activityIndicatorsHeader(context, activity) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Indicadores de actividad", 15, bold: FontWeight.bold),
-      addBtnRow(context, editResultIndicatorDialog,
+      addBtnRow(context, editActivityIndicatorDialog,
           {'indicator': ActivityIndicator(activity.uuid)},
           text: "Añadir indicador", icon: Icons.add_circle_outline),
     ]);
