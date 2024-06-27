@@ -43,10 +43,10 @@ class Goal {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoal.add(data);
+      dbGoal.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbGoal.doc(id).set(data);
@@ -102,19 +102,52 @@ class Goal {
   }
 
   static Future<void> checkOE0(String project, String programme) async {
+    Goal item;
     try {
       QuerySnapshot query = await dbGoal
           .where("project", isEqualTo: project)
           .where("name", isEqualTo: "OE0")
           .get();
-      query.docs.first;
+      final db = query.docs.first;
+
+      final Map<String, dynamic> data = db.data() as Map<String, dynamic>;
+      data["id"] = db.id;
+      item = Goal.fromJson(data);
     } catch (e) {
       Programme prog = await Programme.byUuid(programme);
-      Goal item = Goal(project);
+      item = Goal(project);
       item.name = "OE0";
       item.description = prog.impact;
       item.save();
     }
+    List indicators = await getProgrammesIndicators(programme);
+    List goalIndicators = await getGoalIndicatorsByGoal(item.uuid);
+    for (ProgrammeIndicators indicator in indicators) {
+      bool exist = false;
+      for (GoalIndicator gi in goalIndicators) {
+        if (gi.code == indicator.uuid) {
+          exist = true;
+        }
+      }
+      if (exist == false) {
+        GoalIndicator gi = GoalIndicator(item.uuid);
+        gi.code = indicator.uuid;
+        gi.name = indicator.name;
+        gi.order = indicator.order.toString();
+        gi.save();
+      }
+    }
+  }
+
+  static Future<Goal> byUuid(uuid) async {
+    Goal item = Goal("");
+    await dbGoal.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Goal.fromJson(data);
+    });
+    return item;
   }
 }
 
@@ -164,6 +197,7 @@ class GoalIndicator {
   String obtained = "";
   String folder = "";
   String order = "";
+  String code = "";
   String goal = "";
   Folder? folderObj;
 
@@ -179,6 +213,7 @@ class GoalIndicator {
         obtained = json['obtained'],
         folder = json['folder'],
         order = json['order'],
+        code = json['code'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -191,6 +226,7 @@ class GoalIndicator {
         'obtained': obtained,
         'folder': folder,
         'order': order,
+        'code': code,
         'goal': goal,
       };
 
@@ -199,7 +235,7 @@ class GoalIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoalIndicator.add(data);
+      dbGoalIndicator.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbGoalIndicator.doc(id).set(data);
@@ -302,7 +338,7 @@ class Result {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResult.add(data);
+      dbResult.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbResult.doc(id).set(data);
@@ -344,23 +380,27 @@ class Result {
   }
 
   Future<void> getIndicatorsPercent() async {
-    QuerySnapshot query =
-        await dbResultIndicator.where("result", isEqualTo: uuid).get();
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      ResultIndicator indicator = ResultIndicator.fromJson(data);
-      try {
-        totalExpected += double.parse(indicator.expected);
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        totalObtained += double.parse(indicator.obtained);
-        // ignore: empty_catches
-      } catch (e) {}
+    try {
+      QuerySnapshot query =
+          await dbResultIndicator.where("result", isEqualTo: uuid).get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        ResultIndicator indicator = ResultIndicator.fromJson(data);
+        try {
+          totalExpected += double.parse(indicator.expected);
+          // ignore: empty_catches
+        } catch (e) {}
+        try {
+          totalObtained += double.parse(indicator.obtained);
+          // ignore: empty_catches
+        } catch (e) {}
+      }
+    } catch (e) {
+      print(e);
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
     indicatorsPercent = total;
@@ -382,17 +422,21 @@ Future<List> getResults() async {
 Future<List> getResultsByGoal(String goal) async {
   List<Result> items = [];
 
-  QuerySnapshot query = await dbResult
-      //.orderBy("goal")
-      //.orderBy("main", descending: true)
-      .where("goal", isEqualTo: goal)
-      .get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Result item = Result.fromJson(data);
-    await item.getIndicatorsPercent();
-    items.add(item);
+  try {
+    QuerySnapshot query = await dbResult
+        //.orderBy("goal")
+        //.orderBy("main", descending: true)
+        .where("goal", isEqualTo: goal)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Result item = Result.fromJson(data);
+      await item.getIndicatorsPercent();
+      items.add(item);
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }
@@ -440,7 +484,7 @@ class ResultIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResultIndicator.add(data);
+      dbResultIndicator.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbResultIndicator.doc(id).set(data);
@@ -516,10 +560,10 @@ class Activity {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
-      uuid = _uuid.v4();
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivity.add(data);
+      dbActivity.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbActivity.doc(id).set(data);
@@ -623,10 +667,10 @@ class ActivityIndicator {
 
   Future<void> save() async {
     if (id == "") {
-      var newUuid = Uuid();
+      var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivityIndicator.add(data);
+      dbActivityIndicator.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbActivityIndicator.doc(id).set(data);
