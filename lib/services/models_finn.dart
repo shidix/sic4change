@@ -936,6 +936,9 @@ class Invoice extends Object {
   static Future<Invoice> getByUuid(uuid) async {
     final collection = db.collection("s4c_invoices");
     final query = await collection.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      return Invoice.getEmpty();
+    }
     Invoice item = Invoice.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
