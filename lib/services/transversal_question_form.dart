@@ -118,7 +118,7 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
                   child: TextFormField(
                     initialValue: transversalQuestion.code,
                     decoration: const InputDecoration(
-                      labelText: 'Código',
+                      labelText: 'Orden',
                     ),
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -136,9 +136,7 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
               ),
               Expanded(
                   flex: 1,
-                  child: customCheckBox(
-                      'Completado',
-                      transversalQuestion.completed,
+                  child: customCheckBox('Cumple', transversalQuestion.completed,
                       toogletransversalQuestion)),
             ],
           ),

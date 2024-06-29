@@ -695,7 +695,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
                   padding: const EdgeInsets.all(10),
                   child: Text(
                     (item.isMain()
-                        ? "Sí/No"
+                        ? "Cumple"
                         : item.completed
                             ? "Sí"
                             : "No"),
