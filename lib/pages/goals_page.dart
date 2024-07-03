@@ -31,6 +31,9 @@ class _GoalsPageState extends State<GoalsPage>
   Map<String, dynamic> resultIndicatorList = {};
   Map<String, dynamic> resultActivityList = {};
   Map<String, dynamic> activityIndicatorList = {};
+  Map<String, dynamic> goalIndicatorPercent = {};
+  Map<String, dynamic> resultIndicatorPercent = {};
+  Map<String, dynamic> activityIndicatorPercent = {};
   /*late TabController tabController;
   static const List<Tab> myTabs = <Tab>[
     Tab(text: "Actividades"),
@@ -72,9 +75,16 @@ class _GoalsPageState extends State<GoalsPage>
           for (Activity activity in resultActivityList[res.uuid]) {
             activityIndicatorList[activity.uuid] =
                 await getActivityIndicatorsByActivity(activity.uuid);
+            activityIndicatorPercent[activity.uuid] =
+                await Activity.getIndicatorsPercent(activity.uuid);
           }
+
+          resultIndicatorPercent[res.uuid] =
+              await Result.getIndicatorsPercent(res.uuid);
         }
         goalIndicatorList[goal.uuid] = await getGoalIndicatorsByGoal(goal.uuid);
+        goalIndicatorPercent[goal.uuid] =
+            await Goal.getIndicatorsPercent(goal.uuid);
         if (first) {
           first = false;
           stopLoading();
@@ -294,8 +304,12 @@ class _GoalsPageState extends State<GoalsPage>
                     children: [
                       customText(goal.name, 16),
                       space(height: 10),
-                      customLinearPercent(
-                          context, 2, goal.indicatorsPercent, Colors.blue),
+                      /*customLinearPercent(
+                          context, 2, goal.indicatorsPercent, Colors.blue),*/
+                      goalIndicatorPercent[goal.uuid] != null
+                          ? customLinearPercent(context, 2,
+                              goalIndicatorPercent[goal.uuid], Colors.blue)
+                          : Container(),
                       //customLinearPercent(context, 2, 0.8, Colors.blue),
                       space(height: 10),
                       customText(goal.description, 14),
@@ -534,9 +548,7 @@ class _GoalsPageState extends State<GoalsPage>
               scrollDirection: Axis.vertical,
               shrinkWrap: true,
               itemBuilder: (BuildContext context, int index) {
-                print("--3--");
                 Result result = resList[index];
-                print("--4--");
                 return Container(
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
                   //decoration: rowDecorationGreen,
@@ -568,7 +580,7 @@ class _GoalsPageState extends State<GoalsPage>
           ]),
           space(height: 10),
           customLinearPercent(
-              context, 2, result.indicatorsPercent, Colors.blue),
+              context, 2, resultIndicatorPercent[result.uuid], Colors.blue),
           space(height: 10),
           resultIndicatorsHeader(context, result),
           resultIndicators(context, result),
@@ -689,7 +701,12 @@ class _GoalsPageState extends State<GoalsPage>
     ResultIndicator indicator = args[0];
     indicator.save();
     updateResultIndicatorList(indicator);
-    setState(() {});
+    Result.getIndicatorsPercent(indicator.result).then(
+      (value) {
+        resultIndicatorPercent[indicator.result] = value;
+        setState(() {});
+      },
+    );
     //loadGoals();
 
     Navigator.pop(context);
@@ -1055,7 +1072,7 @@ class _GoalsPageState extends State<GoalsPage>
           ]),
           space(height: 10),
           customLinearPercent(
-              context, 2, activity.indicatorsPercent, Colors.blue),
+              context, 2, activityIndicatorPercent[activity.uuid], Colors.blue),
           space(height: 10),
           activityIndicatorsHeader(context, activity),
           activityIndicators(context, activity),
@@ -1091,7 +1108,12 @@ class _GoalsPageState extends State<GoalsPage>
     ActivityIndicator indicator = args[0];
     indicator.save();
     updateActivityIndicatorList(indicator);
-    setState(() {});
+    Activity.getIndicatorsPercent(indicator.activity).then(
+      (value) {
+        activityIndicatorPercent[indicator.activity] = value;
+        setState(() {});
+      },
+    );
     //loadGoals();
 
     Navigator.pop(context);
@@ -1298,7 +1320,10 @@ class _GoalsPageState extends State<GoalsPage>
     GoalIndicator indicator = args[0];
     //indicator.getFolder();
     indicator.save();
-    setState(() {});
+    Goal.getIndicatorsPercent(indicator.goal).then((value) {
+      goalIndicatorPercent[indicator.goal] = value;
+      setState(() {});
+    });
     //loadGoals();
 
     Navigator.pop(context);

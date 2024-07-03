@@ -78,7 +78,7 @@ class Goal {
     //return _project.name + " > " + _goal.name;
   }
 
-  Future<void> getIndicatorsPercent() async {
+  static Future<double> getIndicatorsPercent(uuid) async {
     QuerySnapshot query =
         await dbGoalIndicator.where("goal", isEqualTo: uuid).get();
     double totalExpected = 0;
@@ -98,7 +98,8 @@ class Goal {
       } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
-    indicatorsPercent = total;
+    //indicatorsPercent = total;
+    return total;
   }
 
   static Future<void> checkOE0(String project, String programme) async {
@@ -176,7 +177,7 @@ Future<List> getGoalsByProject(String project) async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Goal item = Goal.fromJson(data);
-    await item.getIndicatorsPercent();
+    //await item.getIndicatorsPercent();
     items.add(item);
   }
   return items;
@@ -379,7 +380,7 @@ class Result {
     return project.name + " > " + goal.name + " > " + result.name;
   }
 
-  Future<void> getIndicatorsPercent() async {
+  static Future<double> getIndicatorsPercent(uuid) async {
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
@@ -403,7 +404,8 @@ class Result {
       print(e);
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
-    indicatorsPercent = total;
+    //indicatorsPercent = total;
+    return total;
   }
 }
 
@@ -432,7 +434,7 @@ Future<List> getResultsByGoal(String goal) async {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       Result item = Result.fromJson(data);
-      await item.getIndicatorsPercent();
+      //await item.getIndicatorsPercent();
       items.add(item);
     }
   } catch (e) {
@@ -574,7 +576,7 @@ class Activity {
     await dbActivity.doc(id).delete();
   }
 
-  Future<void> getIndicatorsPercent() async {
+  static Future<double> getIndicatorsPercent(uuid) async {
     QuerySnapshot query =
         await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
     double totalExpected = 0;
@@ -594,7 +596,8 @@ class Activity {
       } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
-    indicatorsPercent = total;
+    //indicatorsPercent = total;
+    return total;
   }
 }
 
@@ -620,7 +623,7 @@ Future<List> getActivitiesByResult(result) async {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     Activity item = Activity.fromJson(data);
-    await item.getIndicatorsPercent();
+    //await item.getIndicatorsPercent();
     items.add(item);
   }
   return items;
