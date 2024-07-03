@@ -293,6 +293,25 @@ Future<List> getGoalIndicatorsByGoal(String goal) async {
   return items;
 }
 
+Future<List> getGoalIndicatorsByCode(String code) async {
+  List<GoalIndicator> items = [];
+
+  try {
+    QuerySnapshot query =
+        await dbGoalIndicator.where("code", isEqualTo: code).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      GoalIndicator item = GoalIndicator.fromJson(data);
+      await item.getFolder();
+      items.add(item);
+    }
+  } catch (e) {
+    print(e);
+  }
+  return items;
+}
+
 //--------------------------------------------------------------
 //                           RESULT
 //--------------------------------------------------------------

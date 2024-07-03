@@ -575,10 +575,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
             rows: indicators
                 .map(
                   (indicator) => DataRow(cells: [
-                    DataCell(Text(indicator.order.toString())),
-                    DataCell(Text(indicator.name)),
-                    DataCell(customText("", 0)),
-                    DataCell(customText("", 0)),
+                    DataCell(customText(indicator.order.toString(), 14)),
+                    DataCell(customText(indicator.name, 14)),
+                    DataCell(customText(indicator.expected.toString(), 14)),
+                    DataCell(customText(indicator.obtained.toString(), 14)),
                     DataCell(Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -594,9 +594,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         ),
       );
     } else {
-      return Container(
-        child: CircularProgressIndicator(),
-      );
+      return const CircularProgressIndicator();
     }
   }
 

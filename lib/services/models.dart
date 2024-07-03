@@ -11,6 +11,7 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
+import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -1956,6 +1957,8 @@ class ProgrammeIndicators {
   String name = "";
   int order = 0;
   String programme;
+  double expected = 0;
+  double obtained = 0;
 
   ProgrammeIndicators(this.programme);
 
@@ -1993,6 +1996,18 @@ class ProgrammeIndicators {
   Future<void> delete() async {
     await dbProgrammeIndicators.doc(id).delete();
   }
+
+  Future<void> getSumValues() async {
+    List goalIndicators = await getGoalIndicatorsByCode(uuid);
+    for (GoalIndicator gi in goalIndicators) {
+      try {
+        expected += double.parse(gi.expected);
+      } catch (e) {}
+      try {
+        obtained += double.parse(gi.obtained);
+      } catch (e) {}
+    }
+  }
 }
 
 Future<List> getProgrammesIndicators(uuid) async {
@@ -2007,6 +2022,7 @@ Future<List> getProgrammesIndicators(uuid) async {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       final item = ProgrammeIndicators.fromJson(data);
+      await item.getSumValues();
       items.add(item);
     }
   } catch (e) {
