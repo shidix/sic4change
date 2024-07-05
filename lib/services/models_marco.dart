@@ -104,6 +104,7 @@ class Goal {
 
   static Future<void> checkOE0(String project, String programme) async {
     Goal item;
+    Programme prog = await Programme.byUuid(programme);
     try {
       QuerySnapshot query = await dbGoal
           .where("project", isEqualTo: project)
@@ -114,8 +115,11 @@ class Goal {
       final Map<String, dynamic> data = db.data() as Map<String, dynamic>;
       data["id"] = db.id;
       item = Goal.fromJson(data);
+      if (item.description != prog.impact) {
+        item.description == prog.impact;
+        item.save();
+      }
     } catch (e) {
-      Programme prog = await Programme.byUuid(programme);
       item = Goal(project);
       item.name = "OE0";
       item.description = prog.impact;
@@ -128,6 +132,10 @@ class Goal {
       for (GoalIndicator gi in goalIndicators) {
         if (gi.code == indicator.uuid) {
           exist = true;
+          if (gi.name != indicator.name) {
+            gi.name = indicator.name;
+            gi.save();
+          }
         }
       }
       if (exist == false) {
