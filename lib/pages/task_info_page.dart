@@ -240,7 +240,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: task.assigned.length,
+        itemCount: task.assignedObj.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: const EdgeInsets.all(5),
