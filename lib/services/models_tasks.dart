@@ -22,20 +22,25 @@ class STask {
   String description = "";
   String comments = "";
   String status = "";
+  String priority = "";
+  String duration = "";
   DateTime dealDate = DateTime.now();
   DateTime deadLineDate = DateTime.now();
   DateTime newDeadLineDate = DateTime.now();
-  String sender = "";
+  String sender = ""; //Responsable
   String project = "";
-  List<String> assigned = [];
-  List<String> programmes = [];
+  List<String> assigned = []; //Ejecutores
+  List<String> receivers = []; //Destinatarios
+  //List<String> programmes = [];
   bool public = false;
+  bool revision = false;
 
   SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("");
   List<Contact> assignedObj = [];
-  List<Programme> programmesObj = [];
+  List<Contact> receiversObj = [];
+  //List<Programme> programmesObj = [];
 
   STask(this.name);
 
@@ -46,6 +51,8 @@ class STask {
         description = json['description'],
         comments = json['comments'],
         status = json['status'],
+        priority = json['priority'],
+        duration = json['duration'],
         dealDate = json['dealDate'].toDate(),
         deadLineDate = json['deadLineDate'].toDate(),
         newDeadLineDate = json['newDeadLineDate'].toDate(),
@@ -53,9 +60,12 @@ class STask {
         project = json['project'],
         assigned =
             (json['assigned'] as List).map((item) => item as String).toList(),
-        programmes =
-            (json['programmes'] as List).map((item) => item as String).toList(),
-        public = json['public'];
+        receivers =
+            (json['receivers'] as List).map((item) => item as String).toList(),
+        /*programmes =
+            (json['programmes'] as List).map((item) => item as String).toList(),*/
+        public = json['public'],
+        revision = json['revision'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -64,14 +74,18 @@ class STask {
         'description': description,
         'comments': comments,
         'status': status,
+        'priority': priority,
+        'duration': duration,
         'dealDate': dealDate,
         'deadLineDate': deadLineDate,
         'newDeadLineDate': newDeadLineDate,
         'sender': sender,
         'project': project,
         'assigned': assigned,
-        'programmes': programmes,
+        'receivers': receivers,
+        //'programmes': programmes,
         'public': public,
+        'revision': revision,
       };
 
   KeyValue toKeyValue() {
@@ -98,9 +112,9 @@ class STask {
     await dbTasks.doc(id).update({"assigned": assigned});
   }
 
-  Future<void> updateProgrammes() async {
+  /*Future<void> updateProgrammes() async {
     await dbTasks.doc(id).update({"programmes": programmes});
-  }
+  }*/
 
   Future<STask> reload() async {
     DocumentSnapshot doc = await dbTasks.doc(id).get();
@@ -111,7 +125,8 @@ class STask {
     await getStatus();
     await getSender();
     await getAssigned();
-    await getProgrammes();
+    await getReceivers();
+    //await getProgrammes();
     return this;
   }
 
@@ -188,7 +203,7 @@ class STask {
       await task.getStatus();
       await task.getSender();
       await task.getAssigned();
-      await task.getProgrammes();
+      //await task.getProgrammes();
       items.add(task);
     }
     return items;
@@ -205,14 +220,31 @@ class STask {
         task.getStatus();
         task.getSender();
         task.getAssigned();
-        task.getProgrammes();
+        task.getReceivers();
+        //task.getProgrammes();
         items.add(task);
       }
     });
     return items;
   }
 
-  Future<void> getProgrammes() async {
+  Future<void> getReceivers() async {
+    List<Contact> listReceivers = [];
+    for (String item in receivers) {
+      try {
+        QuerySnapshot query =
+            await dbContacts.where("uuid", isEqualTo: item).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Contact contact = Contact.fromJson(data);
+        listReceivers.add(contact);
+      } catch (e) {}
+    }
+    receiversObj = listReceivers;
+  }
+
+  /*Future<void> getProgrammes() async {
     List<Programme> listProgrammes = [];
     for (String item in programmes) {
       try {
@@ -226,7 +258,7 @@ class STask {
       } catch (e) {}
     }
     programmesObj = listProgrammes;
-  }
+  }*/
 }
 
 Future<List> getTasks() async {
@@ -241,7 +273,8 @@ Future<List> getTasks() async {
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
-    await task.getProgrammes();
+    await task.getReceivers();
+    //await task.getProgrammes();
     items.add(task);
   }
   return items;
@@ -272,7 +305,8 @@ Future<List> getTasksBySender(sender) async {
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
-    await task.getProgrammes();
+    await task.getReceivers();
+    //await task.getProgrammes();
     items.add(task);
   }
   return items;

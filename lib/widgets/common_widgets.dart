@@ -818,6 +818,15 @@ BoxDecoration tableDecoration = BoxDecoration(
   borderRadius: const BorderRadius.all(Radius.circular(5)),
 );
 
+BoxDecoration multiSelectDecoration = BoxDecoration(
+  color: Colors.blue.withOpacity(0.1),
+  borderRadius: const BorderRadius.all(Radius.circular(40)),
+  border: Border.all(
+    color: mainMenuBtnColor,
+    width: 2,
+  ),
+);
+
 //--------------------------------------------------------------------------
 //                           COMMONS
 //--------------------------------------------------------------------------

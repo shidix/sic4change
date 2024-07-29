@@ -148,8 +148,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                taskProgrammesHeader(context, task),
-                taskProgrammes(context, task),
+                //taskProgrammesHeader(context, task),
+                //taskProgrammes(context, task),
                 space(height: 5),
               ],
             )));
@@ -265,7 +265,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         });
   }
 
-  Widget taskProgrammesHeader(context, task) {
+  /*Widget taskProgrammesHeader(context, task) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Programas:", 16, textColor: smallColor),
       IconButton(
@@ -276,9 +276,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         },
       )
     ]);
-  }
+  }*/
 
-  Widget taskProgrammes(context, task) {
+  /*Widget taskProgrammes(context, task) {
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
         physics: const NeverScrollableScrollPhysics(),
@@ -307,7 +307,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     )
                   ]));
         });
-  }
+  }*/
 
 /*--------------------------------------------------------------------*/
 /*                           EDIT TASK                                */
@@ -541,19 +541,19 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PROGRAMMES                               */
   /*--------------------------------------------------------------------*/
-  void saveProgrammes(List args) async {
+  /*void saveProgrammes(List args) async {
     STask task = args[0];
     task.updateProgrammes();
     loadTask(task);
     Navigator.of(context).pop();
-  }
+  }*/
 
-  void _callProgrammesEditDialog(context, task) async {
+  /*void _callProgrammesEditDialog(context, task) async {
     List<KeyValue> programmeList = await getProgrammesHash();
     _editTaskProgrammesDialog(context, task, programmeList);
-  }
+  }*/
 
-  Future<void> _editTaskProgrammesDialog(context, task, programmeList) {
+  /*Future<void> _editTaskProgrammesDialog(context, task, programmeList) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -578,5 +578,5 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         );
       },
     );
-  }
+  }*/
 }
