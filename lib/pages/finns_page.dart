@@ -485,6 +485,9 @@ class _FinnsPageState extends State<FinnsPage> {
           rows.add(const Divider(thickness: 1, color: Colors.grey));
         }
 
+        double notAssigned =
+            finn.getAmountContrib() - finnInfo.getDistribByFinn(finn);
+
         rows.add(Container(
             color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
             child: Row(children: [
@@ -494,8 +497,34 @@ class _FinnsPageState extends State<FinnsPage> {
                       padding: EdgeInsets.symmetric(
                           horizontal: 5.0 + 20.0 * (mapLevels[finn.uuid]!),
                           vertical: 0),
-                      child: Text("${finn.name}. ${finn.description}",
-                          style: currentStyle))),
+                      child: Row(children: [
+                        notAssigned > 0
+                            ? Tooltip(
+                                message:
+                                    'No se ha asignado la totalidad de la partida. Quedan ${toCurrency(notAssigned)} por asignar',
+                                child: const Icon(
+                                  Icons.warning,
+                                  color: warningColor,
+                                  size: 14,
+                                ))
+                            : const Tooltip(
+                                message: 'Partida asignada correctamente',
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: successColor,
+                                  size: 14,
+                                )),
+                        space(width: 5),
+                        Flexible(
+                            child: Text(
+                          "${finn.name}. ${finn.description}",
+                          style: currentStyle,
+                          textAlign: TextAlign.left,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                        )),
+                      ]))),
               Expanded(
                   flex: 2,
                   child: Padding(
@@ -537,16 +566,16 @@ class _FinnsPageState extends State<FinnsPage> {
                                 ),
                               ],
                             ))),
-              Expanded(
-                  flex: 2,
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 0, horizontal: 10),
-                      child: Text(
-                        toCurrency(finnInfo.getDistribByFinn(finn)),
-                        textAlign: TextAlign.right,
-                        style: currentStyle,
-                      ))),
+              // Expanded(
+              //     flex: 2,
+              //     child: Padding(
+              //         padding: const EdgeInsets.symmetric(
+              //             vertical: 0, horizontal: 10),
+              //         child: Text(
+              //           toCurrency(finnInfo.getDistribByFinn(finn)),
+              //           textAlign: TextAlign.right,
+              //           style: currentStyle,
+              //         ))),
               Expanded(
                 flex: 3,
                 child: Padding(
@@ -678,19 +707,19 @@ class _FinnsPageState extends State<FinnsPage> {
                                   textAlign: TextAlign.right),
                             ],
                           ))),
-                  Expanded(
-                      flex: 2,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text("Asignado",
-                                  style: headerListStyle,
-                                  textAlign: TextAlign.right),
-                            ],
-                          ))),
+                  // Expanded(
+                  //     flex: 2,
+                  //     child: Padding(
+                  //         padding:
+                  //             EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                  //         child: Row(
+                  //           mainAxisAlignment: MainAxisAlignment.end,
+                  //           children: [
+                  //             Text("Asignado",
+                  //                 style: headerListStyle,
+                  //                 textAlign: TextAlign.right),
+                  //           ],
+                  //         ))),
                   Expanded(
                       flex: 3,
                       child: Padding(
@@ -793,7 +822,7 @@ class _FinnsPageState extends State<FinnsPage> {
                 height: MediaQuery.of(context).size.height * 0.4,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.green.shade50),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
                 ),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.85,
