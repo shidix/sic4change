@@ -710,6 +710,9 @@ class Invoice extends Object {
     this.tracker,
   );
   factory Invoice.fromJson(Map<String, dynamic> json) {
+    if (!json.containsKey("taxname")) {
+      json["taxname"] = "I.V.A.";
+    }
     if (!json.containsKey("currency")) {
       json["currency"] = "EUR";
     } else {
