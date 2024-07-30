@@ -244,6 +244,18 @@ class STask {
     receiversObj = listReceivers;
   }
 
+  KeyValue priorityKeyValue() {
+    return KeyValue(priority, priority);
+  }
+
+  static List<KeyValue> priorityList() {
+    return [
+      KeyValue("Alta", "Alta"),
+      KeyValue("Media", "Media"),
+      KeyValue("Baja", "Baja")
+    ];
+  }
+
   /*Future<void> getProgrammes() async {
     List<Programme> listProgrammes = [];
     for (String item in programmes) {
@@ -263,19 +275,23 @@ class STask {
 
 Future<List> getTasks() async {
   List<STask> items = [];
-  QuerySnapshot query = await dbTasks.get();
+  try {
+    QuerySnapshot query = await dbTasks.get();
 
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask task = STask.fromJson(data);
-    await task.getProject();
-    await task.getStatus();
-    await task.getSender();
-    await task.getAssigned();
-    await task.getReceivers();
-    //await task.getProgrammes();
-    items.add(task);
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      STask task = STask.fromJson(data);
+      await task.getProject();
+      await task.getStatus();
+      await task.getSender();
+      await task.getAssigned();
+      await task.getReceivers();
+      //await task.getProgrammes();
+      items.add(task);
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }

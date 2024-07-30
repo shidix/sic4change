@@ -174,7 +174,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   }
 
   Future<void> taskEditDialog(
-      context, task, statusList, contactList, projectList, _items) {
+      context, task, statusList, contactList, projectList, items) {
     STask task = STask("");
     return showDialog<void>(
       context: context,
@@ -288,10 +288,10 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                   CustomDropdown(
                     labelText: 'Prioridad',
                     size: 230,
-                    selected: task.statusObj.toKeyValue(),
-                    options: statusList,
+                    selected: task.priorityKeyValue(),
+                    options: STask.priorityList(),
                     onSelectedOpt: (String val) {
-                      task.status = val;
+                      task.priority = val;
                     },
                   ),
                 ]),
@@ -367,7 +367,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
               Row(children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   MultiSelectDialogField(
-                    items: _items,
+                    items: items,
                     title: customText("Ejecutores", 16),
                     selectedColor: mainColor,
                     decoration: multiSelectDecoration,
@@ -385,7 +385,8 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     onConfirm: (results) {
                       for (KeyValue kv in results as List) {
-                        print(kv.value);
+                        task.assigned.add(kv.value);
+                        //print(kv.value);
                       }
                       //_selectedAnimals = results;
                     },
@@ -394,7 +395,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   MultiSelectDialogField(
-                    items: _items,
+                    items: items,
                     title: customText("Destinatarios", 16),
                     selectedColor: mainColor,
                     decoration: multiSelectDecoration,
@@ -412,7 +413,8 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     onConfirm: (results) {
                       for (KeyValue kv in results as List) {
-                        print(kv.value);
+                        task.receivers.add(kv.value);
+                        //print(kv.value);
                       }
                       //_selectedAnimals = results;
                     },
