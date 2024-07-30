@@ -193,7 +193,9 @@ class STask {
         data["id"] = doc.id;
         Contact contact = Contact.fromJson(data);
         listAssigned.add(contact);
-      } catch (e) {}
+      } catch (e) {
+        print(e);
+      }
     }
     assignedObj = listAssigned;
   }

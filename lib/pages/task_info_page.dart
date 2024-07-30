@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -58,53 +59,13 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //Text(_task.name, style: TextStyle(fontSize: 20)),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width - 300,
-                    child: customText(task.name, 22),
-                  ),
-                  /*VerticalDivider(
-                    width: 10,
-                    color: Colors.grey,
-                  ),*/
+                  customText(task.name, 22),
                   Text(task.statusObj.name,
                       style: TextStyle(
                           fontSize: 16,
                           color: getStatusColor(task.statusObj.name))),
-                  /*IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: 'Ver',
-                      onPressed: () async {
-                        _callEditDialog(context, _task);
-                      }),*/
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            //editBtn(context),
-                            addBtn(context, _callEditDialog, task,
-                                icon: Icons.edit, text: "Editar"),
-                            //returnBtn(context)
-                            space(width: 10),
-                            FilledButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, "/tasks");
-                              },
-                              style: btnStyle,
-                              child: Column(
-                                children: [
-                                  const Icon(Icons.arrow_circle_left_outlined,
-                                      color: subTitleColor),
-                                  space(height: 5),
-                                  customText(returnText, 12,
-                                      textColor: subTitleColor)
-                                ],
-                              ),
-                            )
-                          ]))
+                  returnBtn(context),
                 ]),
-            //Divider(color: Colors.grey),
           )
         ]));
   }
@@ -113,6 +74,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget taskInfoDetails(context, param) {
+    String receivers = "";
+    for (Contact item in task!.receiversObj) {
+      receivers += "${item.name}, ";
+    }
+    String assigned = "";
+    for (Contact item in task!.assignedObj) {
+      assigned += "${item.name}, ";
+    }
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -121,61 +90,147 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                //customText(_task?.sender, 16),
-                taskInfoSenderPublic(context, task),
+                //customRowDivider(),
+                taskInfoRow1(context, task),
                 space(height: 5),
-                customRowDivider(),
-                space(height: 10),
+                taskInfoRow2(context, task),
+                space(height: 15),
+                taskInfoRow3(context, task),
+                space(height: 15),
                 customText("Descripción de la tarea:", 16,
                     textColor: smallColor),
                 space(height: 5),
                 customText(task?.description, 16),
-                space(height: 5),
-                customRowDivider(),
                 space(height: 10),
                 customText("Comentarios:", 16, textColor: smallColor),
                 space(height: 5),
                 customText(task?.comments, 16),
-                space(height: 5),
-                customRowDivider(),
                 space(height: 10),
-                taskInfoDates(context, task),
+                customText("Ejecutores:", 16, textColor: smallColor),
                 space(height: 5),
-                customRowDivider(),
+                customText(assigned, 16),
+                space(height: 10),
+                customText("Destinatarios:", 16, textColor: smallColor),
                 space(height: 5),
-                taskAssignedHeader(context, task),
+                customText(receivers, 16),
+                space(height: 5),
+
+                //customRowDivider(),
+                /*taskAssignedHeader(context, task),
                 taskAssigned(context, task),
                 space(height: 5),
                 customRowDivider(),
-                space(height: 5),
+                space(height: 5),*/
                 //taskProgrammesHeader(context, task),
                 //taskProgrammes(context, task),
-                space(height: 5),
               ],
             )));
   }
 
-  Widget taskInfoSenderPublic(context, task) {
-    String public = "Privada";
-    if (task.public) public = "Pública";
+  Widget taskInfoRow1(context, task) {
+    String public = (task.public) ? "Si" : "No";
+    String revision = (task.revision) ? "Si" : "No";
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+            width: MediaQuery.of(context).size.width / 5,
+            child: Row(
+              children: [
+                customText("Proyecto:", 16, textColor: Colors.grey),
+                space(width: 5),
+                customText(task.projectObj.name, 16),
+              ],
+            )),
+        Row(
+          children: [
+            /*const VerticalDivider(
+                width: 10,
+                color: Colors.grey,
+              ),*/
+            customText("Documentos:", 16, textColor: Colors.grey),
+            space(width: 5),
+            goPageIcon(
+                context,
+                "Ver",
+                Icons.folder,
+                DocumentsPage(
+                  currentFolder: task.folderObj,
+                ))
+          ],
+        ),
+        Row(children: [
+          customText("Pública:", 16, textColor: Colors.grey),
+          space(width: 5),
+          customText(public, 16),
+          space(width: 10),
+          customText("Revisión:", 16, textColor: Colors.grey),
+          space(width: 5),
+          customText(revision, 16),
+        ]),
+      ],
+    );
+  }
+
+  Widget taskInfoRow2(context, task) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width / 7,
+          child: Row(
+            children: [
+              customText("Estado:", 16, textColor: Colors.grey),
+              space(height: 5),
+              customText(task.statusObj.name, 16),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            customText("Prioridad:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(task.statusObj.name, 16),
+          ],
+        ),
+        Row(children: [
+          customText("Duración:", 16, textColor: Colors.grey),
+          space(height: 5),
+          customText(task.duration, 16),
+        ]),
+      ],
+    );
+  }
+
+  Widget taskInfoRow3(context, task) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      SizedBox(
+          width: MediaQuery.of(context).size.width / 4.3,
+          child: Row(children: [
+            customText("Acuerdo:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
+          ])),
+      Row(children: [
+        customText("Deadline:", 16, textColor: Colors.grey),
+        space(height: 5),
+        customText(DateFormat('yyyy-MM-dd').format(task.deadLineDate), 16),
+      ]),
+      Row(children: [
+        customText("Nuevo deadline", 16, textColor: Colors.grey),
+        space(height: 5),
+        customText(DateFormat('yyyy-MM-dd').format(task.newDeadLineDate), 16),
+      ])
+    ]);
+  }
+
+/*  Widget taskInfoSenderPublic(context, task) {
+    String public = (task.public) ? "Si" : "No";
+    String revision = (task.revision) ? "Si" : "No";
 
     return IntrinsicHeight(
       child: Row(
         children: [
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 2.5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText("Devolución a:", 16, textColor: Colors.grey),
-                  space(height: 5),
-                  customText(task.senderObj.name, 16),
-                ],
-              )),
-          const VerticalDivider(
-            width: 10,
-            color: Colors.grey,
-          ),
           SizedBox(
               width: MediaQuery.of(context).size.width / 2.5,
               child: Column(
@@ -188,19 +243,42 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               )),
           const VerticalDivider(
             width: 10,
+            color: Colors.grey,
+          ),
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 2.5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText("Documentos:", 16, textColor: Colors.grey),
+                  space(height: 5),
+                  customText(task.folder, 16),
+                ],
+              )),
+          const VerticalDivider(
+            width: 10,
             color: smallColor,
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Pública / Privada:", 16, textColor: Colors.grey),
+            customText("Pública:", 16, textColor: Colors.grey),
             space(height: 5),
             customText(public, 16),
+          ]),
+          const VerticalDivider(
+            width: 10,
+            color: smallColor,
+          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Revisión:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(revision, 16),
           ]),
         ],
       ),
     );
-  }
+  }*/
 
-  Widget taskInfoDates(context, task) {
+  /*Widget taskInfoDates(context, task) {
     return Column(children: [
       Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -219,9 +297,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             ])
           ])
     ]);
-  }
+  }*/
 
-  Widget taskAssignedHeader(context, task) {
+  /*Widget taskAssignedHeader(context, task) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Responsables:", 16, textColor: Colors.grey),
       IconButton(
@@ -263,7 +341,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     )
                   ]));
         });
-  }
+  }*/
 
   /*Widget taskProgrammesHeader(context, task) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

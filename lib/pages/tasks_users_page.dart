@@ -397,7 +397,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     onConfirm: (results) {
                       for (KeyValue kv in results as List) {
-                        task.assigned.add(kv.value);
+                        task.assigned.add(kv.key);
                         //print(kv.value);
                       }
                       //_selectedAnimals = results;
@@ -425,7 +425,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     onConfirm: (results) {
                       for (KeyValue kv in results as List) {
-                        task.receivers.add(kv.value);
+                        task.receivers.add(kv.key);
                         //print(kv.value);
                       }
                       //_selectedAnimals = results;
