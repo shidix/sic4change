@@ -172,6 +172,32 @@ class SFinn extends Object {
       this.project,
       {this.orgUuid = "", this.contribution = 0.0});
 
+  int compareTo(SFinn b) {
+    SFinn a = this;
+    List<String> aSlices = a.name.split(".");
+    List<String> bSlices = b.name.split(".");
+    if (aSlices.length > bSlices.length) {
+      return -1;
+    } else if (aSlices.length < bSlices.length) {
+      return 1;
+    } else {
+      int index = 0;
+      while (index < aSlices.length) {
+        try {
+          int aInt = int.parse(aSlices[index]);
+          int bInt = int.parse(bSlices[index]);
+          if (aInt.compareTo(bInt) != 0) return aInt.compareTo(bInt);
+        } catch (e) {
+          if (aSlices[index].compareTo(bSlices[index]) != 0) {
+            return aSlices[index].compareTo(bSlices[index]);
+          }
+        }
+        index += 1;
+      }
+    }
+    return 0;
+  }
+
   factory SFinn.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("contribution")) {
       json["contribution"] = 0.0;

@@ -481,7 +481,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
     finnInfo.partidas.sort((a, b) {
       if (a.orgUuid == b.orgUuid) {
-        return a.name.compareTo(b.name);
+        return a.compareTo(b);
+        //return a.name.compareTo(b.name);
       } else {
         return a.orgUuid.compareTo(b.orgUuid);
       }
