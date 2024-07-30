@@ -138,7 +138,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
           title: customText("Creadas por mí", 16, textColor: mainColor),
           children: [
             FutureBuilder(
-                future: getTasksBySender(user.uid),
+                future: getTasksBySender(user.email),
                 builder: ((context, snapshot) {
                   if (snapshot.hasData) {
                     tasksUser = snapshot.data!;

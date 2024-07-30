@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_drive.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -29,6 +31,7 @@ class STask {
   DateTime newDeadLineDate = DateTime.now();
   String sender = ""; //Responsable
   String project = "";
+  String folder = "";
   List<String> assigned = []; //Ejecutores
   List<String> receivers = []; //Destinatarios
   //List<String> programmes = [];
@@ -37,7 +40,8 @@ class STask {
 
   SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
-  Contact senderObj = Contact("");
+  Profile? senderObj;
+  Folder? folderObj;
   List<Contact> assignedObj = [];
   List<Contact> receiversObj = [];
   //List<Programme> programmesObj = [];
@@ -58,6 +62,7 @@ class STask {
         newDeadLineDate = json['newDeadLineDate'].toDate(),
         sender = json['sender'],
         project = json['project'],
+        folder = json['folder'],
         assigned =
             (json['assigned'] as List).map((item) => item as String).toList(),
         receivers =
@@ -81,6 +86,7 @@ class STask {
         'newDeadLineDate': newDeadLineDate,
         'sender': sender,
         'project': project,
+        'folder': folder,
         'assigned': assigned,
         'receivers': receivers,
         //'programmes': programmes,
@@ -154,7 +160,7 @@ class STask {
     }
   }
 
-  Future<void> getSender() async {
+  /*Future<void> getSender() async {
     if (sender != "") {
       QuerySnapshot query =
           await dbContacts.where("uuid", isEqualTo: sender).get();
@@ -162,6 +168,17 @@ class STask {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       senderObj = Contact.fromJson(data);
+    }
+  }*/
+  Future<void> getSender() async {
+    final dbProfile = db.collection("s4c_profiles");
+    if (sender != "") {
+      QuerySnapshot query =
+          await dbProfile.where("email", isEqualTo: sender).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      senderObj = Profile.fromJson(data);
     }
   }
 
@@ -244,6 +261,24 @@ class STask {
     receiversObj = listReceivers;
   }
 
+  Future<void> getFolder() async {
+    if ((folder != "") && (folderObj == null)) {
+      folderObj = await Folder.byLoc(folder);
+    }
+  }
+
+  KeyValue priorityKeyValue() {
+    return KeyValue(priority, priority);
+  }
+
+  static List<KeyValue> priorityList() {
+    return [
+      KeyValue("Alta", "Alta"),
+      KeyValue("Media", "Media"),
+      KeyValue("Baja", "Baja")
+    ];
+  }
+
   /*Future<void> getProgrammes() async {
     List<Programme> listProgrammes = [];
     for (String item in programmes) {
@@ -263,19 +298,23 @@ class STask {
 
 Future<List> getTasks() async {
   List<STask> items = [];
-  QuerySnapshot query = await dbTasks.get();
+  try {
+    QuerySnapshot query = await dbTasks.get();
 
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask task = STask.fromJson(data);
-    await task.getProject();
-    await task.getStatus();
-    await task.getSender();
-    await task.getAssigned();
-    await task.getReceivers();
-    //await task.getProgrammes();
-    items.add(task);
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      STask task = STask.fromJson(data);
+      await task.getProject();
+      await task.getStatus();
+      await task.getSender();
+      await task.getAssigned();
+      await task.getReceivers();
+      //await task.getProgrammes();
+      items.add(task);
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }
@@ -295,6 +334,8 @@ Future<List<KeyValue>> getTasksHash() async {
 
 Future<List> getTasksBySender(sender) async {
   List<STask> items = [];
+  print("--1--");
+  print(sender);
   QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
 
   for (var doc in query.docs) {
