@@ -6,6 +6,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -39,7 +40,7 @@ class STask {
 
   SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
-  Contact senderObj = Contact("");
+  Profile? senderObj;
   Folder? folderObj;
   List<Contact> assignedObj = [];
   List<Contact> receiversObj = [];
@@ -159,7 +160,7 @@ class STask {
     }
   }
 
-  Future<void> getSender() async {
+  /*Future<void> getSender() async {
     if (sender != "") {
       QuerySnapshot query =
           await dbContacts.where("uuid", isEqualTo: sender).get();
@@ -167,6 +168,17 @@ class STask {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       senderObj = Contact.fromJson(data);
+    }
+  }*/
+  Future<void> getSender() async {
+    final dbProfile = db.collection("s4c_profiles");
+    if (sender != "") {
+      QuerySnapshot query =
+          await dbProfile.where("email", isEqualTo: sender).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      senderObj = Profile.fromJson(data);
     }
   }
 
@@ -322,6 +334,8 @@ Future<List<KeyValue>> getTasksHash() async {
 
 Future<List> getTasksBySender(sender) async {
   List<STask> items = [];
+  print("--1--");
+  print(sender);
   QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
 
   for (var doc in query.docs) {
