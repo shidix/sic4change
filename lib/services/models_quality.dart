@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
@@ -363,6 +365,32 @@ class TransversalQuestion {
 
   bool isMain() {
     return (!code.contains("."));
+  }
+
+  int compareTo(TransversalQuestion other) {
+    List<String> aSlices = code.split(".");
+    List<String> bSlices = other.code.split(".");
+    //Remove empty strings from aSlices and bSlices
+    aSlices.removeWhere((element) => element == "");
+    bSlices.removeWhere((element) => element == "");
+    for (int i = 0; i < aSlices.length; i++) {
+      try {
+        int a = int.parse(aSlices[i]);
+        int b = 0;
+        try {
+          b = int.parse(bSlices[i]);
+        } catch (e) {
+          return 1;
+        }
+        if (a != b) {
+          return a.compareTo(b);
+        }
+      } catch (e) {
+        print("Error: $e");
+        return aSlices[i].compareTo(bSlices[i]);
+      }
+    }
+    return 0;
   }
 
   factory TransversalQuestion.fromJson(Map data) {

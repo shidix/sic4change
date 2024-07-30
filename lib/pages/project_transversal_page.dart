@@ -296,7 +296,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     Map<String, String>? califications = {};
     qualityQuestions = quality!.questions;
 
-    qualityQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    qualityQuestions!.sort((a, b) => a.compareTo(b));
     qualityCounters = [];
     TransversalQuestion? lastMain;
     qaQuestionsCompleted = 0;
@@ -424,7 +424,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget genderPanel() {
     genderQuestions = gender!.questions;
 
-    genderQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    genderQuestions!.sort((a, b) => a.compareTo(b));
     genderCounters = [];
     genderQuestionsCompleted = 0;
     genderQuestionsCounter = 0;
@@ -482,7 +482,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget transparencyPanel() {
     transparencyQuestions = transparency!.questions;
 
-    transparencyQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    transparencyQuestions!.sort((a, b) => a.compareTo(b));
     transparencyCounters = [];
     transparencyQuestionsCompleted = 0;
     transparencyQuestionsCounter = 0;
@@ -576,7 +576,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget environmentPanel() {
     environmentQuestions = environment!.questions;
 
-    environmentQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    environmentQuestions!.sort((a, b) => a.compareTo(b));
     environmentCounters = [];
     environmentQuestionsCompleted = 0;
     environmentQuestionsCounter = 0;

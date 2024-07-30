@@ -176,24 +176,27 @@ class SFinn extends Object {
     SFinn a = this;
     List<String> aSlices = a.name.split(".");
     List<String> bSlices = b.name.split(".");
-    if (aSlices.length > bSlices.length) {
-      return -1;
-    } else if (aSlices.length < bSlices.length) {
-      return 1;
-    } else {
-      int index = 0;
-      while (index < aSlices.length) {
+    //Remove empty elements from aSlices and bSlices
+    aSlices.removeWhere((element) => element == "");
+    bSlices.removeWhere((element) => element == "");
+
+    int index = 0;
+    while (index < aSlices.length) {
+      try {
+        int aInt = int.parse(aSlices[index]);
+        int bInt = 0;
         try {
-          int aInt = int.parse(aSlices[index]);
-          int bInt = int.parse(bSlices[index]);
-          if (aInt.compareTo(bInt) != 0) return aInt.compareTo(bInt);
+          bInt = int.parse(bSlices[index]);
         } catch (e) {
-          if (aSlices[index].compareTo(bSlices[index]) != 0) {
-            return aSlices[index].compareTo(bSlices[index]);
-          }
+          return 1;
         }
-        index += 1;
+        if (aInt.compareTo(bInt) != 0) return aInt.compareTo(bInt);
+      } catch (e) {
+        if (aSlices[index].compareTo(bSlices[index]) != 0) {
+          return aSlices[index].compareTo(bSlices[index]);
+        }
       }
+      index += 1;
     }
     return 0;
   }
