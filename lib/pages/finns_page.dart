@@ -85,12 +85,31 @@ class _FinnsPageState extends State<FinnsPage> {
       SFinnInfo.byProject(_project!.uuid).then((val) {
         if (val != null) {
           finnInfo = val;
+          finnInfo.partners = _project!.partners;
           finnList = getAllFinns();
-          for (Distribution dist in finnInfo.distributions) {
-            dist.updateMapinvoices();
+          if (finnInfo.distributions.isEmpty) {
+            Distribution.byProject(_project!.uuid).then((val) {
+              if (val.isNotEmpty) {
+                finnInfo.distributions = val;
+                finnInfo.save();
+                for (Distribution dist in finnInfo.distributions) {
+                  dist.updateMapinvoices();
+                }
+                if (mounted) {
+                  setState(() {
+                    distribSummaryContainer = populateDistribSummaryContainer();
+                  });
+                }
+              }
+            });
+          } else {
+            for (Distribution dist in finnInfo.distributions) {
+              dist.updateMapinvoices();
+            }
           }
         } else {
           finnInfo = SFinnInfo("", const Uuid().v4(), _project!.uuid);
+          finnInfo.partners = _project!.partners;
           finnInfo.save();
         }
         aportesSummaryContainer = populateAportesSummaryContainer();
@@ -484,9 +503,8 @@ class _FinnsPageState extends State<FinnsPage> {
           counter = 0;
           rows.add(const Divider(thickness: 1, color: Colors.grey));
         }
-
-        double notAssigned =
-            finn.getAmountContrib() - finnInfo.getDistribByFinn(finn);
+        double totalDistribution = finnInfo.getDistribByFinn(finn);
+        double notAssigned = finn.getAmountContrib() - totalDistribution;
 
         rows.add(Container(
             color: (counter % 2 == 0) ? Colors.white : Colors.grey[100],
@@ -499,16 +517,24 @@ class _FinnsPageState extends State<FinnsPage> {
                           vertical: 0),
                       child: Row(children: [
                         notAssigned > 0
-                            ? Tooltip(
-                                message:
-                                    'No se ha asignado la totalidad de la partida. Quedan ${toCurrency(notAssigned)} por asignar',
-                                child: const Icon(
-                                  Icons.warning,
-                                  color: warningColor,
-                                  size: 14,
-                                ))
+                            ? totalDistribution == 0
+                                ? const Tooltip(
+                                    message: 'Partida sin asignar.',
+                                    child: Icon(
+                                      Icons.warning,
+                                      color: dangerColor,
+                                      size: 14,
+                                    ))
+                                : Tooltip(
+                                    message:
+                                        'No se ha asignado la totalidad de la partida. Quedan ${toCurrency(notAssigned)} por asignar',
+                                    child: const Icon(
+                                      Icons.warning,
+                                      color: warningColor,
+                                      size: 14,
+                                    ))
                             : const Tooltip(
-                                message: 'Partida asignada correctamente',
+                                message: 'Partida totalmente asignada',
                                 child: Icon(
                                   Icons.check_circle,
                                   color: successColor,
@@ -566,16 +592,6 @@ class _FinnsPageState extends State<FinnsPage> {
                                 ),
                               ],
                             ))),
-              // Expanded(
-              //     flex: 2,
-              //     child: Padding(
-              //         padding: const EdgeInsets.symmetric(
-              //             vertical: 0, horizontal: 10),
-              //         child: Text(
-              //           toCurrency(finnInfo.getDistribByFinn(finn)),
-              //           textAlign: TextAlign.right,
-              //           style: currentStyle,
-              //         ))),
               Expanded(
                 flex: 3,
                 child: Padding(
@@ -707,19 +723,6 @@ class _FinnsPageState extends State<FinnsPage> {
                                   textAlign: TextAlign.right),
                             ],
                           ))),
-                  // Expanded(
-                  //     flex: 2,
-                  //     child: Padding(
-                  //         padding:
-                  //             EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                  //         child: Row(
-                  //           mainAxisAlignment: MainAxisAlignment.end,
-                  //           children: [
-                  //             Text("Asignado",
-                  //                 style: headerListStyle,
-                  //                 textAlign: TextAlign.right),
-                  //           ],
-                  //         ))),
                   Expanded(
                       flex: 3,
                       child: Padding(
@@ -1103,8 +1106,23 @@ class _FinnsPageState extends State<FinnsPage> {
             flex: 2,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: Text("${dist.finn.name}. ${dist.finn.description}",
-                  style: cellsListStyle),
+              child: Row(children: [
+                Tooltip(
+                    message: '${dist.description}',
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: mainColor,
+                      size: 14,
+                    )),
+                space(width: 5),
+                Flexible(
+                    child: Text(
+                  '${dist.finn.name}. ${dist.finn.description}',
+                  style: cellsListStyle,
+                  maxLines: 2,
+                  softWrap: true,
+                )),
+              ]),
             ),
           ),
           Expanded(

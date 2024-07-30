@@ -18,9 +18,7 @@ class SFinnInfo extends Object {
 
   List partidas = [];
   List distributions = [];
-
-  // List<Map<String, dynamic>> contributions = [];
-  // List<Map<String, dynamic>> distributions = [];
+  List partners = [];
 
   SFinnInfo(this.id, this.uuid, this.project);
 
@@ -84,6 +82,7 @@ class SFinnInfo extends Object {
       }
     } catch (e) {
       log('ERROR in SFinnInfo.byProject');
+      print(e);
     }
     return null;
   }
@@ -108,6 +107,9 @@ class SFinnInfo extends Object {
 
   double getDistribByFinn(SFinn finn) {
     List<String> childrendsUuid = [];
+    if (partners.isEmpty) {
+      return 0;
+    }
     for (SFinn child in finn.getChildren()) {
       childrendsUuid.add(child.uuid);
     }
@@ -116,7 +118,13 @@ class SFinnInfo extends Object {
 
     for (Distribution distrib in distributions) {
       if (childrendsUuid.contains(distrib.finn.uuid)) {
-        total += distrib.amount;
+        if (partners.contains(distrib.partner.uuid)) {
+          total += distrib.amount;
+        } else {
+          distributions.remove(distrib);
+          distrib.delete();
+          save();
+        }
       }
     }
     return total;
@@ -488,7 +496,6 @@ class FinnDistribution {
 
   void save() async {
     final collection = db.collection("s4c_finndistrib");
-
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
@@ -1391,8 +1398,21 @@ class Distribution extends Object {
     return items;
   }
 
+  static Future<List<Distribution>> byProject(String uuid) async {
+    final collection = db.collection("s4c_distributions");
+    final query = await collection.where("finn.project", isEqualTo: uuid).get();
+    List<Distribution> items = [];
+    for (var element in query.docs) {
+      Distribution item = Distribution.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
   void save() async {
     final collection = db.collection("s4c_distributions");
+    project = finn.project;
     if (uuid == "") {
       uuid = const Uuid().v4();
     } else {

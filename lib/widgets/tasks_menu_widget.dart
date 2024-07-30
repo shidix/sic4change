@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/tasks_page.dart';
 import 'package:sic4change/pages/tasks_user_page.dart';
-import 'package:sic4change/pages/tasks_users_page.dart';
+//import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget taskMenu(context, tabSelected) {
@@ -17,8 +17,8 @@ Widget taskMenu(context, tabSelected) {
             selected: (tabSelected == "taskUser")),
         menuTab2(context, "Tareas generales", const TasksPage(),
             selected: (tabSelected == "tasks")),
-        menuTab2(context, "Asignación de taras", const TasksUsersPage(),
-            selected: (tabSelected == "tasksUsers")),
+        // menuTab2(context, "Asignación de taras", const TasksUsersPage(),
+        //     selected: (tabSelected == "tasksUsers")),
       ],
     ),
   );
