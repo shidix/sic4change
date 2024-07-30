@@ -227,16 +227,28 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
               space(height: 20),
               Row(children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Proyecto:", 16, textColor: mainColor),
+                  //customText("Proyecto:", 16, textColor: mainColor),
                   CustomDropdown(
                     labelText: 'Proyecto',
-                    size: 700,
+                    size: 340,
                     selected: task.projectObj.toKeyValue(),
                     options: projectList,
                     onSelectedOpt: (String val) {
                       task.project = val;
                     },
                   ),
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Documentos",
+                    initial: task.name,
+                    size: 340,
+                    fieldValue: (String val) {
+                      task.name = val;
+                      //setState(() => task.comments = val);
+                    },
+                  )
                 ]),
               ]),
               space(height: 20),
@@ -272,7 +284,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
               space(height: 20),
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Estado:", 16, textColor: mainColor),
+                  //customText("Estado:", 16, textColor: mainColor),
                   CustomDropdown(
                     labelText: 'Estado',
                     size: 230,
@@ -284,7 +296,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                   ),
                 ]),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Prioridad:", 16, textColor: mainColor),
+                  //customText("Prioridad:", 16, textColor: mainColor),
                   CustomDropdown(
                     labelText: 'Prioridad',
                     size: 230,

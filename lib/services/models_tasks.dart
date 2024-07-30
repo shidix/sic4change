@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -29,6 +30,7 @@ class STask {
   DateTime newDeadLineDate = DateTime.now();
   String sender = ""; //Responsable
   String project = "";
+  String folder = "";
   List<String> assigned = []; //Ejecutores
   List<String> receivers = []; //Destinatarios
   //List<String> programmes = [];
@@ -38,6 +40,7 @@ class STask {
   SProject projectObj = SProject("");
   TasksStatus statusObj = TasksStatus("");
   Contact senderObj = Contact("");
+  Folder? folderObj;
   List<Contact> assignedObj = [];
   List<Contact> receiversObj = [];
   //List<Programme> programmesObj = [];
@@ -58,6 +61,7 @@ class STask {
         newDeadLineDate = json['newDeadLineDate'].toDate(),
         sender = json['sender'],
         project = json['project'],
+        folder = json['folder'],
         assigned =
             (json['assigned'] as List).map((item) => item as String).toList(),
         receivers =
@@ -81,6 +85,7 @@ class STask {
         'newDeadLineDate': newDeadLineDate,
         'sender': sender,
         'project': project,
+        'folder': folder,
         'assigned': assigned,
         'receivers': receivers,
         //'programmes': programmes,
@@ -242,6 +247,12 @@ class STask {
       } catch (e) {}
     }
     receiversObj = listReceivers;
+  }
+
+  Future<void> getFolder() async {
+    if ((folder != "") && (folderObj == null)) {
+      folderObj = await Folder.byLoc(folder);
+    }
   }
 
   KeyValue priorityKeyValue() {
