@@ -157,14 +157,19 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
+    List<KeyValue> profileList = await Profile.getProfileHash();
+    List<KeyValue> orgList = await getOrganizationsHash();
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();
-    final List<MultiSelectItem<KeyValue>> profileList = users
-        .map((user) => MultiSelectItem<KeyValue>(user, user.email))
+    final List<MultiSelectItem<KeyValue>> oList = orgList
+        .map((org) => MultiSelectItem<KeyValue>(org, org.value))
+        .toList();
+    final List<MultiSelectItem<KeyValue>> pList = profileList
+        .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
         .toList();
     taskEditDialog(
-        context, args["task"], statusList, projectList, profileList, cList);
+        context, args["task"], statusList, projectList, pList, cList, oList);
   }
 
   void saveTask(List args) async {
@@ -179,8 +184,8 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> taskEditDialog(
-      context, task, statusList, projectList, profileList, contactList) {
+  Future<void> taskEditDialog(context, task, statusList, projectList,
+      profileList, contactList, orgList) {
     STask task = STask("");
     task.sender = user.email!;
     return showDialog<void>(
@@ -396,7 +401,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
                     buttonText: const Text(
-                      "Seleccionar ejecutores",
+                      "Ejecutores",
                       style: TextStyle(
                         color: mainColor,
                         fontSize: 16,
@@ -424,7 +429,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     ),
                     //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
                     buttonText: const Text(
-                      "Seleccionar destinatarios",
+                      "Destinatarios Contactos",
                       style: TextStyle(
                         color: mainColor,
                         fontSize: 16,
@@ -433,6 +438,34 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     onConfirm: (results) {
                       for (KeyValue kv in results as List) {
                         task.receivers.add(kv.key);
+                        //print(kv.value);
+                      }
+                      //_selectedAnimals = results;
+                    },
+                  ),
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  MultiSelectDialogField(
+                    items: orgList,
+                    title: customText("Destinatarios Organizaciones", 16),
+                    selectedColor: mainColor,
+                    decoration: multiSelectDecoration,
+                    buttonIcon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: mainColor,
+                    ),
+                    //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
+                    buttonText: const Text(
+                      "Destinatarios organizaciones",
+                      style: TextStyle(
+                        color: mainColor,
+                        fontSize: 16,
+                      ),
+                    ),
+                    onConfirm: (results) {
+                      for (KeyValue kv in results as List) {
+                        task.receiversOrg.add(kv.key);
                         //print(kv.value);
                       }
                       //_selectedAnimals = results;

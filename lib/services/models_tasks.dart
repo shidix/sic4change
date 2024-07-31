@@ -34,6 +34,7 @@ class STask {
   String folder = "";
   List<String> assigned = []; //Ejecutores
   List<String> receivers = []; //Destinatarios
+  List<String> receiversOrg = []; //Destinatarios
   //List<String> programmes = [];
   bool public = false;
   bool revision = false;
@@ -44,6 +45,7 @@ class STask {
   Folder? folderObj;
   List<Contact> assignedObj = [];
   List<Contact> receiversObj = [];
+  List<Organization> receiversOrgObj = [];
   //List<Programme> programmesObj = [];
 
   STask(this.name);
@@ -67,6 +69,9 @@ class STask {
             (json['assigned'] as List).map((item) => item as String).toList(),
         receivers =
             (json['receivers'] as List).map((item) => item as String).toList(),
+        receiversOrg = (json['receiversOrg'] as List)
+            .map((item) => item as String)
+            .toList(),
         /*programmes =
             (json['programmes'] as List).map((item) => item as String).toList(),*/
         public = json['public'],
@@ -89,6 +94,7 @@ class STask {
         'folder': folder,
         'assigned': assigned,
         'receivers': receivers,
+        'receiversOrg': receiversOrg,
         //'programmes': programmes,
         'public': public,
         'revision': revision,
@@ -132,6 +138,7 @@ class STask {
     await getSender();
     await getAssigned();
     await getReceivers();
+    await getReceiversOrg();
     //await getProgrammes();
     return this;
   }
@@ -239,7 +246,7 @@ class STask {
         task.getStatus();
         task.getSender();
         task.getAssigned();
-        task.getReceivers();
+        task.getReceiversOrg();
         //task.getProgrammes();
         items.add(task);
       }
@@ -261,6 +268,21 @@ class STask {
       } catch (e) {}
     }
     receiversObj = listReceivers;
+  }
+
+  Future<void> getReceiversOrg() async {
+    List<Organization> listReceivers = [];
+    for (String item in receivers) {
+      try {
+        QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: item).get();
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Organization org = Organization.fromJson(data);
+        listReceivers.add(org);
+      } catch (e) {}
+    }
+    receiversOrgObj = listReceivers;
   }
 
   Future<void> getFolder() async {
@@ -312,6 +334,7 @@ Future<List> getTasks() async {
       await task.getSender();
       await task.getAssigned();
       await task.getReceivers();
+      await task.getReceiversOrg();
       //await task.getProgrammes();
       items.add(task);
     }
@@ -336,8 +359,6 @@ Future<List<KeyValue>> getTasksHash() async {
 
 Future<List> getTasksBySender(sender) async {
   List<STask> items = [];
-  print("--1--");
-  print(sender);
   QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
 
   for (var doc in query.docs) {
@@ -349,6 +370,7 @@ Future<List> getTasksBySender(sender) async {
     await task.getSender();
     await task.getAssigned();
     await task.getReceivers();
+    await task.getReceiversOrg();
     //await task.getProgrammes();
     items.add(task);
   }
