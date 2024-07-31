@@ -21,6 +21,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 // const PROJECT_INFO_TITLE = "Detalles del Proyecto";
 
@@ -192,11 +193,23 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
           .then((project) {
         currentProject = project;
 
-        Quality.byProject(project.uuid).then((value) {
-          setState(() {
+        Quality.byProject(project.uuid).then((Quality value) {
+          if (value.questions.isEmpty) {
+            rootBundle.loadString('assets/quality.json').then((value) {
+              quality = Quality.fromJson(jsonDecode(value));
+              quality!.project = project.uuid;
+              qualityPanel();
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          } else {
             quality = value;
             qualityPanel();
-          });
+            if (mounted) {
+              setState(() {});
+            }
+          }
         });
 
         Transparency.byProject(project.uuid).then((value) {
@@ -227,43 +240,88 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     } else {
       currentProject = widget.currentProject;
       profile = widget.profile;
-      Quality.byProject(widget.currentProject!.uuid).then((value) {
-        quality = value;
-        if (mounted) {
-          setState(() {
-            quality = value;
+
+      Quality.byProject(currentProject!.uuid).then((Quality value) {
+        if (value.questions.isEmpty) {
+          quality = value;
+          rootBundle.loadString('config/quality.json').then((value) {
+            Quality template = Quality.fromJson(jsonDecode(value));
+            quality!.questions = template.questions;
+            quality!.save();
             qualityPanel();
+            if (mounted) {
+              setState(() {});
+            }
           });
+        } else {
+          quality = value;
+          qualityPanel();
+          if (mounted) {
+            setState(() {});
+          }
         }
       });
 
       Transparency.byProject(widget.currentProject!.uuid).then((value) {
-        transparency = value;
-        if (mounted) {
-          setState(() {
-            transparency = value;
+        if (value.questions.isEmpty) {
+          transparency = value;
+          rootBundle.loadString('config/transparency.json').then((value) {
+            Transparency template = Transparency.fromJson(jsonDecode(value));
+            transparency!.questions = template.questions;
+            transparency!.save();
             transparencyPanel();
+            if (mounted) {
+              setState(() {});
+            }
           });
+        } else {
+          transparency = value;
+          transparencyPanel();
+          if (mounted) {
+            setState(() {});
+          }
         }
       });
 
       Gender.byProject(widget.currentProject!.uuid).then((value) {
-        gender = value;
-        if (mounted) {
-          setState(() {
-            gender = value;
+        if (value.questions.isEmpty) {
+          gender = value;
+          rootBundle.loadString('config/gender.json').then((value) {
+            Gender template = Gender.fromJson(jsonDecode(value));
+            gender!.questions = template.questions;
+            gender!.save();
             genderPanel();
+            if (mounted) {
+              setState(() {});
+            }
           });
+        } else {
+          gender = value;
+          genderPanel();
+          if (mounted) {
+            setState(() {});
+          }
         }
       });
 
       Environment.byProject(widget.currentProject!.uuid).then((value) {
-        environment = value;
-        if (mounted) {
-          setState(() {
-            environment = value;
+        if (value.questions.isEmpty) {
+          environment = value;
+          rootBundle.loadString('config/environment.json').then((value) {
+            Environment template = Environment.fromJson(jsonDecode(value));
+            environment!.questions = template.questions;
+            environment!.save();
             environmentPanel();
+            if (mounted) {
+              setState(() {});
+            }
           });
+        } else {
+          environment = value;
+          environmentPanel();
+          if (mounted) {
+            setState(() {});
+          }
         }
       });
     }

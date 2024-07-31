@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -123,9 +125,14 @@ class Quality extends Transversal {
     );
   }
 
-  static Future<Quality> byProject(String project) {
+  static Future<Quality> byProject(String project) async {
     return collection.where("project", isEqualTo: project).get().then((value) {
-      return Quality.fromFirestore(value.docs.first);
+      Quality item = Quality.fromFirestore(value.docs.first);
+      if (item.questions.isNotEmpty) {
+        return item;
+      } else {
+        return Quality.getEmpty();
+      }
     }).catchError((error) {
       print("Quality.byProject :=> $error");
       Quality item = Quality.getEmpty();
