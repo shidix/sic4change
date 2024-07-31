@@ -3,11 +3,17 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'dart:js_util';
 
+import 'dart:convert';
+import 'dart:html';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/transversal_question_form.dart';
 import 'package:sic4change/services/utils.dart';
@@ -15,6 +21,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 // const PROJECT_INFO_TITLE = "Detalles del Proyecto";
 
@@ -58,8 +65,9 @@ Widget indicatorButton(
 
 class ProjectTransversalPage extends StatefulWidget {
   final SProject? currentProject;
+  final Profile? profile;
 
-  const ProjectTransversalPage({Key? key, this.currentProject})
+  const ProjectTransversalPage({Key? key, this.currentProject, this.profile})
       : super(key: key);
 
   @override
@@ -70,6 +78,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   TransversalQuestion? currentQuestion;
   //User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
+  Profile? profile;
 
   Quality? quality;
   Widget? qualityPanelWidget;
@@ -169,16 +178,38 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.profile == null) {
+      Profile.getCurrentProfile().then((value) {
+        profile = value;
+        if (mounted) {
+          setState() {}
+        }
+      });
+    } else {
+      profile = widget.profile;
+    }
     if (widget.currentProject == null) {
       SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
           .then((project) {
         currentProject = project;
 
-        Quality.byProject(project.uuid).then((value) {
-          setState(() {
+        Quality.byProject(project.uuid).then((Quality value) {
+          if (value.questions.isEmpty) {
+            rootBundle.loadString('assets/quality.json').then((value) {
+              quality = Quality.fromJson(jsonDecode(value));
+              quality!.project = project.uuid;
+              qualityPanel();
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          } else {
             quality = value;
             qualityPanel();
-          });
+            if (mounted) {
+              setState(() {});
+            }
+          }
         });
 
         Transparency.byProject(project.uuid).then((value) {
@@ -207,36 +238,91 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         );
       });
     } else {
-      Quality.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
+      currentProject = widget.currentProject;
+      profile = widget.profile;
+
+      Quality.byProject(currentProject!.uuid).then((Quality value) {
+        if (value.questions.isEmpty) {
+          quality = value;
+          rootBundle.loadString('config/quality.json').then((value) {
+            Quality template = Quality.fromJson(jsonDecode(value));
+            quality!.questions = template.questions;
+            quality!.save();
+            qualityPanel();
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        } else {
           quality = value;
           qualityPanel();
-        });
+          if (mounted) {
+            setState(() {});
+          }
+        }
       });
 
       Transparency.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
+        if (value.questions.isEmpty) {
+          transparency = value;
+          rootBundle.loadString('config/transparency.json').then((value) {
+            Transparency template = Transparency.fromJson(jsonDecode(value));
+            transparency!.questions = template.questions;
+            transparency!.save();
+            transparencyPanel();
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        } else {
           transparency = value;
           transparencyPanel();
-        });
+          if (mounted) {
+            setState(() {});
+          }
+        }
       });
 
       Gender.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
+        if (value.questions.isEmpty) {
+          gender = value;
+          rootBundle.loadString('config/gender.json').then((value) {
+            Gender template = Gender.fromJson(jsonDecode(value));
+            gender!.questions = template.questions;
+            gender!.save();
+            genderPanel();
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        } else {
           gender = value;
           genderPanel();
-        });
+          if (mounted) {
+            setState(() {});
+          }
+        }
       });
 
       Environment.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
+        if (value.questions.isEmpty) {
+          environment = value;
+          rootBundle.loadString('config/environment.json').then((value) {
+            Environment template = Environment.fromJson(jsonDecode(value));
+            environment!.questions = template.questions;
+            environment!.save();
+            environmentPanel();
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        } else {
           environment = value;
           environmentPanel();
-        });
+          if (mounted) {
+            setState(() {});
+          }
+        }
       });
     }
   }
@@ -296,7 +382,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     Map<String, String>? califications = {};
     qualityQuestions = quality!.questions;
 
-    qualityQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    qualityQuestions!.sort((a, b) => a.compareTo(b));
     qualityCounters = [];
     TransversalQuestion? lastMain;
     qaQuestionsCompleted = 0;
@@ -424,7 +510,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget genderPanel() {
     genderQuestions = gender!.questions;
 
-    genderQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    genderQuestions!.sort((a, b) => a.compareTo(b));
     genderCounters = [];
     genderQuestionsCompleted = 0;
     genderQuestionsCounter = 0;
@@ -482,7 +568,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget transparencyPanel() {
     transparencyQuestions = transparency!.questions;
 
-    transparencyQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    transparencyQuestions!.sort((a, b) => a.compareTo(b));
     transparencyCounters = [];
     transparencyQuestionsCompleted = 0;
     transparencyQuestionsCounter = 0;
@@ -576,7 +662,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   Widget environmentPanel() {
     environmentQuestions = environment!.questions;
 
-    environmentQuestions!.sort((a, b) => a.code.compareTo(b.code));
+    environmentQuestions!.sort((a, b) => a.compareTo(b));
     environmentCounters = [];
     environmentQuestionsCompleted = 0;
     environmentQuestionsCounter = 0;
@@ -655,6 +741,57 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
 ////// GENERAL
+
+  void exportTransversal() async {
+    Quality qualityCopy = Quality.fromJson(quality!.toJson());
+    qualityCopy.id = "";
+    qualityCopy.uuid = "";
+    qualityCopy.project = "";
+
+    Gender genderCopy = Gender.fromJson(gender!.toJson());
+    genderCopy.id = "";
+    genderCopy.uuid = "";
+    genderCopy.project = "";
+
+    Transparency transparencyCopy =
+        Transparency.fromJson(transparency!.toJson());
+    transparencyCopy.id = "";
+    transparencyCopy.uuid = "";
+    transparencyCopy.project = "";
+
+    Environment environmentCopy = Environment.fromJson(environment!.toJson());
+    environmentCopy.id = "";
+    environmentCopy.uuid = "";
+    environmentCopy.project = "";
+
+    String qualityString = jsonEncode(qualityCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(qualityString)}")
+      ..setAttribute("download", "quality.json")
+      ..click();
+
+    String genderString = jsonEncode(genderCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(genderString)}")
+      ..setAttribute("download", "gender.json")
+      ..click();
+
+    String transparencyString = jsonEncode(transparencyCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(transparencyString)}")
+      ..setAttribute("download", "transparency.json")
+      ..click();
+
+    String environmentString = jsonEncode(environmentCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(environmentString)}")
+      ..setAttribute("download", "environment.json")
+      ..click();
+  }
 
   Container rowTransversal(item, califications) {
     TextStyle style = (item.isMain()
@@ -740,7 +877,17 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
   Widget topButtons(BuildContext context) {
+    if (profile == null) {
+      return Container();
+    }
     List<Widget> buttons = [
+      (["Admin", "Supervisor"].contains(profile!.mainRole))
+          ? actionButtonVertical(context, "Exportar", exportTransversal,
+              Icons.download_for_offline_outlined, null)
+          : Container(),
+      (["Admin", "Supervisor"].contains(profile!.mainRole))
+          ? space(width: 5)
+          : Container(),
       goPage(
         context,
         "Volver",

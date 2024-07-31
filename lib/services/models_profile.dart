@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -118,5 +119,15 @@ class Profile {
       items.add(item.toKeyValue());
     }
     return items;
+  }
+
+  static Future<Profile> getCurrentProfile() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      String email = user.email!;
+      return getProfile(email);
+    } catch (e) {
+      return Profile.getEmpty();
+    }
   }
 }

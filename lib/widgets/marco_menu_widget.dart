@@ -7,7 +7,7 @@ import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/risks_page.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget marcoMenu(context, project, tabSelected) {
+Widget marcoMenu(context, project, tabSelected, [userProfile]) {
   /*bool marco = (tabSelected == "marco") ? true : false;
   bool risk = (tabSelected == "risk") ? true : false;*/
 
@@ -26,8 +26,11 @@ Widget marcoMenu(context, project, tabSelected) {
             selected: (tabSelected == "evaluation")),
         menuTab2(context, "Aprendizajes", LearningsPage(project: project),
             selected: (tabSelected == "learnings")),
-        menuTab2(context, "Transversal",
-            ProjectTransversalPage(currentProject: project),
+        menuTab2(
+            context,
+            "Transversal",
+            ProjectTransversalPage(
+                currentProject: project, profile: userProfile),
             selected: (tabSelected == "transversal")),
         /*menuTab(context, "Marco lógico", "/goals", {'project': project},
             selected: marco),
