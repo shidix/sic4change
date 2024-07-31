@@ -183,8 +183,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   label: customText("Fin", 14, bold: FontWeight.bold),
                   tooltip: "Fin"),
               DataColumn(
-                  label: customText("Eviada a", 14, bold: FontWeight.bold),
-                  tooltip: "Enviada a"),
+                  label: customText("Ejecutores", 14, bold: FontWeight.bold),
+                  tooltip: "Ejecutores"),
               DataColumn(
                   label: customText("Estado", 14, bold: FontWeight.bold),
                   tooltip: "Estado"),

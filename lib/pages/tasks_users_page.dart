@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:numberpicker/numberpicker.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -321,7 +322,15 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 ]),
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
+                  NumberPicker(
+                    value: int.parse(task.duration),
+                    minValue: 0,
+                    maxValue: 100,
+                    onChanged: (value) =>
+                        setState(() => task.duration = value as String),
+                  ),
+                  Text('Current value: ${task.duration}'),
+                  /*CustomTextField(
                     labelText: "Duración",
                     initial: task.duration,
                     minLines: 2,
@@ -330,7 +339,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                     fieldValue: (String val) {
                       task.duration = val;
                     },
-                  )
+                  )*/
                 ]),
                 /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

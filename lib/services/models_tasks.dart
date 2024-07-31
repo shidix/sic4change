@@ -43,7 +43,7 @@ class STask {
   TasksStatus statusObj = TasksStatus("");
   Profile? senderObj;
   Folder? folderObj;
-  List<Contact> assignedObj = [];
+  List<Profile> assignedObj = [];
   List<Contact> receiversObj = [];
   List<Organization> receiversOrgObj = [];
   //List<Programme> programmesObj = [];
@@ -190,16 +190,18 @@ class STask {
   }
 
   Future<void> getAssigned() async {
-    List<Contact> listAssigned = [];
+    final dbProfile = db.collection("s4c_profiles");
+
+    List<Profile> listAssigned = [];
     for (String item in assigned) {
       try {
         QuerySnapshot query =
-            await dbContacts.where("uuid", isEqualTo: item).get();
+            await dbProfile.where("email", isEqualTo: item).get();
         final doc = query.docs.first;
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
-        Contact contact = Contact.fromJson(data);
-        listAssigned.add(contact);
+        Profile prof = Profile.fromJson(data);
+        listAssigned.add(prof);
       } catch (e) {
         print(e);
       }
@@ -209,6 +211,17 @@ class STask {
 
   String getAssignedStr() {
     String assignedStr = "";
+    for (Profile item in assignedObj) {
+      assignedStr += "${item.email},";
+    }
+    assignedStr = (assignedStr.length > 0)
+        ? assignedStr.substring(0, assignedStr.length - 1)
+        : assignedStr;
+    return assignedStr;
+  }
+
+  /*String getAssignedStr() {
+    String assignedStr = "";
     for (Contact item in assignedObj) {
       assignedStr += "${item.name},";
     }
@@ -216,7 +229,7 @@ class STask {
         ? assignedStr.substring(0, assignedStr.length - 1)
         : assignedStr;
     return assignedStr;
-  }
+  }*/
 
   static Future<List<STask>> getByAssigned(uuid) async {
     List<STask> items = [];

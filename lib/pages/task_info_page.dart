@@ -8,6 +8,7 @@ import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -83,8 +84,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       receivers += "${item.name}, ";
     }
     String assigned = "";
-    for (Contact item in task!.assignedObj) {
-      assigned += "${item.name}, ";
+    for (Profile item in task!.assignedObj) {
+      assigned += "${item.email}, ";
     }
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
