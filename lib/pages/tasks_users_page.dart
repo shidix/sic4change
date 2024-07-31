@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
@@ -17,6 +18,7 @@ const pageUsersTaskTitle = "Carga de tareas por usuario";
 List users = [];
 bool usersLoading = false;
 Widget? _mainMenu;
+var user;
 
 class TasksUsersPage extends StatefulWidget {
   const TasksUsersPage({super.key});
@@ -46,6 +48,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   void initState() {
     loadUsers();
     super.initState();
+    user = FirebaseAuth.instance.currentUser!;
     _mainMenu = mainMenu(context, "/tasks_users");
   }
 
@@ -176,6 +179,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   Future<void> taskEditDialog(
       context, task, statusList, contactList, projectList, items) {
     STask task = STask("");
+    task.sender = user.email!;
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
