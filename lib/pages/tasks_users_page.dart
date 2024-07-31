@@ -157,11 +157,14 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
-    final List<MultiSelectItem<KeyValue>> _items = contactList
+    final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();
+    final List<MultiSelectItem<KeyValue>> profileList = users
+        .map((user) => MultiSelectItem<KeyValue>(user, user.email))
+        .toList();
     taskEditDialog(
-        context, args["task"], statusList, contactList, projectList, _items);
+        context, args["task"], statusList, projectList, profileList, cList);
   }
 
   void saveTask(List args) async {
@@ -177,7 +180,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   }
 
   Future<void> taskEditDialog(
-      context, task, statusList, contactList, projectList, items) {
+      context, task, statusList, projectList, profileList, contactList) {
     STask task = STask("");
     task.sender = user.email!;
     return showDialog<void>(
@@ -383,7 +386,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
               Row(children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   MultiSelectDialogField(
-                    items: items,
+                    items: profileList,
                     title: customText("Ejecutores", 16),
                     selectedColor: mainColor,
                     decoration: multiSelectDecoration,
@@ -411,7 +414,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   MultiSelectDialogField(
-                    items: items,
+                    items: contactList,
                     title: customText("Destinatarios", 16),
                     selectedColor: mainColor,
                     decoration: multiSelectDecoration,

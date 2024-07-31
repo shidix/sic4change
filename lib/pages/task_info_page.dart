@@ -1,5 +1,9 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -390,7 +394,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
-  /*void callEditDialog(context, HashMap args) async {
+  void callEditDialog(context, HashMap args) async {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
@@ -696,9 +700,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     );
   }
 
-  void removeTaskDialog(context, args) {
+  /*void removeTaskDialog(context, args) {
     customRemoveDialog(context, args["task"], loadUsers);
   }*/
+
   /* VIEJO */
   /*void _callEditDialog(context, task) async {
     List<KeyValue> statusList = await getTasksStatusHash();
