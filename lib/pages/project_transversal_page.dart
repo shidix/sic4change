@@ -5,9 +5,7 @@
 
 import 'dart:convert';
 import 'dart:html';
-import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
@@ -112,69 +110,6 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   List<int> environmentCounters = [];
   bool collapsedEnvironment = false;
 
-  Widget totalBudget(context, SProject project) {
-    double percent = 50;
-    String budgetInEuros = toCurrency(double.parse(project.budget));
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-        child: Column(children: [
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Text("Presupuesto Total",
-                        style: mainText.copyWith(color: normalColor)))),
-            Expanded(
-                flex: 1,
-                child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(budgetInEuros, style: subTitleText))),
-          ]),
-          space(height: 10),
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: LinearPercentIndicator(
-                  percent: percent / 100,
-                  lineHeight: 16,
-                  progressColor: Colors.blueGrey,
-                  center: Text("$percent %",
-                      style: subTitleText.copyWith(color: Colors.white)),
-                )),
-          ]),
-        ]));
-  }
-
-  Widget statusEjecucion(context, SProject project) {
-    double percent = 50;
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-        child: Column(children: [
-          const Row(children: [
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text("En ejecución", style: mainText))),
-          ]),
-          space(height: 10),
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: LinearPercentIndicator(
-                  percent: percent / 100,
-                  lineHeight: 16,
-                  progressColor: mainColor,
-                  center: Text("$percent %",
-                      style: subTitleText.copyWith(color: Colors.white)),
-                )),
-          ]),
-        ]));
-  }
-
-  // void test() {}
-
   @override
   void initState() {
     super.initState();
@@ -188,163 +123,177 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     } else {
       profile = widget.profile;
     }
-    if (widget.currentProject == null) {
-      SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
-          .then((project) {
-        currentProject = project;
+    currentProject = widget.currentProject;
+    profile = widget.profile;
 
-        Quality.byProject(project.uuid).then((Quality value) {
-          if (value.questions.isEmpty) {
-            rootBundle.loadString('assets/quality.json').then((value) {
-              quality = Quality.fromJson(jsonDecode(value));
-              quality!.project = project.uuid;
-              qualityPanel();
-              if (mounted) {
-                setState(() {});
-              }
-            });
-          } else {
-            quality = value;
-            qualityPanel();
-            if (mounted) {
-              setState(() {});
-            }
-          }
-        });
-
-        Transparency.byProject(project.uuid).then((value) {
-          setState(() {
-            transparency = value;
-            transparencyPanel();
-          });
-        });
-
-        Gender.byProject(project.uuid).then(
-          (value) {
-            setState(() {
-              gender = value;
-              genderPanel();
-            });
-          },
-        );
-
-        Environment.byProject(project.uuid).then(
-          (value) {
-            setState(() {
-              environment = value;
-              environmentPanel();
-            });
-          },
-        );
-      });
-    } else {
-      currentProject = widget.currentProject;
-      profile = widget.profile;
-
-      Quality.byProject(currentProject!.uuid).then((Quality value) {
-        if (value.questions.isEmpty) {
-          quality = value;
-          rootBundle.loadString('config/quality.json').then((value) {
-            Quality template = Quality.fromJson(jsonDecode(value));
-            quality!.questions = template.questions;
-            quality!.save();
-            qualityPanel();
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        } else {
-          quality = value;
+    Quality.byProject(currentProject!.uuid).then((Quality value) {
+      if (value.questions.isEmpty) {
+        quality = value;
+        rootBundle.loadString('config/quality.json').then((value) {
+          Quality template = Quality.fromJson(jsonDecode(value));
+          quality!.questions = template.questions;
+          quality!.save();
           qualityPanel();
           if (mounted) {
             setState(() {});
           }
+        });
+      } else {
+        quality = value;
+        qualityPanel();
+        if (mounted) {
+          setState(() {});
         }
-      });
+      }
+    });
 
-      Transparency.byProject(widget.currentProject!.uuid).then((value) {
-        if (value.questions.isEmpty) {
-          transparency = value;
-          rootBundle.loadString('config/transparency.json').then((value) {
-            Transparency template = Transparency.fromJson(jsonDecode(value));
-            transparency!.questions = template.questions;
-            transparency!.save();
-            transparencyPanel();
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        } else {
-          transparency = value;
+    Transparency.byProject(widget.currentProject!.uuid).then((value) {
+      if (value.questions.isEmpty) {
+        transparency = value;
+        rootBundle.loadString('config/transparency.json').then((value) {
+          Transparency template = Transparency.fromJson(jsonDecode(value));
+          transparency!.questions = template.questions;
+          transparency!.save();
           transparencyPanel();
           if (mounted) {
             setState(() {});
           }
+        });
+      } else {
+        transparency = value;
+        transparencyPanel();
+        if (mounted) {
+          setState(() {});
         }
-      });
+      }
+    });
 
-      Gender.byProject(widget.currentProject!.uuid).then((value) {
-        if (value.questions.isEmpty) {
-          gender = value;
-          rootBundle.loadString('config/gender.json').then((value) {
-            Gender template = Gender.fromJson(jsonDecode(value));
-            gender!.questions = template.questions;
-            gender!.save();
-            genderPanel();
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        } else {
-          gender = value;
+    Gender.byProject(widget.currentProject!.uuid).then((value) {
+      if (value.questions.isEmpty) {
+        gender = value;
+        rootBundle.loadString('config/gender.json').then((value) {
+          Gender template = Gender.fromJson(jsonDecode(value));
+          gender!.questions = template.questions;
+          gender!.save();
           genderPanel();
           if (mounted) {
             setState(() {});
           }
+        });
+      } else {
+        gender = value;
+        genderPanel();
+        if (mounted) {
+          setState(() {});
         }
-      });
+      }
+    });
 
-      Environment.byProject(widget.currentProject!.uuid).then((value) {
-        if (value.questions.isEmpty) {
-          environment = value;
-          rootBundle.loadString('config/environment.json').then((value) {
-            Environment template = Environment.fromJson(jsonDecode(value));
-            environment!.questions = template.questions;
-            environment!.save();
-            environmentPanel();
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        } else {
-          environment = value;
+    Environment.byProject(widget.currentProject!.uuid).then((value) {
+      if (value.questions.isEmpty) {
+        environment = value;
+        rootBundle.loadString('config/environment.json').then((value) {
+          Environment template = Environment.fromJson(jsonDecode(value));
+          environment!.questions = template.questions;
+          environment!.save();
           environmentPanel();
           if (mounted) {
             setState(() {});
           }
+        });
+      } else {
+        environment = value;
+        environmentPanel();
+        if (mounted) {
+          setState(() {});
         }
-      });
+      }
+    });
+  }
+
+  List<Widget> panelActions(dialog, code) {
+    List<Widget> actions = [
+      ["Admin", "Supervisor"].contains(profile!.mainRole)
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: actionButtonVertical(context, 'Resetear', resetSection,
+                  Icons.refresh, {'context': context, 'code': code}))
+          : Container(),
+      Padding(
+          padding:
+              const EdgeInsets.only(right: 20, top: 10, bottom: 10, left: 5),
+          child: actionButtonVertical(context, 'Nuevo ítem', dialog, Icons.add,
+              {'context': context, 'item': null})),
+    ];
+    return actions;
+  }
+
+  void resetSection(args) async {
+    bool confirmation = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: const Text('Confirmación de borrado'),
+              content: const Text(
+                  'Vas a resetear el cuestionario. Se eliminarán todas las respuestas y las preguntas adicionales que hayas podido agregar. ¿Quiers confirmar?'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                    child: const Text('Cancelar')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Aceptar')),
+              ]);
+        }) as bool;
+    if (confirmation) {
+      String code = args['code'];
+      if (code == "transparency") {
+        transparency!.questions = [];
+        transparency!.save();
+
+        transparencyPanel();
+        if (mounted) {
+          setState(() {});
+        }
+      } else if (code == "gender") {
+        gender!.questions = [];
+        gender!.save();
+        genderPanel();
+        if (mounted) {
+          setState(() {});
+        }
+      } else if (code == "environment") {
+        environment!.questions = [];
+        environment!.save();
+        environmentPanel();
+        if (mounted) {
+          setState(() {});
+        }
+      } else if (code == "quality") {
+        quality!.questions = [];
+        quality!.save();
+        qualityPanel();
+        if (mounted) {
+          setState(() {});
+        }
+      }
     }
   }
 
-  Widget generalPanel(context, questions, califications, dialog) {
+  Widget generalPanel(context, questions, califications, dialog, code) {
     return Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         // height: 150,
         color: Colors.white,
         child: currentProject != null
             ? Column(children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: actionButtonVertical(
-                            context,
-                            'Nuevo ítem',
-                            dialog,
-                            Icons.add,
-                            {'context': context, 'item': null}))),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: panelActions(dialog, code)),
                 ListView.builder(
                     shrinkWrap: true,
                     itemCount: questions!.length,
@@ -411,8 +360,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${qualityCounters.last}/$questionsInMain";
     }
 
-    Widget panel = generalPanel(
-        context, qualityQuestions, califications, qualityQuestionDialog);
+    Widget panel = generalPanel(context, qualityQuestions, califications,
+        qualityQuestionDialog, "quality");
 
     return Column(children: [
       panel,
@@ -542,8 +491,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
       califications[lastMain.code] = "${genderCounters.last}/$questionsInMain";
     }
 
-    Widget panel = generalPanel(
-        context, genderQuestions, califications, genderQuestionDialog);
+    Widget panel = generalPanel(context, genderQuestions, califications,
+        genderQuestionDialog, "gender");
     return Column(children: [
       panel,
       const Divider(
@@ -602,7 +551,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
 
     Widget panel = generalPanel(context, transparencyQuestions, califications,
-        transparencyQuestionDialog);
+        transparencyQuestionDialog, 'transp');
 
     return Column(children: [
       panel,
@@ -696,7 +645,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     }
 
     Widget panel = generalPanel(context, environmentQuestions, califications,
-        environmentQuestionDialog);
+        environmentQuestionDialog, "environment");
     return Column(children: [
       panel,
       const Divider(
@@ -868,13 +817,13 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         ));
   }
 
-  Widget statusProject() {
-    return Container(
-        child: Row(children: [
-      Expanded(flex: 1, child: statusEjecucion(context, currentProject!)),
-      Expanded(flex: 1, child: totalBudget(context, currentProject!)),
-    ]));
-  }
+  // Widget statusProject() {
+  //   return Container(
+  //       child: Row(children: [
+  //     Expanded(flex: 1, child: statusEjecucion(context, currentProject!)),
+  //     Expanded(flex: 1, child: totalBudget(context, currentProject!)),
+  //   ]));
+  // }
 
   Widget topButtons(BuildContext context) {
     if (profile == null) {
