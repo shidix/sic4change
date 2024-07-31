@@ -561,11 +561,6 @@ Widget actionButtonVertical(
       }
     },
     style: btnStyle,
-    // ElevatedButton.styleFrom(
-    //   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-    //   backgroundColor: Colors.white,
-    // ),
     child: Column(
       children: [
         space(height: 5),

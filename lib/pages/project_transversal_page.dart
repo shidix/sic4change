@@ -3,11 +3,17 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'dart:js_util';
 
+import 'dart:convert';
+import 'dart:html';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/transversal_question_form.dart';
 import 'package:sic4change/services/utils.dart';
@@ -58,8 +64,9 @@ Widget indicatorButton(
 
 class ProjectTransversalPage extends StatefulWidget {
   final SProject? currentProject;
+  final Profile? profile;
 
-  const ProjectTransversalPage({Key? key, this.currentProject})
+  const ProjectTransversalPage({Key? key, this.currentProject, this.profile})
       : super(key: key);
 
   @override
@@ -70,6 +77,7 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   TransversalQuestion? currentQuestion;
   //User user = FirebaseAuth.instance.currentUser!;
   SProject? currentProject;
+  Profile? profile;
 
   Quality? quality;
   Widget? qualityPanelWidget;
@@ -169,6 +177,16 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.profile == null) {
+      Profile.getCurrentProfile().then((value) {
+        profile = value;
+        if (mounted) {
+          setState() {}
+        }
+      });
+    } else {
+      profile = widget.profile;
+    }
     if (widget.currentProject == null) {
       SProject.getByUuid('6fbe1b21-eaf2-43ca-a496-d1e9dd2171c9')
           .then((project) {
@@ -207,36 +225,46 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         );
       });
     } else {
+      currentProject = widget.currentProject;
+      profile = widget.profile;
       Quality.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
-          quality = value;
-          qualityPanel();
-        });
+        quality = value;
+        if (mounted) {
+          setState(() {
+            quality = value;
+            qualityPanel();
+          });
+        }
       });
 
       Transparency.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
-          transparency = value;
-          transparencyPanel();
-        });
+        transparency = value;
+        if (mounted) {
+          setState(() {
+            transparency = value;
+            transparencyPanel();
+          });
+        }
       });
 
       Gender.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
-          gender = value;
-          genderPanel();
-        });
+        gender = value;
+        if (mounted) {
+          setState(() {
+            gender = value;
+            genderPanel();
+          });
+        }
       });
 
       Environment.byProject(widget.currentProject!.uuid).then((value) {
-        setState(() {
-          currentProject = widget.currentProject;
-          environment = value;
-          environmentPanel();
-        });
+        environment = value;
+        if (mounted) {
+          setState(() {
+            environment = value;
+            environmentPanel();
+          });
+        }
       });
     }
   }
@@ -656,6 +684,57 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
 
 ////// GENERAL
 
+  void exportTransversal() async {
+    Quality qualityCopy = Quality.fromJson(quality!.toJson());
+    qualityCopy.id = "";
+    qualityCopy.uuid = "";
+    qualityCopy.project = "";
+
+    Gender genderCopy = Gender.fromJson(gender!.toJson());
+    genderCopy.id = "";
+    genderCopy.uuid = "";
+    genderCopy.project = "";
+
+    Transparency transparencyCopy =
+        Transparency.fromJson(transparency!.toJson());
+    transparencyCopy.id = "";
+    transparencyCopy.uuid = "";
+    transparencyCopy.project = "";
+
+    Environment environmentCopy = Environment.fromJson(environment!.toJson());
+    environmentCopy.id = "";
+    environmentCopy.uuid = "";
+    environmentCopy.project = "";
+
+    String qualityString = jsonEncode(qualityCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(qualityString)}")
+      ..setAttribute("download", "quality.json")
+      ..click();
+
+    String genderString = jsonEncode(genderCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(genderString)}")
+      ..setAttribute("download", "gender.json")
+      ..click();
+
+    String transparencyString = jsonEncode(transparencyCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(transparencyString)}")
+      ..setAttribute("download", "transparency.json")
+      ..click();
+
+    String environmentString = jsonEncode(environmentCopy);
+    AnchorElement(
+        href:
+            "data:application/json;charset=utf-16,${Uri.encodeComponent(environmentString)}")
+      ..setAttribute("download", "environment.json")
+      ..click();
+  }
+
   Container rowTransversal(item, califications) {
     TextStyle style = (item.isMain()
         ? successText.copyWith(color: Colors.white)
@@ -740,7 +819,17 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
   }
 
   Widget topButtons(BuildContext context) {
+    if (profile == null) {
+      return Container();
+    }
     List<Widget> buttons = [
+      (["Admin", "Supervisor"].contains(profile!.mainRole))
+          ? actionButtonVertical(context, "Exportar", exportTransversal,
+              Icons.download_for_offline_outlined, null)
+          : Container(),
+      (["Admin", "Supervisor"].contains(profile!.mainRole))
+          ? space(width: 5)
+          : Container(),
       goPage(
         context,
         "Volver",

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
@@ -25,6 +26,7 @@ class GoalsPage extends StatefulWidget {
 class _GoalsPageState extends State<GoalsPage>
     with SingleTickerProviderStateMixin {
   SProject? project;
+  Profile? userProfile;
   List? goals;
   Map<String, dynamic> results = {};
   Map<String, dynamic> goalIndicatorList = {};
@@ -98,6 +100,15 @@ class _GoalsPageState extends State<GoalsPage>
       await Goal.checkOE0(project!.uuid, project!.programme);
     }
     setState(() {});
+    Profile.getCurrentProfile().then((value) {
+      userProfile = value;
+      if ((mounted) && (userProfile != null)) {
+        setState(() {
+          userProfile = value;
+        });
+      }
+    });
+
     //stopLoading();
   }
 
@@ -124,7 +135,7 @@ class _GoalsPageState extends State<GoalsPage>
             _mainMenu!,
             goalPath(context, project),
             goalHeader(context, project),
-            marcoMenu(context, project, "marco"),
+            marcoMenu(context, project, "marco", userProfile),
             loadingGoal
                 ? const Center(
                     child: CircularProgressIndicator(),
