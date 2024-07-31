@@ -321,7 +321,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                   ),
                 ]),
                 space(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   NumberPicker(
                     value: int.parse(task.duration),
                     minValue: 0,
@@ -340,7 +340,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                       task.duration = val;
                     },
                   )*/
-                ]),
+                ]),*/
                 /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Devolución:", 16, textColor: mainColor),
