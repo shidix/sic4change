@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/home_operator_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -96,6 +97,48 @@ Widget mainMenuAdmin(context, [user, url]) {
   );
 }
 
+Widget mainMenuOperator(context, {url, profile}) {
+  return Container(
+    padding: const EdgeInsets.all(3),
+    color: bgColor,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        logo(),
+        (url == "/home_operator")
+            ? menuBtnSelected(
+                context,
+                'Inicio',
+                Icons.home,
+              )
+            : menuBtnGo(
+                context,
+                'Inicio',
+                HomeOperatorPage(profile: profile),
+                Icons.home,
+                "/home_operator",
+                color: (url == "/home_operator")
+                    ? mainMenuBtnSelectedColor
+                    : mainMenuBtnColor,
+              ),
+        menuBtn(context, "Programas", Icons.list_alt, "/projects",
+            (url == "/projects") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        menuBtn(
+            context,
+            "Documentos",
+            Icons.folder,
+            "/documents",
+            (url == "/documents")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
+        menuBtn(context, "Contactos", Icons.handshake, "/contacts",
+            (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        logoutBtn(context, "Salir", Icons.arrow_back),
+      ],
+    ),
+  );
+}
+
 Widget mainMenu(context, [url]) {
   final user = FirebaseAuth.instance.currentUser!;
   String email = user.email!;
@@ -116,6 +159,8 @@ Widget mainMenu(context, [url]) {
         Profile profile = snapshot.data!;
         if (profile.mainRole == "Admin") {
           return mainMenuAdmin(context, user, url);
+        } else if (profile.mainRole == "Administrativo") {
+          return mainMenuOperator(context, url: url, profile: profile);
         } else {
           return mainMenuUser(context, user, url);
         }

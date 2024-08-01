@@ -51,6 +51,58 @@ Widget menuBtn(context, btnName, btnIcon, btnRoute,
   );
 }
 
+Widget menuBtnSelected(context, btnName, btnIcon) {
+  Widget child = Column(
+    children: [
+      Icon(btnIcon, color: mainMenuBtnSelectedColor),
+      Text(
+        btnName,
+        style: TextStyle(color: mainMenuBtnSelectedColor, fontSize: 14),
+      ),
+    ],
+  );
+
+  return FilledButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+        side: const BorderSide(width: 0, color: Color(0xff00594f)),
+        backgroundColor: bgColor,
+        //primary: Colors.purple),
+      ),
+      child: child);
+}
+
+Widget menuBtnGo(context, btnName, newContext, btnIcon, btnRoute,
+    {Color color = Colors.black38, Function? extraction}) {
+  Widget child = Column(
+    children: [
+      Icon(btnIcon, color: color),
+      Text(
+        btnName,
+        style: TextStyle(color: color, fontSize: 14),
+      ),
+    ],
+  );
+
+  return FilledButton(
+      onPressed: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: ((context) => newContext),
+                settings: RouteSettings(name: btnRoute)));
+        extraction?.call();
+      },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+        side: const BorderSide(width: 0, color: Color(0xff00594f)),
+        backgroundColor: bgColor,
+        //primary: Colors.purple),
+      ),
+      child: child);
+}
+
 Widget menuTabSelect(context, btnName, btnRoute, args) {
   return Container(
       padding: const EdgeInsets.all(5),

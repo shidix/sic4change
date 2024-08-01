@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
+import 'package:sic4change/pages/home_operator_page.dart';
 import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
   final _routes = {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
+    '/home_operator': (context) => const HomeOperatorPage(profile: null),
     '/home_admin': (context) => const HomeAdminPage(),
     '/projects': (context) => const ProjectsPage(),
     '/project_list': (context) => const ProjectListPage(),
