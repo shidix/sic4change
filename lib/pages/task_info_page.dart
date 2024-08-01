@@ -553,7 +553,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                   ),
                 ]),
                 space(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
                     labelText: "Duración",
                     initial: task.duration,
@@ -564,7 +564,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       task.duration = val;
                     },
                   )
-                ]),
+                ]),*/
                 /*space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   customText("Devolución:", 16, textColor: mainColor),

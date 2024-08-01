@@ -1796,6 +1796,41 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+class CustomIntField extends StatelessWidget {
+  const CustomIntField({
+    Key? key,
+    required this.labelText,
+    required this.initial,
+    required this.size,
+    required this.fieldValue,
+  }) : super(key: key);
+
+  final String labelText;
+  final int initial;
+  final double size;
+  final ValueChanged<int> fieldValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      child: TextFormField(
+        initialValue: initial.toString(),
+        decoration: InputDecoration(
+            labelText: labelText,
+            contentPadding: const EdgeInsets.only(bottom: 4)),
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly
+        ], // O
+        onChanged: (val) {
+          fieldValue(int.parse(val));
+        },
+      ),
+    );
+  }
+}
+
 class CustomSelectFormField extends StatelessWidget {
   const CustomSelectFormField({
     Key? key,
