@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
+import 'package:sic4change/pages/home_operator_page.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -232,6 +233,11 @@ Future signIn(context, emailController, passwdController) async {
   if (profile?.mainRole == "Admin") {
     Navigator.push(context,
         MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+  } else if (profile?.mainRole == "Administrativo") {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: ((context) => HomeOperatorPage(profile: profile))));
   } else {
     Navigator.push(
         context, MaterialPageRoute(builder: ((context) => const HomePage())));

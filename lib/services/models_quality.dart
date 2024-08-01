@@ -128,11 +128,12 @@ class Quality extends Transversal {
   static Future<Quality> byProject(String project) async {
     return collection.where("project", isEqualTo: project).get().then((value) {
       Quality item = Quality.fromFirestore(value.docs.first);
-      if (item.questions.isNotEmpty) {
-        return item;
-      } else {
-        return Quality.getEmpty();
-      }
+      return item;
+      // if (item.questions.isNotEmpty) {
+      //   return item;
+      // } else {
+      //   return Quality.getEmpty();
+      // }
     }).catchError((error) {
       print("Quality.byProject :=> $error");
       Quality item = Quality.getEmpty();
