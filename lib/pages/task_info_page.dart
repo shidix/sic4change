@@ -1,8 +1,8 @@
 import 'dart:collection';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/services/models.dart';
@@ -10,6 +10,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
+import 'package:sic4change/services/task_form.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/task_widgets.dart';
@@ -26,6 +27,8 @@ class TaskInfoPage extends StatefulWidget {
 
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
+  var user;
+
   void loadTask(task) async {
     await task.reload().then((val) {
       setState(() {
@@ -38,6 +41,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   initState() {
     super.initState();
     task = widget.task;
+    user = FirebaseAuth.instance.currentUser!;
   }
 
   @override
@@ -69,7 +73,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                       style: TextStyle(
                           fontSize: 16,
                           color: getStatusColor(task.statusObj.name))),
-                  returnBtn(context),
+                  Row(children: [
+                    addBtn(context, callEditDialog, {"task": task},
+                        icon: Icons.edit, text: "Editar"),
+                    space(width: 10),
+                    returnBtn(context),
+                  ]),
                 ]),
           )
         ]));
@@ -82,6 +91,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     String receivers = "";
     for (Contact item in task!.receiversObj) {
       receivers += "${item.name}, ";
+    }
+    String receiversOrg = "";
+    for (Organization item in task!.receiversOrgObj) {
+      receiversOrg += "${item.name}, ";
     }
     String assigned = "";
     for (Profile item in task!.assignedObj) {
@@ -118,7 +131,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customText("Destinatarios:", 16, textColor: smallColor),
                 space(height: 5),
                 customText(receivers, 16),
+                space(height: 10),
+                customText("Destinatarios organizaciones:", 16,
+                    textColor: smallColor),
                 space(height: 5),
+                customText(receiversOrg, 16),
 
                 //customRowDivider(),
                 /*taskAssignedHeader(context, task),
@@ -168,7 +185,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           customText("Pública:", 16, textColor: Colors.grey),
           space(width: 5),
           customText(public, 16),
-          space(width: 10),
+        ]),
+        Row(children: [
           customText("Revisión:", 16, textColor: Colors.grey),
           space(width: 5),
           customText(revision, 16),
@@ -182,7 +200,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         SizedBox(
-          width: MediaQuery.of(context).size.width / 7,
+          width: MediaQuery.of(context).size.width / 4,
           child: Row(
             children: [
               customText("Estado:", 16, textColor: Colors.grey),
@@ -199,9 +217,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           ],
         ),
         Row(children: [
-          customText("Duración:", 16, textColor: Colors.grey),
+          customText("Duración horas:", 16, textColor: Colors.grey),
           space(height: 5),
-          customText(task.duration, 16),
+          customText(task.duration.toString(), 16),
+        ]),
+        Row(children: [
+          customText("Duración minutos:", 16, textColor: Colors.grey),
+          space(height: 5),
+          customText(task.durationMin.toString(), 16),
         ]),
       ],
     );
@@ -399,11 +422,19 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
-    final List<MultiSelectItem<KeyValue>> _items = contactList
+    List<KeyValue> profileList = await Profile.getProfileHash();
+    List<KeyValue> orgList = await getOrganizationsHash();
+    final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();
+    final List<MultiSelectItem<KeyValue>> oList = orgList
+        .map((org) => MultiSelectItem<KeyValue>(org, org.value))
+        .toList();
+    final List<MultiSelectItem<KeyValue>> pList = profileList
+        .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
+        .toList();
     taskEditDialog(
-        context, args["task"], statusList, contactList, projectList, _items);
+        context, args["task"], statusList, projectList, pList, cList, oList);
   }
 
   void saveTask(List args) async {
@@ -411,16 +442,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     task.save();
 
     Navigator.pop(context);
-    //Navigator.pushNamed(context, "/task_info", arguments: {'task': task});
   }
 
-  void cancelItem(BuildContext context) {
-    Navigator.of(context).pop();
-  }
-
-  Future<void> taskEditDialog(
-      context, task, statusList, contactList, projectList, items) {
-    STask task = STask("");
+  Future<void> taskEditDialog(context, task, statusList, projectList,
+      profileList, contactList, orgList) {
+    task.sender = user.email!;
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -430,271 +456,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           title: s4cTitleBar('Nueva tarea'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-                child: Column(children: [
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Nombre",
-                    initial: task.name,
-                    size: 600,
-                    fieldValue: (String val) {
-                      task.name = val;
-                      //setState(() => task.comments = val);
-                    },
-                  )
-                ]),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Pública:", 16, textColor: mainColor),
-                  FormField<bool>(builder: (FormFieldState<bool> state) {
-                    return Checkbox(
-                      value: task.public,
-                      onChanged: (bool? value) {
-                        task.public = value!;
-                        state.didChange(task.public);
-                      },
-                    );
-                  })
-                ]),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Revisión:", 16, textColor: mainColor),
-                  FormField<bool>(builder: (FormFieldState<bool> state) {
-                    return Checkbox(
-                      value: task.revision,
-                      onChanged: (bool? value) {
-                        task.revision = value!;
-                        state.didChange(task.revision);
-                      },
-                    );
-                  })
-                ])
-              ]),
-              space(height: 20),
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  //customText("Proyecto:", 16, textColor: mainColor),
-                  CustomDropdown(
-                    labelText: 'Proyecto',
-                    size: 340,
-                    selected: task.projectObj.toKeyValue(),
-                    options: projectList,
-                    onSelectedOpt: (String val) {
-                      task.project = val;
-                    },
-                  ),
-                ]),
-                space(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Documentos",
-                    initial: task.name,
-                    size: 340,
-                    fieldValue: (String val) {
-                      task.name = val;
-                      //setState(() => task.comments = val);
-                    },
-                  )
-                ]),
-              ]),
-              space(height: 20),
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Descripción",
-                    initial: task.description,
-                    minLines: 2,
-                    maxLines: 999,
-                    size: 700,
-                    fieldValue: (String val) {
-                      task.description = val;
-                    },
-                  )
-                ]),
-              ]),
-              space(height: 20),
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Comentarios",
-                    initial: task.comments,
-                    minLines: 2,
-                    maxLines: 999,
-                    size: 700,
-                    fieldValue: (String val) {
-                      task.comments = val;
-                    },
-                  )
-                ]),
-              ]),
-              space(height: 20),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  //customText("Estado:", 16, textColor: mainColor),
-                  CustomDropdown(
-                    labelText: 'Estado',
-                    size: 230,
-                    selected: task.statusObj.toKeyValue(),
-                    options: statusList,
-                    onSelectedOpt: (String val) {
-                      task.status = val;
-                    },
-                  ),
-                ]),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  //customText("Prioridad:", 16, textColor: mainColor),
-                  CustomDropdown(
-                    labelText: 'Prioridad',
-                    size: 230,
-                    selected: task.priorityKeyValue(),
-                    options: STask.priorityList(),
-                    onSelectedOpt: (String val) {
-                      task.priority = val;
-                    },
-                  ),
-                ]),
-                space(width: 10),
-                /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Duración",
-                    initial: task.duration,
-                    minLines: 2,
-                    maxLines: 999,
-                    size: 230,
-                    fieldValue: (String val) {
-                      task.duration = val;
-                    },
-                  )
-                ]),*/
-                /*space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Devolución:", 16, textColor: mainColor),
-                  CustomDropdown(
-                    labelText: 'Devolución',
-                    size: 340,
-                    selected: task.senderObj.toKeyValue(),
-                    options: contactList,
-                    onSelectedOpt: (String val) {
-                      task.sender = val;
-                    },
-                  ),
-                ]),*/
-              ]),
-              space(height: 20),
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Acuerdo',
-                        selectedDate: task.dealDate,
-                        onSelectedDate: (DateTime date) {
-                          setState(() {
-                            task.dealDate = date;
-                          });
-                        },
-                      )),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Deadline',
-                        selectedDate: task.deadLineDate,
-                        onSelectedDate: (DateTime date) {
-                          task.deadLineDate = date;
-                        },
-                      )),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                      width: 220,
-                      child: DateTimePicker(
-                        labelText: 'Nuevo deadline',
-                        selectedDate: task.newDeadLineDate,
-                        onSelectedDate: (DateTime date) {
-                          task.newDeadLineDate = date;
-                        },
-                      )),
-                ]),
-                space(width: 20),
-              ]),
-              space(height: 20),
-              Row(children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  MultiSelectDialogField(
-                    items: items,
-                    title: customText("Ejecutores", 16),
-                    selectedColor: mainColor,
-                    decoration: multiSelectDecoration,
-                    buttonIcon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: mainColor,
-                    ),
-                    //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
-                    buttonText: const Text(
-                      "Seleccionar ejecutores",
-                      style: TextStyle(
-                        color: mainColor,
-                        fontSize: 16,
-                      ),
-                    ),
-                    onConfirm: (results) {
-                      for (KeyValue kv in results as List) {
-                        task.assigned.add(kv.key);
-                        //print(kv.value);
-                      }
-                      //_selectedAnimals = results;
-                    },
-                  ),
-                ]),
-                space(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  MultiSelectDialogField(
-                    items: items,
-                    title: customText("Destinatarios", 16),
-                    selectedColor: mainColor,
-                    decoration: multiSelectDecoration,
-                    buttonIcon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: mainColor,
-                    ),
-                    //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
-                    buttonText: const Text(
-                      "Seleccionar destinatarios",
-                      style: TextStyle(
-                        color: mainColor,
-                        fontSize: 16,
-                      ),
-                    ),
-                    onConfirm: (results) {
-                      for (KeyValue kv in results as List) {
-                        task.receivers.add(kv.key);
-                        //print(kv.value);
-                      }
-                      //_selectedAnimals = results;
-                    },
-                  ),
-                ]),
-              ]),
-            ]));
+            return taskForm(task, projectList, statusList, profileList,
+                contactList, orgList, setState);
           }),
           actions: <Widget>[
             dialogsBtns(context, saveTask, task),
-            /*actions: <Widget>[
-            Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(
-                    context, "Enviar", saveTask, Icons.save_outlined, [task]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),*/
           ],
         );
       },
