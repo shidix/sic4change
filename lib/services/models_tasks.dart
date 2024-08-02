@@ -25,7 +25,8 @@ class STask {
   String comments = "";
   String status = "";
   String priority = "";
-  String duration = "";
+  int duration = 0;
+  int durationMin = 0;
   DateTime dealDate = DateTime.now();
   DateTime deadLineDate = DateTime.now();
   DateTime newDeadLineDate = DateTime.now();
@@ -59,6 +60,7 @@ class STask {
         status = json['status'],
         priority = json['priority'],
         duration = json['duration'],
+        durationMin = json['durationMin'],
         dealDate = json['dealDate'].toDate(),
         deadLineDate = json['deadLineDate'].toDate(),
         newDeadLineDate = json['newDeadLineDate'].toDate(),
@@ -86,6 +88,7 @@ class STask {
         'status': status,
         'priority': priority,
         'duration': duration,
+        'durationMin': durationMin,
         'dealDate': dealDate,
         'deadLineDate': deadLineDate,
         'newDeadLineDate': newDeadLineDate,
