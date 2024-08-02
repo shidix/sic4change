@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -997,7 +998,13 @@ class Invoice extends Object {
 
   @override
   String toString() {
-    return jsonEncode(toJson());
+    try {
+      return toJson().toString();
+    } catch (e, stacktrace) {
+      log(e.toString());
+      log(stacktrace.toString());
+      return "ERROR IN INVOICE id: $id, uuid: $uuid, tracker: $tracker";
+    }
   }
 }
 
@@ -1132,6 +1139,9 @@ class BankTransfer {
   String currencyIntermediary;
   String currencyDestination;
   String document;
+
+  Organization? emissorOrg;
+  Organization? receiverOrg;
 
   BankTransfer(
       this.id,
@@ -1333,6 +1343,62 @@ class BankTransfer {
       collection.doc(id).delete();
     }
   }
+
+  Widget getWorkFlow() {
+    try {
+      return Column(
+        children: [
+          Row(children: [
+            Expanded(child: Text('${emissorOrg?.name}')),
+            Expanded(
+                child:
+                    Text(toCurrency(amountSource), textAlign: TextAlign.right)),
+            Expanded(
+                child: Text(toCurrency(commissionSource),
+                    textAlign: TextAlign.right)),
+            Expanded(
+                child: Text('$exchangeSource $currencySource',
+                    textAlign: TextAlign.right)),
+          ]),
+          (amountIntermediary != 0)
+              ? Row(children: [
+                  const Expanded(child: Text('Intermediario')),
+                  Expanded(
+                      child: Text(
+                    toCurrency(amountIntermediary, currencyIntermediary),
+                    textAlign: TextAlign.right,
+                  )),
+                  Expanded(
+                      child: Text(
+                          toCurrency(
+                              commissionIntermediary, currencyIntermediary),
+                          textAlign: TextAlign.right)),
+                  Expanded(
+                      child: Text(
+                          toCurrency(
+                              exchangeIntermediary, currencyIntermediary),
+                          textAlign: TextAlign.right)),
+                ])
+              : Container(),
+          Row(children: [
+            Expanded(child: Text(receiverOrg!.name)),
+            Expanded(
+                child: Text(toCurrency(amountDestination, currencyDestination),
+                    textAlign: TextAlign.right)),
+            Expanded(
+                child: Text(
+                    toCurrency(commissionDestination, currencyDestination),
+                    textAlign: TextAlign.right)),
+            const Expanded(child: Text('')),
+          ]),
+        ],
+      );
+    } catch (e, stacktrace) {
+      log(e.toString());
+      log(stacktrace.toString());
+      return const Text("Error en el flujo de trabajo");
+    }
+  }
 }
 
 class Distribution extends Object {
@@ -1469,16 +1535,31 @@ class Distribution extends Object {
 
   void updateMapinvoices() async {
     for (var invoice in mapinvoices.keys) {
-      InvoiceDistrib.getByDistributionAndInvoice(uuid, invoice)
-          .then((value) => mapinvoices[invoice] = value.toJson());
+      Invoice.getByUuid(invoice).then((value) {
+        if (value.id == "") {
+          mapinvoices.remove(invoice);
+          save();
+        } else {
+          InvoiceDistrib.getByDistributionAndInvoice(uuid, invoice)
+              .then((value) => mapinvoices[invoice] = value.toJson());
+        }
+      });
     }
     save();
   }
 
   double getExecuted() {
     double total = 0;
+    if (mapinvoices.isEmpty) {
+      return total;
+    }
     for (var invoice in mapinvoices.values) {
-      total += invoice["amount"] * invoice["percentaje"] * 0.01;
+      try {
+        total += invoice["amount"] * invoice["percentaje"] * 0.01;
+      } catch (e, stacktrace) {
+        log(e.toString());
+        log(stacktrace.toString());
+      }
     }
 
     return total;

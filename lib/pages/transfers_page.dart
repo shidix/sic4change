@@ -240,14 +240,11 @@ class _TransfersPageState extends State<TransfersPage> {
           headerCell(text: 'De --> A', flex: 3),
           headerCell(text: 'Concepto', flex: 3),
           headerCell(text: 'Fecha'),
-          headerCell(text: 'Enviado', textAlign: TextAlign.right, flex: 2),
-          headerCell(text: 'Com', textAlign: TextAlign.right),
-          headerCell(text: 'TC', textAlign: TextAlign.right),
-          headerCell(text: 'Intermedio', textAlign: TextAlign.right, flex: 2),
-          headerCell(text: 'Com', textAlign: TextAlign.right),
-          headerCell(text: 'TC', textAlign: TextAlign.right),
-          headerCell(text: 'Recibido', textAlign: TextAlign.right, flex: 2),
-          headerCell(text: 'Com', textAlign: TextAlign.right),
+          headerCell(text: 'Organización', flex: 2),
+          headerCell(
+              text: 'Enviado/Recibido', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'Comisión', textAlign: TextAlign.right, flex: 2),
+          headerCell(text: 'TC', textAlign: TextAlign.right, flex: 2),
           headerCell(text: ''),
         ]));
   }
@@ -259,6 +256,12 @@ class _TransfersPageState extends State<TransfersPage> {
               itemCount: bankTransfers.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
+                bankTransfers[index].emissorOrg =
+                    getFinancier(bankTransfers[index].emissor);
+                bankTransfers[index].receiverOrg =
+                    getContact(bankTransfers[index].receiver);
+                // print(bankTransfers[index].emissorOrg);
+                // print(bankTransfers[index].receiverOrg);
                 return ListTile(
                   title: Row(children: [
                     listCell(
@@ -269,82 +272,38 @@ class _TransfersPageState extends State<TransfersPage> {
                     listCell(
                         text: DateFormat('dd-MM-yyyy')
                             .format(bankTransfers[index].date)),
-                    listCell(
-                        flex: 2,
-                        text: toCurrency(bankTransfers[index].amountSource,
-                            bankTransfers[index].currencySource),
-                        textAlign: TextAlign.right),
-                    listCell(
-                        flex: 1,
-                        text: toCurrency(bankTransfers[index].commissionSource,
-                            bankTransfers[index].currencySource),
-                        textAlign: TextAlign.right),
-                    listCell(
-                        text: bankTransfers[index]
-                            .exchangeSource
-                            .toStringAsFixed(2),
-                        textAlign: TextAlign.right),
-                    listCell(
-                        flex: 2,
-                        text: (bankTransfers[index].amountIntermediary != 0)
-                            ? toCurrency(
-                                bankTransfers[index].amountIntermediary,
-                                bankTransfers[index].currencyIntermediary)
-                            : "--",
-                        textAlign: TextAlign.right),
-                    listCell(
-                        flex: 1,
-                        text: toCurrency(
-                            bankTransfers[index].commissionIntermediary,
-                            bankTransfers[index].currencyIntermediary),
-                        textAlign: TextAlign.right),
-                    listCell(
-                        text: (bankTransfers[index].amountIntermediary != 0)
-                            ? bankTransfers[index]
-                                .exchangeIntermediary
-                                .toStringAsFixed(2)
-                            : "--",
-                        textAlign: TextAlign.right),
-                    listCell(
-                        text: toCurrency(bankTransfers[index].amountDestination,
-                            bankTransfers[index].currencyDestination),
-                        textAlign: TextAlign.right,
-                        flex: 2),
-                    listCell(
-                        flex: 1,
-                        text: toCurrency(
-                            bankTransfers[index].commissionDestination,
-                            bankTransfers[index].currencyDestination),
-                        textAlign: TextAlign.right),
+                    listCell(flex: 8, text: bankTransfers[index].getWorkFlow()),
                     Expanded(
                         flex: 1,
-                        child: Row(children: [
-                          IconButton(
-                            iconSize: 18,
-                            icon: const Icon(Icons.edit),
-                            onPressed: () {
-                              currentTransfer = bankTransfers[index];
-                              addBankTransferDialog(context);
-                            },
-                          ),
-                          IconButton(
-                            iconSize: 18,
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              customRemoveDialog(context, bankTransfers[index],
-                                  () {
-                                bankTransfers.remove(bankTransfers[index]);
-                                setState(() {
-                                  currentTransfer = null;
-                                  listBankTransfersContainer =
-                                      listBankTransfers(context);
-                                  contentContainer =
-                                      contentContainerPopulate(context);
-                                });
-                              });
-                            },
-                          ),
-                        ])),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                iconSize: 18,
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  currentTransfer = bankTransfers[index];
+                                  addBankTransferDialog(context);
+                                },
+                              ),
+                              IconButton(
+                                iconSize: 18,
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  customRemoveDialog(
+                                      context, bankTransfers[index], () {
+                                    bankTransfers.remove(bankTransfers[index]);
+                                    setState(() {
+                                      currentTransfer = null;
+                                      listBankTransfersContainer =
+                                          listBankTransfers(context);
+                                      contentContainer =
+                                          contentContainerPopulate(context);
+                                    });
+                                  });
+                                },
+                              ),
+                            ])),
                   ]),
                 );
               }));

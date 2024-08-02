@@ -467,6 +467,8 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
     void saveDistribution() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
+        invoiceDistrib.amount =
+            invoice.total * invoiceDistrib.percentaje * 0.01;
         invoiceDistrib.save();
         Navigator.of(context).pop(invoiceDistrib);
       }

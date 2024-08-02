@@ -811,6 +811,7 @@ class _FinnsPageState extends State<FinnsPage> {
           //await Invoice.all();
           await Invoice.afterDate(DateTime(DateTime.now().year - 1, 1, 1));
     } else {
+      item!.invoices.removeWhere((element) => element.tracker == "");
       invoices = item.invoices;
     }
     invoices.sort((a, b) => a.date.compareTo(b.date));
@@ -818,69 +819,31 @@ class _FinnsPageState extends State<FinnsPage> {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-              titlePadding: EdgeInsets.zero,
-              title: s4cTitleBar('Listado de facturas', context),
-              content: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.4,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.green.shade50),
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                ),
-                child: SizedBox(
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+                titlePadding: EdgeInsets.zero,
+                title: s4cTitleBar('Listado de facturas', context),
+                content: Container(
                   width: MediaQuery.of(context).size.width * 0.85,
                   height: MediaQuery.of(context).size.height * 0.4,
-                  child: ListView.builder(
-                    itemCount: invoices.length + 1,
-                    itemBuilder: (BuildContext context, int index) {
-                      if (index == 0) {
-                        if (item == null) {
-                          return Container(
-                              color: headerListBgColor,
-                              child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 10),
-                                  child: Row(children: [
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text('Tracker',
-                                            style: headerListStyle)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text('Número',
-                                            style: headerListStyle)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text('Fecha',
-                                            style: headerListStyle)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(
-                                          'Base',
-                                          style: headerListStyle,
-                                          textAlign: TextAlign.right,
-                                        )),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text('Impuestos',
-                                            style: headerListStyle,
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text('Total',
-                                            style: headerListStyle,
-                                            textAlign: TextAlign.right)),
-                                    Expanded(flex: 1, child: Text('')),
-                                  ])));
-                        } else {
-                          return Container(
-                              color: headerListBgColor,
-                              child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 10),
-                                  child: Row(
-                                    children: [
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.green.shade50),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    child: ListView.builder(
+                      itemCount: invoices.length + 1,
+                      itemBuilder: (BuildContext context, int index) {
+                        if (index == 0) {
+                          if (item == null) {
+                            return Container(
+                                color: headerListBgColor,
+                                child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 10),
+                                    child: Row(children: [
                                       Expanded(
                                           flex: 1,
                                           child: Text('Tracker',
@@ -895,9 +858,11 @@ class _FinnsPageState extends State<FinnsPage> {
                                               style: headerListStyle)),
                                       Expanded(
                                           flex: 1,
-                                          child: Text('Base',
-                                              style: headerListStyle,
-                                              textAlign: TextAlign.right)),
+                                          child: Text(
+                                            'Base',
+                                            style: headerListStyle,
+                                            textAlign: TextAlign.right,
+                                          )),
                                       Expanded(
                                           flex: 1,
                                           child: Text('Impuestos',
@@ -908,148 +873,203 @@ class _FinnsPageState extends State<FinnsPage> {
                                           child: Text('Total',
                                               style: headerListStyle,
                                               textAlign: TextAlign.right)),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('% Imputado',
-                                            style: headerListStyle,
-                                            textAlign: TextAlign.right),
-                                      ),
+                                      Expanded(flex: 1, child: Text('')),
+                                    ])));
+                          } else {
+                            return Container(
+                                color: headerListBgColor,
+                                child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 10),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Tracker',
+                                                style: headerListStyle)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Número',
+                                                style: headerListStyle)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Fecha',
+                                                style: headerListStyle)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Base',
+                                                style: headerListStyle,
+                                                textAlign: TextAlign.right)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Impuestos',
+                                                style: headerListStyle,
+                                                textAlign: TextAlign.right)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Total',
+                                                style: headerListStyle,
+                                                textAlign: TextAlign.right)),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text('% Imputado',
+                                              style: headerListStyle,
+                                              textAlign: TextAlign.right),
+                                        ),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('¿Taxes?',
+                                                style: headerListStyle,
+                                                textAlign: TextAlign.center)),
+                                        Expanded(
+                                            flex: 1,
+                                            child: Text('Imputado',
+                                                style: headerListStyle,
+                                                textAlign: TextAlign.right)),
+                                        Expanded(flex: 1, child: Text('')),
+                                      ],
+                                    )));
+                          }
+                        }
+
+                        Invoice invoice = invoices[index - 1];
+                        InvoiceDistrib dist;
+
+                        if ((item != null) &&
+                            item.mapinvoices.containsKey(invoice.uuid)) {
+                          dist = InvoiceDistrib.fromJson(
+                              item.mapinvoices[invoice.uuid]);
+                        } else {
+                          dist = InvoiceDistrib('', '', invoice.uuid,
+                              item!.uuid, 100, invoice.total, false);
+                        }
+
+                        double imputado =
+                            invoice.total * dist!.percentaje * 0.01;
+
+                        Row buttons = Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Button for edit invoice
+                            iconBtn(context, (context, args) {
+                              Invoice invoice = args['invoice'] as Invoice;
+                              Distribution item = args['item'] as Distribution;
+
+                              _editInvoiceDialog(context, invoice, item)
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            }, {'invoice': invoice, 'item': item},
+                                icon: Icons.edit_outlined,
+                                text: 'Editar factura'),
+
+                            iconBtn(context, (context, args) {
+                              Invoice invoice = args['invoice'] as Invoice;
+                              Distribution item = args['item'] as Distribution;
+                              invoice.delete();
+                              _editImputation(context, invoice, item)
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            }, {'invoice': invoice, 'item': item},
+                                icon: Icons.share, text: 'Imputar'),
+
+                            removeConfirmBtn(context, (context, args) {
+                              Invoice item = args as Invoice;
+                              item.delete();
+                              reloadState();
+                            }, invoice),
+                          ],
+                        );
+
+                        if (item == null) {
+                          return Container(
+                              color: (index % 2 == 0)
+                                  ? Colors.white
+                                  : Colors.grey[100],
+                              child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 10),
+                                  child: Row(
+                                    children: [
                                       Expanded(
                                           flex: 1,
-                                          child: Text('¿Taxes?',
-                                              style: headerListStyle,
+                                          child: Text(invoice.tracker)),
+                                      Expanded(
+                                          flex: 1, child: Text(invoice.number)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(DateFormat('dd/MM/yyyy')
+                                              .format(invoice.date))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.base),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.taxes),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.total),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(flex: 1, child: buttons),
+                                    ],
+                                  )));
+                        } else {
+                          return Container(
+                              color: (index % 2 == 0)
+                                  ? Colors.white
+                                  : Colors.grey[100],
+                              child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(invoice.tracker)),
+                                      Expanded(
+                                          flex: 1, child: Text(invoice.number)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(DateFormat('dd/MM/yyyy')
+                                              .format(invoice.date))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.base),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.taxes),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(toCurrency(invoice.total),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                              dist.percentaje
+                                                  .toStringAsFixed(2),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(dist.taxes ? 'Sí' : 'No',
                                               textAlign: TextAlign.center)),
                                       Expanded(
                                           flex: 1,
-                                          child: Text('Imputado',
-                                              style: headerListStyle,
+                                          child: Text(toCurrency(imputado),
                                               textAlign: TextAlign.right)),
-                                      Expanded(flex: 1, child: Text('')),
+                                      Expanded(flex: 1, child: buttons),
                                     ],
                                   )));
                         }
-                      }
-
-                      Invoice invoice = invoices[index - 1];
-                      InvoiceDistrib dist;
-                      if (item != null) {
-                        dist = InvoiceDistrib.fromJson(
-                            item.mapinvoices[invoice.uuid]);
-                      } else {
-                        dist = InvoiceDistrib('', '', invoice.uuid, '', 0);
-                      }
-
-                      double imputado = (dist.taxes)
-                          ? invoice.total * dist.percentaje * 0.01
-                          : invoice.base * dist.percentaje * 0.01;
-
-                      Row buttons = Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          // Button for edit invoice
-                          iconBtn(context, (context, args) {
-                            _editInvoiceDialog(context, args).then((value) {
-                              if (value == null) {
-                                return;
-                              }
-                              reloadState();
-                            });
-                          }, invoice,
-                              icon: Icons.edit_outlined,
-                              text: 'Editar factura'),
-                          // Button for remove invoice
-                          removeConfirmBtn(context, (context, args) {
-                            Invoice item = args as Invoice;
-                            item.delete();
-                            reloadState();
-                          }, invoice),
-                        ],
-                      );
-
-                      if (item == null) {
-                        return Container(
-                            color: (index % 2 == 0)
-                                ? Colors.white
-                                : Colors.grey[100],
-                            child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 10),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                        flex: 1, child: Text(invoice.tracker)),
-                                    Expanded(
-                                        flex: 1, child: Text(invoice.number)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(DateFormat('dd/MM/yyyy')
-                                            .format(invoice.date))),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.base),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.taxes),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.total),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(flex: 1, child: buttons),
-                                  ],
-                                )));
-                      } else {
-                        return Container(
-                            color: (index % 2 == 0)
-                                ? Colors.white
-                                : Colors.grey[100],
-                            child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 10),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                        flex: 1, child: Text(invoice.tracker)),
-                                    Expanded(
-                                        flex: 1, child: Text(invoice.number)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(DateFormat('dd/MM/yyyy')
-                                            .format(invoice.date))),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.base),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.taxes),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(invoice.total),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(
-                                            dist.percentaje.toStringAsFixed(2),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(dist.taxes ? 'Sí' : 'No',
-                                            textAlign: TextAlign.center)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: Text(toCurrency(imputado),
-                                            textAlign: TextAlign.right)),
-                                    Expanded(flex: 1, child: buttons),
-                                  ],
-                                )));
-                      }
-                    },
+                      },
+                    ),
                   ),
-                ),
-              ));
+                ));
+          });
         });
   }
 
@@ -1474,7 +1494,8 @@ class _FinnsPageState extends State<FinnsPage> {
                   alignment: Alignment.centerRight,
                   child: IconButton(
                       onPressed: () {
-                        _editInvoiceDialog(context, invoice).then((value) {
+                        _editInvoiceDialog(context, invoice, null)
+                            .then((value) {
                           if ((value != null) && (value.id == "")) {
                             invoicesItems.remove(invoice);
                           }
@@ -1537,7 +1558,40 @@ class _FinnsPageState extends State<FinnsPage> {
     });
   }
 
-  Future<Invoice?> _editInvoiceDialog(context, Invoice invoice) {
+  Future<InvoiceDistrib?> _editImputation(
+      context, Invoice invoice, Distribution dist) {
+    return InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, invoice.uuid)
+        .then((item) {
+      return showDialog<InvoiceDistrib>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Porcentaje asignado'),
+            content: InvoiceDistributionForm(
+              key: null,
+              item: item,
+            ),
+          );
+        },
+      ).then((value) {
+        if (value != null) {
+          dist.mapinvoices[value.invoice] = value.toJson();
+          dist.save();
+          finnInfo.distributions[finnInfo.distributions.indexOf(dist)] = dist;
+          finnInfo.save();
+          if (mounted) {
+            setState(() {
+              partnersContainer = populatePartnersContainer();
+            });
+          }
+        }
+        return value;
+      });
+    });
+  }
+
+  Future<Invoice?> _editInvoiceDialog(
+      context, Invoice invoice, Distribution? dist) {
     return showDialog<Invoice>(
       context: context,
       barrierDismissible: false,
@@ -1548,7 +1602,35 @@ class _FinnsPageState extends State<FinnsPage> {
             content: InvoiceForm(
                 existingInvoice: invoice, partner: partners.values.first));
       },
-    );
+    ).then((value) {
+      if ((value != null) && (dist != null)) {
+        InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, value.uuid)
+            .then((item) {
+          showDialog<InvoiceDistrib>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Porcentaje asignado'),
+                content: InvoiceDistributionForm(
+                  key: null,
+                  item: item,
+                ),
+              );
+            },
+          ).then((value) {
+            if (value != null) {
+              dist.mapinvoices[value.invoice] = value.toJson();
+              dist.save();
+              finnInfo.distributions[finnInfo.distributions.indexOf(dist)] =
+                  dist;
+              finnInfo.save();
+              setState(() {});
+            }
+          });
+        });
+      }
+      return value;
+    });
   }
 
   void addFinnDialog(context, [args]) {

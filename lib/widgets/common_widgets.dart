@@ -949,14 +949,18 @@ Expanded headerCell(
 }
 
 Expanded listCell(
-    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+    {int flex = 1, dynamic text = '', TextAlign textAlign = TextAlign.start}) {
   return Expanded(
       flex: flex,
-      child: Text(
-        text,
-        style: cellsListStyle,
-        textAlign: textAlign,
-      ));
+      child:
+          //check type of text
+          (text is String)
+              ? Text(
+                  text,
+                  style: cellsListStyle,
+                  textAlign: textAlign,
+                )
+              : text);
 }
 
 //--------------------------------------------------------------------------

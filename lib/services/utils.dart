@@ -130,9 +130,15 @@ int getWorkingDaysBetween(DateTime date1, DateTime date2) {
 }
 
 String toCurrency(double value, [String symbol = 'EUR']) {
-  return NumberFormat.currency(
-          locale: 'es_ES', symbol: CURRENCIES[symbol]!.value)
-      .format(value);
+  try {
+    return NumberFormat.currency(
+            locale: 'es_ES', symbol: CURRENCIES[symbol]!.value)
+        .format(value);
+  } catch (e) {
+    return NumberFormat.currency(
+            locale: 'es_ES', symbol: CURRENCIES['EUR']!.value)
+        .format(value);
+  }
 }
 
 String showException(dynamic e) {
