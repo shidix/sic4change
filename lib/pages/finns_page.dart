@@ -806,12 +806,13 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Future<void> listInvoices(context, Distribution? item) async {
     List<Invoice> invoices = [];
+
     if (item == null) {
       invoices =
           //await Invoice.all();
           await Invoice.afterDate(DateTime(DateTime.now().year - 1, 1, 1));
     } else {
-      item!.invoices.removeWhere((element) => element.tracker == "");
+      item.invoices.removeWhere((element) => element.tracker == "");
       invoices = item.invoices;
     }
     invoices.sort((a, b) => a.date.compareTo(b.date));
@@ -966,7 +967,6 @@ class _FinnsPageState extends State<FinnsPage> {
                             iconBtn(context, (context, args) {
                               Invoice invoice = args['invoice'] as Invoice;
                               Distribution item = args['item'] as Distribution;
-                              invoice.delete();
                               _editImputation(context, invoice, item)
                                   .then((value) {
                                 setState(() {});
@@ -974,11 +974,11 @@ class _FinnsPageState extends State<FinnsPage> {
                             }, {'invoice': invoice, 'item': item},
                                 icon: Icons.share, text: 'Imputar'),
 
-                            removeConfirmBtn(context, (context, args) {
-                              Invoice item = args as Invoice;
-                              item.delete();
-                              reloadState();
-                            }, invoice),
+                            // removeConfirmBtn(context, (context, args) {
+                            //   Invoice item = args as Invoice;
+                            //   item.delete();
+                            //   reloadState();
+                            // }, invoice),
                           ],
                         );
 
@@ -1194,8 +1194,7 @@ class _FinnsPageState extends State<FinnsPage> {
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 if (dist.mapinvoices.keys.isNotEmpty)
                   iconBtn(context, listInvoices, dist,
-                      icon: Icons.list,
-                      text: '${dist.mapinvoices.keys.length} facturas')
+                      icon: Icons.list, text: 'Ver facturas')
                 else
                   iconBtn(context, (context, args) {}, dist,
                       icon: Icons.list,
@@ -1525,6 +1524,7 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     ).then((value) {
       if (value != null) {
+        dist.invoices.add(value);
         InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, value.uuid)
             .then((item) {
           showDialog<InvoiceDistrib>(
@@ -1540,7 +1540,15 @@ class _FinnsPageState extends State<FinnsPage> {
             },
           ).then((value) {
             if (value != null) {
-              dist.mapinvoices[value.invoice] = value.toJson();
+              if (value.percentaje == 0) {
+                dist.invoices.remove(value.invoice);
+                if (dist.mapinvoices.containsKey(value.invoice)) {
+                  dist.mapinvoices.remove(value.invoice);
+                }
+              } else {
+                dist.mapinvoices[value.invoice] = value.toJson();
+              }
+
               dist.save();
               finnInfo.distributions[finnInfo.distributions.indexOf(dist)] =
                   dist;
@@ -1575,14 +1583,30 @@ class _FinnsPageState extends State<FinnsPage> {
         },
       ).then((value) {
         if (value != null) {
-          dist.mapinvoices[value.invoice] = value.toJson();
-          dist.save();
-          finnInfo.distributions[finnInfo.distributions.indexOf(dist)] = dist;
-          finnInfo.save();
-          if (mounted) {
-            setState(() {
-              partnersContainer = populatePartnersContainer();
-            });
+          if (value.percentaje == 0) {
+            dist.invoices
+                .removeWhere((element) => value.invoice == element.uuid);
+            if (dist.mapinvoices.containsKey(value.invoice)) {
+              dist.mapinvoices.remove(value.invoice);
+            }
+            dist.save();
+            finnInfo.distributions[finnInfo.distributions.indexOf(dist)] = dist;
+            finnInfo.save();
+            if (mounted) {
+              setState(() {
+                partnersContainer = populatePartnersContainer();
+              });
+            }
+          } else {
+            dist.mapinvoices[value.invoice] = value.toJson();
+            dist.save();
+            finnInfo.distributions[finnInfo.distributions.indexOf(dist)] = dist;
+            finnInfo.save();
+            if (mounted) {
+              setState(() {
+                partnersContainer = populatePartnersContainer();
+              });
+            }
           }
         }
         return value;

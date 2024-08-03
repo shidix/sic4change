@@ -1437,11 +1437,17 @@ class Distribution extends Object {
           item.mapinvoices = json["mapinvoices"];
           for (var element in item.mapinvoices.keys) {
             Invoice.getByUuid(element).then((value) {
-              item.invoices.add(value);
+              if (value.id != "") {
+                item.invoices.add(value);
+              } else {
+                item.mapinvoices.remove(element);
+                item.save();
+              }
             });
           }
         }
       }
+
       return item;
     } catch (e, stacktrace) {
       log(e.toString());
@@ -1495,7 +1501,7 @@ class Distribution extends Object {
 
   static Future<List<Distribution>> byProject(String uuid) async {
     final collection = db.collection("s4c_distributions");
-    final query = await collection.where("finn.project", isEqualTo: uuid).get();
+    final query = await collection.where("project", isEqualTo: uuid).get();
     List<Distribution> items = [];
     for (var element in query.docs) {
       Distribution item = Distribution.fromJson(element.data());
