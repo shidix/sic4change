@@ -1,5 +1,7 @@
 //import 'dart:collection';
 
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
@@ -390,7 +392,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${prList[index].name}'),
+                            Text(prList[index].name),
                             IconButton(
                               icon: const Icon(
                                 Icons.remove,

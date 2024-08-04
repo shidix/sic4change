@@ -75,10 +75,7 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
       body: Column(
         children: [
           mainMenu(context),
-          if (pickedFile != null)
-            Container(
-              child: Image.memory(pickedFileBytes!),
-            ),
+          if (pickedFile != null) Image.memory(pickedFileBytes!),
           Text(fileUrl),
           space(height: 30),
           ElevatedButton(

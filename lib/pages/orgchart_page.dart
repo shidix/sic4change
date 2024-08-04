@@ -168,8 +168,7 @@ class _OrgchartState extends State<Orgchart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Container(
+      body: SingleChildScrollView(
           child: Column(
         children: [
           mainMenu(context, "/orgchart"),
@@ -201,6 +200,6 @@ class _OrgchartState extends State<Orgchart> {
           // ),
         ],
       )),
-    ));
+    );
   }
 }

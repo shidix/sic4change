@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
@@ -110,7 +112,7 @@ class Province {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbProvince.add(data);
@@ -178,7 +180,7 @@ class Region {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbRegion.add(data);
@@ -246,7 +248,7 @@ class Town {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbTown.add(data);

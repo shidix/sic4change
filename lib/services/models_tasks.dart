@@ -1,5 +1,7 @@
 // import 'dart:convert';
 
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
@@ -442,7 +444,7 @@ class TasksStatus {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbTasksStatus.add(data);

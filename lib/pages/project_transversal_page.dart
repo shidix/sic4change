@@ -7,14 +7,12 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/transversal_question_form.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';

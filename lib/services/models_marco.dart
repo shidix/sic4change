@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -404,7 +406,7 @@ class Result {
     dataProject["id"] = dbProj.id;
     project = SProject.fromJson(dataProject);
 
-    return project.name + " > " + goal.name + " > " + result.name;
+    return "${project.name} > ${goal.name} > ${result.name}";
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
@@ -798,7 +800,7 @@ class ResultTask {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = Uuid();
+      var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
       dbResultTask.add(data);
@@ -846,20 +848,20 @@ Future<String> getProjectByResultTask(String _uuid) async {
   dataResult["id"] = _dbResult.id;
   Result _result = Result.fromJson(dataResult);
 
-  QuerySnapshot query_g =
+  QuerySnapshot queryG =
       await dbGoal.where("uuid", isEqualTo: _result.goal).get();
-  final _dbGoal = query_g.docs.first;
+  final _dbGoal = queryG.docs.first;
   final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
   dataGoal["id"] = _dbGoal.id;
   Goal _goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot query_p =
+  QuerySnapshot queryP =
       await dbProject.where("uuid", isEqualTo: _goal.project).get();
-  final _dbProject = query_p.docs.first;
+  final _dbProject = queryP.docs.first;
   final Map<String, dynamic> dataProject =
       _dbProject.data() as Map<String, dynamic>;
   dataProject["id"] = _dbProject.id;
   SProject _project = SProject.fromJson(dataProject);
 
-  return _project.name + " > " + _goal.name + " > " + _result.name;
+  return "${_project.name} > ${_goal.name} > ${_result.name}";
 }

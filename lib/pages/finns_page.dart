@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers
+// ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers, unnecessary_null_comparison
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -946,7 +946,7 @@ class _FinnsPageState extends State<FinnsPage> {
                         }
 
                         double imputado =
-                            invoice.total * dist!.percentaje * 0.01;
+                            invoice.total * dist.percentaje * 0.01;
 
                         Row buttons = Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -1507,6 +1507,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
 // ------------------ DIALOGS ------------------
   Future<Invoice?> _addInvoiceDialog(context, Distribution dist) {
+    Invoice? invoiceSelected;
     return showDialog<Invoice>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -1524,6 +1525,7 @@ class _FinnsPageState extends State<FinnsPage> {
       },
     ).then((value) {
       if (value != null) {
+        invoiceSelected = value;
         dist.invoices.add(value);
         InvoiceDistrib.getByDistributionAndInvoice(dist.uuid, value.uuid)
             .then((item) {
@@ -1541,7 +1543,7 @@ class _FinnsPageState extends State<FinnsPage> {
           ).then((value) {
             if (value != null) {
               if (value.percentaje == 0) {
-                dist.invoices.remove(value.invoice);
+                dist.invoices.remove(invoiceSelected);
                 if (dist.mapinvoices.containsKey(value.invoice)) {
                   dist.mapinvoices.remove(value.invoice);
                 }

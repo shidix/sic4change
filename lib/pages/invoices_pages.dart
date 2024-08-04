@@ -256,13 +256,13 @@ class _InvoicePageState extends State<InvoicePage> {
           return AlertDialog(
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Imputaciones', context),
-            content: Text('No hay imputaciones para esta factura.'),
+            content: const Text('No hay imputaciones para esta factura.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Cerrar'),
+                child: const Text('Cerrar'),
               ),
             ],
           );
@@ -308,7 +308,7 @@ class _InvoicePageState extends State<InvoicePage> {
                   .toList(),
             ));
       }));
-      rows.add(Divider());
+      rows.add(const Divider());
       return showDialog(
         context: context,
         builder: (BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_operator_page.dart';
+import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -13,31 +14,32 @@ Widget mainMenuUser(context, [user, url]) {
       children: [
         logo(),
         menuBtn(context, "Inicio", Icons.home, "/home",
-            (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
-        menuBtn(
-            context,
-            "Tareas",
-            Icons.grading_sharp,
-            "/tasks_user",
-            (url == "/tasks_user")
+            color:
+                (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        menuBtn(context, "Tareas", Icons.grading_sharp, "/tasks_user",
+            color: (url == "/tasks_user")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Programas", Icons.list_alt, "/projects",
-            (url == "/projects") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
-        menuBtn(
-            context,
-            "Documentos",
-            Icons.folder,
-            "/documents",
-            (url == "/documents")
+            color: (url == "/projects")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
+        menuBtn(context, "Documentos", Icons.folder, "/documents",
+            color: (url == "/documents")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Facturas", Icons.receipt, "/invoices",
-            (url == "/invoices") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/invoices")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
-            (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/contacts")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtn(context, "Roles", Icons.group, "/orgchart",
-            (url == "/orgchart") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/orgchart")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           customText(user.email!, 14, textColor: Colors.white54),
@@ -54,42 +56,31 @@ Widget mainMenuAdmin(context, [user, url]) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo(),
-        menuBtn(
-            context,
-            "Inicio",
-            Icons.home,
-            "/home_admin",
-            (url == "/home_admin")
+        menuBtn(context, "Inicio", Icons.home, "/home_admin",
+            color: (url == "/home_admin")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtn(
-            context,
-            "Programas",
-            Icons.list_alt,
-            "/project_list",
-            (url == "/project_list")
+        menuBtn(context, "Programas", Icons.list_alt, "/project_list",
+            color: (url == "/project_list")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtn(
-            context,
-            "Documentos",
-            Icons.folder,
-            "/documents",
-            (url == "/documents")
+        menuBtn(context, "Documentos", Icons.folder, "/documents",
+            color: (url == "/documents")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
-            (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/contacts")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtn(context, "Admin", Icons.settings, "/admin",
-            (url == "/admin") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/admin")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
-          menuBtn(
-              context,
-              user.email!,
-              Icons.supervised_user_circle_outlined,
+          menuBtn(context, user.email!, Icons.supervised_user_circle_outlined,
               "/profile",
-              (url == "/profile")
+              color: (url == "/profile")
                   ? mainMenuBtnSelectedColor
                   : mainMenuBtnColor),
       ],
@@ -105,34 +96,30 @@ Widget mainMenuOperator(context, {url, profile}) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo(),
-        (url == "/home_operator")
+        (url == "/home")
             ? menuBtnSelected(
                 context,
                 'Inicio',
                 Icons.home,
               )
             : menuBtnGo(
-                context,
-                'Inicio',
-                HomeOperatorPage(profile: profile),
-                Icons.home,
-                "/home_operator",
-                color: (url == "/home_operator")
-                    ? mainMenuBtnSelectedColor
-                    : mainMenuBtnColor,
-              ),
-        menuBtn(context, "Programas", Icons.list_alt, "/projects",
-            (url == "/projects") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
-        menuBtn(
+                context, 'Inicio', const HomePage(), Icons.home, "/home",
+                currentUrl: url),
+        menuBtnGo(
             context,
-            "Documentos",
-            Icons.folder,
-            "/documents",
-            (url == "/documents")
+            "Área administrativa",
+            HomeOperatorPage(profile: profile),
+            Icons.list_alt,
+            "/home_operator",
+            currentUrl: url),
+        menuBtn(context, "Documentos", Icons.folder, "/documents",
+            color: (url == "/documents")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
-            (url == "/contacts") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+            color: (url == "/contacts")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
       ],
     ),

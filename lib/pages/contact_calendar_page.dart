@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 
@@ -47,11 +48,11 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
   }*/
   Future<String> get _localPath async {
     print("--a.1.1--");
-    //final directory = await getApplicationDocumentsDirectory();
-    final directory = "/home/zeben/develop/sic4change/";
+    final directory = await getApplicationDocumentsDirectory();
+    //final directory = "/home/zeben/develop/sic4change/";
 
     print("--a.1.2--");
-    return directory;
+    return directory.absolute.path;
     //return directory.path;
   }
 
@@ -67,14 +68,14 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
     final file = await _localFile;
 
     print("--b--");
-    print('$value');
+    print(value);
     // Write the file
     try {
-      file.writeAsString('$value');
+      file.writeAsString(value);
     } catch (e) {
       print(e);
     }
-    return file.writeAsString('$value');
+    return file.writeAsString(value);
   }
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(

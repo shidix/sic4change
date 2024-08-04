@@ -11,6 +11,7 @@ import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
@@ -34,6 +35,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   //bool _main = false;
   User user = FirebaseAuth.instance.currentUser!;
+  Profile? profile;
   List<STask>? mytasks = [];
   Contact? contact;
   HolidayRequest? currentHoliday;
@@ -167,6 +169,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    Profile.getProfile(user.email!).then((value) {
+      profile = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
     loadMyData();
     autoStartWorkday(context);
   }
@@ -177,7 +185,10 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenu(context, "/home"),
+          ((profile != null) && (profile!.mainRole == "Administrativo"))
+              ? mainMenuOperator(context, url: "/home", profile: profile)
+              : mainMenu(context, "/home"),
+
           Container(
             height: 10,
           ),

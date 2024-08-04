@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -28,27 +28,31 @@ Widget customTitle(context, _text) {
 }
 
 Widget menuBtn(context, btnName, btnIcon, btnRoute,
-    [Color color = Colors.black38]) {
-  return FilledButton(
-    onPressed: () {
-      Navigator.pushReplacementNamed(context, btnRoute);
-    },
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-      side: const BorderSide(width: 0, color: Color(0xff00594f)),
-      backgroundColor: bgColor,
-      //primary: Colors.purple),
-    ),
-    child: Column(
-      children: [
-        Icon(btnIcon, color: color),
-        Text(
-          btnName,
-          style: TextStyle(color: color, fontSize: 14),
-        ),
-      ],
-    ),
-  );
+    {Color color = Colors.black38, String currentUrl = ""}) {
+  if ((currentUrl == "") || (currentUrl != btnRoute)) {
+    return FilledButton(
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, btnRoute);
+      },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+        side: const BorderSide(width: 0, color: Color(0xff00594f)),
+        backgroundColor: bgColor,
+        //primary: Colors.purple),
+      ),
+      child: Column(
+        children: [
+          Icon(btnIcon, color: color),
+          Text(
+            btnName,
+            style: TextStyle(color: color, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  } else {
+    return menuBtnSelected(context, btnName, btnIcon);
+  }
 }
 
 Widget menuBtnSelected(context, btnName, btnIcon) {
@@ -74,33 +78,40 @@ Widget menuBtnSelected(context, btnName, btnIcon) {
 }
 
 Widget menuBtnGo(context, btnName, newContext, btnIcon, btnRoute,
-    {Color color = Colors.black38, Function? extraction}) {
-  Widget child = Column(
-    children: [
-      Icon(btnIcon, color: color),
-      Text(
-        btnName,
-        style: TextStyle(color: color, fontSize: 14),
-      ),
-    ],
-  );
+    {String? currentUrl, Function? extraction}) {
+  Color color = mainMenuBtnColor;
+  bool isCurrent = ((currentUrl != null) && (currentUrl == btnRoute));
+  if (isCurrent) {
+    color = mainMenuBtnSelectedColor;
+    return menuBtnSelected(context, btnName, btnIcon);
+  } else {
+    Widget child = Column(
+      children: [
+        Icon(btnIcon, color: color),
+        Text(
+          btnName,
+          style: TextStyle(color: color, fontSize: 14),
+        ),
+      ],
+    );
 
-  return FilledButton(
-      onPressed: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: ((context) => newContext),
-                settings: RouteSettings(name: btnRoute)));
-        extraction?.call();
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-        side: const BorderSide(width: 0, color: Color(0xff00594f)),
-        backgroundColor: bgColor,
-        //primary: Colors.purple),
-      ),
-      child: child);
+    return FilledButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) => newContext),
+                  settings: RouteSettings(name: btnRoute)));
+          extraction?.call();
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+          side: const BorderSide(width: 0, color: Color(0xff00594f)),
+          backgroundColor: bgColor,
+          //primary: Colors.purple),
+        ),
+        child: child);
+  }
 }
 
 Widget menuTabSelect(context, btnName, btnRoute, args) {
@@ -1010,8 +1021,7 @@ Widget goPage(context, btnName, newContext, icon,
       child: child);
 }
 
-Widget goPageDoc(context, btnName, newContext, icon,
-    {style = "", extraction = null}) {
+Widget goPageDoc(context, btnName, newContext, icon, {style, extraction}) {
   Widget child = Container(
       width: 250,
       height: 50,
