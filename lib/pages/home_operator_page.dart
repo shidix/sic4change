@@ -119,11 +119,17 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
                           child: Text('Fecha', style: headerListStyle)),
                       Expanded(
                         flex: 1,
-                        child: Text('No firmada', style: headerListStyle),
+                        child: Text(
+                          'No firmada',
+                          style: headerListStyle,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                       Expanded(
                           flex: 1,
-                          child: Text('Firmada', style: headerListStyle)),
+                          child: Text('Firmada',
+                              style: headerListStyle,
+                              textAlign: TextAlign.center)),
                       Expanded(flex: 1, child: Text('')),
                     ],
                   )));
@@ -141,7 +147,7 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
                   Expanded(
                     flex: 1,
                     child: Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: Alignment.center,
                         child: (nominas[index - 1].noSignedPath != null)
                             ? iconBtn(context, (context) {
                                 nominas[index - 1]
@@ -152,7 +158,10 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
                                       .open(toDownload.toString(), 'Download');
                                 });
                               }, null, icon: Icons.download)
-                            : Text('No se ha firmado')),
+                            : Text(
+                                'No se ha firmado',
+                                textAlign: TextAlign.center,
+                              )),
                   ),
 
                   // iconBtn(context, (context) {
@@ -162,16 +171,24 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
                   //   });
                   // }, null, icon: Icons.download)),
                   Expanded(
-                      flex: 1,
-                      child: (nominas[index - 1].signedPath != null)
-                          ? iconBtn(context, (context) {
-                              nominas[index - 1].signedFileUrl().then((value) {
-                                final Uri toDownload = Uri.parse(value);
-                                html.window
-                                    .open(toDownload.toString(), 'Download');
-                              });
-                            }, null, icon: Icons.download)
-                          : Text('No se ha firmado')),
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.center,
+                        child: (nominas[index - 1].signedPath != null)
+                            ? iconBtn(context, (context) {
+                                nominas[index - 1]
+                                    .signedFileUrl()
+                                    .then((value) {
+                                  final Uri toDownload = Uri.parse(value);
+                                  html.window
+                                      .open(toDownload.toString(), 'Download');
+                                });
+                              }, null, icon: Icons.download)
+                            : Text(
+                                'No se ha firmado',
+                                textAlign: TextAlign.center,
+                              )),
+                  ),
                   Expanded(
                       flex: 1,
                       child: Row(
