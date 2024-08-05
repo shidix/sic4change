@@ -1,5 +1,9 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
 import 'package:sic4change/services/model_nominas.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -46,7 +50,13 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
       }
     }
     Nomina.collection.get().then((value) {
-      nominas = value.docs.map((e) => Nomina.fromJson(e.data())).toList();
+      nominas = value.docs.map((e) {
+        Nomina item = Nomina.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+
+      nominas.sort((a, b) => a.compareTo(b));
       if (mounted) {
         setState(() {
           contentPanel = content(context);
@@ -89,25 +99,112 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
 
     Widget listNominas = ListView.builder(
       shrinkWrap: true,
-      itemCount: nominas.length,
+      itemCount: nominas.length + 1,
       itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(nominas[index].employeeCode),
-          subtitle: Text(nominas[index].date.toString()),
-        );
+        if (index == 0) {
+          return Container(
+              color: headerListBgColor,
+              child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                            'Código',
+                            style: headerListStyle,
+                          )),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Fecha', style: headerListStyle)),
+                      Expanded(
+                        flex: 1,
+                        child: Text('No firmada', style: headerListStyle),
+                      ),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Firmada', style: headerListStyle)),
+                      Expanded(flex: 1, child: Text('')),
+                    ],
+                  )));
+        } else {
+          return Container(
+              color: index.isEven ? Colors.grey[200] : Colors.white,
+              child: Row(
+                children: [
+                  Expanded(
+                      flex: 1, child: Text(nominas[index - 1].employeeCode)),
+                  Expanded(
+                      flex: 1,
+                      child: Text(DateFormat('dd/MM/yyyy')
+                          .format(nominas[index - 1].date))),
+                  Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: (nominas[index - 1].noSignedPath != null)
+                            ? iconBtn(context, (context) {
+                                nominas[index - 1]
+                                    .noSignedFileUrl()
+                                    .then((value) {
+                                  final Uri toDownload = Uri.parse(value);
+                                  html.window
+                                      .open(toDownload.toString(), 'Download');
+                                });
+                              }, null, icon: Icons.download)
+                            : Text('No se ha firmado')),
+                  ),
+
+                  // iconBtn(context, (context) {
+                  //   nominas[index - 1].noSignedFileUrl().then((value) {
+                  //     final Uri toDownload = Uri.parse(value);
+                  //     html.window.open(toDownload.toString(), 'Download');
+                  //   });
+                  // }, null, icon: Icons.download)),
+                  Expanded(
+                      flex: 1,
+                      child: (nominas[index - 1].signedPath != null)
+                          ? iconBtn(context, (context) {
+                              nominas[index - 1].signedFileUrl().then((value) {
+                                final Uri toDownload = Uri.parse(value);
+                                html.window
+                                    .open(toDownload.toString(), 'Download');
+                              });
+                            }, null, icon: Icons.download)
+                          : Text('No se ha firmado')),
+                  Expanded(
+                      flex: 1,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                dialogFormNomina(context, index - 1);
+                              }),
+                          removeConfirmBtn(context, () {
+                            nominas[index - 1].delete().then((value) {
+                              nominas.removeAt(index - 1);
+                              setState(() {
+                                contentPanel = content(context);
+                              });
+                            });
+                          }, null),
+                        ],
+                      ))
+                ],
+              ));
+        }
       },
     );
 
     return Card(
-      child:
-          // list with 5 rows and 3 columns using ListView
-          Column(children: [
+      child: Column(children: [
         titleBar,
-        space(height: 10),
-        toolsNomina,
-        listNominas
+        Padding(padding: const EdgeInsets.all(5), child: toolsNomina),
+        Padding(padding: const EdgeInsets.all(5), child: listNominas),
       ] // ListView.builder
-              ),
+          ),
     );
   }
 

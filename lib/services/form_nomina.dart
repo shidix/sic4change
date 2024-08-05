@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:googleapis/keep/v1.dart';
 import 'package:sic4change/services/model_nominas.dart';
@@ -21,6 +23,7 @@ class _NominaFormState extends State<NominaForm> {
   late Nomina nomina;
   late PlatformFile? notSignedFile;
   late PlatformFile? signedFile;
+  String noSignedFileMsg = "";
 
   @override
   void initState() {
@@ -30,12 +33,52 @@ class _NominaFormState extends State<NominaForm> {
     signedFile = null;
   }
 
+  Future<String> uploadFileToStorage(PlatformFile file) async {
+    PlatformFile pickedFile = file;
+    Uint8List? pickedFileBytes = file.bytes;
+    UploadTask? uploadTask;
+
+    String uniqueFileName =
+        "${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}";
+    final path = 'files/nominas/$uniqueFileName';
+    final ref = FirebaseStorage.instance.ref().child(path);
+
+    try {
+      uploadTask = ref.putData(pickedFileBytes!);
+      await uploadTask.whenComplete(() => null);
+    } catch (e) {
+      print(e);
+    }
+    return path;
+  }
+
+  void uploadFile() {
+    if (notSignedFile != null) {
+      uploadFileToStorage(notSignedFile!).then((value) {
+        nomina.noSignedDate = DateTime.now();
+        setState(() {});
+      });
+    }
+  }
+
   void saveNomina() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       nomina.noSignedDate = DateTime.now();
-      nomina.save();
-      Navigator.of(context).pop(nomina);
+      noSignedFileMsg = "";
+      if (notSignedFile != null) {
+        uploadFileToStorage(notSignedFile!).then((value) {
+          nomina.noSignedPath = value;
+          nomina.save();
+          Navigator.of(context).pop(nomina);
+        });
+      } else if (nomina.noSignedPath.isNotEmpty) {
+        nomina.save();
+        Navigator.of(context).pop(nomina);
+      } else {
+        noSignedFileMsg = "Por favor, seleccione un archivo";
+        setState(() {});
+      }
     }
   }
 
@@ -88,7 +131,12 @@ class _NominaFormState extends State<NominaForm> {
                   Expanded(
                       flex: 1,
                       child: UploadFileField(
-                        textToShow: "Sin Firmar",
+                        textToShow: (noSignedFileMsg.isEmpty)
+                            ? "Sin firmar"
+                            : Text(noSignedFileMsg,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.red, fontSize: 12)),
                         pickedFile: notSignedFile,
                         onSelectedFile: (PlatformFile? file) {
                           if (file != null) {

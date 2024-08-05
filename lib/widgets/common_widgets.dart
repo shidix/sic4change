@@ -1148,7 +1148,11 @@ Widget iconBtn(context, action, args,
     icon: Icon(icon, size: iconSize, color: color),
     tooltip: text,
     onPressed: () {
-      action(context, args);
+      if (args != null) {
+        action(context, args);
+      } else {
+        action(context);
+      }
     },
   );
 }
@@ -1688,7 +1692,7 @@ class ReadOnlyTextField extends StatelessWidget {
 }
 
 class UploadFileField extends StatelessWidget {
-  final String textToShow;
+  final Object textToShow;
   final ValueChanged<PlatformFile?> onSelectedFile;
   PlatformFile? pickedFile;
 

@@ -98,4 +98,26 @@ class Nomina {
     items.sort((a, b) => a.noSignedDate.compareTo(b.noSignedDate));
     return items;
   }
+
+  Future<String> noSignedFileUrl() async {
+    final ref = FirebaseStorage.instance.ref().child(noSignedPath);
+    return await ref.getDownloadURL();
+  }
+
+  Future<String> signedFileUrl() async {
+    if (signedPath == null) return '';
+    final ref = FirebaseStorage.instance.ref().child(signedPath!);
+    return await ref.getDownloadURL();
+  }
+
+  int compareTo(Nomina other) {
+    if (date.compareTo(other.date) == 0) {
+      if (noSignedDate.compareTo(other.noSignedDate) == 0) {
+        return employeeCode.compareTo(other.employeeCode);
+      } else {
+        return noSignedDate.compareTo(other.noSignedDate) * -1;
+      }
+    }
+    return date.compareTo(other.date) * -1;
+  }
 }
