@@ -186,7 +186,8 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           ((profile != null) && (profile!.mainRole == "Administrativo"))
-              ? mainMenuOperator(context, url: "/home", profile: profile)
+              ? mainMenu(context,
+                  "/home") //mainMenuOperator(context, url: "/home", profile: profile)
               : mainMenu(context, "/home"),
 
           Container(

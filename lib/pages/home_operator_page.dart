@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/services/model_nominas.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
@@ -12,7 +13,10 @@ class HomeOperatorPage extends StatefulWidget {
 }
 
 class _HomeOperatorPageState extends State<HomeOperatorPage> {
+  GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
+  List<Nomina> nominas = [];
+
   @override
   void initState() {
     super.initState();
@@ -20,11 +24,62 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
         profile = value;
-        setState(() {});
       });
     } else {
       profile = widget.profile;
     }
+
+    Nomina.collection
+        .where('employeeCode', isEqualTo: profile!.email)
+        .get()
+        .then((value) {
+      value.docs.forEach((element) {
+        nominas.add(Nomina.fromJson(element.data()));
+      });
+    });
+  }
+
+  Widget content(context) {
+    return Column(
+      children: [
+        nominasPanel(context),
+      ],
+    );
+  }
+
+  Widget nominasPanel(context) {
+    Widget titleBar = Container(
+      padding: const EdgeInsets.all(10),
+      color: Colors.blue,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Nóminas'),
+          ElevatedButton(
+            onPressed: () {},
+            child: const Text('Ver todo'),
+          )
+        ],
+      ),
+    );
+
+    Widget listNominas = ListView.builder(
+      shrinkWrap: true,
+      itemCount: nominas.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(nominas[index].date.toString()),
+          subtitle: Text(nominas[index].signedDate.toString()),
+        );
+      },
+    );
+
+    return Card(
+      child:
+          // list with 5 rows and 3 columns using ListView
+          Column(children: [titleBar, listNominas] // ListView.builder
+              ),
+    );
   }
 
   @override
@@ -55,10 +110,8 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               mainMenuOperator(context,
-                  url: "/home_operator", profile: profile),
-              Text(
-                'Welcome to Home Operator Page, ${profile!.mainRole}!',
-              ),
+                  url: "/home_operator", profile: profile, key: mainMenuKey),
+              Text("Bienvenido ${profile!.name}"),
             ],
           ),
         ),

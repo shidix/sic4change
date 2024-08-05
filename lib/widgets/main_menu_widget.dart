@@ -88,8 +88,10 @@ Widget mainMenuAdmin(context, [user, url]) {
   );
 }
 
-Widget mainMenuOperator(context, {url, profile}) {
+Widget mainMenuOperator(context, {url, profile, key}) {
+  key ??= const Key('mainMenuOperator');
   return Container(
+    key: key,
     padding: const EdgeInsets.all(3),
     color: bgColor,
     child: Row(
