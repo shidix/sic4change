@@ -28,13 +28,14 @@ class Nomina {
         employeeCode: json['employeeCode'],
         date: getDate(json['date'] ?? DateTime.now().toString()),
         noSignedPath: json['noSignedPath'],
-        noSignedDate: DateTime.parse(json['noSignedDate']),
+        noSignedDate:
+            getDate(json['noSignedDate'] ?? DateTime.now().toString()),
         signedPath: json['signedPath'],
         signedDate: getDate(json['signedDate'] ?? DateTime.now().toString()));
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        'date': date,
         'employeeCode': employeeCode,
         'noSignedPath': noSignedPath,
         'noSignedDate': noSignedDate,
@@ -59,16 +60,25 @@ class Nomina {
     signedDate = null;
   }
 
-  Future<void> save() async {
+  Future<Nomina> save() async {
     if (id == null) {
       await collection.add(toJson()).then((value) => id = value.id);
     } else {
       await collection.doc(id).update(toJson());
     }
+    return this;
   }
 
   Future<void> delete() async {
     await collection.doc(id).delete();
+  }
+
+  static Nomina getEmpty() {
+    return Nomina(
+        employeeCode: '',
+        date: DateTime.now(),
+        noSignedPath: '',
+        noSignedDate: DateTime.now());
   }
 
   static Future<List<Nomina>> getNominas(String employeeCode) async {

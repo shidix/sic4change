@@ -2,6 +2,8 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:js' as js;
@@ -612,9 +614,18 @@ Widget actionButton(
 }
 
 Widget actionButtonVertical(
-    context, String? text, Function action, IconData? icon, dynamic args,
+    context, dynamic text, Function action, IconData? icon, dynamic args,
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
+  Widget textWidget;
+  print(text.runtimeType.toString());
+  if (text is String) {
+    textWidget = customText(text, 12, textColor: subTitleColor);
+  } else if (text is Widget) {
+    textWidget = text;
+  } else {
+    textWidget = const SizedBox(width: 0);
+  }
   return ElevatedButton(
     onPressed: () {
       if (args == null) {
@@ -629,9 +640,7 @@ Widget actionButtonVertical(
         space(height: 5),
         Icon(icon, color: subTitleColor),
         space(height: 5),
-        text != null
-            ? customText(text, 12, textColor: subTitleColor)
-            : const SizedBox(width: 0),
+        textWidget,
         space(height: 5),
       ],
     ),
@@ -906,7 +915,7 @@ Widget customText(_text, _size,
   );
 }
 
-SizedBox s4cTitleBar(String title, [context, icon]) {
+SizedBox s4cTitleBar(dynamic title, [context, icon]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
     closeButton = IconButton(
@@ -917,6 +926,17 @@ SizedBox s4cTitleBar(String title, [context, icon]) {
         Navigator.of(context).pop();
       },
     );
+  }
+
+  Widget titleWidget = const SizedBox(width: 0);
+  if (title is String) {
+    titleWidget = Text(title,
+        style: const TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white));
+  } else if (title is Widget) {
+    titleWidget = title;
+  } else {
+    titleWidget = const SizedBox(width: 0);
   }
 
   Widget iconWidget = const SizedBox(width: 0);
@@ -937,13 +957,7 @@ SizedBox s4cTitleBar(String title, [context, icon]) {
               padding: const EdgeInsets.all(10),
               child: Row(children: [
                 Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
-                Expanded(
-                    flex: 9,
-                    child: Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.white))),
+                Expanded(flex: 9, child: titleWidget),
                 Expanded(flex: 1, child: closeButton)
               ]))));
 }
@@ -978,14 +992,14 @@ Expanded listCell(
 //                           BUTTONS
 //--------------------------------------------------------------------------
 
-Widget goPage(context, btnName, newContext, icon,
-    {style = "", extraction = null}) {
+Widget goPage(context, btnName, newContext, icon, {style = "", extraction}) {
   Widget child = Column(
     children: [
       space(height: 5),
-      Icon(icon, color: subTitleColor),
+      Icon(icon, color: newContext == null ? Colors.black : subTitleColor),
       space(height: 5),
-      customText(btnName, 12, textColor: subTitleColor),
+      customText(btnName, 12,
+          textColor: newContext == null ? Colors.black : subTitleColor),
       space(height: 5),
     ],
   );
@@ -1013,9 +1027,13 @@ Widget goPage(context, btnName, newContext, icon,
   }
   return ElevatedButton(
       onPressed: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: ((context) => newContext)));
-        extraction?.call();
+        if (newContext != null) {
+          Navigator.push(
+              context, MaterialPageRoute(builder: ((context) => newContext)));
+        }
+        if ((extraction != null) && (extraction is Function)) {
+          extraction.call();
+        }
       },
       style: (style == "") ? btnStyle : style,
       child: child);
@@ -1666,6 +1684,44 @@ class ReadOnlyTextField extends StatelessWidget {
                     height: 2.0), // Ajusta el espacio según sea necesario
               ],
             )));
+  }
+}
+
+class UploadFileField extends StatelessWidget {
+  final String textToShow;
+  final ValueChanged<PlatformFile?> onSelectedFile;
+  PlatformFile? pickedFile;
+
+  UploadFileField({
+    super.key,
+    required this.textToShow,
+    required this.onSelectedFile,
+    this.pickedFile,
+  });
+
+  Future<PlatformFile?> chooseFile(context) async {
+    final result =
+        await FilePicker.platform.pickFiles(type: FileType.any, withData: true);
+    if (result == null) {
+      return null;
+    } else {
+      pickedFile = result.files.first;
+      onSelectedFile(pickedFile);
+      return pickedFile;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: actionButtonVertical(
+                context,
+                (pickedFile == null) ? textToShow : pickedFile!.name,
+                chooseFile,
+                Icons.upload_file,
+                context)));
   }
 }
 

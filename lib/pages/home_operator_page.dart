@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/services/form_nomina.dart';
 import 'package:sic4change/services/model_nominas.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 class HomeOperatorPage extends StatefulWidget {
@@ -16,27 +18,51 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
+  Widget contentPanel = const Text('Loading...');
+  Widget mainMenuPanel = const Text('');
+  Widget secondaryMenuPanel = const Row(children: []);
 
   @override
   void initState() {
     super.initState();
+    secondaryMenuPanel = secondaryMenu(context);
     if (widget.profile == null) {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
         profile = value;
+        mainMenuPanel = mainMenuOperator(context,
+            url: "/home_operator", profile: profile, key: mainMenuKey);
+
+        if (mounted) {
+          setState(() {});
+        }
       });
     } else {
       profile = widget.profile;
+      mainMenuPanel = mainMenuOperator(context,
+          url: "/home_operator", profile: profile, key: mainMenuKey);
+      if (mounted) {
+        setState(() {});
+      }
     }
-
-    Nomina.collection
-        .where('employeeCode', isEqualTo: profile!.email)
-        .get()
-        .then((value) {
-      value.docs.forEach((element) {
-        nominas.add(Nomina.fromJson(element.data()));
-      });
+    Nomina.collection.get().then((value) {
+      nominas = value.docs.map((e) => Nomina.fromJson(e.data())).toList();
+      if (mounted) {
+        setState(() {
+          contentPanel = content(context);
+        });
+      }
     });
+  }
+
+  Widget secondaryMenu(context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        goPage(context, "Nóminas", null, Icons.euro_symbol),
+      ],
+    );
   }
 
   Widget content(context) {
@@ -48,19 +74,17 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
   }
 
   Widget nominasPanel(context) {
-    Widget titleBar = Container(
-      padding: const EdgeInsets.all(10),
-      color: Colors.blue,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Nóminas'),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('Ver todo'),
-          )
-        ],
-      ),
+    Widget titleBar = s4cTitleBar(const Padding(
+        padding: EdgeInsets.all(5),
+        child: Text('Listado de Nóminas',
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold))));
+
+    Widget toolsNomina = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [addBtnRow(context, dialogFormNomina, -1)],
     );
 
     Widget listNominas = ListView.builder(
@@ -68,8 +92,8 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
       itemCount: nominas.length,
       itemBuilder: (context, index) {
         return ListTile(
-          title: Text(nominas[index].date.toString()),
-          subtitle: Text(nominas[index].signedDate.toString()),
+          title: Text(nominas[index].employeeCode),
+          subtitle: Text(nominas[index].date.toString()),
         );
       },
     );
@@ -77,8 +101,49 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
     return Card(
       child:
           // list with 5 rows and 3 columns using ListView
-          Column(children: [titleBar, listNominas] // ListView.builder
+          Column(children: [
+        titleBar,
+        space(height: 10),
+        toolsNomina,
+        listNominas
+      ] // ListView.builder
               ),
+    );
+  }
+
+  void dialogFormNomina(BuildContext context, int index) {
+    showDialog<Nomina>(
+        context: context,
+        builder: (BuildContext context) {
+          Nomina? nomina;
+          if (index == -1) {
+            nomina = Nomina(
+                employeeCode: '',
+                date: DateTime.now(),
+                noSignedPath: '',
+                noSignedDate: DateTime.now());
+          } else {
+            nomina = nominas[index];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Nómina', context, Icons.add_outlined),
+            content: NominaForm(
+              selectedItem: nomina,
+            ),
+          );
+        }).then(
+      (value) {
+        if (value != null) {
+          if (index == -1) {
+            nominas.add(value);
+          } else {
+            nominas[index] = value;
+          }
+          setState(() {
+            contentPanel = content(context);
+          });
+        }
+      },
     );
   }
 
@@ -109,9 +174,10 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context,
-                  url: "/home_operator", profile: profile, key: mainMenuKey),
-              Text("Bienvenido ${profile!.name}"),
+              mainMenuPanel,
+              Padding(
+                  padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
+              contentPanel,
             ],
           ),
         ),
