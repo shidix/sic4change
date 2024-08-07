@@ -121,3 +121,128 @@ class Nomina {
     return date.compareTo(other.date) * -1;
   }
 }
+
+class Employee {
+  static final db = FirebaseFirestore.instance;
+  static final collection = db.collection("s4c_employees");
+
+  String? id;
+  String code;
+  String firstName;
+  String lastName1;
+  String lastName2;
+  String email;
+  String phone;
+  List<DateTime> altas = [];
+  List<DateTime> bajas = [];
+  String? photoPath;
+
+  Employee(
+      {required this.code,
+      required this.firstName,
+      required this.lastName1,
+      required this.lastName2,
+      required this.email,
+      required this.phone,
+      this.altas = const [],
+      this.bajas = const [],
+      this.photoPath});
+
+  factory Employee.fromJson(Map<String, dynamic> json) {
+    return Employee(
+      code: json['code'],
+      firstName: json['firstName'],
+      lastName1: json['lastName1'],
+      lastName2: json['lastName2'],
+      email: json['email'],
+      phone: json['phone'],
+      photoPath: json['photoPath'],
+      altas: (json['altas'] == null) || (json['altas'].isEmpty)
+          ? []
+          : json['altas'].map((e) => getDate(e)).toList(),
+      bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
+          ? []
+          : json['bajas'].map((e) => getDate(e)).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'firstName': firstName,
+        'lastName1': lastName1,
+        'lastName2': lastName2,
+        'email': email,
+        'phone': phone,
+        'photoPath': photoPath,
+        'altas': altas.map((e) => e).toList(),
+        'bajas': bajas.map((e) => e).toList(),
+      };
+
+  Future<String> getPhotoUrl() async {
+    return await FirebaseStorage.instance.ref(photoPath!).getDownloadURL();
+  }
+
+  Future<void> setPhotoPath(String path) async {
+    photoPath = path;
+  }
+
+  Future<void> removePhotoPath() async {
+    photoPath = null;
+  }
+
+  Future<Employee> save() async {
+    if (id == null) {
+      await collection.add(toJson()).then((value) => id = value.id);
+    } else {
+      await collection.doc(id).update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await collection.doc(id).delete();
+  }
+
+  static Employee getEmpty() {
+    return Employee(
+        code: '',
+        firstName: '',
+        lastName1: '',
+        lastName2: '',
+        email: '',
+        phone: '');
+  }
+
+  static Future<List<Employee>> getEmployees() async {
+    // get from database
+    List<Employee> items = [];
+    await collection.get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Employee item = Employee.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.compareTo(b));
+
+    return items;
+  }
+
+  Future<String> photoFileUrl() async {
+    final ref = FirebaseStorage.instance.ref().child(photoPath!);
+    return await ref.getDownloadURL();
+  }
+
+  int compareTo(Employee other) {
+    if (lastName1.compareTo(other.lastName1) == 0) {
+      if (lastName2.compareTo(other.lastName2) == 0) {
+        return firstName.compareTo(other.firstName);
+      } else {
+        return lastName2.compareTo(other.lastName2);
+      }
+    }
+    return lastName1.compareTo(other.lastName1);
+  }
+}

@@ -5,20 +5,23 @@ import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
-import 'package:sic4change/services/model_nominas.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
-class HomeOperatorPage extends StatefulWidget {
+class NominasPage extends StatefulWidget {
   final Profile? profile;
-  const HomeOperatorPage({Key? key, this.profile}) : super(key: key);
+  final String? codeEmployee;
+  const NominasPage({Key? key, this.profile, this.codeEmployee})
+      : super(key: key);
 
   @override
-  State<HomeOperatorPage> createState() => _HomeOperatorPageState();
+  State<NominasPage> createState() => _NominasPageState();
 }
 
-class _HomeOperatorPageState extends State<HomeOperatorPage> {
+class _NominasPageState extends State<NominasPage> {
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
@@ -29,7 +32,7 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
   @override
   void initState() {
     super.initState();
-    secondaryMenuPanel = secondaryMenu(context);
+    secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
     if (widget.profile == null) {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
@@ -56,6 +59,12 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
         return item;
       }).toList();
 
+      if (widget.codeEmployee != null) {
+        nominas = nominas
+            .where((element) => element.employeeCode == widget.codeEmployee)
+            .toList();
+      }
+
       nominas.sort((a, b) => a.compareTo(b));
       if (mounted) {
         setState(() {
@@ -63,16 +72,6 @@ class _HomeOperatorPageState extends State<HomeOperatorPage> {
         });
       }
     });
-  }
-
-  Widget secondaryMenu(context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        goPage(context, "Nóminas", null, Icons.euro_symbol),
-      ],
-    );
   }
 
   Widget content(context) {

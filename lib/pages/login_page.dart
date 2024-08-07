@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
-import 'package:sic4change/pages/home_operator_page.dart';
+import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/pages/rrhh_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -237,7 +238,7 @@ Future signIn(context, emailController, passwdController) async {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: ((context) => HomeOperatorPage(profile: profile))));
+            builder: ((context) => EmployeesPage(profile: profile))));
   } else {
     Navigator.push(
         context, MaterialPageRoute(builder: ((context) => const HomePage())));

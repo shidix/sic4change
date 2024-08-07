@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
-import 'package:sic4change/pages/home_operator_page.dart';
+import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
@@ -14,6 +14,7 @@ import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
+import 'package:sic4change/pages/rrhh_page.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
   final _routes = {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
-    '/home_operator': (context) => const HomeOperatorPage(profile: null),
+    '/home_operator': (context) => const EmployeesPage(profile: null),
     '/home_admin': (context) => const HomeAdminPage(),
     '/projects': (context) => const ProjectsPage(),
     '/project_list': (context) => const ProjectListPage(),
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
     '/result_tasks': (context) => const ResultTasksPage(),
+    '/rrhh': (context) => const NominasPage(profile: null),
     '/risks': (context) => const RisksPage(),
     '/transfers': (context) => TransfersPage(
           project: null,

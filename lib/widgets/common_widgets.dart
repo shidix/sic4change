@@ -1028,6 +1028,10 @@ Widget goPage(context, btnName, newContext, icon, {style = "", extraction}) {
   return ElevatedButton(
       onPressed: () {
         if (newContext != null) {
+          try {
+            Navigator.of(context).pop();
+          } catch (e) {}
+          ;
           Navigator.push(
               context, MaterialPageRoute(builder: ((context) => newContext)));
         }
