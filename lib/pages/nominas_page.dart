@@ -38,7 +38,9 @@ class _NominasPageState extends State<NominasPage> {
           .then((value) {
         profile = value;
         mainMenuPanel = mainMenuOperator(context,
-            url: "/home_operator", profile: profile, key: mainMenuKey);
+            url: ModalRoute.of(context)!.settings.name,
+            profile: profile,
+            key: mainMenuKey);
 
         if (mounted) {
           setState(() {});
@@ -47,7 +49,9 @@ class _NominasPageState extends State<NominasPage> {
     } else {
       profile = widget.profile;
       mainMenuPanel = mainMenuOperator(context,
-          url: "/home_operator", profile: profile, key: mainMenuKey);
+          url: ModalRoute.of(context)!.settings.name,
+          profile: profile,
+          key: mainMenuKey);
       if (mounted) {
         setState(() {});
       }
@@ -271,7 +275,7 @@ class _NominasPageState extends State<NominasPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               mainMenuOperator(context,
-                  url: "/home_operator", profile: profile),
+                  url: ModalRoute.of(context)!.settings.name, profile: profile),
               const CircularProgressIndicator(),
               const Text(
                 'Loading profile...',

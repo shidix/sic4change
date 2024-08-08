@@ -57,7 +57,6 @@ class _ProgrammePageState extends State<ProgrammePage> {
       }
     }
 
-    print("DBG 000");
     for (SProject project in projects) {
       print("DBG: ${project.uuid}");
       finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);

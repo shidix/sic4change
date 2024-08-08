@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/rrhh_page.dart';
+import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -224,23 +224,33 @@ Future signIn(context, emailController, passwdController) async {
       password: passwdController.text.trim(),
     );
     final user = FirebaseAuth.instance.currentUser!;
-    profile = await Profile.getProfile(user.email!);
+    if (FirebaseAuth.instance.currentUser != null) {
+      profile = await Profile.getProfile(user.email!);
+    } else {
+      Navigator.pop(context);
+      return;
+    }
   } on FirebaseException catch (e) {
     print(e);
   }
   //navigatorKey.currentState!.popUntil((route) => route.isFirst);
 
-  Navigator.pop(context);
-  if (profile?.mainRole == "Admin") {
-    Navigator.push(context,
-        MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
-  } else if (profile?.mainRole == "Administrativo") {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: ((context) => EmployeesPage(profile: profile))));
+  if (FirebaseAuth.instance.currentUser == null) {
+    Navigator.pop(context);
+    return;
   } else {
-    Navigator.push(
-        context, MaterialPageRoute(builder: ((context) => const HomePage())));
+    Navigator.pop(context);
+    if (profile?.mainRole == "Admin") {
+      Navigator.push(context,
+          MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+    } else if (profile?.mainRole == "Administrativo") {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: ((context) => EmployeesPage(profile: profile))));
+    } else {
+      Navigator.push(
+          context, MaterialPageRoute(builder: ((context) => const HomePage())));
+    }
   }
 }

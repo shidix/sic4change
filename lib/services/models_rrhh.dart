@@ -26,12 +26,11 @@ class Nomina {
   factory Nomina.fromJson(Map<String, dynamic> json) {
     return Nomina(
         employeeCode: json['employeeCode'],
-        date: getDate(json['date'] ?? DateTime.now().toString()),
+        date: getDate(json['date'] ?? DateTime.now()),
         noSignedPath: json['noSignedPath'],
-        noSignedDate:
-            getDate(json['noSignedDate'] ?? DateTime.now().toString()),
+        noSignedDate: getDate(json['noSignedDate'] ?? DateTime.now()),
         signedPath: json['signedPath'],
-        signedDate: getDate(json['signedDate'] ?? DateTime.now().toString()));
+        signedDate: getDate(json['signedDate'] ?? DateTime.now()));
   }
 
   Map<String, dynamic> toJson() => {
@@ -133,8 +132,10 @@ class Employee {
   String lastName2;
   String email;
   String phone;
-  List<DateTime> altas = [];
-  List<DateTime> bajas = [];
+  String position;
+  String category;
+  List altas = [];
+  List bajas = [];
   String? photoPath;
 
   Employee(
@@ -144,6 +145,8 @@ class Employee {
       required this.lastName2,
       required this.email,
       required this.phone,
+      required this.position,
+      required this.category,
       this.altas = const [],
       this.bajas = const [],
       this.photoPath});
@@ -157,6 +160,8 @@ class Employee {
       email: json['email'],
       phone: json['phone'],
       photoPath: json['photoPath'],
+      category: (json.containsKey('category')) ? json['category'] : '',
+      position: (json.containsKey('position')) ? json['position'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
           ? []
           : json['altas'].map((e) => getDate(e)).toList(),
@@ -174,6 +179,8 @@ class Employee {
         'email': email,
         'phone': phone,
         'photoPath': photoPath,
+        'category': category,
+        'position': position,
         'altas': altas.map((e) => e).toList(),
         'bajas': bajas.map((e) => e).toList(),
       };
@@ -191,6 +198,8 @@ class Employee {
   }
 
   Future<Employee> save() async {
+    altas.sort();
+    bajas.sort();
     if (id == null) {
       await collection.add(toJson()).then((value) => id = value.id);
     } else {
@@ -210,7 +219,11 @@ class Employee {
         lastName1: '',
         lastName2: '',
         email: '',
-        phone: '');
+        phone: '',
+        position: '',
+        category: '',
+        altas: [DateTime.now()],
+        bajas: []);
   }
 
   static Future<List<Employee>> getEmployees() async {
@@ -236,13 +249,40 @@ class Employee {
   }
 
   int compareTo(Employee other) {
-    if (lastName1.compareTo(other.lastName1) == 0) {
-      if (lastName2.compareTo(other.lastName2) == 0) {
-        return firstName.compareTo(other.firstName);
+    // sort by lastName1, lastName2, firstName ignoring case
+
+    if (lastName1.toLowerCase().compareTo(other.lastName1.toLowerCase()) == 0) {
+      if (lastName2.toLowerCase().compareTo(other.lastName2.toLowerCase()) ==
+          0) {
+        return firstName.toLowerCase().compareTo(other.firstName.toLowerCase());
       } else {
-        return lastName2.compareTo(other.lastName2);
+        return lastName2.toLowerCase().compareTo(other.lastName2.toLowerCase());
       }
     }
-    return lastName1.compareTo(other.lastName1);
+    return lastName1.toLowerCase().compareTo(other.lastName1.toLowerCase());
+  }
+
+  DateTime getAltaDate() {
+    if (altas.isEmpty) {
+      altas.add(DateTime.now());
+    }
+    altas.sort();
+    return altas.last;
+  }
+
+  DateTime getBajaDate() {
+    if (bajas.isEmpty) {
+      //return date in one year
+      return DateTime.now().add(const Duration(days: 365));
+    }
+    bajas.sort();
+    return bajas.last;
+  }
+
+  bool isActive() {
+    return (altas.isNotEmpty &&
+        (bajas.isEmpty ||
+            (getAltaDate().isAfter(getBajaDate()) ||
+                !getBajaDate().isBefore(DateTime.now()))));
   }
 }

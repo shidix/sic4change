@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/rrhh_page.dart';
+import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -25,6 +25,8 @@ Widget secondaryMenu(context, int option, Profile? profile) {
           ? goPage(context, 'Empleados', EmployeesPage(profile: profile),
               Icons.people)
           : goPage(context, 'Empleados', null, Icons.people),
+      space(width: 10),
+      backButton(context),
     ],
   );
 }

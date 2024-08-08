@@ -618,7 +618,6 @@ Widget actionButtonVertical(
     {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
   icon ??= Icons.settings;
   Widget textWidget;
-  print(text.runtimeType.toString());
   if (text is String) {
     textWidget = customText(text, 12, textColor: subTitleColor);
   } else if (text is Widget) {
@@ -1028,10 +1027,10 @@ Widget goPage(context, btnName, newContext, icon, {style = "", extraction}) {
   return ElevatedButton(
       onPressed: () {
         if (newContext != null) {
-          try {
-            Navigator.of(context).pop();
-          } catch (e) {}
-          ;
+          // try {
+          //   Navigator.of(context).pop();
+          // } catch (e) {}
+          // ;
           Navigator.push(
               context, MaterialPageRoute(builder: ((context) => newContext)));
         }
@@ -1156,6 +1155,42 @@ Widget iconBtn(context, action, args,
         action(context, args);
       } else {
         action(context);
+      }
+    },
+  );
+}
+
+Widget iconBtnConfirm(context, action, args,
+    {text = '', icon = Icons.info, iconSize = 20, color = Colors.black}) {
+  return IconButton(
+    icon: Icon(icon, size: iconSize, color: color),
+    tooltip: text,
+    onPressed: () async {
+      bool confirmation = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: const Text('Confirmación'),
+                content: const Text('¿Está seguro de realizar esta acción?'),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, false);
+                      },
+                      child: const Text('Cancelar')),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                      },
+                      child: const Text('Aceptar')),
+                ]);
+          }) as bool;
+      if (confirmation) {
+        if (args != null) {
+          action(context, args);
+        } else {
+          action(context);
+        }
       }
     },
   );

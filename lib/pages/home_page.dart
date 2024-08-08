@@ -45,6 +45,7 @@ class _HomePageState extends State<HomePage> {
   Workday? currentWorkday;
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
+  Widget mainMenuWidget = Container();
 
   List<SProject>? myProjects;
 
@@ -169,14 +170,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    Profile.getProfile(user.email!).then((value) {
-      profile = value;
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    loadMyData();
-    autoStartWorkday(context);
+    if (user.email == null) {
+      Navigator.of(context).pushNamed('/');
+    } else {
+      Profile.getProfile(user.email!).then((value) {
+        profile = value;
+        if ((profile != null) && (profile!.mainRole == "Administrativo")) {
+          mainMenuWidget = mainMenuOperator(context,
+              url: ModalRoute.of(context)!.settings.name, profile: profile);
+        } else {
+          mainMenuWidget = mainMenu(context, "/home");
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      loadMyData();
+      autoStartWorkday(context);
+    }
   }
 
   @override
@@ -185,10 +196,7 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          ((profile != null) && (profile!.mainRole == "Administrativo"))
-              ? mainMenuOperator(context, url: "/home", profile: profile)
-              : mainMenu(context, "/home"),
-
+          mainMenuWidget,
           Container(
             height: 10,
           ),

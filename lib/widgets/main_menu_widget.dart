@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/rrhh_page.dart';
+import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -109,7 +109,7 @@ Widget mainMenuOperator(context, {url, profile, key}) {
                 context, 'Inicio', const HomePage(), Icons.home, "/home",
                 currentUrl: url),
         menuBtnGo(context, "Área administrativa",
-            EmployeesPage(profile: profile), Icons.list_alt, "/home_operator",
+            EmployeesPage(profile: profile), Icons.list_alt, "/rrhh",
             currentUrl: url),
         menuBtn(context, "Documentos", Icons.folder, "/documents",
             color: (url == "/documents")

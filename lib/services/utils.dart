@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -164,15 +165,31 @@ Icon getIcon(bool value, {double size = 24.0}) {
 }
 
 DateTime getDate(dynamic date) {
-  try {
+  DateTime convert = DateTime(2099, 12, 31);
+  if (date == null) {
+    return convert;
+  }
+  if (date is DateTime) {
+    return date;
+  }
+  if (date is Timestamp) {
     return date.toDate();
-  } catch (e) {
+  }
+  if (date is String) {
     try {
       return DateTime.parse(date);
     } catch (e) {
-      return date;
+      return convert;
     }
   }
+  if (date is int) {
+    try {
+      return DateTime.fromMillisecondsSinceEpoch(date);
+    } catch (e) {
+      return convert;
+    }
+  }
+  return convert;
 }
 
 double currencyToDouble(String value) {

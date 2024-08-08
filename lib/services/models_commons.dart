@@ -132,7 +132,6 @@ class Organization {
         print("ERROR : $e");
       }
     }
-    print(item);
     return item;
   }
 
