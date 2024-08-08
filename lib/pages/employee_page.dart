@@ -360,12 +360,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
           } else {
             employee = employees[index];
           }
-          return AlertDialog(
-            title: s4cTitleBar('Empleado', context, Icons.add_outlined),
-            content: EmployeeForm(
-              selectedItem: employee,
-            ),
-          );
+          return CustomPopupDialog(
+              context: context,
+              title: 'Empleado',
+              icon: Icons.add_outlined,
+              content: EmployeeForm(selectedItem: employee),
+              actionBtns: null);
         }).then(
       (value) {
         if (value != null) {

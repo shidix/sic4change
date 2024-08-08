@@ -10,6 +10,7 @@ import 'dart:js' as js;
 
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+//import 'package:pdf/widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models_workday.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
@@ -1877,6 +1878,37 @@ class DateTimePicker extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CustomPopupDialog extends StatefulWidget {
+  final dynamic context;
+  final String title;
+  final IconData icon;
+  final Widget content;
+  final List<Widget>? actionBtns;
+
+  const CustomPopupDialog({
+    super.key,
+    required this.context,
+    required this.title,
+    required this.icon,
+    required this.content,
+    required this.actionBtns,
+  });
+
+  @override
+  _CustomPopupDialioState createState() => _CustomPopupDialioState();
+}
+
+class _CustomPopupDialioState extends State<CustomPopupDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: s4cTitleBar(widget.title, widget.context, widget.icon),
+      content: Padding(padding: const EdgeInsets.all(0), child: widget.content),
+      actions: widget.actionBtns,
     );
   }
 }
