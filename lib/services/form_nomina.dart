@@ -12,7 +12,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 class NominaForm extends StatefulWidget {
   final Nomina selectedItem;
-  NominaForm({Key? key, required this.selectedItem}) : super(key: key);
+  const NominaForm({Key? key, required this.selectedItem}) : super(key: key);
 
   @override
   _NominaFormState createState() => _NominaFormState();
@@ -24,11 +24,24 @@ class _NominaFormState extends State<NominaForm> {
   late PlatformFile? notSignedFile;
   late PlatformFile? signedFile;
   String noSignedFileMsg = "";
+  late Nomina oldNomina;
 
   @override
   void initState() {
     super.initState();
     nomina = widget.selectedItem;
+    oldNomina = Nomina(
+        employeeCode: nomina.employeeCode,
+        date: nomina.date,
+        grossSalary: nomina.grossSalary,
+        netSalary: nomina.netSalary,
+        deductions: nomina.deductions,
+        employeeSocialSecurity: nomina.employeeSocialSecurity,
+        employerSocialSecurity: nomina.employerSocialSecurity,
+        noSignedPath: nomina.noSignedPath,
+        noSignedDate: nomina.noSignedDate,
+        signedPath: nomina.signedPath,
+        signedDate: nomina.signedDate);
     notSignedFile = null;
     signedFile = null;
   }
@@ -62,22 +75,57 @@ class _NominaFormState extends State<NominaForm> {
   }
 
   void saveNomina() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      nomina.noSignedDate = DateTime.now();
-      noSignedFileMsg = "";
-      if (notSignedFile != null) {
-        uploadFileToStorage(notSignedFile!).then((value) {
-          nomina.noSignedPath = value;
+    bool totalIsRight = (nomina.grossSalary -
+            nomina.netSalary -
+            nomina.deductions -
+            nomina.employeeSocialSecurity) ==
+        0;
+    if (!totalIsRight) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Error"),
+              content: const Text(
+                  "La suma de los campos no coincide con el salario bruto"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      nomina.deductions = oldNomina.deductions;
+                      nomina.netSalary = oldNomina.netSalary;
+                      nomina.employeeSocialSecurity =
+                          oldNomina.employeeSocialSecurity;
+                      nomina.employerSocialSecurity =
+                          oldNomina.employerSocialSecurity;
+                      nomina.grossSalary = oldNomina.grossSalary;
+                      Navigator.of(context).pop();
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                    child: const Text("OK"))
+              ],
+            );
+          });
+      return;
+    } else {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        nomina.noSignedDate = DateTime.now();
+        noSignedFileMsg = "";
+        if (notSignedFile != null) {
+          uploadFileToStorage(notSignedFile!).then((value) {
+            nomina.noSignedPath = value;
+            nomina.save();
+            Navigator.of(context).pop(nomina);
+          });
+        } else if (nomina.noSignedPath.isNotEmpty) {
           nomina.save();
           Navigator.of(context).pop(nomina);
-        });
-      } else if (nomina.noSignedPath.isNotEmpty) {
-        nomina.save();
-        Navigator.of(context).pop(nomina);
-      } else {
-        noSignedFileMsg = "Por favor, seleccione un archivo";
-        setState(() {});
+        } else {
+          noSignedFileMsg = "Por favor, seleccione un archivo";
+          setState(() {});
+        }
       }
     }
   }
@@ -148,6 +196,131 @@ class _NominaFormState extends State<NominaForm> {
                       )),
                 ],
               ),
+              // Fields for netSalary, deductions, employeeSocialSecurity, employerSocialSecurity
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: "Salario Neto"),
+                          initialValue: nomina.netSalary.toString(),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese el salario neto';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            nomina.netSalary = double.parse(value);
+                          },
+                        )),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: "Deducciones"),
+                          initialValue: nomina.deductions.toString(),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese las deducciones';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            nomina.deductions = double.parse(value);
+                          },
+                        )),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                              labelText: "Seguro Social Empleado"),
+                          initialValue:
+                              nomina.employeeSocialSecurity.toString(),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese el seguro social del empleado';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            nomina.employeeSocialSecurity = double.parse(value);
+                          },
+                        )),
+                  ),
+                  //field for grossSalary
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: "Salario Bruto"),
+                          initialValue: nomina.grossSalary.toString(),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese el salario bruto';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            nomina.grossSalary = double.parse(value);
+                          },
+                        )),
+                  ),
+
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                              labelText: "Seguro Social Empleador"),
+                          initialValue:
+                              nomina.employerSocialSecurity.toString(),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese el seguro social del empleador';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            nomina.employerSocialSecurity = double.parse(value);
+                          },
+                        )),
+                  ),
+                ],
+              ),
+
               //Row with 2 Widgets
               Row(
                 children: [

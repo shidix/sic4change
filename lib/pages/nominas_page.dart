@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
@@ -108,7 +109,7 @@ class _NominasPageState extends State<NominasPage> {
           return Container(
               color: headerListBgColor,
               child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                   child: Row(
                     children: [
                       Expanded(
@@ -120,6 +121,36 @@ class _NominasPageState extends State<NominasPage> {
                       Expanded(
                           flex: 1,
                           child: Text('Fecha', style: headerListStyle)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Neto',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Deducciones',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('SS Empleado',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Bruto',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('SS Empresa',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text('Coste Total',
+                              style: headerListStyle,
+                              textAlign: TextAlign.right)),
                       Expanded(
                         flex: 1,
                         child: Text(
@@ -139,81 +170,119 @@ class _NominasPageState extends State<NominasPage> {
         } else {
           return Container(
               color: index.isEven ? Colors.grey[200] : Colors.white,
-              child: Row(
-                children: [
-                  Expanded(
-                      flex: 1, child: Text(nominas[index - 1].employeeCode)),
-                  Expanded(
-                      flex: 1,
-                      child: Text(DateFormat('dd/MM/yyyy')
-                          .format(nominas[index - 1].date))),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                        alignment: Alignment.center,
-                        child: (nominas[index - 1].noSignedPath != null)
-                            ? iconBtn(context, (context) {
-                                nominas[index - 1]
-                                    .noSignedFileUrl()
-                                    .then((value) {
-                                  final Uri toDownload = Uri.parse(value);
-                                  html.window
-                                      .open(toDownload.toString(), 'Download');
-                                });
-                              }, null, icon: Icons.download)
-                            : Text(
-                                'No se ha firmado',
-                                textAlign: TextAlign.center,
-                              )),
-                  ),
+              child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          flex: 1,
+                          child: Text(nominas[index - 1].employeeCode)),
+                      Expanded(
+                          flex: 1,
+                          child: Text(DateFormat('dd/MM/yyyy')
+                              .format(nominas[index - 1].date))),
+                      //Show the net amount, deductions, employee social security, gross amount, and company social security
+                      Expanded(
+                          flex: 1,
+                          child: Text(toCurrency(nominas[index - 1].netSalary),
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text(toCurrency(nominas[index - 1].deductions),
+                              textAlign: TextAlign.right)),
 
-                  // iconBtn(context, (context) {
-                  //   nominas[index - 1].noSignedFileUrl().then((value) {
-                  //     final Uri toDownload = Uri.parse(value);
-                  //     html.window.open(toDownload.toString(), 'Download');
-                  //   });
-                  // }, null, icon: Icons.download)),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                        alignment: Alignment.center,
-                        child: (nominas[index - 1].signedPath != null)
-                            ? iconBtn(context, (context) {
-                                nominas[index - 1]
-                                    .signedFileUrl()
-                                    .then((value) {
-                                  final Uri toDownload = Uri.parse(value);
-                                  html.window
-                                      .open(toDownload.toString(), 'Download');
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                              toCurrency(
+                                  nominas[index - 1].employeeSocialSecurity),
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                              toCurrency(nominas[index - 1].grossSalary),
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                              toCurrency(
+                                  nominas[index - 1].employerSocialSecurity),
+                              textAlign: TextAlign.right)),
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                              toCurrency(nominas[index - 1].grossSalary +
+                                  nominas[index - 1].employerSocialSecurity),
+                              textAlign: TextAlign.right)),
+
+                      Expanded(
+                        flex: 1,
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: (nominas[index - 1].noSignedPath != null)
+                                ? iconBtn(context, (context) {
+                                    nominas[index - 1]
+                                        .noSignedFileUrl()
+                                        .then((value) {
+                                      final Uri toDownload = Uri.parse(value);
+                                      html.window.open(
+                                          toDownload.toString(), 'Download');
+                                    });
+                                  }, null, icon: Icons.download)
+                                : const Icon(Icons.not_interested,
+                                    color: Colors.red)),
+                      ),
+
+                      // iconBtn(context, (context) {
+                      //   nominas[index - 1].noSignedFileUrl().then((value) {
+                      //     final Uri toDownload = Uri.parse(value);
+                      //     html.window.open(toDownload.toString(), 'Download');
+                      //   });
+                      // }, null, icon: Icons.download)),
+                      Expanded(
+                        flex: 1,
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: (nominas[index - 1].signedPath != null)
+                                ? iconBtn(context, (context) {
+                                    nominas[index - 1]
+                                        .signedFileUrl()
+                                        .then((value) {
+                                      final Uri toDownload = Uri.parse(value);
+                                      html.window.open(
+                                          toDownload.toString(), 'Download');
+                                    });
+                                  }, null, icon: Icons.download)
+                                : const Tooltip(
+                                    message: 'No se ha firmado',
+                                    child: Icon(
+                                      Icons.not_interested,
+                                      color: Colors.red,
+                                    ))),
+                      ),
+                      Expanded(
+                          flex: 1,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () {
+                                    dialogFormNomina(context, index - 1);
+                                  }),
+                              removeConfirmBtn(context, () {
+                                nominas[index - 1].delete().then((value) {
+                                  nominas.removeAt(index - 1);
+                                  setState(() {
+                                    contentPanel = content(context);
+                                  });
                                 });
-                              }, null, icon: Icons.download)
-                            : Text(
-                                'No se ha firmado',
-                                textAlign: TextAlign.center,
-                              )),
-                  ),
-                  Expanded(
-                      flex: 1,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                dialogFormNomina(context, index - 1);
-                              }),
-                          removeConfirmBtn(context, () {
-                            nominas[index - 1].delete().then((value) {
-                              nominas.removeAt(index - 1);
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            });
-                          }, null),
-                        ],
-                      ))
-                ],
-              ));
+                              }, null),
+                            ],
+                          ))
+                    ],
+                  )));
         }
       },
     );
@@ -234,11 +303,9 @@ class _NominasPageState extends State<NominasPage> {
         builder: (BuildContext context) {
           Nomina? nomina;
           if (index == -1) {
-            nomina = Nomina(
-                employeeCode: '',
-                date: DateTime.now(),
-                noSignedPath: '',
-                noSignedDate: DateTime.now());
+            nomina = Nomina.getEmpty();
+            nomina.date = //first day of the month
+                DateTime(DateTime.now().year, DateTime.now().month, 1);
           } else {
             nomina = nominas[index];
           }

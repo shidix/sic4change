@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:sic4change/services/utils.dart';
 
 class Nomina {
@@ -10,6 +11,12 @@ class Nomina {
   String? id;
   String employeeCode;
   DateTime date;
+  double grossSalary;
+  double netSalary;
+  double deductions; // IRPF
+  double employeeSocialSecurity;
+  double employerSocialSecurity;
+
   String noSignedPath;
   DateTime noSignedDate;
   String? signedPath;
@@ -18,6 +25,11 @@ class Nomina {
   Nomina(
       {required this.employeeCode,
       required this.date,
+      required this.grossSalary,
+      required this.netSalary,
+      required this.deductions,
+      required this.employeeSocialSecurity,
+      required this.employerSocialSecurity,
       required this.noSignedPath,
       required this.noSignedDate,
       this.signedPath,
@@ -27,6 +39,16 @@ class Nomina {
     return Nomina(
         employeeCode: json['employeeCode'],
         date: getDate(json['date'] ?? DateTime.now()),
+        grossSalary:
+            (json.containsKey('grossSalary')) ? json['grossSalary'] : 0.0,
+        netSalary: (json.containsKey('netSalary')) ? json['netSalary'] : 0.0,
+        deductions: (json.containsKey('deductions')) ? json['deductions'] : 0.0,
+        employeeSocialSecurity: (json.containsKey('employeeSocialSecurity'))
+            ? json['employeeSocialSecurity']
+            : 0.0,
+        employerSocialSecurity: (json.containsKey('employerSocialSecurity'))
+            ? json['employerSocialSecurity']
+            : 0.0,
         noSignedPath: json['noSignedPath'],
         noSignedDate: getDate(json['noSignedDate'] ?? DateTime.now()),
         signedPath: json['signedPath'],
@@ -36,11 +58,20 @@ class Nomina {
   Map<String, dynamic> toJson() => {
         'date': date,
         'employeeCode': employeeCode,
+        'grossSalary': grossSalary,
+        'netSalary': netSalary,
+        'deductions': deductions,
+        'employeeSocialSecurity': employeeSocialSecurity,
+        'employerSocialSecurity': employerSocialSecurity,
         'noSignedPath': noSignedPath,
         'noSignedDate': noSignedDate,
         'signedPath': signedPath,
         'signedDate': signedDate
       };
+
+  double getNetSalary() {
+    return grossSalary - deductions - employeeSocialSecurity;
+  }
 
   Future<String> getNoSignedUrl() async {
     return await FirebaseStorage.instance.ref(noSignedPath).getDownloadURL();
@@ -76,15 +107,24 @@ class Nomina {
     return Nomina(
         employeeCode: '',
         date: DateTime.now(),
+        grossSalary: 0.0,
+        netSalary: 0.0,
+        deductions: 0.0,
+        employeeSocialSecurity: 0.0,
+        employerSocialSecurity: 0.0,
         noSignedPath: '',
         noSignedDate: DateTime.now());
   }
 
-  static Future<List<Nomina>> getNominas(String employeeCode) async {
+  static Future<List<Nomina>> getNominas(
+      {String? employeeCode, DateTime? beforeAt, DateTime? atfterAt}) async {
     // get from database
+    beforeAt ??= DateTime.now();
+    atfterAt ??= DateTime.now().subtract(const Duration(days: 3650));
     List<Nomina> items = [];
     await collection
-        .where('employeeCode', isEqualTo: employeeCode)
+        .where('date', isGreaterThanOrEqualTo: atfterAt)
+        .where('date', isLessThanOrEqualTo: beforeAt)
         .get()
         .then((value) {
       if (value.docs.isEmpty) return [];
@@ -94,6 +134,13 @@ class Nomina {
         return item;
       }).toList();
     });
+
+    if (employeeCode != null) {
+      items = items
+          .where((element) => element.employeeCode == employeeCode)
+          .toList();
+    }
+
     items.sort((a, b) => a.noSignedDate.compareTo(b.noSignedDate));
     return items;
   }
