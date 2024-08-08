@@ -1,4 +1,3 @@
-import 'dart:html' as html;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +5,6 @@ import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
@@ -99,246 +97,115 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
     employees.sort(compareEmployee);
 
-    //employees.sort((a, b) => a.compareTo(b));
-
-    Widget listEmployees = ListView.builder(
-      shrinkWrap: true,
-      itemCount: employees.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Container(
-              color: headerListBgColor,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Row(children: [
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 0;
-                              orderDirection = 1;
+    Widget listEmployees = SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SizedBox(
+            width: double.infinity,
+            child: DataTable(
+              headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                return headerListBgColor;
+              }),
+              sortAscending: orderDirection == 1,
+              sortColumnIndex: sortColumnIndex,
+              columns: [
+                'Código',
+                'Apellidos, Nombre',
+                'Fecha Alta',
+                'Fecha Baja',
+                'Email',
+                ''
+              ].map((e) {
+                return DataColumn(
+                  onSort: (columnIndex, ascending) {
+                    sortColumnIndex = columnIndex;
+                    orderDirection = ascending ? 1 : -1;
+                    setState(() {
+                      contentPanel = content(context);
+                    });
+                  },
+                  label: Text(
+                    e,
+                    style: headerListStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }).toList(),
+              rows: employees.map((e) {
+                return DataRow(
+                  color: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.08);
+                    }
+                    if (employees.indexOf(e).isEven) {
+                      return e.isActive()
+                          ? Colors.grey[200]
+                          : Colors.red.shade50;
+                    } else {
+                      return e.isActive() ? Colors.white : Colors.red.shade100;
+                    }
+                  }),
+                  cells: [
+                    DataCell(
+                      Text(e.code),
+                    ),
+                    DataCell(
+                        Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
+                    DataCell(
+                        Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
+                    DataCell(Text((e.getBajaDate().isAfter(
+                            DateTime.now().add(const Duration(days: 3650))))
+                        ? ' Indefinido'
+                        : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
+                    DataCell(Text(e.email)),
+                    DataCell(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                dialogFormEmployee(
+                                    context, employees.indexOf(e));
+                              }),
+                          IconButton(
+                            icon: const Icon(Icons.euro_symbol),
+                            tooltip: 'Nóminas del empleado',
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => NominasPage(
+                                          profile: profile,
+                                          codeEmployee: e.email)));
+                            },
+                          ),
+                          (e.isActive())
+                              ? iconBtnConfirm(
+                                  context, dialogFormBaja, employees.indexOf(e),
+                                  text: 'Dar de baja', icon: Icons.thumb_down)
+                              : iconBtnConfirm(
+                                  context, dialogFormAlta, employees.indexOf(e),
+                                  text: 'Dar de alta', icon: Icons.thumb_up),
+                          removeConfirmBtn(context, () {
+                            e.delete().then((value) {
+                              employees.remove(e);
                               setState(() {
                                 contentPanel = content(context);
                               });
-                            }, null,
-                                icon: Icons.arrow_downward_outlined,
-                                text: 'Ordenar por código'),
-                            const Text(
-                              'Código',
-                              style: headerListStyle,
-                            ),
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 0;
-                              orderDirection = -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_upward_outlined,
-                                text: 'Ordenar por Código'),
-                          ])),
-                      Expanded(
-                          flex: 1,
-                          child: Row(children: [
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 1;
-                              orderDirection = 1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_downward_outlined,
-                                text: 'Ordenar por nombre'),
-                            Text('Apellidos, Nombre', style: headerListStyle),
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 1;
-                              orderDirection = -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_upward_outlined,
-                                text: 'Ordenar por nombre'),
-                          ])),
-                      Expanded(
-                          flex: 1,
-                          child: Row(children: [
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 2;
-                              orderDirection = 1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_downward_outlined,
-                                text: 'Ordenar por fecha de alta'),
-                            const Text(
-                              'Fecha Alta',
-                              style: headerListStyle,
-                            ),
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 2;
-                              orderDirection = -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_upward_outlined,
-                                text: 'Ordenar por fecha de alta'),
-                          ])),
-                      Expanded(
-                          flex: 1,
-                          child: Row(children: [
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 3;
-                              orderDirection = 1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_downward_outlined,
-                                text: 'Ordenar por fecha de baja'),
-                            const Text(
-                              'Fecha de baja',
-                              style: headerListStyle,
-                            ),
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 3;
-                              orderDirection = -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_upward_outlined,
-                                text: 'Ordenar por fecha de baja'),
-                          ])),
-                      Expanded(
-                          flex: 1,
-                          child: Row(children: [
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 4;
-                              orderDirection = 1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_downward_outlined,
-                                text: 'Ordenar por email'),
-                            const Text(
-                              'Email',
-                              style: headerListStyle,
-                              textAlign: TextAlign.center,
-                            ),
-                            iconBtn(context, (context) {
-                              sortColumnIndex = 4;
-                              orderDirection = -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            }, null,
-                                icon: Icons.arrow_upward_outlined,
-                                text: 'Ordenar por email'),
-                          ])),
-                      const Expanded(flex: 1, child: Text('')),
-                    ],
-                  )));
-        } else {
-          Employee employee = employees[index - 1];
-          Color? colorRow;
-          if (index.isEven) {
-            colorRow =
-                employee.isActive() ? Colors.grey[200] : Colors.red.shade50;
-          } else {
-            colorRow = employee.isActive() ? Colors.white : Colors.red.shade100;
-          }
-          return Container(
-              color: colorRow,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 1, child: Text(employee.code)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                              '${employee.lastName1} ${employee.lastName2}, ${employee.firstName}')),
-                      Expanded(
-                          flex: 1,
-                          child: Text(DateFormat('dd/MM/yyyy')
-                              .format(employee.getAltaDate()))),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            (employee.isActive() &&
-                                    !employee.getBajaDate().isAfter(
-                                        DateTime.now()
-                                            .add(const Duration(days: 3650))))
-                                ? const Tooltip(
-                                    message: 'Baja planificada',
-                                    child: Icon(Icons.restore,
-                                        color: Colors.green))
-                                : Container(),
-                            Text((employee.getBajaDate().isAfter(DateTime.now()
-                                    .add(const Duration(days: 3650))))
-                                ? ' Indefinido'
-                                : ' ${DateFormat('dd/MM/yyyy').format(employee.getBajaDate())}'),
-                          ],
-                        ),
+                            });
+                          }, null),
+                        ],
                       ),
-                      Expanded(
-                          flex: 1,
-                          child:
-                              Text(employee.email, textAlign: TextAlign.left)),
-                      Expanded(
-                          flex: 1,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () {
-                                    dialogFormEmployee(context, index - 1);
-                                  }),
-                              IconButton(
-                                icon: const Icon(Icons.euro_symbol),
-                                tooltip: 'Nóminas del empleado',
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => NominasPage(
-                                              profile: profile,
-                                              codeEmployee: employee.email)));
-                                },
-                              ),
-                              (employee.isActive())
-                                  ? iconBtnConfirm(
-                                      context, dialogFormBaja, index - 1,
-                                      text: 'Dar de baja',
-                                      icon: Icons.thumb_down)
-                                  : iconBtnConfirm(
-                                      context, dialogFormAlta, index - 1,
-                                      text: 'Dar de alta',
-                                      icon: Icons.thumb_up),
-                              removeConfirmBtn(context, () {
-                                employee.delete().then((value) {
-                                  employees.removeAt(index - 1);
-                                  setState(() {
-                                    contentPanel = content(context);
-                                  });
-                                });
-                              }, null),
-                            ],
-                          ))
-                    ],
-                  )));
-        }
-      },
-    );
+                    ),
+                  ],
+                );
+              }).toList(),
+            )));
 
     return Card(
       child: Column(children: [

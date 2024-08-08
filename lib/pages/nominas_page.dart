@@ -101,191 +101,320 @@ class _NominasPageState extends State<NominasPage> {
       children: [addBtnRow(context, dialogFormNomina, -1)],
     );
 
-    Widget listNominas = ListView.builder(
-      shrinkWrap: true,
-      itemCount: nominas.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Container(
-              color: headerListBgColor,
-              child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Código',
-                            style: headerListStyle,
-                          )),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Fecha', style: headerListStyle)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Neto',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Deducciones',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('SS Empleado',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Bruto',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('SS Empresa',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Coste Total',
-                              style: headerListStyle,
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          'No firmada',
-                          style: headerListStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                          flex: 1,
-                          child: Text('Firmada',
-                              style: headerListStyle,
-                              textAlign: TextAlign.center)),
-                      Expanded(flex: 1, child: Text('')),
-                    ],
-                  )));
-        } else {
-          return Container(
-              color: index.isEven ? Colors.grey[200] : Colors.white,
-              child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Text(nominas[index - 1].employeeCode)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(DateFormat('dd/MM/yyyy')
-                              .format(nominas[index - 1].date))),
-                      //Show the net amount, deductions, employee social security, gross amount, and company social security
-                      Expanded(
-                          flex: 1,
-                          child: Text(toCurrency(nominas[index - 1].netSalary),
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(toCurrency(nominas[index - 1].deductions),
-                              textAlign: TextAlign.right)),
-
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                              toCurrency(
-                                  nominas[index - 1].employeeSocialSecurity),
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                              toCurrency(nominas[index - 1].grossSalary),
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                              toCurrency(
-                                  nominas[index - 1].employerSocialSecurity),
-                              textAlign: TextAlign.right)),
-                      Expanded(
-                          flex: 1,
-                          child: Text(
-                              toCurrency(nominas[index - 1].grossSalary +
-                                  nominas[index - 1].employerSocialSecurity),
-                              textAlign: TextAlign.right)),
-
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                            alignment: Alignment.center,
-                            child: (nominas[index - 1].noSignedPath != null)
-                                ? iconBtn(context, (context) {
-                                    nominas[index - 1]
-                                        .noSignedFileUrl()
-                                        .then((value) {
-                                      final Uri toDownload = Uri.parse(value);
-                                      html.window.open(
-                                          toDownload.toString(), 'Download');
+    Widget listNominas = SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SizedBox(
+            width: double.infinity,
+            child: DataTable(
+              headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                if (states.contains(MaterialState.hovered)) {
+                  return headerListBgColor.withOpacity(0.5);
+                }
+                return headerListBgColor;
+              }),
+              columns: [
+                'Código',
+                'Fecha',
+                'Neto',
+                'Deducciones',
+                'SS Empleado',
+                'Bruto',
+                'SS Empresa',
+                'Coste Total',
+                'No firmada',
+                'Firmada',
+                ''
+              ]
+                  .map((e) => DataColumn(
+                          label: Text(
+                        e,
+                        style: headerListStyle,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      )))
+                  .toList(),
+              rows: nominas
+                  .map((e) => DataRow(
+                          color: MaterialStateProperty.resolveWith<Color?>(
+                              (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.08);
+                            }
+                            if (nominas.indexOf(e).isEven) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.grey[300];
+                              }
+                              return Colors.grey[200];
+                            }
+                            if (states.contains(MaterialState.hovered)) {
+                              return Colors.white.withOpacity(0.5);
+                            }
+                            return Colors.white;
+                          }),
+                          cells: [
+                            DataCell(Text(e.employeeCode)),
+                            DataCell(
+                                Text(DateFormat('dd/MM/yyyy').format(e.date))),
+                            DataCell(Text(toCurrency(e.netSalary))),
+                            DataCell(Text(toCurrency(e.deductions))),
+                            DataCell(
+                                Text(toCurrency(e.employeeSocialSecurity))),
+                            DataCell(Text(toCurrency(e.grossSalary))),
+                            DataCell(
+                                Text(toCurrency(e.employerSocialSecurity))),
+                            DataCell(Text(toCurrency(
+                                e.grossSalary + e.employerSocialSecurity))),
+                            DataCell(
+                              Align(
+                                  alignment: Alignment.center,
+                                  child: (e.noSignedPath != null)
+                                      ? iconBtn(context, (context) {
+                                          e.noSignedFileUrl().then((value) {
+                                            final Uri toDownload =
+                                                Uri.parse(value);
+                                            html.window.open(
+                                                toDownload.toString(),
+                                                'Download');
+                                          });
+                                        }, null, icon: Icons.download)
+                                      : const Icon(Icons.not_interested,
+                                          color: Colors.red)),
+                            ),
+                            DataCell(
+                              Align(
+                                  alignment: Alignment.center,
+                                  child: (e.signedPath != null)
+                                      ? iconBtn(context, (context) {
+                                          e.signedFileUrl().then((value) {
+                                            final Uri toDownload =
+                                                Uri.parse(value);
+                                            html.window.open(
+                                                toDownload.toString(),
+                                                'Download');
+                                          });
+                                        }, null, icon: Icons.download)
+                                      : const Tooltip(
+                                          message: 'No se ha firmado',
+                                          child: Icon(
+                                            Icons.not_interested,
+                                            color: Colors.red,
+                                          ))),
+                            ),
+                            DataCell(
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                      icon: const Icon(Icons.edit),
+                                      onPressed: () {
+                                        dialogFormNomina(
+                                            context, nominas.indexOf(e));
+                                      }),
+                                  removeConfirmBtn(context, () {
+                                    e.delete().then((value) {
+                                      nominas.remove(e);
+                                      setState(() {
+                                        contentPanel = content(context);
+                                      });
                                     });
-                                  }, null, icon: Icons.download)
-                                : const Icon(Icons.not_interested,
-                                    color: Colors.red)),
-                      ),
+                                  }, null),
+                                ],
+                              ),
+                            )
+                          ]))
+                  .toList(),
+            )));
 
-                      // iconBtn(context, (context) {
-                      //   nominas[index - 1].noSignedFileUrl().then((value) {
-                      //     final Uri toDownload = Uri.parse(value);
-                      //     html.window.open(toDownload.toString(), 'Download');
-                      //   });
-                      // }, null, icon: Icons.download)),
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                            alignment: Alignment.center,
-                            child: (nominas[index - 1].signedPath != null)
-                                ? iconBtn(context, (context) {
-                                    nominas[index - 1]
-                                        .signedFileUrl()
-                                        .then((value) {
-                                      final Uri toDownload = Uri.parse(value);
-                                      html.window.open(
-                                          toDownload.toString(), 'Download');
-                                    });
-                                  }, null, icon: Icons.download)
-                                : const Tooltip(
-                                    message: 'No se ha firmado',
-                                    child: Icon(
-                                      Icons.not_interested,
-                                      color: Colors.red,
-                                    ))),
-                      ),
-                      Expanded(
-                          flex: 1,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () {
-                                    dialogFormNomina(context, index - 1);
-                                  }),
-                              removeConfirmBtn(context, () {
-                                nominas[index - 1].delete().then((value) {
-                                  nominas.removeAt(index - 1);
-                                  setState(() {
-                                    contentPanel = content(context);
-                                  });
-                                });
-                              }, null),
-                            ],
-                          ))
-                    ],
-                  )));
-        }
-      },
-    );
+    // Widget listNominas = ListView.builder(
+    //   shrinkWrap: true,
+    //   itemCount: nominas.length + 1,
+    //   itemBuilder: (context, index) {
+    //     if (index == 0) {
+    //       return Container(
+    //           color: headerListBgColor,
+    //           child: const Padding(
+    //               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+    //               child: Row(
+    //                 children: [
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(
+    //                         'Código',
+    //                         style: headerListStyle,
+    //                       )),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Fecha', style: headerListStyle)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Neto',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Deducciones',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('SS Empleado',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Bruto',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('SS Empresa',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Coste Total',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                     flex: 1,
+    //                     child: Text(
+    //                       'No firmada',
+    //                       style: headerListStyle,
+    //                       textAlign: TextAlign.center,
+    //                     ),
+    //                   ),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text('Firmada',
+    //                           style: headerListStyle,
+    //                           textAlign: TextAlign.center)),
+    //                   Expanded(flex: 1, child: Text('')),
+    //                 ],
+    //               )));
+    //     } else {
+    //       return Container(
+    //           color: index.isEven ? Colors.grey[200] : Colors.white,
+    //           child: Padding(
+    //               padding:
+    //                   const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+    //               child: Row(
+    //                 children: [
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(nominas[index - 1].employeeCode)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(DateFormat('dd/MM/yyyy')
+    //                           .format(nominas[index - 1].date))),
+    //                   //Show the net amount, deductions, employee social security, gross amount, and company social security
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(toCurrency(nominas[index - 1].netSalary),
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(toCurrency(nominas[index - 1].deductions),
+    //                           textAlign: TextAlign.right)),
+
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(
+    //                           toCurrency(
+    //                               nominas[index - 1].employeeSocialSecurity),
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(
+    //                           toCurrency(nominas[index - 1].grossSalary),
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(
+    //                           toCurrency(
+    //                               nominas[index - 1].employerSocialSecurity),
+    //                           textAlign: TextAlign.right)),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Text(
+    //                           toCurrency(nominas[index - 1].grossSalary +
+    //                               nominas[index - 1].employerSocialSecurity),
+    //                           textAlign: TextAlign.right)),
+
+    //                   Expanded(
+    //                     flex: 1,
+    //                     child: Align(
+    //                         alignment: Alignment.center,
+    //                         child: (nominas[index - 1].noSignedPath != null)
+    //                             ? iconBtn(context, (context) {
+    //                                 nominas[index - 1]
+    //                                     .noSignedFileUrl()
+    //                                     .then((value) {
+    //                                   final Uri toDownload = Uri.parse(value);
+    //                                   html.window.open(
+    //                                       toDownload.toString(), 'Download');
+    //                                 });
+    //                               }, null, icon: Icons.download)
+    //                             : const Icon(Icons.not_interested,
+    //                                 color: Colors.red)),
+    //                   ),
+
+    //                   // iconBtn(context, (context) {
+    //                   //   nominas[index - 1].noSignedFileUrl().then((value) {
+    //                   //     final Uri toDownload = Uri.parse(value);
+    //                   //     html.window.open(toDownload.toString(), 'Download');
+    //                   //   });
+    //                   // }, null, icon: Icons.download)),
+    //                   Expanded(
+    //                     flex: 1,
+    //                     child: Align(
+    //                         alignment: Alignment.center,
+    //                         child: (nominas[index - 1].signedPath != null)
+    //                             ? iconBtn(context, (context) {
+    //                                 nominas[index - 1]
+    //                                     .signedFileUrl()
+    //                                     .then((value) {
+    //                                   final Uri toDownload = Uri.parse(value);
+    //                                   html.window.open(
+    //                                       toDownload.toString(), 'Download');
+    //                                 });
+    //                               }, null, icon: Icons.download)
+    //                             : const Tooltip(
+    //                                 message: 'No se ha firmado',
+    //                                 child: Icon(
+    //                                   Icons.not_interested,
+    //                                   color: Colors.red,
+    //                                 ))),
+    //                   ),
+    //                   Expanded(
+    //                       flex: 1,
+    //                       child: Row(
+    //                         mainAxisAlignment: MainAxisAlignment.end,
+    //                         children: [
+    //                           IconButton(
+    //                               icon: const Icon(Icons.edit),
+    //                               onPressed: () {
+    //                                 dialogFormNomina(context, index - 1);
+    //                               }),
+    //                           removeConfirmBtn(context, () {
+    //                             nominas[index - 1].delete().then((value) {
+    //                               nominas.removeAt(index - 1);
+    //                               setState(() {
+    //                                 contentPanel = content(context);
+    //                               });
+    //                             });
+    //                           }, null),
+    //                         ],
+    //                       ))
+    //                 ],
+    //               )));
+    //     }
+    //   },
+    // );
 
     return Card(
       child: Column(children: [
