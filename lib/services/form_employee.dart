@@ -70,7 +70,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
     return Form(
         key: _formKey,
         child: SizedBox(
-            child: Column(
+            child: SingleChildScrollView(
+                child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
@@ -211,7 +212,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
               Expanded(flex: 1, child: Container()),
             ]),
           ],
-        )));
+        ))));
   }
 }
 

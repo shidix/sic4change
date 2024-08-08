@@ -54,10 +54,11 @@ class _InvoiceFormState extends State<InvoiceForm> {
     }
 
     return Form(
-      key: _formKey,
-      child: SizedBox(
+        key: _formKey,
+        child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.5,
-          child: Column(
+          child: SingleChildScrollView(
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -258,7 +259,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
               ]),
             ],
           )),
-    );
+        ));
   }
 }
 
