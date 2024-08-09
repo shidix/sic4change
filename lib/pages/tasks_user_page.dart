@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
+import 'package:sic4change/pages/tasks_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -28,11 +29,48 @@ class TasksUserPage extends StatefulWidget {
 }
 
 class _TasksUserPageState extends State<TasksUserPage> {
+  List<Profile> profiles = [];
+  List<STask> allTasksUser = [];
+
   var searchController = TextEditingController();
+  final user = FirebaseAuth.instance.currentUser!;
+  Widget taskListPanel = const Align(
+      alignment: Alignment.center, child: CircularProgressIndicator());
+
+  @override
+  void initState() {
+    super.initState();
+    STask.getByUser(user.email).then((value) {
+      setState(() {
+        allTasksUser = value;
+        taskListPanel = taskListCache(context, user);
+
+        List<String> emails =
+            allTasksUser.map((e) => e.sender).toList() as List<String>;
+        for (STask task in allTasksUser) {
+          emails.addAll(task.assigned);
+        }
+        Profile.getProfiles(emails: emails).then((value) {
+          setState(() {
+            profiles = value;
+            for (STask task in allTasksUser) {
+              task.senderObj = profiles.firstWhere(
+                  (element) => element.email == task.sender,
+                  orElse: () => Profile.getEmpty());
+              task.assignedObj = profiles
+                  .where((element) => task.assigned.contains(element.email))
+                  .toList();
+            }
+          });
+        });
+      });
+    });
+
+    // taskListPanel = taskList(context, user);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [
@@ -40,7 +78,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
         taskHeader(context),
         space(height: 20),
         taskMenu(context, "taskUser"),
-        contentTabSized(context, taskList, user),
+        contentTabSized(context, taskListPanel, user),
         footer(context)
       ]),
     ));
@@ -113,6 +151,65 @@ class _TasksUserPageState extends State<TasksUserPage> {
       ),
     );
   }*/
+
+  Widget taskListCache(context, user) {
+    return Column(
+      children: [
+        ExpansionTile(
+          title: customText("Para mí", 16, textColor: mainColor),
+          initiallyExpanded: true,
+          children: [
+            Builder(
+                //future: getTasksByAssigned(user.uid),
+                builder: ((contextt) {
+              tasksUser = allTasksUser
+                  .where((task) => task.assigned.contains(user.email))
+                  .toList();
+
+              if (tasksUser.isNotEmpty) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: <Widget>[
+                    dataBody(context),
+                  ],
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }))
+          ],
+        ),
+        ExpansionTile(
+          title: customText("Creadas por mí", 16, textColor: mainColor),
+          children: [
+            Builder(builder: ((context) {
+              tasksUser = allTasksUser
+                  .where((task) => task.sender == user.email)
+                  .toList();
+              if (tasksUser.isNotEmpty) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: <Widget>[
+                    dataBody(context),
+                  ],
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }))
+          ],
+        )
+      ],
+    );
+  }
 
   Widget taskList(context, user) {
     return Column(
@@ -208,8 +305,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     ),
                     DataCell(Text(
                         DateFormat('yyyy-MM-dd').format(task.deadLineDate))),
-                    //DataCell(Text(task.assigned.join(","))),
-                    DataCell(Text(task.getAssignedStr())),
+                    DataCell(Text(task.assigned.join(","))),
+                    // DataCell(Text(task.getAssignedStr())),
                     DataCell(customTextStatus(task.statusObj.name, 14)),
                     DataCell(Row(children: [
                       /*IconButton(
@@ -221,12 +318,13 @@ class _TasksUserPageState extends State<TasksUserPage> {
                           }),*/
                       goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),
-                      IconButton(
-                          icon: const Icon(Icons.remove_circle),
-                          tooltip: 'Remove',
-                          onPressed: () {
-                            //_removeTaskDialog(context, task);
-                          }),
+                      removeConfirmBtn(context, () {
+                        task.delete();
+                        setState(() {
+                          allTasksUser.remove(task);
+                          taskListPanel = taskListCache(context, user);
+                        });
+                      }, null),
                     ]))
                   ]),
                 )

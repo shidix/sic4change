@@ -10,10 +10,15 @@ Color getStatusColor(status) {
       if (status == "No iniciado") return Colors.red;
     }
   }
+
   return Colors.white;
 }
 
 Widget customTextStatus(text, size) {
+  if (!['Completado', 'En proceso', 'No iniciado'].contains(text)) {
+    text = 'No iniciado';
+  }
+
   Color color = getStatusColor(text);
   return Container(
     padding: const EdgeInsets.all(8),

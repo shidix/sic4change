@@ -1,11 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget taskForm(task, projectList, statusList, profileList, contactList,
     orgList, setState) {
+  List<KeyValue> selectedAssigned = [];
+  if (task.assigned.isNotEmpty) {
+    for (MultiSelectItem<KeyValue> item in profileList) {
+      if (task.assigned.contains(item.value.key)) {
+        selectedAssigned.add(item.value);
+      }
+    }
+  }
+  List<KeyValue> selectedReceivers = [];
+  if (task.receivers.isNotEmpty) {
+    for (MultiSelectItem<KeyValue> item in contactList) {
+      if (task.receivers.contains(item.value.key)) {
+        selectedReceivers.add(item.value);
+      }
+    }
+  }
+  List<KeyValue> selectedReceiversOrg = [];
+  if (task.receiversOrg.isNotEmpty) {
+    for (MultiSelectItem<KeyValue> item in orgList) {
+      if (task.receiversOrg.contains(item.value.key)) {
+        selectedReceiversOrg.add(item.value);
+      }
+    }
+  }
+
   return SingleChildScrollView(
       child: Column(children: [
     Row(children: [
@@ -213,90 +239,93 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
       space(width: 20),
     ]),
     space(height: 20),
-    Row(children: [
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        MultiSelectDialogField(
-          items: profileList,
-          title: customText("Ejecutores", 16),
-          selectedColor: mainColor,
-          decoration: multiSelectDecoration,
-          buttonIcon: const Icon(
-            Icons.arrow_drop_down,
-            color: mainColor,
-          ),
-          //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
-          buttonText: const Text(
-            "Ejecutores",
-            style: TextStyle(
-              color: mainColor,
-              fontSize: 16,
-            ),
-          ),
-          onConfirm: (results) {
-            for (KeyValue kv in results as List) {
-              task.assigned.add(kv.key);
-              //print(kv.value);
-            }
-            //_selectedAnimals = results;
-          },
+    // Row(children: [
+    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      MultiSelectDialogField(
+        items: profileList,
+        initialValue: selectedAssigned,
+        title: customText("Ejecutores", 16),
+        selectedColor: mainColor,
+        decoration: multiSelectDecoration,
+        buttonIcon: const Icon(
+          Icons.arrow_drop_down,
+          color: mainColor,
         ),
-      ]),
-      space(width: 10),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        MultiSelectDialogField(
-          items: contactList,
-          title: customText("Destinatarios", 16),
-          selectedColor: mainColor,
-          decoration: multiSelectDecoration,
-          buttonIcon: const Icon(
-            Icons.arrow_drop_down,
+        //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
+        buttonText: const Text(
+          "Ejecutores",
+          style: TextStyle(
             color: mainColor,
+            fontSize: 16,
           ),
-          //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
-          buttonText: const Text(
-            "Destinatarios Contactos",
-            style: TextStyle(
-              color: mainColor,
-              fontSize: 16,
-            ),
-          ),
-          onConfirm: (results) {
-            for (KeyValue kv in results as List) {
-              task.receivers.add(kv.key);
-              //print(kv.value);
-            }
-            //_selectedAnimals = results;
-          },
         ),
-      ]),
-      space(width: 10),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        MultiSelectDialogField(
-          items: orgList,
-          title: customText("Destinatarios Organizaciones", 16),
-          selectedColor: mainColor,
-          decoration: multiSelectDecoration,
-          buttonIcon: const Icon(
-            Icons.arrow_drop_down,
-            color: mainColor,
-          ),
-          //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
-          buttonText: const Text(
-            "Destinatarios organizaciones",
-            style: TextStyle(
-              color: mainColor,
-              fontSize: 16,
-            ),
-          ),
-          onConfirm: (results) {
-            for (KeyValue kv in results as List) {
-              task.receiversOrg.add(kv.key);
-              //print(kv.value);
-            }
-            //_selectedAnimals = results;
-          },
-        ),
-      ]),
+        onConfirm: (results) {
+          List<String> assigned = [];
+          for (KeyValue kv in results) {
+            assigned.add(kv.key);
+          }
+          task.assigned = assigned;
+        },
+      ),
     ]),
+    space(width: 10),
+    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      MultiSelectDialogField(
+        items: contactList,
+        initialValue: selectedReceivers,
+        title: customText("Destinatarios", 16),
+        selectedColor: mainColor,
+        decoration: multiSelectDecoration,
+        buttonIcon: const Icon(
+          Icons.arrow_drop_down,
+          color: mainColor,
+        ),
+        //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
+        buttonText: const Text(
+          "Destinatarios Contactos",
+          style: TextStyle(
+            color: mainColor,
+            fontSize: 16,
+          ),
+        ),
+        onConfirm: (results) {
+          List<String> receivers = [];
+          for (KeyValue kv in results) {
+            receivers.add(kv.key);
+          }
+          task.receivers = receivers;
+        },
+      ),
+    ]),
+    space(width: 10),
+    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      MultiSelectDialogField(
+        items: orgList,
+        initialValue: selectedReceiversOrg,
+        title: customText("Destinatarios Organizaciones", 16),
+        selectedColor: mainColor,
+        decoration: multiSelectDecoration,
+        buttonIcon: const Icon(
+          Icons.arrow_drop_down,
+          color: mainColor,
+        ),
+        //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
+        buttonText: const Text(
+          "Destinatarios organizaciones",
+          style: TextStyle(
+            color: mainColor,
+            fontSize: 16,
+          ),
+        ),
+        onConfirm: (results) {
+          List<String> receiversOrg = [];
+          for (KeyValue kv in results) {
+            receiversOrg.add(kv.key);
+          }
+          task.receiversOrg = receiversOrg;
+        },
+      ),
+    ]),
+    // ]),
   ]));
 }

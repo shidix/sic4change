@@ -91,7 +91,15 @@ class Profile {
     database.doc(id).delete();
   }
 
-  static Future<List<Profile>> getProfiles() {
+  static Future<List<Profile>> getProfiles({List<String>? emails}) async {
+    if (emails != null) {
+      return db
+          .collection("s4c_profiles")
+          .where("email", whereIn: emails)
+          .get()
+          .then((snap) =>
+              snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
+    }
     return db.collection("s4c_profiles").get().then(
         (snap) => snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
   }

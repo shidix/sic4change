@@ -160,6 +160,26 @@ class Contact {
     return projectsObj;
   }
 
+  static Future<List<Contact>> getContacts(
+      {List<String>? uuids, List<String>? ids}) async {
+    List<Contact> items = [];
+    QuerySnapshot query;
+    if (uuids != null) {
+      query = await dbContacts.where("uuid", whereIn: uuids).get();
+    } else if (ids != null) {
+      query = await dbContacts.where("id", whereIn: ids).get();
+    } else {
+      query = await dbContacts.get();
+    }
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Contact item = Contact.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
+
   Future<ContactInfo> getContactInfo() async {
     ContactInfo contactInfo = ContactInfo(uuid);
 

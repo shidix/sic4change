@@ -173,6 +173,34 @@ class Organization {
     return item;
   }
 
+  static Future<List<Organization>> getOrganizations(
+      {List<String>? uuids, List<String>? ids}) async {
+    List<Organization> items = [];
+    if (uuids != null) {
+      QuerySnapshot query = await dbOrg.where("uuid", whereIn: uuids).get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        items.add(Organization.fromJson(data));
+      }
+    } else if (ids != null) {
+      QuerySnapshot query = await dbOrg.where("id", whereIn: ids).get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        items.add(Organization.fromJson(data));
+      }
+    } else {
+      QuerySnapshot query = await dbOrg.get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        items.add(Organization.fromJson(data));
+      }
+    }
+    return items;
+  }
+
   factory Organization.getEmpty() {
     return Organization("");
   }

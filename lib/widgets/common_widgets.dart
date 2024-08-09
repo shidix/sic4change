@@ -1221,19 +1221,43 @@ Widget removeConfirmBtn(context, action, args,
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-                title: const Text('Confirmación de borrado'),
-                content: const Text('¿Está seguro de eliminar este elemento?'),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(context, false);
-                      },
-                      child: const Text('Cancelar')),
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(context, true);
-                      },
-                      child: const Text('Aceptar')),
+                titlePadding: const EdgeInsets.all(0),
+                title: s4cTitleBar(removeText),
+                content: const SingleChildScrollView(
+                  child: Text(removeConfirm),
+                ),
+                actions: <Widget>[
+                  Row(children: [
+                    Expanded(
+                        flex: 5,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0, vertical: 20.0),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0)),
+                            backgroundColor: Colors.white,
+                          ),
+                          child: Row(children: [
+                            const Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.black54,
+                              size: 30,
+                            ),
+                            space(width: 10),
+                            customText(removeText, 14)
+                          ]),
+                        )),
+                    space(width: 10),
+                    Expanded(
+                        flex: 5,
+                        child: actionButton(context, "Cancelar", (context) {
+                          Navigator.of(context).pop(false);
+                        }, Icons.cancel, context))
+                  ])
                 ]);
           }) as bool;
       if (confirmation) {
@@ -1464,7 +1488,7 @@ Widget contentTabSized(context, action, obj, {widthFactor = 1}) {
       width: MediaQuery.of(context).size.width * widthFactor,
       child: Card(
         elevation: 5,
-        child: action(context, obj),
+        child: (action is Function) ? action(context, obj) : action,
       ));
 }
 

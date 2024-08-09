@@ -28,13 +28,22 @@ class TaskInfoPage extends StatefulWidget {
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
   var user;
+  List<Organization> orgList = [];
+  List<Contact> contactList = [];
+  List<Profile> profileList = [];
 
-  void loadTask(task) async {
-    await task.reload().then((val) {
-      setState(() {
-        task = val;
-      });
-    });
+  void updateObjects() {
+    task!.assignedObj = profileList
+        .where((prof) => task!.assigned.contains(prof.email))
+        .toList();
+    task!.receiversOrgObj =
+        orgList.where((org) => task!.receiversOrg.contains(org.uuid)).toList();
+    task!.receiversObj = contactList
+        .where((contact) => task!.receivers.contains(contact.uuid))
+        .toList();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -42,6 +51,34 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     super.initState();
     task = widget.task;
     user = FirebaseAuth.instance.currentUser!;
+    Profile.getProfiles().then((value) {
+      profileList = value;
+      task!.assignedObj = profileList
+          .where((prof) => task!.assigned.contains(prof.email))
+          .toList();
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    Organization.getOrganizations().then((value) {
+      orgList = value;
+      task!.receiversOrgObj = orgList
+          .where((org) => task!.receiversOrg.contains(org.uuid))
+          .toList();
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    Contact.getContacts().then((value) {
+      contactList = value;
+
+      task!.receiversObj = contactList
+          .where((contact) => task!.receivers.contains(contact.uuid))
+          .toList();
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -88,18 +125,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget taskInfoDetails(context, param) {
-    String receivers = "";
-    for (Contact item in task!.receiversObj) {
-      receivers += "${item.name}, ";
-    }
-    String receiversOrg = "";
-    for (Organization item in task!.receiversOrgObj) {
-      receiversOrg += "${item.name}, ";
-    }
-    String assigned = "";
-    for (Profile item in task!.assignedObj) {
-      assigned += "${item.email}, ";
-    }
+    String receivers =
+        task!.receiversObj.map((e) => e.name).toList().join(", ");
+    String receiversOrg =
+        task!.receiversOrgObj.map((e) => e.name).toList().join(", ");
+    String assigned = task!.assignedObj.map((e) => e.email).toList().join(", ");
+
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Container(
@@ -433,6 +464,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     final List<MultiSelectItem<KeyValue>> pList = profileList
         .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
         .toList();
+
     taskEditDialog(
         context, args["task"], statusList, projectList, pList, cList, oList);
   }
@@ -440,6 +472,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   void saveTask(List args) async {
     STask task = args[0];
     task.save();
+    updateObjects();
 
     Navigator.pop(context);
   }
