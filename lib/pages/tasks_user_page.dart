@@ -31,36 +31,54 @@ class TasksUserPage extends StatefulWidget {
 class _TasksUserPageState extends State<TasksUserPage> {
   List<Profile> profiles = [];
   List<STask> allTasksUser = [];
+  List<TasksStatus> statusListCache = [];
 
   var searchController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser!;
   Widget taskListPanel = const Align(
       alignment: Alignment.center, child: CircularProgressIndicator());
 
+  void updateObjects(task) {
+    task.statusObj = statusListCache
+        .firstWhere((element) => element.uuid == task.status, orElse: () {
+      return TasksStatus("No iniciado");
+    });
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    STask.getByUser(user.email).then((value) {
-      setState(() {
-        allTasksUser = value;
-        taskListPanel = taskListCache(context, user);
 
-        List<String> emails =
-            allTasksUser.map((e) => e.sender).toList() as List<String>;
-        for (STask task in allTasksUser) {
-          emails.addAll(task.assigned);
-        }
-        Profile.getProfiles(emails: emails).then((value) {
-          setState(() {
-            profiles = value;
-            for (STask task in allTasksUser) {
-              task.senderObj = profiles.firstWhere(
-                  (element) => element.email == task.sender,
-                  orElse: () => Profile.getEmpty());
-              task.assignedObj = profiles
-                  .where((element) => task.assigned.contains(element.email))
-                  .toList();
-            }
+    TasksStatus.getTasksStatus().then((value) {
+      statusListCache = value;
+      STask.getByUser(user.email).then((value) {
+        setState(() {
+          allTasksUser = value;
+          for (STask task in allTasksUser) {
+            updateObjects(task);
+          }
+          taskListPanel = taskListCache(context, user);
+
+          List<String> emails =
+              allTasksUser.map((e) => e.sender).toList() as List<String>;
+          for (STask task in allTasksUser) {
+            emails.addAll(task.assigned);
+          }
+          Profile.getProfiles(emails: emails).then((value) {
+            setState(() {
+              profiles = value;
+              for (STask task in allTasksUser) {
+                task.senderObj = profiles.firstWhere(
+                    (element) => element.email == task.sender,
+                    orElse: () => Profile.getEmpty());
+                task.assignedObj = profiles
+                    .where((element) => task.assigned.contains(element.email))
+                    .toList();
+              }
+            });
           });
         });
       });
@@ -307,7 +325,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
                         DateFormat('yyyy-MM-dd').format(task.deadLineDate))),
                     DataCell(Text(task.assigned.join(","))),
                     // DataCell(Text(task.getAssignedStr())),
-                    DataCell(customTextStatus(task.statusObj.name, 14)),
+                    DataCell(customTextStatus(task.statusObj.name, size: 14)),
                     DataCell(Row(children: [
                       /*IconButton(
                           icon: const Icon(Icons.view_compact),
@@ -357,6 +375,12 @@ class _TasksUserPageState extends State<TasksUserPage> {
   void saveTask(List args) async {
     STask task = args[0];
     task.save();
+    if (mounted) {
+      setState(() {
+        allTasksUser.add(task);
+        taskListPanel = taskListCache(context, user);
+      });
+    }
 
     Navigator.pop(context);
   }

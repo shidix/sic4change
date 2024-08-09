@@ -28,19 +28,26 @@ class TaskInfoPage extends StatefulWidget {
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
   var user;
-  List<Organization> orgList = [];
-  List<Contact> contactList = [];
-  List<Profile> profileList = [];
+  List<Organization> orgListCache = [];
+  List<Contact> contactListCache = [];
+  List<Profile> profileListCache = [];
+  List<SProject> projectListCache = [];
+  List<TasksStatus> statusListCache = [];
 
   void updateObjects() {
-    task!.assignedObj = profileList
+    task!.assignedObj = profileListCache
         .where((prof) => task!.assigned.contains(prof.email))
         .toList();
-    task!.receiversOrgObj =
-        orgList.where((org) => task!.receiversOrg.contains(org.uuid)).toList();
-    task!.receiversObj = contactList
+    task!.receiversOrgObj = orgListCache
+        .where((org) => task!.receiversOrg.contains(org.uuid))
+        .toList();
+    task!.receiversObj = contactListCache
         .where((contact) => task!.receivers.contains(contact.uuid))
         .toList();
+    task!.projectObj =
+        projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+    task!.statusObj =
+        statusListCache.firstWhere((status) => status.uuid == task!.status);
     if (mounted) {
       setState(() {});
     }
@@ -52,8 +59,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     task = widget.task;
     user = FirebaseAuth.instance.currentUser!;
     Profile.getProfiles().then((value) {
-      profileList = value;
-      task!.assignedObj = profileList
+      profileListCache = value;
+      task!.assignedObj = profileListCache
           .where((prof) => task!.assigned.contains(prof.email))
           .toList();
       if (mounted) {
@@ -61,8 +68,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       }
     });
     Organization.getOrganizations().then((value) {
-      orgList = value;
-      task!.receiversOrgObj = orgList
+      orgListCache = value;
+      task!.receiversOrgObj = orgListCache
           .where((org) => task!.receiversOrg.contains(org.uuid))
           .toList();
       if (mounted) {
@@ -70,14 +77,30 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       }
     });
     Contact.getContacts().then((value) {
-      contactList = value;
+      contactListCache = value;
 
-      task!.receiversObj = contactList
+      task!.receiversObj = contactListCache
           .where((contact) => task!.receivers.contains(contact.uuid))
           .toList();
       if (mounted) {
         setState(() {});
       }
+      SProject.getProjects().then((value) {
+        projectListCache = value;
+        task!.projectObj =
+            projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      TasksStatus.getTasksStatus().then((value) {
+        statusListCache = value;
+        task!.statusObj =
+            statusListCache.firstWhere((status) => status.uuid == task!.status);
+        if (mounted) {
+          setState(() {});
+        }
+      });
     });
   }
 
@@ -106,10 +129,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   customText(task.name, 22),
-                  Text(task.statusObj.name,
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: getStatusColor(task.statusObj.name))),
+                  customTextStatus(task.statusObj.name, size: 16),
+                  // Text(task.statusObj.name,
+                  //     style: TextStyle(
+                  //         fontSize: 16,
+                  //         color: getStatusColor(task.statusObj.name))),
                   Row(children: [
                     addBtn(context, callEditDialog, {"task": task},
                         icon: Icons.edit, text: "Editar"),
@@ -209,7 +233,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 Icons.folder,
                 DocumentsPage(
                   currentFolder: task.folderObj,
-                ))
+                ), callback: () {
+              setState(() {});
+            })
           ],
         ),
         Row(children: [
@@ -451,10 +477,18 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*--------------------------------------------------------------------*/
   void callEditDialog(context, HashMap args) async {
     List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
-    List<KeyValue> projectList = await getProjectsHash();
-    List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    // List<KeyValue> projectList = await getProjectsHash();
+    // List<KeyValue> contactList = await getContactsHash();
+    // List<KeyValue> profileList = await Profile.getProfileHash();
+    // List<KeyValue> orgList = await getOrganizationsHash();
+
+    List<KeyValue> projectList =
+        projectListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> contactList =
+        contactListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> profileList =
+        profileListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> orgList = orgListCache.map((e) => e.toKeyValue()).toList();
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();

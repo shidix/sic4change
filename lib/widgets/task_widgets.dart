@@ -14,7 +14,7 @@ Color getStatusColor(status) {
   return Colors.white;
 }
 
-Widget customTextStatus(text, size) {
+Widget customTextStatus(text, {double size = 12}) {
   if (!['Completado', 'En proceso', 'No iniciado'].contains(text)) {
     text = 'No iniciado';
   }

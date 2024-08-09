@@ -1064,7 +1064,8 @@ Widget goPageDoc(context, btnName, newContext, icon, {style, extraction}) {
       child: child);
 }
 
-Widget goPageIcon(context, btnText, icon, newContext, {iconSize = 20}) {
+Widget goPageIcon(context, btnText, icon, newContext,
+    {iconSize = 20, Function? callback}) {
   return IconButton(
       icon: Icon(
         icon,
@@ -1074,6 +1075,7 @@ Widget goPageIcon(context, btnText, icon, newContext, {iconSize = 20}) {
       onPressed: () {
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => newContext)));
+        callback?.call();
       });
 }
 

@@ -519,6 +519,23 @@ class TasksStatus {
     }
     return color;
   }
+
+  static Future<List<TasksStatus>> getTasksStatus({List<String>? uuids}) async {
+    List<TasksStatus> items = [];
+    QuerySnapshot query;
+    if (uuids != null) {
+      query = await dbTasksStatus.where("uuid", whereIn: uuids).get();
+    } else {
+      query = await dbTasksStatus.get();
+    }
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(TasksStatus.fromJson(data));
+    }
+
+    return items;
+  }
 }
 
 Future<List> getTasksStatus() async {

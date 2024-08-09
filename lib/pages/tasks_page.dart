@@ -214,7 +214,7 @@ class _TasksPageState extends State<TasksPage> {
                         DateFormat('yyyy-MM-dd').format(task.newDeadLineDate))),
                     DataCell(Text(task.senderObj.name)),
                     DataCell(Text(task.getAssignedStr())),
-                    DataCell(customTextStatus(task.statusObj.name, 14)),
+                    DataCell(customTextStatus(task.statusObj.name, size: 14)),
                     DataCell(Row(children: [
                       goPageIcon(context, "Ver", Icons.view_compact,
                           TaskInfoPage(task: task)),
