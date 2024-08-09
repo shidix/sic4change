@@ -197,25 +197,14 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   .where((task) => task.assigned.contains(user.email))
                   .toList();
 
-              if (tasksUser.isNotEmpty) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  verticalDirection: VerticalDirection.down,
-                  children: <Widget>[
-                    dataBody(context),
-                  ],
-                );
-              } else {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  verticalDirection: VerticalDirection.down,
-                  children: <Widget>[
-                    dataBody(context),
-                  ],
-                );
-              }
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                verticalDirection: VerticalDirection.down,
+                children: <Widget>[
+                  dataBody(context),
+                ],
+              );
             }))
           ],
         ),
@@ -229,20 +218,15 @@ class _TasksUserPageState extends State<TasksUserPage> {
               tasksUser = allTasksUser
                   .where((task) => task.sender == user.email)
                   .toList();
-              if (tasksUser.isNotEmpty) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  verticalDirection: VerticalDirection.down,
-                  children: <Widget>[
-                    dataBody(context),
-                  ],
-                );
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                verticalDirection: VerticalDirection.down,
+                children: <Widget>[
+                  dataBody(context),
+                ],
+              );
             }))
           ],
         )
