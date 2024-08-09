@@ -476,21 +476,21 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void callEditDialog(context, HashMap args) async {
-    // List<KeyValue> statusList = await getTasksStatusHash();
-    // List<KeyValue> projectList = await getProjectsHash();
-    // List<KeyValue> contactList = await getContactsHash();
-    // List<KeyValue> profileList = await Profile.getProfileHash();
-    // List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> statusList = await getTasksStatusHash();
+    List<KeyValue> projectList = await getProjectsHash();
+    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> profileList = await Profile.getProfileHash();
+    List<KeyValue> orgList = await getOrganizationsHash();
 
-    List<KeyValue> projectList =
-        projectListCache.map((e) => e.toKeyValue()).toList();
-    List<KeyValue> contactList =
-        contactListCache.map((e) => e.toKeyValue()).toList();
-    List<KeyValue> profileList =
-        profileListCache.map((e) => e.toKeyValue()).toList();
-    List<KeyValue> orgList = orgListCache.map((e) => e.toKeyValue()).toList();
-    List<KeyValue> statusList =
-        statusListCache.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> projectList =
+    //     projectListCache.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> contactList =
+    //     contactListCache.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> profileList =
+    //     profileListCache.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> orgList = orgListCache.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> statusList =
+    //     statusListCache.map((e) => e.toKeyValue()).toList();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
