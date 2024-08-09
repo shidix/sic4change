@@ -92,7 +92,7 @@ class Profile {
   }
 
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
-    if (emails != null) {
+    if ((emails != null) && (emails.isNotEmpty)) {
       return db
           .collection("s4c_profiles")
           .where("email", whereIn: emails)

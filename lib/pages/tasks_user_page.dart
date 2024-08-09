@@ -62,11 +62,20 @@ class _TasksUserPageState extends State<TasksUserPage> {
           }
           taskListPanel = taskListCache(context, user);
 
-          List<String> emails =
-              allTasksUser.map((e) => e.sender).toList() as List<String>;
+          List<String> emails = [];
           for (STask task in allTasksUser) {
-            emails.addAll(task.assigned);
+            if (!emails.contains(task.sender)) {
+              emails.add(task.sender);
+            }
           }
+          for (STask task in allTasksUser) {
+            for (String email in task.assigned) {
+              if (!emails.contains(email)) {
+                emails.add(email);
+              }
+            }
+          }
+
           Profile.getProfiles(emails: emails).then((value) {
             setState(() {
               profiles = value;
@@ -171,10 +180,14 @@ class _TasksUserPageState extends State<TasksUserPage> {
   }*/
 
   Widget taskListCache(context, user) {
+    int myTasks =
+        allTasksUser.where((task) => task.assigned.contains(user.email)).length;
+    int createdTasks =
+        allTasksUser.where((task) => task.sender == user.email).length;
     return Column(
       children: [
         ExpansionTile(
-          title: customText("Para mí", 16, textColor: mainColor),
+          title: customText("Para mí ($myTasks)", 16, textColor: mainColor),
           initiallyExpanded: true,
           children: [
             Builder(
@@ -194,15 +207,23 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   ],
                 );
               } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: <Widget>[
+                    dataBody(context),
+                  ],
                 );
               }
             }))
           ],
         ),
+        space(height: 20),
         ExpansionTile(
-          title: customText("Creadas por mí", 16, textColor: mainColor),
+          title: customText("Creadas por mí ($createdTasks)", 16,
+              textColor: mainColor),
+          initiallyExpanded: true,
           children: [
             Builder(builder: ((context) {
               tasksUser = allTasksUser
@@ -229,62 +250,62 @@ class _TasksUserPageState extends State<TasksUserPage> {
     );
   }
 
-  Widget taskList(context, user) {
-    return Column(
-      children: [
-        ExpansionTile(
-          title: customText("Para mí", 16, textColor: mainColor),
-          initiallyExpanded: true,
-          children: [
-            FutureBuilder(
-                //future: getTasksByAssigned(user.uid),
-                future: STask.getByAssigned(user.email),
-                builder: ((context, snapshot) {
-                  if (snapshot.hasData) {
-                    tasksUser = snapshot.data!;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      verticalDirection: VerticalDirection.down,
-                      children: <Widget>[
-                        dataBody(context),
-                      ],
-                    );
-                  } else {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                }))
-          ],
-        ),
-        ExpansionTile(
-          title: customText("Creadas por mí", 16, textColor: mainColor),
-          children: [
-            FutureBuilder(
-                future: getTasksBySender(user.email),
-                builder: ((context, snapshot) {
-                  if (snapshot.hasData) {
-                    tasksUser = snapshot.data!;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      verticalDirection: VerticalDirection.down,
-                      children: <Widget>[
-                        dataBody(context),
-                      ],
-                    );
-                  } else {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                }))
-          ],
-        )
-      ],
-    );
-  }
+  // Widget taskList(context, user) {
+  //   return Column(
+  //     children: [
+  //       ExpansionTile(
+  //         title: customText("Para mí", 16, textColor: mainColor),
+  //         initiallyExpanded: true,
+  //         children: [
+  //           FutureBuilder(
+  //               //future: getTasksByAssigned(user.uid),
+  //               future: STask.getByAssigned(user.email),
+  //               builder: ((context, snapshot) {
+  //                 if (snapshot.hasData) {
+  //                   tasksUser = snapshot.data!;
+  //                   return Column(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     mainAxisAlignment: MainAxisAlignment.center,
+  //                     verticalDirection: VerticalDirection.down,
+  //                     children: <Widget>[
+  //                       dataBody(context),
+  //                     ],
+  //                   );
+  //                 } else {
+  //                   return const Center(
+  //                     child: CircularProgressIndicator(),
+  //                   );
+  //                 }
+  //               }))
+  //         ],
+  //       ),
+  //       ExpansionTile(
+  //         title: customText("Creadas por mí", 16, textColor: mainColor),
+  //         children: [
+  //           FutureBuilder(
+  //               future: getTasksBySender(user.email),
+  //               builder: ((context, snapshot) {
+  //                 if (snapshot.hasData) {
+  //                   tasksUser = snapshot.data!;
+  //                   return Column(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     mainAxisAlignment: MainAxisAlignment.center,
+  //                     verticalDirection: VerticalDirection.down,
+  //                     children: <Widget>[
+  //                       dataBody(context),
+  //                     ],
+  //                   );
+  //                 } else {
+  //                   return const Center(
+  //                     child: CircularProgressIndicator(),
+  //                   );
+  //                 }
+  //               }))
+  //         ],
+  //       )
+  //     ],
+  //   );
+  // }
 
   SingleChildScrollView dataBody(context) {
     return SingleChildScrollView(
@@ -314,39 +335,51 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   tooltip: "Estado"),
               const DataColumn(label: Text(""), tooltip: ""),
             ],
-            rows: tasksUser
-                .map(
-                  (task) => DataRow(cells: [
-                    DataCell(Text(task.name)),
-                    DataCell(
-                      Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
-                    ),
-                    DataCell(Text(
-                        DateFormat('yyyy-MM-dd').format(task.deadLineDate))),
-                    DataCell(Text(task.assigned.join(","))),
-                    // DataCell(Text(task.getAssignedStr())),
-                    DataCell(customTextStatus(task.statusObj.name, size: 14)),
-                    DataCell(Row(children: [
-                      /*IconButton(
+            rows: tasksUser.isEmpty
+                ? [
+                    const DataRow(cells: [
+                      DataCell(Text("No hay tareas asignadas")),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
+                    ])
+                  ]
+                : tasksUser
+                    .map(
+                      (task) => DataRow(cells: [
+                        DataCell(Text(task.name)),
+                        DataCell(
+                          Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
+                        ),
+                        DataCell(Text(DateFormat('yyyy-MM-dd')
+                            .format(task.deadLineDate))),
+                        DataCell(Text(task.assigned.join(","))),
+                        // DataCell(Text(task.getAssignedStr())),
+                        DataCell(
+                            customTextStatus(task.statusObj.name, size: 14)),
+                        DataCell(Row(children: [
+                          /*IconButton(
                           icon: const Icon(Icons.view_compact),
                           tooltip: 'Ver',
                           onPressed: () async {
                             Navigator.pushNamed(context, "/task_info",
                                 arguments: {'task': task});
                           }),*/
-                      goPageIcon(context, "Ver", Icons.view_compact,
-                          TaskInfoPage(task: task)),
-                      removeConfirmBtn(context, () {
-                        task.delete();
-                        setState(() {
-                          allTasksUser.remove(task);
-                          taskListPanel = taskListCache(context, user);
-                        });
-                      }, null),
-                    ]))
-                  ]),
-                )
-                .toList(),
+                          goPageIcon(context, "Ver", Icons.view_compact,
+                              TaskInfoPage(task: task)),
+                          removeConfirmBtn(context, () {
+                            task.delete();
+                            setState(() {
+                              allTasksUser.remove(task);
+                              taskListPanel = taskListCache(context, user);
+                            });
+                          }, null),
+                        ]))
+                      ]),
+                    )
+                    .toList(),
           ),
         ));
   }

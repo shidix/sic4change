@@ -255,7 +255,8 @@ class STask {
 
   static Future<List<STask>> getByUser(uuid) async {
     List<STask> items = [];
-    final query = await dbTasks.where("assigned", isEqualTo: uuid).get();
+
+    final query = await dbTasks.where("assigned", arrayContains: uuid).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
@@ -270,18 +271,20 @@ class STask {
       items.add(task);
     }
     final query2 = await dbTasks.where("sender", isEqualTo: uuid).get();
-    for (var doc in query2.docs) {
-      final Map<String, dynamic> data = doc.data();
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
-      // task.getProject();
-      // await task.getStatus();
-      // await task.getSender();
-      // await task.getAssigned();
-      // await task.getReceivers();
-      // await task.getReceiversOrg();
-      //await task.getProgrammes();
-      items.add(task);
+    if (query2.docs.length > 0) {
+      for (var doc in query2.docs) {
+        final Map<String, dynamic> data = doc.data();
+        data["id"] = doc.id;
+        STask task = STask.fromJson(data);
+        // task.getProject();
+        // await task.getStatus();
+        // await task.getSender();
+        // await task.getAssigned();
+        // await task.getReceivers();
+        // await task.getReceiversOrg();
+        //await task.getProgrammes();
+        items.add(task);
+      }
     }
     return items;
   }
