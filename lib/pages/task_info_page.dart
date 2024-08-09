@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer' as devlog;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -475,22 +476,22 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
-  void callEditDialog(context, HashMap args) async {
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> projectList = await getProjectsHash();
-    List<KeyValue> contactList = await getContactsHash();
-    List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+  void callEditDialog(context, args) async {
+    // List<KeyValue> statusList = await getTasksStatusHash();
+    // List<KeyValue> projectList = await getProjectsHash();
+    // List<KeyValue> contactList = await getContactsHash();
+    // List<KeyValue> profileList = await Profile.getProfileHash();
+    // List<KeyValue> orgList = await getOrganizationsHash();
 
-    // List<KeyValue> projectList =
-    //     projectListCache.map((e) => e.toKeyValue()).toList();
-    // List<KeyValue> contactList =
-    //     contactListCache.map((e) => e.toKeyValue()).toList();
-    // List<KeyValue> profileList =
-    //     profileListCache.map((e) => e.toKeyValue()).toList();
-    // List<KeyValue> orgList = orgListCache.map((e) => e.toKeyValue()).toList();
-    // List<KeyValue> statusList =
-    //     statusListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> projectList =
+        projectListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> contactList =
+        contactListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> profileList =
+        profileListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> orgList = orgListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> statusList =
+        statusListCache.map((e) => e.toKeyValue()).toList();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
@@ -502,8 +503,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
         .toList();
 
-    taskEditDialog(
-        context, args["task"], statusList, projectList, pList, cList, oList);
+    taskEditDialog(context, args["task"] as STask, statusList, projectList,
+        pList, cList, oList);
   }
 
   void saveTask(List args) async {
