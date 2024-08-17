@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
+// ignore_for_file: avoid_web_libraries_in_flutter, curly_braces_in_flow_control_structures
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -63,43 +63,23 @@ class _NominasPageState extends State<NominasPage> {
   @override
   void initState() {
     super.initState();
-    secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
     if (widget.profile == null) {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
         profile = value;
-        mainMenuPanel = mainMenuOperator(context,
-            url: ModalRoute.of(context)!.settings.name,
-            profile: profile,
-            key: mainMenuKey);
-
+        secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
         if (mounted) {
           setState(() {});
         }
       });
     } else {
       profile = widget.profile;
-      mainMenuPanel = mainMenuOperator(context,
-          url: ModalRoute.of(context)!.settings.name,
-          profile: profile,
-          key: mainMenuKey);
-      if (mounted) {
-        setState(() {});
-      }
+      secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
     }
-    Nomina.collection.get().then((value) {
-      nominas = value.docs.map((e) {
-        Nomina item = Nomina.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
 
-      if (widget.codeEmployee != null) {
-        nominas = nominas
-            .where((element) => element.employeeCode == widget.codeEmployee)
-            .toList();
-      }
-
+    Nomina.getNominas(employeeCode: widget.codeEmployee).then((value) {
+      print("DBG ${widget.codeEmployee}");
+      nominas = value;
       nominas.sort((a, b) => a.compareTo(b));
       if (mounted) {
         setState(() {
@@ -164,9 +144,8 @@ class _NominasPageState extends State<NominasPage> {
                           ? (columnIndex, ascending) {
                               sortColumnIndex = columnIndex;
                               sortAsc = ascending ? 1 : -1;
-                              setState(() {
-                                contentPanel = content(context);
-                              });
+                              contentPanel = content(context);
+                              if (mounted) setState(() {});
                             }
                           : null,
                       label: Text(
@@ -261,9 +240,10 @@ class _NominasPageState extends State<NominasPage> {
                                   removeConfirmBtn(context, () {
                                     e.delete().then((value) {
                                       nominas.remove(e);
-                                      setState(() {
-                                        contentPanel = content(context);
-                                      });
+                                      if (mounted)
+                                        setState(() {
+                                          contentPanel = content(context);
+                                        });
                                     });
                                   }, null),
                                 ],
@@ -309,9 +289,11 @@ class _NominasPageState extends State<NominasPage> {
           } else {
             nominas[index] = value;
           }
-          setState(() {
-            contentPanel = content(context);
-          });
+          if (mounted) {
+            setState(() {
+              contentPanel = content(context);
+            });
+          }
         }
       },
     );
@@ -344,7 +326,8 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuPanel,
+              mainMenuOperator(context,
+                  url: ModalRoute.of(context)!.settings.name, profile: profile),
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,
