@@ -119,7 +119,7 @@ class Nomina {
   static Future<List<Nomina>> getNominas(
       {String? employeeCode, DateTime? beforeAt, DateTime? atfterAt}) async {
     // get from database
-    beforeAt ??= DateTime.now();
+    beforeAt ??= DateTime.now().add(const Duration(days: 3650));
     atfterAt ??= DateTime.now().subtract(const Duration(days: 3650));
     List<Nomina> items = [];
     await collection

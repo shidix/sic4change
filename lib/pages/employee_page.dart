@@ -50,7 +50,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
     Employee.getEmployees().then((value) {
       employees = value;
       contentPanel = content(context);
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
     if (widget.profile == null) {
@@ -120,9 +122,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   onSort: (columnIndex, ascending) {
                     sortColumnIndex = columnIndex;
                     orderDirection = ascending ? 1 : -1;
-                    setState(() {
-                      contentPanel = content(context);
-                    });
+                    if (mounted) {
+                      setState(() {
+                        contentPanel = content(context);
+                      });
+                    }
                   },
                   label: Text(
                     e,
@@ -181,7 +185,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                                   MaterialPageRoute(
                                       builder: (context) => NominasPage(
                                           profile: profile,
-                                          codeEmployee: e.email)));
+                                          codeEmployee: e.code)));
                             },
                           ),
                           (e.isActive())
