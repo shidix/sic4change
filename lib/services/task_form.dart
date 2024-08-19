@@ -273,7 +273,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
       MultiSelectDialogField(
         items: contactList,
         initialValue: selectedReceivers,
-        title: customText("Destinatarios", 16),
+        title: customText("Revisor/Supervisor", 16),
         selectedColor: mainColor,
         decoration: multiSelectDecoration,
         buttonIcon: const Icon(
@@ -282,7 +282,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
         ),
         //buttonText: customText("Seleccionar ejecutores", 16, textColor: mainColor),
         buttonText: const Text(
-          "Destinatarios Contactos",
+          "Revisor/Supervisor",
           style: TextStyle(
             color: mainColor,
             fontSize: 16,
@@ -297,7 +297,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
         },
       ),
     ]),
-    space(width: 10),
+    /*space(width: 10),
     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       MultiSelectDialogField(
         items: orgList,
@@ -325,7 +325,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
           task.receiversOrg = receiversOrg;
         },
       ),
-    ]),
+    ]),*/
     // ]),
   ]));
 }

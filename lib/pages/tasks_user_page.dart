@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
-import 'package:sic4change/pages/tasks_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -60,9 +59,10 @@ class _TasksUserPageState extends State<TasksUserPage> {
           for (STask task in allTasksUser) {
             updateObjects(task);
           }
+
           taskListPanel = taskListCache(context, user);
 
-          List<String> emails = [];
+          /*List<String> emails = [];
           for (STask task in allTasksUser) {
             if (!emails.contains(task.sender)) {
               emails.add(task.sender);
@@ -74,11 +74,12 @@ class _TasksUserPageState extends State<TasksUserPage> {
                 emails.add(email);
               }
             }
-          }
+          }*/
 
-          Profile.getProfiles(emails: emails).then((value) {
+          /*Profile.getProfiles(emails: emails).then((value) {
             setState(() {
               profiles = value;
+              print("--zz--");
               for (STask task in allTasksUser) {
                 task.senderObj = profiles.firstWhere(
                     (element) => element.email == task.sender,
@@ -86,9 +87,11 @@ class _TasksUserPageState extends State<TasksUserPage> {
                 task.assignedObj = profiles
                     .where((element) => task.assigned.contains(element.email))
                     .toList();
+                print(task.assignedObj);
               }
+              print("--ww--");
             });
-          });
+          });*/
         });
       });
     });
@@ -141,43 +144,6 @@ class _TasksUserPageState extends State<TasksUserPage> {
       ),
     ]);
   }
-
-  /*Widget taskMenu(context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Row(
-        children: [
-          menuTab(context, "Mis tareas", "/tasks_user", {}, selected: true),
-          menuTab(context, "Tareas generales", "/tasks", {}),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget taskAddBtn(context) {
-    return ElevatedButton(
-      onPressed: () {
-        _callEditDialog(context, null);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        backgroundColor: Colors.white,
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.add,
-            color: Colors.black54,
-            size: 30,
-          ),
-          space(height: 10),
-          customText("Añadir tarea", 14, textColor: Colors.black),
-        ],
-      ),
-    );
-  }*/
 
   Widget taskListCache(context, user) {
     int myTasks =
@@ -234,63 +200,6 @@ class _TasksUserPageState extends State<TasksUserPage> {
     );
   }
 
-  // Widget taskList(context, user) {
-  //   return Column(
-  //     children: [
-  //       ExpansionTile(
-  //         title: customText("Para mí", 16, textColor: mainColor),
-  //         initiallyExpanded: true,
-  //         children: [
-  //           FutureBuilder(
-  //               //future: getTasksByAssigned(user.uid),
-  //               future: STask.getByAssigned(user.email),
-  //               builder: ((context, snapshot) {
-  //                 if (snapshot.hasData) {
-  //                   tasksUser = snapshot.data!;
-  //                   return Column(
-  //                     mainAxisSize: MainAxisSize.min,
-  //                     mainAxisAlignment: MainAxisAlignment.center,
-  //                     verticalDirection: VerticalDirection.down,
-  //                     children: <Widget>[
-  //                       dataBody(context),
-  //                     ],
-  //                   );
-  //                 } else {
-  //                   return const Center(
-  //                     child: CircularProgressIndicator(),
-  //                   );
-  //                 }
-  //               }))
-  //         ],
-  //       ),
-  //       ExpansionTile(
-  //         title: customText("Creadas por mí", 16, textColor: mainColor),
-  //         children: [
-  //           FutureBuilder(
-  //               future: getTasksBySender(user.email),
-  //               builder: ((context, snapshot) {
-  //                 if (snapshot.hasData) {
-  //                   tasksUser = snapshot.data!;
-  //                   return Column(
-  //                     mainAxisSize: MainAxisSize.min,
-  //                     mainAxisAlignment: MainAxisAlignment.center,
-  //                     verticalDirection: VerticalDirection.down,
-  //                     children: <Widget>[
-  //                       dataBody(context),
-  //                     ],
-  //                   );
-  //                 } else {
-  //                   return const Center(
-  //                     child: CircularProgressIndicator(),
-  //                   );
-  //                 }
-  //               }))
-  //         ],
-  //       )
-  //     ],
-  //   );
-  // }
-
   SingleChildScrollView dataBody(context) {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -339,8 +248,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
                         ),
                         DataCell(Text(DateFormat('yyyy-MM-dd')
                             .format(task.deadLineDate))),
-                        DataCell(Text(task.assigned.join(","))),
-                        // DataCell(Text(task.getAssignedStr())),
+                        DataCell(Text(task.getAssignedStr())),
                         DataCell(
                             customTextStatus(task.statusObj.name, size: 14)),
                         DataCell(Row(children: [
@@ -407,6 +315,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     STask task = STask("");
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
+    task.public = true;
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -426,90 +335,4 @@ class _TasksUserPageState extends State<TasksUserPage> {
       },
     );
   }
-
-  /*void _callEditDialog(context, task) async {
-    _taskEditDialog(context, task);
-  }
-
-  void _saveTask(
-    context,
-    name,
-  ) async {
-    STask task = STask(name);
-    task.save();
-
-    Navigator.pushNamed(context, "/task_info", arguments: {'task': task});
-  }
-
-  Future<void> _taskEditDialog(context, task) {
-    TextEditingController nameController = TextEditingController(text: "");
-
-    if (task != null) {
-      nameController = TextEditingController(text: task.name);
-    }
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Contact edit'),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Nombre:", 16, textColor: Colors.blue),
-                customTextField(nameController, "Nombre", size: 700),
-              ])
-            ]),
-          ])),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                _saveTask(context, nameController.text);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _removeTaskDialog(context, _task) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Borrar tarea'),
-          content: const SingleChildScrollView(
-            child: Text("Are you sure to remove this element?"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Borrar'),
-              onPressed: () async {
-                _task.delete();
-                loadTasks();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
 }

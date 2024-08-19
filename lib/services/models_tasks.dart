@@ -217,9 +217,9 @@ class STask {
   String getAssignedStr() {
     String assignedStr = "";
     for (Profile item in assignedObj) {
-      assignedStr += "${item.email},";
+      assignedStr += "${item.name},";
     }
-    assignedStr = (assignedStr.length > 0)
+    assignedStr = (assignedStr.isNotEmpty)
         ? assignedStr.substring(0, assignedStr.length - 1)
         : assignedStr;
     return assignedStr;
@@ -264,7 +264,7 @@ class STask {
       // task.getProject();
       // await task.getStatus();
       // await task.getSender();
-      // await task.getAssigned();
+      await task.getAssigned();
       // await task.getReceivers();
       // await task.getReceiversOrg();
       //await task.getProgrammes();
@@ -279,7 +279,7 @@ class STask {
         // task.getProject();
         // await task.getStatus();
         // await task.getSender();
-        // await task.getAssigned();
+        //await task.getAssigned();
         // await task.getReceivers();
         // await task.getReceiversOrg();
         //await task.getProgrammes();

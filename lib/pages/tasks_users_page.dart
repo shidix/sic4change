@@ -138,7 +138,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
             rows: users
                 .map(
                   (us) => DataRow(cells: [
-                    DataCell(customText(us.email, 14)),
+                    DataCell(customText(us.name, 14)),
                     DataCell(Container(
                       margin: const EdgeInsets.all(5),
                       color: Colors.green,
