@@ -20,6 +20,8 @@ class _InvoicePageState extends State<InvoicePage> {
   Widget containerMenu = Container();
   Widget containerHeader = Container();
   Widget containerFooter = Container();
+  List<Invoice> invoices = [];
+  List<TaxKind> taxes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +34,15 @@ class _InvoicePageState extends State<InvoicePage> {
               padding: const EdgeInsets.all(0),
               child: Column(
                 children: <Widget>[
-                  mainMenu(context),
-                  mainHeader("Facturas", [
+                  //mainMenu(context),
+                  containerMenu,
+                  mainHeader("", [
                     //boton para añadir factura
-                    addBtn(context, addInvoiceDialog, null,
-                        text: "Añadir factura")
+                    gralButton(context, listInvoices, null, "Facturas",
+                        icon: Icons.euro),
+                    space(width: 10),
+                    gralButton(context, listTaxes, null, 'Impuestos',
+                        icon: Icons.list),
                   ]),
                   containerInvoices,
                   const Divider(),
@@ -52,12 +58,92 @@ class _InvoicePageState extends State<InvoicePage> {
 
   @override
   void initState() {
+    containerMenu = mainMenu(context);
+    TaxKind.getAll().then((value) {
+      taxes = value;
+    });
     populateInvoices().then((value) {
       setState(() {
         containerInvoices = value;
       });
     });
     super.initState();
+  }
+
+  Future<void> listTaxes(context) async {
+    print(1);
+    if (taxes.isEmpty) {
+      taxes = await TaxKind.getAll();
+    }
+    DataTable table = DataTable(
+      headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.hovered)) {
+          return headerListBgColor.withOpacity(0.5);
+        }
+        return headerListBgColor;
+      }),
+      columns: const <DataColumn>[
+        DataColumn(label: Text('Código', style: headerListStyle)),
+        DataColumn(
+            label: Text(
+          'Nombre',
+          style: headerListStyle,
+        )),
+        DataColumn(label: Text('Porcentaje', style: headerListStyle)),
+        DataColumn(label: Text('País', style: headerListStyle)),
+        DataColumn(label: Text('Válido desde', style: headerListStyle)),
+        DataColumn(label: Text('Válido hasta', style: headerListStyle)),
+        DataColumn(label: Text('')),
+      ],
+      rows: taxes
+          .map((e) => DataRow(cells: [
+                DataCell(Text(e.code)),
+                DataCell(Text(e.name)),
+                DataCell(Text('${e.percentaje.toStringAsFixed(2)}%')),
+                DataCell(Text(e.country)),
+                DataCell(Text(DateFormat('dd/MM/yyyy').format(e.from))),
+                DataCell(Text(DateFormat('dd/MM/yyyy').format(e.to))),
+                DataCell(Row(
+                  children: [
+                    editBtn(context, addTaxKindDialog, e),
+                    removeConfirmBtn(context, () {}, e),
+                  ],
+                )),
+              ]))
+          .toList(),
+    );
+
+    containerInvoices = Column(children: [
+      s4cTitleBar("Tipos de impuestos"),
+      space(height: 10),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          addBtnRow(context, addTaxKindDialog, null, text: "Añadir impuesto"),
+        ],
+      ),
+      space(height: 10),
+      SingleChildScrollView(
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(padding: const EdgeInsets.all(10), child: table),
+        ),
+      ),
+    ]);
+
+    setState(() {
+      containerInvoices = containerInvoices;
+    });
+  }
+
+  Future<void> listInvoices(context) async {
+    populateInvoices().then((value) {
+      containerInvoices = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   Future<Widget> populateInvoices() async {
@@ -99,7 +185,9 @@ class _InvoicePageState extends State<InvoicePage> {
           .toList(),
     );
 
-    List<Invoice> invoices = await Invoice.all();
+    if (invoices.isEmpty) {
+      invoices = await Invoice.all();
+    }
     List<InvoiceDistrib> distribs = await InvoiceDistrib.getByInvoice(invoices);
     Map<String, double> distribsMap = {};
     for (var element in distribs) {
@@ -138,7 +226,7 @@ class _InvoicePageState extends State<InvoicePage> {
           [
             1,
             Text(
-              (invoice.taxKind == null ? '--' : invoice.taxKind!.name),
+              (invoice.taxKind == null ? '--' : invoice.taxKind!),
               textAlign: TextAlign.center,
             )
           ],
@@ -177,6 +265,15 @@ class _InvoicePageState extends State<InvoicePage> {
     }
 
     List<Widget> widgetInvoices = [
+      s4cTitleBar("Listado de Facturas"),
+      space(height: 10),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          addBtnRow(context, addInvoiceDialog, null, text: "Añadir factura"),
+        ],
+      ),
+      space(height: 10),
       Container(
           color: Colors.green.shade50,
           child: Padding(
@@ -187,7 +284,7 @@ class _InvoicePageState extends State<InvoicePage> {
       return Container(
         color: !index.isEven ? Colors.grey.shade100 : Colors.white,
         child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             child: fromInvoice(invoices[index])),
       );
     }));
@@ -217,6 +314,7 @@ class _InvoicePageState extends State<InvoicePage> {
             existingInvoice: invoice,
             partner: null,
             tracker: tracker,
+            taxes: taxes,
           ),
         );
       },
@@ -327,5 +425,34 @@ class _InvoicePageState extends State<InvoicePage> {
         },
       );
     }
+  }
+
+  Future<TaxKind?> addTaxKindDialog(context, [TaxKind? tax]) async {
+    tax ??= TaxKind.getEmpty();
+    return showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: EdgeInsets.zero,
+          title: s4cTitleBar('Tipo de impuesto', context),
+          content: TaxKindForm(
+            key: null,
+            existingTaxKind: tax,
+          ),
+        );
+      },
+    ).then(
+      (value) {
+        if (value != null) {
+          if (taxes.contains(value)) {
+            // Replace the existing tax
+            taxes.remove(value);
+          }
+          taxes.add(value);
+          listTaxes(context);
+        }
+      },
+    );
   }
 }

@@ -1079,6 +1079,27 @@ Widget goPageIcon(context, btnText, icon, newContext,
       });
 }
 
+Widget gralButton(context, action, args, text, {icon = Icons.settings}) {
+  return FilledButton(
+      onPressed: () {
+        if (args == null) {
+          action(context);
+        } else {
+          action(context, args);
+        }
+      },
+      style: btnStyle,
+      child: Column(
+        children: [
+          space(height: 5),
+          Icon(icon, color: subTitleColor),
+          space(height: 5),
+          customText(text, 12, textColor: subTitleColor),
+          space(height: 5),
+        ],
+      ));
+}
+
 Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
   return FilledButton(
       onPressed: () {
