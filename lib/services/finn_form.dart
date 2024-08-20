@@ -249,7 +249,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.only(top: 2),
                         child: CustomSelectFormField(
                           labelText: "Tipo Impuesto",
                           initial: _invoice.taxKind!,
@@ -313,7 +313,7 @@ class DistributionForm extends StatefulWidget {
 }
 
 class _DistributionFormState extends State<DistributionForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late SFinnInfo info;
   late SProject project;
   late SFinn finn;
@@ -360,19 +360,19 @@ class _DistributionFormState extends State<DistributionForm> {
       }
     }
 
-    Distribution? removeDistribution() {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
-        item.delete();
-        if (index >= 0) {
-          info.distributions.removeAt(index);
-        }
-        info.save();
-        Navigator.of(context).pop(info);
-        return (item);
-      }
-      return null;
-    }
+    // Distribution? removeDistribution() {
+    //   if (_formKey.currentState!.validate()) {
+    //     _formKey.currentState!.save();
+    //     item.delete();
+    //     if (index >= 0) {
+    //       info.distributions.removeAt(index);
+    //     }
+    //     info.save();
+    //     Navigator.of(context).pop(info);
+    //     return (item);
+    //   }
+    //   return null;
+    // }
 
     List<Organization> partners = widget.partners;
 
@@ -471,7 +471,7 @@ class InvoiceDistributionForm extends StatefulWidget {
 }
 
 class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late InvoiceDistrib invoiceDistrib;
   late Invoice invoice;
 
@@ -1240,15 +1240,15 @@ class _TaxKindFormState extends State<TaxKindForm> {
         Navigator.of(context).pop(_taxKind);
       }
     }, Icons.save, null);
-    Widget removeButton = actionButton(context, "Borrar", () {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
-        customRemoveDialog(context, _taxKind, () {
-          _taxKind.id = "";
-          Navigator.of(context).pop(_taxKind);
-        });
-      }
-    }, Icons.delete, null);
+    // Widget removeButton = actionButton(context, "Borrar", () {
+    //   if (_formKey.currentState!.validate()) {
+    //     _formKey.currentState!.save();
+    //     customRemoveDialog(context, _taxKind, () {
+    //       _taxKind.id = "";
+    //       Navigator.of(context).pop(_taxKind);
+    //     });
+    //   }
+    // }, Icons.delete, null);
 
     Widget cancelButton = actionButton(context, "Cancelar", () {
       Navigator.of(context).pop(null);
@@ -1343,6 +1343,7 @@ class _TaxKindFormState extends State<TaxKindForm> {
                   Expanded(
                       flex: 1,
                       child: CustomSelectFormField(
+                        padding: const EdgeInsets.only(top: 8, right: 5),
                         labelText: 'País',
                         initial: _taxKind.country,
                         options: countries

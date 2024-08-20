@@ -2083,12 +2083,14 @@ class CustomSelectFormField extends StatelessWidget {
     required this.options,
     required this.onSelectedOpt,
     this.required = false,
+    this.padding = EdgeInsets.zero,
   }) : super(key: key);
 
   final String labelText;
   final String initial;
   final List<KeyValue> options;
   final ValueChanged<String> onSelectedOpt;
+  final EdgeInsets padding;
   final bool required;
 
   @override
@@ -2111,24 +2113,27 @@ class CustomSelectFormField extends StatelessWidget {
       );
     }).toList();
 
-    return DropdownButtonFormField(
-      value: initialKey,
-      decoration: InputDecoration(
-          labelText: labelText, contentPadding: const EdgeInsets.only(left: 5)),
-      items: optionsDrop,
-      onChanged: (value) {
-        onSelectedOpt(value.toString());
-      },
-      validator: (value) {
-        if (value == null ||
-            value.isEmpty ||
-            (required && value == "") ||
-            (value == "--")) {
-          return 'Por favor seleccione una opción';
-        }
-        return null;
-      },
-    );
+    return Padding(
+        padding: this.padding,
+        child: DropdownButtonFormField(
+          value: initialKey,
+          decoration: InputDecoration(
+              labelText: labelText,
+              contentPadding: const EdgeInsets.only(left: 5)),
+          items: optionsDrop,
+          onChanged: (value) {
+            onSelectedOpt(value.toString());
+          },
+          validator: (value) {
+            if (value == null ||
+                value.isEmpty ||
+                (required && value == "") ||
+                (value == "--")) {
+              return 'Por favor seleccione una opción';
+            }
+            return null;
+          },
+        ));
   }
 }
 

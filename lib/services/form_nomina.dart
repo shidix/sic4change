@@ -6,13 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:googleapis/keep/v1.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 class NominaForm extends StatefulWidget {
   final Nomina selectedItem;
-  const NominaForm({Key? key, required this.selectedItem}) : super(key: key);
+  final List<Employee> employees;
+  const NominaForm(
+      {Key? key, required this.selectedItem, required this.employees})
+      : super(key: key);
 
   @override
   _NominaFormState createState() => _NominaFormState();
@@ -21,16 +25,21 @@ class NominaForm extends StatefulWidget {
 class _NominaFormState extends State<NominaForm> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Nomina nomina;
+  late List<KeyValue> employees;
   late PlatformFile? notSignedFile;
   late PlatformFile? signedFile;
   String noSignedFileMsg = "";
-  late Nomina oldNomina;
+  late Nomina oldNominas;
 
   @override
   void initState() {
     super.initState();
+    employees = widget.employees
+        .map((Employee e) =>
+            KeyValue(e.code, "${e.firstName} ${e.lastName1} ${e.lastName2}"))
+        .toList();
     nomina = widget.selectedItem;
-    oldNomina = Nomina(
+    oldNominas = Nomina(
         employeeCode: nomina.employeeCode,
         date: nomina.date,
         grossSalary: nomina.grossSalary,
@@ -91,13 +100,13 @@ class _NominaFormState extends State<NominaForm> {
               actions: [
                 TextButton(
                     onPressed: () {
-                      nomina.deductions = oldNomina.deductions;
-                      nomina.netSalary = oldNomina.netSalary;
-                      nomina.employeeSocialSecurity =
-                          oldNomina.employeeSocialSecurity;
-                      nomina.employerSocialSecurity =
-                          oldNomina.employerSocialSecurity;
-                      nomina.grossSalary = oldNomina.grossSalary;
+                      // nomina.deductions = oldNomina.deductions;
+                      // nomina.netSalary = oldNomina.netSalary;
+                      // nomina.employeeSocialSecurity =
+                      //     oldNomina.employeeSocialSecurity;
+                      // nomina.employerSocialSecurity =
+                      //     oldNomina.employerSocialSecurity;
+                      // nomina.grossSalary = oldNomina.grossSalary;
                       Navigator.of(context).pop();
                       if (mounted) {
                         setState(() {});
@@ -146,22 +155,32 @@ class _NominaFormState extends State<NominaForm> {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              labelText: "Códido Empleado"),
-                          initialValue: nomina.employeeCode,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese el código del empleado';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.employeeCode = value;
-                          },
-                        )),
+                    child: CustomSelectFormField(
+                      labelText: "Empleado",
+                      initial: nomina.employeeCode,
+                      options: employees,
+                      onSelectedOpt: (value) {
+                        nomina.employeeCode = value;
+                        setState(() {});
+                      },
+                    ),
+
+                    // Padding(
+                    //     padding: const EdgeInsets.all(8.0),
+                    //     child: TextFormField(
+                    //       decoration: const InputDecoration(
+                    //           labelText: "Códido Empleado"),
+                    //       initialValue: nomina.employeeCode,
+                    //       validator: (value) {
+                    //         if (value == null || value.isEmpty) {
+                    //           return 'Por favor, ingrese el código del empleado';
+                    //         }
+                    //         return null;
+                    //       },
+                    //       onChanged: (value) {
+                    //         nomina.employeeCode = value;
+                    //       },
+                    //     )),
                   ),
                   Expanded(
                       flex: 3,

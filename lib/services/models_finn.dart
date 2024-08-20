@@ -1340,7 +1340,7 @@ class BankTransfer {
                 child: Text(toCurrency(commissionSource),
                     textAlign: TextAlign.right)),
             Expanded(
-                child: Text('$exchangeSource $currencySource',
+                child: Text(toCurrency(exchangeSource, currencySource),
                     textAlign: TextAlign.right)),
           ]),
           (amountIntermediary != 0)

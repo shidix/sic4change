@@ -26,6 +26,7 @@ class _NominasPageState extends State<NominasPage> {
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
+  List<Employee> employees = [];
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
   Widget secondaryMenuPanel = const Row(children: []);
@@ -34,30 +35,7 @@ class _NominasPageState extends State<NominasPage> {
   int sortColumnIndex = 0;
 
   int compareNomina(Nomina a, Nomina b) {
-    switch (sortColumnIndex) {
-      case 0:
-        return a.employeeCode.compareTo(b.employeeCode) * sortAsc;
-      case 1:
-        return a.date.compareTo(b.date) * sortAsc;
-      case 2:
-        return a.netSalary.compareTo(b.netSalary) * sortAsc;
-      case 3:
-        return a.deductions.compareTo(b.deductions) * sortAsc;
-      case 4:
-        return a.employeeSocialSecurity.compareTo(b.employeeSocialSecurity) *
-            sortAsc;
-      case 5:
-        return a.grossSalary.compareTo(b.grossSalary) * sortAsc;
-      case 6:
-        return a.employerSocialSecurity.compareTo(b.employerSocialSecurity) *
-            sortAsc;
-      case 7:
-        return (a.grossSalary + a.employerSocialSecurity)
-                .compareTo(b.grossSalary + b.employerSocialSecurity) *
-            sortAsc;
-      default:
-        return 0;
-    }
+    return a.compareTo(b, sortColumnIndex: sortColumnIndex, sortAsc: sortAsc);
   }
 
   @override
@@ -77,8 +55,17 @@ class _NominasPageState extends State<NominasPage> {
       secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
     }
 
+    Employee.getEmployees().then((value) {
+      employees = value;
+      employees.sort((a, b) => a.compareTo(b));
+      if (mounted) {
+        setState(() {
+          contentPanel = content(context);
+        });
+      }
+    });
+
     Nomina.getNominas(employeeCode: widget.codeEmployee).then((value) {
-      print("DBG ${widget.codeEmployee}");
       nominas = value;
       nominas.sort((a, b) => a.compareTo(b));
       if (mounted) {
@@ -279,6 +266,7 @@ class _NominasPageState extends State<NominasPage> {
             title: s4cTitleBar('Nómina', context, Icons.add_outlined),
             content: NominaForm(
               selectedItem: nomina,
+              employees: employees,
             ),
           );
         }).then(
