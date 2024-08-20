@@ -71,10 +71,11 @@ class _InvoicePageState extends State<InvoicePage> {
   }
 
   Future<void> listTaxes(context) async {
-    print(1);
     if (taxes.isEmpty) {
       taxes = await TaxKind.getAll();
     }
+
+    taxes.sort((a, b) => a.code.compareTo(b.code));
     DataTable table = DataTable(
       headingRowColor: MaterialStateProperty.resolveWith<Color?>(
           (Set<MaterialState> states) {
@@ -314,7 +315,9 @@ class _InvoicePageState extends State<InvoicePage> {
             existingInvoice: invoice,
             partner: null,
             tracker: tracker,
-            taxes: taxes,
+            taxes: taxes
+                .where((element) => element.to.isAfter(DateTime.now()))
+                .toList(),
           ),
         );
       },

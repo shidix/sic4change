@@ -38,6 +38,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
   void initState() {
     super.initState();
     taxes = widget.taxes;
+    taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
 
     if (widget.existingInvoice == null) {
       _invoice = Invoice.getEmpty();
