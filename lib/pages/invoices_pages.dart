@@ -98,20 +98,32 @@ class _InvoicePageState extends State<InvoicePage> {
         DataColumn(label: Text('')),
       ],
       rows: taxes
-          .map((e) => DataRow(cells: [
-                DataCell(Text(e.code)),
-                DataCell(Text(e.name)),
-                DataCell(Text('${e.percentaje.toStringAsFixed(2)}%')),
-                DataCell(Text(e.country)),
-                DataCell(Text(DateFormat('dd/MM/yyyy').format(e.from))),
-                DataCell(Text(DateFormat('dd/MM/yyyy').format(e.to))),
-                DataCell(Row(
-                  children: [
-                    editBtn(context, addTaxKindDialog, e),
-                    removeConfirmBtn(context, () {}, e),
-                  ],
-                )),
-              ]))
+          .map((e) => DataRow(
+                  color: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.grey.withOpacity(0.3);
+                    }
+                    if (taxes.indexOf(e).isEven) {
+                      return Colors.grey.withOpacity(0.1);
+                    }
+
+                    return null;
+                  }),
+                  cells: [
+                    DataCell(Text(e.code)),
+                    DataCell(Text(e.name)),
+                    DataCell(Text('${e.percentaje.toStringAsFixed(2)}%')),
+                    DataCell(Text(e.country)),
+                    DataCell(Text(DateFormat('dd/MM/yyyy').format(e.from))),
+                    DataCell(Text(DateFormat('dd/MM/yyyy').format(e.to))),
+                    DataCell(Row(
+                      children: [
+                        editBtn(context, addTaxKindDialog, e),
+                        removeConfirmBtn(context, () {}, e),
+                      ],
+                    )),
+                  ]))
           .toList(),
     );
 
