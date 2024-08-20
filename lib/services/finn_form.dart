@@ -51,7 +51,7 @@ class _InvoiceFormState extends State<InvoiceForm> {
       _invoice = widget.existingInvoice!;
     }
     taxesOptions.addAll(taxes!
-        .map((e) => KeyValue(e.name, e.name))
+        .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
         .toList()); // Se añaden las opciones de impuestos
 
     if (!taxesOptions.any((element) => element.key == _invoice.taxKind)) {
