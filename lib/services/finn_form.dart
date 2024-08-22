@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
@@ -12,12 +13,14 @@ class InvoiceForm extends StatefulWidget {
   //final List<Contact>? partners;
   final Organization? partner;
   final String? tracker;
+  final List<TaxKind>? taxes;
 
   const InvoiceForm({
     Key? key,
     this.existingInvoice,
     this.partner,
     this.tracker,
+    this.taxes,
   }) : super(key: key);
 
   @override
@@ -27,10 +30,16 @@ class InvoiceForm extends StatefulWidget {
 class _InvoiceFormState extends State<InvoiceForm> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Invoice _invoice;
+  // TaxesOptions
+  late List<TaxKind>? taxes;
+  List<KeyValue> taxesOptions = [];
 
   @override
   void initState() {
     super.initState();
+    taxes = widget.taxes;
+    taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+
     if (widget.existingInvoice == null) {
       _invoice = Invoice.getEmpty();
       _invoice.uuid = const Uuid().v4();
@@ -38,8 +47,16 @@ class _InvoiceFormState extends State<InvoiceForm> {
       _invoice.date = DateTime.now();
       _invoice.paidDate = DateTime.now();
       _invoice.tracker = widget.tracker!;
+      _invoice.taxKind = taxes![0].name;
     } else {
       _invoice = widget.existingInvoice!;
+    }
+    taxesOptions.addAll(taxes!
+        .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
+        .toList()); // Se añaden las opciones de impuestos
+
+    if (!taxesOptions.any((element) => element.key == _invoice.taxKind)) {
+      taxesOptions.insert(0, KeyValue(_invoice.taxKind!, '--'));
     }
   }
 
@@ -230,6 +247,18 @@ class _InvoiceFormState extends State<InvoiceForm> {
                           _invoice.taxes = currencyToDouble(value!),
                     )),
                 Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: CustomSelectFormField(
+                          labelText: "Tipo Impuesto",
+                          initial: _invoice.taxKind!,
+                          options: taxesOptions,
+                          onSelectedOpt: (value) {
+                            _invoice.taxKind = value;
+                          },
+                        ))),
+                Expanded(
                   flex: 1,
                   child: ReadOnlyTextField(
                     label: 'Total ${CURRENCIES[_invoice.currency]!.value}',
@@ -284,7 +313,7 @@ class DistributionForm extends StatefulWidget {
 }
 
 class _DistributionFormState extends State<DistributionForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late SFinnInfo info;
   late SProject project;
   late SFinn finn;
@@ -331,19 +360,19 @@ class _DistributionFormState extends State<DistributionForm> {
       }
     }
 
-    Distribution? removeDistribution() {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
-        item.delete();
-        if (index >= 0) {
-          info.distributions.removeAt(index);
-        }
-        info.save();
-        Navigator.of(context).pop(info);
-        return (item);
-      }
-      return null;
-    }
+    // Distribution? removeDistribution() {
+    //   if (_formKey.currentState!.validate()) {
+    //     _formKey.currentState!.save();
+    //     item.delete();
+    //     if (index >= 0) {
+    //       info.distributions.removeAt(index);
+    //     }
+    //     info.save();
+    //     Navigator.of(context).pop(info);
+    //     return (item);
+    //   }
+    //   return null;
+    // }
 
     List<Organization> partners = widget.partners;
 
@@ -442,7 +471,7 @@ class InvoiceDistributionForm extends StatefulWidget {
 }
 
 class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late InvoiceDistrib invoiceDistrib;
   late Invoice invoice;
 
@@ -1026,19 +1055,6 @@ class _SFinnFormState extends State<SFinnForm> {
       _finn.orgUuid = widget.financier!.uuid;
     }
 
-    // Widget financiersSelect = CustomSelectFormField(
-    //     labelText: "Financiador",
-    //     initial: (widget.financier != null)
-    //         ? widget.financier!.uuid
-    //         : (_finn.orgUuid == "")
-    //             ? financierOptions.first.key
-    //             : _finn.orgUuid,
-    //     options: financierOptions,
-    //     onSelectedOpt: (value) {
-    //       _finn.orgUuid = value.toString();
-    //     },
-    //     required: true);
-
     List<Widget> buttons;
 
     Widget saveButton = actionButton(context, "Guardar", () {
@@ -1088,11 +1104,6 @@ class _SFinnFormState extends State<SFinnForm> {
             children: [
               Row(
                 children: [
-                  // Expanded(
-                  //     flex: 3,
-                  //     child: Padding(
-                  //         padding: const EdgeInsets.only(right: 10),
-                  //         child: financiersSelect)),
                   Expanded(
                       flex: 1,
                       child: Padding(
@@ -1111,22 +1122,32 @@ class _SFinnFormState extends State<SFinnForm> {
                         ),
                       )),
                   Expanded(
-                    flex: 2,
-                    child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: TextFormField(
-                          initialValue: _finn.description,
-                          decoration:
-                              const InputDecoration(labelText: 'Descripción'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese la descripción';
-                            }
-                            return null;
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 10, bottom: 4),
+                          child: DateTimePicker(
+                            labelText: 'Fecha Inicio',
+                            selectedDate: _finn.start,
+                            onSelectedDate: (DateTime value) {
+                              setState(() {
+                                _finn.start = value;
+                              });
+                            },
+                          ))),
+                  Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10, bottom: 4),
+                        child: DateTimePicker(
+                          labelText: 'Fecha Fin',
+                          selectedDate: _finn.end,
+                          onSelectedDate: (DateTime value) {
+                            setState(() {
+                              _finn.end = value;
+                            });
                           },
-                          onSaved: (value) => _finn.description = value!,
-                        )),
-                  ),
+                        ),
+                      )),
                   Expanded(
                     flex: 2,
                     child: TextFormField(
@@ -1147,6 +1168,221 @@ class _SFinnFormState extends State<SFinnForm> {
                           _finn.contribution = currencyToDouble(value!),
                     ),
                   )
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              Row(children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: TextFormField(
+                        initialValue: _finn.description,
+                        decoration:
+                            const InputDecoration(labelText: 'Descripción'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingrese la descripción';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _finn.description = value!,
+                      )),
+                ),
+              ]),
+              Row(children: buttons),
+            ],
+          )),
+    );
+  }
+}
+
+class TaxKindForm extends StatefulWidget {
+  final TaxKind? existingTaxKind;
+
+  const TaxKindForm({Key? key, this.existingTaxKind}) : super(key: key);
+
+  @override
+  createState() => _TaxKindFormState();
+}
+
+class _TaxKindFormState extends State<TaxKindForm> {
+  final _formKey = GlobalKey<FormState>();
+  late TaxKind _taxKind;
+  late List<Country> countries;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingTaxKind == null) {
+      _taxKind = TaxKind.getEmpty();
+    } else {
+      _taxKind = widget.existingTaxKind!;
+    }
+    countries = [];
+    Country.getAll().then((value) {
+      countries = value;
+      if (countries.isEmpty) {
+        countries.add(Country("España"));
+      }
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> buttons;
+
+    Widget saveButton = actionButton(context, "Guardar", () {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        _taxKind.save();
+        Navigator.of(context).pop(_taxKind);
+      }
+    }, Icons.save, null);
+    // Widget removeButton = actionButton(context, "Borrar", () {
+    //   if (_formKey.currentState!.validate()) {
+    //     _formKey.currentState!.save();
+    //     customRemoveDialog(context, _taxKind, () {
+    //       _taxKind.id = "";
+    //       Navigator.of(context).pop(_taxKind);
+    //     });
+    //   }
+    // }, Icons.delete, null);
+
+    Widget cancelButton = actionButton(context, "Cancelar", () {
+      Navigator.of(context).pop(null);
+    }, Icons.cancel, null);
+
+    if (widget.existingTaxKind!.id == "") {
+      buttons = [
+        Expanded(flex: 5, child: saveButton),
+        Expanded(flex: 1, child: Container()),
+        Expanded(flex: 5, child: cancelButton)
+      ];
+    } else {
+      buttons = [
+        Expanded(flex: 3, child: saveButton),
+        Expanded(flex: 1, child: Container()),
+        Expanded(flex: 3, child: cancelButton),
+      ];
+    }
+    // String id;
+    // String uuid;
+    // String code;
+    // String name;
+    // double percentaje;
+    // DateTime from;
+    // DateTime to;
+    // Country? country;
+    return Form(
+      key: _formKey,
+      child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: TextFormField(
+                        initialValue: _taxKind.code,
+                        decoration: const InputDecoration(labelText: 'Código'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingrese un código';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _taxKind.code = value!,
+                      ),
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: TextFormField(
+                        initialValue: _taxKind.name,
+                        decoration: const InputDecoration(labelText: 'Nombre'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingrese un nombre';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _taxKind.name = value!,
+                      ),
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: TextFormField(
+                        initialValue: _taxKind.percentaje.toString(),
+                        decoration:
+                            const InputDecoration(labelText: 'Valor (%)'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingrese un valor';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) =>
+                            _taxKind.percentaje = double.parse(value!),
+                      ),
+                    )),
+                //TextForField for code
+              ]),
+              Row(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: CustomSelectFormField(
+                        padding: const EdgeInsets.only(top: 8, right: 5),
+                        labelText: 'País',
+                        initial: _taxKind.country,
+                        options: countries
+                            .map((country) =>
+                                KeyValue(country.name, country.name))
+                            .toList(),
+                        onSelectedOpt: (value) {
+                          _taxKind.country = value;
+                          if (mounted) setState(() {});
+                        },
+                        required: true,
+                      )),
+                  //DateTimePicker for from
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: DateTimePicker(
+                            labelText: 'Desde',
+                            selectedDate: _taxKind.from,
+                            onSelectedDate: (DateTime value) {
+                              setState(() {
+                                _taxKind.from = value;
+                              });
+                            },
+                          ))),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: DateTimePicker(
+                            labelText: 'Hasta',
+                            selectedDate: _taxKind.to,
+                            onSelectedDate: (DateTime value) {
+                              setState(() {
+                                _taxKind.to = value;
+                              });
+                            },
+                          ))),
                 ],
               ),
               const SizedBox(height: 16.0),

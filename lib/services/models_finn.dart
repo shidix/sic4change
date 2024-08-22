@@ -161,6 +161,8 @@ class SFinn extends Object {
   String parent;
   String project;
   String orgUuid;
+  DateTime start;
+  DateTime end;
   double contribution;
   Organization? organization;
   int level = -1;
@@ -169,9 +171,18 @@ class SFinn extends Object {
   // List<dynamic> contributions = [];
   List<dynamic> distributions = [];
 
-  SFinn(this.id, this.uuid, this.name, this.description, this.parent,
-      this.project,
-      {this.orgUuid = "", this.contribution = 0.0});
+  SFinn(
+    this.id,
+    this.uuid,
+    this.name,
+    this.description,
+    this.parent,
+    this.project,
+    this.start,
+    this.end, {
+    this.orgUuid = "",
+    this.contribution = 0.0,
+  });
 
   int compareTo(SFinn b) {
     SFinn a = this;
@@ -209,6 +220,12 @@ class SFinn extends Object {
     if (!json.containsKey("id")) {
       json["id"] = "";
     }
+    if (!json.containsKey("start")) {
+      json["start"] = DateTime.now();
+    }
+    if (!json.containsKey("end")) {
+      json["end"] = getDate(json["start"]).add(const Duration(days: 365));
+    }
     SFinn partida = SFinn(
       json["id"],
       json["uuid"],
@@ -216,6 +233,8 @@ class SFinn extends Object {
       json['description'],
       json['parent'],
       json['project'],
+      getDate(json["start"]),
+      getDate(json["end"]),
       orgUuid: json['orgUuid'],
       contribution: json['contribution'],
     );
@@ -241,7 +260,8 @@ class SFinn extends Object {
   }
 
   static SFinn getEmpty() {
-    return SFinn("", "", "", "", "", "");
+    return SFinn("", "", "", "", "", "", DateTime.now(),
+        DateTime.now().add(const Duration(days: 365)));
   }
 
   Future<Organization> getOrganization() async {
@@ -257,24 +277,11 @@ class SFinn extends Object {
         'parent': parent,
         'project': project,
         'orgUuid': orgUuid,
+        'start': start,
+        'end': end,
         'contribution': contribution,
         'partidas': partidas.map((e) => e.toJson()).toList(),
       };
-
-/*
-  Future<List> getContrib() async {
-    final List<FinnContribution> items = [];
-    final database = db.collection("s4c_finncontrib");
-    await database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
-      for (var doc in querySnapshot.docs) {
-        final Map<String, dynamic> data = doc.data();
-        final item = FinnContribution.fromJson(data);
-        items.add(item);
-      }
-    });
-    return items;
-  }
-*/
 
   double getAmountContrib() {
     double total = 0;
@@ -286,50 +293,6 @@ class SFinn extends Object {
     }
     return total;
   }
-
-/*
-  Future<Map<String, double>> getTotalContrib() async {
-    final List<SFinn> childrens = await getChildrens();
-    if (childrens.isEmpty) {
-      final Map<String, double> items = {};
-      items["total"] = 0;
-      final database = db.collection("s4c_finncontrib");
-      await database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
-        for (var doc in querySnapshot.docs) {
-          final Map<String, dynamic> data = doc.data();
-          final item = FinnContribution.fromJson(data);
-          if (items.containsKey(item.financier)) {
-            items[item.financier] = items[item.financier]! + item.amount;
-          } else {
-            items[item.financier] = item.amount;
-          }
-          items["total"] = items["total"]! + item.amount;
-        }
-      });
-      return items;
-    } else {
-      final database = db.collection("s4c_finncontrib");
-      database.where("finn", isEqualTo: uuid).get().then((querySnapshot) {
-        for (var doc in querySnapshot.docs) {
-          database.doc(doc.id).delete();
-        }
-      });
-      final Map<String, double> items = {};
-      items["total"] = 0;
-      for (var child in childrens) {
-        final Map<String, double> childItems = await child.getTotalContrib();
-        for (var key in childItems.keys) {
-          if (items.containsKey(key)) {
-            items[key] = items[key]! + childItems[key]!;
-          } else {
-            items[key] = childItems[key]!;
-          }
-        }
-      }
-      return items;
-    }
-  }
-*/
 
   String parentCode() {
     RegExp punto = RegExp("\\.");
@@ -434,7 +397,8 @@ class SFinn extends Object {
 
   static SFinn byUuid(String uuid) {
     final database = db.collection("s4c_finns");
-    SFinn item = SFinn('', uuid, '', '', '', '');
+    SFinn item = SFinn('', uuid, '', '', '', '', DateTime.now(),
+        DateTime.now().add(const Duration(days: 365)));
     database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
       var first = querySnapshot.docs.first;
       item = SFinn.fromJson(first.data());
@@ -619,17 +583,17 @@ class FinnDistribution {
 }
 
 class TaxKind extends Object {
-  String id;
+  String id = "";
   String uuid;
   String code;
   String name;
   double percentaje;
   DateTime from;
   DateTime to;
-  Country? country;
+  String country;
 
-  TaxKind(this.id, this.uuid, this.code, this.name, this.percentaje, this.from,
-      this.to, this.country);
+  TaxKind(this.uuid, this.code, this.name, this.percentaje, this.from, this.to,
+      this.country);
 
   factory TaxKind.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("country")) {
@@ -637,32 +601,30 @@ class TaxKind extends Object {
     }
 
     TaxKind item = TaxKind(
-      json['id'],
       json['uuid'],
       json['code'],
       json['name'],
       json['percentaje'],
       getDate(json['from']),
       getDate(json['to']),
-      null,
+      "España",
     );
 
-    Country.byUuid(json["country"]).then((value) {
-      item.country = value;
-    });
+    // Country.byUuid(json["country"]).then((value) {
+    //   item.country = value;
+    // });
 
     return item;
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
         'uuid': uuid,
         'code': code,
         'name': name,
         'percentaje': percentaje,
         'from': from,
         'to': to,
-        'country': country?.uuid,
+        'country': country,
       };
 
   Future<TaxKind> save() async {
@@ -706,6 +668,25 @@ class TaxKind extends Object {
       return null;
     });
   }
+
+  static Future<List<TaxKind>> getAll() async {
+    final collection = db.collection("s4c_taxkind");
+    List<TaxKind> items = [];
+
+    QuerySnapshot query = await collection.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      TaxKind item = TaxKind.fromJson(data);
+      item.id = doc.id;
+      items.add(item);
+    }
+    return items;
+  }
+
+  static TaxKind getEmpty() {
+    return TaxKind("", "", "", 0.0, DateTime.now(),
+        DateTime.now().add(Duration(days: 3650)), "España");
+  }
 }
 
 class Invoice extends Object {
@@ -724,7 +705,7 @@ class Invoice extends Object {
   String document;
   String currency;
   String tracker;
-  TaxKind? taxKind;
+  String? taxKind;
 
   SFinn finnObj = SFinn.getEmpty();
   SProject projectObj = SProject("");
@@ -748,7 +729,7 @@ class Invoice extends Object {
   );
   factory Invoice.fromJson(Map<String, dynamic> json) {
     if (!json.containsKey("taxname")) {
-      json["taxname"] = "I.V.A.";
+      json["taxKind"] = "I.V.A.";
     }
     if (!json.containsKey("currency")) {
       json["currency"] = "EUR";
@@ -799,9 +780,11 @@ class Invoice extends Object {
       json["tracker"],
     );
     if (json.containsKey("taxKind")) {
-      TaxKind.byUuid(json["taxKind"]).then((value) {
-        item.taxKind = value;
-      });
+      try {
+        item.taxKind = json["taxKind"];
+      } catch (e) {
+        item.taxKind = "IVA";
+      }
     }
 
     return item;
@@ -843,7 +826,7 @@ class Invoice extends Object {
         'document': document,
         'currency': currency,
         'tracker': tracker,
-        'taxKind': taxKind?.uuid ?? ''
+        'taxKind': taxKind
       };
 
   static Future<String> newTracker() async {
@@ -1357,7 +1340,7 @@ class BankTransfer {
                 child: Text(toCurrency(commissionSource),
                     textAlign: TextAlign.right)),
             Expanded(
-                child: Text('$exchangeSource $currencySource',
+                child: Text(toCurrency(exchangeSource, currencySource),
                     textAlign: TextAlign.right)),
           ]),
           (amountIntermediary != 0)

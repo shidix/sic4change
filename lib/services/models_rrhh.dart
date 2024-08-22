@@ -156,15 +156,38 @@ class Nomina {
     return await ref.getDownloadURL();
   }
 
-  int compareTo(Nomina other) {
-    if (date.compareTo(other.date) == 0) {
-      if (noSignedDate.compareTo(other.noSignedDate) == 0) {
-        return employeeCode.compareTo(other.employeeCode);
-      } else {
-        return noSignedDate.compareTo(other.noSignedDate) * -1;
-      }
+  static int compareNomina(
+      Nomina a, Nomina b, int sortColumnIndex, int sortAsc) {
+    return a.compareTo(b, sortColumnIndex: sortColumnIndex, sortAsc: sortAsc);
+  }
+
+  int compareTo(Nomina b, {int sortColumnIndex = 1, int sortAsc = 1}) {
+    Nomina a = this;
+
+    switch (sortColumnIndex) {
+      case 0:
+        return a.employeeCode.compareTo(b.employeeCode) * sortAsc;
+      case 1:
+        return a.date.compareTo(b.date) * sortAsc;
+      case 2:
+        return a.netSalary.compareTo(b.netSalary) * sortAsc;
+      case 3:
+        return a.deductions.compareTo(b.deductions) * sortAsc;
+      case 4:
+        return a.employeeSocialSecurity.compareTo(b.employeeSocialSecurity) *
+            sortAsc;
+      case 5:
+        return a.grossSalary.compareTo(b.grossSalary) * sortAsc;
+      case 6:
+        return a.employerSocialSecurity.compareTo(b.employerSocialSecurity) *
+            sortAsc;
+      case 7:
+        return (a.grossSalary + a.employerSocialSecurity)
+                .compareTo(b.grossSalary + b.employerSocialSecurity) *
+            sortAsc;
+      default:
+        return 0;
     }
-    return date.compareTo(other.date) * -1;
   }
 }
 

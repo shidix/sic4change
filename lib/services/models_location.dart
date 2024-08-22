@@ -15,17 +15,20 @@ class Country {
   String id = "";
   String uuid = "";
   String name = "";
+  String code = "";
 
   Country(this.name);
 
   Country.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
+        code = json['code'],
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'code': code,
         'name': name,
       };
 
@@ -56,6 +59,17 @@ class Country {
         (value.docs.isNotEmpty)
             ? Country.fromJson(value.docs.first.data() as Map<String, dynamic>)
             : null);
+  }
+
+  static Future<List<Country>> getAll() async {
+    List<Country> items = [];
+    QuerySnapshot query = await dbCountry.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Country.fromJson(data));
+    }
+    return items;
   }
 }
 
