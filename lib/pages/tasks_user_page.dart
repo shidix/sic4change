@@ -79,7 +79,6 @@ class _TasksUserPageState extends State<TasksUserPage> {
           /*Profile.getProfiles(emails: emails).then((value) {
             setState(() {
               profiles = value;
-              print("--zz--");
               for (STask task in allTasksUser) {
                 task.senderObj = profiles.firstWhere(
                     (element) => element.email == task.sender,
@@ -89,7 +88,6 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     .toList();
                 print(task.assignedObj);
               }
-              print("--ww--");
             });
           });*/
         });

@@ -1,7 +1,3 @@
-// import 'dart:convert';
-
-// ignore_for_file: no_leading_underscores_for_local_identifiers
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
@@ -18,6 +14,14 @@ CollectionReference dbProject = db.collection("s4c_projects");
 //                           TASKS
 //--------------------------------------------------------------
 final dbTasks = db.collection("s4c_tasks");
+
+Map<String, dynamic> getOccupationCell(val) {
+  Color col = Colors.green;
+  if (val >= 30 && val <= 60) col = Colors.orange;
+  if (val > 60) col = Colors.red;
+
+  return {'color': col, 'text': val.toStringAsFixed(2)};
+}
 
 class STask {
   String id = "";
@@ -372,6 +376,51 @@ class STask {
     }
     programmesObj = listProgrammes;
   }*/
+
+  static Future<Map<String, dynamic>> getOccupation(user) async {
+    DateTime now = DateTime.now();
+    //DateTime tomorrow = DateTime(now.year, now.month, now.day + 1);
+    Map<String, dynamic> row = {};
+    try {
+      final query = await dbTasks
+          .where("assigned", arrayContains: user.toString())
+          .where("dealDate", isLessThanOrEqualTo: now)
+          .get();
+      double todayVal = 0;
+      double tomorrowVal = 0;
+      double weekVal = 0;
+      double monthVal = 0;
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data();
+        data["id"] = doc.id;
+        STask task = STask.fromJson(data);
+        if (task.dealDate.isBefore(now) && task.deadLineDate.isAfter(now)) {
+          //Número de días
+          double days =
+              task.deadLineDate.difference(task.dealDate).inDays as double;
+          //Horas por día
+          double diff = (task.duration / days);
+          todayVal += diff;
+          if (days > 1) tomorrowVal += diff;
+          if (days > 2) weekVal += diff;
+          if (days > 7) monthVal += diff;
+        }
+      }
+      if (todayVal != 0) todayVal = (todayVal * 100) / 8;
+      if (tomorrowVal != 0) tomorrowVal = (tomorrowVal * 100) / 8;
+      if (weekVal != 0) weekVal = (weekVal * 100) / 8;
+      if (monthVal != 0) monthVal = (monthVal * 100) / 8;
+      row = {
+        'today': getOccupationCell(todayVal),
+        'tomorrow': getOccupationCell(tomorrowVal),
+        'week': getOccupationCell(weekVal),
+        'month': getOccupationCell(monthVal)
+      };
+    } catch (e) {
+      print(e);
+    }
+    return row;
+  }
 }
 
 Future<List> getTasks() async {

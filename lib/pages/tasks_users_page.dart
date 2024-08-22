@@ -16,6 +16,7 @@ import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageUsersTaskTitle = "Carga de tareas por usuario";
 List users = [];
+Map<String, dynamic> occupation = {};
 bool usersLoading = false;
 Widget? _mainMenu;
 var user;
@@ -35,9 +36,13 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
       usersLoading = true;
     });
 
-    await Profile.getProfiles().then((value) {
+    await Profile.getProfiles().then((value) async {
+      users = value;
+      for (Profile p in users) {
+        //  print("Usuario: ${p.email}");
+        occupation[p.email] = await STask.getOccupation(p.email);
+      }
       setState(() {
-        users = value;
         usersLoading = false;
       });
     });
@@ -109,6 +114,29 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     );
   }
 
+  Widget cellValue(us, row) {
+    try {
+      return SizedBox.expand(
+          child: Container(
+              margin: const EdgeInsets.all(3),
+              color: occupation[us.email][row]['color'],
+              child: Align(
+                alignment: Alignment.center,
+                child: customText("${occupation[us.email][row]['text']} %", 14),
+              )));
+    } catch (e) {
+      print(e);
+    }
+    return SizedBox.expand(
+        child: Container(
+            margin: const EdgeInsets.all(3),
+            color: Colors.grey,
+            child: Align(
+              alignment: Alignment.center,
+              child: customText("--- %", 14),
+            )));
+  }
+
   SingleChildScrollView dataBody(context) {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -139,13 +167,10 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 .map(
                   (us) => DataRow(cells: [
                     DataCell(customText(us.name, 14)),
-                    DataCell(Container(
-                      margin: const EdgeInsets.all(5),
-                      color: Colors.green,
-                    )),
-                    DataCell(Text("")),
-                    DataCell(Text("")),
-                    DataCell(Text("")),
+                    DataCell(cellValue(us, "today")),
+                    DataCell(cellValue(us, "tomorrow")),
+                    DataCell(cellValue(us, "week")),
+                    DataCell(cellValue(us, "month")),
                   ]),
                 )
                 .toList(),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/documents_page.dart';
+import 'package:sic4change/pages/tasks_user_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -139,7 +140,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     addBtn(context, callEditDialog, {"task": task},
                         icon: Icons.edit, text: "Editar"),
                     space(width: 10),
-                    returnBtn(context),
+                    goPage(
+                      context,
+                      "Volver",
+                      const TasksUserPage(),
+                      Icons.arrow_circle_left_outlined,
+                    )
                   ]),
                 ]),
           )

@@ -100,6 +100,7 @@ class Profile {
           .then((snap) =>
               snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
     }
+
     return db.collection("s4c_profiles").get().then(
         (snap) => snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
   }
