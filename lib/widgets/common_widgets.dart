@@ -1782,12 +1782,14 @@ class UploadFileField extends StatelessWidget {
   final Object textToShow;
   final ValueChanged<PlatformFile?> onSelectedFile;
   PlatformFile? pickedFile;
+  EdgeInsets padding = const EdgeInsets.only(top: 8);
 
   UploadFileField({
     super.key,
     required this.textToShow,
     required this.onSelectedFile,
     this.pickedFile,
+    this.padding = const EdgeInsets.only(top: 8),
   });
 
   Future<PlatformFile?> chooseFile(context) async {
@@ -1804,15 +1806,16 @@ class UploadFileField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: actionButtonVertical(
-                context,
-                (pickedFile == null) ? textToShow : pickedFile!.name,
-                chooseFile,
-                Icons.upload_file,
-                context)));
+    return Wrap(children: [
+      Padding(
+          padding: padding,
+          child: actionButtonVertical(
+              context,
+              (pickedFile == null) ? textToShow : pickedFile!.name,
+              chooseFile,
+              Icons.upload_file,
+              context))
+    ]);
   }
 }
 

@@ -166,10 +166,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 onSelectedDate: (DateTime? date) {
                   if (date != null) {
                     if (employee.altas.isEmpty) {
-                      employee.altas.add(truncDate(date));
+                      employee.altas.add(Alta(date: truncDate(date)));
                     } else {
                       employee.altas[employee.altas.length - 1] =
-                          truncDate(date);
+                          Alta(date: truncDate(date));
                     }
                   }
                   setState(() {});
@@ -323,14 +323,14 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
             DateTimePicker(
                 labelText: 'Fecha Alta',
                 selectedDate: (employee.isActive())
-                    ? employee.altas.last
+                    ? employee.altas.last.date
                     : DateTime.now(),
                 onSelectedDate: (DateTime? date) {
                   if (date != null) {
                     if (!employee.isActive()) {
-                      employee.altas.add(date);
+                      employee.altas.add(Alta(date: date));
                     } else {
-                      employee.altas[employee.altas.length - 1] = date;
+                      employee.altas[employee.altas.length - 1].date = date;
                     }
                   }
                   setState(() {});
@@ -356,5 +356,157 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
             ]),
           ],
         )));
+  }
+}
+
+class EmployeeDocumentsForm extends StatefulWidget {
+  final Employee selectedItem;
+  const EmployeeDocumentsForm({Key? key, required this.selectedItem})
+      : super(key: key);
+
+  @override
+  _EmployeeDocumentsFormState createState() => _EmployeeDocumentsFormState();
+}
+
+class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
+  late Employee selectedItem;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedItem = widget.selectedItem;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List listDocuments = [];
+    for (Alta alta in selectedItem!.altas) {
+      listDocuments.add({
+        'type': 'Alta',
+        'desc': 'Contrato',
+        'date': alta.date,
+        'path': alta.pathContract
+      });
+      listDocuments.add({
+        'type': 'Alta',
+        'desc': 'Anexo',
+        'date': alta.date,
+        'path': alta.pathAnnex
+      });
+      listDocuments.add({
+        'type': 'Alta',
+        'desc': 'NIF',
+        'date': alta.date,
+        'path': alta.pathNIF
+      });
+      listDocuments.add({
+        'type': 'Alta',
+        'desc': 'NDA',
+        'date': alta.date,
+        'path': alta.pathNDA
+      });
+      listDocuments.add({
+        'type': 'Alta',
+        'desc': 'LOPD',
+        'date': alta.date,
+        'path': alta.pathLOPD
+      });
+
+      if (alta.pathOthers != null) {
+        alta.pathOthers!.forEach((key, value) {
+          listDocuments.add(
+              {'type': 'Alta', 'desc': key, 'date': alta.date, 'path': value});
+        });
+      }
+
+      // Add pathNIE
+    }
+    return SizedBox(
+        width: double.infinity,
+        child: Column(children: [
+          DataTable(
+            dataRowMinHeight: 70,
+            dataRowMaxHeight: 70,
+            columns:
+                ['Satus', 'Trámite', 'Fecha', 'Descripción', ''].map((item) {
+              return DataColumn(
+                label: Text(
+                  item,
+                  style: headerListStyle,
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }).toList(),
+            rows: listDocuments.map((e) {
+              return DataRow(
+                color: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.selected)) {
+                    return Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.08);
+                  }
+                  if (selectedItem.altas.indexOf(e).isEven) {
+                    return Colors.grey[200];
+                  } else {
+                    return Colors.white;
+                  }
+                }),
+                cells: [
+                  DataCell(
+                    e['path'] != null
+                        ? const Icon(
+                            Icons.check,
+                            color: Colors.green,
+                          )
+                        : const Icon(
+                            Icons.close,
+                            color: Colors.red,
+                          ),
+                  ),
+                  DataCell(Text(e['type'])),
+                  DataCell(Text(DateFormat('dd/MM/yyyy').format(e['date']))),
+                  DataCell(Text(e['desc'])),
+                  DataCell(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        UploadFileField(
+                          padding: EdgeInsets.all(5),
+                          textToShow: Container(),
+                          onSelectedFile: (PlatformFile? pickedFile) {
+                            if (pickedFile != null) {
+                              String extention =
+                                  pickedFile.name.split('.').last;
+                              uploadFileToStorage(pickedFile,
+                                      rootPath:
+                                          'files/employees/${selectedItem.code}/documents/${e['type']}/',
+                                      fileName:
+                                          '${DateFormat('yyyyMMdd').format(e['date'])}_${e['desc']}.$extention')
+                                  .then((value) {
+                                if (value != null) {
+                                  selectedItem.updateDocument(e, value);
+                                  selectedItem.save();
+                                  setState(() {});
+                                }
+                              });
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            //dialogFormEmployee(context, employees.indexOf(e));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          )
+        ]));
   }
 }

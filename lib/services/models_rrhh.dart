@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:googleapis/photoslibrary/v1.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/utils.dart';
 
 class Nomina {
@@ -191,6 +192,51 @@ class Nomina {
   }
 }
 
+class Alta {
+  DateTime date;
+  String? pathContract;
+  String? pathAnnex;
+  String? pathNDA;
+  String? pathNIF;
+  String? pathLOPD;
+  Map<String, String>? pathOthers;
+
+  Alta(
+      {required this.date,
+      this.pathContract,
+      this.pathAnnex,
+      this.pathNDA,
+      this.pathNIF,
+      this.pathLOPD,
+      this.pathOthers});
+
+  factory Alta.fromJson(Map<String, dynamic> json) {
+    return Alta(
+        date: getDate(json['date'] ?? DateTime.now()),
+        pathContract: json['pathContract'],
+        pathAnnex: json['pathAnnex'],
+        pathNDA: json['pathNDA'],
+        pathNIF: json['pathNIF'],
+        pathLOPD: json['pathLOPD'],
+        pathOthers: json['pathOthers']);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'pathContract': pathContract,
+        'pathAnnex': pathAnnex,
+        'pathNDA': pathNDA,
+        'pathNIF': pathNIF,
+        'pathLOPD': pathLOPD,
+        'pathOthers': pathOthers
+      };
+
+  @override
+  String toString() {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+}
+
 class Employee {
   static final db = FirebaseFirestore.instance;
   static final collection = db.collection("s4c_employees");
@@ -234,7 +280,15 @@ class Employee {
       position: (json.containsKey('position')) ? json['position'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
           ? []
-          : json['altas'].map((e) => getDate(e)).toList(),
+          : json['altas'].map((e) {
+              try {
+                return Alta.fromJson(e as Map<String, dynamic>);
+              } catch (exception) {
+                return Alta(
+                  date: getDate(e),
+                );
+              }
+            }).toList(),
       bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
           ? []
           : json['bajas'].map((e) => getDate(e)).toList(),
@@ -251,7 +305,7 @@ class Employee {
         'photoPath': photoPath,
         'category': category,
         'position': position,
-        'altas': altas.map((e) => e).toList(),
+        'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e).toList(),
       };
 
@@ -282,6 +336,46 @@ class Employee {
     await collection.doc(id).delete();
   }
 
+  void updateDocument(dictDoc, newPath) {
+    if (dictDoc != null) {
+      if (dictDoc['type'] == "Alta") {
+        if (dictDoc['desc'] == 'Contrato') {
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathContract = newPath;
+        } else if (dictDoc['desc'] == 'Anexo') {
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathAnnex = newPath;
+        } else if (dictDoc['desc'] == 'NDA') {
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathNDA = newPath;
+        } else if (dictDoc['desc'] == 'NIF') {
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathNIF = newPath;
+        } else if (dictDoc['desc'] == 'LOPD') {
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathLOPD = newPath;
+        } else {
+          if (altas
+                  .firstWhere((element) => element.date == dictDoc['date'])
+                  .pathOthers ==
+              null) {
+            altas
+                .firstWhere((element) => element.date == dictDoc['date'])
+                .pathOthers = {};
+          }
+          altas
+              .firstWhere((element) => element.date == dictDoc['date'])
+              .pathOthers![dictDoc['desc']] = newPath;
+        }
+      }
+    }
+  }
+
   static Employee getEmpty() {
     return Employee(
         code: '',
@@ -292,7 +386,7 @@ class Employee {
         phone: '',
         position: '',
         category: '',
-        altas: [DateTime.now()],
+        altas: [],
         bajas: []);
   }
 
@@ -334,10 +428,10 @@ class Employee {
 
   DateTime getAltaDate() {
     if (altas.isEmpty) {
-      altas.add(DateTime.now());
+      altas.add(Alta(date: truncDate(DateTime.now())));
     }
-    altas.sort();
-    return altas.last;
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    return altas.last.date;
   }
 
   DateTime getBajaDate() {
