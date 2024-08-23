@@ -56,6 +56,11 @@ class _TasksUserPageState extends State<TasksUserPage> {
       STask.getByUser(user.email).then((value) {
         setState(() {
           allTasksUser = value;
+
+          print("-- ALL TASKS LOAd-- ");
+          for (STask t in allTasksUser) {
+            print("T: ${t.name}");
+          }
           for (STask task in allTasksUser) {
             updateObjects(task);
           }
@@ -161,6 +166,14 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   .where((task) => task.assigned.contains(user.email))
                   .toList();
 
+              print("-- MY TASKS -- ");
+              for (STask t in allTasksUser) {
+                print("Ta: ${t.name}");
+              }
+              print("-- ALL TASKS -- ");
+              for (STask t in tasksUser) {
+                print("T: ${t.name}");
+              }
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -296,6 +309,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
   }
 
   void saveTask(List args) async {
+    print("-- SAVE TASK --");
     STask task = args[0];
     task.save();
     if (mounted) {

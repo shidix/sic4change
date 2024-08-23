@@ -197,7 +197,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
     Row(children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(
-            width: 220,
+            width: 330,
             child: DateTimePicker(
               labelText: 'Acuerdo',
               selectedDate: task.dealDate,
@@ -211,7 +211,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
       space(width: 20),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(
-            width: 220,
+            width: 330,
             child: DateTimePicker(
               labelText: 'Deadline',
               selectedDate: task.deadLineDate,
@@ -222,7 +222,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
               },
             )),
       ]),
-      space(width: 20),
+      /*space(width: 20),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(
             width: 220,
@@ -235,7 +235,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
                 });
               },
             )),
-      ]),
+      ]),*/
       space(width: 20),
     ]),
     space(height: 20),
