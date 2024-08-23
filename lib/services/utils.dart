@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 
@@ -236,4 +239,25 @@ String getTracker({int length = 5}) {
     code += chars[random.nextInt(chars.length)];
   }
   return code;
+}
+
+Future<String> uploadFileToStorage(PlatformFile file,
+    {String rootPath = "files/", String fileName = ''}) async {
+  PlatformFile pickedFile = file;
+  Uint8List? pickedFileBytes = file.bytes;
+  UploadTask? uploadTask;
+
+  String uniqueFileName = fileName.isNotEmpty
+      ? fileName
+      : "${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}";
+  final path = '$rootPath$uniqueFileName';
+  final ref = FirebaseStorage.instance.ref().child(path);
+
+  try {
+    uploadTask = ref.putData(pickedFileBytes!);
+    await uploadTask.whenComplete(() => null);
+  } catch (e) {
+    print(e);
+  }
+  return path;
 }
