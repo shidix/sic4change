@@ -30,6 +30,7 @@ class TaskInfoPage extends StatefulWidget {
 class _TaskInfoPageState extends State<TaskInfoPage> {
   STask? task;
   var user;
+  List<TasksComments> taskComments = [];
   List<Organization> orgListCache = [];
   List<Contact> contactListCache = [];
   List<Profile> profileListCache = [];
@@ -102,6 +103,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         if (mounted) {
           setState(() {});
         }
+      });
+      TasksComments.getCommentsByTasks(task!.uuid).then((value) {
+        taskComments = value;
       });
     });
   }
@@ -182,10 +186,6 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 space(height: 5),
                 customText(task?.description, 16),
                 space(height: 10),
-                customText("Comentarios:", 16, textColor: smallColor),
-                space(height: 5),
-                customText(task?.comments, 16),
-                space(height: 10),
                 customText("Ejecutores:", 16, textColor: smallColor),
                 space(height: 5),
                 customText(assigned, 16),
@@ -198,6 +198,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                     textColor: smallColor),
                 space(height: 5),
                 customText(receiversOrg, 16),
+                space(height: 10),
+                //customText("Comentarios:", 16, textColor: smallColor),
+                taskCommentsHeader(context),
+                space(height: 5),
+                //customText(task?.comments, 16),
+                taskCommentsRow(context),
 
                 //customRowDivider(),
                 /*taskAssignedHeader(context, task),
@@ -316,168 +322,30 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     ]);
   }
 
-/*  Widget taskInfoSenderPublic(context, task) {
-    String public = (task.public) ? "Si" : "No";
-    String revision = (task.revision) ? "Si" : "No";
-
-    return IntrinsicHeight(
-      child: Row(
-        children: [
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 2.5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText("Proyecto:", 16, textColor: Colors.grey),
-                  space(height: 5),
-                  customText(task.projectObj.name, 16),
-                ],
-              )),
-          const VerticalDivider(
-            width: 10,
-            color: Colors.grey,
-          ),
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 2.5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText("Documentos:", 16, textColor: Colors.grey),
-                  space(height: 5),
-                  customText(task.folder, 16),
-                ],
-              )),
-          const VerticalDivider(
-            width: 10,
-            color: smallColor,
-          ),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Pública:", 16, textColor: Colors.grey),
-            space(height: 5),
-            customText(public, 16),
-          ]),
-          const VerticalDivider(
-            width: 10,
-            color: smallColor,
-          ),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            customText("Revisión:", 16, textColor: Colors.grey),
-            space(height: 5),
-            customText(revision, 16),
-          ]),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget taskInfoDates(context, task) {
-    return Column(children: [
-      Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          children: [
-            TableRow(children: [
-              customText("Acuerdo", 16, textColor: Colors.grey),
-              customText("Deadline", 16, textColor: Colors.grey),
-              customText("Nuevo deadline", 16, textColor: Colors.grey),
-            ]),
-            TableRow(children: [
-              customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
-              customText(
-                  DateFormat('yyyy-MM-dd').format(task.deadLineDate), 16),
-              customText(
-                  DateFormat('yyyy-MM-dd').format(task.newDeadLineDate), 16),
-            ])
-          ])
-    ]);
-  }*/
-
-  /*Widget taskAssignedHeader(context, task) {
+  Widget taskCommentsHeader(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Responsables:", 16, textColor: Colors.grey),
-      IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Añadir responsable',
-        onPressed: () {
-          _callAssignedEditDialog(context, task);
-        },
-      )
+      customText("Comentarios", 16, textColor: smallColor),
+      addBtnRow(context, editCommentDialog, TasksComments(task!.uuid),
+          text: "Añadir comentario", icon: Icons.add_circle_outline),
     ]);
   }
 
-  Widget taskAssigned(context, task) {
+  Widget taskCommentsRow(context) {
     return ListView.builder(
-        //padding: const EdgeInsets.all(8),
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: task.assignedObj.length,
+        itemCount: taskComments.length,
         itemBuilder: (BuildContext context, int index) {
-          return Container(
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${task.assignedObj[index].name}'),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.remove,
-                        size: 12,
-                      ),
-                      tooltip: 'Eliminar responsable',
-                      onPressed: () async {
-                        task.assigned.remove(task.assigned[index]);
-                        task.updateAssigned();
-                        loadTask(task);
-                        //_removeAssigned(context, _task);
-                      },
-                    )
-                  ]));
+          return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                customText(taskComments[index].comment, 14),
+                removeBtn(context, removeCommentDialog,
+                    {"comment": taskComments[index]}),
+              ]);
         });
-  }*/
-
-  /*Widget taskProgrammesHeader(context, task) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      customText("Programas:", 16, textColor: smallColor),
-      IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Añadir programa',
-        onPressed: () {
-          _callProgrammesEditDialog(context, task);
-        },
-      )
-    ]);
-  }*/
-
-  /*Widget taskProgrammes(context, task) {
-    return ListView.builder(
-        //padding: const EdgeInsets.all(8),
-        physics: const NeverScrollableScrollPhysics(),
-        scrollDirection: Axis.vertical,
-        shrinkWrap: true,
-        itemCount: task.programmesObj.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Container(
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${task.programmesObj[index].name}'),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.remove,
-                        size: 12,
-                      ),
-                      tooltip: 'Eliminar programa',
-                      onPressed: () async {
-                        task.programmes.remove(task.programmes[index]);
-                        //_removeProgrammes(context, _task);
-                        task.updateProgrammes();
-                        loadTask(task);
-                      },
-                    )
-                  ]));
-        });
-  }*/
+  }
 
 /*--------------------------------------------------------------------*/
 /*                           EDIT TASK                                */
@@ -547,6 +415,58 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*void removeTaskDialog(context, args) {
     customRemoveDialog(context, args["task"], loadUsers);
   }*/
+
+  /*--------------------------------------------------------------------*/
+  /*                           COMMENTS                                 */
+  /*--------------------------------------------------------------------*/
+  void saveComment(List args) async {
+    TasksComments comment = args[0];
+    comment.save();
+    taskComments.add(comment);
+    setState(() {});
+
+    Navigator.pop(context);
+  }
+
+  void removeCommentDialog(context, Map<String, dynamic> args) {
+    TasksComments comment = args["comment"];
+    customRemoveDialog(context, null, removeComment, comment);
+  }
+
+  void removeComment(comment) async {
+    taskComments.remove(comment);
+    comment.delete();
+    setState(() {});
+  }
+
+  Future<void> editCommentDialog(context, comment) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Añadir comentario'),
+          content: SingleChildScrollView(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Comentario",
+                initial: comment.comment,
+                size: 600,
+                minLines: 2,
+                maxLines: 999,
+                fieldValue: (String val) {
+                  comment.comment = val;
+                },
+              )
+            ]),
+          ),
+          actions: <Widget>[dialogsBtns(context, saveComment, comment)],
+        );
+      },
+    );
+  }
 
   /* VIEJO */
   /*void _callEditDialog(context, task) async {
@@ -815,5 +735,167 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         );
       },
     );
+  }*/
+/*  Widget taskInfoSenderPublic(context, task) {
+    String public = (task.public) ? "Si" : "No";
+    String revision = (task.revision) ? "Si" : "No";
+
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 2.5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText("Proyecto:", 16, textColor: Colors.grey),
+                  space(height: 5),
+                  customText(task.projectObj.name, 16),
+                ],
+              )),
+          const VerticalDivider(
+            width: 10,
+            color: Colors.grey,
+          ),
+          SizedBox(
+              width: MediaQuery.of(context).size.width / 2.5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText("Documentos:", 16, textColor: Colors.grey),
+                  space(height: 5),
+                  customText(task.folder, 16),
+                ],
+              )),
+          const VerticalDivider(
+            width: 10,
+            color: smallColor,
+          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Pública:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(public, 16),
+          ]),
+          const VerticalDivider(
+            width: 10,
+            color: smallColor,
+          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            customText("Revisión:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(revision, 16),
+          ]),
+        ],
+      ),
+    );
+  }*/
+
+  /*Widget taskInfoDates(context, task) {
+    return Column(children: [
+      Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            TableRow(children: [
+              customText("Acuerdo", 16, textColor: Colors.grey),
+              customText("Deadline", 16, textColor: Colors.grey),
+              customText("Nuevo deadline", 16, textColor: Colors.grey),
+            ]),
+            TableRow(children: [
+              customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
+              customText(
+                  DateFormat('yyyy-MM-dd').format(task.deadLineDate), 16),
+              customText(
+                  DateFormat('yyyy-MM-dd').format(task.newDeadLineDate), 16),
+            ])
+          ])
+    ]);
+  }*/
+
+  /*Widget taskAssignedHeader(context, task) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Responsables:", 16, textColor: Colors.grey),
+      IconButton(
+        icon: const Icon(Icons.add),
+        tooltip: 'Añadir responsable',
+        onPressed: () {
+          _callAssignedEditDialog(context, task);
+        },
+      )
+    ]);
+  }
+
+  Widget taskAssigned(context, task) {
+    return ListView.builder(
+        //padding: const EdgeInsets.all(8),
+        physics: const NeverScrollableScrollPhysics(),
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: task.assignedObj.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${task.assignedObj[index].name}'),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove,
+                        size: 12,
+                      ),
+                      tooltip: 'Eliminar responsable',
+                      onPressed: () async {
+                        task.assigned.remove(task.assigned[index]);
+                        task.updateAssigned();
+                        loadTask(task);
+                        //_removeAssigned(context, _task);
+                      },
+                    )
+                  ]));
+        });
+  }*/
+
+  /*Widget taskProgrammesHeader(context, task) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      customText("Programas:", 16, textColor: smallColor),
+      IconButton(
+        icon: const Icon(Icons.add),
+        tooltip: 'Añadir programa',
+        onPressed: () {
+          _callProgrammesEditDialog(context, task);
+        },
+      )
+    ]);
+  }*/
+
+  /*Widget taskProgrammes(context, task) {
+    return ListView.builder(
+        //padding: const EdgeInsets.all(8),
+        physics: const NeverScrollableScrollPhysics(),
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: task.programmesObj.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${task.programmesObj[index].name}'),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove,
+                        size: 12,
+                      ),
+                      tooltip: 'Eliminar programa',
+                      onPressed: () async {
+                        task.programmes.remove(task.programmes[index]);
+                        //_removeProgrammes(context, _task);
+                        task.updateProgrammes();
+                        loadTask(task);
+                      },
+                    )
+                  ]));
+        });
   }*/
 }

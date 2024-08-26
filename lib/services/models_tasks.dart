@@ -620,3 +620,63 @@ Future<List<KeyValue>> getTasksStatusHash() async {
   }
   return items;
 }
+
+//--------------------------------------------------------------
+//                       TASKS COMMENTS
+//--------------------------------------------------------------
+final dbTasksComments = db.collection("s4c_tasks_comments");
+
+class TasksComments {
+  String id = "";
+  String uuid = "";
+  String comment = "";
+  String task;
+
+  //TasksStatus(this.id, this.uuid, this.name);
+  TasksComments(this.task);
+
+  TasksComments.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        comment = json['comment'],
+        task = json['task'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'comment': comment,
+        'task': task,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, comment);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbTasksComments.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbTasksComments.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbTasksComments.doc(id).delete();
+  }
+
+  static Future<List<TasksComments>> getCommentsByTasks(String uuid) async {
+    List<TasksComments> items = [];
+    QuerySnapshot query;
+    query = await dbTasksComments.where("task", isEqualTo: uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(TasksComments.fromJson(data));
+    }
+    return items;
+  }
+}
