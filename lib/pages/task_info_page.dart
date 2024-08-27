@@ -1,6 +1,3 @@
-import 'dart:collection';
-import 'dart:developer' as devlog;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -104,10 +101,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           setState(() {});
         }
       });
-      TasksComments.getCommentsByTasks(task!.uuid).then((value) {
-        taskComments = value;
-      });
     });
+    TasksComments.getCommentsByTasks(task!.uuid).then((value) {
+      taskComments = value;
+    });
+    task!.getFolder();
   }
 
   @override
@@ -175,11 +173,11 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 //customRowDivider(),
-                taskInfoRow1(context, task),
+                taskInfoRow1(context),
                 space(height: 5),
-                taskInfoRow2(context, task),
+                taskInfoRow2(context),
                 space(height: 15),
-                taskInfoRow3(context, task),
+                taskInfoRow3(context),
                 space(height: 15),
                 customText("Descripción de la tarea:", 16,
                     textColor: smallColor),
@@ -217,9 +215,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             )));
   }
 
-  Widget taskInfoRow1(context, task) {
-    String public = (task.public) ? "Si" : "No";
-    String revision = (task.revision) ? "Si" : "No";
+  Widget taskInfoRow1(context) {
+    String public = (task!.public) ? "Si" : "No";
+    String revision = (task!.revision) ? "Si" : "No";
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -229,7 +227,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
               children: [
                 customText("Proyecto:", 16, textColor: Colors.grey),
                 space(width: 5),
-                customText(task.projectObj.name, 16),
+                customText(task!.projectObj.name, 16),
               ],
             )),
         Row(
@@ -245,7 +243,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 "Ver",
                 Icons.folder,
                 DocumentsPage(
-                  currentFolder: task.folderObj,
+                  currentFolder: task!.folderObj,
                 ), callback: () {
               setState(() {});
             })
@@ -265,7 +263,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     );
   }
 
-  Widget taskInfoRow2(context, task) {
+  Widget taskInfoRow2(context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -275,7 +273,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             children: [
               customText("Estado:", 16, textColor: Colors.grey),
               space(height: 5),
-              customText(task.statusObj.name, 16),
+              customText(task!.statusObj.name, 16),
             ],
           ),
         ),
@@ -283,41 +281,41 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           children: [
             customText("Prioridad:", 16, textColor: Colors.grey),
             space(height: 5),
-            customText(task.statusObj.name, 16),
+            customText(task!.statusObj.name, 16),
           ],
         ),
         Row(children: [
           customText("Duración horas:", 16, textColor: Colors.grey),
           space(height: 5),
-          customText(task.duration.toString(), 16),
+          customText(task!.duration.toString(), 16),
         ]),
         Row(children: [
           customText("Duración minutos:", 16, textColor: Colors.grey),
           space(height: 5),
-          customText(task.durationMin.toString(), 16),
+          customText(task!.durationMin.toString(), 16),
         ]),
       ],
     );
   }
 
-  Widget taskInfoRow3(context, task) {
+  Widget taskInfoRow3(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       SizedBox(
           width: MediaQuery.of(context).size.width / 4.3,
           child: Row(children: [
             customText("Acuerdo:", 16, textColor: Colors.grey),
             space(height: 5),
-            customText(DateFormat('yyyy-MM-dd').format(task.dealDate), 16),
+            customText(DateFormat('yyyy-MM-dd').format(task!.dealDate), 16),
           ])),
       Row(children: [
         customText("Deadline:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(DateFormat('yyyy-MM-dd').format(task.deadLineDate), 16),
+        customText(DateFormat('yyyy-MM-dd').format(task!.deadLineDate), 16),
       ]),
       Row(children: [
         customText("Nuevo deadline", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(DateFormat('yyyy-MM-dd').format(task.newDeadLineDate), 16),
+        customText(DateFormat('yyyy-MM-dd').format(task!.newDeadLineDate), 16),
       ])
     ]);
   }
@@ -384,6 +382,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   void saveTask(List args) async {
     STask task = args[0];
     task.save();
+    await task.getFolder();
     updateObjects();
 
     Navigator.pop(context);

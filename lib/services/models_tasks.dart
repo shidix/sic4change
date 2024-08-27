@@ -155,6 +155,12 @@ class STask {
     return this;
   }
 
+  Future<void> loadObjs() async {
+    await getStatus();
+    await getAssigned();
+    await getRelations();
+  }
+
   Future<void> getProject() async {
     if (project != "") {
       QuerySnapshot query =
@@ -291,7 +297,7 @@ class STask {
     return items;
   }
 
-  static Future<List<STask>> getByUser(uuid) async {
+  /*static Future<List<STask>> getByUser(uuid) async {
     List<STask> items = [];
 
     final query = await dbTasks.get();
@@ -299,8 +305,8 @@ class STask {
       final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
-      await task.getAssigned();
-      await task.getRelations();
+      //await task.getAssigned();
+      //await task.getRelations();
       items.add(task);
     }
 
@@ -335,9 +341,9 @@ class STask {
       }
     }*/
     return items;
-  }
+  }*/
 
-  static List<STask> getByAssigned2(uuid) {
+  /*static List<STask> getByAssigned2(uuid) {
     List<STask> items = [];
     dbTasks.where("assigned", arrayContains: uuid).snapshots().listen((event) {
       for (var doc in event.docs) {
@@ -354,7 +360,7 @@ class STask {
       }
     });
     return items;
-  }
+  }*/
 
   Future<void> getReceivers() async {
     List<Contact> listReceivers = [];
@@ -476,12 +482,12 @@ Future<List> getTasks() async {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
-      await task.getProject();
+      /*await task.getProject();
       await task.getStatus();
       await task.getSender();
       await task.getAssigned();
       await task.getReceivers();
-      await task.getReceiversOrg();
+      await task.getReceiversOrg();*/
       //await task.getProgrammes();
       items.add(task);
     }
@@ -763,6 +769,24 @@ class TasksRelation {
 
   Future<void> delete() async {
     await dbTasksRelation.doc(id).delete();
+  }
+
+  static String getModelRelation(model) {
+    if (model == "s4c_activities") return "Actividad";
+    return "";
+  }
+
+  static Future<String> getObjRelation(model, objId) async {
+    if (model == "s4c_activities") {
+      final q =
+          await db.collection(model).where("uuid", isEqualTo: objId).get();
+      final d = q.docs.first;
+      final Map<String, dynamic> data = d.data();
+      data["id"] = d.id;
+      Activity act = Activity.fromJson(data);
+      return act.name;
+    }
+    return "";
   }
 
   static Future<List<TasksRelation>> getRelationsByTasks(String uuid) async {

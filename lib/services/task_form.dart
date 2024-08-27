@@ -91,10 +91,10 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         CustomTextField(
           labelText: "Documentos",
-          initial: task.name,
+          initial: task.folder,
           size: 340,
           fieldValue: (String val) {
-            task.name = val;
+            task.folder = val;
             //setState(() => task.comments = val);
           },
         )

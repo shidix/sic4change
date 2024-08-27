@@ -18,7 +18,7 @@ import 'package:sic4change/widgets/task_widgets.dart';
 import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageTaskUserTitle = "Tareas";
-List tasksUser = [];
+bool tasksLoading = false;
 
 class TasksUserPage extends StatefulWidget {
   const TasksUserPage({super.key});
@@ -28,74 +28,44 @@ class TasksUserPage extends StatefulWidget {
 }
 
 class _TasksUserPageState extends State<TasksUserPage> {
-  List<Profile> profiles = [];
-  List<STask> allTasksUser = [];
-  List<TasksStatus> statusListCache = [];
+  List myTasks = [];
+  List tasksUser = [];
 
   var searchController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser!;
-  Widget taskListPanel = const Align(
-      alignment: Alignment.center, child: CircularProgressIndicator());
 
-  void updateObjects(task) {
-    task.statusObj = statusListCache
-        .firstWhere((element) => element.uuid == task.status, orElse: () {
-      return TasksStatus("No iniciado");
+  void addTaskToList(task) {
+    if (task.assigned.contains(user.email)) myTasks.add(task);
+    if (task.sender == user.email) tasksUser.add(task);
+  }
+
+  void loadTasks() async {
+    setState(() {
+      tasksLoading = true;
     });
-    if (mounted) {
-      setState(() {});
+    await getTasks().then((value) {
+      List<STask> tList = value as List<STask>;
+      for (STask t in tList) {
+        addTaskToList(t);
+      }
+      setState(() {
+        tasksLoading = false;
+      });
+    });
+
+    for (STask t in myTasks) {
+      await t.loadObjs();
     }
+    for (STask t in tasksUser) {
+      await t.loadObjs();
+    }
+    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
+    loadTasks();
     super.initState();
-
-    TasksStatus.getTasksStatus().then((value) {
-      statusListCache = value;
-      STask.getByUser(user.email).then((value) {
-        setState(() {
-          allTasksUser = value;
-
-          for (STask task in allTasksUser) {
-            updateObjects(task);
-          }
-
-          taskListPanel = taskListCache(context, user);
-
-          /*List<String> emails = [];
-          for (STask task in allTasksUser) {
-            if (!emails.contains(task.sender)) {
-              emails.add(task.sender);
-            }
-          }
-          for (STask task in allTasksUser) {
-            for (String email in task.assigned) {
-              if (!emails.contains(email)) {
-                emails.add(email);
-              }
-            }
-          }*/
-
-          /*Profile.getProfiles(emails: emails).then((value) {
-            setState(() {
-              profiles = value;
-              for (STask task in allTasksUser) {
-                task.senderObj = profiles.firstWhere(
-                    (element) => element.email == task.sender,
-                    orElse: () => Profile.getEmpty());
-                task.assignedObj = profiles
-                    .where((element) => task.assigned.contains(element.email))
-                    .toList();
-                print(task.assignedObj);
-              }
-            });
-          });*/
-        });
-      });
-    });
-
-    // taskListPanel = taskList(context, user);
   }
 
   @override
@@ -144,62 +114,55 @@ class _TasksUserPageState extends State<TasksUserPage> {
     ]);
   }
 
-  Widget taskListCache(context, user) {
-    int myTasks =
-        allTasksUser.where((task) => task.assigned.contains(user.email)).length;
-    int createdTasks =
-        allTasksUser.where((task) => task.sender == user.email).length;
-    return Column(
-      children: [
-        ExpansionTile(
-          title: customText("Para mí ($myTasks)", 16, textColor: mainColor),
-          initiallyExpanded: true,
-          children: [
-            Builder(
-                //future: getTasksByAssigned(user.uid),
-                builder: ((contextt) {
-              tasksUser = allTasksUser
-                  .where((task) => task.assigned.contains(user.email))
-                  .toList();
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                verticalDirection: VerticalDirection.down,
-                children: <Widget>[
-                  dataBody(context),
-                ],
-              );
-            }))
-          ],
-        ),
-        space(height: 20),
-        ExpansionTile(
-          title: customText("Creadas por mí ($createdTasks)", 16,
-              textColor: mainColor),
-          initiallyExpanded: true,
-          children: [
-            Builder(builder: ((context) {
-              tasksUser = allTasksUser
-                  .where((task) => task.sender == user.email)
-                  .toList();
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                verticalDirection: VerticalDirection.down,
-                children: <Widget>[
-                  dataBody(context),
-                ],
-              );
-            }))
-          ],
-        )
-      ],
-    );
+  Widget taskListPanel(context, user) {
+    if (tasksLoading == false) {
+      int myTasksNum = myTasks.length;
+      int createdTasks = tasksUser.length;
+      return Column(
+        children: [
+          ExpansionTile(
+            title:
+                customText("Para mí ($myTasksNum)", 16, textColor: mainColor),
+            initiallyExpanded: true,
+            children: [
+              Builder(builder: ((contextt) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: <Widget>[
+                    dataBody(context, myTasks),
+                  ],
+                );
+              }))
+            ],
+          ),
+          space(height: 20),
+          ExpansionTile(
+            title: customText("Creadas por mí ($createdTasks)", 16,
+                textColor: mainColor),
+            initiallyExpanded: true,
+            children: [
+              Builder(builder: ((context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: <Widget>[
+                    dataBody(context, tasksUser),
+                  ],
+                );
+              }))
+            ],
+          )
+        ],
+      );
+    } else {
+      return const Center(child: CircularProgressIndicator());
+    }
   }
 
-  SingleChildScrollView dataBody(context) {
+  SingleChildScrollView dataBody(context, List taskList) {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SizedBox(
@@ -230,7 +193,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                   tooltip: "Rel"),
               const DataColumn(label: Text(""), tooltip: ""),
             ],
-            rows: tasksUser.isEmpty
+            //rows: tasksUser.isEmpty
+            rows: taskList.isEmpty
                 ? [
                     const DataRow(cells: [
                       DataCell(Text("No hay tareas asignadas")),
@@ -242,7 +206,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                       DataCell(Text("")),
                     ])
                   ]
-                : tasksUser
+                //: tasksUser
+                : taskList
                     .map(
                       (task) => DataRow(cells: [
                         DataCell(Text(task.name)),
@@ -261,8 +226,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                           removeConfirmBtn(context, () {
                             task.delete();
                             setState(() {
-                              allTasksUser.remove(task);
-                              taskListPanel = taskListCache(context, user);
+                              myTasks.remove(task);
+                              tasksUser.remove(task);
                             });
                           }, null),
                         ]))
@@ -297,10 +262,12 @@ class _TasksUserPageState extends State<TasksUserPage> {
   void saveTask(List args) async {
     STask task = args[0];
     task.save();
+    await task.loadObjs();
     if (mounted) {
       setState(() {
-        allTasksUser.add(task);
-        taskListPanel = taskListCache(context, user);
+        addTaskToList(task);
+        /*allTasksUser.add(task);
+        taskListPanel = taskListCache(context, user);*/
       });
     }
 
