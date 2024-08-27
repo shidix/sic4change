@@ -225,12 +225,16 @@ class _TasksUserPageState extends State<TasksUserPage> {
               DataColumn(
                   label: customText("Estado", 14, bold: FontWeight.bold),
                   tooltip: "Estado"),
+              DataColumn(
+                  label: customText("Rel", 14, bold: FontWeight.bold),
+                  tooltip: "Rel"),
               const DataColumn(label: Text(""), tooltip: ""),
             ],
             rows: tasksUser.isEmpty
                 ? [
                     const DataRow(cells: [
                       DataCell(Text("No hay tareas asignadas")),
+                      DataCell(Text("")),
                       DataCell(Text("")),
                       DataCell(Text("")),
                       DataCell(Text("")),
@@ -250,14 +254,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                         DataCell(Text(task.getAssignedStr())),
                         DataCell(
                             customTextStatus(task.statusObj.name, size: 14)),
+                        DataCell(customText(task.rel, 14)),
                         DataCell(Row(children: [
-                          /*IconButton(
-                          icon: const Icon(Icons.view_compact),
-                          tooltip: 'Ver',
-                          onPressed: () async {
-                            Navigator.pushNamed(context, "/task_info",
-                                arguments: {'task': task});
-                          }),*/
                           goPageIcon(context, "Ver", Icons.view_compact,
                               TaskInfoPage(task: task)),
                           removeConfirmBtn(context, () {

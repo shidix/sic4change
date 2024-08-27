@@ -115,7 +115,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
         )
       ]),
     ]),
-    space(height: 20),
+    /*space(height: 20),
     Row(children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         CustomTextField(
@@ -129,7 +129,7 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
           },
         )
       ]),
-    ]),
+    ]),*/
     space(height: 20),
     Row(mainAxisAlignment: MainAxisAlignment.start, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

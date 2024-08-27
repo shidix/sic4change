@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/mybusinesslodging/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
+import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,6 +55,7 @@ class STask {
   List<Profile> assignedObj = [];
   List<Contact> receiversObj = [];
   List<Organization> receiversOrgObj = [];
+  String rel = "";
   //List<Programme> programmesObj = [];
 
   STask(this.name);
@@ -229,6 +232,37 @@ class STask {
     return assignedStr;
   }
 
+  String getModelRelation(model) {
+    if (model == "s4c_activities") return "Actividad";
+    return "";
+  }
+
+  Future<String> getObjRelation(model, objId) async {
+    if (model == "s4c_activities") {
+      final q =
+          await db.collection(model).where("uuid", isEqualTo: objId).get();
+      final d = q.docs.first;
+      final Map<String, dynamic> data = d.data();
+      data["id"] = d.id;
+      Activity act = Activity.fromJson(data);
+      return act.name;
+    }
+    return "";
+  }
+
+  Future<void> getRelations() async {
+    String relations = "";
+    final query = await dbTasksRelation.where("task", isEqualTo: uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data();
+      data["id"] = doc.id;
+      TasksRelation r = TasksRelation.fromJson(data);
+      String objDesc = await getObjRelation(r.model, r.objId);
+      relations += "$objDesc (${getModelRelation(r.model)});";
+    }
+    rel = relations;
+  }
+
   /*String getAssignedStr() {
     String assignedStr = "";
     for (Contact item in assignedObj) {
@@ -266,6 +300,7 @@ class STask {
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
       await task.getAssigned();
+      await task.getRelations();
       items.add(task);
     }
 
@@ -676,6 +711,68 @@ class TasksComments {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       items.add(TasksComments.fromJson(data));
+    }
+    return items;
+  }
+}
+
+//--------------------------------------------------------------
+//                       TASKS RELATION
+//--------------------------------------------------------------
+final dbTasksRelation = db.collection("s4c_tasks_relation");
+
+class TasksRelation {
+  String id = "";
+  String uuid = "";
+  String objId = "";
+  String model = "";
+  String task;
+
+  TasksRelation(this.task);
+
+  TasksRelation.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        objId = json['objId'],
+        model = json['model'],
+        task = json['task'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'objId': objId,
+        'model': model,
+        'task': task,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, objId);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbTasksRelation.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbTasksRelation.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbTasksRelation.doc(id).delete();
+  }
+
+  static Future<List<TasksRelation>> getRelationsByTasks(String uuid) async {
+    List<TasksRelation> items = [];
+    QuerySnapshot query;
+    query = await dbTasksRelation.where("task", isEqualTo: uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(TasksRelation.fromJson(data));
     }
     return items;
   }
