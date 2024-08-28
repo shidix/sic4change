@@ -1,7 +1,7 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -16,7 +16,7 @@ class EmployeeForm extends StatefulWidget {
 }
 
 class _EmployeeFormState extends State<EmployeeForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
   // DateTime? altaDate;
   // late PlatformFile? notSignedFile;
@@ -226,7 +226,7 @@ class EmployeeBajaForm extends StatefulWidget {
 }
 
 class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
   DateTime? selectedDate;
 
@@ -302,7 +302,7 @@ class EmployeeAltaForm extends StatefulWidget {
 }
 
 class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
 
   @override
@@ -370,6 +370,7 @@ class EmployeeDocumentsForm extends StatefulWidget {
 
 class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
   late Employee selectedItem;
+  String genericDocDesc = '';
 
   @override
   void initState() {
@@ -379,8 +380,9 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
   @override
   Widget build(BuildContext context) {
+    genericDocDesc = '';
     List listDocuments = [];
-    for (Alta alta in selectedItem!.altas) {
+    for (Alta alta in selectedItem.altas) {
       listDocuments.add({
         'type': 'Alta',
         'desc': 'Contrato',
@@ -419,94 +421,170 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
         });
       }
 
+      if (selectedItem.extraDocs.isNotEmpty) {
+        selectedItem.extraDocs.forEach((key, value) {
+          listDocuments.add({
+            'type': 'Otros',
+            'desc': key,
+            'date': selectedItem.getAltaDate(),
+            'path': value
+          });
+        });
+      }
+
       // Add pathNIE
     }
-    return SizedBox(
-        width: double.infinity,
-        child: Column(children: [
-          DataTable(
-            dataRowMinHeight: 70,
-            dataRowMaxHeight: 70,
-            columns:
-                ['Satus', 'Trámite', 'Fecha', 'Descripción', ''].map((item) {
-              return DataColumn(
-                label: Text(
-                  item,
-                  style: headerListStyle,
-                  textAlign: TextAlign.center,
+    return SingleChildScrollView(
+        child: SizedBox(
+            width: double.infinity,
+            child: Column(children: [
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                Expanded(
+                    flex: 4,
+                    child: // TextField for a descriotion
+                        TextFormField(
+                      key: UniqueKey(),
+                      initialValue: genericDocDesc,
+                      decoration: const InputDecoration(
+                          labelText: 'Descripción Documento Genérico'),
+                      onChanged: (String value) {
+                        genericDocDesc = value;
+                      },
+                    )),
+                Expanded(
+                  flex: 1,
+                  child: addBtnRow(context, (context) {
+                    if (genericDocDesc != '') {
+                      selectedItem.extraDocs[genericDocDesc] = null;
+                      genericDocDesc = '';
+                      selectedItem.save();
+                      setState(() {
+                        genericDocDesc = '';
+                      });
+                    }
+                  }, null, text: 'Añadir'),
                 ),
-              );
-            }).toList(),
-            rows: listDocuments.map((e) {
-              return DataRow(
-                color: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.selected)) {
-                    return Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withOpacity(0.08);
-                  }
-                  if (selectedItem.altas.indexOf(e).isEven) {
-                    return Colors.grey[200];
-                  } else {
-                    return Colors.white;
-                  }
-                }),
-                cells: [
-                  DataCell(
-                    e['path'] != null
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.green,
-                          )
-                        : const Icon(
-                            Icons.close,
-                            color: Colors.red,
-                          ),
-                  ),
-                  DataCell(Text(e['type'])),
-                  DataCell(Text(DateFormat('dd/MM/yyyy').format(e['date']))),
-                  DataCell(Text(e['desc'])),
-                  DataCell(
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        UploadFileField(
-                          padding: EdgeInsets.all(5),
-                          textToShow: Container(),
-                          onSelectedFile: (PlatformFile? pickedFile) {
-                            if (pickedFile != null) {
-                              String extention =
-                                  pickedFile.name.split('.').last;
-                              uploadFileToStorage(pickedFile,
-                                      rootPath:
-                                          'files/employees/${selectedItem.code}/documents/${e['type']}/',
-                                      fileName:
-                                          '${DateFormat('yyyyMMdd').format(e['date'])}_${e['desc']}.$extention')
-                                  .then((value) {
-                                if (value != null) {
-                                  selectedItem.updateDocument(e, value);
-                                  selectedItem.save();
-                                  setState(() {});
-                                }
-                              });
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            //dialogFormEmployee(context, employees.indexOf(e));
-                          },
-                        ),
-                      ],
+              ]),
+              DataTable(
+                dataRowMinHeight: 70,
+                dataRowMaxHeight: 70,
+                columns: ['Satus', 'Trámite', 'Fecha', 'Descripción', '']
+                    .map((item) {
+                  return DataColumn(
+                    label: Text(
+                      item,
+                      style: headerListStyle,
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
-          )
-        ]));
+                  );
+                }).toList(),
+                rows: listDocuments.map((e) {
+                  return DataRow(
+                    color: MaterialStateProperty.resolveWith<Color?>(
+                        (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.08);
+                      }
+                      if (selectedItem.altas.indexOf(e).isEven) {
+                        return Colors.grey[200];
+                      } else {
+                        return Colors.white;
+                      }
+                    }),
+                    cells: [
+                      DataCell(
+                        e['path'] != null
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.green,
+                              )
+                            : const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                      ),
+                      DataCell(Text(e['type'])),
+                      DataCell(
+                          Text(DateFormat('dd/MM/yyyy').format(e['date']))),
+                      DataCell(Text(e['desc'])),
+                      DataCell(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            e['path'] == null
+                                ? UploadFileField(
+                                    padding: const EdgeInsets.all(5),
+                                    textToShow: Container(),
+                                    onSelectedFile: (PlatformFile? pickedFile) {
+                                      if (pickedFile != null) {
+                                        String extention =
+                                            pickedFile.name.split('.').last;
+                                        uploadFileToStorage(pickedFile,
+                                                rootPath:
+                                                    'files/employees/${selectedItem.code}/documents/${e['type']}/',
+                                                fileName:
+                                                    '${DateFormat('yyyyMMdd').format(e['date'])}_${e['desc'].replaceAll(' ', '_')}.$extention')
+                                            .then((value) {
+                                          selectedItem.extraDocs[e['desc']] =
+                                              value;
+                                          selectedItem.save();
+                                          setState(() {});
+                                        });
+                                      }
+                                    },
+                                  )
+                                : IconButton(
+                                    icon: const Icon(
+                                        Icons.remove_red_eye_outlined),
+                                    onPressed: () async {
+                                      if (e['path'] != null) {
+                                        downloadFileUrl(e['path'])
+                                            .then((value) {
+                                          if (value) {
+                                            //Use toast to show a message
+
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content: Text(
+                                                        'Descargando archivo...')));
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content: Text(
+                                                        'Error al descargar archivo')));
+                                          }
+                                        });
+                                      }
+                                    }),
+                            (e['path'] != null) || (e['type'] == 'Otros')
+                                ? removeConfirmBtn(context, (context) async {
+                                    removeFileFromStorage(e['path'])
+                                        .then((value) {
+                                      if (value) {
+                                        if (e['type'] != 'Otros') {
+                                          selectedItem.updateDocument(e, null);
+                                          e['path'] = null;
+                                          selectedItem.save();
+                                        } else {
+                                          selectedItem.extraDocs
+                                              .remove(e['desc']);
+                                          selectedItem.save();
+                                        }
+                                        setState(() {});
+                                      }
+                                    });
+                                  }, null)
+                                : Container(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              )
+            ])));
   }
 }

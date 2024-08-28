@@ -1121,8 +1121,8 @@ Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
       ));
 }
 
-Widget addBtnRow(context, action, args,
-    {text = addText, icon = Icons.add, color = subTitleColor}) {
+Widget gralBtnRow(context, action, args,
+    {text = 'Tool', icon = Icons.settings, color = subTitleColor}) {
   return FilledButton(
       onPressed: () {
         if (args == null) {
@@ -1139,6 +1139,12 @@ Widget addBtnRow(context, action, args,
           customText(text, 12, textColor: color),
         ],
       ));
+}
+
+Widget addBtnRow(context, action, args,
+    {text = addText, icon = Icons.add, color = subTitleColor}) {
+  return gralBtnRow(context, action, args,
+      text: text, icon: icon, color: color);
 }
 
 Widget listBtn(context, action, args,
@@ -1949,10 +1955,10 @@ class CustomPopupDialog extends StatefulWidget {
   });
 
   @override
-  _CustomPopupDialioState createState() => _CustomPopupDialioState();
+  _CustomPopupDialogState createState() => _CustomPopupDialogState();
 }
 
-class _CustomPopupDialioState extends State<CustomPopupDialog> {
+class _CustomPopupDialogState extends State<CustomPopupDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(

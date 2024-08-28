@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +5,6 @@ import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
@@ -20,6 +18,7 @@ class EmployeesPage extends StatefulWidget {
 }
 
 class _EmployeesPageState extends State<EmployeesPage> {
+  bool altasVisible = true;
   GlobalKey mainMenuKey = GlobalKey();
   Profile? profile;
   List<Employee> employees = [];
@@ -95,11 +94,30 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 color: Colors.white,
                 fontWeight: FontWeight.bold))));
 
-    Widget toolsNomina = Row(
+    Widget toolsEmployee = Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      children: [addBtnRow(context, dialogFormEmployee, -1)],
+      children: [
+        addBtnRow(context, dialogFormEmployee, -1),
+        altasVisible
+            ? gralBtnRow(context, (context) {
+                altasVisible = false;
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }, null, text: 'Ver Bajas', icon: Icons.thumb_down)
+            : gralBtnRow(context, (context) {
+                altasVisible = true;
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }, null, text: 'Ver Altas', icon: Icons.thumb_up),
+      ],
     );
     employees.sort(compareEmployee);
+
+    List<Employee> employeesFiltered = employees
+        .where((element) => element.isActive() == altasVisible)
+        .toList();
 
     Widget listEmployees = SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -137,7 +155,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   ),
                 );
               }).toList(),
-              rows: employees.map((e) {
+              rows: employeesFiltered.map((e) {
                 return DataRow(
                   color: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
@@ -222,140 +240,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
     return Card(
       child: Column(children: [
         titleBar,
-        Padding(padding: const EdgeInsets.all(5), child: toolsNomina),
+        Padding(padding: const EdgeInsets.all(5), child: toolsEmployee),
         Padding(padding: const EdgeInsets.all(5), child: listEmployees),
       ] // ListView.builder
           ),
     );
   }
-
-  // Widget EmployeeDocuments({Employee? selectedItem}) {
-  //   List listDocuments = [];
-  //   for (Alta alta in selectedItem!.altas) {
-  //     listDocuments.add({
-  //       'type': 'Alta',
-  //       'desc': 'Contrato',
-  //       'date': alta.date,
-  //       'path': alta.pathContract
-  //     });
-  //     listDocuments.add({
-  //       'type': 'Alta',
-  //       'desc': 'Anexo',
-  //       'date': alta.date,
-  //       'path': alta.pathAnnex
-  //     });
-  //     listDocuments.add({
-  //       'type': 'Alta',
-  //       'desc': 'NIF',
-  //       'date': alta.date,
-  //       'path': alta.pathNIF
-  //     });
-  //     listDocuments.add({
-  //       'type': 'Alta',
-  //       'desc': 'NDA',
-  //       'date': alta.date,
-  //       'path': alta.pathNDA
-  //     });
-  //     listDocuments.add({
-  //       'type': 'Alta',
-  //       'desc': 'LOPD',
-  //       'date': alta.date,
-  //       'path': alta.pathLOPD
-  //     });
-
-  //     if (alta.pathOthers != null) {
-  //       alta.pathOthers!.forEach((key, value) {
-  //         listDocuments.add(
-  //             {'type': 'Alta', 'desc': key, 'date': alta.date, 'path': value});
-  //       });
-  //     }
-
-  //     // Add pathNIE
-  //   }
-  //   return SizedBox(
-  //       width: double.infinity,
-  //       child: Column(children: [
-  //         DataTable(
-  //           dataRowMinHeight: 70,
-  //           dataRowMaxHeight: 70,
-  //           columns:
-  //               ['Satus', 'Trámite', 'Fecha', 'Descripción', ''].map((item) {
-  //             return DataColumn(
-  //               label: Text(
-  //                 item,
-  //                 style: headerListStyle,
-  //                 textAlign: TextAlign.center,
-  //               ),
-  //             );
-  //           }).toList(),
-  //           rows: listDocuments.map((e) {
-  //             return DataRow(
-  //               color: MaterialStateProperty.resolveWith<Color?>(
-  //                   (Set<MaterialState> states) {
-  //                 if (states.contains(MaterialState.selected)) {
-  //                   return Theme.of(context)
-  //                       .colorScheme
-  //                       .primary
-  //                       .withOpacity(0.08);
-  //                 }
-  //                 if (selectedItem.altas.indexOf(e).isEven) {
-  //                   return Colors.grey[200];
-  //                 } else {
-  //                   return Colors.white;
-  //                 }
-  //               }),
-  //               cells: [
-  //                 DataCell(
-  //                   e['path'] != null
-  //                       ? const Icon(
-  //                           Icons.check,
-  //                           color: Colors.green,
-  //                         )
-  //                       : const Icon(
-  //                           Icons.close,
-  //                           color: Colors.red,
-  //                         ),
-  //                 ),
-  //                 DataCell(Text(e['type'])),
-  //                 DataCell(Text(DateFormat('dd/MM/yyyy').format(e['date']))),
-  //                 DataCell(Text(e['desc'])),
-  //                 DataCell(
-  //                   Row(
-  //                     mainAxisAlignment: MainAxisAlignment.end,
-  //                     children: [
-  //                       UploadFileField(
-  //                         padding: EdgeInsets.all(5),
-  //                         textToShow: Container(),
-  //                         onSelectedFile: (PlatformFile? pickedFile) {
-  //                           if (pickedFile != null) {
-  //                             uploadFileToStorage(pickedFile,
-  //                                     rootPath:
-  //                                         'files/employees/${selectedItem.code}/documents/${e['type']}/')
-  //                                 .then((value) {
-  //                               if (value != null) {
-  //                                 selectedItem.updateDocument(e, value);
-  //                                 selectedItem.save();
-  //                                 setState(() {});
-  //                               }
-  //                             });
-  //                           }
-  //                         },
-  //                       ),
-  //                       IconButton(
-  //                         icon: const Icon(Icons.delete),
-  //                         onPressed: () {
-  //                           //dialogFormEmployee(context, employees.indexOf(e));
-  //                         },
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ],
-  //             );
-  //           }).toList(),
-  //         )
-  //       ]));
-  // }
 
   void dialogDocuments(BuildContext context, int index) {
     showDialog<void>(
@@ -369,7 +259,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
           }
           return CustomPopupDialog(
               context: context,
-              title: 'Documentos del empleado',
+              title: 'Documentos del empleado ${employee.code}',
               icon: Icons.folder,
               content: EmployeeDocumentsForm(selectedItem: employee),
               actionBtns: null);
