@@ -46,6 +46,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     await getTasks().then((value) {
       List<STask> tList = value as List<STask>;
       for (STask t in tList) {
+        t.rel = "Cargando...";
+        t.assignedStr = "Cargando...";
         addTaskToList(t);
       }
       setState(() {
@@ -216,7 +218,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                         ),
                         DataCell(Text(DateFormat('yyyy-MM-dd')
                             .format(task.deadLineDate))),
-                        DataCell(Text(task.getAssignedStr())),
+                        //DataCell(Text(task.getAssignedStr())),
+                        DataCell(Text(task.assignedStr)),
                         DataCell(
                             customTextStatus(task.statusObj.name, size: 14)),
                         DataCell(customText(task.rel, 14)),

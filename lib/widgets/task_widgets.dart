@@ -16,9 +16,10 @@ Color getStatusColor(status) {
 
 Widget customTextStatus(text, {double size = 12}) {
   if (!['Completado', 'En proceso', 'No iniciado'].contains(text)) {
-    text = '---';
+    text = 'Cargando...';
   }
 
+  Color textColor = (text == "Cargando...") ? Colors.black : Colors.white;
   Color color = getStatusColor(text);
   return Container(
     padding: const EdgeInsets.all(8),
@@ -28,7 +29,7 @@ Widget customTextStatus(text, {double size = 12}) {
     ),
     child: Text(
       text,
-      style: TextStyle(color: Colors.white, fontSize: size),
+      style: TextStyle(color: textColor, fontSize: size),
     ),
   );
 }

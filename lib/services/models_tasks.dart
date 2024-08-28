@@ -56,6 +56,7 @@ class STask {
   List<Contact> receiversObj = [];
   List<Organization> receiversOrgObj = [];
   String rel = "";
+  String assignedStr = "";
   //List<Programme> programmesObj = [];
 
   STask(this.name);
@@ -121,7 +122,7 @@ class STask {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbTasks.add(data);
+      dbTasks.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbTasks.doc(id).set(data);
@@ -158,6 +159,7 @@ class STask {
   Future<void> loadObjs() async {
     await getStatus();
     await getAssigned();
+    getAssignedStr();
     await getRelations();
   }
 
@@ -227,15 +229,17 @@ class STask {
     assignedObj = listAssigned;
   }
 
-  String getAssignedStr() {
-    String assignedStr = "";
+  //String getAssignedStr() {
+  void getAssignedStr() {
+    String assigStr = "";
     for (Profile item in assignedObj) {
-      assignedStr += "${item.name},";
+      assigStr += "${item.name},";
     }
-    assignedStr = (assignedStr.isNotEmpty)
-        ? assignedStr.substring(0, assignedStr.length - 1)
-        : assignedStr;
-    return assignedStr;
+    assigStr = (assigStr.isNotEmpty)
+        ? assigStr.substring(0, assigStr.length - 1)
+        : assigStr;
+    assignedStr = assigStr;
+    //return assignedStr;
   }
 
   String getModelRelation(model) {
