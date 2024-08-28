@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/utils.dart';
 
@@ -252,6 +251,7 @@ class Employee {
   String category;
   List altas = [];
   List bajas = [];
+  Map<String, dynamic> extraDocs = {};
   String? photoPath;
 
   Employee(
@@ -265,6 +265,7 @@ class Employee {
       required this.category,
       this.altas = const [],
       this.bajas = const [],
+      this.extraDocs = const {},
       this.photoPath});
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -292,6 +293,9 @@ class Employee {
       bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
           ? []
           : json['bajas'].map((e) => getDate(e)).toList(),
+      extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
+          ? {}
+          : json['extraDocs'],
     );
   }
 
@@ -307,6 +311,7 @@ class Employee {
         'position': position,
         'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e).toList(),
+        'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
       };
 
   Future<String> getPhotoUrl() async {
@@ -387,7 +392,8 @@ class Employee {
         position: '',
         category: '',
         altas: [],
-        bajas: []);
+        bajas: [],
+        extraDocs: {});
   }
 
   static Future<List<Employee>> getEmployees() async {

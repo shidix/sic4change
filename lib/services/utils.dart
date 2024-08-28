@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:html' as html;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -260,4 +261,36 @@ Future<String> uploadFileToStorage(PlatformFile file,
     print(e);
   }
   return path;
+}
+
+Future<bool> removeFileFromStorage(String? path) async {
+  if (path == null) {
+    return true;
+  }
+  final ref = FirebaseStorage.instance.ref().child(path);
+
+  // check if the file exists
+  try {
+    await ref.getMetadata();
+    return ref.delete().then((value) => true).catchError((e) => false);
+  } catch (e) {
+    return true;
+  }
+}
+
+Future<bool> downloadFileUrl(String path) async {
+  final ref = FirebaseStorage.instance.ref().child(path);
+  // check if the file exists
+  try {
+    await ref.getMetadata();
+    return ref.getDownloadURL().then(
+      (value) {
+        final Uri toDownload = Uri.parse(value);
+        html.window.open(toDownload.toString(), 'Download');
+        return true;
+      },
+    );
+  } catch (e) {
+    return false;
+  }
 }
