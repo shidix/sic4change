@@ -294,3 +294,9 @@ Future<bool> downloadFileUrl(String path) async {
     return false;
   }
 }
+
+int compareString(bool asc, String val1, String val2) =>
+    asc ? val1.compareTo(val2) : val2.compareTo(val1);
+
+int compareDates(bool asc, DateTime val1, DateTime val2) =>
+    asc ? val1.compareTo(val2) : val2.compareTo(val1);
