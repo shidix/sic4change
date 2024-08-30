@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:uuid/uuid.dart';
 
 class Nomina {
   static final db = FirebaseFirestore.instance;
@@ -191,6 +192,83 @@ class Nomina {
   }
 }
 
+class EmploymentPromotion {
+  static final db = FirebaseFirestore.instance;
+  static final collection = db.collection("s4c_employment_promotions");
+
+  bool active;
+  String uuid;
+  String name;
+  String description;
+
+  EmploymentPromotion(
+      {required this.uuid,
+      required this.active,
+      required this.name,
+      required this.description});
+
+  factory EmploymentPromotion.fromJson(Map<String, dynamic> json) {
+    return EmploymentPromotion(
+        uuid: json['uuid'],
+        active: json['active'],
+        name: json['name'],
+        description: json['description']);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+        'active': active,
+        'name': name,
+        'description': description
+      };
+
+  static EmploymentPromotion getEmpty() {
+    return EmploymentPromotion(
+        uuid: '', active: true, name: '', description: '');
+  }
+
+  static Future<List<EmploymentPromotion>> getAll() async {
+    // get from database
+    List<EmploymentPromotion> items = [];
+    await collection.get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
+        return item;
+      }).toList();
+    });
+
+    return items;
+  }
+
+  static Future<List<EmploymentPromotion>> getActive() async {
+    // get from database
+    List<EmploymentPromotion> items = [];
+    await collection.where('active', isEqualTo: true).get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
+        return item;
+      }).toList();
+    });
+
+    return items;
+  }
+
+  Future<EmploymentPromotion> save() async {
+    if (uuid.isEmpty) {
+      await collection.add(toJson()).then((value) => uuid = value.id);
+    } else {
+      await collection.doc(uuid).update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await collection.doc(uuid).delete();
+  }
+}
+
 class Alta {
   DateTime date;
   String? pathContract;
@@ -198,26 +276,43 @@ class Alta {
   String? pathNDA;
   String? pathNIF;
   String? pathLOPD;
+  String employmentPromotion = '';
+  double salary = 0.0;
+
   Map<String, String>? pathOthers;
 
-  Alta(
-      {required this.date,
-      this.pathContract,
-      this.pathAnnex,
-      this.pathNDA,
-      this.pathNIF,
-      this.pathLOPD,
-      this.pathOthers});
+  Alta({
+    required this.date,
+    this.pathContract,
+    this.pathAnnex,
+    this.pathNDA,
+    this.pathNIF,
+    this.pathLOPD,
+    this.pathOthers,
+    this.salary = 0.0,
+  });
 
-  factory Alta.fromJson(Map<String, dynamic> json) {
-    return Alta(
-        date: getDate(json['date'] ?? DateTime.now()),
-        pathContract: json['pathContract'],
-        pathAnnex: json['pathAnnex'],
-        pathNDA: json['pathNDA'],
-        pathNIF: json['pathNIF'],
-        pathLOPD: json['pathLOPD'],
-        pathOthers: json['pathOthers']);
+  static Alta fromJson(Map<String, dynamic> json) {
+    Alta item = Alta(
+      date: getDate(json['date'] ?? DateTime.now()),
+      pathContract: json['pathContract'],
+      pathAnnex: json['pathAnnex'],
+      pathNDA: json['pathNDA'],
+      pathNIF: json['pathNIF'],
+      pathLOPD: json['pathLOPD'],
+      pathOthers: json['pathOthers'],
+    );
+    if (json.containsKey('employmentPromotion')) {
+      item.employmentPromotion = json['employmentPromotion'];
+    } else {
+      item.employmentPromotion = '';
+    }
+    if (json.containsKey('salary')) {
+      item.salary = json['salary'];
+    } else {
+      item.salary = 0.0;
+    }
+    return item;
   }
 
   Map<String, dynamic> toJson() => {
@@ -227,7 +322,13 @@ class Alta {
         'pathNDA': pathNDA,
         'pathNIF': pathNIF,
         'pathLOPD': pathLOPD,
-        'pathOthers': pathOthers
+        'pathOthers': pathOthers,
+        'salary': salary,
+        'employmentPromotion': employmentPromotion == null
+            ? ''
+            : employmentPromotion!.isEmpty
+                ? ''
+                : employmentPromotion,
       };
 
   @override
@@ -378,6 +479,20 @@ class Employee {
               .pathOthers![dictDoc['desc']] = newPath;
         }
       }
+    }
+  }
+
+  double getSalary([DateTime? date]) {
+    if (altas.isEmpty) {
+      return 0.0;
+    }
+    date ??= DateTime.now();
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    try {
+      Alta alta = altas.firstWhere((element) => element.date.isAfter(date));
+      return alta.salary;
+    } catch (e) {
+      return altas.last.salary;
     }
   }
 

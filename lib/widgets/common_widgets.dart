@@ -2112,9 +2112,25 @@ class CustomSelectFormField extends StatelessWidget {
         break;
       }
     }
+
     if (initialKey == "") {
       options.insert(0, KeyValue("", "Seleccione una opción"));
     }
+
+    // Check if initial value is in the list of options (if not, add it)
+    if (!options.any((element) => element.key == initial)) {
+      options.insert(0, KeyValue(initial, initial));
+    }
+
+    //Remove duplicates /by key)
+    for (var i = 0; i < options.length; i++) {
+      for (var j = i + 1; j < options.length; j++) {
+        if (options[i].key == options[j].key) {
+          options.removeAt(j);
+        }
+      }
+    }
+
     List<DropdownMenuItem<String>> optionsDrop = options.map((e) {
       return DropdownMenuItem<String>(
         value: e.key,
