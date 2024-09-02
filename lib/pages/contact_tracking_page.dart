@@ -1,10 +1,20 @@
+import 'dart:collection';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/contact_tracking_info_page.dart';
 import 'package:sic4change/pages/contacts_page.dart';
+import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_contact_tracking.dart';
+import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_tasks.dart';
+import 'package:sic4change/services/task_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -145,6 +155,9 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
                               ContactTrackingInfoPage(
                                   tracking: tracking, contact: contact)),*/
                               //editBtn(context, editDialog, {'claim': claim}),
+                              editBtn(context, callTaskEditDialog,
+                                  {"tracking": tracking},
+                                  icon: Icons.grading_sharp),
                               removeBtn(context, removeTrackingDialog,
                                   {"tracking": tracking})
                             ]))
@@ -221,6 +234,74 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
 
   void removeTrackingDialog(context, args) {
     customRemoveDialog(context, args["tracking"], loadContactTracking, null);
+  }
+
+/*--------------------------------------------------------------------*/
+/*                           ACTIVITY TASK                                */
+/*--------------------------------------------------------------------*/
+  void callTaskEditDialog(context, HashMap args) async {
+    ContactTracking tracking = args["tracking"];
+    List<KeyValue> statusList = await getTasksStatusHash();
+    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> projectList = await getProjectsHash();
+    List<KeyValue> profileList = await Profile.getProfileHash();
+    List<KeyValue> orgList = await getOrganizationsHash();
+    final List<MultiSelectItem<KeyValue>> cList = contactList
+        .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
+        .toList();
+    final List<MultiSelectItem<KeyValue>> oList = orgList
+        .map((org) => MultiSelectItem<KeyValue>(org, org.value))
+        .toList();
+    final List<MultiSelectItem<KeyValue>> pList = profileList
+        .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
+        .toList();
+    taskEditDialog(
+        context, tracking, statusList, projectList, pList, cList, oList);
+  }
+
+  void saveTask(List args) async {
+    STask task = args[0];
+    ContactTracking tracking = args[1];
+    task.save();
+
+    TasksRelation rel = TasksRelation(task.uuid);
+    rel.objId = tracking.uuid;
+    rel.model = "s4c_contact_tracking";
+    rel.save();
+    /*if (mounted) {
+      setState(() {
+      });
+    }*/
+
+    Navigator.pop(context);
+  }
+
+  Future<void> taskEditDialog(context, tracking, statusList, projectList,
+      profileList, contactList, orgList) {
+    STask task = STask("");
+    //task.project = project!.uuid;
+    //task.projectObj = project!;
+    var user = FirebaseAuth.instance.currentUser!;
+    task.sender = user.email!;
+    task.public = true;
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Nueva tarea'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return taskForm(task, projectList, statusList, profileList,
+                contactList, orgList, setState);
+          }),
+          actions: <Widget>[
+            dialogsBtns2(context, saveTask, [task, tracking]),
+          ],
+        );
+      },
+    );
   }
 
   /*Widget customDateField(context, dateController) {
