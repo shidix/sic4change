@@ -475,35 +475,6 @@ class STask {
     }
     return row;
   }
-
-  int compareTo(STask b, {int sortColumnIndex = 1, int sortAsc = 1}) {
-    STask a = this;
-
-    switch (sortColumnIndex) {
-      case 0:
-        return a.name.compareTo(b.name) * sortAsc;
-      /*case 1:
-        return a.date.compareTo(b.date) * sortAsc;
-      case 2:
-        return a.netSalary.compareTo(b.netSalary) * sortAsc;
-      case 3:
-        return a.deductions.compareTo(b.deductions) * sortAsc;
-      case 4:
-        return a.employeeSocialSecurity.compareTo(b.employeeSocialSecurity) *
-            sortAsc;
-      case 5:
-        return a.grossSalary.compareTo(b.grossSalary) * sortAsc;
-      case 6:
-        return a.employerSocialSecurity.compareTo(b.employerSocialSecurity) *
-            sortAsc;
-      case 7:
-        return (a.grossSalary + a.employerSocialSecurity)
-                .compareTo(b.grossSalary + b.employerSocialSecurity) *
-            sortAsc;*/
-      default:
-        return 0;
-    }
-  }
 }
 
 Future<List> getTasks() async {
@@ -559,6 +530,24 @@ Future<List> getTasksBySender(sender) async {
     await task.getReceiversOrg();
     //await task.getProgrammes();
     items.add(task);
+  }
+  return items;
+}
+
+Future<List> searchTasks(name) async {
+  List<STask> items = [];
+  QuerySnapshot? query;
+
+  if (name != "") {
+    query = await dbTasks.where("name", isEqualTo: name).get();
+  } else {
+    query = await dbTasks.get();
+  }
+  for (var doc in query.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = STask.fromJson(data);
+    items.add(item);
   }
   return items;
 }

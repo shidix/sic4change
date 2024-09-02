@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/datastream/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
@@ -21,6 +20,7 @@ import 'package:sic4change/widgets/tasks_menu_widget.dart';
 
 const pageTaskUserTitle = "Tareas";
 bool tasksLoading = false;
+bool myTasksLoading = false;
 
 class TasksUserPage extends StatefulWidget {
   const TasksUserPage({super.key});
@@ -31,7 +31,9 @@ class TasksUserPage extends StatefulWidget {
 
 class _TasksUserPageState extends State<TasksUserPage> {
   List myTasks = [];
+  List myTasksSearch = [];
   List tasksUser = [];
+  List tasksUserSearch = [];
 
   var searchController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser!;
@@ -47,6 +49,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
   void loadTasks() async {
     setState(() {
       tasksLoading = true;
+      myTasksLoading = true;
     });
     await getTasks().then((value) {
       List<STask> tList = value as List<STask>;
@@ -57,6 +60,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       }
       setState(() {
         tasksLoading = false;
+        myTasksLoading = false;
       });
     });
 
@@ -66,7 +70,36 @@ class _TasksUserPageState extends State<TasksUserPage> {
     for (STask t in tasksUser) {
       await t.loadObjs();
     }
+
+    myTasksSearch = myTasks;
+    tasksUserSearch = tasksUser;
     if (mounted) setState(() {});
+  }
+
+  void findTasks(value) async {
+    if (value == "") {
+      myTasks = myTasksSearch;
+    } else {
+      List aux = [];
+      for (STask t in myTasksSearch) {
+        if (t.name == value) aux.add(t);
+      }
+      myTasks = aux;
+    }
+    setState(() {});
+  }
+
+  void findTasksUsers(value) async {
+    if (value == "") {
+      tasksUser = tasksUserSearch;
+    } else {
+      List aux = [];
+      for (STask t in tasksUserSearch) {
+        if (t.name == value) aux.add(t);
+      }
+      tasksUser = aux;
+    }
+    setState(() {});
   }
 
   @override
@@ -122,17 +155,16 @@ class _TasksUserPageState extends State<TasksUserPage> {
   }
 
   Widget taskListPanel(context, user) {
-    if (tasksLoading == false) {
-      int myTasksNum = myTasks.length;
-      int createdTasks = tasksUser.length;
-      return Column(
-        children: [
-          ExpansionTile(
-            title:
-                customText("Para mí ($myTasksNum)", 16, textColor: mainColor),
-            initiallyExpanded: true,
-            children: [
-              Builder(builder: ((contextt) {
+    int myTasksNum = myTasks.length;
+    int createdTasks = tasksUser.length;
+    return Column(
+      children: [
+        ExpansionTile(
+          title: customText("Para mí ($myTasksNum)", 16, textColor: mainColor),
+          initiallyExpanded: true,
+          children: [
+            Builder(builder: ((contextt) {
+              if (myTasksLoading == false) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -141,16 +173,20 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     dataBody(context, myTasks, 0),
                   ],
                 );
-              }))
-            ],
-          ),
-          space(height: 20),
-          ExpansionTile(
-            title: customText("Creadas por mí ($createdTasks)", 16,
-                textColor: mainColor),
-            initiallyExpanded: true,
-            children: [
-              Builder(builder: ((context) {
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }))
+          ],
+        ),
+        space(height: 20),
+        ExpansionTile(
+          title: customText("Creadas por mí ($createdTasks)", 16,
+              textColor: mainColor),
+          initiallyExpanded: true,
+          children: [
+            Builder(builder: ((context) {
+              if (tasksLoading == false) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -160,14 +196,14 @@ class _TasksUserPageState extends State<TasksUserPage> {
                     //dataBodyTasksUser(context),
                   ],
                 );
-              }))
-            ],
-          )
-        ],
-      );
-    } else {
-      return const Center(child: CircularProgressIndicator());
-    }
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }))
+          ],
+        )
+      ],
+    );
   }
 
   void onSort(int columnIndex, bool asc) {
@@ -218,38 +254,22 @@ class _TasksUserPageState extends State<TasksUserPage> {
     });
   }
 
+  DataColumn customColumn(String text, int table) {
+    return DataColumn(
+      label: customText(text, 14, bold: FontWeight.bold),
+      tooltip: text,
+      onSort: (table == 0) ? onSort : onSort2,
+    );
+  }
+
   List<DataColumn> columnList(int table) {
     return [
-      DataColumn(
-        label: customText("Tarea", 14, bold: FontWeight.bold),
-        tooltip: "Tarea",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
-      DataColumn(
-        label: customText("Inicio", 14, bold: FontWeight.bold),
-        tooltip: "Inicio",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
-      DataColumn(
-        label: customText("Fin", 14, bold: FontWeight.bold),
-        tooltip: "Fin",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
-      DataColumn(
-        label: customText("Ejecutores", 14, bold: FontWeight.bold),
-        tooltip: "Ejecutores",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
-      DataColumn(
-        label: customText("Estado", 14, bold: FontWeight.bold),
-        tooltip: "Estado",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
-      DataColumn(
-        label: customText("Rel", 14, bold: FontWeight.bold),
-        tooltip: "Rel",
-        onSort: (table == 0) ? onSort : onSort2,
-      ),
+      customColumn("Tarea", table),
+      customColumn("Inicio", table),
+      customColumn("Fin", table),
+      customColumn("Ejecutores", table),
+      customColumn("Estado", table),
+      customColumn("Rel", table),
       const DataColumn(label: Text(""), tooltip: ""),
     ];
   }
@@ -266,155 +286,87 @@ class _TasksUserPageState extends State<TasksUserPage> {
     ]);
   }
 
+  Widget customSearchBar(int table) {
+    return SizedBox(
+        width: 100,
+        height: 40,
+        child: SearchBar(
+          hintStyle:
+              MaterialStateProperty.all(const TextStyle(color: Colors.grey)),
+          hintText: "Tarea...",
+          shape: const MaterialStatePropertyAll<OutlinedBorder>(
+              RoundedRectangleBorder()),
+          onSubmitted: (value) {
+            if (table == 0) {
+              findTasks(value);
+            } else {
+              findTasksUsers(value);
+            }
+          },
+          //leading: const Icon(Icons.search),
+        ));
+  }
+
   SingleChildScrollView dataBody(context, List taskList, int table) {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: SizedBox(
-          width: double.infinity,
-          child: DataTable(
-            sortAscending: sortAsc,
-            sortColumnIndex: sortColumnIndex,
-            showCheckboxColumn: false,
-            headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-              if (states.contains(MaterialState.hovered)) {
-                return headerListBgColor.withOpacity(0.5);
-              }
-              return headerListBgColor;
-            }),
-            columns: columnList(table),
-            //rows: tasksUser.isEmpty
-            rows: taskList.isEmpty
-                ? [emptyRow()]
-                //: tasksUser
-                : taskList
-                    .map(
-                      (task) => DataRow(cells: [
-                        DataCell(Text(task.name)),
-                        DataCell(
-                          Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
-                        ),
-                        DataCell(Text(DateFormat('yyyy-MM-dd')
-                            .format(task.deadLineDate))),
-                        //DataCell(Text(task.getAssignedStr())),
-                        DataCell(Text(task.assignedStr)),
-                        DataCell(
-                            customTextStatus(task.statusObj.name, size: 14)),
-                        DataCell(customText(task.rel, 14)),
-                        DataCell(Row(children: [
-                          goPageIcon(context, "Ver", Icons.view_compact,
-                              TaskInfoPage(task: task)),
-                          removeConfirmBtn(context, () {
-                            task.delete();
-                            setState(() {
-                              myTasks.remove(task);
-                              tasksUser.remove(task);
-                            });
-                          }, null),
-                        ]))
-                      ]),
-                    )
-                    .toList(),
-          ),
-        ));
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              customSearchBar(table),
+              space(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: DataTable(
+                  sortAscending: sortAsc,
+                  sortColumnIndex: sortColumnIndex,
+                  showCheckboxColumn: false,
+                  headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return headerListBgColor.withOpacity(0.5);
+                    }
+                    return headerListBgColor;
+                  }),
+                  columns: columnList(table),
+                  //rows: tasksUser.isEmpty
+                  rows: taskList.isEmpty
+                      ? [emptyRow()]
+                      //: tasksUser
+                      : taskList
+                          .map(
+                            (task) => DataRow(cells: [
+                              DataCell(Text(task.name)),
+                              DataCell(
+                                Text(DateFormat('yyyy-MM-dd')
+                                    .format(task.dealDate)),
+                              ),
+                              DataCell(Text(DateFormat('yyyy-MM-dd')
+                                  .format(task.deadLineDate))),
+                              //DataCell(Text(task.getAssignedStr())),
+                              DataCell(Text(task.assignedStr)),
+                              DataCell(customTextStatus(task.statusObj.name,
+                                  size: 14)),
+                              DataCell(customText(task.rel, 14)),
+                              DataCell(Row(children: [
+                                goPageIcon(context, "Ver", Icons.view_compact,
+                                    TaskInfoPage(task: task)),
+                                removeConfirmBtn(context, () {
+                                  task.delete();
+                                  setState(() {
+                                    myTasks.remove(task);
+                                    tasksUser.remove(task);
+                                  });
+                                }, null),
+                              ]))
+                            ]),
+                          )
+                          .toList(),
+                ),
+              )
+            ]));
   }
-
-  /*void onSort2(int columnIndex, bool asc) {
-    if (columnIndex == 0) {
-      tasksUser.sort((t1, t2) => compareString(asc, t1.name, t2.name));
-    }
-
-    setState(() {
-      sortColumnIndex = columnIndex;
-      sortAsc = asc;
-    });
-  }
-
-  SingleChildScrollView dataBodyTasksUser(context) {
-    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SizedBox(
-          width: double.infinity,
-          child: DataTable(
-            sortAscending: sortAsc,
-            sortColumnIndex: sortColumnIndex,
-            showCheckboxColumn: false,
-            headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-              if (states.contains(MaterialState.hovered)) {
-                return headerListBgColor.withOpacity(0.5);
-              }
-              return headerListBgColor;
-            }),
-            columns: [
-              DataColumn(
-                label: customText("Tarea", 14, bold: FontWeight.bold),
-                tooltip: "Tarea",
-                onSort: onSort2,
-              ),
-              DataColumn(
-                label: customText("Inicio", 14, bold: FontWeight.bold),
-                tooltip: "Inicio",
-              ),
-              DataColumn(
-                  label: customText("Fin", 14, bold: FontWeight.bold),
-                  tooltip: "Fin"),
-              DataColumn(
-                  label: customText("Ejecutores", 14, bold: FontWeight.bold),
-                  tooltip: "Ejecutores"),
-              DataColumn(
-                  label: customText("Estado", 14, bold: FontWeight.bold),
-                  tooltip: "Estado"),
-              DataColumn(
-                  label: customText("Rel", 14, bold: FontWeight.bold),
-                  tooltip: "Rel"),
-              const DataColumn(label: Text(""), tooltip: ""),
-            ],
-            //rows: tasksUser.isEmpty
-            rows: tasksUser.isEmpty
-                ? [
-                    const DataRow(cells: [
-                      DataCell(Text("No hay tareas asignadas")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                    ])
-                  ]
-                //: tasksUser
-                : tasksUser
-                    .map(
-                      (task) => DataRow(cells: [
-                        DataCell(Text(task.name)),
-                        DataCell(
-                          Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
-                        ),
-                        DataCell(Text(DateFormat('yyyy-MM-dd')
-                            .format(task.deadLineDate))),
-                        //DataCell(Text(task.getAssignedStr())),
-                        DataCell(Text(task.assignedStr)),
-                        DataCell(
-                            customTextStatus(task.statusObj.name, size: 14)),
-                        DataCell(customText(task.rel, 14)),
-                        DataCell(Row(children: [
-                          goPageIcon(context, "Ver", Icons.view_compact,
-                              TaskInfoPage(task: task)),
-                          removeConfirmBtn(context, () {
-                            task.delete();
-                            setState(() {
-                              myTasks.remove(task);
-                              tasksUser.remove(task);
-                            });
-                          }, null),
-                        ]))
-                      ]),
-                    )
-                    .toList(),
-          ),
-        ));
-  }*/
 
 /*--------------------------------------------------------------------*/
 /*                           EDIT TASK                                */
