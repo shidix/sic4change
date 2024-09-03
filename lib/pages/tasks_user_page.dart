@@ -56,6 +56,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       for (STask t in tList) {
         t.rel = "Cargando...";
         t.assignedStr = "Cargando...";
+        t.statusObj = TasksStatus("Cargando...");
         addTaskToList(t);
       }
       setState(() {
