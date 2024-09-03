@@ -7,7 +7,7 @@ Color getStatusColor(status) {
     if (status == "En proceso") {
       return Colors.orange;
     } else {
-      if (status == "No iniciado") return Colors.red;
+      if (status == "No iniciada") return Colors.red;
     }
   }
 
@@ -15,10 +15,12 @@ Color getStatusColor(status) {
 }
 
 Widget customTextStatus(text, {double size = 12}) {
-  if (!['Completado', 'En proceso', 'No iniciado'].contains(text)) {
+  if (!['Completado', 'En proceso', 'No iniciada'].contains(text)) {
     text = 'Cargando...';
   }
 
+  print("--2--");
+  print(text);
   Color textColor = (text == "Cargando...") ? Colors.black : Colors.white;
   Color color = getStatusColor(text);
   return Container(
