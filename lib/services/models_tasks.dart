@@ -4,6 +4,7 @@ import 'package:googleapis/mybusinesslodging/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_contact_tracking.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -244,6 +245,7 @@ class STask {
 
   String getModelRelation(model) {
     if (model == "s4c_activities") return "Actividad";
+    if (model == "s4c_contact_tracking") return "Seguimiento";
     return "";
   }
 
@@ -256,6 +258,16 @@ class STask {
       data["id"] = d.id;
       Activity act = Activity.fromJson(data);
       return act.name;
+    } else {
+      if (model == "s4c_contact_tracking") {
+        final q =
+            await db.collection(model).where("uuid", isEqualTo: objId).get();
+        final d = q.docs.first;
+        final Map<String, dynamic> data = d.data();
+        data["id"] = d.id;
+        ContactTracking tracking = ContactTracking.fromJson(data);
+        return tracking.name;
+      }
     }
     return "";
   }

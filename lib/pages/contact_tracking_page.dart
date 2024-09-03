@@ -157,7 +157,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
                               //editBtn(context, editDialog, {'claim': claim}),
                               editBtn(context, callTaskEditDialog,
                                   {"tracking": tracking},
-                                  icon: Icons.grading_sharp),
+                                  icon: Icons.grading_sharp,
+                                  text: "Añadir tarea"),
                               removeBtn(context, removeTrackingDialog,
                                   {"tracking": tracking})
                             ]))

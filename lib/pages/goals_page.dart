@@ -1086,7 +1086,7 @@ class _GoalsPageState extends State<GoalsPage>
             ),
             Row(children: [
               editBtn(context, callTaskEditDialog, {"activity": activity},
-                  icon: Icons.grading_sharp),
+                  icon: Icons.grading_sharp, text: "Añadir tarea"),
               editBtn(context, editActivityDialog, {"activity": activity}),
               removeBtn(context, removeActivityDialog, {"item": activity}),
             ]),

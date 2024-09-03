@@ -269,7 +269,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       customColumn("Fin", table),
       customColumn("Ejecutores", table),
       customColumn("Estado", table),
-      customColumn("Rel", table),
+      customColumn("Relacionado con", table),
       const DataColumn(label: Text(""), tooltip: ""),
     ];
   }
