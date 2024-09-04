@@ -915,6 +915,53 @@ Widget customText(_text, _size,
   );
 }
 
+SizedBox s4cSubTitleBar(dynamic title, [context, icon]) {
+  Widget closeButton = const SizedBox(width: 0);
+  if (context != null) {
+    closeButton = IconButton(
+      icon: const Icon(Icons.close),
+      color: Colors.white,
+      iconSize: 20,
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
+
+  Widget titleWidget = const SizedBox(width: 0);
+  if (title is String) {
+    titleWidget = Text(title,
+        style: const TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white));
+  } else if (title is Widget) {
+    titleWidget = title;
+  } else {
+    titleWidget = const SizedBox(width: 0);
+  }
+
+  Widget iconWidget = const SizedBox(width: 0);
+  if (icon != null) {
+    iconWidget = Icon(icon, color: Colors.white);
+  }
+  return SizedBox(
+      width: double.infinity,
+      child: Container(
+          // shape: const RoundedRectangleBorder(
+          //     borderRadius: BorderRadius.only(
+          //         topLeft: Radius.circular(5),
+          //         topRight: Radius.circular(5),
+          //         bottomLeft: Radius.circular(5),
+          //         bottomRight: Radius.circular(5))),
+          color: mainColor,
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: [
+                Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
+                Expanded(flex: 9, child: titleWidget),
+                Expanded(flex: 1, child: closeButton)
+              ]))));
+}
+
 SizedBox s4cTitleBar(dynamic title, [context, icon]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
