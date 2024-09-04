@@ -340,12 +340,16 @@ class Alta {
 class Baja {
   DateTime date;
   String reason;
+  bool extraDocument = false;
   String? pathFiniquito;
+  String? pathExtraDoc;
 
   Baja({
     required this.date,
     required this.reason,
     this.pathFiniquito,
+    this.extraDocument = false,
+    this.pathExtraDoc,
   });
 
   static Baja fromJson(Map<String, dynamic> json) {
@@ -353,6 +357,10 @@ class Baja {
       date: getDate(json['date'] ?? DateTime.now()),
       pathFiniquito: json['pathFiniquito'],
       reason: json.containsKey('reason') ? json['reason'] : '',
+      extraDocument:
+          json.containsKey('extraDocument') ? json['extraDocument'] : false,
+      pathExtraDoc:
+          json.containsKey('pathExtraDoc') ? json['pathExtraDoc'] : '',
     );
   }
 
@@ -360,6 +368,8 @@ class Baja {
         'date': date,
         'pathFiniquito': pathFiniquito,
         'reason': reason,
+        'extraDocument': extraDocument,
+        'pathExtraDoc': pathExtraDoc,
       };
   @override
   String toString() {
@@ -374,27 +384,23 @@ class BajaReason {
   String name;
   String? uuid;
   bool extraDocument = false;
-  String? pathDocument;
 
   BajaReason({
     required this.name,
     this.uuid,
     this.extraDocument = false,
-    this.pathDocument,
   });
 
   factory BajaReason.fromJson(Map<String, dynamic> json) {
     return BajaReason(
         name: json['name'],
         extraDocument: json['extraDocument'],
-        pathDocument: json['pathDocument'],
         uuid: json.containsKey('uuid') ? json['uuid'] : null);
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'extraDocument': extraDocument,
-        'pathDocument': pathDocument,
         'uuid': uuid,
       };
 

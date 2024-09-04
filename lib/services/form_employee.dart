@@ -23,12 +23,18 @@ class _EmployeeFormState extends State<EmployeeForm> {
   int contentIndex = 0;
   String employmentPromotion = '';
   double employeeSalary = 0;
+  late DateTime selectedBajaDate;
 
   @override
   void initState() {
     super.initState();
 
     employee = widget.selectedItem;
+    selectedBajaDate = employee.getBajaDate();
+    if (!employee.bajas.isNotEmpty) {
+      employee.bajas.sort((a, b) => a.date.compareTo(b.date));
+      selectedBajaDate = employee.bajas.last.date;
+    }
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
       employmentPromotion = employee.altas.last.employmentPromotion;
@@ -175,15 +181,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
               ]),
               DateTimePicker(
                   labelText: 'Fecha Baja',
-                  selectedDate: employee.getBajaDate(),
+                  selectedDate: selectedBajaDate,
                   onSelectedDate: (DateTime? date) {
                     if (date != null) {
-                      if (employee.bajas.isEmpty) {
-                        employee.bajas.add(truncDate(date));
-                      } else {
-                        employee.bajas[employee.bajas.length - 1] =
-                            truncDate(date);
-                      }
+                      selectedBajaDate = truncDate(date);
                     }
                     setState(() {});
                   }),
@@ -209,6 +210,12 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: saveBtnForm(context, () {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
+                        if (employee.bajas.isNotEmpty) {
+                          employee.bajas.last.date = selectedBajaDate;
+                        } else {
+                          employee.bajas
+                              .add(Baja(date: selectedBajaDate, reason: ''));
+                        }
                         if (employee.altas.isNotEmpty) {
                           employee.altas.last.employmentPromotion =
                               employmentPromotion;
@@ -293,15 +300,26 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
   late Employee employee;
   DateTime? selectedDate;
   String selectedReason = '';
+  bool extraDoc = false;
   int contentIndex = 0;
   List<KeyValue> reasonsOptions = [];
+  Map<String, BajaReason> reasons = {};
 
   @override
   void initState() {
     super.initState();
     employee = widget.selectedItem;
+
     BajaReason.getAll().then((value) {
-      reasonsOptions = value.map((e) => KeyValue(e.name, e.name)).toList();
+      reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
+      reasons = Map.fromIterable(value, key: (e) => e.uuid, value: (e) => e);
+      if (!employee.isActive()) {
+        selectedDate = employee.bajas.last.date;
+        //get reason with e.name == employee.bajas.last.reason
+        selectedReason = reasons[reasons.values.firstWhere(
+                (element) => element == employee.bajas.last.reason)]!
+            .uuid!;
+      }
       if (mounted) {
         setState(() {});
       }
@@ -341,7 +359,7 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
                     child: CustomSelectFormField(
                         key: UniqueKey(),
                         labelText: 'Motivo Baja',
-                        initial: '',
+                        initial: selectedReason,
                         options: reasonsOptions,
                         onSelectedOpt: (value) {
                           selectedReason = value;
@@ -371,7 +389,9 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
                           } else {
                             Baja item = employee.bajas.last;
                             item.date = selectedDate!;
-                            item.reason = selectedReason;
+                            item.reason = reasons[selectedReason]!.name;
+                            item.extraDocument =
+                                reasons[selectedReason]!.extraDocument;
                             employee.bajas[employee.bajas.length - 1] = item;
                           }
                           employee.save();
@@ -414,7 +434,7 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
                           contentIndex = 0;
                           newItem.save();
                           reasonsOptions
-                              .add(KeyValue(newItem.name, newItem.name));
+                              .add(KeyValue(newItem.uuid!, newItem.name));
 
                           setState(() {});
                         }, null)),
