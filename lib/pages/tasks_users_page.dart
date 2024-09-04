@@ -39,7 +39,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     await Profile.getProfiles().then((value) async {
       users = value;
       for (Profile p in users) {
-        //  print("Usuario: ${p.email}");
+        //print("Usuario: ${p.name}");
         occupation[p.email] = await STask.getOccupation(p.email);
       }
       setState(() {

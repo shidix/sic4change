@@ -16,8 +16,8 @@ Widget taskMenu(context, tabSelected) {
         //menuTab(context, "Tareas generales", "/tasks", {}, selected: tasks),
         menuTab2(context, "Mis tareas", const TasksUserPage(),
             selected: (tabSelected == "taskUser")),
-        menuTab2(context, "Tareas generales", const TasksPage(),
-            selected: (tabSelected == "tasks")),
+        /*menuTab2(context, "Tareas generales", const TasksPage(),
+            selected: (tabSelected == "tasks")),*/
         menuTab2(context, "Asignación de tareas", const TasksUsersPage(),
             selected: (tabSelected == "tasksUsers")),
       ],
