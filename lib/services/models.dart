@@ -12,6 +12,7 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/project_folders.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -525,6 +526,7 @@ class SProject {
     f.save();
     folder = f.uuid;
     save();
+    createProjectFolders(f);
     return f;
   }
 

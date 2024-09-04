@@ -725,7 +725,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     Folder? folder = await getFolderByUuid(project.folder);
     bool haveChildren = await folder!.haveChildren();
-    if (!haveChildren) folder.delete();
+    if (!haveChildren) {
+      folder.delete();
+    } else {
+      folder.name = "BORRADO!-${folder.name}";
+      folder.save();
+    }
 
     project.delete();
 
