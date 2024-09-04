@@ -2186,12 +2186,11 @@ class CustomSelectFormField extends StatelessWidget {
     }).toList();
 
     return Padding(
-        padding: this.padding,
+        padding: padding,
         child: DropdownButtonFormField(
           value: initialKey,
           decoration: InputDecoration(
-              labelText: labelText,
-              contentPadding: const EdgeInsets.only(left: 5)),
+              labelText: labelText, contentPadding: EdgeInsets.zero),
           items: optionsDrop,
           onChanged: (value) {
             onSelectedOpt(value.toString());
