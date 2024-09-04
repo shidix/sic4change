@@ -5,8 +5,8 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget taskForm(task, projectList, statusList, profileList, contactList,
-    orgList, setState) {
+Widget taskForm(task, projectList, programmeList, statusList, profileList,
+    contactList, orgList, setState) {
   List<KeyValue> selectedAssigned = [];
   if (task.assigned.isNotEmpty) {
     for (MultiSelectItem<KeyValue> item in profileList) {
@@ -89,10 +89,25 @@ Widget taskForm(task, projectList, statusList, profileList, contactList,
       ]),
       space(width: 10),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        CustomDropdown(
+          labelText: 'Programa',
+          size: 340,
+          selected: task.programmeObj.toKeyValue(),
+          options: programmeList,
+          onSelectedOpt: (String val) {
+            task.programme = val;
+          },
+        ),
+      ]),
+      space(width: 10),
+    ]),
+    space(height: 20),
+    Row(children: [
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         CustomTextField(
           labelText: "Documentos",
           initial: task.folder,
-          size: 340,
+          size: 700,
           fieldValue: (String val) {
             task.folder = val;
             //setState(() => task.comments = val);

@@ -32,6 +32,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   List<Contact> contactListCache = [];
   List<Profile> profileListCache = [];
   List<SProject> projectListCache = [];
+  List<Programme> programmeListCache = [];
   List<TasksStatus> statusListCache = [];
 
   void updateObjects() {
@@ -46,6 +47,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         .toList();
     task!.projectObj =
         projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+    task!.programmeObj =
+        programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
     task!.statusObj =
         statusListCache.firstWhere((status) => status.uuid == task!.status);
     if (mounted) {
@@ -168,6 +171,49 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         physics: const ScrollPhysics(),
         child: Container(
             width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      taskInfoCol1(context),
+                      taskInfoCol2(context),
+                      taskInfoCol3(context),
+                    ],
+                  ),
+                  space(height: 10),
+                  customText("Descripción de la tarea:", 16,
+                      textColor: smallColor),
+                  space(height: 5),
+                  customText(task?.description, 16),
+                  space(height: 10),
+                  customText("Ejecutores:", 16, textColor: smallColor),
+                  space(height: 5),
+                  customText(assigned, 16),
+                  space(height: 10),
+                  customText("Destinatarios:", 16, textColor: smallColor),
+                  space(height: 5),
+                  customText(receivers, 16),
+                  space(height: 10),
+                  customText("Destinatarios organizaciones:", 16,
+                      textColor: smallColor),
+                  space(height: 5),
+                  customText(receiversOrg, 16),
+                  space(height: 10),
+                  //customText("Comentarios:", 16, textColor: smallColor),
+                  taskCommentsHeader(context),
+                  space(height: 5),
+                  //customText(task?.comments, 16),
+                  taskCommentsRow(context),
+                ])));
+
+    /*return SingleChildScrollView(
+        physics: const ScrollPhysics(),
+        child: Container(
+            width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,10 +258,113 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 //taskProgrammesHeader(context, task),
                 //taskProgrammes(context, task),
               ],
-            )));
+            )));*/
   }
 
-  Widget taskInfoRow1(context) {
+  Widget taskInfoCol1(context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Row(children: [
+          customText("Proyecto:", 16, textColor: Colors.grey),
+          space(width: 5),
+          customText(task!.projectObj.name, 16),
+        ]),
+        space(height: 20),
+        Row(children: [
+          customText("Programa:", 16, textColor: Colors.grey),
+          space(width: 5),
+          customText(task!.programmeObj.name, 16),
+        ]),
+        space(height: 10),
+        Row(
+          children: [
+            customText("Documentos:", 16, textColor: Colors.grey),
+            space(width: 5),
+            goPageIcon(
+                context,
+                "Ver",
+                Icons.folder,
+                DocumentsPage(
+                  currentFolder: task!.folderObj,
+                ), callback: () {
+              setState(() {});
+            })
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget taskInfoCol2(context) {
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            customText("Acuerdo:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(DateFormat('yyyy-MM-dd').format(task!.dealDate), 16),
+          ]),
+          space(height: 10),
+          Row(children: [
+            customText("Deadline:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(DateFormat('yyyy-MM-dd').format(task!.deadLineDate), 16),
+          ]),
+          space(height: 10),
+          Row(children: [
+            customText("Duración horas:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(task!.duration.toString(), 16),
+          ]),
+          space(height: 10),
+          Row(children: [
+            customText("Duración minutos:", 16, textColor: Colors.grey),
+            space(height: 5),
+            customText(task!.durationMin.toString(), 16),
+          ]),
+        ]);
+  }
+
+  Widget taskInfoCol3(context) {
+    String public = (task!.public) ? "Si" : "No";
+    String revision = (task!.revision) ? "Si" : "No";
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            customText("Pública:", 16, textColor: Colors.grey),
+            space(width: 5),
+            customText(public, 16),
+          ]),
+          space(height: 10),
+          Row(children: [
+            customText("Revisión:", 16, textColor: Colors.grey),
+            space(width: 5),
+            customText(revision, 16),
+          ]),
+          space(height: 10),
+          Row(
+            children: [
+              customText("Estado:", 16, textColor: Colors.grey),
+              space(height: 5),
+              customText(task!.statusObj.name, 16),
+            ],
+          ),
+          space(height: 10),
+          Row(
+            children: [
+              customText("Prioridad:", 16, textColor: Colors.grey),
+              space(height: 5),
+              customText(task!.priority, 16),
+            ],
+          ),
+        ]);
+  }
+  /*Widget taskInfoRow1(context) {
     String public = (task!.public) ? "Si" : "No";
     String revision = (task!.revision) ? "Si" : "No";
     return Row(
@@ -230,6 +379,13 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
                 customText(task!.projectObj.name, 16),
               ],
             )),
+        Row(
+          children: [
+            customText("Programa:", 16, textColor: Colors.grey),
+            space(width: 5),
+            customText(task!.projectObj.name, 16),
+          ],
+        ),
         Row(
           children: [
             /*const VerticalDivider(
@@ -261,9 +417,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         ]),
       ],
     );
-  }
+  }*/
 
-  Widget taskInfoRow2(context) {
+  /*Widget taskInfoRow2(context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -284,7 +440,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
             customText(task!.statusObj.name, 16),
           ],
         ),
-        Row(children: [
+        /*Row(children: [
           customText("Duración horas:", 16, textColor: Colors.grey),
           space(height: 5),
           customText(task!.duration.toString(), 16),
@@ -293,7 +449,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           customText("Duración minutos:", 16, textColor: Colors.grey),
           space(height: 5),
           customText(task!.durationMin.toString(), 16),
-        ]),
+        ]),*/
       ],
     );
   }
@@ -313,12 +469,23 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         customText(DateFormat('yyyy-MM-dd').format(task!.deadLineDate), 16),
       ]),
       Row(children: [
+        customText("Duración horas:", 16, textColor: Colors.grey),
+        space(height: 5),
+        customText(task!.duration.toString(), 16),
+      ]),
+      Row(children: [
+        customText("Duración minutos:", 16, textColor: Colors.grey),
+        space(height: 5),
+        customText(task!.durationMin.toString(), 16),
+      ]),
+
+      /*Row(children: [
         customText("Nuevo deadline", 16, textColor: Colors.grey),
         space(height: 5),
         customText(DateFormat('yyyy-MM-dd').format(task!.newDeadLineDate), 16),
-      ])
+      ])*/
     ]);
-  }
+  }*/
 
   Widget taskCommentsHeader(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -357,6 +524,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
     List<KeyValue> projectList =
         projectListCache.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> programmeList =
+        programmeListCache.map((e) => e.toKeyValue()).toList();
     List<KeyValue> contactList =
         contactListCache.map((e) => e.toKeyValue()).toList();
     List<KeyValue> profileList =
@@ -376,7 +545,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         .toList();
 
     taskEditDialog(context, args["task"] as STask, statusList, projectList,
-        pList, cList, oList);
+        programmeList, pList, cList, oList);
   }
 
   void saveTask(List args) async {
@@ -389,7 +558,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   Future<void> taskEditDialog(context, task, statusList, projectList,
-      profileList, contactList, orgList) {
+      programmeList, profileList, contactList, orgList) {
     task.sender = user.email!;
     return showDialog<void>(
       context: context,
@@ -400,8 +569,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           title: s4cTitleBar('Nueva tarea'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
-            return taskForm(task, projectList, statusList, profileList,
-                contactList, orgList, setState);
+            return taskForm(task, projectList, programmeList, statusList,
+                profileList, contactList, orgList, setState);
           }),
           actions: <Widget>[
             dialogsBtns(context, saveTask, task),

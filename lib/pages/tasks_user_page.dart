@@ -376,6 +376,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
+    List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
     List<KeyValue> orgList = await getOrganizationsHash();
     final List<MultiSelectItem<KeyValue>> cList = contactList
@@ -387,7 +388,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     final List<MultiSelectItem<KeyValue>> pList = profileList
         .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
         .toList();
-    taskEditDialog(context, statusList, projectList, pList, cList, oList);
+    taskEditDialog(
+        context, statusList, projectList, programmeList, pList, cList, oList);
   }
 
   void saveTask(List args) async {
@@ -405,8 +407,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     Navigator.pop(context);
   }
 
-  Future<void> taskEditDialog(
-      context, statusList, projectList, profileList, contactList, orgList) {
+  Future<void> taskEditDialog(context, statusList, projectList, programmeList,
+      profileList, contactList, orgList) {
     STask task = STask("");
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
@@ -420,8 +422,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
           title: s4cTitleBar('Nueva tarea'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
-            return taskForm(task, projectList, statusList, profileList,
-                contactList, orgList, setState);
+            return taskForm(task, projectList, programmeList, statusList,
+                profileList, contactList, orgList, setState);
           }),
           actions: <Widget>[
             dialogsBtns(context, saveTask, task),

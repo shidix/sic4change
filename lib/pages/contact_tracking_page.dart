@@ -245,6 +245,7 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
     List<KeyValue> projectList = await getProjectsHash();
+    List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
     List<KeyValue> orgList = await getOrganizationsHash();
     final List<MultiSelectItem<KeyValue>> cList = contactList
@@ -256,8 +257,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
     final List<MultiSelectItem<KeyValue>> pList = profileList
         .map((prof) => MultiSelectItem<KeyValue>(prof, prof.value))
         .toList();
-    taskEditDialog(
-        context, tracking, statusList, projectList, pList, cList, oList);
+    taskEditDialog(context, tracking, statusList, projectList, programmeList,
+        pList, cList, oList);
   }
 
   void saveTask(List args) async {
@@ -278,7 +279,7 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
   }
 
   Future<void> taskEditDialog(context, tracking, statusList, projectList,
-      profileList, contactList, orgList) {
+      programmeList, profileList, contactList, orgList) {
     STask task = STask("");
     //task.project = project!.uuid;
     //task.projectObj = project!;
@@ -294,8 +295,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
           title: s4cTitleBar('Nueva tarea'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
-            return taskForm(task, projectList, statusList, profileList,
-                contactList, orgList, setState);
+            return taskForm(task, projectList, programmeList, statusList,
+                profileList, contactList, orgList, setState);
           }),
           actions: <Widget>[
             dialogsBtns2(context, saveTask, [task, tracking]),

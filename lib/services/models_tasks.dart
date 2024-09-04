@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/mybusinesslodging/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -41,6 +40,7 @@ class STask {
   DateTime newDeadLineDate = DateTime.now();
   String sender = ""; //Responsable
   String project = "";
+  String programme = "";
   String folder = "";
   List<String> assigned = []; //Ejecutores
   List<String> receivers = []; //Destinatarios
@@ -50,6 +50,7 @@ class STask {
   bool revision = false;
 
   SProject projectObj = SProject("");
+  Programme programmeObj = Programme("");
   TasksStatus statusObj = TasksStatus("");
   Profile? senderObj;
   Folder? folderObj;
@@ -77,6 +78,7 @@ class STask {
         newDeadLineDate = json['newDeadLineDate'].toDate(),
         sender = json['sender'],
         project = json['project'],
+        programme = json['programme'],
         folder = json['folder'],
         assigned =
             (json['assigned'] as List).map((item) => item as String).toList(),
@@ -105,6 +107,7 @@ class STask {
         'newDeadLineDate': newDeadLineDate,
         'sender': sender,
         'project': project,
+        'programme': programme,
         'folder': folder,
         'assigned': assigned,
         'receivers': receivers,
@@ -172,6 +175,17 @@ class STask {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       projectObj = SProject.fromJson(data);
+    }
+  }
+
+  Future<void> getProgramme() async {
+    if (programme != "") {
+      QuerySnapshot query =
+          await dbProgramme.where("uuid", isEqualTo: programme).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      programmeObj = Programme.fromJson(data);
     }
   }
 
@@ -304,6 +318,7 @@ class STask {
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
       task.getProject();
+      task.getProgramme();
       await task.getStatus();
       await task.getSender();
       await task.getAssigned();
@@ -535,6 +550,7 @@ Future<List> getTasksBySender(sender) async {
     data["id"] = doc.id;
     STask task = STask.fromJson(data);
     await task.getProject();
+    await task.getProgramme();
     await task.getStatus();
     await task.getSender();
     await task.getAssigned();
