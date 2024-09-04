@@ -25,9 +25,11 @@ class _EmployeeFormState extends State<EmployeeForm> {
   String employmentPromotion = '';
   double employeeSalary = 0;
   late DateTime selectedBajaDate;
+  late DateTime selectedAltaDate;
   List<KeyValue> reasonsOptions = [];
   Map<String, BajaReason> reasons = {};
   String selectedReason = '';
+  String employmenPromotion = '';
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
     employee = widget.selectedItem;
     selectedBajaDate = employee.getBajaDate();
+    selectedAltaDate = employee.getAltaDate();
     if (!employee.bajas.isNotEmpty) {
       employee.bajas.sort((a, b) => a.date.compareTo(b.date));
       selectedBajaDate = employee.bajas.last.date;
@@ -80,13 +83,22 @@ class _EmployeeFormState extends State<EmployeeForm> {
         if (employee.bajas.isNotEmpty) {
           employee.bajas.last.date = selectedBajaDate;
           employee.bajas.last.reason = reasons[selectedReason]!.name;
+          employee.bajas.last.extraDocument =
+              reasons[selectedReason]!.extraDocument;
         } else {
           employee.bajas
               .add(Baja(date: selectedBajaDate, reason: selectedReason));
         }
+
         if (employee.altas.isNotEmpty) {
           employee.altas.last.employmentPromotion = employmentPromotion;
           employee.altas.last.salary = employeeSalary;
+          employee.altas.last.date = selectedAltaDate;
+        } else {
+          employee.altas.add(Alta(
+              date: selectedAltaDate,
+              salary: employeeSalary,
+              employmentPromotion: employmentPromotion));
         }
         employee.save();
         Navigator.of(context).pop(employee);
@@ -207,13 +219,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         selectedDate: employee.getAltaDate(),
                         onSelectedDate: (DateTime? date) {
                           if (date != null) {
-                            if (employee.altas.isEmpty) {
-                              employee.altas.add(Alta(date: truncDate(date)));
-                            } else {
-                              employee.altas[employee.altas.length - 1] = Alta(
-                                  date: truncDate(date),
-                                  salary: employeeSalary);
-                            }
+                            selectedAltaDate = truncDate(date);
                           }
                           setState(() {});
                         })),
@@ -223,9 +229,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         key: UniqueKey(),
                         labelText: 'Promoción de empleo',
                         padding: const EdgeInsets.only(top: 8, left: 5),
-                        initial: employee.isActive()
-                            ? employee.altas.last.employmentPromotion
-                            : '',
+                        initial: employmentPromotion,
+                        required: true,
                         options: promotions,
                         onSelectedOpt: (value) {
                           employmentPromotion = value;

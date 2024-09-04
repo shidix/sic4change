@@ -289,6 +289,7 @@ class Alta {
     this.pathNIF,
     this.pathLOPD,
     this.pathOthers,
+    this.employmentPromotion = '',
     this.salary = 0.0,
   });
 
