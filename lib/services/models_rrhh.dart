@@ -289,6 +289,7 @@ class Alta {
     this.pathNIF,
     this.pathLOPD,
     this.pathOthers,
+    this.employmentPromotion = '',
     this.salary = 0.0,
   });
 
@@ -334,6 +335,106 @@ class Alta {
   @override
   String toString() {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+}
+
+class Baja {
+  DateTime date;
+  String reason;
+  bool extraDocument = false;
+  String? pathFiniquito;
+  String? pathExtraDoc;
+
+  Baja({
+    required this.date,
+    required this.reason,
+    this.pathFiniquito,
+    this.extraDocument = false,
+    this.pathExtraDoc,
+  });
+
+  static Baja fromJson(Map<String, dynamic> json) {
+    return Baja(
+      date: getDate(json['date'] ?? DateTime.now()),
+      pathFiniquito: json['pathFiniquito'],
+      reason: json.containsKey('reason') ? json['reason'] : '',
+      extraDocument:
+          json.containsKey('extraDocument') ? json['extraDocument'] : false,
+      pathExtraDoc:
+          json.containsKey('pathExtraDoc') ? json['pathExtraDoc'] : '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'pathFiniquito': pathFiniquito,
+        'reason': reason,
+        'extraDocument': extraDocument,
+        'pathExtraDoc': pathExtraDoc,
+      };
+  @override
+  String toString() {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+}
+
+class BajaReason {
+  static final db = FirebaseFirestore.instance;
+  static final collection = db.collection("s4c_baja_reasons");
+
+  String name;
+  String? uuid;
+  bool extraDocument = false;
+
+  BajaReason({
+    required this.name,
+    this.uuid,
+    this.extraDocument = false,
+  });
+
+  factory BajaReason.fromJson(Map<String, dynamic> json) {
+    return BajaReason(
+        name: json['name'],
+        extraDocument: json['extraDocument'],
+        uuid: json.containsKey('uuid') ? json['uuid'] : null);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'extraDocument': extraDocument,
+        'uuid': uuid,
+      };
+
+  static BajaReason getEmpty() {
+    return BajaReason(name: '');
+  }
+
+  static Future<List<BajaReason>> getAll() async {
+    // get from database
+    List<BajaReason> items = [];
+    await collection.get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        BajaReason item = BajaReason.fromJson(e.data());
+        item.uuid = e.id;
+        return item;
+      }).toList();
+    });
+
+    return items;
+  }
+
+  Future<BajaReason> save() async {
+    if (uuid == null) {
+      await collection.add(toJson()).then((value) => uuid = value.id);
+    } else {
+      await collection.doc(uuid).update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await collection.doc(uuid).delete();
   }
 }
 
@@ -393,7 +494,16 @@ class Employee {
             }).toList(),
       bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
           ? []
-          : json['bajas'].map((e) => getDate(e)).toList(),
+          : json['bajas'].map((e) {
+              try {
+                return Baja.fromJson(e as Map<String, dynamic>);
+              } catch (exception) {
+                return Baja(
+                  date: getDate(e),
+                  reason: '',
+                );
+              }
+            }).toList(),
       extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
           ? {}
           : json['extraDocs'],
@@ -411,7 +521,7 @@ class Employee {
         'category': category,
         'position': position,
         'altas': altas.map((e) => e.toJson()).toList(),
-        'bajas': bajas.map((e) => e).toList(),
+        'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
       };
 
@@ -428,8 +538,8 @@ class Employee {
   }
 
   Future<Employee> save() async {
-    altas.sort();
-    bajas.sort();
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    bajas.sort((a, b) => a.date.compareTo(b.date));
     if (id == null) {
       await collection.add(toJson()).then((value) => id = value.id);
     } else {
@@ -560,8 +670,8 @@ class Employee {
       //return date in one year
       return DateTime.now().add(const Duration(days: 365));
     }
-    bajas.sort();
-    return bajas.last;
+    bajas.sort(((a, b) => a.date.compareTo(b.date)));
+    return bajas.last.date;
   }
 
   bool isActive() {

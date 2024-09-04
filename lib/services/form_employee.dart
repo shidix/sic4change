@@ -2,6 +2,7 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/monitoring/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -23,12 +24,24 @@ class _EmployeeFormState extends State<EmployeeForm> {
   int contentIndex = 0;
   String employmentPromotion = '';
   double employeeSalary = 0;
+  late DateTime selectedBajaDate;
+  late DateTime selectedAltaDate;
+  List<KeyValue> reasonsOptions = [];
+  Map<String, BajaReason> reasons = {};
+  String selectedReason = '';
+  String employmenPromotion = '';
 
   @override
   void initState() {
     super.initState();
 
     employee = widget.selectedItem;
+    selectedBajaDate = employee.getBajaDate();
+    selectedAltaDate = employee.getAltaDate();
+    if (!employee.bajas.isNotEmpty) {
+      employee.bajas.sort((a, b) => a.date.compareTo(b.date));
+      selectedBajaDate = employee.bajas.last.date;
+    }
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
       employmentPromotion = employee.altas.last.employmentPromotion;
@@ -40,10 +53,69 @@ class _EmployeeFormState extends State<EmployeeForm> {
         setState(() {});
       }
     });
+
+    BajaReason.getAll().then((value) {
+      reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
+      for (BajaReason item in value) {
+        reasons[item.uuid!] = item;
+      }
+      if (employee.bajas.isNotEmpty) {
+        selectedBajaDate = employee.bajas.last.date;
+        int indexReason = reasons.values.toList().indexWhere(
+            (element) => element.name == employee.bajas.last.reason);
+        if (indexReason != -1) {
+          selectedReason = reasons.values.toList()[indexReason].uuid!;
+        } else {
+          selectedReason = "";
+        }
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    void save() {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        if (employee.bajas.isNotEmpty) {
+          employee.bajas.last.date = selectedBajaDate;
+          employee.bajas.last.reason = reasons[selectedReason]!.name;
+          employee.bajas.last.extraDocument =
+              reasons[selectedReason]!.extraDocument;
+        } else {
+          employee.bajas
+              .add(Baja(date: selectedBajaDate, reason: selectedReason));
+        }
+
+        if (employee.altas.isNotEmpty) {
+          employee.altas.last.employmentPromotion = employmentPromotion;
+          employee.altas.last.salary = employeeSalary;
+          employee.altas.last.date = selectedAltaDate;
+        } else {
+          employee.altas.add(Alta(
+              date: selectedAltaDate,
+              salary: employeeSalary,
+              employmentPromotion: employmentPromotion));
+        }
+        employee.save();
+        Navigator.of(context).pop(employee);
+      }
+    }
+
+    Widget bajaReason = CustomSelectFormField(
+        key: UniqueKey(),
+        labelText: 'Motivo Baja',
+        padding: const EdgeInsets.only(top: 8, left: 5),
+        initial: selectedReason,
+        options: reasonsOptions,
+        required: true,
+        onSelectedOpt: (value) {
+          selectedReason = value;
+        });
+
     if (contentIndex == 0) {
       return Form(
           key: _formKey,
@@ -139,54 +211,53 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   return null;
                 },
               ),
-              DateTimePicker(
-                  labelText: 'Fecha Alta',
-                  selectedDate: employee.getAltaDate(),
-                  onSelectedDate: (DateTime? date) {
-                    if (date != null) {
-                      if (employee.altas.isEmpty) {
-                        employee.altas.add(Alta(date: truncDate(date)));
-                      } else {
-                        employee.altas[employee.altas.length - 1] =
-                            Alta(date: truncDate(date), salary: employeeSalary);
-                      }
-                    }
-                    setState(() {});
-                  }),
               Row(children: [
                 Expanded(
-                    flex: 4,
+                    flex: 3,
+                    child: DateTimePicker(
+                        labelText: 'Fecha Alta',
+                        selectedDate: employee.getAltaDate(),
+                        onSelectedDate: (DateTime? date) {
+                          if (date != null) {
+                            selectedAltaDate = truncDate(date);
+                          }
+                          setState(() {});
+                        })),
+                Expanded(
+                    flex: 3,
                     child: CustomSelectFormField(
                         key: UniqueKey(),
                         labelText: 'Promoción de empleo',
-                        initial: employee.isActive()
-                            ? employee.altas.last.employmentPromotion
-                            : '',
+                        padding: const EdgeInsets.only(top: 8, left: 5),
+                        initial: employmentPromotion,
+                        required: true,
                         options: promotions,
                         onSelectedOpt: (value) {
                           employmentPromotion = value;
                         })),
                 Expanded(
                     flex: 1,
-                    child: addBtnRow(context, (context) {
-                      contentIndex = 1;
-                      setState(() {});
-                    }, null, text: 'Añadir'))
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: iconBtn(context, (context) {
+                          contentIndex = 1;
+                          setState(() {});
+                        }, null, icon: Icons.add))),
               ]),
-              DateTimePicker(
-                  labelText: 'Fecha Baja',
-                  selectedDate: employee.getBajaDate(),
-                  onSelectedDate: (DateTime? date) {
-                    if (date != null) {
-                      if (employee.bajas.isEmpty) {
-                        employee.bajas.add(truncDate(date));
-                      } else {
-                        employee.bajas[employee.bajas.length - 1] =
-                            truncDate(date);
-                      }
-                    }
-                    setState(() {});
-                  }),
+              Row(children: [
+                Expanded(
+                    flex: 3,
+                    child: DateTimePicker(
+                        labelText: 'Fecha Baja',
+                        selectedDate: selectedBajaDate,
+                        onSelectedDate: (DateTime? date) {
+                          if (date != null) {
+                            selectedBajaDate = truncDate(date);
+                          }
+                          setState(() {});
+                        })),
+                Expanded(flex: 4, child: bajaReason),
+              ]),
               TextFormField(
                 initialValue: toCurrency(employee.getSalary()),
                 decoration: const InputDecoration(labelText: 'Salario'),
@@ -206,20 +277,30 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 Expanded(flex: 1, child: Container()),
                 Expanded(
                     flex: 2,
-                    child: saveBtnForm(context, () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        if (employee.altas.isNotEmpty) {
-                          employee.altas.last.employmentPromotion =
-                              employmentPromotion;
-                          employee.altas.last.salary = employeeSalary;
-                        }
-                        employee.save();
-                        Navigator.of(context).pop(employee);
-                      } else {
-                        setState(() {});
-                      }
-                    }, null)),
+                    child: saveBtnForm(
+                        context,
+                        save,
+                        // () {
+                        //   if (_formKey.currentState!.validate()) {
+                        //     _formKey.currentState!.save();
+                        //     if (employee.bajas.isNotEmpty) {
+                        //       employee.bajas.last.date = selectedBajaDate;
+                        //     } else {
+                        //       employee.bajas
+                        //           .add(Baja(date: selectedBajaDate, reason: ''));
+                        //     }
+                        //     if (employee.altas.isNotEmpty) {
+                        //       employee.altas.last.employmentPromotion =
+                        //           employmentPromotion;
+                        //       employee.altas.last.salary = employeeSalary;
+                        //     }
+                        //     employee.save();
+                        //     Navigator.of(context).pop(employee);
+                        //   } else {
+                        //     setState(() {});
+                        //   }
+                        //},
+                        null)),
                 Expanded(flex: 1, child: Container()),
               ]),
             ],
@@ -236,7 +317,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              s4cTitleBar('Nueva situación de promoción de empleo', null),
+              s4cSubTitleBar('Nueva situación de promoción de empleo', null),
               TextFormField(
                 initialValue: '',
                 decoration: const InputDecoration(labelText: 'Nombre'),
@@ -292,11 +373,31 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
   DateTime? selectedDate;
+  String selectedReason = '';
+  bool extraDoc = false;
+  int contentIndex = 0;
+  List<KeyValue> reasonsOptions = [];
+  Map<String, BajaReason> reasons = {};
 
   @override
   void initState() {
     super.initState();
     employee = widget.selectedItem;
+
+    BajaReason.getAll().then((value) {
+      reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
+      reasons = Map.fromIterable(value, key: (e) => e.uuid, value: (e) => e);
+      if (!employee.isActive()) {
+        selectedDate = employee.bajas.last.date;
+        //get reason with e.name == employee.bajas.last.reason
+        selectedReason = reasons[reasons.values.firstWhere(
+                (element) => element == employee.bajas.last.reason)]!
+            .uuid!;
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -309,49 +410,120 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
       }
     }
 
-    return Form(
-        key: _formKey,
-        child: SizedBox(
-            child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            DateTimePicker(
-                labelText: 'Fecha Baja',
-                selectedDate: selectedDate!,
-                onSelectedDate: (DateTime? date) {
-                  if (date != null) {
-                    selectedDate = date;
-                  }
-                  setState(() {});
-                }),
-            space(height: 30),
-            Row(children: [
-              Expanded(flex: 1, child: Container()),
-              Expanded(
-                  flex: 2,
-                  child: saveBtnForm(
-                    context,
-                    () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        if (employee.isActive()) {
-                          employee.bajas.add(selectedDate);
+    if (contentIndex == 0) {
+      return Form(
+          key: _formKey,
+          child: SizedBox(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              DateTimePicker(
+                  labelText: 'Fecha Baja',
+                  selectedDate: selectedDate!,
+                  onSelectedDate: (DateTime? date) {
+                    if (date != null) {
+                      selectedDate = date;
+                    }
+                    setState(() {});
+                  }),
+              Row(children: [
+                Expanded(
+                    flex: 4,
+                    child: CustomSelectFormField(
+                        key: UniqueKey(),
+                        labelText: 'Motivo Baja',
+                        initial: selectedReason,
+                        options: reasonsOptions,
+                        onSelectedOpt: (value) {
+                          selectedReason = value;
+                        })),
+                Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: iconBtn(context, (context) {
+                          contentIndex = 1;
+                          setState(() {});
+                        }, null, icon: Icons.add))),
+              ]),
+              space(height: 30),
+              Row(children: [
+                Expanded(flex: 1, child: Container()),
+                Expanded(
+                    flex: 2,
+                    child: saveBtnForm(
+                      context,
+                      () {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          if (employee.isActive()) {
+                            employee.bajas.add(Baja(
+                                date: selectedDate!, reason: selectedReason));
+                          } else {
+                            Baja item = employee.bajas.last;
+                            item.date = selectedDate!;
+                            item.reason = reasons[selectedReason]!.name;
+                            item.extraDocument =
+                                reasons[selectedReason]!.extraDocument;
+                            employee.bajas[employee.bajas.length - 1] = item;
+                          }
+                          employee.save();
+                          Navigator.of(context).pop(employee);
                         } else {
-                          employee.bajas[employee.bajas.length - 1] =
-                              selectedDate;
+                          setState(() {});
                         }
-                        employee.save();
-                        Navigator.of(context).pop(employee);
-                      } else {
-                        setState(() {});
-                      }
+                      },
+                    )),
+                Expanded(flex: 1, child: Container()),
+              ]),
+            ],
+          )));
+    } else {
+      BajaReason newItem = BajaReason.getEmpty();
+      return Form(
+          key: UniqueKey(),
+          child: SizedBox(
+              child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  s4cSubTitleBar('Nuevo motivo de baja', null),
+                  TextFormField(
+                    initialValue: '',
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    enabled: true,
+                    onChanged: (String value) {
+                      newItem.name = value;
                     },
-                  )),
-              Expanded(flex: 1, child: Container()),
-            ]),
-          ],
-        )));
+                  ),
+                  space(height: 30),
+                  Row(children: [
+                    Expanded(
+                        flex: 1,
+                        child: saveBtnForm(context, () {
+                          contentIndex = 0;
+                          newItem.save();
+                          reasonsOptions
+                              .add(KeyValue(newItem.uuid!, newItem.name));
+
+                          setState(() {});
+                        }, null)),
+                    Expanded(
+                        flex: 1,
+                        child: actionButton(context, cancelText, () {
+                          contentIndex = 0;
+                          setState(() {});
+                        }, Icons.cancel, null)),
+                  ]),
+                ],
+              ),
+            ),
+          )));
+    }
   }
 }
 
@@ -367,11 +539,17 @@ class EmployeeAltaForm extends StatefulWidget {
 class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
+  late DateTime selectedDate;
 
   @override
   void initState() {
     super.initState();
     employee = widget.selectedItem;
+    if (!employee.isActive()) {
+      selectedDate = DateTime.now();
+    } else {
+      selectedDate = employee.altas.last.date;
+    }
   }
 
   @override
@@ -390,11 +568,7 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
                     : DateTime.now(),
                 onSelectedDate: (DateTime? date) {
                   if (date != null) {
-                    if (!employee.isActive()) {
-                      employee.altas.add(Alta(date: date));
-                    } else {
-                      employee.altas[employee.altas.length - 1].date = date;
-                    }
+                    selectedDate = date;
                   }
                   setState(() {});
                 }),
@@ -408,6 +582,12 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
                     () {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
+                        if (!employee.isActive()) {
+                          employee.altas.add(Alta(date: selectedDate));
+                        } else {
+                          employee.altas[employee.altas.length - 1] =
+                              Alta(date: selectedDate);
+                        }
                         employee.save();
                         Navigator.of(context).pop(employee);
                       } else {
