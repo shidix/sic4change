@@ -721,7 +721,10 @@ class TasksComments {
   String id = "";
   String uuid = "";
   String comment = "";
+  String user = "";
   String task;
+
+  Profile? userObj;
 
   //TasksStatus(this.id, this.uuid, this.name);
   TasksComments(this.task);
@@ -730,12 +733,14 @@ class TasksComments {
       : id = json["id"],
         uuid = json["uuid"],
         comment = json['comment'],
+        user = json['user'],
         task = json['task'];
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'comment': comment,
+        'user': user,
         'task': task,
       };
 
@@ -759,6 +764,18 @@ class TasksComments {
     await dbTasksComments.doc(id).delete();
   }
 
+  Future<void> getUser() async {
+    final dbProfile = db.collection("s4c_profiles");
+    if (user != "") {
+      QuerySnapshot query =
+          await dbProfile.where("email", isEqualTo: user).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      userObj = Profile.fromJson(data);
+    }
+  }
+
   static Future<List<TasksComments>> getCommentsByTasks(String uuid) async {
     List<TasksComments> items = [];
     QuerySnapshot query;
@@ -766,7 +783,9 @@ class TasksComments {
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      items.add(TasksComments.fromJson(data));
+      TasksComments tc = TasksComments.fromJson(data);
+      await tc.getUser();
+      items.add(tc);
     }
     return items;
   }

@@ -505,7 +505,12 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                customText(taskComments[index].comment, 14),
+                Row(children: [
+                  customText("${taskComments[index].userObj?.name} >", 14,
+                      bold: FontWeight.bold, textColor: smallColor),
+                  space(width: 10),
+                  customText(taskComments[index].comment, 14),
+                ]),
                 removeBtn(context, removeCommentDialog,
                     {"comment": taskComments[index]}),
               ]);
@@ -589,6 +594,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   /*--------------------------------------------------------------------*/
   void saveComment(List args) async {
     TasksComments comment = args[0];
+    comment.user = user.email;
     comment.save();
     taskComments.add(comment);
     setState(() {});
