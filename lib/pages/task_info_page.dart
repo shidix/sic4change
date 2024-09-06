@@ -502,11 +502,14 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         shrinkWrap: true,
         itemCount: taskComments.length,
         itemBuilder: (BuildContext context, int index) {
+          String userName = (taskComments[index].userObj != null)
+              ? taskComments[index].userObj!.name
+              : " - ";
           return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(children: [
-                  customText("${taskComments[index].userObj?.name} >", 14,
+                  customText("$userName >", 14,
                       bold: FontWeight.bold, textColor: smallColor),
                   space(width: 10),
                   customText(taskComments[index].comment, 14),

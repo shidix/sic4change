@@ -101,16 +101,26 @@ Future<List> getFolders(String parent_uuid) async {
   List folders = [];
   QuerySnapshot? queryFolders;
 
-  if (parent_uuid != "") {
-    queryFolders = await dbFolder.where("parent", isEqualTo: parent_uuid).get();
-  } else {
-    queryFolders = await dbFolder.where("parent", isEqualTo: "").get();
-  }
-  for (var doc in queryFolders.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final folder = Folder.fromJson(data);
-    folders.add(folder);
+  try {
+    if (parent_uuid != "") {
+      queryFolders = await dbFolder
+          .where("parent", isEqualTo: parent_uuid)
+          .orderBy("order", descending: false)
+          .get();
+    } else {
+      queryFolders = await dbFolder
+          .where("parent", isEqualTo: "")
+          .orderBy("order", descending: false)
+          .get();
+    }
+    for (var doc in queryFolders.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final folder = Folder.fromJson(data);
+      folders.add(folder);
+    }
+  } catch (e) {
+    print(e);
   }
   return folders;
 }
