@@ -105,12 +105,12 @@ Future<List> getFolders(String parent_uuid) async {
     if (parent_uuid != "") {
       queryFolders = await dbFolder
           .where("parent", isEqualTo: parent_uuid)
-          .orderBy("order", descending: false)
+          .orderBy("name", descending: false)
           .get();
     } else {
       queryFolders = await dbFolder
           .where("parent", isEqualTo: "")
-          .orderBy("order", descending: false)
+          .orderBy("name", descending: false)
           .get();
     }
     for (var doc in queryFolders.docs) {
