@@ -6,6 +6,7 @@ import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/employee_page.dart';
+import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -70,6 +71,7 @@ class _LoginPageState extends State<LoginPage> {
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
       } else {
+        sendAnalyticsEvent("Nuevo acceso", "Usuario: ${profile?.name}");
         if (profile?.mainRole == "Admin") {
           return const HomeAdminPage();
         } else {

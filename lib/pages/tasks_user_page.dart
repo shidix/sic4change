@@ -1,10 +1,12 @@
 import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
+import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -355,6 +357,9 @@ class _TasksUserPageState extends State<TasksUserPage> {
                                     TaskInfoPage(task: task)),
                                 removeConfirmBtn(context, () {
                                   task.delete();
+                                  sendAnalyticsEvent("Tareas",
+                                      "Eliminada tarea: ${task.name}");
+
                                   setState(() {
                                     myTasks.remove(task);
                                     tasksUser.remove(task);
@@ -396,6 +401,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     STask task = args[0];
     task.save();
     await task.loadObjs();
+    sendAnalyticsEvent("Tareas", "Nueva tarea: ${task.name}");
+
     if (mounted) {
       setState(() {
         addTaskToList(task);
