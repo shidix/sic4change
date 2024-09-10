@@ -715,14 +715,15 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
     for (Baja baja in selectedItem.bajas) {
       listDocuments.add({
-        'type': 'Baja',
+        'type':
+            (baja.reason != null && baja.reason != '') ? baja.reason : 'Baja',
         'desc': 'Finiquito',
         'date': baja.date,
         'path': baja.pathFiniquito
       });
       if (baja.extraDocument) {
         listDocuments.add({
-          'type': 'Baja',
+          'type': baja.reason,
           'desc': 'Carta de motivación',
           'date': baja.date,
           'path': baja.pathExtraDoc
