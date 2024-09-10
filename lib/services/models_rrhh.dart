@@ -451,6 +451,8 @@ class Employee {
   String phone;
   String position;
   String category;
+  String sex = 'O';
+  DateTime? bornDate = DateTime(2000, 1, 1);
   List altas = [];
   List bajas = [];
   Map<String, dynamic> extraDocs = {};
@@ -468,7 +470,9 @@ class Employee {
       this.altas = const [],
       this.bajas = const [],
       this.extraDocs = const {},
-      this.photoPath});
+      this.photoPath,
+      this.sex = 'O',
+      this.bornDate});
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
@@ -479,6 +483,10 @@ class Employee {
       email: json['email'],
       phone: json['phone'],
       photoPath: json['photoPath'],
+      sex: (json.containsKey('sex')) ? json['sex'] : 'O',
+      bornDate: (json.containsKey('bornDate'))
+          ? getDate(json['bornDate'])
+          : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
@@ -520,6 +528,7 @@ class Employee {
         'photoPath': photoPath,
         'category': category,
         'position': position,
+        'bornDate': bornDate,
         'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
