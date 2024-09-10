@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado

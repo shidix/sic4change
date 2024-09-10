@@ -1,11 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
-import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+
+String notif = "0";
+Color notifColor = Colors.white54;
+
+Widget userWidget(context, user, url) {
+  return Column(children: [
+    notificationsBadge(context, user.email, notif, notifColor, url),
+    //space(height: 5),
+    customText(user.email!, 14, textColor: Colors.white54),
+  ]);
+}
 
 Widget mainMenuUser(context, [user, url]) {
   return Container(
@@ -43,8 +54,7 @@ Widget mainMenuUser(context, [user, url]) {
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
-        if (user != null)
-          customText(user.email!, 14, textColor: Colors.white54),
+        if (user != null) userWidget(context, user, url),
       ],
     ),
   );

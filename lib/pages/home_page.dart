@@ -9,11 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -167,6 +169,14 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void getNotifications() async {
+    SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
+      notif = val.toString();
+      if (val > 0) notifColor = Colors.red;
+      setState(() {});
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -187,6 +197,8 @@ class _HomePageState extends State<HomePage> {
       });
       loadMyData();
       autoStartWorkday(context);
+
+      getNotifications();
     }
   }
 

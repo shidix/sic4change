@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
@@ -12,6 +11,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/task_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -402,6 +402,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     task.save();
     await task.loadObjs();
     sendAnalyticsEvent("Tareas", "Nueva tarea: ${task.name}");
+    createNotification(
+        task.sender, task.assigned, "Se le ha asignado la tarea ${task.name}");
 
     if (mounted) {
       setState(() {

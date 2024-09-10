@@ -608,3 +608,82 @@ Future<List> getSectors() async {
   }
   return items;
 }
+
+//--------------------------------------------------------------
+//                       NOTIFICATIONS
+//--------------------------------------------------------------
+CollectionReference dbNotifications = db.collection("s4c_notifications");
+
+class SNotification {
+  String id = "";
+  String uuid = "";
+  String sender;
+  String receiver = "";
+  String msg = "";
+  bool readed = false;
+
+  SNotification(this.sender);
+
+  SNotification.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        sender = json['sender'],
+        receiver = json['receiver'],
+        readed = json['readed'],
+        msg = json['msg'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'sender': sender,
+        'receiver': receiver,
+        'readed': readed,
+        'msg': msg,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, msg);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbNotifications.add(data);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbNotifications.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbNotifications.doc(id).delete();
+  }
+
+  static Future<int> getUnreadNotificationsByReceiver(user) async {
+    int notif = 0;
+    QuerySnapshot query =
+        await dbNotifications.where("receiver", isEqualTo: user).get();
+
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      SNotification item = SNotification.fromJson(data);
+      if (!item.readed) notif += 1;
+    }
+    return notif;
+  }
+
+  static Future<List> getNotificationsByReceiver(user) async {
+    List<SNotification> items = [];
+    QuerySnapshot query =
+        await dbNotifications.where("receiver", isEqualTo: user).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(SNotification.fromJson(data));
+    }
+    return items;
+  }
+}
