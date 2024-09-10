@@ -306,6 +306,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     flex: 1,
                     child: DateTimePicker(
                         labelText: 'Fecha Nacimiento',
+                        firstDate: DateTime(DateTime.now().year - 100),
+                        lastDate: DateTime(DateTime.now().year - 15),
                         selectedDate: employee.bornDate ??
                             truncDate(DateTime(2000, 1, 1)),
                         onSelectedDate: (DateTime? date) {
