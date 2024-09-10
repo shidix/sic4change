@@ -17,6 +17,9 @@ class Nomina {
   double deductions; // IRPF
   double employeeSocialSecurity;
   double employerSocialSecurity;
+  DateTime? paymentDate;
+
+  String? reciptPath;
 
   String noSignedPath;
   DateTime noSignedDate;
@@ -33,6 +36,8 @@ class Nomina {
       required this.employerSocialSecurity,
       required this.noSignedPath,
       required this.noSignedDate,
+      this.paymentDate,
+      this.reciptPath,
       this.signedPath,
       this.signedDate});
 
@@ -50,6 +55,13 @@ class Nomina {
         employerSocialSecurity: (json.containsKey('employerSocialSecurity'))
             ? json['employerSocialSecurity']
             : 0.0,
+        paymentDate: (json.containsKey('paymentDate'))
+            ? getDate(json['paymentDate'], truncate: true)
+            : (json.containsKey('date'))
+                ? getDate(json['date'], truncate: true)
+                : DateTime.now(),
+        reciptPath:
+            (json.containsKey('reciptPath')) ? json['reciptPath'] : null,
         noSignedPath: json['noSignedPath'],
         noSignedDate: getDate(json['noSignedDate'] ?? DateTime.now()),
         signedPath: json['signedPath'],
@@ -58,6 +70,7 @@ class Nomina {
 
   Map<String, dynamic> toJson() => {
         'date': date,
+        'paymentDate': paymentDate,
         'employeeCode': employeeCode,
         'grossSalary': grossSalary,
         'netSalary': netSalary,
@@ -67,7 +80,8 @@ class Nomina {
         'noSignedPath': noSignedPath,
         'noSignedDate': noSignedDate,
         'signedPath': signedPath,
-        'signedDate': signedDate
+        'signedDate': signedDate,
+        'reciptPath': reciptPath,
       };
 
   double getNetSalary() {

@@ -39,6 +39,9 @@ class _NominaFormState extends State<NominaForm> {
             KeyValue(e.code, "${e.firstName} ${e.lastName1} ${e.lastName2}"))
         .toList();
     nomina = widget.selectedItem;
+    if (nomina.noSignedPath.isNotEmpty) {
+      noSignedFileMsg = nomina.noSignedPath.split("/").last;
+    }
     oldNominas = Nomina(
         employeeCode: nomina.employeeCode,
         date: nomina.date,
@@ -100,13 +103,6 @@ class _NominaFormState extends State<NominaForm> {
               actions: [
                 TextButton(
                     onPressed: () {
-                      // nomina.deductions = oldNomina.deductions;
-                      // nomina.netSalary = oldNomina.netSalary;
-                      // nomina.employeeSocialSecurity =
-                      //     oldNomina.employeeSocialSecurity;
-                      // nomina.employerSocialSecurity =
-                      //     oldNomina.employerSocialSecurity;
-                      // nomina.grossSalary = oldNomina.grossSalary;
                       Navigator.of(context).pop();
                       if (mounted) {
                         setState(() {});
@@ -148,216 +144,256 @@ class _NominaFormState extends State<NominaForm> {
           width: MediaQuery.of(context).size.width * 0.75,
           // height: MediaQuery.of(context).size.height * 0.75,
 
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: CustomSelectFormField(
-                      labelText: "Empleado",
-                      initial: nomina.employeeCode,
-                      options: employees,
-                      onSelectedOpt: (value) {
-                        nomina.employeeCode = value;
-                        setState(() {});
-                      },
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+                flex: 8,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: CustomSelectFormField(
+                            labelText: "Empleado",
+                            initial: nomina.employeeCode,
+                            options: employees,
+                            onSelectedOpt: (value) {
+                              nomina.employeeCode = value;
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                        Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CustomDateField(
+                                labelText: "Fecha Nómina",
+                                selectedDate: getDate(nomina.date),
+                                onSelectedDate: (value) {
+                                  nomina.date = value;
+                                  setState(() {});
+                                },
+                              ),
+                            )),
+                        Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CustomDateField(
+                                labelText: "Fecha Pago",
+                                selectedDate: getDate(nomina.paymentDate),
+                                onSelectedDate: (value) {
+                                  nomina.paymentDate = value;
+                                  setState(() {});
+                                },
+                              ),
+                            )),
+                      ],
+                    ),
+                    // Fields for netSalary, deductions, employeeSocialSecurity, employerSocialSecurity
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: "Salario Neto"),
+                                initialValue: nomina.netSalary.toString(),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'))
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, ingrese el salario neto';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  nomina.netSalary = double.parse(value);
+                                },
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: "Deducciones"),
+                                initialValue: nomina.deductions.toString(),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'))
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, ingrese las deducciones';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  nomina.deductions = double.parse(value);
+                                },
+                              )),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: "Seguro Social Empleado"),
+                                initialValue:
+                                    nomina.employeeSocialSecurity.toString(),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'))
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, ingrese el seguro social del empleado';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  nomina.employeeSocialSecurity =
+                                      double.parse(value);
+                                },
+                              )),
+                        ),
+                        //field for grossSalary
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: "Salario Bruto"),
+                                initialValue: nomina.grossSalary.toString(),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'))
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, ingrese el salario bruto';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  nomina.grossSalary = double.parse(value);
+                                },
+                              )),
+                        ),
+
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: "Seguro Social Empleador"),
+                                initialValue:
+                                    nomina.employerSocialSecurity.toString(),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'))
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, ingrese el seguro social del empleador';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  nomina.employerSocialSecurity =
+                                      double.parse(value);
+                                },
+                              )),
+                        ),
+                      ],
                     ),
 
-                    // Padding(
-                    //     padding: const EdgeInsets.all(8.0),
-                    //     child: TextFormField(
-                    //       decoration: const InputDecoration(
-                    //           labelText: "Códido Empleado"),
-                    //       initialValue: nomina.employeeCode,
-                    //       validator: (value) {
-                    //         if (value == null || value.isEmpty) {
-                    //           return 'Por favor, ingrese el código del empleado';
-                    //         }
-                    //         return null;
-                    //       },
-                    //       onChanged: (value) {
-                    //         nomina.employeeCode = value;
-                    //       },
-                    //     )),
-                  ),
-                  Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CustomDateField(
-                          labelText: "Fecha Nómina",
-                          selectedDate: getDate(nomina.date),
-                          onSelectedDate: (value) {
-                            nomina.date = value;
-                            setState(() {});
-                          },
-                        ),
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: UploadFileField(
-                        textToShow: (noSignedFileMsg.isEmpty)
-                            ? "Sin firmar"
-                            : Text(noSignedFileMsg,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    color: Colors.red, fontSize: 12)),
-                        pickedFile: notSignedFile,
-                        onSelectedFile: (PlatformFile? file) {
-                          if (file != null) {
-                            notSignedFile = file;
-                            nomina.noSignedDate = DateTime.now();
-                            setState(() {});
-                          }
-                        },
-                      )),
-                ],
-              ),
-              // Fields for netSalary, deductions, employeeSocialSecurity, employerSocialSecurity
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: "Salario Neto"),
-                          initialValue: nomina.netSalary.toString(),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese el salario neto';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.netSalary = double.parse(value);
-                          },
-                        )),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: "Deducciones"),
-                          initialValue: nomina.deductions.toString(),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese las deducciones';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.deductions = double.parse(value);
-                          },
-                        )),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              labelText: "Seguro Social Empleado"),
-                          initialValue:
-                              nomina.employeeSocialSecurity.toString(),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese el seguro social del empleado';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.employeeSocialSecurity = double.parse(value);
-                          },
-                        )),
-                  ),
-                  //field for grossSalary
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: "Salario Bruto"),
-                          initialValue: nomina.grossSalary.toString(),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese el salario bruto';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.grossSalary = double.parse(value);
-                          },
-                        )),
-                  ),
-
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              labelText: "Seguro Social Empleador"),
-                          initialValue:
-                              nomina.employerSocialSecurity.toString(),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese el seguro social del empleador';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            nomina.employerSocialSecurity = double.parse(value);
-                          },
-                        )),
-                  ),
-                ],
-              ),
-
-              //Row with 2 Widgets
-              Row(
-                children: [
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: saveBtnForm(context, saveNomina, null))),
-                  Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: cancelBtnForm(context),
-                      )),
-                ],
-              ),
-            ],
-          ),
+                    //Row with 2 Widgets
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 1,
+                            child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: saveBtnForm(context, saveNomina, null))),
+                        Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: cancelBtnForm(context),
+                            )),
+                      ],
+                    ),
+                  ],
+                )),
+            Expanded(
+                flex: 2,
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      nomina.noSignedPath.isNotEmpty
+                          ? Card(
+                              child: Column(
+                              children: [
+                                const Text("Archivo sin firmar",
+                                    style: subTitleText),
+                                const SizedBox(height: 10),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      iconBtn(context, (context) {
+                                        downloadFileUrl(nomina.noSignedPath);
+                                      }, null, icon: Icons.download),
+                                      const SizedBox(width: 10),
+                                      removeConfirmBtn(context, () {
+                                        removeFileFromStorage(
+                                                nomina.noSignedPath)
+                                            .then((value) {
+                                          noSignedFileMsg = "";
+                                          nomina.noSignedPath = "";
+                                          nomina.noSignedDate = DateTime.now();
+                                          nomina.save();
+                                          setState(() {});
+                                        });
+                                      }, null),
+                                    ])
+                              ],
+                            ))
+                          : UploadFileField(
+                              textToShow: (noSignedFileMsg.isEmpty)
+                                  ? "Sin firmar"
+                                  : Text(noSignedFileMsg,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12)),
+                              pickedFile: notSignedFile,
+                              onSelectedFile: (PlatformFile? file) {
+                                if (file != null) {
+                                  notSignedFile = file;
+                                  nomina.noSignedDate = DateTime.now();
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                    ]))
+          ]),
         ));
   }
 }
