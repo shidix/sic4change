@@ -225,8 +225,12 @@ class _DocumentsPageState extends State<DocumentsPage> {
               onPressed: () {
                 if (currentFolder.parent != "") {
                   getFolderByUuid(currentFolder.parent).then((value) {
-                    Navigator.pushReplacementNamed(context, "/documents",
-                        arguments: value);
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: ((context) => DocumentsPage(
+                                  currentFolder: value,
+                                ))));
                   });
                 } else {
                   Navigator.pushReplacementNamed(

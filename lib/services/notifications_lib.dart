@@ -2,7 +2,6 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:sic4change/widgets/main_menu_widget.dart';
 
 void createNotification(String sender, List receivers, String msg) {
   for (String r in receivers) {
@@ -28,7 +27,6 @@ Widget notificationsBadge(context, user, notif, notifColor, url) {
     child: IconButton(
       icon: const Icon(Icons.notifications, color: Colors.white54),
       onPressed: () {
-        print("--a--");
         notificationsDialog(context, user, url);
       },
     ),
