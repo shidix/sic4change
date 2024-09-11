@@ -629,6 +629,20 @@ class Employee {
     }
   }
 
+  int altaDays({DateTime? date}) {
+    DateTime fromDate = getAltaDate();
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    if (date == null) {
+      date = DateTime.now();
+      fromDate =
+          altas.firstWhere((element) => element.date.isBefore(date)).date;
+    }
+    if (altas.isEmpty) {
+      return 0;
+    }
+    return date.difference(truncDate(fromDate)).inDays;
+  }
+
   static Employee getEmpty() {
     return Employee(
         code: '',

@@ -28,6 +28,7 @@ class _NominaFormState extends State<NominaForm> {
   late List<KeyValue> employees;
   late PlatformFile? notSignedFile;
   late PlatformFile? signedFile;
+  late PlatformFile? reciptFile;
   String noSignedFileMsg = "";
   late Nomina oldNominas;
 
@@ -56,6 +57,7 @@ class _NominaFormState extends State<NominaForm> {
         signedDate: nomina.signedDate);
     notSignedFile = null;
     signedFile = null;
+    reciptFile = null;
   }
 
   Future<String> uploadFileToStorage(PlatformFile file) async {
@@ -118,6 +120,16 @@ class _NominaFormState extends State<NominaForm> {
         _formKey.currentState!.save();
         nomina.noSignedDate = DateTime.now();
         noSignedFileMsg = "";
+        if (signedFile != null) {
+          uploadFileToStorage(signedFile!).then((value) {
+            nomina.signedPath = value;
+          });
+        }
+        if (reciptFile != null) {
+          uploadFileToStorage(reciptFile!).then((value) {
+            nomina.reciptPath = value;
+          });
+        }
         if (notSignedFile != null) {
           uploadFileToStorage(notSignedFile!).then((value) {
             nomina.noSignedPath = value;
@@ -352,7 +364,7 @@ class _NominaFormState extends State<NominaForm> {
                           ? Card(
                               child: Column(
                               children: [
-                                const Text("Archivo sin firmar",
+                                const Text("Nómina no firmada",
                                     style: subTitleText),
                                 const SizedBox(height: 10),
                                 Row(
@@ -366,6 +378,7 @@ class _NominaFormState extends State<NominaForm> {
                                         removeFileFromStorage(
                                                 nomina.noSignedPath)
                                             .then((value) {
+                                          notSignedFile = null;
                                           noSignedFileMsg = "";
                                           nomina.noSignedPath = "";
                                           nomina.noSignedDate = DateTime.now();
@@ -378,7 +391,7 @@ class _NominaFormState extends State<NominaForm> {
                             ))
                           : UploadFileField(
                               textToShow: (noSignedFileMsg.isEmpty)
-                                  ? "Sin firmar"
+                                  ? "Nómina sin firmar"
                                   : Text(noSignedFileMsg,
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
@@ -388,6 +401,94 @@ class _NominaFormState extends State<NominaForm> {
                                 if (file != null) {
                                   notSignedFile = file;
                                   nomina.noSignedDate = DateTime.now();
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                      const SizedBox(height: 10),
+                      (nomina.signedPath != null &&
+                              nomina.signedPath!.isNotEmpty)
+                          ? Card(
+                              child: Column(
+                              children: [
+                                const Text("Nómina firmada",
+                                    style: subTitleText),
+                                const SizedBox(height: 10),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      iconBtn(context, (context) {
+                                        downloadFileUrl(nomina.signedPath!);
+                                      }, null, icon: Icons.download),
+                                      const SizedBox(width: 10),
+                                      removeConfirmBtn(context, () {
+                                        removeFileFromStorage(nomina.signedPath)
+                                            .then((value) {
+                                          signedFile = null;
+                                          nomina.signedPath = "";
+                                          nomina.signedDate = DateTime.now();
+                                          nomina.save();
+                                          setState(() {});
+                                        });
+                                      }, null),
+                                    ])
+                              ],
+                            ))
+                          : UploadFileField(
+                              textToShow: (signedFile == null)
+                                  ? "Nómina firmada"
+                                  : Text(signedFile!.name,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12)),
+                              pickedFile: signedFile,
+                              onSelectedFile: (PlatformFile? file) {
+                                if (file != null) {
+                                  signedFile = file;
+                                  nomina.signedDate = DateTime.now();
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                      space(height: 10),
+                      (nomina.reciptPath != null &&
+                              nomina.reciptPath!.isNotEmpty)
+                          ? Card(
+                              child: Column(
+                              children: [
+                                const Text("Recibo de nómina",
+                                    style: subTitleText),
+                                const SizedBox(height: 10),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      iconBtn(context, (context) {
+                                        downloadFileUrl(nomina.reciptPath!);
+                                      }, null, icon: Icons.download),
+                                      const SizedBox(width: 10),
+                                      removeConfirmBtn(context, () {
+                                        removeFileFromStorage(nomina.reciptPath)
+                                            .then((value) {
+                                          reciptFile = null;
+                                          nomina.reciptPath = "";
+                                          nomina.save();
+                                          setState(() {});
+                                        });
+                                      }, null),
+                                    ])
+                              ],
+                            ))
+                          : UploadFileField(
+                              textToShow: (reciptFile == null)
+                                  ? "Recibo de nómina"
+                                  : Text(signedFile!.name,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12)),
+                              pickedFile: reciptFile,
+                              onSelectedFile: (PlatformFile? file) {
+                                if (file != null) {
+                                  reciptFile = file;
                                   setState(() {});
                                 }
                               },

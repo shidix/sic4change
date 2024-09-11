@@ -115,6 +115,7 @@ class _NominasPageState extends State<NominasPage> {
       }),
       columns: [
         'Código',
+        'Días',
         'Fecha',
         'Neto',
         'Deducciones',
@@ -164,6 +165,15 @@ class _NominasPageState extends State<NominasPage> {
                   }),
                   cells: [
                     DataCell(Text(e.employeeCode)),
+                    (employees
+                            .where((element) => element.code == e.employeeCode)
+                            .isNotEmpty)
+                        ? DataCell(Text(employees
+                            .where((element) => element.code == e.employeeCode)
+                            .first
+                            .altaDays(date: e.date)
+                            .toString()))
+                        : const DataCell(Text('0')),
                     DataCell(Text(DateFormat('dd/MM/yyyy').format(e.date))),
                     DataCell(Text(toCurrency(e.netSalary))),
                     DataCell(Text(toCurrency(e.deductions))),
@@ -178,7 +188,7 @@ class _NominasPageState extends State<NominasPage> {
                         children: [
                           (e.noSignedPath != null)
                               ? Tooltip(
-                                  message: 'Descarcar nómina sin firmar',
+                                  message: 'Descargar nómina sin firmar',
                                   child: iconBtn(context, (context) {
                                     e.noSignedFileUrl().then((value) {
                                       final Uri toDownload = Uri.parse(value);
