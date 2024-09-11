@@ -7,12 +7,14 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-String notif = "0";
-Color notifColor = Colors.white54;
+int notif = 0;
+//Color notifColor = Colors.white54;
 
 Widget userWidget(context, user, url) {
   return Column(children: [
-    notificationsBadge(context, user.email, notif, notifColor, url),
+    (notif > 0)
+        ? notificationsBadge(context, user.email, notif.toString(), url)
+        : Container(),
     //space(height: 5),
     customText(user.email!, 14, textColor: Colors.white54),
   ]);

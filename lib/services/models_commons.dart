@@ -621,6 +621,8 @@ class SNotification {
   String receiver = "";
   String msg = "";
   bool readed = false;
+  DateTime date = DateTime.now();
+  DateTime readDate = DateTime(2100, 12, 31);
 
   SNotification(this.sender);
 
@@ -630,6 +632,8 @@ class SNotification {
         sender = json['sender'],
         receiver = json['receiver'],
         readed = json['readed'],
+        date = json['date'].toDate(),
+        readDate = json['readDate'].toDate(),
         msg = json['msg'];
 
   Map<String, dynamic> toJson() => {
@@ -638,6 +642,8 @@ class SNotification {
         'sender': sender,
         'receiver': receiver,
         'readed': readed,
+        'date': date,
+        'readDate': readDate,
         'msg': msg,
       };
 
@@ -650,7 +656,7 @@ class SNotification {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbNotifications.add(data);
+      dbNotifications.add(data).then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
       dbNotifications.doc(id).set(data);
