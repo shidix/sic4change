@@ -15,7 +15,6 @@ import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
-import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -50,6 +49,8 @@ class _HomePageState extends State<HomePage> {
   Widget mainMenuWidget = Container();
 
   List<SProject>? myProjects;
+
+  List notificationList = [];
 
   @override
   void dispose() {
@@ -170,9 +171,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getNotifications() async {
-    SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
-      notif = val.toString();
-      if (val > 0) notifColor = Colors.red;
+    /*SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
+      notif = val;
+      //if (val > 0) notifColor = Colors.red;
+      setState(() {});
+    });*/
+
+    SNotification.getNotificationsByReceiver(user.email).then((val) {
+      notificationList = val;
+      for (SNotification n in notificationList) {
+        if (!n.readed) notif += 1;
+      }
       setState(() {});
     });
   }
@@ -198,6 +207,7 @@ class _HomePageState extends State<HomePage> {
       loadMyData();
       autoStartWorkday(context);
 
+      notif = 0;
       getNotifications();
     }
   }
@@ -1283,195 +1293,242 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// NOTIFICATIONS ///////////
-  Widget notifyPanel(BuildContext context) {
-    List holidayPeriods = [];
-    for (int i = 0; i < 5; i++) {
-      DateTime from = DateTime(DateTime.now().year, 1, 1)
-          .add(Duration(days: Random().nextInt(300)));
-      DateTime to = from.add(Duration(days: Random().nextInt(10)));
-      holidayPeriods.add([from, to]);
-    }
-    holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        child: Container(
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 3), // changes position of shadow
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(10)),
-            padding: const EdgeInsets.all(2),
-            child: Column(
-              children: [
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    color: Colors.grey[100],
-                    child: const Row(
-                      children: [
-                        Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Card(
-                                  child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 15, horizontal: 5),
-                                child: Icon(Icons.notifications_active,
-                                    color: Colors.red),
-                              )),
-                            )),
-                        Expanded(
-                            flex: 7,
-                            child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                          padding: EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            "Mis notificaciones",
-                                            style: cardHeaderText,
-                                          )),
-                                      Row(
-                                        children: [
-                                          Text("Tienes ", style: subTitleText),
-                                          Text("3", style: dangerText),
-                                          Text(" notificaciones sin leer",
-                                              style: subTitleText),
-                                        ],
-                                      ),
-                                    ]))),
-                      ],
-                    )),
-                Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                    color: Colors.white,
-                    child: const ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(
-                              flex: 2,
+
+  /*Widget notifyPanelSubHead() {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        color: Colors.white,
+        child: const ListTile(
+          title: Row(
+            children: [
+              Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Concepto",
+                    style: subTitleText,
+                    textAlign: TextAlign.center,
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Desde",
+                    style: subTitleText,
+                    textAlign: TextAlign.center,
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Hasta",
+                    style: subTitleText,
+                    textAlign: TextAlign.center,
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Días Totales",
+                    style: subTitleText,
+                    textAlign: TextAlign.center,
+                  )),
+            ],
+          ),
+        ));
+  }
+
+  Widget notifyPanelContentOld() {
+    return Container(
+        height: 150,
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        color: Colors.white,
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: 3,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                  subtitle: Column(children: [
+                Row(
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                "Concepto",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
+                                ([
+                                  'Vacaciones',
+                                  'Asuntos propios',
+                                  'Enfermedad'
+                                ]).elementAt(Random().nextInt(3)),
+                                style: normalText,
                               )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Desde",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Hasta",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Días Totales",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ],
-                      ),
-                    )),
-                Divider(
-                  height: 1,
-                  color: Colors.grey[300],
-                ),
-                Container(
-                    height: 150,
-                    padding:
-                        const EdgeInsets.only(left: 10, right: 10, top: 10),
-                    color: Colors.white,
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: 3,
-                        itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                              subtitle: Column(children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                    flex: 2,
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            ([
-                                              'Vacaciones',
-                                              'Asuntos propios',
-                                              'Enfermedad'
-                                            ]).elementAt(Random().nextInt(3)),
-                                            style: normalText,
-                                          )),
-                                    )),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        DateFormat('dd-MM-yyyy').format(
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            "A"
+                            /*DateFormat('dd-MM-yyyy').format(
                                             holidayPeriods
                                                 .elementAt(index)
-                                                .elementAt(0)),
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        DateFormat('dd-MM-yyyy').format(
+                                                .elementAt(0))*/
+                            ,
+                            style: normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            "B"
+                            /*DateFormat('dd-MM-yyyy').format(
                                             holidayPeriods
                                                 .elementAt(index)
-                                                .elementAt(1)),
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        getWorkingDaysBetween(
+                                                .elementAt(1))*/
+                            ,
+                            style: normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            "C"
+                            /*getWorkingDaysBetween(
                                                 holidayPeriods
                                                     .elementAt(index)
                                                     .elementAt(0),
                                                 holidayPeriods
                                                     .elementAt(index)
                                                     .elementAt(1))
-                                            .toString(),
-                                        style: normalText,
-                                        textAlign: TextAlign.center,
-                                      )),
-                                ),
-                              ],
-                            )
-                          ]));
-                        })),
+                                            .toString()*/
+                            ,
+                            style: normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                  ],
+                )
+              ]));
+            }));
+  }*/
+  Widget notifyPanelHead() {
+    return Container(
+        padding: const EdgeInsets.all(10),
+        color: Colors.grey[100],
+        child: Row(
+          children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Card(
+                      child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+                    child: Icon(Icons.notifications_active, color: Colors.red),
+                  )),
+                )),
+            Expanded(
+                flex: 7,
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                "Mis notificaciones",
+                                style: cardHeaderText,
+                              )),
+                          Row(
+                            children: [
+                              Text("Tienes ", style: subTitleText),
+                              Text("$notif", style: dangerText),
+                              Text(" notificaciones sin leer",
+                                  style: subTitleText),
+                            ],
+                          ),
+                        ]))),
+          ],
+        ));
+  }
+
+  Widget notifyPanelContent() {
+    return Container(
+        color: Colors.white,
+        child: DataTable(
+          columns: [
+            DataColumn(
+                label: customText("Notificación", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(
+                label: customText("Usuario", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(
+                label: customText("Fecha", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(label: Container()),
+          ],
+          rows: notificationList
+              .map(
+                (notify) => DataRow(
+                    color: (notify.readed)
+                        ? MaterialStateColor.resolveWith(
+                            (states) => Colors.white)
+                        : MaterialStateColor.resolveWith((states) => greyColor),
+                    cells: [
+                      DataCell(Text(notify.msg)),
+                      DataCell(Text(notify.sender)),
+                      DataCell(
+                        Text(DateFormat('yyyy-MM-dd').format(notify.date)),
+                      ),
+                      DataCell(Row(children: [
+                        /*removeConfirmBtn(context, () {
+                                  task.delete();
+                                  sendAnalyticsEvent("Tareas",
+                                      "Eliminada tarea: ${task.name}");
+
+                                  setState(() {
+                                    myTasks.remove(task);
+                                    tasksUser.remove(task);
+                                  });
+                                }, null),*/
+                      ]))
+                    ]),
+              )
+              .toList(),
+        ));
+  }
+
+  Widget notifyPanel(BuildContext context) {
+    /*List holidayPeriods = [];
+    for (int i = 0; i < 5; i++) {
+      DateTime from = DateTime(DateTime.now().year, 1, 1)
+          .add(Duration(days: Random().nextInt(300)));
+      DateTime to = from.add(Duration(days: Random().nextInt(10)));
+      holidayPeriods.add([from, to]);
+    }
+    holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));*/
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Container(
+            //decoration: homePanelDecoration,
+            padding: const EdgeInsets.all(2),
+            child: Column(
+              children: [
+                notifyPanelHead(),
+                /*notifyPanelSubHead(),
+                Divider(
+                  height: 1,
+                  color: Colors.grey[300],
+                ),
+                notifyPanelContentOld(),*/
+                notifyPanelContent(),
               ],
             )));
   }

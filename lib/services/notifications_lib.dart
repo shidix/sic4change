@@ -12,16 +12,16 @@ void createNotification(String sender, List receivers, String msg) {
   }
 }
 
-Widget notificationsBadge(context, user, notif, notifColor, url) {
+Widget notificationsBadge(context, user, notif, url) {
   return badges.Badge(
     position: badges.BadgePosition.topEnd(top: 5, end: 0),
     badgeContent: customText(notif, 10),
     badgeStyle: badges.BadgeStyle(
       shape: badges.BadgeShape.square,
-      badgeColor: notifColor,
+      badgeColor: Colors.red,
       padding: const EdgeInsets.all(3),
       borderRadius: BorderRadius.circular(4),
-      borderSide: BorderSide(color: notifColor, width: 2),
+      borderSide: const BorderSide(color: Colors.red, width: 2),
       elevation: 0,
     ),
     child: IconButton(
