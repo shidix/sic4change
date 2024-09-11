@@ -169,32 +169,31 @@ Icon getIcon(bool value, {double size = 24.0}) {
   }
 }
 
-DateTime getDate(dynamic date) {
+DateTime getDate(dynamic date, {truncate = false}) {
   DateTime convert = DateTime(2099, 12, 31);
-  if (date == null) {
-    return convert;
-  }
+  DateTime result = convert;
+
   if (date is DateTime) {
-    return date;
+    result = date;
   }
   if (date is Timestamp) {
-    return date.toDate();
+    result = date.toDate();
   }
   if (date is String) {
     try {
-      return DateTime.parse(date);
+      result = DateTime.parse(date);
     } catch (e) {
-      return convert;
+      result = convert;
     }
   }
   if (date is int) {
     try {
       return DateTime.fromMillisecondsSinceEpoch(date);
     } catch (e) {
-      return convert;
+      result = convert;
     }
   }
-  return convert;
+  return truncate ? truncDate(result) : result;
 }
 
 double currencyToDouble(String value) {

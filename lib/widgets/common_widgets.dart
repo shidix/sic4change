@@ -1942,18 +1942,22 @@ class DateTimePicker extends StatelessWidget {
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
+    this.firstDate,
+    this.lastDate,
   }) : super(key: key);
 
   final String labelText;
   final DateTime selectedDate;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
   final ValueChanged<DateTime> onSelectedDate;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      firstDate: firstDate != null ? firstDate! : DateTime(1900),
+      lastDate: lastDate != null ? lastDate! : DateTime(2101),
     );
     if (picked != null && picked != selectedDate) {
       onSelectedDate(picked);

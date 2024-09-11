@@ -17,6 +17,9 @@ class Nomina {
   double deductions; // IRPF
   double employeeSocialSecurity;
   double employerSocialSecurity;
+  DateTime? paymentDate;
+
+  String? reciptPath;
 
   String noSignedPath;
   DateTime noSignedDate;
@@ -33,6 +36,8 @@ class Nomina {
       required this.employerSocialSecurity,
       required this.noSignedPath,
       required this.noSignedDate,
+      this.paymentDate,
+      this.reciptPath,
       this.signedPath,
       this.signedDate});
 
@@ -50,6 +55,13 @@ class Nomina {
         employerSocialSecurity: (json.containsKey('employerSocialSecurity'))
             ? json['employerSocialSecurity']
             : 0.0,
+        paymentDate: (json.containsKey('paymentDate'))
+            ? getDate(json['paymentDate'], truncate: true)
+            : (json.containsKey('date'))
+                ? getDate(json['date'], truncate: true)
+                : DateTime.now(),
+        reciptPath:
+            (json.containsKey('reciptPath')) ? json['reciptPath'] : null,
         noSignedPath: json['noSignedPath'],
         noSignedDate: getDate(json['noSignedDate'] ?? DateTime.now()),
         signedPath: json['signedPath'],
@@ -58,6 +70,7 @@ class Nomina {
 
   Map<String, dynamic> toJson() => {
         'date': date,
+        'paymentDate': paymentDate,
         'employeeCode': employeeCode,
         'grossSalary': grossSalary,
         'netSalary': netSalary,
@@ -67,7 +80,8 @@ class Nomina {
         'noSignedPath': noSignedPath,
         'noSignedDate': noSignedDate,
         'signedPath': signedPath,
-        'signedDate': signedDate
+        'signedDate': signedDate,
+        'reciptPath': reciptPath,
       };
 
   double getNetSalary() {
@@ -451,6 +465,8 @@ class Employee {
   String phone;
   String position;
   String category;
+  String sex = 'O';
+  DateTime? bornDate = DateTime(2000, 1, 1);
   List altas = [];
   List bajas = [];
   Map<String, dynamic> extraDocs = {};
@@ -468,7 +484,9 @@ class Employee {
       this.altas = const [],
       this.bajas = const [],
       this.extraDocs = const {},
-      this.photoPath});
+      this.photoPath,
+      this.sex = 'O',
+      this.bornDate});
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
@@ -479,6 +497,10 @@ class Employee {
       email: json['email'],
       phone: json['phone'],
       photoPath: json['photoPath'],
+      sex: (json.containsKey('sex')) ? json['sex'] : 'O',
+      bornDate: (json.containsKey('bornDate'))
+          ? getDate(json['bornDate'])
+          : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
@@ -520,6 +542,7 @@ class Employee {
         'photoPath': photoPath,
         'category': category,
         'position': position,
+        'bornDate': bornDate,
         'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
@@ -604,6 +627,20 @@ class Employee {
     } catch (e) {
       return altas.last.salary;
     }
+  }
+
+  int altaDays({DateTime? date}) {
+    DateTime fromDate = getAltaDate();
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    if (date == null) {
+      date = DateTime.now();
+      fromDate =
+          altas.firstWhere((element) => element.date.isBefore(date)).date;
+    }
+    if (altas.isEmpty) {
+      return 0;
+    }
+    return date.difference(truncDate(fromDate)).inDays;
   }
 
   static Employee getEmpty() {

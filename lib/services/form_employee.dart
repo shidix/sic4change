@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/monitoring/v3.dart';
+import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -40,7 +41,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     selectedAltaDate = employee.getAltaDate();
     if (!employee.bajas.isNotEmpty) {
       employee.bajas.sort((a, b) => a.date.compareTo(b.date));
-      selectedBajaDate = employee.bajas.last.date;
+      selectedBajaDate = employee.getBajaDate();
     }
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
@@ -116,6 +117,20 @@ class _EmployeeFormState extends State<EmployeeForm> {
           selectedReason = value;
         });
 
+    Widget sexField = CustomSelectFormField(
+        key: UniqueKey(),
+        labelText: 'Sexo',
+        padding: const EdgeInsets.only(top: 8, left: 5),
+        initial: employee.sex,
+        options: [
+          KeyValue('O', 'Otro'),
+          KeyValue('M', 'Mujer'),
+          KeyValue('H', 'Hombre')
+        ],
+        onSelectedOpt: (value) {
+          employee.sex = value;
+        });
+
     if (contentIndex == 0) {
       return Form(
           key: _formKey,
@@ -125,66 +140,93 @@ class _EmployeeFormState extends State<EmployeeForm> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              TextFormField(
-                initialValue: employee.code,
-                decoration: const InputDecoration(labelText: 'Número Empleado'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.code = value!;
-                },
-              ),
-              TextFormField(
-                initialValue: employee.firstName,
-                decoration: const InputDecoration(labelText: 'Nombre(s)'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.firstName = value!;
-                },
-              ),
-              TextFormField(
-                initialValue: employee.lastName1,
-                decoration: const InputDecoration(labelText: 'Primer Apellido'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.lastName1 = value!;
-                },
-              ),
-              TextFormField(
-                initialValue: employee.lastName2,
-                decoration:
-                    const InputDecoration(labelText: 'Segundo Apellido'),
-                onSaved: (String? value) {
-                  employee.lastName2 = value!;
-                },
-              ),
-              TextFormField(
-                initialValue: employee.email,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.email = value!;
-                },
-              ),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: employee.code,
+                      decoration:
+                          const InputDecoration(labelText: 'Número Empleado'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                      onSaved: (String? value) {
+                        employee.code = value!;
+                      },
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: employee.firstName,
+                      decoration: const InputDecoration(labelText: 'Nombre(s)'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                      onSaved: (String? value) {
+                        employee.firstName = value!;
+                      },
+                    ))
+              ]),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: employee.lastName1,
+                      decoration:
+                          const InputDecoration(labelText: 'Primer Apellido'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                      onSaved: (String? value) {
+                        employee.lastName1 = value!;
+                      },
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: employee.lastName2,
+                      decoration:
+                          const InputDecoration(labelText: 'Segundo Apellido'),
+                      onSaved: (String? value) {
+                        employee.lastName2 = value!;
+                      },
+                    ))
+              ]),
+              Row(children: [
+                Expanded(
+                    flex: 3,
+                    child: TextFormField(
+                      initialValue: employee.email,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                      onSaved: (String? value) {
+                        employee.email = value!;
+                      },
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: employee.phone,
+                      decoration: const InputDecoration(labelText: 'Teléfono'),
+                      onSaved: (String? value) {
+                        employee.phone = value!;
+                      },
+                    )),
+              ]),
               TextFormField(
                 initialValue: employee.position,
                 decoration: const InputDecoration(labelText: 'Puesto'),
@@ -258,49 +300,44 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         })),
                 Expanded(flex: 4, child: bajaReason),
               ]),
-              TextFormField(
-                initialValue: toCurrency(employee.getSalary()),
-                decoration: const InputDecoration(labelText: 'Salario'),
-                onSaved: (String? value) {
-                  employeeSalary = fromCurrency(value!);
-                },
-              ),
-              TextFormField(
-                initialValue: employee.phone,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-                onSaved: (String? value) {
-                  employee.phone = value!;
-                },
-              ),
+              Row(children: [
+                // Add Expanded with DateTimePicker for Born date
+                Expanded(
+                    flex: 1,
+                    child: DateTimePicker(
+                        labelText: 'Fecha Nacimiento',
+                        firstDate: DateTime(DateTime.now().year - 100),
+                        lastDate: DateTime(DateTime.now().year - 15),
+                        selectedDate: employee.bornDate ??
+                            truncDate(DateTime(2000, 1, 1)),
+                        onSelectedDate: (DateTime? date) {
+                          if (date != null) {
+                            employee.bornDate = date;
+                          }
+                          setState(() {});
+                        })),
+
+                // Add Expanded with CustomSelectFormField for sex
+                Expanded(flex: 1, child: sexField),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 8, left: 5),
+                        child: TextFormField(
+                          initialValue: toCurrency(employeeSalary),
+                          decoration: const InputDecoration(
+                            labelText: 'Salario',
+                            contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          ),
+                          onSaved: (String? value) {
+                            employeeSalary = fromCurrency(value!);
+                          },
+                        ))),
+              ]),
               space(height: 30),
               Row(children: [
                 Expanded(flex: 1, child: Container()),
-                Expanded(
-                    flex: 2,
-                    child: saveBtnForm(
-                        context,
-                        save,
-                        // () {
-                        //   if (_formKey.currentState!.validate()) {
-                        //     _formKey.currentState!.save();
-                        //     if (employee.bajas.isNotEmpty) {
-                        //       employee.bajas.last.date = selectedBajaDate;
-                        //     } else {
-                        //       employee.bajas
-                        //           .add(Baja(date: selectedBajaDate, reason: ''));
-                        //     }
-                        //     if (employee.altas.isNotEmpty) {
-                        //       employee.altas.last.employmentPromotion =
-                        //           employmentPromotion;
-                        //       employee.altas.last.salary = employeeSalary;
-                        //     }
-                        //     employee.save();
-                        //     Navigator.of(context).pop(employee);
-                        //   } else {
-                        //     setState(() {});
-                        //   }
-                        //},
-                        null)),
+                Expanded(flex: 2, child: saveBtnForm(context, save, null)),
                 Expanded(flex: 1, child: Container()),
               ]),
             ],
@@ -674,9 +711,26 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
           });
         });
       }
-
-      // Add pathNIE
     }
+
+    for (Baja baja in selectedItem.bajas) {
+      listDocuments.add({
+        'type':
+            (baja.reason != null && baja.reason != '') ? baja.reason : 'Baja',
+        'desc': 'Finiquito',
+        'date': baja.date,
+        'path': baja.pathFiniquito
+      });
+      if (baja.extraDocument) {
+        listDocuments.add({
+          'type': baja.reason,
+          'desc': 'Carta de motivación',
+          'date': baja.date,
+          'path': baja.pathExtraDoc
+        });
+      }
+    }
+
     return SingleChildScrollView(
         child: SizedBox(
             width: double.infinity,

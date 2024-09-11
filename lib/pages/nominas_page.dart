@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/keep/v1.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
@@ -9,6 +10,7 @@ import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
@@ -100,150 +102,156 @@ class _NominasPageState extends State<NominasPage> {
 
     nominas.sort(compareNomina);
 
+    Widget dataTable = DataTable(
+      sortAscending: sortAsc == 1,
+      sortColumnIndex: sortColumnIndex,
+      showCheckboxColumn: false,
+      headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.hovered)) {
+          return headerListBgColor.withOpacity(0.5);
+        }
+        return headerListBgColor;
+      }),
+      columns: [
+        'Código',
+        'Días',
+        'Fecha',
+        'Neto',
+        'Deducciones',
+        'SSTrab',
+        'Bruto',
+        'SSEmp',
+        'Total',
+        ''
+      ]
+          .map((e) => DataColumn(
+              onSort: (e != '')
+                  ? (columnIndex, ascending) {
+                      sortColumnIndex = columnIndex;
+                      sortAsc = ascending ? 1 : -1;
+                      contentPanel = content(context);
+                      if (mounted) setState(() {});
+                    }
+                  : null,
+              label: Text(
+                e,
+                style: headerListStyle,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              )))
+          .toList(),
+      rows: nominas
+          .map((e) => DataRow(
+                  color: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.08);
+                    }
+                    if (nominas.indexOf(e).isEven) {
+                      if (states.contains(MaterialState.hovered)) {
+                        return Colors.grey[300];
+                      }
+                      return Colors.grey[200];
+                    }
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.white.withOpacity(0.5);
+                    }
+                    return Colors.white;
+                  }),
+                  cells: [
+                    DataCell(Text(e.employeeCode)),
+                    (employees
+                            .where((element) => element.code == e.employeeCode)
+                            .isNotEmpty)
+                        ? DataCell(Text(employees
+                            .where((element) => element.code == e.employeeCode)
+                            .first
+                            .altaDays(date: e.date)
+                            .toString()))
+                        : const DataCell(Text('0')),
+                    DataCell(Text(DateFormat('dd/MM/yyyy').format(e.date))),
+                    DataCell(Text(toCurrency(e.netSalary))),
+                    DataCell(Text(toCurrency(e.deductions))),
+                    DataCell(Text(toCurrency(e.employeeSocialSecurity))),
+                    DataCell(Text(toCurrency(e.grossSalary))),
+                    DataCell(Text(toCurrency(e.employerSocialSecurity))),
+                    DataCell(Text(
+                        toCurrency(e.grossSalary + e.employerSocialSecurity))),
+                    DataCell(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          (e.noSignedPath != null)
+                              ? Tooltip(
+                                  message: 'Descargar nómina sin firmar',
+                                  child: iconBtn(context, (context) {
+                                    e.noSignedFileUrl().then((value) {
+                                      final Uri toDownload = Uri.parse(value);
+                                      html.window.open(
+                                          toDownload.toString(), 'Download');
+                                    });
+                                  }, null, icon: Icons.download))
+                              : const Tooltip(
+                                  message: 'No hay archivo',
+                                  child: Icon(
+                                    Icons.not_interested,
+                                    color: Colors.red,
+                                  )),
+                          (e.signedPath != null)
+                              ? Tooltip(
+                                  message: 'Descargar nómina firmada',
+                                  child: iconBtn(context, (context) {
+                                    e.signedFileUrl().then((value) {
+                                      final Uri toDownload = Uri.parse(value);
+                                      html.window.open(
+                                          toDownload.toString(), 'Download');
+                                    });
+                                  }, null, icon: Icons.download))
+                              : const Tooltip(
+                                  message: 'No se ha firmado',
+                                  child: Icon(
+                                    Icons.not_interested,
+                                    color: Colors.red,
+                                  )),
+                          IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                dialogFormNomina(context, nominas.indexOf(e));
+                              }),
+                          removeConfirmBtn(context, () {
+                            e.delete().then((value) {
+                              nominas.remove(e);
+                              if (mounted)
+                                setState(() {
+                                  contentPanel = content(context);
+                                });
+                            });
+                          }, null),
+                        ],
+                      ),
+                    )
+                  ]))
+          .toList(),
+    );
+
     Widget listNominas = SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: SizedBox(
-            width: double.infinity,
-            child: DataTable(
-              sortAscending: sortAsc == 1,
-              sortColumnIndex: sortColumnIndex,
-              showCheckboxColumn: false,
-              headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                if (states.contains(MaterialState.hovered)) {
-                  return headerListBgColor.withOpacity(0.5);
-                }
-                return headerListBgColor;
-              }),
-              columns: [
-                'Código',
-                'Fecha',
-                'Neto',
-                'Deducciones',
-                'SSTrab',
-                'Bruto',
-                'SSEmp',
-                'Total',
-                ''
-              ]
-                  .map((e) => DataColumn(
-                      onSort: (e != '')
-                          ? (columnIndex, ascending) {
-                              sortColumnIndex = columnIndex;
-                              sortAsc = ascending ? 1 : -1;
-                              contentPanel = content(context);
-                              if (mounted) setState(() {});
-                            }
-                          : null,
-                      label: Text(
-                        e,
-                        style: headerListStyle,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      )))
-                  .toList(),
-              rows: nominas
-                  .map((e) => DataRow(
-                          color: MaterialStateProperty.resolveWith<Color?>(
-                              (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.selected)) {
-                              return Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.08);
-                            }
-                            if (nominas.indexOf(e).isEven) {
-                              if (states.contains(MaterialState.hovered)) {
-                                return Colors.grey[300];
-                              }
-                              return Colors.grey[200];
-                            }
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.white.withOpacity(0.5);
-                            }
-                            return Colors.white;
-                          }),
-                          cells: [
-                            DataCell(Text(e.employeeCode)),
-                            DataCell(
-                                Text(DateFormat('dd/MM/yyyy').format(e.date))),
-                            DataCell(Text(toCurrency(e.netSalary))),
-                            DataCell(Text(toCurrency(e.deductions))),
-                            DataCell(
-                                Text(toCurrency(e.employeeSocialSecurity))),
-                            DataCell(Text(toCurrency(e.grossSalary))),
-                            DataCell(
-                                Text(toCurrency(e.employerSocialSecurity))),
-                            DataCell(Text(toCurrency(
-                                e.grossSalary + e.employerSocialSecurity))),
-                            DataCell(
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  (e.noSignedPath != null)
-                                      ? Tooltip(
-                                          message:
-                                              'Descarcar nómina sin firmar',
-                                          child: iconBtn(context, (context) {
-                                            e.noSignedFileUrl().then((value) {
-                                              final Uri toDownload =
-                                                  Uri.parse(value);
-                                              html.window.open(
-                                                  toDownload.toString(),
-                                                  'Download');
-                                            });
-                                          }, null, icon: Icons.download))
-                                      : const Tooltip(
-                                          message: 'No hay archivo',
-                                          child: Icon(
-                                            Icons.not_interested,
-                                            color: Colors.red,
-                                          )),
-                                  (e.signedPath != null)
-                                      ? Tooltip(
-                                          message: 'Descargar nómina firmada',
-                                          child: iconBtn(context, (context) {
-                                            e.signedFileUrl().then((value) {
-                                              final Uri toDownload =
-                                                  Uri.parse(value);
-                                              html.window.open(
-                                                  toDownload.toString(),
-                                                  'Download');
-                                            });
-                                          }, null, icon: Icons.download))
-                                      : const Tooltip(
-                                          message: 'No se ha firmado',
-                                          child: Icon(
-                                            Icons.not_interested,
-                                            color: Colors.red,
-                                          )),
-                                  IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () {
-                                        dialogFormNomina(
-                                            context, nominas.indexOf(e));
-                                      }),
-                                  removeConfirmBtn(context, () {
-                                    e.delete().then((value) {
-                                      nominas.remove(e);
-                                      if (mounted)
-                                        setState(() {
-                                          contentPanel = content(context);
-                                        });
-                                    });
-                                  }, null),
-                                ],
-                              ),
-                            )
-                          ]))
-                  .toList(),
-            )));
-
+        child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal, child: dataTable));
     return Card(
       child: Column(children: [
         titleBar,
         Padding(padding: const EdgeInsets.all(5), child: toolsNomina),
+        (MediaQuery.of(context).size.width < 1300)
+            ? Center(
+                child: Text('Scroll horizontal para ver más datos',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12)))
+            : Container(),
         Padding(padding: const EdgeInsets.all(5), child: listNominas),
       ] // ListView.builder
           ),
@@ -319,6 +327,7 @@ class _NominasPageState extends State<NominasPage> {
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,
+              footer(context)
             ],
           ),
         ),
