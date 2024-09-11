@@ -241,7 +241,10 @@ class _NominasPageState extends State<NominasPage> {
 
     Widget listNominas = SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
+        child: 
+        
+        SingleChildScrollView(
+            controller: ScrollController(),
             scrollDirection: Axis.horizontal, child: dataTable));
     return Card(
       child: Column(children: [
@@ -317,7 +320,9 @@ class _NominasPageState extends State<NominasPage> {
       );
     } else {
       return Scaffold(
-        body: Center(
+        body: SingleChildScrollView(child:
+        
+        Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -331,7 +336,7 @@ class _NominasPageState extends State<NominasPage> {
             ],
           ),
         ),
-      );
+      ));
     }
   }
 }
