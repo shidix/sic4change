@@ -10,15 +10,15 @@ import 'package:sic4change/widgets/common_widgets.dart';
 int notif = 0;
 //Color notifColor = Colors.white54;
 
-Widget userWidget(context, user, url) {
+/*Widget userWidget(context, user, url) {
   return Column(children: [
-    (notif > 0)
+    /*(notif > 0)
         ? notificationsBadge(context, user.email, notif.toString(), url)
-        : Container(),
+        : Container(),*/
     //space(height: 5),
     customText(user.email!, 14, textColor: Colors.white54),
   ]);
-}
+}*/
 
 Widget mainMenuUser(context, [user, url]) {
   return Container(
@@ -56,7 +56,13 @@ Widget mainMenuUser(context, [user, url]) {
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
-        if (user != null) userWidget(context, user, url),
+        //if (user != null) userWidget(context, user, url),
+
+        if (user != null)
+          Container(
+            padding: const EdgeInsets.only(top: 23),
+            child: customText(user.email!, 14, textColor: Colors.white54),
+          )
       ],
     ),
   );

@@ -14,7 +14,7 @@ void createNotification(String sender, List receivers, String msg) {
 
 Widget notificationsBadge(context, user, notif, url) {
   return badges.Badge(
-    position: badges.BadgePosition.topEnd(top: 5, end: 0),
+    position: badges.BadgePosition.topEnd(top: 3, end: -3),
     badgeContent: customText(notif, 10),
     badgeStyle: badges.BadgeStyle(
       shape: badges.BadgeShape.square,
@@ -25,7 +25,11 @@ Widget notificationsBadge(context, user, notif, url) {
       elevation: 0,
     ),
     child: IconButton(
-      icon: const Icon(Icons.notifications, color: Colors.white54),
+      icon: const Icon(
+        Icons.notifications,
+        color: Colors.white54,
+        size: 18,
+      ),
       onPressed: () {
         notificationsDialog(context, user, url);
       },

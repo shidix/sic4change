@@ -15,6 +15,7 @@ import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -218,10 +219,20 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          mainMenuWidget,
-          Container(
-            height: 10,
+          Stack(
+            children: [
+              mainMenuWidget,
+              Positioned(
+                top: 10,
+                right: 50,
+                child: (notif > 0)
+                    ? notificationsBadge(
+                        context, user.email, notif.toString(), "/home")
+                    : Container(),
+              )
+            ],
           ),
+          space(height: 10),
           // topButtons(context),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1462,6 +1473,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
         color: Colors.white,
         child: DataTable(
+          showCheckboxColumn: false,
           columns: [
             DataColumn(
                 label: customText("Notificación", 16,
@@ -1477,6 +1489,18 @@ class _HomePageState extends State<HomePage> {
           rows: notificationList
               .map(
                 (notify) => DataRow(
+                    onSelectChanged: (bool? selected) {
+                      if (notify.readed) {
+                        notify.readed = false;
+                        notify.save();
+                        notif += 1;
+                      } else {
+                        notify.readed = true;
+                        notify.save();
+                        notif += -1;
+                      }
+                      setState(() {});
+                    },
                     color: (notify.readed)
                         ? MaterialStateColor.resolveWith(
                             (states) => Colors.white)
@@ -1488,16 +1512,12 @@ class _HomePageState extends State<HomePage> {
                         Text(DateFormat('yyyy-MM-dd').format(notify.date)),
                       ),
                       DataCell(Row(children: [
-                        /*removeConfirmBtn(context, () {
-                                  task.delete();
-                                  sendAnalyticsEvent("Tareas",
-                                      "Eliminada tarea: ${task.name}");
-
-                                  setState(() {
-                                    myTasks.remove(task);
-                                    tasksUser.remove(task);
-                                  });
-                                }, null),*/
+                        removeConfirmBtn(context, () {
+                          notify.delete();
+                          setState(() {
+                            notificationList.remove(notify);
+                          });
+                        }, null),
                       ]))
                     ]),
               )
