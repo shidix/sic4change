@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
   List<SProject>? myProjects;
 
   List notificationList = [];
+  List logList = [];
 
   @override
   void dispose() {
@@ -187,6 +188,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void getLogs() async {
+    SLogs.getLogs(user.email).then((val) {
+      logList = val;
+      setState(() {});
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -210,6 +218,7 @@ class _HomePageState extends State<HomePage> {
 
       notif = 0;
       getNotifications();
+      getLogs();
     }
   }
 
@@ -252,6 +261,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(flex: 1, child: projectsPanel(context)),
+              Expanded(flex: 1, child: logsPanel(context)),
             ],
           ),
           footer(context),
@@ -1470,62 +1480,87 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget notifyPanelContent() {
-    return Container(
-        color: Colors.white,
-        child: DataTable(
-          showCheckboxColumn: false,
-          columns: [
-            DataColumn(
-                label: customText("Notificación", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Usuario", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Fecha", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(label: Container()),
-          ],
-          rows: notificationList
-              .map(
-                (notify) => DataRow(
-                    onSelectChanged: (bool? selected) {
-                      if (notify.readed) {
-                        notify.readed = false;
-                        notify.save();
-                        notif += 1;
-                      } else {
-                        notify.readed = true;
-                        notify.save();
-                        notif += -1;
-                      }
-                      setState(() {});
-                    },
-                    color: (notify.readed)
-                        ? MaterialStateColor.resolveWith(
-                            (states) => Colors.white)
-                        : MaterialStateColor.resolveWith((states) => greyColor),
-                    cells: [
-                      DataCell(Text(notify.msg)),
-                      DataCell(Text(notify.sender)),
-                      DataCell(
-                        Text(DateFormat('yyyy-MM-dd').format(notify.date)),
-                      ),
-                      DataCell(Row(children: [
-                        removeConfirmBtn(context, () {
-                          notify.delete();
-                          setState(() {
-                            notificationList.remove(notify);
-                          });
-                        }, null),
-                      ]))
-                    ]),
-              )
-              .toList(),
-        ));
+    return SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Container(
+            color: Colors.white,
+            child: SizedBox(
+                width: double.infinity,
+                height: 190,
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  columns: [
+                    DataColumn(
+                        label: customText("Notificación", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(
+                        label: customText("Usuario", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(
+                        label: customText("Fecha", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(label: Container()),
+                  ],
+                  rows: notificationList
+                      .map(
+                        (notify) => DataRow(
+                            onSelectChanged: (bool? selected) {
+                              if (notify.readed) {
+                                notify.readed = false;
+                                notify.save();
+                                notif += 1;
+                              } else {
+                                notify.readed = true;
+                                notify.save();
+                                notif += -1;
+                              }
+                              setState(() {});
+                            },
+                            color: (notify.readed)
+                                ? MaterialStateColor.resolveWith(
+                                    (states) => Colors.white)
+                                : MaterialStateColor.resolveWith(
+                                    (states) => greyColor),
+                            cells: [
+                              DataCell(Text(notify.msg)),
+                              DataCell(Text(notify.sender)),
+                              DataCell(
+                                Text(DateFormat('yyyy-MM-dd')
+                                    .format(notify.date)),
+                              ),
+                              DataCell(Row(children: [
+                                removeConfirmBtn(context, () {
+                                  notify.delete();
+                                  setState(() {
+                                    notificationList.remove(notify);
+                                  });
+                                }, null),
+                              ]))
+                            ]),
+                      )
+                      .toList(),
+                ))));
   }
 
   Widget notifyPanel(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Card(
+            /*decoration: tabDecoration,
+            padding: const EdgeInsets.all(2),*/
+            child: Column(
+          children: [
+            notifyPanelHead(),
+            notifyPanelContent(),
+            /*notifyPanelSubHead(),
+                Divider(
+                  height: 1,
+                  color: Colors.grey[300],
+                ),
+                notifyPanelContentOld(),*/
+          ],
+        )));
+
     /*List holidayPeriods = [];
     for (int i = 0; i < 5; i++) {
       DateTime from = DateTime(DateTime.now().year, 1, 1)
@@ -1534,7 +1569,7 @@ class _HomePageState extends State<HomePage> {
       holidayPeriods.add([from, to]);
     }
     holidayPeriods.sort((a, b) => a.elementAt(0).compareTo(b.elementAt(0)));*/
-    return Padding(
+    /*return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
             //decoration: homePanelDecoration,
@@ -1550,7 +1585,7 @@ class _HomePageState extends State<HomePage> {
                 notifyPanelContentOld(),*/
                 notifyPanelContent(),
               ],
-            )));
+            )));*/
   }
 
 /////////// PROJECTS ///////////
@@ -1742,5 +1777,98 @@ class _HomePageState extends State<HomePage> {
                           )),
               ],
             )));
+  }
+
+/////////// LOGS ///////////
+
+  Widget logsPanelHead() {
+    return Container(
+        padding: const EdgeInsets.all(10),
+        color: Colors.grey[100],
+        child: Row(
+          children: [
+            Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Card(
+                      child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+                    child: Icon(Icons.notifications_active, color: Colors.red),
+                  )),
+                )),
+            Expanded(
+                flex: 7,
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                "Logs",
+                                style: cardHeaderText,
+                              )),
+                          Text(dateToES(DateTime.now()), style: subTitleText)
+                        ]))),
+          ],
+        ));
+  }
+
+  Widget logsPanelContent() {
+    return SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Container(
+            color: Colors.white,
+            child: SizedBox(
+                width: double.infinity,
+                height: 190,
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  columns: [
+                    DataColumn(
+                        label: customText("Fecha", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(
+                        label: customText("Usuario", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(
+                        label: customText("Log", 16,
+                            bold: FontWeight.bold, textColor: subTitleColor)),
+                    DataColumn(label: Container()),
+                  ],
+                  rows: logList
+                      .map(
+                        (log) => DataRow(cells: [
+                          DataCell(
+                            Text(DateFormat('yyyy-MM-dd').format(log.date)),
+                          ),
+                          DataCell(Text(log.user)),
+                          DataCell(Text(log.msg)),
+                          DataCell(Row(children: [
+                            /*removeConfirmBtn(context, () {
+                                  notify.delete();
+                                  setState(() {
+                                    notificationList.remove(notify);
+                                  });
+                                }, null),*/
+                          ]))
+                        ]),
+                      )
+                      .toList(),
+                ))));
+  }
+
+  Widget logsPanel(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Card(
+            child: Column(
+          children: [
+            logsPanelHead(),
+            logsPanelContent(),
+          ],
+        )));
   }
 }

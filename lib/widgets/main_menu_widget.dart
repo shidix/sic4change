@@ -60,7 +60,7 @@ Widget mainMenuUser(context, [user, url]) {
 
         if (user != null)
           Container(
-            padding: const EdgeInsets.only(top: 23),
+            padding: const EdgeInsets.only(top: 22),
             child: customText(user.email!, 14, textColor: Colors.white54),
           )
       ],

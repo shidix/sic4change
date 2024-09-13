@@ -693,3 +693,64 @@ class SNotification {
     return items;
   }
 }
+
+//--------------------------------------------------------------
+//                       LOGS
+//--------------------------------------------------------------
+CollectionReference dbLogs = db.collection("s4c_logs");
+
+class SLogs {
+  String id = "";
+  String uuid = "";
+  String user;
+  String msg = "";
+  DateTime date = DateTime.now();
+
+  SLogs(this.user);
+
+  SLogs.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        uuid = json["uuid"],
+        user = json['user'],
+        date = json['date'].toDate(),
+        msg = json['msg'];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'uuid': uuid,
+        'user': user,
+        'date': date,
+        'msg': msg,
+      };
+
+  KeyValue toKeyValue() {
+    return KeyValue(uuid, msg);
+  }
+
+  Future<void> save() async {
+    if (id == "") {
+      var newUuid = const Uuid();
+      uuid = newUuid.v4();
+      Map<String, dynamic> data = toJson();
+      dbLogs.add(data).then((value) => id = value.id);
+    } else {
+      Map<String, dynamic> data = toJson();
+      dbLogs.doc(id).set(data);
+    }
+  }
+
+  Future<void> delete() async {
+    await dbLogs.doc(id).delete();
+  }
+
+  static Future<List> getLogs(user) async {
+    List<SLogs> items = [];
+    QuerySnapshot query = await dbLogs.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(SLogs.fromJson(data));
+    }
+    return items;
+  }
+}

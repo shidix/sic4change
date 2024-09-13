@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
 import 'package:sic4change/services/log_lib.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -360,7 +361,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                                   task.delete();
                                   sendAnalyticsEvent("Tareas",
                                       "Eliminada tarea: ${task.name}");
-
+                                  createLog(task.sender,
+                                      "Se ha eliminado la tarea ${task.name}");
                                   setState(() {
                                     myTasks.remove(task);
                                     tasksUser.remove(task);
@@ -403,6 +405,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     task.save();
     await task.loadObjs();
     sendAnalyticsEvent("Tareas", "Nueva tarea: ${task.name}");
+    createLog(task.sender, "Se ha creado la tarea ${task.name}");
     createNotification(
         task.sender, task.assigned, "Se le ha asignado la tarea ${task.name}");
 
