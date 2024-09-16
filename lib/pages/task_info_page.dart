@@ -36,21 +36,45 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   List<TasksStatus> statusListCache = [];
 
   void updateObjects() {
-    task!.assignedObj = profileListCache
-        .where((prof) => task!.assigned.contains(prof.email))
-        .toList();
-    task!.receiversOrgObj = orgListCache
-        .where((org) => task!.receiversOrg.contains(org.uuid))
-        .toList();
-    task!.receiversObj = contactListCache
-        .where((contact) => task!.receivers.contains(contact.uuid))
-        .toList();
-    task!.projectObj =
-        projectListCache.firstWhere((proj) => proj.uuid == task!.project);
-    task!.programmeObj =
-        programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
-    task!.statusObj =
-        statusListCache.firstWhere((status) => status.uuid == task!.status);
+    try {
+      task!.assignedObj = profileListCache
+          .where((prof) => task!.assigned.contains(prof.email))
+          .toList();
+    } catch (e) {
+      print(e);
+    }
+    try {
+      task!.receiversOrgObj = orgListCache
+          .where((org) => task!.receiversOrg.contains(org.uuid))
+          .toList();
+    } catch (e) {
+      print(e);
+    }
+    try {
+      task!.receiversObj = contactListCache
+          .where((contact) => task!.receivers.contains(contact.uuid))
+          .toList();
+    } catch (e) {
+      print(e);
+    }
+    try {
+      task!.projectObj =
+          projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+    } catch (e) {
+      print(e);
+    }
+    try {
+      task!.programmeObj =
+          programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
+    } catch (e) {
+      print(e);
+    }
+    try {
+      task!.statusObj =
+          statusListCache.firstWhere((status) => status.uuid == task!.status);
+    } catch (e) {
+      print(e);
+    }
     if (mounted) {
       setState(() {});
     }
