@@ -293,7 +293,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
 
   Widget customSearchBar(int table) {
     return SizedBox(
-        width: 100,
+        //width: 100,
         height: 40,
         child: SearchBar(
           hintStyle:
@@ -314,67 +314,68 @@ class _TasksUserPageState extends State<TasksUserPage> {
 
   //SingleChildScrollView dataBody(context, List taskList, int table) {
   Widget dataBody(context, List taskList, int table) {
-    /*return SingleChildScrollView(
+    return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          customSearchBar(table),
-          space(height: 10),
-          */
-    return SizedBox(
-      width: double.infinity,
-      child: DataTable(
-        sortAscending: sortAsc,
-        sortColumnIndex: sortColumnIndex,
-        showCheckboxColumn: false,
-        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-          if (states.contains(MaterialState.hovered)) {
-            return headerListBgColor.withOpacity(0.5);
-          }
-          return headerListBgColor;
-        }),
-        columns: columnList(table),
-        //rows: tasksUser.isEmpty
-        rows: taskList.isEmpty
-            ? [emptyRow()]
-            //: tasksUser
-            : taskList
-                .map(
-                  (task) => DataRow(cells: [
-                    DataCell(Text(task.name)),
-                    DataCell(
-                      Text(DateFormat('yyyy-MM-dd').format(task.dealDate)),
-                    ),
-                    DataCell(Text(
-                        DateFormat('yyyy-MM-dd').format(task.deadLineDate))),
-                    //DataCell(Text(task.getAssignedStr())),
-                    DataCell(Text(task.assignedStr)),
-                    DataCell(customTextStatus(task.statusObj.name, size: 14)),
-                    DataCell(customText(task.rel, 14)),
-                    DataCell(Row(children: [
-                      goPageIcon(context, "Ver", Icons.view_compact,
-                          TaskInfoPage(task: task)),
-                      removeConfirmBtn(context, () {
-                        task.delete();
-                        sendAnalyticsEvent(
-                            "Tareas", "Eliminada tarea: ${task.name}");
-                        createLog(task.sender,
-                            "Se ha eliminado la tarea ${task.name}");
-                        setState(() {
-                          myTasks.remove(task);
-                          tasksUser.remove(task);
-                        });
-                      }, null),
-                    ]))
-                  ]),
-                )
-                .toList(),
-      ),
-    );
-    //]);
+            //mainAxisAlignment: MainAxisAlignment.start,
+            //crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              customSearchBar(table),
+              space(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: DataTable(
+                  sortAscending: sortAsc,
+                  sortColumnIndex: sortColumnIndex,
+                  showCheckboxColumn: false,
+                  headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return headerListBgColor.withOpacity(0.5);
+                    }
+                    return headerListBgColor;
+                  }),
+                  columns: columnList(table),
+                  //rows: tasksUser.isEmpty
+                  rows: taskList.isEmpty
+                      ? [emptyRow()]
+                      //: tasksUser
+                      : taskList
+                          .map(
+                            (task) => DataRow(cells: [
+                              DataCell(Text(task.name)),
+                              DataCell(
+                                Text(DateFormat('yyyy-MM-dd')
+                                    .format(task.dealDate)),
+                              ),
+                              DataCell(Text(DateFormat('yyyy-MM-dd')
+                                  .format(task.deadLineDate))),
+                              //DataCell(Text(task.getAssignedStr())),
+                              DataCell(Text(task.assignedStr)),
+                              DataCell(customTextStatus(task.statusObj.name,
+                                  size: 14)),
+                              DataCell(customText(task.rel, 14)),
+                              DataCell(Row(children: [
+                                goPageIcon(context, "Ver", Icons.view_compact,
+                                    TaskInfoPage(task: task)),
+                                removeConfirmBtn(context, () {
+                                  task.delete();
+                                  sendAnalyticsEvent("Tareas",
+                                      "Eliminada tarea: ${task.name}");
+                                  createLog(task.sender,
+                                      "Se ha eliminado la tarea ${task.name}");
+                                  setState(() {
+                                    myTasks.remove(task);
+                                    tasksUser.remove(task);
+                                  });
+                                }, null),
+                              ]))
+                            ]),
+                          )
+                          .toList(),
+                ),
+              ),
+            ]));
   }
 
 /*--------------------------------------------------------------------*/
