@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
+import 'package:sic4change/pages/log_page.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/index.dart';
 
@@ -72,6 +73,7 @@ class MyApp extends StatelessWidget {
     '/profile': (context) => const ProfilePage(),
     '/admin': (context) => const AdminPage(),
     '/invoices': (context) => InvoicePage(),
+    '/logs': (context) => const LogPage(),
   };
 
   @override

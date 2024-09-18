@@ -188,12 +188,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void getLogs() async {
-    SLogs.getLogs(user.email).then((val) {
+  /*void getLogs() async {
+    SLogs.getLogs().then((val) {
       logList = val;
       setState(() {});
     });
-  }
+  }*/
 
   @override
   void initState() {
@@ -218,7 +218,7 @@ class _HomePageState extends State<HomePage> {
 
       notif = 0;
       getNotifications();
-      getLogs();
+      //getLogs();
     }
   }
 
@@ -261,7 +261,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(flex: 1, child: projectsPanel(context)),
-              Expanded(flex: 1, child: logsPanel(context)),
+              //Expanded(flex: 1, child: logsPanel(context)),
             ],
           ),
           footer(context),
@@ -1480,66 +1480,67 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget notifyPanelContent() {
-    return SingleChildScrollView(
+/*    return SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: Container(
-            color: Colors.white,
-            child: SizedBox(
-                width: double.infinity,
-                height: 190,
-                child: DataTable(
-                  showCheckboxColumn: false,
-                  columns: [
-                    DataColumn(
-                        label: customText("Notificación", 16,
-                            bold: FontWeight.bold, textColor: subTitleColor)),
-                    DataColumn(
-                        label: customText("Usuario", 16,
-                            bold: FontWeight.bold, textColor: subTitleColor)),
-                    DataColumn(
-                        label: customText("Fecha", 16,
-                            bold: FontWeight.bold, textColor: subTitleColor)),
-                    DataColumn(label: Container()),
-                  ],
-                  rows: notificationList
-                      .map(
-                        (notify) => DataRow(
-                            onSelectChanged: (bool? selected) {
-                              if (notify.readed) {
-                                notify.readed = false;
-                                notify.save();
-                                notif += 1;
-                              } else {
-                                notify.readed = true;
-                                notify.save();
-                                notif += -1;
-                              }
-                              setState(() {});
-                            },
-                            color: (notify.readed)
-                                ? MaterialStateColor.resolveWith(
-                                    (states) => Colors.white)
-                                : MaterialStateColor.resolveWith(
-                                    (states) => greyColor),
-                            cells: [
-                              DataCell(Text(notify.msg)),
-                              DataCell(Text(notify.sender)),
-                              DataCell(
-                                Text(DateFormat('yyyy-MM-dd')
-                                    .format(notify.date)),
-                              ),
-                              DataCell(Row(children: [
-                                removeConfirmBtn(context, () {
-                                  notify.delete();
-                                  setState(() {
-                                    notificationList.remove(notify);
-                                  });
-                                }, null),
-                              ]))
-                            ]),
-                      )
-                      .toList(),
-                ))));
+        child: Column(children: [*/
+    //Container(
+    //  color: Colors.white,
+    //child: SizedBox(
+    return SizedBox(
+        width: double.infinity,
+        //height: 100,
+        child: DataTable(
+          showCheckboxColumn: false,
+          columns: [
+            DataColumn(
+                label: customText("Notificación", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(
+                label: customText("Usuario", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(
+                label: customText("Fecha", 16,
+                    bold: FontWeight.bold, textColor: subTitleColor)),
+            DataColumn(label: Container()),
+          ],
+          rows: notificationList
+              .map(
+                (notify) => DataRow(
+                    onSelectChanged: (bool? selected) {
+                      if (notify.readed) {
+                        notify.readed = false;
+                        notify.save();
+                        notif += 1;
+                      } else {
+                        notify.readed = true;
+                        notify.save();
+                        notif += -1;
+                      }
+                      setState(() {});
+                    },
+                    color: (notify.readed)
+                        ? MaterialStateColor.resolveWith(
+                            (states) => Colors.white)
+                        : MaterialStateColor.resolveWith((states) => greyColor),
+                    cells: [
+                      DataCell(Text(notify.msg)),
+                      DataCell(Text(notify.sender)),
+                      DataCell(
+                        Text(DateFormat('yyyy-MM-dd').format(notify.date)),
+                      ),
+                      DataCell(Row(children: [
+                        removeConfirmBtn(context, () {
+                          notify.delete();
+                          setState(() {
+                            notificationList.remove(notify);
+                          });
+                        }, null),
+                      ]))
+                    ]),
+              )
+              .toList(),
+        )); //)
+    //]));
   }
 
   Widget notifyPanel(BuildContext context) {
@@ -1781,7 +1782,7 @@ class _HomePageState extends State<HomePage> {
 
 /////////// LOGS ///////////
 
-  Widget logsPanelHead() {
+  /*Widget logsPanelHead() {
     return Container(
         padding: const EdgeInsets.all(10),
         color: Colors.grey[100],
@@ -1814,9 +1815,9 @@ class _HomePageState extends State<HomePage> {
                         ]))),
           ],
         ));
-  }
+  }*/
 
-  Widget logsPanelContent() {
+  /*Widget logsPanelContent() {
     return SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Container(
@@ -1858,9 +1859,9 @@ class _HomePageState extends State<HomePage> {
                       )
                       .toList(),
                 ))));
-  }
+  }*/
 
-  Widget logsPanel(BuildContext context) {
+  /*Widget logsPanel(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Card(
@@ -1870,5 +1871,5 @@ class _HomePageState extends State<HomePage> {
             logsPanelContent(),
           ],
         )));
-  }
+  }*/
 }

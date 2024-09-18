@@ -688,7 +688,8 @@ class SNotification {
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      items.add(SNotification.fromJson(data));
+      SNotification item = SNotification.fromJson(data);
+      items.add(item);
     }
     return items;
   }
@@ -743,7 +744,7 @@ class SLogs {
     await dbLogs.doc(id).delete();
   }
 
-  static Future<List> getLogs(user) async {
+  static Future<List> getLogs() async {
     List<SLogs> items = [];
     QuerySnapshot query = await dbLogs.get();
     for (var doc in query.docs) {

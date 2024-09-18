@@ -96,6 +96,9 @@ Widget mainMenuAdmin(context, [user, url]) {
             color: (url == "/admin")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
+        menuBtn(context, "Logs", Icons.settings, "/logs",
+            color:
+                (url == "/Logs") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           menuBtn(context, user.email!, Icons.supervised_user_circle_outlined,
