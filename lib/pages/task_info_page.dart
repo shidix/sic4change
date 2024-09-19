@@ -623,6 +623,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     TasksComments comment = args[0];
     comment.user = user.email;
     comment.save();
+    await comment.getUser();
     taskComments.add(comment);
     setState(() {});
 
