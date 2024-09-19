@@ -298,6 +298,19 @@ class _NominasPageState extends State<NominasPage> {
     );
   }
 
+  Nomina copyNomina(Nomina nomina) {
+
+    // Clone object nomina
+
+
+
+    nomina.id = "";
+    nomina.date = nomina.date.add(const Duration(days:31));
+    nomina.save();
+    return nomina;
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     // return to login_page if profile is null
