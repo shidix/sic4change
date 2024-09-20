@@ -40,8 +40,8 @@ class _NominaFormState extends State<NominaForm> {
             KeyValue(e.code, "${e.firstName} ${e.lastName1} ${e.lastName2}"))
         .toList();
     nomina = widget.selectedItem;
-    if (nomina.noSignedPath.isNotEmpty) {
-      noSignedFileMsg = nomina.noSignedPath.split("/").last;
+    if (nomina.noSignedPath!.isNotEmpty) {
+      noSignedFileMsg = nomina.noSignedPath!.split("/").last;
     }
     oldNominas = Nomina(
         employeeCode: nomina.employeeCode,
@@ -136,7 +136,7 @@ class _NominaFormState extends State<NominaForm> {
             nomina.save();
             Navigator.of(context).pop(nomina);
           });
-        } else if (nomina.noSignedPath.isNotEmpty) {
+        } else if (nomina.noSignedPath!.isNotEmpty) {
           nomina.save();
           Navigator.of(context).pop(nomina);
         } else {
@@ -360,7 +360,7 @@ class _NominaFormState extends State<NominaForm> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      nomina.noSignedPath.isNotEmpty
+                      nomina.noSignedPath!.isNotEmpty
                           ? Card(
                               child: Column(
                               children: [
@@ -371,7 +371,7 @@ class _NominaFormState extends State<NominaForm> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       iconBtn(context, (context) {
-                                        downloadFileUrl(nomina.noSignedPath);
+                                        downloadFileUrl(nomina.noSignedPath!);
                                       }, null, icon: Icons.download),
                                       const SizedBox(width: 10),
                                       removeConfirmBtn(context, () {

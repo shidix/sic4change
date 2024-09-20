@@ -1,8 +1,12 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, curly_braces_in_flow_control_structures
 
+import 'dart:js_interop_unsafe';
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/keep/v1.dart';
+import 'package:googleapis/photoslibrary/v1.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
@@ -28,10 +32,13 @@ class _NominasPageState extends State<NominasPage> {
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
+  List<bool> nominasFiltered = [];
   List<Employee> employees = [];
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
   Widget secondaryMenuPanel = const Row(children: []);
+  String dateFilter = '';
+  String employeeFilter = '';
 
   int sortAsc = 1;
   int sortColumnIndex = 0;
@@ -70,6 +77,7 @@ class _NominasPageState extends State<NominasPage> {
     Nomina.getNominas(employeeCode: widget.codeEmployee).then((value) {
       nominas = value;
       nominas.sort((a, b) => a.compareTo(b));
+      nominasFiltered = List.filled(nominas.length, true);
       if (mounted) {
         setState(() {
           contentPanel = content(context);
@@ -101,6 +109,90 @@ class _NominasPageState extends State<NominasPage> {
     );
 
     nominas.sort(compareNomina);
+    // a widtget to filter the rows, with a text field by column
+    Widget filterPanel = Row(
+      children: [
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Filtrar por empleado',
+                hintText: 'Nombre, apellidos o DNI/NIE/ID',
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                employeeFilter = value;
+              } else {
+                employeeFilter = '';
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Filtrar por fecha',
+                hintText: 'dd/mm/yyyy',
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                // if value has format dd/mm/yyyy  (use a regular expression)
+
+                if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(value)) {
+                  dateFilter = value;
+                } else {
+                  dateFilter = '';
+                }
+              }
+
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+      ],
+    );
+
+    if (employeeFilter.isNotEmpty) {
+      nominasFiltered = List.filled(nominas.length, false);
+      for (int i = 0; i < nominas.length; i++) {
+        if (employees
+                .where((element) => element.code == nominas[i].employeeCode)
+                .first
+                .getFullName()
+                .toLowerCase()
+                .contains(employeeFilter.toLowerCase()) ||
+            nominas[i]
+                .employeeCode
+                .toLowerCase()
+                .startsWith(employeeFilter.toLowerCase())) {
+          nominasFiltered[i] = true;
+        }
+      }
+    }
+
+    if (dateFilter.isNotEmpty) {
+      nominasFiltered = List.filled(nominas.length, false);
+      for (int i = 0; i < nominas.length; i++) {
+        if (DateFormat('dd/MM/yyyy').format(nominas[i].date) == dateFilter) {
+          nominasFiltered[i] = true;
+        }
+      }
+    }
+
+    List filteredNominas = nominas
+        .asMap()
+        .entries
+        .where((element) => nominasFiltered[element.key])
+        .map((e) => e.value)
+        .toList();
 
     Widget dataTable = DataTable(
       sortAscending: sortAsc == 1,
@@ -114,9 +206,11 @@ class _NominasPageState extends State<NominasPage> {
         return headerListBgColor;
       }),
       columns: [
-        'Código',
-        'Días',
-        'Fecha',
+        'DNI/NIE/ID',
+        'Nombre',
+        'Apellidos',
+        'Días Cotizados',
+        'Fecha Nómina',
         'Neto',
         'Deducciones',
         'SSTrab',
@@ -142,7 +236,7 @@ class _NominasPageState extends State<NominasPage> {
                 maxLines: 2,
               )))
           .toList(),
-      rows: nominas
+      rows: filteredNominas
           .map((e) => DataRow(
                   color: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
@@ -152,7 +246,7 @@ class _NominasPageState extends State<NominasPage> {
                           .primary
                           .withOpacity(0.08);
                     }
-                    if (nominas.indexOf(e).isEven) {
+                    if (filteredNominas.indexOf(e).isEven) {
                       if (states.contains(MaterialState.hovered)) {
                         return Colors.grey[300];
                       }
@@ -165,6 +259,12 @@ class _NominasPageState extends State<NominasPage> {
                   }),
                   cells: [
                     DataCell(Text(e.employeeCode)),
+                    DataCell(Text(employees
+                        .where((element) => element.code == e.employeeCode)
+                        .first
+                        .firstName)),
+                    DataCell(Text(
+                        '${employees.where((element) => element.code == e.employeeCode).first.lastName1} ${employees.where((element) => element.code == e.employeeCode).first.lastName2}')),
                     (employees
                             .where((element) => element.code == e.employeeCode)
                             .isNotEmpty)
@@ -223,11 +323,15 @@ class _NominasPageState extends State<NominasPage> {
                               onPressed: () {
                                 dialogFormNomina(context, nominas.indexOf(e));
                               }),
+                          iconBtn(context, dialogCopyNomina, e,
+                              icon: Icons.copy),
                           removeConfirmBtn(context, () {
                             e.delete().then((value) {
                               nominas.remove(e);
                               if (mounted)
                                 setState(() {
+                                  nominasFiltered =
+                                      List.filled(nominas.length, true);
                                   contentPanel = content(context);
                                 });
                             });
@@ -241,11 +345,10 @@ class _NominasPageState extends State<NominasPage> {
 
     Widget listNominas = SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: 
-        
-        SingleChildScrollView(
+        child: SingleChildScrollView(
             controller: ScrollController(),
-            scrollDirection: Axis.horizontal, child: dataTable));
+            scrollDirection: Axis.horizontal,
+            child: dataTable));
     return Card(
       child: Column(children: [
         titleBar,
@@ -255,6 +358,7 @@ class _NominasPageState extends State<NominasPage> {
                 child: Text('Scroll horizontal para ver más datos',
                     style: TextStyle(color: Colors.grey[600], fontSize: 12)))
             : Container(),
+        Padding(padding: const EdgeInsets.all(5), child: filterPanel),
         Padding(padding: const EdgeInsets.all(5), child: listNominas),
       ] // ListView.builder
           ),
@@ -298,17 +402,40 @@ class _NominasPageState extends State<NominasPage> {
     );
   }
 
-  Nomina copyNomina(Nomina nomina) {
+  void dialogCopyNomina(context, Nomina nomina) {
+    showDialog<Nomina>(
+        context: context,
+        builder: (BuildContext context) {
+          Nomina newNomina = Nomina.getEmpty();
+          newNomina.date = DateTime(nomina.date.year, nomina.date.month + 1,
+              min(nomina.date.day, 28));
+          newNomina.paymentDate = newNomina.date;
+          newNomina.employeeCode = nomina.employeeCode;
+          newNomina.netSalary = nomina.netSalary;
+          newNomina.deductions = nomina.deductions;
+          newNomina.employeeSocialSecurity = nomina.employeeSocialSecurity;
+          newNomina.grossSalary = nomina.grossSalary;
+          newNomina.employerSocialSecurity = nomina.employerSocialSecurity;
 
-    // Clone object nomina
-
-
-
-    nomina.id = "";
-    nomina.date = nomina.date.add(const Duration(days:31));
-    nomina.save();
-    return nomina;
-    
+          return AlertDialog(
+            title: s4cTitleBar('Nómina', context, Icons.add_outlined),
+            content: NominaForm(
+              selectedItem: newNomina,
+              employees: employees,
+            ),
+          );
+        }).then(
+      (value) {
+        if (value != null) {
+          nominas.add(value);
+          if (mounted) {
+            setState(() {
+              contentPanel = content(context);
+            });
+          }
+        }
+      },
+    );
   }
 
   @override
@@ -333,9 +460,8 @@ class _NominasPageState extends State<NominasPage> {
       );
     } else {
       return Scaffold(
-        body: SingleChildScrollView(child:
-        
-        Center(
+          body: SingleChildScrollView(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
