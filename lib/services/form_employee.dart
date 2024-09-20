@@ -257,8 +257,9 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 Expanded(
                     flex: 3,
                     child: DateTimePicker(
+                        key: UniqueKey(),
                         labelText: 'Fecha Alta',
-                        selectedDate: employee.getAltaDate(),
+                        selectedDate: selectedAltaDate,
                         onSelectedDate: (DateTime? date) {
                           if (date != null) {
                             selectedAltaDate = truncDate(date);
@@ -290,6 +291,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 Expanded(
                     flex: 3,
                     child: DateTimePicker(
+                        key: UniqueKey(),
                         labelText: 'Fecha Baja',
                         selectedDate: selectedBajaDate,
                         onSelectedDate: (DateTime? date) {
