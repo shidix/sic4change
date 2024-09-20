@@ -32,6 +32,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
   String selectedReason = '';
   String employmenPromotion = '';
 
+  late int reasonIndex;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +58,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     });
 
     BajaReason.getAll().then((value) {
+      value.sort((a, b) => a.order.compareTo(b.order));
       reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
       for (BajaReason item in value) {
         reasons[item.uuid!] = item;
@@ -87,8 +90,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
           employee.bajas.last.extraDocument =
               reasons[selectedReason]!.extraDocument;
         } else {
-          employee.bajas
-              .add(Baja(date: selectedBajaDate, reason: selectedReason));
+          employee.bajas.add(Baja(
+              date: selectedBajaDate, reason: reasons[selectedReason]!.name));
         }
 
         if (employee.altas.isNotEmpty) {
@@ -115,6 +118,20 @@ class _EmployeeFormState extends State<EmployeeForm> {
         required: true,
         onSelectedOpt: (value) {
           selectedReason = value;
+          if (reasons[value]!.order == 0) {
+            selectedBajaDate = DateTime(2099, 12, 31);
+            if (mounted) {
+              setState(() {});
+            }
+          } else {
+            if (selectedBajaDate.year == 2099) {
+              selectedBajaDate =
+                  selectedAltaDate.add(const Duration(days: 365));
+              if (mounted) {
+                setState(() {});
+              }
+            }
+          }
         });
 
     Widget sexField = CustomSelectFormField(
@@ -293,6 +310,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: DateTimePicker(
                         key: UniqueKey(),
                         labelText: 'Fecha Baja',
+                        readOnly: selectedBajaDate.year == 2099,
                         selectedDate: selectedBajaDate,
                         onSelectedDate: (DateTime? date) {
                           if (date != null) {

@@ -419,23 +419,27 @@ class BajaReason {
   String name;
   String? uuid;
   bool extraDocument = false;
+  int order;
 
   BajaReason({
     required this.name,
     this.uuid,
     this.extraDocument = false,
+    this.order = 1000,
   });
 
   factory BajaReason.fromJson(Map<String, dynamic> json) {
     return BajaReason(
         name: json['name'],
         extraDocument: json['extraDocument'],
+        order: json.containsKey('order') ? json['order'] : 1000,
         uuid: json.containsKey('uuid') ? json['uuid'] : null);
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'extraDocument': extraDocument,
+        'order': order,
         'uuid': uuid,
       };
 
