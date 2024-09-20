@@ -36,45 +36,21 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   List<TasksStatus> statusListCache = [];
 
   void updateObjects() {
-    try {
-      task!.assignedObj = profileListCache
-          .where((prof) => task!.assigned.contains(prof.email))
-          .toList();
-    } catch (e) {
-      print(e);
-    }
-    try {
-      task!.receiversOrgObj = orgListCache
-          .where((org) => task!.receiversOrg.contains(org.uuid))
-          .toList();
-    } catch (e) {
-      print(e);
-    }
-    try {
-      task!.receiversObj = contactListCache
-          .where((contact) => task!.receivers.contains(contact.uuid))
-          .toList();
-    } catch (e) {
-      print(e);
-    }
-    try {
-      task!.projectObj =
-          projectListCache.firstWhere((proj) => proj.uuid == task!.project);
-    } catch (e) {
-      print(e);
-    }
-    try {
-      task!.programmeObj =
-          programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
-    } catch (e) {
-      print(e);
-    }
-    try {
-      task!.statusObj =
-          statusListCache.firstWhere((status) => status.uuid == task!.status);
-    } catch (e) {
-      print(e);
-    }
+    task!.assignedObj = profileListCache
+        .where((prof) => task!.assigned.contains(prof.email))
+        .toList();
+    task!.receiversOrgObj = orgListCache
+        .where((org) => task!.receiversOrg.contains(org.uuid))
+        .toList();
+    task!.receiversObj = contactListCache
+        .where((contact) => task!.receivers.contains(contact.uuid))
+        .toList();
+    task!.projectObj =
+        projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+    task!.programmeObj =
+        programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
+    task!.statusObj =
+        statusListCache.firstWhere((status) => status.uuid == task!.status);
     if (mounted) {
       setState(() {});
     }
@@ -120,6 +96,17 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           setState(() {});
         }
       });
+      getProgrammes().then((value) {
+        List l = value;
+        programmeListCache = value as List<Programme>;
+        for (Programme p in programmeListCache) {
+          if (p.uuid == task!.programme) task!.programmeObj = p;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      });
+
       TasksStatus.getTasksStatus().then((value) {
         statusListCache = value;
         task!.statusObj =
@@ -556,8 +543,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
     List<KeyValue> projectList =
         projectListCache.map((e) => e.toKeyValue()).toList();
+    projectList.add(KeyValue("", ""));
     List<KeyValue> programmeList =
         programmeListCache.map((e) => e.toKeyValue()).toList();
+    //programmeList.add(KeyValue("", ""));
     List<KeyValue> contactList =
         contactListCache.map((e) => e.toKeyValue()).toList();
     List<KeyValue> profileList =

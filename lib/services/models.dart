@@ -1936,8 +1936,8 @@ class Programme {
   }
 }
 
-Future<List> getProgrammes() async {
-  List items = [];
+Future<List<Programme>> getProgrammes() async {
+  List<Programme> items = [];
   QuerySnapshot queryProgramme = await dbProgramme.get();
 
   for (var doc in queryProgramme.docs) {
