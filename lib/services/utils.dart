@@ -196,6 +196,55 @@ DateTime getDate(dynamic date, {truncate = false}) {
   return truncate ? truncDate(result) : result;
 }
 
+int getDaysInMonth(int year, int month) {
+  if (month == DateTime.february) {
+    final bool isLeapYear =
+        (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0);
+    return isLeapYear ? 29 : 28;
+  }
+  const List<int> daysInMonth = <int>[
+    31,
+    -1,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31
+  ];
+  return daysInMonth[month - 1];
+}
+
+DateTime firstDayOfMonth(DateTime date) {
+  return DateTime(date.year, date.month, 1);
+}
+
+DateTime lastDayOfMonth(DateTime date) {
+  return DateTime(date.year, date.month, getDaysInMonth(date.year, date.month),
+      23, 59, 59, 999);
+}
+
+DateTime addMonth(DateTime date) {
+  int year = date.year;
+  int month = date.month;
+  int day = date.day;
+  int daysInMonth = getDaysInMonth(year, month);
+  if (day > daysInMonth) {
+    day = daysInMonth;
+  }
+  if (month == 12) {
+    month = 1;
+    year++;
+  } else {
+    month++;
+  }
+  return DateTime(year, month, day);
+}
+
 double currencyToDouble(String value) {
   if (value == '') {
     return 0.0;

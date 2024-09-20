@@ -717,4 +717,8 @@ class Employee {
             (getAltaDate().isAfter(getBajaDate()) ||
                 !getBajaDate().isBefore(DateTime.now()))));
   }
+
+  String getFullName() {
+    return '$firstName $lastName1 $lastName2';
+  }
 }
