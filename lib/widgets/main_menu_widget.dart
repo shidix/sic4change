@@ -8,6 +8,7 @@ import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 int notif = 0;
+
 //Color notifColor = Colors.white54;
 
 /*Widget userWidget(context, user, url) {
@@ -19,6 +20,15 @@ int notif = 0;
     customText(user.email!, 14, textColor: Colors.white54),
   ]);
 }*/
+Widget notificationBadge(context, user) {
+  return Positioned(
+    top: 10,
+    right: 50,
+    child: (notif > 0)
+        ? notificationsBadge(context, user.email, notif.toString(), "/home")
+        : Container(),
+  );
+}
 
 Widget mainMenuUser(context, [user, url]) {
   return Container(
@@ -169,11 +179,29 @@ Widget mainMenu(context, [url]) {
         //return Text('Datos: ${snapshot.data}');
         Profile profile = snapshot.data!;
         if (profile.mainRole == "Admin") {
-          return mainMenuAdmin(context, user, url);
+          //return mainMenuAdmin(context, user, url);
+          return Stack(
+            children: [
+              mainMenuAdmin(context, user, url),
+              notificationBadge(context, user),
+            ],
+          );
         } else if (profile.mainRole == "Administrativo") {
-          return mainMenuOperator(context, url: url, profile: profile);
+          //return mainMenuOperator(context, url: url, profile: profile);
+          return Stack(
+            children: [
+              mainMenuOperator(context, url: url, profile: profile),
+              notificationBadge(context, user),
+            ],
+          );
         } else {
-          return mainMenuUser(context, user, url);
+          //return mainMenuUser(context, user, url);
+          return Stack(
+            children: [
+              mainMenuUser(context, user, url),
+              notificationBadge(context, user),
+            ],
+          );
         }
       }
     },

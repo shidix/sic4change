@@ -3,6 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
+class NotificationValues {
+  final List nList;
+  final int unread;
+
+  NotificationValues(this.nList, this.unread);
+}
+
+Future<NotificationValues> getNotificationList(user) async {
+  /*SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
+      notif = val;
+      //if (val > 0) notifColor = Colors.red;
+      setState(() {});
+    });*/
+
+  int count = 0;
+  List nList = await SNotification.getNotificationsByReceiver(user);
+  for (SNotification n in nList) {
+    if (!n.readed) count += 1;
+  }
+  return NotificationValues(nList, count);
+}
+
 void createNotification(String sender, List receivers, String msg) {
   for (String r in receivers) {
     SNotification n = SNotification(sender);

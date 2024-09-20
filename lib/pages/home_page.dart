@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -52,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   List<SProject>? myProjects;
 
   List notificationList = [];
-  List logList = [];
+  //List logList = [];
 
   @override
   void dispose() {
@@ -173,19 +172,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getNotifications() async {
-    /*SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
-      notif = val;
-      //if (val > 0) notifColor = Colors.red;
-      setState(() {});
-    });*/
-
-    SNotification.getNotificationsByReceiver(user.email).then((val) {
-      notificationList = val;
-      for (SNotification n in notificationList) {
-        if (!n.readed) notif += 1;
-      }
-      setState(() {});
-    });
+    NotificationValues nVal = await getNotificationList(user.email);
+    notificationList = nVal.nList;
+    notif = nVal.unread;
+    setState(() {});
   }
 
   /*void getLogs() async {
@@ -228,19 +218,7 @@ class _HomePageState extends State<HomePage> {
         body: SingleChildScrollView(
       child: Column(
         children: [
-          Stack(
-            children: [
-              mainMenuWidget,
-              Positioned(
-                top: 10,
-                right: 50,
-                child: (notif > 0)
-                    ? notificationsBadge(
-                        context, user.email, notif.toString(), "/home")
-                    : Container(),
-              )
-            ],
-          ),
+          mainMenuWidget,
           space(height: 10),
           // topButtons(context),
           Row(
