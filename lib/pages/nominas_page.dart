@@ -37,8 +37,16 @@ class _NominasPageState extends State<NominasPage> {
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
   Widget secondaryMenuPanel = const Row(children: []);
-  String dateFilter = '';
+  DateTime fromDateFilter =
+      firstDayOfMonth(DateTime.now().subtract(Duration(days: 180)));
+  DateTime toDateFilter = lastDayOfMonth(DateTime.now());
   String employeeFilter = '';
+  double minNetSalaryFilter = 0.0;
+  double maxNetSalaryFilter = 1e6;
+  double minGrossSalaryFilter = 0.0;
+  double maxGrossSalaryFilter = 1e6;
+  double minTotalSalaryFilter = 0.0;
+  double maxTotalSalaryFilter = 1e6;
 
   int sortAsc = 1;
   int sortColumnIndex = 0;
@@ -50,6 +58,7 @@ class _NominasPageState extends State<NominasPage> {
   @override
   void initState() {
     super.initState();
+
     if (widget.profile == null) {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
@@ -113,6 +122,113 @@ class _NominasPageState extends State<NominasPage> {
     Widget filterPanel = Row(
       children: [
         Expanded(
+            child: Row(
+          children: [
+            Expanded(
+                child: IconButton(
+                    icon: const Icon(Icons.calendar_today),
+                    onPressed: () {
+                      showDatePicker(
+                              context: context,
+                              initialDate: fromDateFilter,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100))
+                          .then((value) {
+                        if (value != null) {
+                          fromDateFilter = value;
+                          if (mounted) {
+                            setState(() {
+                              contentPanel = content(context);
+                            });
+                          }
+                        }
+                      });
+                    })),
+            Expanded(
+                flex: 4,
+                child: TextFormField(
+                  key: UniqueKey(),
+                  initialValue: DateFormat('dd/MM/yyyy').format(fromDateFilter),
+                  decoration: InputDecoration(
+                    labelText: 'Desde',
+                    hintText: DateFormat('dd/MM/yyyy').format(fromDateFilter),
+                  ),
+                  readOnly: true,
+                  onChanged: (value) {
+                    if (value.isNotEmpty) {
+                      // if value has format dd/mm/yyyy  (use a regular expression)
+
+                      if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(value)) {
+                        fromDateFilter = getDate(value, truncate: true);
+                      } else {
+                        fromDateFilter = firstDayOfMonth(DateTime.now());
+                      }
+                    }
+
+                    if (mounted) {
+                      setState(() {
+                        contentPanel = content(context);
+                      });
+                    }
+                  },
+                )),
+          ],
+        )),
+
+        Expanded(
+            child: Row(
+          children: [
+            Expanded(
+                child: IconButton(
+                    icon: const Icon(Icons.calendar_today),
+                    onPressed: () {
+                      showDatePicker(
+                              context: context,
+                              initialDate: toDateFilter,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100))
+                          .then((value) {
+                        if (value != null) {
+                          toDateFilter = value;
+                          if (mounted) {
+                            setState(() {
+                              contentPanel = content(context);
+                            });
+                          }
+                        }
+                      });
+                    })),
+            Expanded(
+                flex: 4,
+                child: TextFormField(
+                  key: UniqueKey(),
+                  initialValue: DateFormat('dd/MM/yyyy').format(toDateFilter),
+                  decoration: InputDecoration(
+                    labelText: 'Hasta',
+                    hintText: DateFormat('dd/MM/yyyy').format(toDateFilter),
+                  ),
+                  readOnly: true,
+                  onChanged: (value) {
+                    if (value.isNotEmpty) {
+                      // if value has format dd/mm/yyyy  (use a regular expression)
+
+                      if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(value)) {
+                        toDateFilter = getDate(value, truncate: true);
+                      } else {
+                        toDateFilter = lastDayOfMonth(DateTime.now());
+                      }
+                    }
+
+                    if (mounted) {
+                      setState(() {
+                        contentPanel = content(context);
+                      });
+                    }
+                  },
+                )),
+          ],
+        )),
+        Expanded(
           child: TextField(
             decoration: InputDecoration(
                 labelText: 'Filtrar por empleado',
@@ -131,24 +247,120 @@ class _NominasPageState extends State<NominasPage> {
               }
             },
           ),
+        ), //
+        // Filter by salary
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario neto mínimo',
+                hintText: toCurrency(minNetSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                minNetSalaryFilter = double.parse(value);
+              } catch (e) {
+                minNetSalaryFilter = 0.0;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
         ),
         Expanded(
           child: TextField(
             decoration: InputDecoration(
-                labelText: 'Filtrar por fecha',
-                hintText: 'dd/mm/yyyy',
+                labelText: 'Salario neto máximo',
+                hintText: toCurrency(maxNetSalaryFilter),
                 prefixIcon: Icon(Icons.search)),
             onChanged: (value) {
-              if (value.isNotEmpty) {
-                // if value has format dd/mm/yyyy  (use a regular expression)
-
-                if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(value)) {
-                  dateFilter = value;
-                } else {
-                  dateFilter = '';
-                }
+              try {
+                maxNetSalaryFilter = double.parse(value);
+              } catch (e) {
+                maxNetSalaryFilter = 1e6;
               }
-
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario bruto mínimo',
+                hintText: toCurrency(minGrossSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                minGrossSalaryFilter = double.parse(value);
+              } catch (e) {
+                minGrossSalaryFilter = 0.0;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario bruto máximo',
+                hintText: toCurrency(maxGrossSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                maxGrossSalaryFilter = double.parse(value);
+              } catch (e) {
+                maxGrossSalaryFilter = 1e6;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario total mínimo',
+                hintText: toCurrency(minTotalSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                minTotalSalaryFilter = double.parse(value);
+              } catch (e) {
+                minTotalSalaryFilter = 0.0;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario total máximo',
+                hintText: toCurrency(maxTotalSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                maxTotalSalaryFilter = double.parse(value);
+              } catch (e) {
+                maxTotalSalaryFilter = 1e6;
+              }
               if (mounted) {
                 setState(() {
                   contentPanel = content(context);
@@ -160,30 +372,36 @@ class _NominasPageState extends State<NominasPage> {
       ],
     );
 
-    if (employeeFilter.isNotEmpty) {
-      nominasFiltered = List.filled(nominas.length, false);
-      for (int i = 0; i < nominas.length; i++) {
-        if (employees
-                .where((element) => element.code == nominas[i].employeeCode)
-                .first
-                .getFullName()
-                .toLowerCase()
-                .contains(employeeFilter.toLowerCase()) ||
-            nominas[i]
-                .employeeCode
-                .toLowerCase()
-                .startsWith(employeeFilter.toLowerCase())) {
-          nominasFiltered[i] = true;
+    // Filtros
+    nominasFiltered = List.filled(nominas.length, true);
+    for (int i = 0; i < nominas.length; i++) {
+      if (employeeFilter.isNotEmpty) {
+        if (!employees
+            .where((element) => element.code == nominas[i].employeeCode)
+            .first
+            .getFullName()
+            .toLowerCase()
+            .contains(employeeFilter.toLowerCase())) {
+          nominasFiltered[i] = false;
         }
       }
-    }
-
-    if (dateFilter.isNotEmpty) {
-      nominasFiltered = List.filled(nominas.length, false);
-      for (int i = 0; i < nominas.length; i++) {
-        if (DateFormat('dd/MM/yyyy').format(nominas[i].date) == dateFilter) {
-          nominasFiltered[i] = true;
-        }
+      if (nominas[i].date.isBefore(fromDateFilter) ||
+          nominas[i].date.isAfter(toDateFilter)) {
+        nominasFiltered[i] = false;
+      }
+      if (nominas[i].netSalary < minNetSalaryFilter ||
+          nominas[i].netSalary > maxNetSalaryFilter) {
+        nominasFiltered[i] = false;
+      }
+      if (nominas[i].grossSalary < minGrossSalaryFilter ||
+          nominas[i].grossSalary > maxGrossSalaryFilter) {
+        nominasFiltered[i] = false;
+      }
+      if (nominas[i].grossSalary + nominas[i].employerSocialSecurity <
+              minTotalSalaryFilter ||
+          nominas[i].grossSalary + nominas[i].employerSocialSecurity >
+              maxTotalSalaryFilter) {
+        nominasFiltered[i] = false;
       }
     }
 

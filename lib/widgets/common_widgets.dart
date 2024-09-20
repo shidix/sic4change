@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 //import 'package:pdf/widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sic4change/services/models_workday.dart';
+import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -1885,7 +1886,7 @@ class UploadFileField extends StatelessWidget {
 }
 
 class DateTimeRangePicker extends StatelessWidget {
-  const DateTimeRangePicker({
+  DateTimeRangePicker({
     Key? key,
     required DateTimeRange this.calendarRangeDate,
     required this.labelText,
@@ -1904,9 +1905,8 @@ class DateTimeRangePicker extends StatelessWidget {
         firstDate: calendarRangeDate.start,
         lastDate: calendarRangeDate.end,
         initialDateRange: DateTimeRange(
-          end: DateTime(DateTime.now().year, DateTime.now().month,
-              DateTime.now().day + 13),
-          start: DateTime.now(),
+          end: selectedDate.end,
+          start: selectedDate.start,
         ),
         builder: (context, child) {
           return Column(
