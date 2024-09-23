@@ -48,8 +48,8 @@ class _NominasPageState extends State<NominasPage> {
   double minTotalSalaryFilter = 0.0;
   double maxTotalSalaryFilter = 1e6;
 
-  int sortAsc = 1;
-  int sortColumnIndex = 0;
+  int sortAsc = -1; // 1 ascending, -1 descending
+  int sortColumnIndex = 3;
 
   int compareNomina(Nomina a, Nomina b) {
     return a.compareTo(b, sortColumnIndex: sortColumnIndex, sortAsc: sortAsc);
@@ -85,8 +85,13 @@ class _NominasPageState extends State<NominasPage> {
 
     Nomina.getNominas(employeeCode: widget.codeEmployee).then((value) {
       nominas = value;
-      nominas.sort((a, b) => a.compareTo(b));
+      nominas.sort(compareNomina);
       nominasFiltered = List.filled(nominas.length, true);
+      for (int i = 0; i < nominas.length; i++) {
+        if (nominas[i].date.isAfter(toDateFilter)) {
+          toDateFilter = nominas[i].date;
+        }
+      }
       if (mounted) {
         setState(() {
           contentPanel = content(context);
@@ -117,7 +122,13 @@ class _NominasPageState extends State<NominasPage> {
       children: [addBtnRow(context, dialogFormNomina, -1)],
     );
 
+    for (int i = 0; i < nominas.length; i++) {
+      nominas[i].employee = employees
+          .where((element) => element.code == nominas[i].employeeCode)
+          .first;
+    }
     nominas.sort(compareNomina);
+
     // a widtget to filter the rows, with a text field by column
     Widget filterPanel = Row(
       children: [
@@ -427,7 +438,7 @@ class _NominasPageState extends State<NominasPage> {
         'DNI/NIE/ID',
         'Nombre',
         'Apellidos',
-        'Días Cotizados',
+        // 'Días Cotizados',
         'Fecha Nómina',
         'Neto',
         'Deducciones',
@@ -483,15 +494,15 @@ class _NominasPageState extends State<NominasPage> {
                         .firstName)),
                     DataCell(Text(
                         '${employees.where((element) => element.code == e.employeeCode).first.lastName1} ${employees.where((element) => element.code == e.employeeCode).first.lastName2}')),
-                    (employees
-                            .where((element) => element.code == e.employeeCode)
-                            .isNotEmpty)
-                        ? DataCell(Text(employees
-                            .where((element) => element.code == e.employeeCode)
-                            .first
-                            .altaDays(date: e.date)
-                            .toString()))
-                        : const DataCell(Text('0')),
+                    // (employees
+                    //         .where((element) => element.code == e.employeeCode)
+                    //         .isNotEmpty)
+                    //     ? DataCell(Text(employees
+                    //         .where((element) => element.code == e.employeeCode)
+                    //         .first
+                    //         .altaDays(date: e.date)
+                    //         .toString()))
+                    //     : const DataCell(Text('0')),
                     DataCell(Text(DateFormat('dd/MM/yyyy').format(e.date))),
                     DataCell(Text(toCurrency(e.netSalary))),
                     DataCell(Text(toCurrency(e.deductions))),
@@ -646,6 +657,13 @@ class _NominasPageState extends State<NominasPage> {
       (value) {
         if (value != null) {
           nominas.add(value);
+          if (value.date.isAfter(toDateFilter)) {
+            toDateFilter = value.date;
+          }
+          if (value.date.isBefore(fromDateFilter)) {
+            fromDateFilter = value.date;
+          }
+
           if (mounted) {
             setState(() {
               contentPanel = content(context);

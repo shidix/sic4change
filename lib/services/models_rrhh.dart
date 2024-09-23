@@ -26,6 +26,8 @@ class Nomina {
   String? signedPath;
   DateTime? signedDate;
 
+  Employee? employee;
+
   Nomina(
       {required this.employeeCode,
       required this.date,
@@ -183,20 +185,38 @@ class Nomina {
       case 0:
         return a.employeeCode.compareTo(b.employeeCode) * sortAsc;
       case 1:
-        return a.date.compareTo(b.date) * sortAsc;
+        // order by firstName
+        if (a.employee != null && b.employee != null) {
+          String aSurnames = a.employee!.lastName1 + a.employee!.lastName2;
+          String bSurnames = b.employee!.lastName1 + b.employee!.lastName2;
+
+          return aSurnames.compareTo(bSurnames) * sortAsc;
+        } else {
+          return a.employeeCode.compareTo(b.employeeCode) * sortAsc;
+        }
       case 2:
-        return a.netSalary.compareTo(b.netSalary) * sortAsc;
+        // order by lastName1
+        if (a.employee != null && b.employee != null) {
+          return a.employee!.lastName1.compareTo(b.employee!.lastName1) *
+              sortAsc;
+        } else {
+          return a.employeeCode.compareTo(b.employeeCode) * sortAsc;
+        }
       case 3:
-        return a.deductions.compareTo(b.deductions) * sortAsc;
+        return a.date.compareTo(b.date) * sortAsc;
       case 4:
+        return a.netSalary.compareTo(b.netSalary) * sortAsc;
+      case 5:
+        return a.deductions.compareTo(b.deductions) * sortAsc;
+      case 6:
         return a.employeeSocialSecurity.compareTo(b.employeeSocialSecurity) *
             sortAsc;
-      case 5:
+      case 7:
         return a.grossSalary.compareTo(b.grossSalary) * sortAsc;
-      case 6:
+      case 8:
         return a.employerSocialSecurity.compareTo(b.employerSocialSecurity) *
             sortAsc;
-      case 7:
+      case 9:
         return (a.grossSalary + a.employerSocialSecurity)
                 .compareTo(b.grossSalary + b.employerSocialSecurity) *
             sortAsc;
@@ -399,23 +419,27 @@ class BajaReason {
   String name;
   String? uuid;
   bool extraDocument = false;
+  int order;
 
   BajaReason({
     required this.name,
     this.uuid,
     this.extraDocument = false,
+    this.order = 1000,
   });
 
   factory BajaReason.fromJson(Map<String, dynamic> json) {
     return BajaReason(
         name: json['name'],
         extraDocument: json['extraDocument'],
+        order: json.containsKey('order') ? json['order'] : 1000,
         uuid: json.containsKey('uuid') ? json['uuid'] : null);
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'extraDocument': extraDocument,
+        'order': order,
         'uuid': uuid,
       };
 

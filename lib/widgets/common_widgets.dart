@@ -1956,6 +1956,7 @@ class DateTimePicker extends StatelessWidget {
     required this.onSelectedDate,
     this.firstDate,
     this.lastDate,
+    this.readOnly = false,
   }) : super(key: key);
 
   final String labelText;
@@ -1963,8 +1964,12 @@ class DateTimePicker extends StatelessWidget {
   final DateTime? firstDate;
   final DateTime? lastDate;
   final ValueChanged<DateTime> onSelectedDate;
+  final bool readOnly;
 
   Future<void> _selectDate(BuildContext context) async {
+    if (readOnly) {
+      return;
+    }
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -1978,26 +1983,28 @@ class DateTimePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: labelText,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              DateFormat("dd-MM-yyyy")
-                  .format(selectedDate.toLocal())
-                  .split(' ')[0],
+    return Container(
+        color: readOnly ? Colors.grey.shade100 : Colors.white,
+        child: InkWell(
+          onTap: () => _selectDate(context),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: labelText,
             ),
-            //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
-            const Icon(Icons.calendar_today),
-          ],
-        ),
-      ),
-    );
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  DateFormat("dd-MM-yyyy")
+                      .format(selectedDate.toLocal())
+                      .split(' ')[0],
+                ),
+                //customText(DateFormat("dd-MM-yyyy").format(selectedDate), 14),
+                const Icon(Icons.calendar_today),
+              ],
+            ),
+          ),
+        ));
   }
 }
 

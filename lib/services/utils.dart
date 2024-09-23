@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:html' as html;
+import 'dart:js' as js;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
@@ -340,6 +342,26 @@ Future<bool> downloadFileUrl(String path) async {
       },
     );
   } catch (e) {
+    return false;
+  }
+}
+
+Future<bool> openFileUrl(String path) async {
+  final ref = FirebaseStorage.instance.ref().child(path);
+  // check if the file exists
+  try {
+    await ref.getMetadata();
+    String url = await ref.getDownloadURL();
+    Uri uri = Uri.parse("https://docs.google.com/viewer?url=$url");
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, webOnlyWindowName: '_blank');
+      return true;
+    } else {
+      print('Could not launch $uri');
+      return false;
+    }
+  } catch (e) {
+    print(e);
     return false;
   }
 }
