@@ -1,5 +1,7 @@
+import 'package:export_firebase_csv/export_firebase_csv.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -71,6 +73,20 @@ class _LogPageState extends State<LogPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, callEditDialog, {"task": null}),
+            FilledButton(
+                onPressed: () async {
+                  exportLogFromFirebase();
+                },
+                style: btnStyle,
+                child: Column(
+                  children: [
+                    space(height: 5),
+                    const Icon(Icons.download, color: subTitleColor),
+                    space(height: 5),
+                    customText("Descargar", 12, textColor: subTitleColor),
+                    space(height: 5),
+                  ],
+                )),
           ],
         ),
       ),
