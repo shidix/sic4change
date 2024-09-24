@@ -48,7 +48,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
       employmentPromotion = employee.altas.last.employmentPromotion;
-      employeeSalary = employee.altas.last.salary;
+      employeeSalary = employee.getSalary();
     }
     EmploymentPromotion.getActive().then((value) {
       promotions = value.map((e) => KeyValue(e.name, e.name)).toList();
@@ -96,13 +96,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
         if (employee.altas.isNotEmpty) {
           employee.altas.last.employmentPromotion = employmentPromotion;
-          employee.altas.last.salary = employeeSalary;
+          (employee.altas.last as Alta).setSalary(employeeSalary);
           employee.altas.last.date = selectedAltaDate;
         } else {
-          employee.altas.add(Alta(
-              date: selectedAltaDate,
-              salary: employeeSalary,
-              employmentPromotion: employmentPromotion));
+          Alta alta = Alta(
+              date: selectedAltaDate, employmentPromotion: employmentPromotion);
+          alta.setSalary(employeeSalary);
+          employee.altas.add(alta);
         }
         employee.save();
         Navigator.of(context).pop(employee);
@@ -346,7 +346,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         child: TextFormField(
                           initialValue: toCurrency(employeeSalary),
                           decoration: const InputDecoration(
-                            labelText: 'Salario',
+                            labelText: 'Salario Anual',
                             contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                           ),
                           onSaved: (String? value) {
@@ -596,16 +596,16 @@ class EmployeeAltaForm extends StatefulWidget {
 class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
-  late DateTime selectedDate;
+  late DateTime selectedAltaDate;
 
   @override
   void initState() {
     super.initState();
     employee = widget.selectedItem;
     if (!employee.isActive()) {
-      selectedDate = DateTime.now();
+      selectedAltaDate = DateTime.now();
     } else {
-      selectedDate = employee.altas.last.date;
+      selectedAltaDate = employee.altas.last.date;
     }
   }
 
@@ -619,13 +619,12 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             DateTimePicker(
+                key: UniqueKey(),
                 labelText: 'Fecha Alta',
-                selectedDate: (employee.isActive())
-                    ? employee.altas.last.date
-                    : DateTime.now(),
+                selectedDate: selectedAltaDate,
                 onSelectedDate: (DateTime? date) {
                   if (date != null) {
-                    selectedDate = date;
+                    selectedAltaDate = date;
                   }
                   setState(() {});
                 }),
@@ -640,10 +639,10 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
                         if (!employee.isActive()) {
-                          employee.altas.add(Alta(date: selectedDate));
+                          employee.altas.add(Alta(date: selectedAltaDate));
                         } else {
                           employee.altas[employee.altas.length - 1] =
-                              Alta(date: selectedDate);
+                              Alta(date: selectedAltaDate);
                         }
                         employee.save();
                         Navigator.of(context).pop(employee);

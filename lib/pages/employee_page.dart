@@ -5,6 +5,7 @@ import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
@@ -135,6 +136,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 'Apellidos, Nombre',
                 'Fecha Alta',
                 'Fecha Baja',
+                'Días C.',
+                'Salario',
                 'Email',
                 ''
               ].map((e) {
@@ -185,6 +188,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                             DateTime.now().add(const Duration(days: 3650))))
                         ? ' Indefinido'
                         : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
+                    DataCell(Text(e.altaDays().toString())),
+                    DataCell(Text(toCurrency(e.getSalary()))),
                     DataCell(Text(e.email)),
                     DataCell(
                       Row(
