@@ -2,7 +2,9 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -13,6 +15,8 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/tasks_menu_widget.dart';
+import 'package:googleapis/calendar/v3.dart' as GoogleAPI;
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 const pageUsersTaskTitle = "Carga de tareas por usuario";
 List users = [];
@@ -30,6 +34,12 @@ class TasksUsersPage extends StatefulWidget {
 
 class _TasksUsersPageState extends State<TasksUsersPage> {
   var searchController = TextEditingController();
+  //AIzaSyCmTF-Pxypoqk3y5VWdzFz1W6xwsGL5JWQ
+  /*final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '[AIzaSyCmTF-Pxypoqk3y5VWdzFz1W6xwsGL5JWQ]',
+    scopes: <String>[GoogleAPI.CalendarApi.calendarScope],
+  );
+  GoogleSignInAccount? _currentUser;*/
 
   void loadUsers() async {
     setState(() {
@@ -49,12 +59,49 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     //setState(() {});
   }
 
+  /*Future<List<GoogleAPI.Event>> getGoogleEventsData() async {
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+    final GoogleAPIClient httpClient =
+        GoogleAPIClient(await googleUser!.authHeaders);
+
+    final GoogleAPI.CalendarApi calendarApi = GoogleAPI.CalendarApi(httpClient);
+    final GoogleAPI.Events calEvents = await calendarApi.events.list(
+      "primary",
+    );
+    final List<GoogleAPI.Event> appointments = <GoogleAPI.Event>[];
+    if (calEvents.items != null) {
+      for (int i = 0; i < calEvents.items!.length; i++) {
+        final GoogleAPI.Event event = calEvents.items![i];
+        if (event.start == null) {
+          continue;
+        }
+        appointments.add(event);
+      }
+    }
+
+    return appointments;
+  }*/
+
   @override
   void initState() {
     loadUsers();
     super.initState();
     user = FirebaseAuth.instance.currentUser!;
     _mainMenu = mainMenu(context, "/tasks_users");
+
+    //GOOGLE CALENDAR
+    /*_googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      print("--1--");
+      print(account);
+      setState(() {
+        _currentUser = account;
+      });
+      if (_currentUser != null) {
+        //getGoogleEventsData();
+      }
+    });
+    _googleSignIn.signInSilently();*/
   }
 
   @override
@@ -66,6 +113,28 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
         taskUsersHeader(context),
         space(height: 20),
         taskMenu(context, "tasksUsers"),
+        /*FutureBuilder(
+          future: getGoogleEventsData(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            return Stack(
+              children: [
+                SfCalendar(
+                  view: CalendarView.month,
+                  initialDisplayDate: DateTime(2024, 7, 15, 9, 0, 0),
+                  dataSource: GoogleDataSource(events: snapshot.data),
+                  monthViewSettings: const MonthViewSettings(
+                      appointmentDisplayMode:
+                          MonthAppointmentDisplayMode.appointment),
+                ),
+                snapshot.data != null
+                    ? Container()
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      )
+              ],
+            );
+          },
+        ),*/
         usersLoading
             ? const Center(
                 child: CircularProgressIndicator(),
@@ -181,10 +250,14 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   void callEditDialog(context, HashMap args) async {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
-    List<KeyValue> projectList = await getProjectsHash();
-    List<KeyValue> programmeList = await getProgrammesHash();
+    //List<KeyValue> projectList = await getProjectsHash();
+    //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
     List<KeyValue> orgList = await getOrganizationsHash();
+
+    List projectList = await getProjects();
+    List programmeList = await getProgrammes();
+
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();
@@ -233,3 +306,19 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     customRemoveDialog(context, args["task"], loadUsers);
   }
 }
+
+/*import 'package:http/io_client.dart' show IOClient, IOStreamedResponse;
+class GoogleAPIClient extends IOClient {
+  final Map<String, String> _headers;
+
+  GoogleAPIClient(this._headers) : super();
+
+  @override
+  Future<IOStreamedResponse> send(BaseRequest request) =>
+      super.send(request..headers.addAll(_headers));
+
+  @override
+  Future<Response> head(Uri url, {Map<String, String>? headers}) =>
+      super.head(url,
+          headers: (headers != null ? (headers..addAll(_headers)) : headers));
+}*/

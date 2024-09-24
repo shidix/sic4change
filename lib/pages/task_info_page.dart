@@ -90,14 +90,18 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       }
       SProject.getProjects().then((value) {
         projectListCache = value;
-        task!.projectObj =
+        /*task!.projectObj =
             projectListCache.firstWhere((proj) => proj.uuid == task!.project);
+            */
+        for (SProject p in projectListCache) {
+          if (p.uuid == task!.project) task!.projectObj = p;
+        }
         if (mounted) {
           setState(() {});
         }
       });
       getProgrammes().then((value) {
-        List l = value;
+        //List l = value;
         programmeListCache = value as List<Programme>;
         for (Programme p in programmeListCache) {
           if (p.uuid == task!.programme) task!.programmeObj = p;
@@ -541,12 +545,16 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     // List<KeyValue> profileList = await Profile.getProfileHash();
     // List<KeyValue> orgList = await getOrganizationsHash();
 
-    List<KeyValue> projectList =
+    /*List<KeyValue> projectList =
         projectListCache.map((e) => e.toKeyValue()).toList();
-    projectList.add(KeyValue("", ""));
+    //projectList.add(KeyValue("", ""));
     List<KeyValue> programmeList =
         programmeListCache.map((e) => e.toKeyValue()).toList();
-    //programmeList.add(KeyValue("", ""));
+    //programmeList.add(KeyValue("", ""));*/
+
+    List projectList = await getProjects();
+    List programmeList = await getProgrammes();
+
     List<KeyValue> contactList =
         contactListCache.map((e) => e.toKeyValue()).toList();
     List<KeyValue> profileList =

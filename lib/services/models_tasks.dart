@@ -61,6 +61,9 @@ class STask {
   String assignedStr = "";
   //List<Programme> programmesObj = [];
 
+  List<KeyValue> progList = [];
+  List<KeyValue> projList = [];
+
   STask(this.name);
 
   STask.fromJson(Map<String, dynamic> json)

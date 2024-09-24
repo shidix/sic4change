@@ -1332,10 +1332,14 @@ class _GoalsPageState extends State<GoalsPage>
     Activity activity = args["activity"];
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
-    List<KeyValue> projectList = await getProjectsHash();
-    List<KeyValue> programmeList = await getProgrammesHash();
+    //List<KeyValue> projectList = await getProjectsHash();
+    //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
     List<KeyValue> orgList = await getOrganizationsHash();
+
+    List projectList = await getProjects();
+    List programmeList = await getProgrammes();
+
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();

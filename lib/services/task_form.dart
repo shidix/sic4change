@@ -1,13 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
+void setProjectByProgramm(task, val, projectList, programmeList) {
+  task.projList.clear();
+  if (val == "") {
+    for (SProject p in projectList) {
+      task.projList.add(KeyValue(p.uuid, p.name));
+    }
+  } else {
+    for (Programme pr in programmeList) {
+      if (pr.uuid == val) {
+        for (SProject p in projectList) {
+          if (pr.uuid == p.programme) {
+            task.projList.add(KeyValue(p.uuid, p.name));
+          }
+        }
+      }
+    }
+  }
+}
+
+void setProgrammeByProject(task, val, projectList, programmeList) {
+  task.progList.clear();
+  if (val == "") {
+    for (Programme p in programmeList) {
+      task.progList.add(KeyValue(p.uuid, p.name));
+    }
+  } else {
+    for (SProject p in projectList) {
+      if (p.uuid == val) {
+        for (Programme pr in programmeList) {
+          if (pr.uuid == p.programme) {
+            task.progList.add(KeyValue(pr.uuid, pr.name));
+          }
+        }
+      }
+    }
+  }
+}
+
 Widget taskForm(task, projectList, programmeList, statusList, profileList,
     contactList, orgList, setState) {
   List<KeyValue> selectedAssigned = [];
+
   if (task.assigned.isNotEmpty) {
     for (MultiSelectItem<KeyValue> item in profileList) {
       if (task.assigned.contains(item.value.key)) {
@@ -30,6 +70,15 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
         selectedReceiversOrg.add(item.value);
       }
     }
+  }
+
+  task.progList.insert(0, KeyValue("", ""));
+  for (Programme p in programmeList) {
+    task.progList.add(p.toKeyValue());
+  }
+  task.projList.insert(0, KeyValue("", ""));
+  for (SProject p in projectList) {
+    task.projList.add(p.toKeyValue());
   }
 
   return SingleChildScrollView(
@@ -81,9 +130,11 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
           labelText: 'Proyecto',
           size: 340,
           selected: task.projectObj.toKeyValue(),
-          options: projectList,
+          //options: projectList,
+          options: task.projList,
           onSelectedOpt: (String val) {
             task.project = val;
+            setProgrammeByProject(task, val, projectList, programmeList);
           },
         ),
       ]),
@@ -93,9 +144,11 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
           labelText: 'Programa',
           size: 340,
           selected: task.programmeObj.toKeyValue(),
-          options: programmeList,
+          //options: programmeList,
+          options: task.progList,
           onSelectedOpt: (String val) {
             task.programme = val;
+            setProjectByProgramm(task, val, projectList, programmeList);
           },
         ),
       ]),
@@ -216,6 +269,7 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
             child: DateTimePicker(
               labelText: 'Acuerdo',
               selectedDate: task.dealDate,
+              lastDate: task.deadLineDate,
               onSelectedDate: (DateTime date) {
                 setState(() {
                   task.dealDate = date;

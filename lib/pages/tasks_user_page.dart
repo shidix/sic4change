@@ -384,10 +384,14 @@ class _TasksUserPageState extends State<TasksUserPage> {
   void callEditDialog(context, HashMap args) async {
     List<KeyValue> statusList = await getTasksStatusHash();
     List<KeyValue> contactList = await getContactsHash();
-    List<KeyValue> projectList = await getProjectsHash();
-    List<KeyValue> programmeList = await getProgrammesHash();
+    //List<KeyValue> projectList = await getProjectsHash();
+    //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
     List<KeyValue> orgList = await getOrganizationsHash();
+
+    List projectList = await getProjects();
+    List programmeList = await getProgrammes();
+
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))
         .toList();
@@ -422,7 +426,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
   }
 
   Future<void> taskEditDialog(context, statusList, projectList, programmeList,
-      profileList, contactList, orgList) {
+      profileList, contactList, orgList) async {
     STask task = STask("");
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
