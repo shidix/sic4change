@@ -285,6 +285,8 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
   Future<void> taskEditDialog(context, tracking, statusList, projectList,
       programmeList, profileList, contactList, orgList) {
     STask task = STask("");
+    task.initializeProjectList(projectList);
+    task.initializeProgrammeList(programmeList);
     //task.project = project!.uuid;
     //task.projectObj = project!;
     var user = FirebaseAuth.instance.currentUser!;

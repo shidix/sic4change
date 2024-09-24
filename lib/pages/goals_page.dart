@@ -1375,6 +1375,9 @@ class _GoalsPageState extends State<GoalsPage>
     STask task = STask("");
     task.project = project!.uuid;
     task.projectObj = project!;
+    task.initializeProjectList(projectList);
+    task.initializeProgrammeList(programmeList);
+
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
     task.public = true;

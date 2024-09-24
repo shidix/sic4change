@@ -281,7 +281,10 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   Future<void> taskEditDialog(context, statusList, projectList, programmeList,
       profileList, contactList, orgList) {
     STask task = STask("");
+    task.initializeProjectList(projectList);
+    task.initializeProgrammeList(programmeList);
     task.sender = user.email!;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!

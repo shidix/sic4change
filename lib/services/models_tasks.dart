@@ -205,6 +205,15 @@ class STask {
     }
   }
 
+  KeyValue statusKeyValue(List statusList) {
+    for (KeyValue kv in statusList) {
+      if (kv.key == status) {
+        return KeyValue(status, kv.value);
+      }
+    }
+    return KeyValue("", "");
+  }
+
   /*Future<void> getSender() async {
     if (sender != "") {
       QuerySnapshot query =
@@ -504,6 +513,38 @@ class STask {
       print(e);
     }
     return row;
+  }
+
+  KeyValue projectKeyValue() {
+    for (KeyValue kv in projList) {
+      if (kv.key == project) {
+        return KeyValue(project, kv.value);
+      }
+    }
+    return KeyValue("", "");
+  }
+
+  void initializeProjectList(projectList) {
+    projList.add(KeyValue("", ""));
+    for (SProject p in projectList) {
+      projList.add(p.toKeyValue());
+    }
+  }
+
+  KeyValue programmeKeyValue() {
+    for (KeyValue kv in progList) {
+      if (kv.key == programme) {
+        return KeyValue(programme, kv.value);
+      }
+    }
+    return KeyValue("", "");
+  }
+
+  void initializeProgrammeList(programmeList) {
+    progList.add(KeyValue("", ""));
+    for (Programme p in programmeList) {
+      progList.add(p.toKeyValue());
+    }
   }
 }
 

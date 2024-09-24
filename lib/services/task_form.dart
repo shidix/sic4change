@@ -72,15 +72,6 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
     }
   }
 
-  task.progList.insert(0, KeyValue("", ""));
-  for (Programme p in programmeList) {
-    task.progList.add(p.toKeyValue());
-  }
-  task.projList.insert(0, KeyValue("", ""));
-  for (SProject p in projectList) {
-    task.projList.add(p.toKeyValue());
-  }
-
   return SingleChildScrollView(
       child: Column(children: [
     Row(children: [
@@ -129,7 +120,8 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
         CustomDropdown(
           labelText: 'Proyecto',
           size: 340,
-          selected: task.projectObj.toKeyValue(),
+          //selected: task.projectObj.toKeyValue(),
+          selected: task.projectKeyValue(),
           //options: projectList,
           options: task.projList,
           onSelectedOpt: (String val) {
@@ -143,7 +135,8 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
         CustomDropdown(
           labelText: 'Programa',
           size: 340,
-          selected: task.programmeObj.toKeyValue(),
+          //selected: task.programmeObj.toKeyValue(),
+          selected: task.programmeKeyValue(),
           //options: programmeList,
           options: task.progList,
           onSelectedOpt: (String val) {
@@ -205,7 +198,8 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
         CustomDropdown(
           labelText: 'Estado',
           size: 230,
-          selected: task.statusObj.toKeyValue(),
+          //selected: task.statusObj.toKeyValue(),
+          selected: task.statusKeyValue(statusList),
           options: statusList,
           onSelectedOpt: (String val) {
             task.status = val;
@@ -284,7 +278,9 @@ Widget taskForm(task, projectList, programmeList, statusList, profileList,
             child: DateTimePicker(
               labelText: 'Deadline',
               selectedDate: task.deadLineDate,
+              firstDate: task.dealDate,
               onSelectedDate: (DateTime date) {
+                //task.deadLineDate = date;
                 setState(() {
                   task.deadLineDate = date;
                 });

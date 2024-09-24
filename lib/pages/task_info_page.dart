@@ -589,6 +589,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   Future<void> taskEditDialog(context, task, statusList, projectList,
       programmeList, profileList, contactList, orgList) {
     task.sender = user.email!;
+    task.initializeProjectList(projectList);
+    task.initializeProgrammeList(programmeList);
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!

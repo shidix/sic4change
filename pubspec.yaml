@@ -57,6 +57,7 @@ dependencies:
   badges: ^3.1.2
   url_launcher: ^6.0.20
   export_firebase_csv: ^1.0.9
+  get_ip_address: ^0.0.5
 
 
 dev_dependencies:

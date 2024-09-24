@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:get_ip_address/get_ip_address.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -703,6 +704,7 @@ CollectionReference dbLogs = db.collection("s4c_logs");
 class SLogs {
   String id = "";
   String uuid = "";
+  String ip = "";
   String user;
   String msg = "";
   DateTime date = DateTime.now();
@@ -712,6 +714,7 @@ class SLogs {
   SLogs.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
+        ip = json["ip"],
         user = json['user'],
         date = json['date'].toDate(),
         msg = json['msg'];
@@ -719,6 +722,7 @@ class SLogs {
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'ip': ip,
         'user': user,
         'date': date,
         'msg': msg,
@@ -732,6 +736,8 @@ class SLogs {
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
+      var ipAddress = IpAddress();
+      ip = await ipAddress.getIpAddress();
       Map<String, dynamic> data = toJson();
       dbLogs.add(data).then((value) => id = value.id);
     } else {

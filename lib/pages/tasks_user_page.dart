@@ -362,8 +362,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
                                   task.delete();
                                   sendAnalyticsEvent("Tareas",
                                       "Eliminada tarea: ${task.name}");
-                                  createLog(task.sender,
-                                      "Se ha eliminado la tarea ${task.name}");
+                                  /*createLog(task.sender,
+                                      "Se ha eliminado la tarea ${task.name}");*/
                                   setState(() {
                                     myTasks.remove(task);
                                     tasksUser.remove(task);
@@ -409,8 +409,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
     STask task = args[0];
     task.save();
     await task.loadObjs();
-    sendAnalyticsEvent("Tareas", "Nueva tarea: ${task.name}");
-    createLog(task.sender, "Se ha creado la tarea ${task.name}");
+    //sendAnalyticsEvent("Tareas", "Nueva tarea: ${task.name}");
+    //createLog(task.sender, "Se ha creado la tarea ${task.name}");
     createNotification(
         task.sender, task.assigned, "Se le ha asignado la tarea ${task.name}");
 
@@ -428,6 +428,18 @@ class _TasksUserPageState extends State<TasksUserPage> {
   Future<void> taskEditDialog(context, statusList, projectList, programmeList,
       profileList, contactList, orgList) async {
     STask task = STask("");
+    task.initializeProjectList(projectList);
+    task.initializeProgrammeList(programmeList);
+
+    /*//task.progList.insert(0, KeyValue("", ""));
+    for (Programme p in programmeList) {
+      task.progList.add(p.toKeyValue());
+    }
+    //task.projList.insert(0, KeyValue("", ""));
+    for (SProject p in projectList) {
+      task.projList.add(p.toKeyValue());
+    }*/
+
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
     task.public = true;

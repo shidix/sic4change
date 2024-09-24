@@ -5,6 +5,7 @@ import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -34,6 +35,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   List programList = [];
   Profile? profile;
   String deleteMsg = "";
+  final user = FirebaseAuth.instance.currentUser!;
 
   void setLoading() {
     setState(() {
@@ -103,7 +105,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
       }
     });*/
 
-    final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
   }
 
@@ -197,6 +198,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                   InkWell(
                                     child: Image.network(programme.logo),
                                     onTap: () {
+                                      createLog(user.email!,
+                                          "Acceso a programa: ${programme.name}");
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
