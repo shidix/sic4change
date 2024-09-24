@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/monitoring/v3.dart';
 import 'package:googleapis/photoslibrary/v1.dart';
@@ -688,6 +689,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
         'date': alta.date,
         'path': alta.pathContract
       });
+
       listDocuments.add({
         'type': 'Alta',
         'desc': 'Anexo',
@@ -715,8 +717,12 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
       if (alta.pathOthers != null) {
         alta.pathOthers!.forEach((key, value) {
-          listDocuments.add(
-              {'type': 'Alta', 'desc': key, 'date': alta.date, 'path': value});
+          listDocuments.add({
+            'type': 'Alta',
+            'desc': key,
+            'date': alta.date,
+            'path': value,
+          });
         });
       }
 
@@ -747,6 +753,14 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
           'date': baja.date,
           'path': baja.pathExtraDoc
         });
+      }
+    }
+
+    for (var item in listDocuments) {
+      item['modified'] = DateTime(2099, 12, 31);
+      if (item['path'] != null) {
+        item['modified'] = // extract date from path
+            DateTime.parse(item['path'].split('/').last.split('_').first);
       }
     }
 
@@ -784,8 +798,14 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
               DataTable(
                 dataRowMinHeight: 70,
                 dataRowMaxHeight: 70,
-                columns: ['Satus', 'Trámite', 'Fecha', 'Descripción', '']
-                    .map((item) {
+                columns: [
+                  'Satus',
+                  'Trámite',
+                  'Fecha',
+                  'Modificado',
+                  'Descripción',
+                  ''
+                ].map((item) {
                   return DataColumn(
                     label: Text(
                       item,
@@ -825,6 +845,8 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                       DataCell(Text(e['type'])),
                       DataCell(
                           Text(DateFormat('dd/MM/yyyy').format(e['date']))),
+                      DataCell(
+                          Text(DateFormat('dd/MM/yyyy').format(e['modified']))),
                       DataCell(Text(e['desc'])),
                       DataCell(
                         Row(
@@ -842,10 +864,15 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                                 rootPath:
                                                     'files/employees/${selectedItem.code}/documents/${e['type']}/',
                                                 fileName:
-                                                    '${DateFormat('yyyyMMdd').format(e['date'])}_${e['desc'].replaceAll(' ', '_')}.$extention')
+                                                    '${DateFormat('yyyyMMdd').format(DateTime.now())}_${e['desc'].replaceAll(' ', '_')}.$extention')
                                             .then((value) {
-                                          selectedItem.extraDocs[e['desc']] =
-                                              value;
+                                          if (e["type"] == 'Otros') {
+                                            selectedItem.extraDocs[e['desc']] =
+                                                value;
+                                          } else {
+                                            selectedItem.updateDocument(
+                                                e, value);
+                                          }
                                           selectedItem.save();
                                           setState(() {});
                                         });
