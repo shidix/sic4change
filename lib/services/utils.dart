@@ -346,6 +346,19 @@ Future<bool> downloadFileUrl(String path) async {
   }
 }
 
+Future<FullMetadata?> getMetadataFileUrl(String? path) async {
+  if (path == null) {
+    return FullMetadata({'updated': DateTime(2099, 12, 31)});
+  }
+  final ref = FirebaseStorage.instance.ref().child(path);
+  // check if the file exists
+  try {
+    return await ref.getMetadata();
+  } catch (e) {
+    return FullMetadata({'updated': DateTime(2099, 12, 31)});
+  }
+}
+
 Future<bool> openFileUrl(String path) async {
   final ref = FirebaseStorage.instance.ref().child(path);
   // check if the file exists

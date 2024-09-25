@@ -921,7 +921,6 @@ class Invoice extends Object {
     List<Invoice> items = [];
     final query =
         await collection.where("date", isGreaterThanOrEqualTo: date).get();
-    print("query.docs.length: ${query.docs.length}");
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;

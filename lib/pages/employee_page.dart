@@ -1,3 +1,5 @@
+import 'dart:js_interop_unsafe';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +7,7 @@ import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
@@ -28,6 +31,24 @@ class _EmployeesPageState extends State<EmployeesPage> {
   int sortColumnIndex = 1;
   int orderDirection = 1;
 
+  String employeeFilter = '';
+  double minSalaryFilter = 0.0;
+  double maxSalaryFilter = 1e6;
+  DateTime minBornDateFilter =
+      DateTime.now().subtract(const Duration(days: 365 * 100));
+  DateTime maxBornDateFilter =
+      DateTime.now().subtract(const Duration(days: 365 * 16));
+  DateTime minAltaDateFilter =
+      DateTime.now().subtract(const Duration(days: 365 * 10));
+  DateTime maxAltaDateFilter =
+      DateTime.now().add(const Duration(days: 365 * 1));
+  DateTime minBajaDateFilter =
+      DateTime.now().subtract(const Duration(days: 365 * 10));
+  DateTime maxBajaDateFilter =
+      DateTime.now().add(const Duration(days: 365 * 10));
+
+  late List<bool> selectedEmployees;
+
   int compareEmployee(Employee a, Employee b) {
     switch (sortColumnIndex) {
       case 0:
@@ -50,6 +71,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     super.initState();
     Employee.getEmployees().then((value) {
       employees = value;
+      selectedEmployees = List.filled(employees.length, true);
       contentPanel = content(context);
       if (mounted) {
         setState(() {});
@@ -115,9 +137,187 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
     employees.sort(compareEmployee);
 
+    Widget filterPanel = Row(
+      children: [
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Filtrar por empleado',
+                hintText: 'Nombre, apellidos o DNI/NIE/ID/Email',
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                employeeFilter = value;
+              } else {
+                employeeFilter = '';
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ), //
+        // Filter by salary
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario anual mínimo',
+                hintText: toCurrency(minSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                minSalaryFilter = double.parse(value);
+              } catch (e) {
+                minSalaryFilter = 0.0;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+                labelText: 'Salario anual máximo',
+                hintText: toCurrency(maxSalaryFilter),
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              try {
+                maxSalaryFilter = double.parse(value);
+              } catch (e) {
+                maxSalaryFilter = 1e6;
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
+        ),
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Nacido después',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: minBornDateFilter,
+              onSelectedDate: (value) {
+                minBornDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Nacido antes',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: maxBornDateFilter,
+              onSelectedDate: (value) {
+                maxBornDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Alta desde',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: minAltaDateFilter,
+              onSelectedDate: (value) {
+                minAltaDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Alta hasta',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: maxAltaDateFilter,
+              onSelectedDate: (value) {
+                maxAltaDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+        // Filter by baja date
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Baja desde',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: minBajaDateFilter,
+              onSelectedDate: (value) {
+                minBajaDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+        Expanded(
+          child: FilterDateField(
+              labelText: 'Baja hasta',
+              bottom: 14,
+              minYear: 1900,
+              maxYear: 2100,
+              selectedDate: maxBajaDateFilter,
+              onSelectedDate: (value) {
+                maxBajaDateFilter = value;
+                if (mounted) {
+                  setState(() {
+                    contentPanel = content(context);
+                  });
+                }
+              }),
+        ),
+      ],
+    );
+    employeeFilter = employeeFilter.toLowerCase();
     List<Employee> employeesFiltered = employees
-        .where((element) => element.isActive() == altasVisible)
+        .where((Employee element) =>
+            element.isActive() == altasVisible &&
+            (element.getFullName().toLowerCase().contains(employeeFilter) ||
+                (element.code.toLowerCase().startsWith(employeeFilter)) ||
+                (element.email.toLowerCase().contains(employeeFilter))) &&
+            element.getSalary() >= minSalaryFilter &&
+            element.getSalary() <= maxSalaryFilter &&
+            element.getBornDate().isAfter(minBornDateFilter) &&
+            element.getBornDate().isBefore(maxBornDateFilter) &&
+            element.getAltaDate().isAfter(minAltaDateFilter))
         .toList();
+
+    // List<Employee> employeesFiltered = employees
+    //     .where((element) => element.isActive() == altasVisible)
+    //     .toList();
+
+    // Filtros
 
     Widget listEmployees = SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -133,8 +333,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
               columns: [
                 'Código',
                 'Apellidos, Nombre',
-                'Fecha Alta',
-                'Fecha Baja',
+                'Fecha Nac.',
+                'Alta',
+                'Baja',
+                'Cargo',
+                'Días C.',
+                'Salario',
                 'Email',
                 ''
               ].map((e) {
@@ -156,6 +360,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 );
               }).toList(),
               rows: employeesFiltered.map((e) {
+                e.bornDate ??= DateTime.now();
+                if (e.bornDate!.isAfter(
+                    DateTime.now().subtract(const Duration(days: 365 * 16)))) {
+                  e.bornDate =
+                      DateTime.now().subtract(const Duration(days: 365 * 16));
+                }
                 return DataRow(
                   color: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
@@ -179,12 +389,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     ),
                     DataCell(
                         Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
+                    DataCell(Text(DateFormat('dd/MM/yyyy').format(
+                        (e.bornDate != null) ? e.bornDate! : DateTime.now()))),
                     DataCell(
                         Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
                     DataCell(Text((e.getBajaDate().isAfter(
                             DateTime.now().add(const Duration(days: 3650))))
                         ? ' Indefinido'
                         : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
+                    DataCell(Text(e.position)),
+                    DataCell(Text(e.altaDays().toString())),
+                    DataCell(Text(toCurrency(e.getSalary()))),
                     DataCell(Text(e.email)),
                     DataCell(
                       Row(
@@ -241,6 +456,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
       child: Column(children: [
         titleBar,
         Padding(padding: const EdgeInsets.all(5), child: toolsEmployee),
+        Padding(padding: const EdgeInsets.all(5), child: filterPanel),
         Padding(padding: const EdgeInsets.all(5), child: listEmployees),
       ] // ListView.builder
           ),

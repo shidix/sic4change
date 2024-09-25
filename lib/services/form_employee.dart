@@ -2,8 +2,6 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/monitoring/v3.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -48,7 +46,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
       employmentPromotion = employee.altas.last.employmentPromotion;
-      employeeSalary = employee.altas.last.salary;
+      employeeSalary = employee.getSalary();
     }
     EmploymentPromotion.getActive().then((value) {
       promotions = value.map((e) => KeyValue(e.name, e.name)).toList();
@@ -70,7 +68,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
         if (indexReason != -1) {
           selectedReason = reasons.values.toList()[indexReason].uuid!;
         } else {
-          selectedReason = "";
+          selectedReason = "Sin especificar";
         }
       }
       if (mounted) {
@@ -84,25 +82,27 @@ class _EmployeeFormState extends State<EmployeeForm> {
     void save() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
-        if (employee.bajas.isNotEmpty) {
-          employee.bajas.last.date = selectedBajaDate;
-          employee.bajas.last.reason = reasons[selectedReason]!.name;
-          employee.bajas.last.extraDocument =
-              reasons[selectedReason]!.extraDocument;
-        } else {
-          employee.bajas.add(Baja(
-              date: selectedBajaDate, reason: reasons[selectedReason]!.name));
+        if (selectedReason != '') {
+          if (employee.bajas.isNotEmpty) {
+            employee.bajas.last.date = selectedBajaDate;
+            employee.bajas.last.reason = reasons[selectedReason]!.name;
+            employee.bajas.last.extraDocument =
+                reasons[selectedReason]!.extraDocument;
+          } else {
+            employee.bajas.add(Baja(
+                date: selectedBajaDate, reason: reasons[selectedReason]!.name));
+          }
         }
 
         if (employee.altas.isNotEmpty) {
           employee.altas.last.employmentPromotion = employmentPromotion;
-          employee.altas.last.salary = employeeSalary;
+          (employee.altas.last as Alta).setSalary(employeeSalary);
           employee.altas.last.date = selectedAltaDate;
         } else {
-          employee.altas.add(Alta(
-              date: selectedAltaDate,
-              salary: employeeSalary,
-              employmentPromotion: employmentPromotion));
+          Alta alta = Alta(
+              date: selectedAltaDate, employmentPromotion: employmentPromotion);
+          alta.setSalary(employeeSalary);
+          employee.altas.add(alta);
         }
         employee.save();
         Navigator.of(context).pop(employee);
@@ -115,8 +115,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
         padding: const EdgeInsets.only(top: 8, left: 5),
         initial: selectedReason,
         options: reasonsOptions,
-        required: true,
+        required: false,
         onSelectedOpt: (value) {
+          if (value == "") {
+            value = // find in reasons the first reason with order == -1
+                reasons.values
+                    .firstWhere((element) => element.order == -1)
+                    .uuid!;
+          }
           selectedReason = value;
           if (reasons[value]!.order == 0) {
             selectedBajaDate = DateTime(2099, 12, 31);
@@ -163,7 +169,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: TextFormField(
                       initialValue: employee.code,
                       decoration:
-                          const InputDecoration(labelText: 'Número Empleado'),
+                          const InputDecoration(labelText: 'NIF/NIE/ID'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'El campo no puede estar vacío';
@@ -270,6 +276,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   return null;
                 },
               ),
+              TextFormField(
+                initialValue: employee.bankAccount,
+                decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
+                onSaved: (String? value) {
+                  employee.bankAccount = value!;
+                },
+              ),
               Row(children: [
                 Expanded(
                     flex: 3,
@@ -346,7 +359,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         child: TextFormField(
                           initialValue: toCurrency(employeeSalary),
                           decoration: const InputDecoration(
-                            labelText: 'Salario',
+                            labelText: 'Salario Anual',
                             contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                           ),
                           onSaved: (String? value) {
@@ -596,16 +609,16 @@ class EmployeeAltaForm extends StatefulWidget {
 class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late Employee employee;
-  late DateTime selectedDate;
+  late DateTime selectedAltaDate;
 
   @override
   void initState() {
     super.initState();
     employee = widget.selectedItem;
     if (!employee.isActive()) {
-      selectedDate = DateTime.now();
+      selectedAltaDate = DateTime.now();
     } else {
-      selectedDate = employee.altas.last.date;
+      selectedAltaDate = employee.altas.last.date;
     }
   }
 
@@ -619,13 +632,12 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             DateTimePicker(
+                key: UniqueKey(),
                 labelText: 'Fecha Alta',
-                selectedDate: (employee.isActive())
-                    ? employee.altas.last.date
-                    : DateTime.now(),
+                selectedDate: selectedAltaDate,
                 onSelectedDate: (DateTime? date) {
                   if (date != null) {
-                    selectedDate = date;
+                    selectedAltaDate = date;
                   }
                   setState(() {});
                 }),
@@ -640,10 +652,10 @@ class _EmployeeAltaFormState extends State<EmployeeAltaForm> {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
                         if (!employee.isActive()) {
-                          employee.altas.add(Alta(date: selectedDate));
+                          employee.altas.add(Alta(date: selectedAltaDate));
                         } else {
                           employee.altas[employee.altas.length - 1] =
-                              Alta(date: selectedDate);
+                              Alta(date: selectedAltaDate);
                         }
                         employee.save();
                         Navigator.of(context).pop(employee);
@@ -689,6 +701,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
         'date': alta.date,
         'path': alta.pathContract
       });
+
       listDocuments.add({
         'type': 'Alta',
         'desc': 'Anexo',
@@ -716,8 +729,12 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
       if (alta.pathOthers != null) {
         alta.pathOthers!.forEach((key, value) {
-          listDocuments.add(
-              {'type': 'Alta', 'desc': key, 'date': alta.date, 'path': value});
+          listDocuments.add({
+            'type': 'Alta',
+            'desc': key,
+            'date': alta.date,
+            'path': value,
+          });
         });
       }
 
@@ -735,8 +752,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
     for (Baja baja in selectedItem.bajas) {
       listDocuments.add({
-        'type':
-            (baja.reason != null && baja.reason != '') ? baja.reason : 'Baja',
+        'type': (baja.reason != '') ? baja.reason : 'Baja',
         'desc': 'Finiquito',
         'date': baja.date,
         'path': baja.pathFiniquito
@@ -748,6 +764,14 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
           'date': baja.date,
           'path': baja.pathExtraDoc
         });
+      }
+    }
+
+    for (var item in listDocuments) {
+      item['modified'] = DateTime(2099, 12, 31);
+      if (item['path'] != null) {
+        item['modified'] = // extract date from path
+            DateTime.parse(item['path'].split('/').last.split('_').first);
       }
     }
 
@@ -785,8 +809,14 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
               DataTable(
                 dataRowMinHeight: 70,
                 dataRowMaxHeight: 70,
-                columns: ['Satus', 'Trámite', 'Fecha', 'Descripción', '']
-                    .map((item) {
+                columns: [
+                  'Satus',
+                  'Trámite',
+                  'Fecha',
+                  'Modificado',
+                  'Descripción',
+                  ''
+                ].map((item) {
                   return DataColumn(
                     label: Text(
                       item,
@@ -826,6 +856,8 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                       DataCell(Text(e['type'])),
                       DataCell(
                           Text(DateFormat('dd/MM/yyyy').format(e['date']))),
+                      DataCell(
+                          Text(DateFormat('dd/MM/yyyy').format(e['modified']))),
                       DataCell(Text(e['desc'])),
                       DataCell(
                         Row(
@@ -843,10 +875,15 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                                 rootPath:
                                                     'files/employees/${selectedItem.code}/documents/${e['type']}/',
                                                 fileName:
-                                                    '${DateFormat('yyyyMMdd').format(e['date'])}_${e['desc'].replaceAll(' ', '_')}.$extention')
+                                                    '${DateFormat('yyyyMMdd').format(DateTime.now())}_${e['desc'].replaceAll(' ', '_')}.$extention')
                                             .then((value) {
-                                          selectedItem.extraDocs[e['desc']] =
-                                              value;
+                                          if (e["type"] == 'Otros') {
+                                            selectedItem.extraDocs[e['desc']] =
+                                                value;
+                                          } else {
+                                            selectedItem.updateDocument(
+                                                e, value);
+                                          }
                                           selectedItem.save();
                                           setState(() {});
                                         });

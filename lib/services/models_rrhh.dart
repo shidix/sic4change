@@ -303,6 +303,24 @@ class EmploymentPromotion {
   }
 }
 
+class Salary {
+  DateTime date;
+  double amount;
+
+  Salary({required this.date, required this.amount});
+
+  factory Salary.fromJson(Map<String, dynamic> json) {
+    return Salary(
+        date: getDate(json['date'] ?? DateTime.now()),
+        amount: json['amount'] ?? 0.0);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'amount': amount,
+      };
+}
+
 class Alta {
   DateTime date;
   String? pathContract;
@@ -311,7 +329,7 @@ class Alta {
   String? pathNIF;
   String? pathLOPD;
   String employmentPromotion = '';
-  double salary = 0.0;
+  List salary = [];
 
   Map<String, String>? pathOthers;
 
@@ -324,12 +342,11 @@ class Alta {
     this.pathLOPD,
     this.pathOthers,
     this.employmentPromotion = '',
-    this.salary = 0.0,
   });
 
   static Alta fromJson(Map<String, dynamic> json) {
     Alta item = Alta(
-      date: getDate(json['date'] ?? DateTime.now()),
+      date: getDate(json['date']), // ?? DateTime.now()),
       pathContract: json['pathContract'],
       pathAnnex: json['pathAnnex'],
       pathNDA: json['pathNDA'],
@@ -343,9 +360,20 @@ class Alta {
       item.employmentPromotion = '';
     }
     if (json.containsKey('salary')) {
-      item.salary = json['salary'];
+      //check if salary is a list of objects or a double
+      if (json['salary'] is double) {
+        item.salary.add(Salary(date: item.date, amount: json['salary']));
+      } else {
+        item.salary = json['salary'].map((e) {
+          try {
+            return Salary.fromJson(e);
+          } catch (exception) {
+            return Salary(date: getDate(e), amount: 0.0);
+          }
+        }).toList();
+      }
     } else {
-      item.salary = 0.0;
+      item.salary = [];
     }
     return item;
   }
@@ -358,7 +386,7 @@ class Alta {
         'pathNIF': pathNIF,
         'pathLOPD': pathLOPD,
         'pathOthers': pathOthers,
-        'salary': salary,
+        'salary': salary.map((e) => e.toJson()).toList(),
         'employmentPromotion': employmentPromotion == null
             ? ''
             : employmentPromotion!.isEmpty
@@ -369,6 +397,16 @@ class Alta {
   @override
   String toString() {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  String setSalary(double salary) {
+    if (this.salary.isEmpty) {
+      this.salary.add(Salary(date: date, amount: salary));
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
+    this.salary.sort((a, b) => a.date.compareTo(b.date));
+    this.salary.last.amount = salary;
+    return DateFormat('dd/MM/yyyy').format(this.salary.last.date);
   }
 }
 
@@ -490,6 +528,7 @@ class Employee {
   String position;
   String category;
   String sex = 'O';
+  String bankAccount = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
   List altas = [];
   List bajas = [];
@@ -505,6 +544,7 @@ class Employee {
       required this.phone,
       required this.position,
       required this.category,
+      this.bankAccount = '',
       this.altas = const [],
       this.bajas = const [],
       this.extraDocs = const {},
@@ -527,12 +567,13 @@ class Employee {
           : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
+      bankAccount: (json.containsKey('bankAccount')) ? json['bankAccount'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
           ? []
           : json['altas'].map((e) {
               try {
                 return Alta.fromJson(e as Map<String, dynamic>);
-              } catch (exception) {
+              } catch (exception, stackTrace) {
                 return Alta(
                   date: getDate(e),
                 );
@@ -570,6 +611,7 @@ class Employee {
         'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
+        'bankAccount': bankAccount,
       };
 
   Future<String> getPhotoUrl() async {
@@ -582,6 +624,10 @@ class Employee {
 
   Future<void> removePhotoPath() async {
     photoPath = null;
+  }
+
+  DateTime getBornDate() {
+    return bornDate ?? DateTime(1924, 1, 1);
   }
 
   Future<Employee> save() async {
@@ -644,12 +690,16 @@ class Employee {
       return 0.0;
     }
     date ??= DateTime.now();
-    altas.sort((a, b) => a.date.compareTo(b.date));
+    altas.sort((a, b) => b.date.compareTo(a.date));
     try {
-      Alta alta = altas.firstWhere((element) => element.date.isAfter(date));
-      return alta.salary;
+      return altas
+          .firstWhere((element) => element.date.isBefore(date))
+          .salary
+          .last
+          .amount;
     } catch (e) {
-      return altas.last.salary;
+      print('Error: $e');
+      return 0.0;
     }
   }
 
@@ -664,7 +714,7 @@ class Employee {
     if (altas.isEmpty) {
       return 0;
     }
-    return date.difference(truncDate(fromDate)).inDays;
+    return date.difference(truncDate(fromDate)).inDays + 1;
   }
 
   static Employee getEmpty() {
