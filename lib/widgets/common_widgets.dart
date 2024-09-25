@@ -2278,6 +2278,48 @@ class CustomDateField extends StatelessWidget {
   }
 }
 
+class FilterDateField extends StatelessWidget {
+  const FilterDateField({
+    Key? key,
+    required this.labelText,
+    required this.selectedDate,
+    required this.onSelectedDate,
+    this.minYear = 2000,
+    this.maxYear = 2101,
+    this.bottom = 16,
+  }) : super(key: key);
+
+  final String labelText;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelectedDate;
+  final int minYear;
+  final int maxYear;
+  final double bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.only(bottom: bottom),
+        child: ListTile(
+          leading: const Icon(Icons.date_range),
+          shape: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+          title: Text(labelText),
+          subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: selectedDate,
+                firstDate: DateTime(minYear),
+                lastDate: DateTime(maxYear, 12, 31));
+            if (picked != null && picked != selectedDate) {
+              onSelectedDate(picked);
+            }
+          },
+        ));
+  }
+}
+
 Widget customTextLabel(context, String label, dynamic text) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,

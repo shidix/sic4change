@@ -626,6 +626,10 @@ class Employee {
     photoPath = null;
   }
 
+  DateTime getBornDate() {
+    return bornDate ?? DateTime(1924, 1, 1);
+  }
+
   Future<Employee> save() async {
     altas.sort((a, b) => a.date.compareTo(b.date));
     bajas.sort((a, b) => a.date.compareTo(b.date));
