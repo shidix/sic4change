@@ -134,8 +134,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
               columns: [
                 'Código',
                 'Apellidos, Nombre',
-                'Fecha Alta',
-                'Fecha Baja',
+                'Fecha Nac.',
+                'Alta',
+                'Baja',
+                'Cargo',
                 'Días C.',
                 'Salario',
                 'Email',
@@ -159,6 +161,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 );
               }).toList(),
               rows: employeesFiltered.map((e) {
+                e.bornDate ??= DateTime.now();
+                if (e.bornDate!.isAfter(
+                    DateTime.now().subtract(const Duration(days: 365 * 16)))) {
+                  e.bornDate =
+                      DateTime.now().subtract(const Duration(days: 365 * 16));
+                }
                 return DataRow(
                   color: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
@@ -182,12 +190,15 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     ),
                     DataCell(
                         Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
+                    DataCell(Text(DateFormat('dd/MM/yyyy').format(
+                        (e.bornDate != null) ? e.bornDate! : DateTime.now()))),
                     DataCell(
                         Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
                     DataCell(Text((e.getBajaDate().isAfter(
                             DateTime.now().add(const Duration(days: 3650))))
                         ? ' Indefinido'
                         : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
+                    DataCell(Text(e.position)),
                     DataCell(Text(e.altaDays().toString())),
                     DataCell(Text(toCurrency(e.getSalary()))),
                     DataCell(Text(e.email)),

@@ -1,10 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/monitoring/v3.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -71,7 +68,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
         if (indexReason != -1) {
           selectedReason = reasons.values.toList()[indexReason].uuid!;
         } else {
-          selectedReason = "";
+          selectedReason = "Sin especificar";
         }
       }
       if (mounted) {
@@ -85,14 +82,16 @@ class _EmployeeFormState extends State<EmployeeForm> {
     void save() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
-        if (employee.bajas.isNotEmpty) {
-          employee.bajas.last.date = selectedBajaDate;
-          employee.bajas.last.reason = reasons[selectedReason]!.name;
-          employee.bajas.last.extraDocument =
-              reasons[selectedReason]!.extraDocument;
-        } else {
-          employee.bajas.add(Baja(
-              date: selectedBajaDate, reason: reasons[selectedReason]!.name));
+        if (selectedReason != '') {
+          if (employee.bajas.isNotEmpty) {
+            employee.bajas.last.date = selectedBajaDate;
+            employee.bajas.last.reason = reasons[selectedReason]!.name;
+            employee.bajas.last.extraDocument =
+                reasons[selectedReason]!.extraDocument;
+          } else {
+            employee.bajas.add(Baja(
+                date: selectedBajaDate, reason: reasons[selectedReason]!.name));
+          }
         }
 
         if (employee.altas.isNotEmpty) {
@@ -116,8 +115,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
         padding: const EdgeInsets.only(top: 8, left: 5),
         initial: selectedReason,
         options: reasonsOptions,
-        required: true,
+        required: false,
         onSelectedOpt: (value) {
+          if (value == "") {
+            value = // find in reasons the first reason with order == -1
+                reasons.values
+                    .firstWhere((element) => element.order == -1)
+                    .uuid!;
+          }
           selectedReason = value;
           if (reasons[value]!.order == 0) {
             selectedBajaDate = DateTime(2099, 12, 31);
@@ -164,7 +169,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: TextFormField(
                       initialValue: employee.code,
                       decoration:
-                          const InputDecoration(labelText: 'Número Empleado'),
+                          const InputDecoration(labelText: 'NIF/NIE/ID'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'El campo no puede estar vacío';
@@ -269,6 +274,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     return 'El campo no puede estar vacío';
                   }
                   return null;
+                },
+              ),
+              TextFormField(
+                initialValue: employee.bankAccount,
+                decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
+                onSaved: (String? value) {
+                  employee.bankAccount = value!;
                 },
               ),
               Row(children: [
@@ -740,8 +752,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
 
     for (Baja baja in selectedItem.bajas) {
       listDocuments.add({
-        'type':
-            (baja.reason != null && baja.reason != '') ? baja.reason : 'Baja',
+        'type': (baja.reason != '') ? baja.reason : 'Baja',
         'desc': 'Finiquito',
         'date': baja.date,
         'path': baja.pathFiniquito

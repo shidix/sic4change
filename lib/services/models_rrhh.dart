@@ -528,6 +528,7 @@ class Employee {
   String position;
   String category;
   String sex = 'O';
+  String bankAccount = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
   List altas = [];
   List bajas = [];
@@ -543,6 +544,7 @@ class Employee {
       required this.phone,
       required this.position,
       required this.category,
+      this.bankAccount = '',
       this.altas = const [],
       this.bajas = const [],
       this.extraDocs = const {},
@@ -565,6 +567,7 @@ class Employee {
           : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
+      bankAccount: (json.containsKey('bankAccount')) ? json['bankAccount'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
           ? []
           : json['altas'].map((e) {
@@ -608,6 +611,7 @@ class Employee {
         'altas': altas.map((e) => e.toJson()).toList(),
         'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
+        'bankAccount': bankAccount,
       };
 
   Future<String> getPhotoUrl() async {

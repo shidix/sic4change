@@ -2216,9 +2216,14 @@ class CustomSelectFormField extends StatelessWidget {
               labelText: labelText, contentPadding: EdgeInsets.zero),
           items: optionsDrop,
           onChanged: (value) {
-            onSelectedOpt(value.toString());
+            if (value != null) {
+              onSelectedOpt(value.toString());
+            }
           },
           validator: (value) {
+            if (!required) {
+              return null;
+            }
             if (value == null ||
                 value.isEmpty ||
                 (required && value == "") ||
