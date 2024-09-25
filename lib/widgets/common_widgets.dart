@@ -2289,7 +2289,7 @@ class FilterDateField extends StatelessWidget {
     this.bottom = 16,
   }) : super(key: key);
 
-  final String labelText;
+  final dynamic labelText;
   final DateTime selectedDate;
   final ValueChanged<DateTime> onSelectedDate;
   final int minYear;
@@ -2304,7 +2304,9 @@ class FilterDateField extends StatelessWidget {
           leading: const Icon(Icons.date_range),
           shape: const UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey, width: 1.0)),
-          title: Text(labelText),
+          title: (labelText is String)
+              ? Text(labelText, style: TextStyle(fontSize: 12))
+              : labelText,
           subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
           onTap: () async {
             final DateTime? picked = await showDatePicker(

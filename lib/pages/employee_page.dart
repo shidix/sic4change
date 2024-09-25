@@ -40,10 +40,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
       DateTime.now().subtract(const Duration(days: 365 * 16));
   DateTime minAltaDateFilter =
       DateTime.now().subtract(const Duration(days: 365 * 10));
-  DateTime maxAltaDateFilter = DateTime.now();
+  DateTime maxAltaDateFilter =
+      DateTime.now().add(const Duration(days: 365 * 1));
   DateTime minBajaDateFilter =
       DateTime.now().subtract(const Duration(days: 365 * 10));
-  DateTime maxBajaDateFilter = DateTime.now();
+  DateTime maxBajaDateFilter =
+      DateTime.now().add(const Duration(days: 365 * 10));
 
   late List<bool> selectedEmployees;
 
@@ -200,7 +202,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         ),
         Expanded(
           child: FilterDateField(
-              labelText: 'Nacido después de',
+              labelText: 'Nacido después',
               bottom: 14,
               minYear: 1900,
               maxYear: 2100,
@@ -216,7 +218,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         ),
         Expanded(
           child: FilterDateField(
-              labelText: 'Nacido antes de',
+              labelText: 'Nacido antes',
               bottom: 14,
               minYear: 1900,
               maxYear: 2100,
