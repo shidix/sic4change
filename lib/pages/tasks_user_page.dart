@@ -431,15 +431,6 @@ class _TasksUserPageState extends State<TasksUserPage> {
     task.initializeProjectList(projectList);
     task.initializeProgrammeList(programmeList);
 
-    /*//task.progList.insert(0, KeyValue("", ""));
-    for (Programme p in programmeList) {
-      task.progList.add(p.toKeyValue());
-    }
-    //task.projList.insert(0, KeyValue("", ""));
-    for (SProject p in projectList) {
-      task.projList.add(p.toKeyValue());
-    }*/
-
     var user = FirebaseAuth.instance.currentUser!;
     task.sender = user.email!;
     task.public = true;

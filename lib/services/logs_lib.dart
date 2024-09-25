@@ -1,8 +1,10 @@
 import 'package:export_firebase_csv/export_firebase_csv.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-void createLog(String user, String msg) {
-  SLogs log = SLogs(user);
+void createLog(String msg) {
+  final user = FirebaseAuth.instance.currentUser!;
+  SLogs log = SLogs(user.email!);
   log.msg = msg;
   log.save();
 }

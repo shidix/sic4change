@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -1900,14 +1901,17 @@ class Programme {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProgramme.add(data);
+      createLog("Creado el programa: $name");
     } else {
       Map<String, dynamic> data = toJson();
       dbProgramme.doc(id).set(data);
+      createLog("Modificado el programa: $name");
     }
   }
 
   Future<void> delete() async {
     await dbProgramme.doc(id).delete();
+    createLog("Borrado el programa: $name");
   }
 
   Future<void> getProjects() async {

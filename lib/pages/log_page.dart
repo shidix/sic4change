@@ -1,4 +1,3 @@
-import 'package:export_firebase_csv/export_firebase_csv.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/logs_lib.dart';
@@ -20,19 +19,24 @@ class _LogPageState extends State<LogPage> {
   List logs = [];
   bool sortAsc = false;
   int sortColumnIndex = 0;
+  DateTime currentDate = DateTime.now();
+  List selected = [];
 
   @override
   void initState() {
     super.initState();
     _mainMenu = mainMenu(context);
-    getLogList();
+    getLogList(currentDate);
   }
 
-  void getLogList() async {
+  void getLogList(DateTime date) async {
     await SLogs.getLogs().then((value) {
-      setState(() {
-        logs = value;
-      });
+      for (SLogs l in value) {
+        if (DateUtils.isSameDay(l.date, date)) {
+          logs.add(l);
+        }
+      }
+      setState(() {});
     });
   }
 
@@ -67,12 +71,45 @@ class _LogPageState extends State<LogPage> {
         },
         leading: const Icon(Icons.search),
       ),*/
+      SizedBox(
+          width: 330,
+          child: DateTimePicker(
+            labelText: 'Acuerdo',
+            selectedDate: DateTime.now(),
+            lastDate: DateTime.now(),
+            onSelectedDate: (DateTime date) {
+              getLogList(date);
+              setState(() {
+                currentDate = date;
+              });
+            },
+          )),
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             //addBtn(context, callEditDialog, {"task": null}),
+            FilledButton(
+                onPressed: () async {
+                  for (SLogs l in selected) {
+                    logs.remove(l);
+                    l.delete();
+                  }
+                  setState(() {});
+                },
+                style: btnStyle,
+                child: Column(
+                  children: [
+                    space(height: 5),
+                    const Icon(Icons.remove_circle_outline,
+                        color: subTitleColor),
+                    space(height: 5),
+                    customText("Eliminar", 12, textColor: subTitleColor),
+                    space(height: 5),
+                  ],
+                )),
+            space(width: 10),
             FilledButton(
                 onPressed: () async {
                   exportLogFromFirebase();
@@ -122,7 +159,7 @@ class _LogPageState extends State<LogPage> {
       child: DataTable(
         sortAscending: sortAsc,
         sortColumnIndex: sortColumnIndex,
-        showCheckboxColumn: false,
+        showCheckboxColumn: true,
         headingRowColor: MaterialStateProperty.resolveWith<Color?>(
             (Set<MaterialState> states) {
           if (states.contains(MaterialState.hovered)) {
@@ -137,13 +174,25 @@ class _LogPageState extends State<LogPage> {
         ],
         rows: logs
             .map(
-              (log) => DataRow(cells: [
-                DataCell(
-                  Text(DateFormat('yyyy-MM-dd').format(log.date)),
-                ),
-                DataCell(Text(log.user)),
-                DataCell(customText(log.msg, 14)),
-              ]),
+              (log) => DataRow(
+                cells: [
+                  DataCell(
+                    Text(DateFormat('yyyy-MM-dd').format(log.date)),
+                  ),
+                  DataCell(Text(log.user)),
+                  DataCell(customText(log.msg, 14)),
+                ],
+                selected: selected.contains(log),
+                onSelectChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      selected.add(log);
+                    } else {
+                      selected.remove(log);
+                    }
+                  });
+                },
+              ),
             )
             .toList(),
       ),

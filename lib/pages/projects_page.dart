@@ -198,8 +198,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                   InkWell(
                                     child: Image.network(programme.logo),
                                     onTap: () {
-                                      createLog(user.email!,
-                                          "Acceso a programa: ${programme.name}");
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
