@@ -131,14 +131,17 @@ class SProject {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbProject.add(data);
+      createLog("Creada la iniciativa: $name");
     } else {
       Map<String, dynamic> data = toJson();
       dbProject.doc(id).set(data);
+      createLog("Modificada la iniciativa: $name");
     }
   }
 
   Future<void> delete() async {
     await dbProject.doc(id).delete();
+    createLog("Borrada la iniciativa: $name");
   }
 
   Future<SProject> reload() async {

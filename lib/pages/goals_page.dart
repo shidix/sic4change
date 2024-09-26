@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -103,6 +104,7 @@ class _GoalsPageState extends State<GoalsPage>
         }
       }
     });
+    if (first) stopLoading();
 
     if (project!.programme != "") {
       await Goal.checkOE0(project!.uuid, project!.programme);
@@ -126,6 +128,8 @@ class _GoalsPageState extends State<GoalsPage>
     project = widget.project;
     _mainMenu = mainMenu(context);
     loadInit();
+    createLog("Acceso al marco lógico de la iniciativa: ${project!.name}");
+
     //loadGoals();
     //_tabController = TabController(vsync: this, length: 2);
     //_tabController = TabController(vsync: this, length: myTabs.length);
@@ -475,6 +479,9 @@ class _GoalsPageState extends State<GoalsPage>
     }
     if (!results[result.goal].contains(result)) {
       results[result.goal].add(result);
+    }
+    if (!resultIndicatorPercent.containsKey(result.uuid)) {
+      resultIndicatorPercent[result.uuid] = 0;
     }
   }
 
@@ -925,6 +932,9 @@ class _GoalsPageState extends State<GoalsPage>
     }
     if (!resultActivityList[activity.result].contains(activity)) {
       resultActivityList[activity.result].add(activity);
+    }
+    if (!activityIndicatorPercent.containsKey(activity.uuid)) {
+      activityIndicatorPercent[activity.uuid] = 0;
     }
   }
 
@@ -1421,6 +1431,8 @@ class _GoalsPageState extends State<GoalsPage>
       goalIndicatorPercent[indicator.goal] = value;
       setState(() {});
     });
+    updateGoalIndicatorList(indicator);
+    setState(() {});
     //loadGoals();
 
     Navigator.pop(context);

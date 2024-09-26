@@ -436,6 +436,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     Programme programme = args[0];
     programme.save();
     setState(() {});
+    createLog("Modificado el objetivo 0 del programa: ${programme.name}");
     Navigator.pop(context);
   }
 

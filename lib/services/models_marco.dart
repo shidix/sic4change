@@ -1,6 +1,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
@@ -21,6 +22,8 @@ class Goal {
   bool main = false;
   String project = "";
   double indicatorsPercent = 0;
+
+  String projectName = "";
 
   /*Goal(
       this.id, this.uuid, this.name, this.description, this.main, this.project);*/
@@ -49,18 +52,24 @@ class Goal {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbGoal.add(data).then((value) => id = value.id);
+      createLog(
+          "Creado el objetivo '$name' en la iniciativa '${getProjectByGoal()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbGoal.doc(id).set(data);
+      createLog(
+          "Modificado el objetivo '$name' de la iniciativa '${getProjectByGoal()}'");
     }
   }
 
   Future<void> delete() async {
     await dbGoal.doc(id).delete();
+    createLog(
+        "Borrado el objetivo '$name' de la iniciativa '${getProjectByGoal()}'");
   }
 
   Future<String> getProjectByGoal() async {
-    Goal goal;
+    /*Goal goal;
     SProject project;
 
     QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: uuid).get();
@@ -76,8 +85,17 @@ class Goal {
     dataProject["id"] = dbP.id;
     project = SProject.fromJson(dataProject);
 
-    return project.name;
+    return project.name;*/
     //return _project.name + " > " + _goal.name;
+
+    SProject proj = SProject("");
+    QuerySnapshot query =
+        await dbProject.where("uuid", isEqualTo: project).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    proj = SProject.fromJson(data);
+    return proj.name;
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
@@ -247,20 +265,36 @@ class GoalIndicator {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbGoalIndicator.add(data).then((value) => id = value.id);
+      createLog(
+          "Creado el indicador '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbGoalIndicator.doc(id).set(data);
+      createLog(
+          "Modificado el indicador '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
     await dbGoalIndicator.doc(id).delete();
+    createLog(
+        "Eliminado el indicador '$name' en el objetivo '${getGoalName()}'");
   }
 
   Future<void> getFolder() async {
     if ((folder != "") && (folderObj == null)) {
       folderObj = await Folder.byLoc(folder);
     }
+  }
+
+  Future<String> getGoalName() async {
+    Goal g = Goal("");
+    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    g = Goal.fromJson(data);
+    return g.name;
   }
 }
 
@@ -369,14 +403,20 @@ class Result {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbResult.add(data).then((value) => id = value.id);
+      createLog(
+          "Creado el resultado '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbResult.doc(id).set(data);
+      createLog(
+          "Modificado el resultado '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
     await dbResult.doc(id).delete();
+    createLog(
+        "Eliminado el resultado '$name' en el objetivo '${getGoalName()}'");
   }
 
   Future<String> getProjectByActivity() async {
@@ -435,6 +475,16 @@ class Result {
     if (totalExpected > 0) total = totalObtained / totalExpected;
     //indicatorsPercent = total;
     return total;
+  }
+
+  Future<String> getGoalName() async {
+    Goal g = Goal("");
+    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    g = Goal.fromJson(data);
+    return g.name;
   }
 }
 
@@ -516,14 +566,30 @@ class ResultIndicator {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbResultIndicator.add(data).then((value) => id = value.id);
+      createLog(
+          "Creado el indicador '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbResultIndicator.doc(id).set(data);
+      createLog(
+          "Modificado el indicador '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
     await dbResultIndicator.doc(id).delete();
+    createLog(
+        "Borrado el indicador '$name' en el resultado '${getResultName()}'");
+  }
+
+  Future<String> getResultName() async {
+    Result r = Result("");
+    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    r = Result.fromJson(data);
+    return r.name;
   }
 }
 
@@ -595,14 +661,20 @@ class Activity {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbActivity.add(data).then((value) => id = value.id);
+      createLog(
+          "Creada la actividad '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbActivity.doc(id).set(data);
+      createLog(
+          "Modificada la actividad '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
     await dbActivity.doc(id).delete();
+    createLog(
+        "Borrada la actividad '$name' en el resultado '${getResultName()}'");
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
@@ -627,6 +699,16 @@ class Activity {
     if (totalExpected > 0) total = totalObtained / totalExpected;
     //indicatorsPercent = total;
     return total;
+  }
+
+  Future<String> getResultName() async {
+    Result r = Result("");
+    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    r = Result.fromJson(data);
+    return r.name;
   }
 }
 
@@ -703,14 +785,31 @@ class ActivityIndicator {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbActivityIndicator.add(data).then((value) => id = value.id);
+      createLog(
+          "Creado el indicador '$name' en la actividad '${getActivityName()}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbActivityIndicator.doc(id).set(data);
+      createLog(
+          "Modificado el indicador '$name' en la actividad '${getActivityName()}'");
     }
   }
 
   Future<void> delete() async {
     await dbActivityIndicator.doc(id).delete();
+    createLog(
+        "Borrado el indicador '$name' en la actividad '${getActivityName()}'");
+  }
+
+  Future<String> getActivityName() async {
+    Activity a = Activity("");
+    QuerySnapshot query =
+        await dbActivity.where("uuid", isEqualTo: activity).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    a = Activity.fromJson(data);
+    return a.name;
   }
 }
 
