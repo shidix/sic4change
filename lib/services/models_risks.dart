@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -94,14 +96,20 @@ class Risk {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbRisk.add(data);
+      createLog(
+          "Creado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbRisk.doc(id).set(data);
+      createLog(
+          "Modificado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
     }
   }
 
   Future<void> delete() async {
     await dbRisk.doc(id).delete();
+    createLog(
+        "Borrado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
   }
 }
 

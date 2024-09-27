@@ -53,41 +53,22 @@ class Goal {
       Map<String, dynamic> data = toJson();
       dbGoal.add(data).then((value) => id = value.id);
       createLog(
-          "Creado el objetivo '$name' en la iniciativa '${getProjectByGoal()}'");
+          "Creado el objetivo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbGoal.doc(id).set(data);
       createLog(
-          "Modificado el objetivo '$name' de la iniciativa '${getProjectByGoal()}'");
+          "Modificado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
     }
   }
 
   Future<void> delete() async {
     await dbGoal.doc(id).delete();
     createLog(
-        "Borrado el objetivo '$name' de la iniciativa '${getProjectByGoal()}'");
+        "Borrado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
   }
 
-  Future<String> getProjectByGoal() async {
-    /*Goal goal;
-    SProject project;
-
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: uuid).get();
-    final db = query.docs.first;
-    final Map<String, dynamic> data = db.data() as Map<String, dynamic>;
-    data["id"] = db.id;
-    goal = Goal.fromJson(data);
-
-    QuerySnapshot queryP =
-        await dbProject.where("uuid", isEqualTo: goal.project).get();
-    final dbP = queryP.docs.first;
-    final Map<String, dynamic> dataProject = dbP.data() as Map<String, dynamic>;
-    dataProject["id"] = dbP.id;
-    project = SProject.fromJson(dataProject);
-
-    return project.name;*/
-    //return _project.name + " > " + _goal.name;
-
+  /*Future<String> getProjectByGoal() async {
     SProject proj = SProject("");
     QuerySnapshot query =
         await dbProject.where("uuid", isEqualTo: project).get();
@@ -96,7 +77,7 @@ class Goal {
     data["id"] = dbP.id;
     proj = SProject.fromJson(data);
     return proj.name;
-  }
+  }*/
 
   static Future<double> getIndicatorsPercent(uuid) async {
     QuerySnapshot query =

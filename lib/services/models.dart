@@ -574,6 +574,16 @@ class SProject {
     }
     return items;
   }
+
+  static Future<String> getProjectName(String uuid) async {
+    SProject proj = SProject("");
+    QuerySnapshot query = await dbProject.where("uuid", isEqualTo: uuid).get();
+    final dbP = query.docs.first;
+    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    data["id"] = dbP.id;
+    proj = SProject.fromJson(data);
+    return proj.name;
+  }
 }
 
 Future<List> getProjects() async {

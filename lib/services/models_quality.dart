@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,12 +25,19 @@ class Transversal {
   void save() {
     if (id == "") {
       id = database.doc().id;
+      createLog(
+          "Creado transversal en la iniciativa '${SProject.getProjectName(project)}'");
+    } else {
+      createLog(
+          "Modificado transversal en la iniciativa '${SProject.getProjectName(project)}'");
     }
     database.doc(id).set(toJson());
   }
 
   void delete() {
     database.doc(id).delete();
+    createLog(
+        "Borrado transversal en la iniciativa '${SProject.getProjectName(project)}'");
   }
 
   void addTransversalQuestion(TransversalQuestion question) {

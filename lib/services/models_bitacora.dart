@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
+import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -56,14 +58,20 @@ class Bitacora extends Object {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbBitacora.add(data);
+      createLog(
+          "Creada bitácora en la iniciativa '${SProject.getProjectName(projectUuid)}'");
     } else {
       Map<String, dynamic> data = toJson();
       dbBitacora.doc(id).set(data);
+      createLog(
+          "Modificada bitácora en la iniciativa '${SProject.getProjectName(projectUuid)}'");
     }
   }
 
   Future<void> delete() async {
     await dbBitacora.doc(id).delete();
+    createLog(
+        "Borrada bitácora en la iniciativa '${SProject.getProjectName(projectUuid)}'");
   }
 
   static Future<Bitacora?> byProjectUuid(String uuid) async {
