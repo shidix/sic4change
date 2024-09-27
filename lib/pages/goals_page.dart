@@ -92,6 +92,7 @@ class _GoalsPageState extends State<GoalsPage>
 
           resultIndicatorPercent[res.uuid] =
               await Result.getIndicatorsPercent(res.uuid);
+          resultIndicatorPercent[res.uuid] = 0;
         }
         goalIndicatorList[goal.uuid] = await getGoalIndicatorsByGoal(goal.uuid);
         goalIndicatorPercent[goal.uuid] =

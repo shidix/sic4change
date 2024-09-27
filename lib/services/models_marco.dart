@@ -99,6 +99,7 @@ class Goal {
       } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
+    if (total > 1) total = 1;
     //indicatorsPercent = total;
     return total;
   }
@@ -454,6 +455,7 @@ class Result {
       print(e);
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
+    if (total > 1) total = 1;
     //indicatorsPercent = total;
     return total;
   }
@@ -678,6 +680,7 @@ class Activity {
       } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
+    if (total > 1) total = 1;
     //indicatorsPercent = total;
     return total;
   }
