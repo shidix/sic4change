@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'dart:developer' as dev;
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -65,14 +66,17 @@ class Contact {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContacts.add(data);
+      createLog("Creado el contacto: $name");
     } else {
       Map<String, dynamic> data = toJson();
       dbContacts.doc(id).set(data);
+      createLog("Modificado el contacto: $name");
     }
   }
 
   Future<void> delete() async {
     await dbContacts.doc(id).delete();
+    createLog("Borrado el contacto: $name");
   }
 
   Future<void> getOrganization() async {
@@ -263,6 +267,17 @@ class Contact {
       items.add(Contact.fromJson(data));
     }
     return items;
+  }
+
+  static Future<String> getContactName(String uuid) async {
+    Contact item = Contact("");
+    await dbContacts.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Contact.fromJson(data);
+    });
+    return item.name;
   }
 
   Future<void> loadObjs() async {

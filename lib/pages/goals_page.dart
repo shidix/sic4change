@@ -129,7 +129,7 @@ class _GoalsPageState extends State<GoalsPage>
     project = widget.project;
     _mainMenu = mainMenu(context);
     loadInit();
-    createLog("Acceso al marco lógico de la iniciativa: ${project!.name}");
+    createLog("Acceso al Marco Lógico de la iniciativa: ${project!.name}");
 
     //loadGoals();
     //_tabController = TabController(vsync: this, length: 2);

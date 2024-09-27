@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -57,14 +59,20 @@ class ContactTracking {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContactTracking.add(data);
+      createLog(
+          "Creado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
     } else {
       Map<String, dynamic> data = toJson();
       dbContactTracking.doc(id).set(data);
+      createLog(
+          "Modificado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
     }
   }
 
   Future<void> delete() async {
     await dbContactTracking.doc(id).delete();
+    createLog(
+        "Borrado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
   }
 
   Future<ContactTracking> reload() async {

@@ -8,6 +8,7 @@ import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/logs_lib.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -207,6 +208,8 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
         }
       }
     });
+
+    createLog("Acceso a Transversal de la iniciativa: ${currentProject!.name}");
   }
 
   List<Widget> panelActions(dialog, code) {

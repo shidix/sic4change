@@ -4,6 +4,7 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/learning_form.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_learning.dart';
 import 'package:sic4change/services/utils.dart';
@@ -49,6 +50,7 @@ class _LearningsPageState extends State<LearningsPage> {
     });
 
     super.initState();
+    createLog("Acceso a Aprendizajes de la iniciativa: ${project!.name}");
   }
 
   @override
@@ -78,65 +80,72 @@ class _LearningsPageState extends State<LearningsPage> {
           child: Column(
               children: [
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal:10, vertical:0),
-                      child:
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          flex: 6,
-                          child: Text('Descripción',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text('Tipo de acción',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text('Fecha',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Expanded(flex: 1, child: Text("")),
-                      ],
-                    )),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              flex: 6,
+                              child: Text('Descripción',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('Tipo de acción',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text('Fecha',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            Expanded(flex: 1, child: Text("")),
+                          ],
+                        )),
                     const Divider()
                   ] +
                   List.generate(
-                    learningInfo!.items.length,
-                    (index) => 
-
-                    Container(
-                      color: (index % 2 == 0) ? Colors.grey[100] : Colors.white,
-                      child: Padding(padding: const EdgeInsets.symmetric(horizontal:10, vertical:0), child:
-                    Row(children: [
-                      Expanded(
-                        flex: 6,
-                        child: Text(learningInfo!.items[index].description,
-                            maxLines: 10),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(learningInfo!.items[index].kind),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(DateFormat('dd/MM/yyyy')
-                            .format(getDate(learningInfo!.items[index].date))),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            editBtn(
-                                context, learningEditDialog, {'index': index}),
-                            removeConfirmBtn(context, removeLearning, index),
-                          ],
-                        ),
-                      ),
-                    ]),
-                  )))));
+                      learningInfo!.items.length,
+                      (index) => Container(
+                          color: (index % 2 == 0)
+                              ? Colors.grey[100]
+                              : Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 0),
+                            child: Row(children: [
+                              Expanded(
+                                flex: 6,
+                                child: Text(
+                                    learningInfo!.items[index].description,
+                                    maxLines: 10),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(learningInfo!.items[index].kind),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Text(DateFormat('dd/MM/yyyy').format(
+                                    getDate(learningInfo!.items[index].date))),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    editBtn(context, learningEditDialog,
+                                        {'index': index}),
+                                    removeConfirmBtn(
+                                        context, removeLearning, index),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          )))));
     }
 
     return Column(children: [

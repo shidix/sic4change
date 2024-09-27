@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/bitacora_form.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_bitacora.dart';
 import 'package:sic4change/services/utils.dart';
@@ -41,6 +42,7 @@ class _BitacoraPageState extends State<BitacoraPage> {
       }
       setState(() {});
     });
+    createLog("Acceso a Bitácora de la iniciativa: ${project.name}");
   }
 
   @override

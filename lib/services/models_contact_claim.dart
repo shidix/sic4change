@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:uuid/uuid.dart';
 
@@ -63,14 +64,20 @@ class ContactClaim {
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
       dbContactClaim.add(data);
+      createLog(
+          "Creada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
     } else {
       Map<String, dynamic> data = toJson();
       dbContactClaim.doc(id).set(data);
+      createLog(
+          "Modificada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
     }
   }
 
   Future<void> delete() async {
     await dbContactClaim.doc(id).delete();
+    createLog(
+        "Borrada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
   }
 
   Future<ContactClaim> reload() async {

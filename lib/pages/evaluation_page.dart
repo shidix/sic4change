@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/evaluation_form.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_evaluation.dart';
 import 'package:sic4change/services/utils.dart';
@@ -40,6 +41,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
         });
       }
     });
+    createLog(
+        "Acceso a Evaluación Externa y Calidad de la iniciativa: ${project.name}");
   }
 
   @override
@@ -433,14 +436,14 @@ class _EvaluationPageState extends State<EvaluationPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar((index >= 0)
-              ? 'Editando ${_titlesDictionary[type % 2]}'
-              : 'Añadiendo ${_titlesDictionary[type % 2]}'),
-          content:
-              SingleChildScrollView(child: 
-              EvaluationForm(evaluation: evaluation!, type: type, index: index),)
-        );
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar((index >= 0)
+                ? 'Editando ${_titlesDictionary[type % 2]}'
+                : 'Añadiendo ${_titlesDictionary[type % 2]}'),
+            content: SingleChildScrollView(
+              child: EvaluationForm(
+                  evaluation: evaluation!, type: type, index: index),
+            ));
       },
     ).then((value) {
       if (value != null) {
