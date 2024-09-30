@@ -473,8 +473,8 @@ Widget customDropdownField(controller, options, current, hint, {width = 220}) {
         items: options,
         itemAsString: (KeyValue p) => p.value,
         compareFn: (i1, i2) => i1.key == i2.key,
-        dropdownDecoratorProps: DropDownDecoratorProps(
-          dropdownSearchDecoration: InputDecoration(
+        decoratorProps: DropDownDecoratorProps(
+          decoration: InputDecoration(
             //labelText: "Menu mode",
             hintText: hint,
           ),
@@ -2057,6 +2057,12 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Create a list of DropDownnOnSearchFind options from options_src
+    DropdownSearchOnFind<KeyValue> options_new = (filter, loadProps) {
+      return Future.value(
+          options.where((element) => element.value.contains(filter)).toList());
+    };
+
     return SizedBox(
         width: size,
         child: DropdownSearch<KeyValue>(
@@ -2064,11 +2070,11 @@ class CustomDropdown extends StatelessWidget {
             showSearchBox: true,
             showSelectedItems: true,
           ),
-          items: options,
+          items: options_new,
           itemAsString: (KeyValue p) => p.value,
           compareFn: (i1, i2) => i1.key == i2.key,
-          dropdownDecoratorProps: DropDownDecoratorProps(
-            dropdownSearchDecoration: InputDecoration(
+          decoratorProps: DropDownDecoratorProps(
+            decoration: InputDecoration(
               labelText: labelText,
               hintText: labelText,
             ),
