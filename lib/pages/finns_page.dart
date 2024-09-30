@@ -7,6 +7,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/services/finn_form.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -67,7 +68,7 @@ class _FinnsPageState extends State<FinnsPage> {
     super.initState();
     _project = widget.project;
     loadInitialData();
-    createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
+    //createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
   }
 
   void loadInitialData() {
