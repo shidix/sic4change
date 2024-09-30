@@ -4,6 +4,7 @@ export PATH=/home/danidiaz/develop/flutter/bin/:/usr/local/sbin:/usr/local/bin:/
 while true
 do
     cd /var/www/flutter/sic4change
+    flutter pub get
     flutter build web --release
     #flutter build web
     flutter gen-l10n
