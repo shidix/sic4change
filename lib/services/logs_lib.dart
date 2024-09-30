@@ -1,4 +1,4 @@
-import 'package:export_firebase_csv/export_firebase_csv.dart';
+// import 'package:export_firebase_csv/export_firebase_csv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
 
@@ -17,6 +17,6 @@ void exportLogFromFirebase() async {
   DateTime endDate = DateTime(2024, 12, 31);
   String dateFieldName = 'date';
 
-  await exportWithTitles(collectionName, rowTitles, fieldNames, startDate,
-      endDate, dateFieldName, "-", "report");
+  // await exportWithTitles(collectionName, rowTitles, fieldNames, startDate,
+  //     endDate, dateFieldName, "-", "report");
 }

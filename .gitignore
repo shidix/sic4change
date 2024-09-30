@@ -51,3 +51,4 @@ web/start.sh
 pubspec.lock
 windows/**
 *.sh
+lib/generated/

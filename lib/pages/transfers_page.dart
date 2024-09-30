@@ -89,8 +89,8 @@ class _TransfersPageState extends State<TransfersPage> {
         });
       });
     }
-    createLog(
-        "Acceso a las Transferencias de la iniciativa: ${currentProject!.name}");
+    //createLog(
+    //  "Acceso a las Transferencias de la iniciativa: ${currentProject!.name}");
   }
 
   @override
