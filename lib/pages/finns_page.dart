@@ -68,7 +68,7 @@ class _FinnsPageState extends State<FinnsPage> {
     super.initState();
     _project = widget.project;
     loadInitialData();
-    //createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
+    createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
   }
 
   void loadInitialData() {
