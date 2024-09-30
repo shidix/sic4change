@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
@@ -56,10 +57,14 @@ class SFinnInfo extends Object {
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) => id = value.id);
+      createLog(
+          "Creada información de financiación de la iniciativa ${SProject.getProjectName(project)}");
 //      database.add(data);
     } else {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
+      createLog(
+          "Modificada información de financiación de la iniciativa ${SProject.getProjectName(project)}");
     }
   }
 
@@ -67,6 +72,8 @@ class SFinnInfo extends Object {
     final database = db.collection("s4c_finninfo");
     if (id != "") {
       database.doc(id).delete();
+      createLog(
+          "Borrada información de financiación de la iniciativa ${SProject.getProjectName(project)}");
     }
   }
 
@@ -410,6 +417,21 @@ class SFinn extends Object {
     return item;
   }
 
+  static String getFinnName(String uuid) {
+    final database = db.collection("s4c_finns");
+    SFinn item = SFinn('', uuid, '', '', '', '', DateTime.now(),
+        DateTime.now().add(const Duration(days: 365)));
+    database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+      var first = querySnapshot.docs.first;
+      item = SFinn.fromJson(first.data());
+      item.id = first.id;
+      Organization.byUuid(item.orgUuid).then((value) {
+        item.organization = value;
+      });
+    });
+    return item.name;
+  }
+
   Future<List<SFinn>> getChildrens() async {
     final List<SFinn> items = [];
     final database = db.collection("s4c_finns");
@@ -433,6 +455,8 @@ class SFinn extends Object {
       await database.add(data).then((value) {
         id = value.id;
       });
+      createLog(
+          "Creada financiación $name de la iniciativa ${SProject.getProjectName(project)}");
     } else {
       if (id == "") {
         final query = await database.where("uuid", isEqualTo: uuid).get();
@@ -442,6 +466,8 @@ class SFinn extends Object {
       }
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
+      createLog(
+          "Modificada financiación $name de la iniciativa ${SProject.getProjectName(project)}");
     }
   }
 
@@ -456,6 +482,8 @@ class SFinn extends Object {
         }
       });
     }
+    createLog(
+        "Borrada financiación $name de la iniciativa ${SProject.getProjectName(project)}");
   }
 
   @override
@@ -494,11 +522,15 @@ class FinnDistribution {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
       collection.add(data);
+      createLog(
+          "Creada distribución de la financiación ${SFinn.getFinnName(finn)}");
     } else {
       final query = await collection.where("id", isEqualTo: id).limit(1).get();
       final item = query.docs.first;
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
+      createLog(
+          "Modificada distribución de la financiación ${SFinn.getFinnName(finn)}");
     }
   }
 
@@ -574,6 +606,8 @@ class FinnDistribution {
     if (id != "") {
       database.doc(id).delete();
     }
+    createLog(
+        "Borrada distribución de la financiación ${SFinn.getFinnName(finn)}");
   }
 
   @override
@@ -856,10 +890,12 @@ class Invoice extends Object {
       } else {
         collection.add(toJson()).then((value) => id = value.id);
       }
+      createLog("Creada la factura '$number'");
     } else {
       final item = await collection.doc(id).get();
       Map<String, dynamic> data = toJson();
       collection.doc(item.id).set(data);
+      createLog("Modificada la factura '$number'");
     }
     return this;
   }
@@ -870,6 +906,7 @@ class Invoice extends Object {
       if (id != "") {
         await collection.doc(id).delete();
       }
+      createLog("Borrada la factura '$number'");
       return true;
     } catch (e) {
       return false;
