@@ -112,7 +112,7 @@ class _LogPageState extends State<LogPage> {
             space(width: 10),
             FilledButton(
                 onPressed: () async {
-                  exportLogFromFirebase();
+                  exportLogFromFirebase(selected);
                 },
                 style: btnStyle,
                 child: Column(

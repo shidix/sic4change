@@ -194,9 +194,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  //Image.network(programme.logo),
                                   InkWell(
-                                    child: Image.network(programme.logo),
+                                    child: Image.network(
+                                      programme.logo,
+                                      scale: 1,
+                                    ),
                                     onTap: () {
                                       Navigator.push(
                                           context,
