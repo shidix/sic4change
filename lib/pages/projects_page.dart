@@ -197,8 +197,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                   InkWell(
                                     child: Image.network(
                                       programme.logo,
-                                      scale: 1,
                                     ),
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) =>
+                                                  ProgrammePage(
+                                                      programme: programme))));
+                                    },
+                                  ),
+                                  InkWell(
+                                    child: customText(programme.name, 16),
                                     onTap: () {
                                       Navigator.push(
                                           context,
