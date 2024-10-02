@@ -203,7 +203,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Nacido después',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: minBornDateFilter,
@@ -219,7 +219,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Nacido antes',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: maxBornDateFilter,
@@ -235,7 +235,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Alta desde',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: minAltaDateFilter,
@@ -251,7 +251,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Alta hasta',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: maxAltaDateFilter,
@@ -268,7 +268,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Baja desde',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: minBajaDateFilter,
@@ -284,7 +284,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Expanded(
           child: FilterDateField(
               labelText: 'Baja hasta',
-              bottom: 14,
+              bottom: 17,
               minYear: 1900,
               maxYear: 2100,
               selectedDate: maxBajaDateFilter,
