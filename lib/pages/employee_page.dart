@@ -319,138 +319,139 @@ class _EmployeesPageState extends State<EmployeesPage> {
 
     // Filtros
 
-    Widget listEmployees = SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SizedBox(
-            width: double.infinity,
-            child: DataTable(
-              headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                return headerListBgColor;
-              }),
-              sortAscending: orderDirection == 1,
-              sortColumnIndex: sortColumnIndex,
-              columns: [
-                'Código',
-                'Apellidos, Nombre',
-                'Fecha Nac.',
-                'Alta',
-                'Baja',
-                'Cargo',
-                'Días C.',
-                'Salario',
-                'Email',
-                ''
-              ].map((e) {
-                return DataColumn(
-                  onSort: (columnIndex, ascending) {
-                    sortColumnIndex = columnIndex;
-                    orderDirection = ascending ? 1 : -1;
-                    if (mounted) {
+    DataTable dataTable = DataTable(
+      headingRowColor:
+          WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+        return headerListBgColor;
+      }),
+      sortAscending: orderDirection == 1,
+      sortColumnIndex: sortColumnIndex,
+      columns: [
+        'Código',
+        'Apellidos, Nombre',
+        'Fecha Nac.',
+        'Alta',
+        'Baja',
+        'Cargo',
+        'Días C.',
+        'Salario',
+        'Email',
+        ''
+      ].map((e) {
+        return DataColumn(
+          onSort: (columnIndex, ascending) {
+            sortColumnIndex = columnIndex;
+            orderDirection = ascending ? 1 : -1;
+            if (mounted) {
+              setState(() {
+                contentPanel = content(context);
+              });
+            }
+          },
+          label: Text(
+            e,
+            style: headerListStyle,
+            textAlign: TextAlign.center,
+          ),
+        );
+      }).toList(),
+      rows: employeesFiltered.map((e) {
+        e.bornDate ??= DateTime.now();
+        if (e.bornDate!
+            .isAfter(DateTime.now().subtract(const Duration(days: 365 * 16)))) {
+          e.bornDate = DateTime.now().subtract(const Duration(days: 365 * 16));
+        }
+        return DataRow(
+          color: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
+              return Theme.of(context).colorScheme.primary.withOpacity(0.08);
+            }
+            if (employeesFiltered.indexOf(e).isEven) {
+              return e.isActive() ? Colors.grey[200] : Colors.red.shade50;
+            } else {
+              return e.isActive() ? Colors.white : Colors.red.shade100;
+            }
+          }),
+          cells: [
+            DataCell(
+              Text(e.code),
+            ),
+            DataCell(Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
+            DataCell(Text(DateFormat('dd/MM/yyyy')
+                .format((e.bornDate != null) ? e.bornDate! : DateTime.now()))),
+            DataCell(Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
+            DataCell(Text((e
+                    .getBajaDate()
+                    .isAfter(DateTime.now().add(const Duration(days: 3650))))
+                ? ' Indefinido'
+                : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
+            DataCell(Text(e.position)),
+            DataCell(Text(e.altaDays().toString())),
+            DataCell(Text(toCurrency(e.getSalary()))),
+            DataCell(Text(e.email)),
+            DataCell(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.folder),
+                    onPressed: () {
+                      dialogDocuments(context, employees.indexOf(e));
+                    },
+                  ),
+                  IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        dialogFormEmployee(context, employees.indexOf(e));
+                      }),
+                  IconButton(
+                    icon: const Icon(Icons.euro_symbol),
+                    tooltip: 'Nóminas del empleado',
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => NominasPage(
+                                  profile: profile, codeEmployee: e.code)));
+                    },
+                  ),
+                  (e.isActive())
+                      ? iconBtnConfirm(
+                          context, dialogFormBaja, employees.indexOf(e),
+                          text: 'Dar de baja', icon: Icons.thumb_down)
+                      : iconBtnConfirm(
+                          context, dialogFormAlta, employees.indexOf(e),
+                          text: 'Dar de alta', icon: Icons.thumb_up),
+                  removeConfirmBtn(context, () {
+                    e.delete().then((value) {
+                      employees.remove(e);
                       setState(() {
                         contentPanel = content(context);
                       });
-                    }
-                  },
-                  label: Text(
-                    e,
-                    style: headerListStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }).toList(),
-              rows: employeesFiltered.map((e) {
-                e.bornDate ??= DateTime.now();
-                if (e.bornDate!.isAfter(
-                    DateTime.now().subtract(const Duration(days: 365 * 16)))) {
-                  e.bornDate =
-                      DateTime.now().subtract(const Duration(days: 365 * 16));
-                }
-                return DataRow(
-                  color: MaterialStateProperty.resolveWith<Color?>(
-                      (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.08);
-                    }
-                    if (employees.indexOf(e).isEven) {
-                      return e.isActive()
-                          ? Colors.grey[200]
-                          : Colors.red.shade50;
-                    } else {
-                      return e.isActive() ? Colors.white : Colors.red.shade100;
-                    }
-                  }),
-                  cells: [
-                    DataCell(
-                      Text(e.code),
-                    ),
-                    DataCell(
-                        Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
-                    DataCell(Text(DateFormat('dd/MM/yyyy').format(
-                        (e.bornDate != null) ? e.bornDate! : DateTime.now()))),
-                    DataCell(
-                        Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
-                    DataCell(Text((e.getBajaDate().isAfter(
-                            DateTime.now().add(const Duration(days: 3650))))
-                        ? ' Indefinido'
-                        : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
-                    DataCell(Text(e.position)),
-                    DataCell(Text(e.altaDays().toString())),
-                    DataCell(Text(toCurrency(e.getSalary()))),
-                    DataCell(Text(e.email)),
-                    DataCell(
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.folder),
-                            onPressed: () {
-                              dialogDocuments(context, employees.indexOf(e));
-                            },
-                          ),
-                          IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                dialogFormEmployee(
-                                    context, employees.indexOf(e));
-                              }),
-                          IconButton(
-                            icon: const Icon(Icons.euro_symbol),
-                            tooltip: 'Nóminas del empleado',
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => NominasPage(
-                                          profile: profile,
-                                          codeEmployee: e.code)));
-                            },
-                          ),
-                          (e.isActive())
-                              ? iconBtnConfirm(
-                                  context, dialogFormBaja, employees.indexOf(e),
-                                  text: 'Dar de baja', icon: Icons.thumb_down)
-                              : iconBtnConfirm(
-                                  context, dialogFormAlta, employees.indexOf(e),
-                                  text: 'Dar de alta', icon: Icons.thumb_up),
-                          removeConfirmBtn(context, () {
-                            e.delete().then((value) {
-                              employees.remove(e);
-                              setState(() {
-                                contentPanel = content(context);
-                              });
-                            });
-                          }, null),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            )));
+                    });
+                  }, null),
+                ],
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+
+    SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+            controller: ScrollController(),
+            scrollDirection: Axis.horizontal,
+            child: dataTable));
+
+    Widget listEmployees = SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+            controller: ScrollController(),
+            scrollDirection: Axis.horizontal,
+            child: dataTable));
 
     return Card(
       child: Column(children: [
