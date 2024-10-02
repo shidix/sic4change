@@ -207,7 +207,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                                       programme: programme))));
                                     },
                                   ),
-                                  InkWell(
+                                  /*InkWell(
                                     child: customText(programme.name, 16),
                                     onTap: () {
                                       Navigator.push(
@@ -217,7 +217,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                                   ProgrammePage(
                                                       programme: programme))));
                                     },
-                                  ),
+                                  ),*/
                                   editBtn(context, callDialog,
                                       {'programme': programme}),
                                 ]);
