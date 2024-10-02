@@ -1,7 +1,7 @@
 //import 'package:export_firebase_csv/export_firebase_csv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:to_csv/to_csv.dart' as exportCSV;
+//import 'package:to_csv/to_csv.dart' as exportCSV;
 
 void createLog(String msg) {
   final user = FirebaseAuth.instance.currentUser!;
@@ -65,9 +65,9 @@ void exportLogFromFirebase(List logList) async {
     listOfLists.add(data1);
   }
 
-  exportCSV.myCSV(
+  /*exportCSV.myCSV(
     header,
     listOfLists,
     setHeadersInFirstRow: true,
-  );
+  );*/
 }
