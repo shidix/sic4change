@@ -202,7 +202,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         ),
         Expanded(
           child: FilterDateField(
-              labelText: 'Nacido después',
+              labelText: 'Nacidos desde',
               bottom: 17,
               minYear: 1900,
               maxYear: 2100,
@@ -218,7 +218,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         ),
         Expanded(
           child: FilterDateField(
-              labelText: 'Nacido antes',
+              labelText: 'Nacidos hasta',
               bottom: 17,
               minYear: 1900,
               maxYear: 2100,
