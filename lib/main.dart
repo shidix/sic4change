@@ -1,5 +1,6 @@
 // import 'dart:developer' as developer;
 // import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
@@ -31,6 +32,14 @@ void main() async {
 
   initializeDateFormatting('es_ES', '').then((_) => runApp(MyApp()));
   // runApp(MyApp());
+}
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }
 
 class MyApp extends StatelessWidget {
@@ -97,6 +106,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('es', ''),
+      scrollBehavior: MyCustomScrollBehavior(),
 
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Page404());

@@ -2311,9 +2311,14 @@ class FilterDateField extends StatelessWidget {
           shape: const UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey, width: 1.0)),
           title: (labelText is String)
-              ? Text(labelText, style: TextStyle(fontSize: 12))
+              ? Text(
+                  labelText,
+                  style: TextStyle(fontSize: 10),
+                  maxLines: 1,
+                )
               : labelText,
-          subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
+          subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate),
+              style: TextStyle(fontSize: 12)),
           onTap: () async {
             final DateTime? picked = await showDatePicker(
                 context: context,

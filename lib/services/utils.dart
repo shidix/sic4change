@@ -366,6 +366,8 @@ Future<bool> openFileUrl(String path) async {
     await ref.getMetadata();
     String url = await ref.getDownloadURL();
     Uri uri = Uri.parse("https://docs.google.com/viewer?url=$url");
+    // Uri uri = Uri.parse("$url");
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, webOnlyWindowName: '_blank');
       return true;
