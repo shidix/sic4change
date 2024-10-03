@@ -678,7 +678,8 @@ class _NominasPageState extends State<NominasPage> {
   Widget build(BuildContext context) {
     // return to login_page if profile is null
     if (profile == null) {
-      return Scaffold(
+      return SelectionArea(
+          child: Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -693,10 +694,11 @@ class _NominasPageState extends State<NominasPage> {
             ],
           ),
         ),
-      );
+      ));
     } else {
-      return Scaffold(
-          body: SingleChildScrollView(
+      return SelectionArea(
+          child: Scaffold(
+              body: SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -711,7 +713,7 @@ class _NominasPageState extends State<NominasPage> {
             ],
           ),
         ),
-      ));
+      )));
     }
   }
 }

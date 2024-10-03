@@ -587,7 +587,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
   Widget build(BuildContext context) {
     // return to login_page if profile is null
     if (profile == null) {
-      return Scaffold(
+      return SelectionArea(
+          child: Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -601,9 +602,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
             ],
           ),
         ),
-      );
+      ));
     } else {
-      return Scaffold(
+      return SelectionArea(
+          child: Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -616,7 +618,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             ],
           ),
         ),
-      );
+      ));
     }
   }
 }
