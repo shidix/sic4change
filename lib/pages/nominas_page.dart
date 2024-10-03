@@ -55,6 +55,32 @@ class _NominasPageState extends State<NominasPage> {
     return a.compareTo(b, sortColumnIndex: sortColumnIndex, sortAsc: sortAsc);
   }
 
+  Future<void> exportNominasToCsv(String filename) async {
+    String csv = 'DNI/NIE/ID,Nombre,Apellidos,Fecha Nómina,Neto,Deducciones,'
+        'SSTrab,Bruto,SSEmp,Total\n';
+    for (Nomina nomina in nominas) {
+      nomina.employee = employees
+          .where((element) => element.code == nomina.employeeCode)
+          .first;
+      csv += '${nomina.employeeCode},'
+          '${nomina.employee!.firstName},'
+          '${nomina.employee!.lastName1} ${nomina.employee!.lastName2},'
+          '${DateFormat('dd/MM/yyyy').format(nomina.date)},'
+          '${nomina.netSalary},'
+          '${nomina.deductions},'
+          '${nomina.employeeSocialSecurity},'
+          '${nomina.grossSalary},'
+          '${nomina.employerSocialSecurity},'
+          '${nomina.grossSalary + nomina.employerSocialSecurity}\n';
+    }
+    final blob = html.Blob([csv], 'text/csv');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute('download', '$filename.csv')
+      ..click();
+    html.Url.revokeObjectUrl(url);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -119,7 +145,15 @@ class _NominasPageState extends State<NominasPage> {
 
     Widget toolsNomina = Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      children: [addBtnRow(context, dialogFormNomina, -1)],
+      children: [
+        addBtnRow(context, dialogFormNomina, -1),
+        gralBtnRow(context, (context) async {
+          String? filename = await showDialog(
+              context: context, builder: (context) => FileNameDialog());
+          if (filename != null && filename.isNotEmpty)
+            exportNominasToCsv(filename);
+        }, null, icon: Icons.download, text: 'Exportar a CSV'),
+      ],
     );
 
     for (int i = 0; i < nominas.length; i++) {

@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers
+// ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, library_private_types_in_public_api
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -862,14 +862,15 @@ const TextStyle successText =
     TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: successColor);
 
 ButtonStyle btnStyle = ButtonStyle(
-  backgroundColor: const MaterialStatePropertyAll<Color>(Colors.white),
-  shape: MaterialStatePropertyAll<RoundedRectangleBorder>(
+  backgroundColor: const WidgetStatePropertyAll<Color>(Colors.white),
+  shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0))),
-  elevation: const MaterialStatePropertyAll<double>(5),
+  elevation: const WidgetStatePropertyAll<double>(5),
 );
 
 ButtonStyle btnStylePlane = const ButtonStyle(
-  backgroundColor: MaterialStatePropertyAll<Color>(Colors.white),
+  backgroundColor: WidgetStatePropertyAll<Color>(Colors.white),
+  elevation: WidgetStatePropertyAll<double>(1),
 );
 
 BoxDecoration rowDecoration = const BoxDecoration(
@@ -2372,4 +2373,40 @@ Widget mainHeader(title, List<Widget> buttons) {
       ),
     ),
   ]);
+}
+
+class FileNameDialog extends StatefulWidget {
+  const FileNameDialog({super.key});
+
+  @override
+  _FileNameDialogState createState() => _FileNameDialogState();
+}
+
+class _FileNameDialogState extends State<FileNameDialog> {
+  TextEditingController _fileNameController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Enter file name'),
+      content: TextField(
+        controller: _fileNameController,
+        decoration: InputDecoration(hintText: "Nombre de archivo"),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(null); // Cancel
+          },
+          child: Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(_fileNameController.text); // Confirm
+          },
+          child: Text('OK'),
+        ),
+      ],
+    );
+  }
 }

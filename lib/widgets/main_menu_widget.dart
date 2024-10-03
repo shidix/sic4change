@@ -143,6 +143,10 @@ Widget mainMenuOperator(context, {url, profile, key}) {
         menuBtnGo(context, "RR.HH.", EmployeesPage(profile: profile),
             Icons.list_alt, "/rrhh",
             currentUrl: url),
+        menuBtn(context, "Programas", Icons.list_alt, "/project_list",
+            color: (url == "/project_list")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtnGo(
             context, "Facturas", InvoicePage(), Icons.receipt, "/invoices",
             currentUrl: url),

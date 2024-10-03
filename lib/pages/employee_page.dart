@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:js_interop_unsafe';
+import 'dart:html' as html;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +50,34 @@ class _EmployeesPageState extends State<EmployeesPage> {
       DateTime.now().add(const Duration(days: 365 * 10));
 
   late List<bool> selectedEmployees;
+
+  Future<void> exportToCVS(filename) async {
+    String csv =
+        'Código,Apellidos,Nombre,Fecha Nac.,Alta,Baja,Cargo,Días C.,Salario,Email\n';
+    employeeFilter = employeeFilter.toLowerCase();
+    List<Employee> employeesFiltered = employees
+        .where((Employee element) =>
+            element.isActive() == altasVisible &&
+            (element.getFullName().toLowerCase().contains(employeeFilter) ||
+                (element.code.toLowerCase().startsWith(employeeFilter)) ||
+                (element.email.toLowerCase().contains(employeeFilter))) &&
+            element.getSalary() >= minSalaryFilter &&
+            element.getSalary() <= maxSalaryFilter &&
+            element.getBornDate().isAfter(minBornDateFilter) &&
+            element.getBornDate().isBefore(maxBornDateFilter) &&
+            element.getAltaDate().isAfter(minAltaDateFilter))
+        .toList();
+    employeesFiltered.forEach((element) {
+      csv +=
+          '${element.code},${element.lastName1} ${element.lastName2},${element.firstName},${DateFormat('dd/MM/yyyy').format(element.bornDate!)},${DateFormat('dd/MM/yyyy').format(element.getAltaDate())},${DateFormat('dd/MM/yyyy').format(element.getBajaDate())},${element.position},${element.altaDays()},${element.getSalary()},${element.email}\n';
+    });
+    final bytes = utf8.encode(csv);
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute('download', "$filename.csv")
+      ..click();
+  }
 
   int compareEmployee(Employee a, Employee b) {
     switch (sortColumnIndex) {
@@ -133,6 +163,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   contentPanel = content(context);
                 });
               }, null, text: 'Ver Altas', icon: Icons.thumb_up),
+        gralBtnRow(context, (context) async {
+          String? filename = await showDialog(
+              context: context, builder: (context) => FileNameDialog());
+          if (filename != null && filename.isNotEmpty) exportToCVS('empleados');
+        }, null, text: 'Exportar', icon: Icons.download),
       ],
     );
     employees.sort(compareEmployee);
