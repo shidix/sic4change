@@ -64,7 +64,7 @@ dependencies:
   get_ip_address: ^0.0.5
   js: ^0.7.1
   #export_firebase_csv: ^1.0.9
-  #to_csv: ^4.0.4
+  to_csv: ^4.0.4
 
 
 dev_dependencies:

@@ -148,6 +148,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    programmeRow1(),
                     programmeSummary(),
                     programmeImpact(),
                     programmeProjects(context),
@@ -188,6 +189,15 @@ class _ProgrammePageState extends State<ProgrammePage> {
             ])*/
           ],
         ));
+  }
+
+  Widget programmeRow1() {
+    return Container(
+      decoration: const BoxDecoration(
+          border:
+              Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
+      child: const Row(children: []),
+    );
   }
 
   Widget programmeSummary() {
