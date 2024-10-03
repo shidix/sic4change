@@ -1984,7 +1984,7 @@ class DateTimePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: readOnly ? Colors.grey.shade100 : Colors.white,
+        color: readOnly ? Colors.grey.shade100 : null,
         child: InkWell(
           onTap: () => _selectDate(context),
           child: InputDecorator(
@@ -2218,8 +2218,7 @@ class CustomSelectFormField extends StatelessWidget {
         padding: padding,
         child: DropdownButtonFormField(
           value: initialKey,
-          decoration: InputDecoration(
-              labelText: labelText, contentPadding: EdgeInsets.zero),
+          decoration: InputDecoration(labelText: labelText),
           items: optionsDrop,
           onChanged: (value) {
             if (value != null) {

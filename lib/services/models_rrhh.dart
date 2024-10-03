@@ -329,6 +329,7 @@ class Alta {
   String? pathNIF;
   String? pathLOPD;
   String employmentPromotion = '';
+  Baja? baja;
   List salary = [];
 
   Map<String, String>? pathOthers;
@@ -354,6 +355,11 @@ class Alta {
       pathLOPD: json['pathLOPD'],
       pathOthers: json['pathOthers'],
     );
+    if (json.containsKey('baja')) {
+      item.baja = Baja.fromJson(json['baja']);
+    } else {
+      item.baja = Baja.getEmpty();
+    }
     if (json.containsKey('employmentPromotion')) {
       item.employmentPromotion = json['employmentPromotion'];
     } else {
@@ -386,6 +392,7 @@ class Alta {
         'pathNIF': pathNIF,
         'pathLOPD': pathLOPD,
         'pathOthers': pathOthers,
+        'baja': baja?.toJson(),
         'salary': salary.map((e) => e.toJson()).toList(),
         'employmentPromotion': employmentPromotion == null
             ? ''
@@ -407,6 +414,13 @@ class Alta {
     this.salary.sort((a, b) => a.date.compareTo(b.date));
     this.salary.last.amount = salary;
     return DateFormat('dd/MM/yyyy').format(this.salary.last.date);
+  }
+
+  DateTime? bajaDate() {
+    if (baja == null) {
+      return DateTime(2099, 12, 31);
+    }
+    return baja!.date;
   }
 }
 
@@ -447,6 +461,13 @@ class Baja {
   @override
   String toString() {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  static Baja getEmpty() {
+    return Baja(
+        date: DateTime(2099, 12, 31),
+        reason: 'Sin especificar',
+        extraDocument: false);
   }
 }
 
@@ -531,7 +552,7 @@ class Employee {
   String bankAccount = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
   List altas = [];
-  List bajas = [];
+  // List bajas = [];
   Map<String, dynamic> extraDocs = {};
   String? photoPath;
 
@@ -546,7 +567,7 @@ class Employee {
       required this.category,
       this.bankAccount = '',
       this.altas = const [],
-      this.bajas = const [],
+      // this.bajas = const [],
       this.extraDocs = const {},
       this.photoPath,
       this.sex = 'O',
@@ -579,18 +600,18 @@ class Employee {
                 );
               }
             }).toList(),
-      bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
-          ? []
-          : json['bajas'].map((e) {
-              try {
-                return Baja.fromJson(e as Map<String, dynamic>);
-              } catch (exception) {
-                return Baja(
-                  date: getDate(e),
-                  reason: '',
-                );
-              }
-            }).toList(),
+      // bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
+      //     ? []
+      //     : json['bajas'].map((e) {
+      //         try {
+      //           return Baja.fromJson(e as Map<String, dynamic>);
+      //         } catch (exception) {
+      //           return Baja(
+      //             date: getDate(e),
+      //             reason: '',
+      //           );
+      //         }
+      //       }).toList(),
       extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
           ? {}
           : json['extraDocs'],
@@ -609,7 +630,7 @@ class Employee {
         'position': position,
         'bornDate': bornDate,
         'altas': altas.map((e) => e.toJson()).toList(),
-        'bajas': bajas.map((e) => e.toJson()).toList(),
+        // 'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
         'bankAccount': bankAccount,
       };
@@ -632,7 +653,7 @@ class Employee {
 
   Future<Employee> save() async {
     altas.sort((a, b) => a.date.compareTo(b.date));
-    bajas.sort((a, b) => a.date.compareTo(b.date));
+    // bajas.sort((a, b) => a.date.compareTo(b.date));
     if (id == null) {
       await collection.add(toJson()).then((value) => id = value.id);
     } else {
@@ -728,7 +749,7 @@ class Employee {
         position: '',
         category: '',
         altas: [],
-        bajas: [],
+        // bajas: [],
         extraDocs: {});
   }
 
@@ -777,19 +798,37 @@ class Employee {
   }
 
   DateTime getBajaDate() {
-    if (bajas.isEmpty) {
-      //return date in one year
-      return DateTime.now().add(const Duration(days: 365));
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    return altas.last.bajaDate();
+    // if (bajas.isEmpty) {
+    //   //return date in one year
+    //   return DateTime.now().add(const Duration(days: 365));
+    // }
+    // bajas.sort(((a, b) => a.date.compareTo(b.date)));
+    // return bajas.last.date;
+  }
+
+  Alta getCurrentAlta() {
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    if (altas.isEmpty) {
+      return Alta(date: truncDate(DateTime.now()));
     }
-    bajas.sort(((a, b) => a.date.compareTo(b.date)));
-    return bajas.last.date;
+    return altas.last;
+  }
+
+  Baja getBaja() {
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    if (altas.isEmpty) {
+      return Baja.getEmpty();
+    }
+    return altas.last.baja ?? Baja.getEmpty();
   }
 
   bool isActive() {
     return (altas.isNotEmpty &&
-        (bajas.isEmpty ||
-            (getAltaDate().isAfter(getBajaDate()) ||
-                !getBajaDate().isBefore(DateTime.now()))));
+        ((getBajaDate() == null) ||
+            getBajaDate().isAfter(DateTime.now()) ||
+            getBajaDate().isAtSameMomentAs(DateTime.now())));
   }
 
   String getFullName() {

@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -39,10 +40,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     employee = widget.selectedItem;
     selectedBajaDate = employee.getBajaDate();
     selectedAltaDate = employee.getAltaDate();
-    if (!employee.bajas.isNotEmpty) {
-      employee.bajas.sort((a, b) => a.date.compareTo(b.date));
-      selectedBajaDate = employee.getBajaDate();
-    }
+
     if (employee.altas.isNotEmpty) {
       employee.altas.sort((a, b) => a.date.compareTo(b.date));
       employmentPromotion = employee.altas.last.employmentPromotion;
@@ -61,10 +59,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
       for (BajaReason item in value) {
         reasons[item.uuid!] = item;
       }
-      if (employee.bajas.isNotEmpty) {
-        selectedBajaDate = employee.bajas.last.date;
+      if (employee.getBaja() != null) {
+        selectedBajaDate = employee.getBajaDate();
         int indexReason = reasons.values.toList().indexWhere(
-            (element) => element.name == employee.bajas.last.reason);
+            (element) => element.name == employee.altas.last.baja.reason);
         if (indexReason != -1) {
           selectedReason = reasons.values.toList()[indexReason].uuid!;
         } else {
@@ -83,15 +81,12 @@ class _EmployeeFormState extends State<EmployeeForm> {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
         if (selectedReason != '') {
-          if (employee.bajas.isNotEmpty) {
-            employee.bajas.last.date = selectedBajaDate;
-            employee.bajas.last.reason = reasons[selectedReason]!.name;
-            employee.bajas.last.extraDocument =
-                reasons[selectedReason]!.extraDocument;
-          } else {
-            employee.bajas.add(Baja(
-                date: selectedBajaDate, reason: reasons[selectedReason]!.name));
-          }
+          Baja newBaja = Baja(
+              date: selectedBajaDate,
+              reason: reasons[selectedReason]!.name,
+              extraDocument: reasons[selectedReason]!.extraDocument);
+          employee.altas.sort((a, b) => a.date.compareTo(b.date));
+          employee.altas.last.baja = newBaja;
         }
 
         if (employee.altas.isNotEmpty) {
@@ -112,7 +107,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     Widget bajaReason = CustomSelectFormField(
         key: UniqueKey(),
         labelText: 'Motivo Baja',
-        padding: const EdgeInsets.only(top: 8, left: 5),
+        padding: const EdgeInsets.only(top: 0, left: 5),
         initial: selectedReason,
         options: reasonsOptions,
         required: false,
@@ -301,7 +296,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: CustomSelectFormField(
                         key: UniqueKey(),
                         labelText: 'Promoción de empleo',
-                        padding: const EdgeInsets.only(top: 8, left: 5),
+                        padding: const EdgeInsets.only(top: 0, left: 5),
                         initial: employmentPromotion,
                         required: true,
                         options: promotions,
@@ -456,14 +451,11 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
 
     BajaReason.getAll().then((value) {
       reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
-      reasons = Map.fromIterable(value, key: (e) => e.uuid, value: (e) => e);
-      if (!employee.isActive()) {
-        selectedDate = employee.bajas.last.date;
-        //get reason with e.name == employee.bajas.last.reason
-        selectedReason = reasons[reasons.values.firstWhere(
-                (element) => element == employee.bajas.last.reason)]!
-            .uuid!;
-      }
+      reasons = {for (BajaReason e in value) e.uuid!: e};
+      selectedDate = employee.getBajaDate();
+      selectedReason = reasons.values
+          .firstWhere((element) => element.name == employee.getBaja().reason)
+          .uuid!;
       if (mounted) {
         setState(() {});
       }
@@ -476,7 +468,7 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
       if (employee.isActive()) {
         selectedDate = DateTime.now();
       } else {
-        selectedDate = employee.bajas.last;
+        selectedDate = employee.getBajaDate();
       }
     }
 
@@ -503,6 +495,7 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
                     child: CustomSelectFormField(
                         key: UniqueKey(),
                         labelText: 'Motivo Baja',
+                        padding: const EdgeInsets.only(top: 0, left: 0),
                         initial: selectedReason,
                         options: reasonsOptions,
                         onSelectedOpt: (value) {
@@ -527,17 +520,13 @@ class _EmployeeBajaFormState extends State<EmployeeBajaForm> {
                       () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          if (employee.isActive()) {
-                            employee.bajas.add(Baja(
-                                date: selectedDate!, reason: selectedReason));
-                          } else {
-                            Baja item = employee.bajas.last;
-                            item.date = selectedDate!;
-                            item.reason = reasons[selectedReason]!.name;
-                            item.extraDocument =
-                                reasons[selectedReason]!.extraDocument;
-                            employee.bajas[employee.bajas.length - 1] = item;
-                          }
+                          employee.altas
+                              .sort((a, b) => a.date.compareTo(b.date));
+                          employee.altas.last.baja = Baja(
+                              date: selectedDate!,
+                              reason: reasons[selectedReason]!.name,
+                              extraDocument:
+                                  reasons[selectedReason]!.extraDocument);
                           employee.save();
                           Navigator.of(context).pop(employee);
                         } else {
@@ -750,21 +739,21 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
       }
     }
 
-    for (Baja baja in selectedItem.bajas) {
+    Baja baja = selectedItem.getBaja();
+
+    listDocuments.add({
+      'type': (baja.reason != '') ? baja.reason : 'Baja',
+      'desc': 'Finiquito',
+      'date': baja.date,
+      'path': baja.pathFiniquito
+    });
+    if (baja.extraDocument) {
       listDocuments.add({
-        'type': (baja.reason != '') ? baja.reason : 'Baja',
-        'desc': 'Finiquito',
+        'type': baja.reason,
+        'desc': 'Carta de motivación',
         'date': baja.date,
-        'path': baja.pathFiniquito
+        'path': baja.pathExtraDoc
       });
-      if (baja.extraDocument) {
-        listDocuments.add({
-          'type': baja.reason,
-          'desc': 'Carta de motivación',
-          'date': baja.date,
-          'path': baja.pathExtraDoc
-        });
-      }
     }
 
     for (var item in listDocuments) {
