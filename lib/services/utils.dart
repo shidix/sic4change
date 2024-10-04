@@ -391,7 +391,9 @@ int compareDates(bool asc, DateTime val1, DateTime val2) =>
 
 Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   final archive = Archive();
+  print(1);
   for (int i = 0; i < filesData.length; i++) {
+    print(3);
     final file = ArchiveFile.noCompress(
       fileNames[i],
       filesData[i].length,
@@ -399,11 +401,16 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     );
     archive.addFile(file);
   }
+  print(2);
 
   try {
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
-    return (Uint8List.fromList(zipData!));
+    if (zipData == null) {
+      print ("ZipData is null");
+      return Uint8List(0);
+    }
+    return (Uint8List.fromList(zipData));
   } catch (e) {
     print(e);
     return Uint8List(0);
@@ -416,32 +423,24 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
 
 Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) async {
   // 1. Obtener las URLs de los archivos
-  List<String> downloadUrls = [];
+  List<Uint8List> filesData = [];
   for (String path in filePaths) {
     final ref = FirebaseStorage.instance.ref().child(path);
     try {
-      String url = await ref.getDownloadURL();
-      downloadUrls.add(url);
-    } catch (e) {
-      print(e);
-    }
-  }
-  
-  // 2. Descargar los archivos
-  List<Uint8List> filesData = [];
-  for (String url in downloadUrls) {
-    try {
-      final response = await http.get(Uri.parse(url));
-      filesData.add(response.bodyBytes);
+      final Uint8List? fileData = await ref.getData();
+      if (fileData != null) {
+        filesData.add(fileData);
+      }
+
     } catch (e) {
       print(e);
     }
   }
 
-  // 3. Crear el archivo ZIP
+  // 2. Crear el archivo ZIP
   List<String> fileNames = filePaths.map((path) => path.split('/').last).toList();
   Uint8List zipData = createZip(filesData, fileNames);
-  // 4. Descargar el archivo ZIP
+  // 3. Descargar el archivo ZIP
   final blob = html.Blob([zipData]);
   final url = html.Url.createObjectUrlFromBlob(blob);
   final anchor = html.AnchorElement(href: url)
