@@ -55,6 +55,30 @@ class _NominasPageState extends State<NominasPage> {
     return a.compareTo(b, sortColumnIndex: sortColumnIndex, sortAsc: sortAsc);
   }
 
+  Future<void> downloadZipNominas(String filename) async {
+    List<String> paths = [];
+
+    List<Nomina> nominasToDownload = [];
+
+    for (bool filter in nominasFiltered) {
+      if (filter) {
+        nominasToDownload.add(nominas[nominasFiltered.indexOf(filter)]);
+      }
+    }
+
+    for (Nomina nomina in nominasToDownload) {
+      if (nomina.noSignedPath != null) {
+        paths.add(nomina.noSignedPath!);
+      }
+      if (nomina.signedPath != null) {
+        paths.add(nomina.signedPath!);
+      }
+    }
+
+    await compressAndDownloadFiles(paths, filename);
+
+  }
+
   Future<void> exportNominasToCsv(String filename) async {
     String csv = 'DNI/NIE/ID,Nombre,Apellidos,Fecha Nómina,Neto,Deducciones,'
         'SSTrab,Bruto,SSEmp,Total\n';
@@ -152,7 +176,16 @@ class _NominasPageState extends State<NominasPage> {
               context: context, builder: (context) => FileNameDialog());
           if (filename != null && filename.isNotEmpty)
             exportNominasToCsv(filename);
-        }, null, icon: Icons.download, text: 'Exportar a CSV'),
+        }, null, icon: Icons.download, text: 'Exportar'),
+
+        gralBtnRow(context, (context) async {
+          String? filename = await showDialog(
+              context: context, builder: (context) => FileNameDialog());
+          if (filename != null && filename.isNotEmpty)
+            downloadZipNominas(filename);
+        }, null, icon: Icons.download, text: 'Zip'),
+
+        
       ],
     );
 
