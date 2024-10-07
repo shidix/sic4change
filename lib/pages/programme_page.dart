@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_page.dart';
+import 'package:sic4change/services/diagram_lib.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -32,6 +34,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
   double totalBudget = 0.0;
   Map<String, double> financiers = {};
   Map<String, int> projStatus = {};
+  int touchedIndex = -1;
 
   Future<Map<String, double>> getProgrammeFinanciers() async {
     /*List financiers = [];
@@ -191,12 +194,36 @@ class _ProgrammePageState extends State<ProgrammePage> {
         ));
   }
 
+  Widget diag1() {
+    List<KeyValue> diagList = [
+      KeyValue("ind 1", "40"),
+      KeyValue("ind 2", "30"),
+      KeyValue("ind 3", "15"),
+      KeyValue("ind 4", "15")
+    ];
+
+    return SizedBox(
+      height: 300,
+      width: 450,
+      child: pieDiagram(diagList),
+    );
+  }
+
   Widget programmeRow1() {
-    return Container(
-      decoration: const BoxDecoration(
-          border:
-              Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
-      child: const Row(children: []),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      verticalDirection: VerticalDirection.down,
+      children: <Widget>[
+        Row(
+          children: [
+            diag1(),
+            diag1(),
+          ],
+        )
+        //diag1(),
+      ],
     );
   }
 

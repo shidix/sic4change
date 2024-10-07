@@ -521,7 +521,9 @@ class SProject {
   }
 
   Color getStatusColor() {
-    int color = int.parse("0xff${statusObj.color}");
+    String objColor = statusObj.color.replaceAll("#", "");
+    int color = int.parse("0xff$objColor");
+    //int color = int.parse("0xff${statusObj.color}");
     return Color(color);
   }
 
