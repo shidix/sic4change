@@ -175,7 +175,10 @@ Icon getIcon(bool value, {double size = 24.0}) {
   }
 }
 
-DateTime getDate(dynamic date, {truncate = false}) {
+DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
+  if (date == null) {
+    return defaultValue ?? DateTime(2099, 12, 31);
+  }
   DateTime convert = DateTime(2099, 12, 31);
   DateTime result = convert;
 

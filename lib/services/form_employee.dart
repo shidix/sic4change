@@ -54,6 +54,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     });
 
     BajaReason.getAll().then((value) {
+      print(value);
       value.sort((a, b) => a.order.compareTo(b.order));
       reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
       print(1);

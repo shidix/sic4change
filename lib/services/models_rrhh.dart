@@ -422,6 +422,12 @@ class Alta {
     }
     return baja!.date;
   }
+
+  static Alta getEmpty() {
+    Alta item = Alta(date: DateTime.now());
+    item.baja = Baja.getEmpty();
+    return item;
+  }
 }
 
 class Baja {
@@ -584,7 +590,8 @@ class Employee {
       photoPath: json['photoPath'],
       sex: (json.containsKey('sex')) ? json['sex'] : 'O',
       bornDate: (json.containsKey('bornDate'))
-          ? getDate(json['bornDate'])
+          ? getDate(json['bornDate'],
+              truncate: true, defaultValue: DateTime(2000, 1, 1))
           : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
@@ -630,7 +637,8 @@ class Employee {
         'photoPath': photoPath,
         'category': category,
         'position': position,
-        'bornDate': bornDate,
+        'bornDate': getDate(bornDate,
+            truncate: true, defaultValue: DateTime(2000, 1, 1)),
         'altas': altas.map((e) => e.toJson()).toList(),
         // 'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
@@ -750,7 +758,7 @@ class Employee {
         phone: '',
         position: '',
         category: '',
-        altas: [],
+        altas: [Alta.getEmpty()],
         // bajas: [],
         extraDocs: {});
   }
