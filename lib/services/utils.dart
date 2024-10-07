@@ -11,6 +11,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -362,22 +363,22 @@ Future<FullMetadata?> getMetadataFileUrl(String? path) async {
   }
 }
 
-Future<bool> openFileUrl(String path) async {
+Future<bool> openFileUrl(context, String path) async {
   final ref = FirebaseStorage.instance.ref().child(path);
   // check if the file exists
   try {
-    await ref.getMetadata();
-    String url = await ref.getDownloadURL();
-    Uri uri = Uri.parse("https://docs.google.com/viewer?url=$url");
-    // Uri uri = Uri.parse("$url");
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, webOnlyWindowName: '_blank');
-      return true;
-    } else {
-      print('Could not launch $uri');
+    Uint8List? data = await ref.getData();
+    if (data == null) {
       return false;
     }
+    final blob = html.Blob([data], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      // ..setAttribute('view', path.split('/').last)
+      ..setAttribute('target', '_blank')
+      ..click();
+
+    return true;
   } catch (e) {
     print(e);
     return false;
@@ -394,7 +395,6 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   final archive = Archive();
 
   for (int i = 0; i < filesData.length; i++) {
-    print(3);
     final file = ArchiveFile.noCompress(
       fileNames[i],
       filesData[i].length,
@@ -407,7 +407,7 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
     if (zipData == null) {
-      print ("ZipData is null");
+      print("ZipData is null");
       return Uint8List(0);
     }
     return (Uint8List.fromList(zipData));
@@ -419,31 +419,24 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   }
 }
 
-
-
-Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) async {
+Future<void> compressAndDownloadFiles(
+    List<String> filePaths, String filename) async {
   // 1. Obtener las URLs de los archivos
   List<Uint8List> filesData = [];
   for (String path in filePaths) {
     try {
-    final ref = FirebaseStorage.instance.ref().child(path);
-    String url = await ref.getDownloadURL();
-    var response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      filesData.add(response.bodyBytes);
-    } else {
-      print('Failed to load file $path');
-    }
+      final ref = FirebaseStorage.instance.ref().child(path);
+      final data = await ref.getData();
+      filesData.add(Uint8List.fromList(data!));
     } catch (e) {
-      print ("Error al cargar el archivo $path");
+      print("Error al cargar el archivo $path");
       print(e);
     }
   }
-  print(4);
 
   // 2. Crear el archivo ZIP
-  List<String> fileNames = filePaths.map((path) => path.split('/').last).toList();
+  List<String> fileNames =
+      filePaths.map((path) => path.split('/').last).toList();
   Uint8List zipData = createZip(filesData, fileNames);
   // 3. Descargar el archivo ZIP
   final blob = html.Blob([zipData]);

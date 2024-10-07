@@ -884,7 +884,8 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                         Icons.remove_red_eye_outlined),
                                     onPressed: () async {
                                       if (e['path'] != null) {
-                                        openFileUrl(e['path']).then((value) {
+                                        openFileUrl(context, e['path'])
+                                            .then((value) {
                                           if (value) {
                                             //Use toast to show a message
 
