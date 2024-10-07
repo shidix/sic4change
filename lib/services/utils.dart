@@ -371,9 +371,41 @@ Future<bool> openFileUrl(context, String path) async {
     if (data == null) {
       return false;
     }
-    final blob = html.Blob([data], 'application/pdf');
+
+    String path_ext = path.split('.').last.toLowerCase();
+    String mime = 'application/octet-stream';
+
+    if (path_ext == 'pdf') {
+      mime = 'application/pdf';
+    }
+    if (path_ext == 'doc' || path_ext == 'docx') {
+      mime = 'application/msword';
+    }
+    if (path_ext == 'xls' || path_ext == 'xlsx') {
+      mime = 'application/vnd.ms-excel';
+    }
+    if (path_ext == 'ppt' || path_ext == 'pptx') {
+      mime = 'application/vnd.ms-powerpoint';
+    }
+    if (path_ext == 'jpg' || path_ext == 'jpeg') {
+      mime = 'image/jpeg';
+    }
+    if (path_ext == 'png') {
+      mime = 'image/png';
+    }
+    if (path_ext == 'gif') {
+      mime = 'image/gif';
+    }
+    if (path_ext == 'zip') {
+      mime = 'application/zip';
+    }
+    if (path_ext == 'txt') {
+      mime = 'text/plain';
+    }
+
+    final blob = html.Blob([data], mime);
     final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
+    html.AnchorElement(href: url)
       // ..setAttribute('view', path.split('/').last)
       ..setAttribute('target', '_blank')
       ..click();
