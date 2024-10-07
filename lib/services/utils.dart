@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:html' as html;
 import 'dart:js' as js;
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:archive/archive.dart';
 
@@ -391,7 +392,7 @@ int compareDates(bool asc, DateTime val1, DateTime val2) =>
 
 Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   final archive = Archive();
-  print(1);
+
   for (int i = 0; i < filesData.length; i++) {
     print(3);
     final file = ArchiveFile.noCompress(
@@ -401,7 +402,6 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     );
     archive.addFile(file);
   }
-  print(2);
 
   try {
     final zipEncoder = ZipEncoder();
@@ -425,17 +425,22 @@ Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) a
   // 1. Obtener las URLs de los archivos
   List<Uint8List> filesData = [];
   for (String path in filePaths) {
-    final ref = FirebaseStorage.instance.ref().child(path);
     try {
-      final Uint8List? fileData = await ref.getData();
-      if (fileData != null) {
-        filesData.add(fileData);
-      }
+    final ref = FirebaseStorage.instance.ref().child(path);
+    String url = await ref.getDownloadURL();
+    var response = await http.get(Uri.parse(url));
 
+    if (response.statusCode == 200) {
+      filesData.add(response.bodyBytes);
+    } else {
+      print('Failed to load file $path');
+    }
     } catch (e) {
+      print ("Error al cargar el archivo $path");
       print(e);
     }
   }
+  print(4);
 
   // 2. Crear el archivo ZIP
   List<String> fileNames = filePaths.map((path) => path.split('/').last).toList();
