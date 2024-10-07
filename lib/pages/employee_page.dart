@@ -123,6 +123,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
       profile = widget.profile;
       mainMenuPanel = mainMenuOperator(context,
           url: "/rrhh", profile: profile, key: mainMenuKey);
+      secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
+
       if (mounted) {
         setState(() {});
       }
