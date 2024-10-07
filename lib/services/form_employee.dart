@@ -54,32 +54,25 @@ class _EmployeeFormState extends State<EmployeeForm> {
     });
 
     BajaReason.getAll().then((value) {
-      print(value);
       value.sort((a, b) => a.order.compareTo(b.order));
       reasonsOptions = value.map((e) => KeyValue(e.uuid!, e.name)).toList();
-      print(1);
       for (BajaReason item in value) {
         reasons[item.uuid!] = item;
       }
-      print(2);
 
       selectedBajaDate = employee.getBajaDate();
-      print(3);
       int indexReason = -1;
-      print(employee.altas);
 
       if (employee.altas.isNotEmpty) {
         reasons.values.toList().indexWhere(
             (element) => element.name == employee.altas.last.baja.reason);
       }
-      print(4);
       if (indexReason != -1) {
         selectedReason = reasons.values.toList()[indexReason].uuid!;
       } else {
         indexReason = 0;
         selectedReason = reasons.values.toList()[indexReason].uuid!;
       }
-      print(5);
       if (mounted) {
         setState(() {});
       }
