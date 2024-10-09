@@ -861,13 +861,9 @@ class Department {
   String name;
   String? parent;
   Employee? manager;
-  List<Employee> employees = [];
+  List<Employee>? employees = [];
 
-  Department(
-      {required this.name,
-      this.parent,
-      this.manager,
-      this.employees = const []});
+  Department({required this.name, this.parent, this.manager, this.employees});
 
   factory Department.fromJson(Map<String, dynamic> json) {
     return Department(
@@ -885,7 +881,7 @@ class Department {
         'name': name,
         'parent': parent,
         'manager': manager?.toJson(),
-        'employees': employees.map((e) => e.toJson()).toList(),
+        'employees': employees?.map((e) => e.toJson()).toList(),
       };
 
   Future<Department> save() async {
@@ -902,7 +898,7 @@ class Department {
   }
 
   static Department getEmpty() {
-    return Department(name: '');
+    return Department(name: '', employees: []);
   }
 
   static Future<List<Department>> getDepartments() async {
@@ -936,7 +932,7 @@ class Department {
     });
 
     items = items
-        .where((element) => element.employees.contains(employeeCode))
+        .where((element) => element.employees!.contains(employeeCode))
         .toList();
 
     items.sort((a, b) => a.name.compareTo(b.name));
