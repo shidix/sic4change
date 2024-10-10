@@ -26,12 +26,11 @@ class _DepartmentFormState extends State<DepartmentForm> {
   List<Employee> employees = [];
   List<KeyValue> supervisors = [];
   List<Employee> currentEmployees = [];
-  Employee? manager;
   List<Department> allDepartments = [];
   List<KeyValue> optionsDepartment = [];
 
   late String name;
-  late String supervisor;
+  late String manager;
   late String parent;
 
   @override
@@ -39,6 +38,12 @@ class _DepartmentFormState extends State<DepartmentForm> {
     super.initState();
     department = widget.department ?? Department.getEmpty();
     profile = widget.profile;
+    name = department.name;
+    if (department.manager != null) {
+      manager = department.manager!.email;
+    } else {
+      manager = profile!.email;
+    }
     parent = department.parent.toString();
     for (Employee e in department.employees!) {
       currentEmployees.add(e);
@@ -64,15 +69,24 @@ class _DepartmentFormState extends State<DepartmentForm> {
     });
   }
 
-  void save() {
+  void save(context) {
+    //check if the form is valid
     if (_formKey.currentState!.validate()) {
-      print('Saving department');
+      department.name = name;
+      department.parent = parent;
+      department.manager = employees.firstWhere((e) => e.email == manager,
+          orElse: () => Employee.getEmpty());
+      department.employees = currentEmployees;
+      department.save().then((value) {
+        Navigator.of(context).pop(department);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Form(
+        key: _formKey,
         child: SizedBox(
             width: 400,
             child: SingleChildScrollView(
@@ -83,9 +97,14 @@ class _DepartmentFormState extends State<DepartmentForm> {
                 TextFormField(
                   decoration:
                       const InputDecoration(labelText: 'Nombre departamento'),
-                  onChanged: (value) => department.name = value,
+                  onChanged: (value) => name = value,
                   initialValue: department.name,
-                  validator: (value) => (value!.isEmpty) ? 'Requerido' : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, introduzca un nombre';
+                    }
+                    return null;
+                  },
                 ),
                 CustomSelectFormField(
                   labelText: "Depende de",
@@ -101,7 +120,9 @@ class _DepartmentFormState extends State<DepartmentForm> {
                   labelText: "Supervisor",
                   initial: profile!.email,
                   options: supervisors,
-                  onSelectedOpt: (value) {},
+                  onSelectedOpt: (value) {
+                    manager = value;
+                  },
                 ),
                 const Text('Empleados', style: mainText),
                 employees.isEmpty
@@ -151,6 +172,11 @@ class _DepartmentFormState extends State<DepartmentForm> {
                                     ]))))
                             .toList(),
                       ),
+                Row(children: [
+                  Expanded(flex: 1, child: Container()),
+                  Expanded(flex: 2, child: saveBtnForm(context, save, context)),
+                  Expanded(flex: 1, child: Container()),
+                ]),
               ],
             ))));
   }
@@ -193,23 +219,83 @@ class _HierarchyPageState extends State<HierarchyPage> {
       departmentsTable = const Text('No hay departamentos definidos');
     } else {
       List<DataColumn> columns = [
-        const DataColumn(label: const Text('ID')),
-        const DataColumn(label: Text('Nombre')),
-        const DataColumn(label: Text('Supervisor')),
+        const DataColumn(
+            label: Text(
+          'Nombre',
+          style: headerListStyle,
+        )),
+        const DataColumn(
+            label: Text(
+          'Depende de',
+          style: headerListStyle,
+        )),
+        const DataColumn(
+            label: Text(
+          'Supervisor/a',
+          style: headerListStyle,
+        )),
         const DataColumn(label: Text('')),
       ];
       List<DataRow> rows = departments
           .map((department) => DataRow(cells: [
-                DataCell(Text(department.id.toString())),
                 DataCell(Text(department.name)),
-                DataCell(Text(department.manager.toString())),
-                DataCell(IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {},
-                    color: Colors.blue))
+                DataCell(Text((department.parent != null)
+                    ? departments
+                        .firstWhere((d) => d.id == department.parent,
+                            orElse: () => Department(name: '--'))
+                        .name
+                    : '--')),
+                DataCell(Text((department.manager != null)
+                    ? department.manager!.getFullName()
+                    : 'Sin supervisor/a')),
+                DataCell(
+                    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  // IconButton(
+                  //     icon: const Icon(Icons.edit),
+                  //     onPressed: () {},
+                  //     color: Colors.black),
+                  editBtn(context, (context, department) {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return CustomPopupDialog(
+                            context: context,
+                            title: 'Editar Departamento',
+                            icon: Icons.edit,
+                            content: DepartmentForm(
+                                profile: profile, department: department),
+                            actionBtns: null,
+                          );
+                        }).then((value) {
+                      if (value != null) {
+                        if (mounted) {
+                          setState(() {
+                            contentPanel = departmentPanel();
+                          });
+                        }
+                      }
+                    });
+                  }, department),
+                  removeConfirmBtn(context, (context) {
+                    department.delete().then((value) {
+                      departments.remove(department);
+                      if (mounted) {
+                        setState(() {
+                          contentPanel = departmentPanel();
+                        });
+                      }
+                    });
+                  }, null)
+                ]))
               ]))
           .toList();
-      departmentsTable = DataTable(columns: columns, rows: rows);
+      departmentsTable = DataTable(
+          headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+            return headerListBgColor;
+          }),
+          columns: columns,
+          rows: rows);
     }
 
     Widget titleBar = s4cTitleBar('Departamentos');
@@ -227,7 +313,16 @@ class _HierarchyPageState extends State<HierarchyPage> {
                   content: DepartmentForm(profile: profile),
                   actionBtns: null,
                 );
-              });
+              }).then((value) {
+            if (value != null) {
+              departments.add(value);
+              if (mounted) {
+                setState(() {
+                  contentPanel = departmentPanel();
+                });
+              }
+            }
+          });
         }, null)
       ],
     );
@@ -237,7 +332,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
         children: [
           titleBar,
           toolsBar,
-          departmentsTable,
+          space(height: 10),
+          SizedBox(width: double.infinity, child: departmentsTable),
         ],
       ),
     );

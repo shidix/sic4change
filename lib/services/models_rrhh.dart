@@ -865,16 +865,24 @@ class Department {
 
   Department({required this.name, this.parent, this.manager, this.employees});
 
-  factory Department.fromJson(Map<String, dynamic> json) {
-    return Department(
+  static Department fromJson(Map<String, dynamic> json) {
+    Department item = Department(
         name: json['name'],
-        parent: json.containsKey('parent') ? json['parent'] : null,
+        parent: json['parent'],
         manager: json.containsKey('manager')
             ? Employee.fromJson(json['manager'])
             : null,
         employees: json.containsKey('employees')
-            ? json['employees'].map((e) => Employee.fromJson(e)).toList()
-            : []);
+            ? (json['employees'].map((e) => Employee.fromJson(e)).toList())
+                .cast<Employee>()
+            : null);
+
+    // if (json.containsKey('employees')) {
+    //   List<dynamic> list =
+    //       json['employees'].map((e) => Employee.fromJson(e)).toList();
+    //   item.employees = list.cast<Employee>();
+    // }
+    return item;
   }
 
   Map<String, dynamic> toJson() => {

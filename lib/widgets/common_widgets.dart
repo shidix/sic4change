@@ -1311,6 +1311,8 @@ Widget removeConfirmBtn(context, action, args,
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5.0))),
                 titlePadding: const EdgeInsets.all(0),
                 title: s4cTitleBar(removeText),
                 content: const SingleChildScrollView(
