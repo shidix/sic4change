@@ -133,9 +133,15 @@ class _DepartmentFormState extends State<DepartmentForm> {
                                 padding: const EdgeInsets.all(5),
                                 child: Container(
                                     decoration: BoxDecoration(
-                                        color: (currentEmployees.contains(e))
-                                            ? Colors.white
-                                            : Colors.grey,
+                                        color:
+                                            // check if any employee in currentEmployee have the same email as e
+                                            (currentEmployees.any((element) =>
+                                                    element.code == e.code))
+                                                ? Colors.white
+                                                : Colors.grey,
+                                        // (currentEmployees.contains(e))
+                                        //     ? Colors.white
+                                        //     : Colors.grey,
                                         border: Border.all(color: Colors.grey),
                                         borderRadius: BorderRadius.circular(5)),
                                     padding: const EdgeInsets.all(5),
@@ -144,15 +150,21 @@ class _DepartmentFormState extends State<DepartmentForm> {
                                           flex: 3,
                                           child: Text(e.getFullName(),
                                               style: TextStyle(
-                                                  color: (currentEmployees
-                                                          .contains(e))
+                                                  color: (currentEmployees.any(
+                                                          (element) =>
+                                                              element.code ==
+                                                              e.code))
                                                       ? Colors.black
                                                       : Colors.white))),
                                       Expanded(
                                           flex: 1,
                                           child: iconBtn(context, (context) {
-                                            if (currentEmployees.contains(e)) {
-                                              currentEmployees.remove(e);
+                                            if (currentEmployees.any(
+                                                (element) =>
+                                                    element.code == e.code)) {
+                                              currentEmployees.removeWhere(
+                                                  (element) =>
+                                                      element.code == e.code);
                                             } else {
                                               currentEmployees.add(e);
                                             }
@@ -161,14 +173,18 @@ class _DepartmentFormState extends State<DepartmentForm> {
                                             }
                                           }, null,
                                               text: '',
-                                              icon:
-                                                  (currentEmployees.contains(e))
-                                                      ? Icons.remove
-                                                      : Icons.add_outlined,
-                                              color:
-                                                  (currentEmployees.contains(e))
-                                                      ? Colors.red
-                                                      : Colors.white))
+                                              icon: (currentEmployees.any(
+                                                      (element) =>
+                                                          element.code ==
+                                                          e.code))
+                                                  ? Icons.remove
+                                                  : Icons.add_outlined,
+                                              color: (currentEmployees.any(
+                                                      (element) =>
+                                                          element.code ==
+                                                          e.code))
+                                                  ? Colors.red
+                                                  : Colors.white))
                                     ]))))
                             .toList(),
                       ),

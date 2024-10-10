@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'dart:html' as html;
-import 'dart:js' as js;
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
 import 'package:archive/archive.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,10 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
@@ -476,7 +471,7 @@ Future<void> compressAndDownloadFiles(
   // 3. Descargar el archivo ZIP
   final blob = html.Blob([zipData]);
   final url = html.Url.createObjectUrlFromBlob(blob);
-  final anchor = html.AnchorElement(href: url)
+  html.AnchorElement(href: url)
     ..setAttribute('download', '$filename.zip')
     ..click();
 }
