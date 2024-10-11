@@ -1503,8 +1503,9 @@ BoxDecoration tabDecoration = const BoxDecoration(
       right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
       bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
     ),
-    borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+    // borderRadius: BorderRadius.only(
+    //     topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+    borderRadius: null,
     color: Colors.white);
 
 Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {

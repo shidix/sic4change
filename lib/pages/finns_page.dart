@@ -790,7 +790,7 @@ class _FinnsPageState extends State<FinnsPage> {
           {},
           subtitle:
               "Listado de partidas financieras asignadas por cada financiador",
-          expanded: false),
+          expanded: true),
     );
   }
 
