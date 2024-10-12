@@ -38,7 +38,18 @@ class _InvoiceFormState extends State<InvoiceForm> {
   void initState() {
     super.initState();
     taxes = widget.taxes;
-    taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+    if (taxes != null) {
+      taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+    } else {
+      taxes = [TaxKind.getEmpty()];
+      TaxKind.getAll().then((value) {
+        taxes = value;
+        taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
 
     if (widget.existingInvoice == null) {
       _invoice = Invoice.getEmpty();
@@ -47,14 +58,17 @@ class _InvoiceFormState extends State<InvoiceForm> {
       _invoice.date = DateTime.now();
       _invoice.paidDate = DateTime.now();
       _invoice.tracker = widget.tracker!;
-      _invoice.taxKind = taxes![0].name;
+      if (taxes != null) {
+        _invoice.taxKind = taxes![0].name;
+        taxesOptions.addAll(taxes!
+            .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
+            .toList()); // Se añaden las opciones de impuestos
+      } else {
+        _invoice.taxKind = 'I.V.A.';
+      }
     } else {
       _invoice = widget.existingInvoice!;
     }
-    taxesOptions.addAll(taxes!
-        .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
-        .toList()); // Se añaden las opciones de impuestos
-
     if (!taxesOptions.any((element) => element.key == _invoice.taxKind)) {
       taxesOptions.insert(0, KeyValue(_invoice.taxKind!, '--'));
     }
@@ -70,10 +84,16 @@ class _InvoiceFormState extends State<InvoiceForm> {
       }
     }
 
+    if (taxes != null) {
+      taxesOptions = taxes!
+          .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
+          .toList(); // Se añaden las opciones de impuestos
+    }
+
     return Form(
         key: _formKey,
         child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.5,
+          width: MediaQuery.of(context).size.width * 0.75,
           child: SingleChildScrollView(
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

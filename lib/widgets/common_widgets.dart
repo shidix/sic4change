@@ -1848,6 +1848,7 @@ class ReadOnlyTextField extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class UploadFileField extends StatelessWidget {
   final Object textToShow;
   final ValueChanged<PlatformFile?> onSelectedFile;
