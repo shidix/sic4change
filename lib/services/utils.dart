@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:html' as html;
-import 'dart:js' as js;
-import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 import 'package:archive/archive.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -173,7 +172,10 @@ Icon getIcon(bool value, {double size = 24.0}) {
   }
 }
 
-DateTime getDate(dynamic date, {truncate = false}) {
+DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
+  if (date == null) {
+    return defaultValue ?? DateTime(2099, 12, 31);
+  }
   DateTime convert = DateTime(2099, 12, 31);
   DateTime result = convert;
 
@@ -361,22 +363,54 @@ Future<FullMetadata?> getMetadataFileUrl(String? path) async {
   }
 }
 
-Future<bool> openFileUrl(String path) async {
+Future<bool> openFileUrl(context, String path) async {
   final ref = FirebaseStorage.instance.ref().child(path);
   // check if the file exists
   try {
-    await ref.getMetadata();
-    String url = await ref.getDownloadURL();
-    Uri uri = Uri.parse("https://docs.google.com/viewer?url=$url");
-    // Uri uri = Uri.parse("$url");
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, webOnlyWindowName: '_blank');
-      return true;
-    } else {
-      print('Could not launch $uri');
+    Uint8List? data = await ref.getData();
+    if (data == null) {
       return false;
     }
+
+    String path_ext = path.split('.').last.toLowerCase();
+    String mime = 'application/octet-stream';
+
+    if (path_ext == 'pdf') {
+      mime = 'application/pdf';
+    }
+    if (path_ext == 'doc' || path_ext == 'docx') {
+      mime = 'application/msword';
+    }
+    if (path_ext == 'xls' || path_ext == 'xlsx') {
+      mime = 'application/vnd.ms-excel';
+    }
+    if (path_ext == 'ppt' || path_ext == 'pptx') {
+      mime = 'application/vnd.ms-powerpoint';
+    }
+    if (path_ext == 'jpg' || path_ext == 'jpeg') {
+      mime = 'image/jpeg';
+    }
+    if (path_ext == 'png') {
+      mime = 'image/png';
+    }
+    if (path_ext == 'gif') {
+      mime = 'image/gif';
+    }
+    if (path_ext == 'zip') {
+      mime = 'application/zip';
+    }
+    if (path_ext == 'txt') {
+      mime = 'text/plain';
+    }
+
+    final blob = html.Blob([data], mime);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      // ..setAttribute('view', path.split('/').last)
+      ..setAttribute('target', '_blank')
+      ..click();
+
+    return true;
   } catch (e) {
     print(e);
     return false;
@@ -391,9 +425,8 @@ int compareDates(bool asc, DateTime val1, DateTime val2) =>
 
 Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   final archive = Archive();
-  print(1);
+
   for (int i = 0; i < filesData.length; i++) {
-    print(3);
     final file = ArchiveFile.noCompress(
       fileNames[i],
       filesData[i].length,
@@ -401,7 +434,6 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     );
     archive.addFile(file);
   }
-  print(2);
 
   try {
     final zipEncoder = ZipEncoder();
@@ -424,13 +456,16 @@ Future<void> compressAndDownloadFiles(
   // 1. Obtener las URLs de los archivos
   List<Uint8List> filesData = [];
   for (String path in filePaths) {
-    final ref = FirebaseStorage.instance.ref().child(path);
     try {
-      final Uint8List? fileData = await ref.getData();
+      /*final Uint8List? fileData = await ref.getData();
       if (fileData != null) {
         filesData.add(fileData);
-      }
+      }*/
+      final ref = FirebaseStorage.instance.ref().child(path);
+      final data = await ref.getData();
+      filesData.add(Uint8List.fromList(data!));
     } catch (e) {
+      print("Error al cargar el archivo $path");
       print(e);
     }
   }
@@ -442,7 +477,7 @@ Future<void> compressAndDownloadFiles(
   // 3. Descargar el archivo ZIP
   final blob = html.Blob([zipData]);
   final url = html.Url.createObjectUrlFromBlob(blob);
-  final anchor = html.AnchorElement(href: url)
+  html.AnchorElement(href: url)
     ..setAttribute('download', '$filename.zip')
     ..click();
 }

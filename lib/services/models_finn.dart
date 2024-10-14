@@ -107,7 +107,11 @@ class SFinnInfo extends Object {
     double total = 0;
     for (SFinn partida in partidas) {
       if (partida.orgUuid == orgUuid) {
-        total += partida.getAmountContrib();
+        try {
+          total += partida.getAmountContrib();
+        } catch (e) {
+          total += 0;
+        }
       }
     }
     return total;
@@ -293,7 +297,11 @@ class SFinn extends Object {
   double getAmountContrib() {
     double total = 0;
     for (SFinn partida in partidas) {
-      total += partida.getAmountContrib();
+      try {
+        total += partida.getAmountContrib();
+      } catch (e) {
+        total += 0;
+      }
     }
     if (total == 0) {
       total = contribution;
@@ -488,7 +496,21 @@ class SFinn extends Object {
 
   @override
   String toString() {
-    return jsonEncode(toJson());
+    Map<String, dynamic> data;
+    data = {
+      'id': id,
+      'uuid': uuid,
+      'name': name,
+      'description': description,
+      'parent': parent,
+      'project': project,
+      'orgUuid': orgUuid,
+      'start': start.toIso8601String(),
+      'end': end.toIso8601String(),
+      'contribution': contribution,
+      'partidas': partidas.map((e) => e.toJson()).toList(),
+    };
+    return jsonEncode(data);
   }
 }
 
@@ -1353,7 +1375,32 @@ class BankTransfer {
 
   @override
   String toString() {
-    return jsonEncode(toJson());
+    Map<String, dynamic> data;
+    data = {
+      'id': id,
+      'uuid': uuid,
+      'number': number,
+      'code': code,
+      'project': project,
+      'concept': concept,
+      'date': date.toIso8601String(),
+      'emissor': emissor,
+      'receiver': receiver,
+      'amountSource': amountSource,
+      'exchangeSource': exchangeSource,
+      'commissionSource': commissionSource,
+      'amountIntermediary': amountIntermediary,
+      'exchangeIntermediary': exchangeIntermediary,
+      'commissionIntermediary': commissionIntermediary,
+      'amountDestination': amountDestination,
+      'commissionDestination': commissionDestination,
+      'currencySource': currencySource,
+      'currencyIntermediary': currencyIntermediary,
+      'currencyDestination': currencyDestination,
+      'document': document,
+    };
+
+    return jsonEncode(data);
   }
 
   void delete() {
@@ -1498,6 +1545,18 @@ class Distribution extends Object {
         'mapinvoices': mapinvoices,
       };
 
+  static Future<List<Distribution>> all() async {
+    final collection = db.collection("s4c_distributions");
+    List<Distribution> items = [];
+    final query = await collection.get();
+    for (var element in query.docs) {
+      Distribution item = Distribution.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
   static Future<Distribution> getByUuid(String uuid) async {
     final collection = db.collection("s4c_distributions");
     final query = await collection.where("uuid", isEqualTo: uuid).get();
@@ -1580,7 +1639,7 @@ class Distribution extends Object {
     }
     for (var invoice in mapinvoices.values) {
       try {
-        total += invoice["amount"] * invoice["percentaje"] * 0.01;
+        total += invoice["amount"];
       } catch (e, stacktrace) {
         log(e.toString());
         log(stacktrace.toString());
@@ -1588,5 +1647,22 @@ class Distribution extends Object {
     }
 
     return total;
+  }
+
+  @override
+  String toString() {
+    Map<String, dynamic> data;
+    data = {
+      'id': id,
+      'uuid': uuid,
+      'project': project,
+      'description': description,
+      'finn': finn.toString(),
+      'partner': partner.toString(),
+      'date': date.toIso8601String(),
+      'amount': amount,
+      'mapinvoices': mapinvoices,
+    };
+    return jsonEncode(data);
   }
 }

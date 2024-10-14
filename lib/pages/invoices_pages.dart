@@ -169,17 +169,29 @@ class _InvoicePageState extends State<InvoicePage> {
       invoices = await Invoice.all();
     }
     invoices.sort((a, b) => b.date.compareTo(a.date));
-    List<InvoiceDistrib> distribs = await InvoiceDistrib.getByInvoice(invoices);
-    Map<String, double> distribsMap = {};
-    for (var element in distribs) {
-      if (!distribsMap.keys.contains(element.invoice)) {
-        distribsMap[element.invoice] = 0.0;
+    List<SProject> projects = await SProject.all();
+    List<Distribution> listDistr = await Distribution.all();
+    for (var element in listDistr) {
+      if (projects.where((e) => e.uuid == element.finn.project).isEmpty) {
+        element.delete();
       }
-      distribsMap[element.invoice] =
-          distribsMap[element.invoice]! + element.percentaje;
     }
+    listDistr.removeWhere((element) =>
+        projects.where((e) => e.uuid == element.finn.project).isEmpty);
+
+    List<InvoiceDistrib> distribs = await InvoiceDistrib.getByInvoice(invoices);
+    for (var element in distribs) {
+      if (listDistr.where((e) => e.uuid == element.distribution).isEmpty) {
+        element.delete();
+      }
+    }
+    distribs.removeWhere((element) =>
+        listDistr.where((e) => e.uuid == element.distribution).isEmpty);
 
     Map<String, double> imputed = {};
+    for (Invoice invoice in invoices) {
+      imputed[invoice.uuid] = 0.0;
+    }
     for (var element in distribs) {
       if (!imputed.keys.contains(element.invoice)) {
         imputed[element.invoice] = 0.0;
@@ -188,9 +200,9 @@ class _InvoicePageState extends State<InvoicePage> {
     }
 
     DataTable table = DataTable(
-        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-          if (states.contains(MaterialState.hovered)) {
+        headingRowColor:
+            WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.hovered)) {
             return headerListBgColor.withOpacity(0.5);
           }
           return headerListBgColor;
@@ -221,9 +233,9 @@ class _InvoicePageState extends State<InvoicePage> {
         rows: [
           ...invoices.map((e) {
             return DataRow(
-                color: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.hovered)) {
+                color: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.hovered)) {
                     return Colors.grey.withOpacity(0.3);
                   }
                   if (invoices.indexOf(e).isEven) {
@@ -278,178 +290,31 @@ class _InvoicePageState extends State<InvoicePage> {
           })
         ]);
 
-    return SingleChildScrollView(
-        child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-            child: Column(children: [
-              s4cTitleBar("Listado de Facturas"),
-              space(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  addBtnRow(context, addInvoiceDialog, null,
-                      text: "Añadir factura"),
-                ],
-              ),
-              space(height: 10),
-              SingleChildScrollView(
-                child: SizedBox(
-                  width: double.infinity,
-                  child:
-                      Padding(padding: const EdgeInsets.all(10), child: table),
-                ),
-              ),
-            ])));
+    return SelectionArea(
+        child: SingleChildScrollView(
+            child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                child: Column(children: [
+                  s4cTitleBar("Listado de Facturas"),
+                  space(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      addBtnRow(context, addInvoiceDialog, null,
+                          text: "Añadir factura"),
+                    ],
+                  ),
+                  space(height: 10),
+                  SingleChildScrollView(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Padding(
+                          padding: const EdgeInsets.all(10), child: table),
+                    ),
+                  ),
+                ]))));
   }
-
-  // Future<Widget> populateInvoices2() async {
-  //   Row rowHeader = Row(
-  //     children: [
-  //       [1, const Text('Tracker', style: headerListStyle)],
-  //       [1, const Text('Número', style: headerListStyle)],
-  //       [1, const Text('Fecha', style: headerListStyle)],
-  //       [1, const Text('Pago', style: headerListStyle)],
-  //       [3, const Text('Proveedor', style: headerListStyle)],
-  //       [
-  //         1,
-  //         const Text('Base', style: headerListStyle, textAlign: TextAlign.right)
-  //       ],
-  //       [
-  //         1,
-  //         const Text('TAX', style: headerListStyle, textAlign: TextAlign.right)
-  //       ],
-  //       [
-  //         1,
-  //         const Text('Tipo',
-  //             style: headerListStyle, textAlign: TextAlign.center)
-  //       ],
-  //       [
-  //         1,
-  //         const Text('Total',
-  //             style: headerListStyle, textAlign: TextAlign.right)
-  //       ],
-  //       [
-  //         1,
-  //         const Text('Imputado',
-  //             style: headerListStyle, textAlign: TextAlign.right)
-  //       ],
-  //       [2, const Text('')],
-  //     ]
-  //         .map((List e) => Expanded(
-  //             flex: e[0],
-  //             child: Container(padding: const EdgeInsets.all(5), child: e[1])))
-  //         .toList(),
-  //   );
-
-  //   if (invoices.isEmpty) {
-  //     invoices = await Invoice.all();
-  //   }
-  //   List<InvoiceDistrib> distribs = await InvoiceDistrib.getByInvoice(invoices);
-  //   Map<String, double> distribsMap = {};
-  //   for (var element in distribs) {
-  //     if (!distribsMap.keys.contains(element.invoice)) {
-  //       distribsMap[element.invoice] = 0.0;
-  //     }
-  //     distribsMap[element.invoice] =
-  //         distribsMap[element.invoice]! + element.percentaje;
-  //   }
-
-  //   Row fromInvoice(Invoice invoice) {
-  //     double imputed = distribsMap.keys.contains(invoice.uuid)
-  //         ? distribsMap[invoice.uuid]!
-  //         : 0.0;
-  //     return Row(
-  //       children: [
-  //         [1, Text(invoice.tracker)],
-  //         [1, Text(invoice.number)],
-  //         [1, Text(DateFormat('dd/MM/yyyy').format(getDate(invoice.date)))],
-  //         [1, Text(DateFormat('dd/MM/yyyy').format(getDate(invoice.paidDate)))],
-  //         [3, Text(invoice.provider)],
-  //         [
-  //           1,
-  //           Text(
-  //             toCurrency(invoice.base, invoice.currency),
-  //             textAlign: TextAlign.right,
-  //           )
-  //         ],
-  //         [
-  //           1,
-  //           Text(
-  //             toCurrency(invoice.taxes, invoice.currency),
-  //             textAlign: TextAlign.right,
-  //           )
-  //         ],
-  //         [
-  //           1,
-  //           Text(
-  //             (invoice.taxKind == null ? '--' : invoice.taxKind!),
-  //             textAlign: TextAlign.center,
-  //           )
-  //         ],
-  //         [
-  //           1,
-  //           Text(
-  //             toCurrency(invoice.total, invoice.currency),
-  //             textAlign: TextAlign.right,
-  //           )
-  //         ],
-  //         [
-  //           1,
-  //           Text(
-  //             '${imputed.toStringAsFixed(2)}%',
-  //             textAlign: TextAlign.right,
-  //             style: TextStyle(
-  //                 fontWeight: FontWeight.bold,
-  //                 color: imputed <= 100.0 ? Colors.green : Colors.red),
-  //           )
-  //         ],
-  //         [
-  //           2,
-  //           Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-  //             iconBtn(context, viewProjects, invoice,
-  //                 icon: Icons.list, text: 'Proyectos'),
-  //             editBtn(context, addInvoiceDialog, invoice),
-  //             removeConfirmBtn(context, removeInvoice, invoice),
-  //           ])
-  //         ]
-  //       ]
-  //           .map((List e) => Expanded(
-  //               flex: e[0],
-  //               child: Padding(padding: const EdgeInsets.all(5), child: e[1])))
-  //           .toList(),
-  //     );
-  //   }
-
-  //   List<Widget> widgetInvoices = [
-  //     s4cTitleBar("Listado de Facturas"),
-  //     space(height: 10),
-  //     Row(
-  //       mainAxisAlignment: MainAxisAlignment.end,
-  //       children: [
-  //         addBtnRow(context, addInvoiceDialog, null, text: "Añadir factura"),
-  //       ],
-  //     ),
-  //     space(height: 10),
-  //     Container(
-  //         color: Colors.green.shade50,
-  //         child: Padding(
-  //             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-  //             child: rowHeader))
-  //   ];
-  //   widgetInvoices.addAll(List.generate(invoices.length, (index) {
-  //     return Container(
-  //       color: !index.isEven ? Colors.grey.shade100 : Colors.white,
-  //       child: Padding(
-  //           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-  //           child: fromInvoice(invoices[index])),
-  //     );
-  //   }));
-
-  //   return SingleChildScrollView(
-  //       child: Container(
-  //           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-  //           child: Column(children: widgetInvoices)));
-  // }
 
   Future<Invoice?> addInvoiceDialog(context, [Invoice? invoice]) async {
     String tracker;
@@ -505,11 +370,14 @@ class _InvoicePageState extends State<InvoicePage> {
   Future<void> viewProjects(context, Invoice invoice) async {
     List<InvoiceDistrib> imputations =
         await InvoiceDistrib.getByInvoice(invoice);
+
     if (imputations.isEmpty) {
       return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0)),
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Imputaciones', context),
             content: const Text('No hay imputaciones para esta factura.'),
@@ -569,6 +437,8 @@ class _InvoicePageState extends State<InvoicePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0)),
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Imputaciones', context),
             content: SingleChildScrollView(

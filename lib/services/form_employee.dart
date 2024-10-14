@@ -3,7 +3,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -59,15 +58,19 @@ class _EmployeeFormState extends State<EmployeeForm> {
       for (BajaReason item in value) {
         reasons[item.uuid!] = item;
       }
-      if (employee.getBaja() != null) {
-        selectedBajaDate = employee.getBajaDate();
-        int indexReason = reasons.values.toList().indexWhere(
+
+      selectedBajaDate = employee.getBajaDate();
+      int indexReason = -1;
+
+      if (employee.altas.isNotEmpty) {
+        reasons.values.toList().indexWhere(
             (element) => element.name == employee.altas.last.baja.reason);
-        if (indexReason != -1) {
-          selectedReason = reasons.values.toList()[indexReason].uuid!;
-        } else {
-          selectedReason = "Sin especificar";
-        }
+      }
+      if (indexReason != -1) {
+        selectedReason = reasons.values.toList()[indexReason].uuid!;
+      } else {
+        indexReason = 0;
+        selectedReason = reasons.values.toList()[indexReason].uuid!;
       }
       if (mounted) {
         setState(() {});
@@ -884,7 +887,8 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                         Icons.remove_red_eye_outlined),
                                     onPressed: () async {
                                       if (e['path'] != null) {
-                                        openFileUrl(e['path']).then((value) {
+                                        openFileUrl(context, e['path'])
+                                            .then((value) {
                                           if (value) {
                                             //Use toast to show a message
 

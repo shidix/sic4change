@@ -47,7 +47,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
   DateTime minBajaDateFilter =
       DateTime.now().subtract(const Duration(days: 365 * 10));
   DateTime maxBajaDateFilter =
-      DateTime.now().add(const Duration(days: 365 * 10));
+      DateTime.now().add(const Duration(days: 365 * 100));
 
   late List<bool> selectedEmployees;
 
@@ -123,6 +123,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
       profile = widget.profile;
       mainMenuPanel = mainMenuOperator(context,
           url: "/rrhh", profile: profile, key: mainMenuKey);
+      secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
+
       if (mounted) {
         setState(() {});
       }
@@ -335,17 +337,22 @@ class _EmployeesPageState extends State<EmployeesPage> {
       ],
     );
     employeeFilter = employeeFilter.toLowerCase();
+
     List<Employee> employeesFiltered = employees
         .where((Employee element) =>
             element.isActive() == altasVisible &&
             (element.getFullName().toLowerCase().contains(employeeFilter) ||
                 (element.code.toLowerCase().startsWith(employeeFilter)) ||
-                (element.email.toLowerCase().contains(employeeFilter))) &&
+                (element.email.toLowerCase().contains(employeeFilter)) ||
+                (employeeFilter.isEmpty)) &&
             element.getSalary() >= minSalaryFilter &&
             element.getSalary() <= maxSalaryFilter &&
             element.getBornDate().isAfter(minBornDateFilter) &&
             element.getBornDate().isBefore(maxBornDateFilter) &&
-            element.getAltaDate().isAfter(minAltaDateFilter))
+            element.getAltaDate().isAfter(minAltaDateFilter) &&
+            element.getAltaDate().isBefore(maxAltaDateFilter) &&
+            element.getBajaDate().isAfter(minBajaDateFilter) &&
+            element.getBajaDate().isBefore(maxBajaDateFilter))
         .toList();
 
     // List<Employee> employeesFiltered = employees

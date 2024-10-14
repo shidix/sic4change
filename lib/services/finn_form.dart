@@ -38,7 +38,18 @@ class _InvoiceFormState extends State<InvoiceForm> {
   void initState() {
     super.initState();
     taxes = widget.taxes;
-    taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+    if (taxes != null) {
+      taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+    } else {
+      taxes = [TaxKind.getEmpty()];
+      TaxKind.getAll().then((value) {
+        taxes = value;
+        taxes!.sort((a, b) => a.percentaje.compareTo(b.percentaje));
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
 
     if (widget.existingInvoice == null) {
       _invoice = Invoice.getEmpty();
@@ -47,14 +58,17 @@ class _InvoiceFormState extends State<InvoiceForm> {
       _invoice.date = DateTime.now();
       _invoice.paidDate = DateTime.now();
       _invoice.tracker = widget.tracker!;
-      _invoice.taxKind = taxes![0].name;
+      if (taxes != null) {
+        _invoice.taxKind = taxes![0].name;
+        taxesOptions.addAll(taxes!
+            .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
+            .toList()); // Se añaden las opciones de impuestos
+      } else {
+        _invoice.taxKind = 'I.V.A.';
+      }
     } else {
       _invoice = widget.existingInvoice!;
     }
-    taxesOptions.addAll(taxes!
-        .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
-        .toList()); // Se añaden las opciones de impuestos
-
     if (!taxesOptions.any((element) => element.key == _invoice.taxKind)) {
       taxesOptions.insert(0, KeyValue(_invoice.taxKind!, '--'));
     }
@@ -70,10 +84,16 @@ class _InvoiceFormState extends State<InvoiceForm> {
       }
     }
 
+    if (taxes != null) {
+      taxesOptions = taxes!
+          .map((e) => KeyValue(e.name, "${e.name} ${e.percentaje}%"))
+          .toList(); // Se añaden las opciones de impuestos
+    }
+
     return Form(
         key: _formKey,
         child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.5,
+          width: MediaQuery.of(context).size.width * 0.75,
           child: SingleChildScrollView(
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,23 +491,26 @@ class InvoiceDistributionForm extends StatefulWidget {
 }
 
 class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late GlobalKey<FormState> _formKey;
   late InvoiceDistrib invoiceDistrib;
   late Invoice invoice;
+  late double amount;
+  late double percentaje;
+  final FocusNode amountListener = FocusNode();
+  final FocusNode saveListener = FocusNode();
+
+  final TextEditingController percentageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _formKey = GlobalKey<FormState>();
     invoiceDistrib = widget.item;
     invoice = Invoice.getEmpty();
+    percentageController.text = invoiceDistrib.percentaje.toStringAsFixed(2);
 
     Invoice.getByUuid(widget.item.invoice).then((value) {
       invoice = value;
-      if (invoiceDistrib.taxes) {
-        invoiceDistrib.amount = invoice.total;
-      } else {
-        invoiceDistrib.amount = invoice.base;
-      }
       if (mounted) setState(() {});
     });
   }
@@ -497,8 +520,8 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
     void saveDistribution() {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
-        invoiceDistrib.amount =
-            invoice.total * invoiceDistrib.percentaje * 0.01;
+        invoiceDistrib.percentaje =
+            (invoiceDistrib.amount / invoice.total) * 100;
         invoiceDistrib.save();
         Navigator.of(context).pop(invoiceDistrib);
       }
@@ -524,15 +547,6 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                       ],
                       onSelectedOpt: (value) {
                         invoiceDistrib.taxes = value.toString() == "true";
-                        if (mounted) {
-                          setState(() {
-                            if (invoiceDistrib.taxes) {
-                              invoiceDistrib.amount = invoice.total;
-                            } else {
-                              invoiceDistrib.amount = invoice.base;
-                            }
-                          });
-                        }
                       },
                     )),
                 Expanded(
@@ -540,35 +554,51 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                     child: Padding(
                         padding: const EdgeInsets.only(left: 5),
                         child: TextFormField(
-                          initialValue: invoiceDistrib.percentaje.toString(),
+                          initialValue: toCurrency(
+                              invoiceDistrib.amount, invoice.currency),
+                          readOnly: false,
                           decoration: const InputDecoration(
-                              labelText: 'Porcentaje asignado',
+                              labelText: 'Importe',
                               contentPadding: EdgeInsets.only(bottom: 1)),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingrese un porcentaje';
-                            }
-                            if ((currencyToDouble(value) < 0) ||
-                                (currencyToDouble(value) > 100)) {
-                              return 'Porcentaje debe estar entre 0 y 100';
+                            try {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  double.parse(value) <= 0) {
+                                return 'Por favor, ingrese un importe válido';
+                              }
+                            } catch (e) {
+                              return 'Por favor, ingrese un importe válido';
                             }
                             return null;
                           },
+
                           onChanged: (value) {
-                            invoiceDistrib.percentaje = currencyToDouble(value);
+                            invoiceDistrib.amount = currencyToDouble(value);
+                            invoiceDistrib.percentaje =
+                                (invoiceDistrib.amount / invoice.total) * 100;
+                            percentageController.text =
+                                invoiceDistrib.percentaje.toStringAsFixed(2);
                           },
-                          onSaved: (value) => invoiceDistrib.percentaje =
-                              currencyToDouble(value!),
+                          // focusNode: amountListener,
+                          onSaved: (value) {
+                            invoiceDistrib.amount = currencyToDouble(value!);
+                            invoiceDistrib.percentaje =
+                                (invoiceDistrib.amount / invoice.total) * 100;
+                          },
                         ))),
                 Expanded(
                     flex: 1,
-                    child: ReadOnlyTextField(
-                        label: "Importe",
-                        textToShow:
-                            toCurrency(invoiceDistrib.amount, invoice.currency),
-                        textAlign: TextAlign.right)),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          // initialValue: invoiceDistrib.percentaje.toString(),
+                          readOnly: true,
+                          controller: percentageController,
+                          decoration: const InputDecoration(
+                              labelText: 'Porcentaje',
+                              contentPadding: EdgeInsets.only(bottom: 1)),
+                        ))),
               ]),
               const SizedBox(height: 16.0),
               Row(children: [
@@ -576,7 +606,8 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                     flex: 1,
                     child: Padding(
                         padding: const EdgeInsets.only(left: 5),
-                        child: saveBtnForm(context, saveDistribution))),
+                        child: saveBtnForm(
+                            context, saveDistribution, null, null))),
                 Expanded(
                     flex: 1,
                     child: Padding(

@@ -76,7 +76,6 @@ class _NominasPageState extends State<NominasPage> {
     }
 
     await compressAndDownloadFiles(paths, filename);
-
   }
 
   Future<void> exportNominasToCsv(String filename) async {
@@ -177,15 +176,12 @@ class _NominasPageState extends State<NominasPage> {
           if (filename != null && filename.isNotEmpty)
             exportNominasToCsv(filename);
         }, null, icon: Icons.download, text: 'Exportar'),
-
         gralBtnRow(context, (context) async {
           String? filename = await showDialog(
               context: context, builder: (context) => FileNameDialog());
           if (filename != null && filename.isNotEmpty)
             downloadZipNominas(filename);
         }, null, icon: Icons.download, text: 'Zip'),
-
-        
       ],
     );
 
@@ -752,8 +748,7 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context,
-                  url: ModalRoute.of(context)!.settings.name, profile: profile),
+              mainMenuOperator(context, url: "/rrhh", profile: profile),
               const CircularProgressIndicator(),
               const Text(
                 'Loading profile...',
@@ -771,8 +766,7 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context,
-                  url: ModalRoute.of(context)!.settings.name, profile: profile),
+              mainMenuOperator(context, url: "/rrhh", profile: profile),
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,

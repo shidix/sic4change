@@ -83,6 +83,7 @@ class MyApp extends StatelessWidget {
     '/admin': (context) => const AdminPage(),
     '/invoices': (context) => InvoicePage(),
     '/logs': (context) => const LogPage(),
+    '/hierarchy': (context) => const HierarchyPage(),
   };
 
   @override

@@ -422,6 +422,12 @@ class Alta {
     }
     return baja!.date;
   }
+
+  static Alta getEmpty() {
+    Alta item = Alta(date: DateTime.now());
+    item.baja = Baja.getEmpty();
+    return item;
+  }
 }
 
 class Baja {
@@ -443,7 +449,7 @@ class Baja {
     return Baja(
       date: getDate(json['date'] ?? DateTime.now()),
       pathFiniquito: json['pathFiniquito'],
-      reason: json.containsKey('reason') ? json['reason'] : '',
+      reason: json.containsKey('reason') ? json['reason'] : 'Sin especificar',
       extraDocument:
           json.containsKey('extraDocument') ? json['extraDocument'] : false,
       pathExtraDoc:
@@ -584,7 +590,8 @@ class Employee {
       photoPath: json['photoPath'],
       sex: (json.containsKey('sex')) ? json['sex'] : 'O',
       bornDate: (json.containsKey('bornDate'))
-          ? getDate(json['bornDate'])
+          ? getDate(json['bornDate'],
+              truncate: true, defaultValue: DateTime(2000, 1, 1))
           : truncDate(DateTime(2000, 1, 1)),
       category: (json.containsKey('category')) ? json['category'] : '',
       position: (json.containsKey('position')) ? json['position'] : '',
@@ -595,9 +602,11 @@ class Employee {
               try {
                 return Alta.fromJson(e as Map<String, dynamic>);
               } catch (exception, stackTrace) {
-                return Alta(
+                Alta alta = Alta(
                   date: getDate(e),
                 );
+                alta.baja = Baja.getEmpty();
+                return alta;
               }
             }).toList(),
       // bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
@@ -628,7 +637,8 @@ class Employee {
         'photoPath': photoPath,
         'category': category,
         'position': position,
-        'bornDate': bornDate,
+        'bornDate': getDate(bornDate,
+            truncate: true, defaultValue: DateTime(2000, 1, 1)),
         'altas': altas.map((e) => e.toJson()).toList(),
         // 'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
@@ -748,7 +758,7 @@ class Employee {
         phone: '',
         position: '',
         category: '',
-        altas: [],
+        altas: [Alta.getEmpty()],
         // bajas: [],
         extraDocs: {});
   }
@@ -798,8 +808,15 @@ class Employee {
   }
 
   DateTime getBajaDate() {
+    if (altas.isEmpty) {
+      return DateTime(2099, 12, 31);
+    }
     altas.sort((a, b) => a.date.compareTo(b.date));
-    return altas.last.bajaDate();
+    try {
+      return altas.last.bajaDate();
+    } catch (e) {
+      return DateTime(2099, 12, 31);
+    }
     // if (bajas.isEmpty) {
     //   //return date in one year
     //   return DateTime.now().add(const Duration(days: 365));
@@ -833,5 +850,119 @@ class Employee {
 
   String getFullName() {
     return '$firstName $lastName1 $lastName2';
+  }
+}
+
+class Department {
+  static final db = FirebaseFirestore.instance;
+  static final collection = db.collection("s4c_departments");
+
+  String? id;
+  String name;
+  String? parent;
+  Employee? manager;
+  List<Employee>? employees = [];
+
+  Department({required this.name, this.parent, this.manager, this.employees});
+
+  static Department fromJson(Map<String, dynamic> json) {
+    Department item = Department(
+        name: json['name'],
+        parent: json['parent'],
+        manager: json.containsKey('manager')
+            ? Employee.fromJson(json['manager'])
+            : null,
+        employees: json.containsKey('employees')
+            ? (json['employees'].map((e) => Employee.fromJson(e)).toList())
+                .cast<Employee>()
+            : null);
+
+    // if (json.containsKey('employees')) {
+    //   List<dynamic> list =
+    //       json['employees'].map((e) => Employee.fromJson(e)).toList();
+    //   item.employees = list.cast<Employee>();
+    // }
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'parent': parent,
+        'manager': manager?.toJson(),
+        'employees': employees?.map((e) => e.toJson()).toList(),
+      };
+
+  Future<Department> save() async {
+    if (id == null) {
+      await collection.add(toJson()).then((value) => id = value.id);
+    } else {
+      await collection.doc(id).update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await collection.doc(id).delete();
+  }
+
+  static Department getEmpty() {
+    return Department(name: '', employees: []);
+  }
+
+  static Future<List<Department>> getDepartments() async {
+    // get from database
+    List<Department> items = [];
+    await collection.get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Department item = Department.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
+  }
+
+  static Future<List<Department>> getDepartmentsByEmployee(
+      String employeeCode) async {
+    // get from database
+    List<Department> items = [];
+    await collection.get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Department item = Department.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items = items
+        .where((element) => element.employees!.contains(employeeCode))
+        .toList();
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
+  }
+
+  static Future<List<Department>> getDepartmentsByParent(String parent) async {
+    // get from database
+    List<Department> items = [];
+
+    await collection.where('parent', isEqualTo: parent).get().then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Department item = Department.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
   }
 }

@@ -44,9 +44,6 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, int> mapLevels = {};
   Map<String, bool> mapOnHover = {};
 
-  // Map<String, SFinn> finnHash = {};
-  // Map<String, SFinn> finnUuidHash = {};
-
   List<String> withChildrens = [];
 
   List<Widget> invoicesList = [];
@@ -57,7 +54,6 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget? invoicesContainer = Container();
   Widget? summaryContainer = Container();
-  // Widget? finnContainer = Container();
   Widget? aportesSummaryContainer = Container();
   Widget? distribSummaryContainer = Container();
   Widget? finnanciersContainer = Container();
@@ -93,6 +89,7 @@ class _FinnsPageState extends State<FinnsPage> {
             Distribution.byProject(_project!.uuid).then((val) {
               if (val.isNotEmpty) {
                 finnInfo.distributions = val;
+                distribItems = val;
                 finnInfo.save();
                 for (Distribution dist in finnInfo.distributions) {
                   dist.updateMapinvoices();
@@ -105,8 +102,14 @@ class _FinnsPageState extends State<FinnsPage> {
               }
             });
           } else {
+            distribItems = finnInfo.distributions;
             for (Distribution dist in finnInfo.distributions) {
               dist.updateMapinvoices();
+            }
+            if (mounted) {
+              setState(() {
+                distribSummaryContainer = populateDistribSummaryContainer();
+              });
             }
           }
         } else {
@@ -280,7 +283,28 @@ class _FinnsPageState extends State<FinnsPage> {
     double percentExecuted = 0;
 
     List<Widget> sourceRows = [];
-    //for (Contact partner in _project!.partnersObj) {
+
+    for (Distribution dist in distribItems) {
+      if (dist.amount > 0) {
+        totalDistrib += dist.amount;
+      }
+      double aux = distribTotalByPartner[dist.partner.uuid]!;
+      distribTotalByPartner[dist.partner.uuid] = aux + dist.amount;
+
+      if (!invoicesSummary.containsKey(dist.partner.uuid)) {
+        invoicesSummary[dist.partner.uuid] = {};
+      }
+
+      if (!invoicesSummary[dist.partner.uuid]!.containsKey('total')) {
+        invoicesSummary[dist.partner.uuid]!['total'] = 0;
+      }
+
+      for (var item in dist.mapinvoices.values) {
+        InvoiceDistrib inv = InvoiceDistrib.fromJson(item);
+        invoicesSummary[dist.partner.uuid]!['total'] += (inv.amount);
+      }
+    }
+
     for (Organization partner in _project!.partnersObj) {
       double executedByPartnerAmount = 0;
       if (invoicesSummary.containsKey(partner.uuid)) {
@@ -294,8 +318,9 @@ class _FinnsPageState extends State<FinnsPage> {
       double distrib = distribTotalByPartner[partner.uuid]!;
       double distribPercent =
           (distrib == 0) ? 0 : executedByPartnerAmount / distrib;
+
       sourceRows.add(Row(children: [
-        Expanded(flex: 1, child: Text(partner.name)),
+        Expanded(flex: 2, child: Text(partner.name)),
         Expanded(
             flex: 2,
             child: LinearPercentIndicator(
@@ -333,7 +358,8 @@ class _FinnsPageState extends State<FinnsPage> {
           children: [
                 Row(children: [
                   const Expanded(
-                      flex: 1, child: Text("Asignado", style: mainText)),
+                      flex: 2,
+                      child: Text("Ejecutado/Asignado", style: mainText)),
                   Expanded(
                       flex: 2,
                       child: LinearPercentIndicator(
@@ -790,7 +816,7 @@ class _FinnsPageState extends State<FinnsPage> {
           {},
           subtitle:
               "Listado de partidas financieras asignadas por cada financiador",
-          expanded: false),
+          expanded: true),
     );
   }
 
@@ -824,6 +850,8 @@ class _FinnsPageState extends State<FinnsPage> {
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0)),
                 titlePadding: EdgeInsets.zero,
                 title: s4cTitleBar('Listado de facturas', context),
                 content: Container(
@@ -1510,11 +1538,13 @@ class _FinnsPageState extends State<FinnsPage> {
 // ------------------ DIALOGS ------------------
   Future<Invoice?> _addInvoiceDialog(context, Distribution dist) {
     Invoice? invoiceSelected;
+
     return showDialog<Invoice>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
           titlePadding: EdgeInsets.zero,
           title: s4cTitleBar('Añadir factura', context),
           content: InvoiceForm(

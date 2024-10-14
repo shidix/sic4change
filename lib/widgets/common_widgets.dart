@@ -571,7 +571,8 @@ Widget actionButton(
     Color iconColor = Colors.black54,
     double size = 30,
     double hPadding = 20.0,
-    double vPadding = 20.0}) {
+    double vPadding = 20.0,
+    FocusNode? listener}) {
   icon ??= Icons.settings;
   Widget? row;
   if (text != null) {
@@ -612,6 +613,7 @@ Widget actionButton(
       backgroundColor: Colors.white,
     ),
     child: row,
+    focusNode: listener,
   );
 }
 
@@ -1311,6 +1313,8 @@ Widget removeConfirmBtn(context, action, args,
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5.0))),
                 titlePadding: const EdgeInsets.all(0),
                 title: s4cTitleBar(removeText),
                 content: const SingleChildScrollView(
@@ -1418,8 +1422,9 @@ Widget saveBtn(context, action, [args]) {
   );
 }
 
-Widget saveBtnForm(context, action, [args]) {
-  return actionButton(context, saveText, action, Icons.save_outlined, args);
+Widget saveBtnForm(context, action, [args, listener]) {
+  return actionButton(context, saveText, action, Icons.save_outlined, args,
+      listener: listener);
 }
 
 Widget removeBtnForm(context, action, [args]) {
@@ -1501,8 +1506,9 @@ BoxDecoration tabDecoration = const BoxDecoration(
       right: BorderSide(width: 2.0, color: Color(0xffdfdfdf)),
       bottom: BorderSide(width: 0, color: Color(0xffdfdfdf)),
     ),
-    borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+    // borderRadius: BorderRadius.only(
+    //     topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+    borderRadius: null,
     color: Colors.white);
 
 Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
@@ -1845,6 +1851,7 @@ class ReadOnlyTextField extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class UploadFileField extends StatelessWidget {
   final Object textToShow;
   final ValueChanged<PlatformFile?> onSelectedFile;
