@@ -9,6 +9,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/programme_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -32,8 +33,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
   List indicators = [];
   //List financiers = [];
   double totalBudget = 0.0;
+  double totalFinancing = 0.0;
   Map<String, double> financiers = {};
   Map<String, int> projStatus = {};
+  Map<String, int> sourceFinancing = {};
   int touchedIndex = -1;
 
   Future<Map<String, double>> getProgrammeFinanciers() async {
@@ -74,6 +77,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         } catch (e) {}
       }
       finMap[key] = amount;
+      totalFinancing = totalFinancing + amount;
     });
     return finMap;
   }
@@ -85,7 +89,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
     await getProjectsByProgramme(programme!.uuid).then((val) async {
       projects = val;
       financiers = await getProgrammeFinanciers();
-      projStatus["formulation"] =
+      projStatus = setProjectByStatus(projects);
+      sourceFinancing = await setSourceFinancing(projects);
+
+      /*projStatus["formulation"] =
           await programme!.getProjectsByStatus(statusFormulation);
       projStatus["sended"] = await programme!.getProjectsByStatus(statusSended);
       projStatus["reject"] = await programme!.getProjectsByStatus(statusReject);
@@ -98,7 +105,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
           await programme!.getProjectsByStatus(statusJustification);
       projStatus["close"] = await programme!.getProjectsByStatus(statusClose);
       projStatus["delivery"] =
-          await programme!.getProjectsByStatus(statusDelivery);
+          await programme!.getProjectsByStatus(statusDelivery);*/
     });
     setState(() {
       loading = false;
@@ -195,12 +202,64 @@ class _ProgrammePageState extends State<ProgrammePage> {
   }
 
   Widget diag1() {
-    List<KeyValue> diagList = [
-      KeyValue("ind 1", "40"),
-      KeyValue("ind 2", "30"),
-      KeyValue("ind 3", "15"),
-      KeyValue("ind 4", "15")
+    List<DiagramValues> diagList = [
+      DiagramValues("Formulación", projStatus[statusFormulation].toString(),
+          randomColor()),
+      DiagramValues(
+          "Enviados", projStatus[statusSended].toString(), randomColor()),
+      DiagramValues(
+          "Rechazados", projStatus[statusReject].toString(), randomColor()),
+      DiagramValues(
+          "Denegado", projStatus[statusRefuse].toString(), randomColor()),
+      DiagramValues(
+          "Aprobado", projStatus[statusApproved].toString(), randomColor()),
+      DiagramValues(
+          "Iniciado", projStatus[statusStart].toString(), randomColor()),
+      DiagramValues(
+          "Finalizado", projStatus[statusEnds].toString(), randomColor()),
+      DiagramValues("Justificación", projStatus[statusJustification].toString(),
+          randomColor()),
+      DiagramValues(
+          "Cerrado", projStatus[statusClose].toString(), randomColor()),
+      DiagramValues(
+          "Entregado", projStatus[statusDelivery].toString(), randomColor()),
     ];
+
+    return SizedBox(
+      height: 300,
+      width: 450,
+      child: pieDiagram(diagList),
+    );
+  }
+
+  Widget diag2() {
+    List<DiagramValues> diagList = [
+      DiagramValues("Nacional/Publico",
+          sourceFinancing["Nacional/Publico"].toString(), randomColor()),
+      DiagramValues("Nacional/Privado",
+          sourceFinancing["Nacional/Privado"].toString(), randomColor()),
+      DiagramValues("Internacional/Publico",
+          sourceFinancing["Internacional/Publico"].toString(), randomColor()),
+      DiagramValues("Nacional/Publico",
+          sourceFinancing["Internacional/Privado"].toString(), randomColor()),
+    ];
+
+    return SizedBox(
+      height: 300,
+      width: 450,
+      child: pieDiagram(diagList),
+    );
+  }
+
+  Widget diag3() {
+    List<DiagramValues> diagList = [];
+    print("--a--");
+    financiers.forEach((key, value) {
+      print("--b--");
+      String label = "$key: $value";
+      double val = value * 100 / totalFinancing;
+      diagList.add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
+    });
 
     return SizedBox(
       height: 300,
@@ -219,10 +278,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
         Row(
           children: [
             diag1(),
-            diag1(),
+            diag2(),
+            diag3(),
           ],
         )
-        //diag1(),
       ],
     );
   }
@@ -351,9 +410,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Widget projectByStatus(context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: SizedBox(
-          width: double.infinity,
-          child: Table(
+      child: SizedBox(width: double.infinity, child: customText("", 14)
+          /*child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: [
                 TableRow(children: [
@@ -410,7 +468,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   customText("${projStatus['delivery']}", 14,
                       bold: FontWeight.bold),
                 ]),
-              ])),
+              ])*/
+          ),
     );
   }
 

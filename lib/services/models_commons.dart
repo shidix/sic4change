@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 import 'package:get_ip_address/get_ip_address.dart';
 
@@ -36,8 +37,12 @@ class Organization {
   String uuid = "";
   String code = "";
   String name;
+  String country = "";
   bool financier = false;
   bool partner = false;
+  bool public = false;
+
+  Country countryObj = Country("");
   //String type = "";
   //OrganizationType typeObj = OrganizationType("");
 
@@ -49,6 +54,8 @@ class Organization {
         code = json["code"],
         financier = json["financier"],
         partner = json["partner"],
+        public = json["public"],
+        country = json["country"],
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
@@ -57,6 +64,8 @@ class Organization {
         'code': code,
         'financier': financier,
         'partner': partner,
+        'public': public,
+        'country': country,
         'name': name,
         //'type': type,
       };
@@ -90,6 +99,12 @@ class Organization {
     if (partner == true) return Icons.check_circle_outline;
     return Icons.cancel_outlined;
   }
+
+  IconData isPublic() {
+    if (public == true) return Icons.check_circle_outline;
+    return Icons.cancel_outlined;
+  }
+
   /*Future<void> getType() async {
     try {
       QuerySnapshot query =
@@ -117,6 +132,21 @@ class Organization {
       // items.add(Organization.fromJson(data));
     }
     return items;
+  }
+
+  Future<Country> getCountry() async {
+    try {
+      QuerySnapshot query =
+          await dbCountry.where("uuid", isEqualTo: country).get();
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      print(data);
+      return Country.fromJson(data);
+    } catch (e) {
+      print(e);
+      return Country("");
+    }
   }
 
   static Organization byUuidNoSync(String uuid) {

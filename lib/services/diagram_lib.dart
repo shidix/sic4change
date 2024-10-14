@@ -1,9 +1,30 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-Widget pieDiagram(List<KeyValue> diagList) {
+//--------------------------------------------------------------
+//                       DIAGRAM VALUES
+//--------------------------------------------------------------
+class DiagramValues {
+  String text;
+  String percent;
+  Color color;
+
+  DiagramValues(this.text, this.percent, this.color);
+
+  DiagramValues.fromJson(Map<String, dynamic> json)
+      : text = json['text'],
+        percent = json['percent'],
+        color = json['color'];
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'percent': percent,
+        'color': color,
+      };
+}
+
+Widget pieDiagram(List<DiagramValues> diagList) {
   return Row(
     children: [
       SizedBox(
@@ -28,7 +49,7 @@ Widget pieDiagram(List<KeyValue> diagList) {
             ),
             sectionsSpace: 0,
             centerSpaceRadius: 40,
-            sections: showingSections(),
+            sections: showingSections(diagList),
           ))),
       Container(
         width: 200,
@@ -43,9 +64,9 @@ Widget pieDiagram(List<KeyValue> diagList) {
                   Container(
                     height: 10.0,
                     width: 10.0,
-                    color: Colors.blue,
+                    color: diagList[index].color,
                   ),
-                  customText(diagList[index].value, 14)
+                  customText(diagList[index].text, 14)
                 ],
               );
             }),
@@ -54,8 +75,28 @@ Widget pieDiagram(List<KeyValue> diagList) {
   );
 }
 
+List<PieChartSectionData> showingSections(List diagList) {
+  List<PieChartSectionData> pList = [];
+  for (DiagramValues dv in diagList) {
+    PieChartSectionData section = PieChartSectionData(
+      color: dv.color,
+      value: double.parse(dv.percent),
+      title: '${dv.percent}%',
+      //radius: radius,
+      titleStyle: const TextStyle(
+        //fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+        shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+      ),
+    );
+    pList.add(section);
+  }
+  return pList;
+}
+
 //List<PieChartSectionData> showingSections(int touchedIndex) {
-List<PieChartSectionData> showingSections() {
+List<PieChartSectionData> showingSections1() {
   //print(touchedIndex);
   return List.generate(4, (i) {
     /*final isTouched = i == touchedIndex;

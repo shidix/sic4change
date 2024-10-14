@@ -11,8 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:math' as math;
 
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
@@ -407,7 +407,7 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
     if (zipData == null) {
-      print ("ZipData is null");
+      print("ZipData is null");
       return Uint8List(0);
     }
     return (Uint8List.fromList(zipData));
@@ -419,9 +419,8 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
   }
 }
 
-
-
-Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) async {
+Future<void> compressAndDownloadFiles(
+    List<String> filePaths, String filename) async {
   // 1. Obtener las URLs de los archivos
   List<Uint8List> filesData = [];
   for (String path in filePaths) {
@@ -431,14 +430,14 @@ Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) a
       if (fileData != null) {
         filesData.add(fileData);
       }
-
     } catch (e) {
       print(e);
     }
   }
 
   // 2. Crear el archivo ZIP
-  List<String> fileNames = filePaths.map((path) => path.split('/').last).toList();
+  List<String> fileNames =
+      filePaths.map((path) => path.split('/').last).toList();
   Uint8List zipData = createZip(filesData, fileNames);
   // 3. Descargar el archivo ZIP
   final blob = html.Blob([zipData]);
@@ -446,4 +445,9 @@ Future<void> compressAndDownloadFiles(List<String> filePaths, String filename) a
   final anchor = html.AnchorElement(href: url)
     ..setAttribute('download', '$filename.zip')
     ..click();
+}
+
+Color randomColor() {
+  return Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+      .withOpacity(1.0);
 }
