@@ -370,11 +370,7 @@ class _InvoicePageState extends State<InvoicePage> {
   Future<void> viewProjects(context, Invoice invoice) async {
     List<InvoiceDistrib> imputations =
         await InvoiceDistrib.getByInvoice(invoice);
-    print(imputations.length);
-    for (var element in imputations) {
-      print(element.uuid);
-      print(element.distribution);
-    }
+
     if (imputations.isEmpty) {
       return showDialog(
         context: context,
