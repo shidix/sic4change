@@ -288,8 +288,14 @@ class _FinnsPageState extends State<FinnsPage> {
       if (dist.amount > 0) {
         totalDistrib += dist.amount;
       }
-      double aux = distribTotalByPartner[dist.partner.uuid]!;
-      distribTotalByPartner[dist.partner.uuid] = aux + dist.amount;
+
+      double aux = 0;
+      if (distribTotalByPartner.containsKey(dist.partner.uuid)) {
+        aux = distribTotalByPartner[dist.partner.uuid]!;
+        distribTotalByPartner[dist.partner.uuid] = aux + dist.amount;
+      } else {
+        distribTotalByPartner[dist.partner.uuid] = dist.amount;
+      }
 
       if (!invoicesSummary.containsKey(dist.partner.uuid)) {
         invoicesSummary[dist.partner.uuid] = {};
@@ -975,8 +981,8 @@ class _FinnsPageState extends State<FinnsPage> {
                               item!.uuid, 100, invoice.total, false);
                         }
 
-                        double imputado =
-                            invoice.total * dist.percentaje * 0.01;
+                        double imputado = dist.amount;
+                        // invoice.total * dist.percentaje * 0.01;
 
                         Row buttons = Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -1003,12 +1009,6 @@ class _FinnsPageState extends State<FinnsPage> {
                               });
                             }, {'invoice': invoice, 'item': item},
                                 icon: Icons.share, text: 'Imputar'),
-
-                            // removeConfirmBtn(context, (context, args) {
-                            //   Invoice item = args as Invoice;
-                            //   item.delete();
-                            //   reloadState();
-                            // }, invoice),
                           ],
                         );
 
@@ -1033,15 +1033,21 @@ class _FinnsPageState extends State<FinnsPage> {
                                               .format(invoice.date))),
                                       Expanded(
                                           flex: 1,
-                                          child: Text(toCurrency(invoice.base),
+                                          child: Text(
+                                              toCurrency(invoice.base,
+                                                  invoice.currency),
                                               textAlign: TextAlign.right)),
                                       Expanded(
                                           flex: 1,
-                                          child: Text(toCurrency(invoice.taxes),
+                                          child: Text(
+                                              toCurrency(invoice.taxes,
+                                                  invoice.currency),
                                               textAlign: TextAlign.right)),
                                       Expanded(
                                           flex: 1,
-                                          child: Text(toCurrency(invoice.total),
+                                          child: Text(
+                                              toCurrency(invoice.total,
+                                                  invoice.currency),
                                               textAlign: TextAlign.right)),
                                       Expanded(flex: 1, child: buttons),
                                     ],
@@ -1067,21 +1073,26 @@ class _FinnsPageState extends State<FinnsPage> {
                                               .format(invoice.date))),
                                       Expanded(
                                           flex: 1,
-                                          child: Text(toCurrency(invoice.base),
-                                              textAlign: TextAlign.right)),
-                                      Expanded(
-                                          flex: 1,
-                                          child: Text(toCurrency(invoice.taxes),
-                                              textAlign: TextAlign.right)),
-                                      Expanded(
-                                          flex: 1,
-                                          child: Text(toCurrency(invoice.total),
+                                          child: Text(
+                                              toCurrency(invoice.base,
+                                                  invoice.currency),
                                               textAlign: TextAlign.right)),
                                       Expanded(
                                           flex: 1,
                                           child: Text(
-                                              dist.percentaje
-                                                  .toStringAsFixed(2),
+                                              toCurrency(invoice.taxes,
+                                                  invoice.currency),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                              toCurrency(invoice.total,
+                                                  invoice.currency),
+                                              textAlign: TextAlign.right)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                              "${dist.percentaje.toStringAsFixed(2)} %",
                                               textAlign: TextAlign.right)),
                                       Expanded(
                                           flex: 1,
@@ -1089,7 +1100,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                               textAlign: TextAlign.center)),
                                       Expanded(
                                           flex: 1,
-                                          child: Text(toCurrency(imputado),
+                                          child: Text(
+                                              toCurrency(
+                                                  imputado, invoice.currency),
                                               textAlign: TextAlign.right)),
                                       Expanded(flex: 1, child: buttons),
                                     ],
@@ -1190,7 +1203,11 @@ class _FinnsPageState extends State<FinnsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
               child: Text(
                 toCurrency(dist.amount),
-                style: cellsListStyle,
+                style: ((executedPercent * 100 >= 90) &&
+                        (executedPercent * 100 <= 110))
+                    ? cellsListStyle
+                    : cellsListStyle.copyWith(
+                        color: Colors.red, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.right,
               ),
             ),
@@ -1205,7 +1222,11 @@ class _FinnsPageState extends State<FinnsPage> {
                     flex: 3,
                     child: Text(
                       toCurrency(executed),
-                      style: cellsListStyle,
+                      style: ((executedPercent * 100 >= 90) &&
+                              (executedPercent * 100 <= 110))
+                          ? cellsListStyle
+                          : cellsListStyle.copyWith(
+                              color: Colors.red, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.right,
                     ),
                   ),
@@ -1213,7 +1234,11 @@ class _FinnsPageState extends State<FinnsPage> {
                     flex: 1,
                     child: Text(
                       "${(executedPercent * 100).toStringAsFixed(0)} %",
-                      style: cellsListStyle,
+                      style: ((executedPercent * 100 >= 90) &&
+                              (executedPercent * 100 <= 110))
+                          ? cellsListStyle
+                          : cellsListStyle.copyWith(
+                              color: Colors.red, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.right,
                     ),
                   )
@@ -1544,7 +1569,9 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
           titlePadding: EdgeInsets.zero,
           title: s4cTitleBar('Añadir factura', context),
           content: InvoiceForm(
@@ -1655,6 +1682,9 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0),
+            ),
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Editar factura', context, Icons.edit),
             content: InvoiceForm(
@@ -1734,6 +1764,9 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
           titlePadding: EdgeInsets.zero,
           title: s4cTitleBar('Añadir partida', context),
           content: SFinnForm(
@@ -1754,6 +1787,9 @@ class _FinnsPageState extends State<FinnsPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0),
+            ),
             titlePadding: EdgeInsets.zero,
             title: s4cTitleBar('Editar partida', context, Icons.edit),
             content: SFinnForm(

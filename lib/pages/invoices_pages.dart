@@ -297,7 +297,14 @@ class _InvoicePageState extends State<InvoicePage> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                 child: Column(children: [
                   s4cTitleBar("Listado de Facturas"),
-                  space(height: 10),
+                  const Text(
+                      "Si no ves los iconos de las facturas, haz scroll horizontal para ver más datos",
+                      style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic),
+                      textAlign: TextAlign.start),
+                  space(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -307,8 +314,10 @@ class _InvoicePageState extends State<InvoicePage> {
                   ),
                   space(height: 10),
                   SingleChildScrollView(
-                    child: SizedBox(
-                      width: double.infinity,
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      controller: ScrollController(),
+                      scrollDirection: Axis.horizontal,
                       child: Padding(
                           padding: const EdgeInsets.all(10), child: table),
                     ),
@@ -328,6 +337,8 @@ class _InvoicePageState extends State<InvoicePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           titlePadding: EdgeInsets.zero,
           title: s4cTitleBar('Añadir factura', context),
           content: InvoiceForm(
@@ -462,6 +473,8 @@ class _InvoicePageState extends State<InvoicePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           titlePadding: EdgeInsets.zero,
           title: s4cTitleBar('Tipo de impuesto', context),
           content: TaxKindForm(
