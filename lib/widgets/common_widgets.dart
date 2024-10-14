@@ -571,7 +571,8 @@ Widget actionButton(
     Color iconColor = Colors.black54,
     double size = 30,
     double hPadding = 20.0,
-    double vPadding = 20.0}) {
+    double vPadding = 20.0,
+    FocusNode? listener}) {
   icon ??= Icons.settings;
   Widget? row;
   if (text != null) {
@@ -612,6 +613,7 @@ Widget actionButton(
       backgroundColor: Colors.white,
     ),
     child: row,
+    focusNode: listener,
   );
 }
 
@@ -1420,8 +1422,9 @@ Widget saveBtn(context, action, [args]) {
   );
 }
 
-Widget saveBtnForm(context, action, [args]) {
-  return actionButton(context, saveText, action, Icons.save_outlined, args);
+Widget saveBtnForm(context, action, [args, listener]) {
+  return actionButton(context, saveText, action, Icons.save_outlined, args,
+      listener: listener);
 }
 
 Widget removeBtnForm(context, action, [args]) {

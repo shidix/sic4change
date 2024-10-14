@@ -301,8 +301,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
       for (var item in dist.mapinvoices.values) {
         InvoiceDistrib inv = InvoiceDistrib.fromJson(item);
-        invoicesSummary[dist.partner.uuid]!['total'] +=
-            (inv.amount * inv.percentaje * 0.01);
+        invoicesSummary[dist.partner.uuid]!['total'] += (inv.amount);
       }
     }
 
@@ -851,6 +850,8 @@ class _FinnsPageState extends State<FinnsPage> {
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0)),
                 titlePadding: EdgeInsets.zero,
                 title: s4cTitleBar('Listado de facturas', context),
                 content: Container(

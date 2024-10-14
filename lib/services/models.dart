@@ -162,6 +162,18 @@ class SProject {
     return this;
   }
 
+  static Future<List<SProject>> all() async {
+    List<SProject> items = [];
+    QuerySnapshot query = await dbProject.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = SProject.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
+
   static Future<List<SProject>> getProjects({List<String>? uuids}) async {
     List<SProject> items = [];
     QuerySnapshot query;
@@ -567,6 +579,7 @@ class SProject {
 
   static Future<List<SProject>> listByUuid(List<String> uuids) async {
     List<SProject> items = [];
+    if (uuids.isEmpty) return items;
     QuerySnapshot query = await dbProject.where("uuid", whereIn: uuids).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

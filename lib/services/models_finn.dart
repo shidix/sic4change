@@ -1545,6 +1545,18 @@ class Distribution extends Object {
         'mapinvoices': mapinvoices,
       };
 
+  static Future<List<Distribution>> all() async {
+    final collection = db.collection("s4c_distributions");
+    List<Distribution> items = [];
+    final query = await collection.get();
+    for (var element in query.docs) {
+      Distribution item = Distribution.fromJson(element.data());
+      item.id = element.id;
+      items.add(item);
+    }
+    return items;
+  }
+
   static Future<Distribution> getByUuid(String uuid) async {
     final collection = db.collection("s4c_distributions");
     final query = await collection.where("uuid", isEqualTo: uuid).get();
@@ -1627,7 +1639,7 @@ class Distribution extends Object {
     }
     for (var invoice in mapinvoices.values) {
       try {
-        total += invoice["amount"] * invoice["percentaje"] * 0.01;
+        total += invoice["amount"];
       } catch (e, stacktrace) {
         log(e.toString());
         log(stacktrace.toString());
