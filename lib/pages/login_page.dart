@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
-import 'package:sic4change/pages/nominas_page.dart';
+// import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/log_lib.dart';

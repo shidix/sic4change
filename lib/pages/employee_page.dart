@@ -167,7 +167,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
               }, null, text: 'Ver Altas', icon: Icons.thumb_up),
         gralBtnRow(context, (context) async {
           String? filename = await showDialog(
-              context: context, builder: (context) => FileNameDialog());
+              context: context, builder: (context) => const FileNameDialog());
           if (filename != null && filename.isNotEmpty) exportToCVS('empleados');
         }, null, text: 'Exportar', icon: Icons.download),
       ],
@@ -178,7 +178,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
       children: [
         Expanded(
           child: TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
                 labelText: 'Filtrar por empleado',
                 hintText: 'Nombre, apellidos o DNI/NIE/ID/Email',
                 prefixIcon: Icon(Icons.search)),
@@ -202,7 +202,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             decoration: InputDecoration(
                 labelText: 'Salario anual mínimo',
                 hintText: toCurrency(minSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 minSalaryFilter = double.parse(value);
@@ -222,7 +222,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             decoration: InputDecoration(
                 labelText: 'Salario anual máximo',
                 hintText: toCurrency(maxSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 maxSalaryFilter = double.parse(value);
@@ -438,8 +438,16 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.folder),
+                    tooltip: 'Documentos del empleado',
                     onPressed: () {
                       dialogDocuments(context, employees.indexOf(e));
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.trending_up_outlined),
+                    tooltip: 'Modificar salario',
+                    onPressed: () {
+                      dialogModifySalary(context, employees.indexOf(e));
                     },
                   ),
                   IconButton(
@@ -503,6 +511,38 @@ class _EmployeesPageState extends State<EmployeesPage> {
         Padding(padding: const EdgeInsets.all(5), child: listEmployees),
       ] // ListView.builder
           ),
+    );
+  }
+
+  void dialogModifySalary(BuildContext context, int index) {
+    showDialog<Employee>(
+        context: context,
+        builder: (BuildContext context) {
+          Employee? employee;
+          if (index >= employees.length) {
+            //show error message
+            return AlertDialog(
+              title: s4cTitleBar('Error', context, Icons.error),
+              content: const Text('No se puede modificar el salario'),
+            );
+          } else {
+            employee = employees[index];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Modificar salario', context, Icons.euro_symbol),
+            content: EmployeeSalaryForm(
+              selectedItem: employee,
+            ),
+          );
+        }).then(
+      (value) {
+        if (value != null) {
+          employees[index] = value;
+          setState(() {
+            contentPanel = content(context);
+          });
+        }
+      },
     );
   }
 
