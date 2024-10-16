@@ -253,9 +253,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
 
   Widget diag3() {
     List<DiagramValues> diagList = [];
-    print("--a--");
     financiers.forEach((key, value) {
-      print("--b--");
       String label = "$key: $value";
       double val = value * 100 / totalFinancing;
       diagList.add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
@@ -265,6 +263,20 @@ class _ProgrammePageState extends State<ProgrammePage> {
       height: 300,
       width: 450,
       child: pieDiagram(diagList),
+    );
+  }
+
+  Widget diag4() {
+    List<DiagramValues2> diagList = [];
+    for (ProgrammeIndicators ind in indicators) {
+      diagList.add(
+          DiagramValues2(ind.name, ind.expected, ind.obtained, randomColor()));
+    }
+
+    return SizedBox(
+      height: 300,
+      width: 450,
+      child: barDiagram(diagList),
     );
   }
 
@@ -281,6 +293,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
             diag2(),
             diag3(),
           ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [indicators.isNotEmpty ? diag4() : Container()],
         )
       ],
     );
