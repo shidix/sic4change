@@ -934,3 +934,83 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
             ])));
   }
 }
+
+class EmployeeSalaryForm extends StatefulWidget {
+  final Employee selectedItem;
+  const EmployeeSalaryForm({Key? key, required this.selectedItem})
+      : super(key: key);
+
+  @override
+  _EmployeeSalaryFormState createState() => _EmployeeSalaryFormState();
+}
+
+class _EmployeeSalaryFormState extends State<EmployeeSalaryForm> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late Employee employee;
+  double salary = 0;
+  DateTime applyDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    employee = widget.selectedItem;
+    salary = employee.getSalary();
+    applyDate = DateTime.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+        key: _formKey,
+        child: SizedBox(
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            TextFormField(
+              initialValue: toCurrency(salary),
+              decoration: const InputDecoration(
+                labelText: 'Nuevo Salario Anual',
+                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+              ),
+              onSaved: (String? value) {
+                salary = fromCurrency(value!);
+              },
+            ),
+            space(height: 10),
+            CustomDateField(
+                labelText: 'Fecha de aplicación',
+                selectedDate: applyDate,
+                onSelectedDate: (DateTime? date) {
+                  if (date != null) {
+                    applyDate = date;
+                  }
+                  setState(() {});
+                }),
+            space(height: 30),
+            Row(children: [
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                  flex: 2,
+                  child: saveBtnForm(
+                    context,
+                    () {
+                      if (_formKey.currentState!.validate()) {
+                        employee.altas.sort((a, b) => a.date.compareTo(b.date));
+                        _formKey.currentState!.save();
+                        employee.altas.last.salary
+                            .add(Salary(date: applyDate, amount: salary));
+
+                        employee.save();
+                        Navigator.of(context).pop(employee);
+                      } else {
+                        setState(() {});
+                      }
+                    },
+                  )),
+              Expanded(flex: 1, child: Container()),
+            ]),
+          ],
+        )));
+  }
+}

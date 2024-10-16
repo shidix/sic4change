@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/utils.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:uuid/uuid.dart';
 
 class Nomina {
   static final db = FirebaseFirestore.instance;
@@ -356,7 +356,11 @@ class Alta {
       pathOthers: json['pathOthers'],
     );
     if (json.containsKey('baja')) {
-      item.baja = Baja.fromJson(json['baja']);
+      try {
+        item.baja = Baja.fromJson(json['baja']);
+      } catch (e) {
+        item.baja = Baja.getEmpty();
+      }
     } else {
       item.baja = Baja.getEmpty();
     }
@@ -370,11 +374,14 @@ class Alta {
       if (json['salary'] is double) {
         item.salary.add(Salary(date: item.date, amount: json['salary']));
       } else {
+        if (json['salary'].isEmpty) {
+          item.salary.add(Salary(date: item.date, amount: 0.0));
+        }
         item.salary = json['salary'].map((e) {
           try {
             return Salary.fromJson(e);
           } catch (exception) {
-            return Salary(date: getDate(e), amount: 0.0);
+            return Salary(date: getDate(json['date']), amount: 0.0);
           }
         }).toList();
       }
@@ -394,11 +401,8 @@ class Alta {
         'pathOthers': pathOthers,
         'baja': baja?.toJson(),
         'salary': salary.map((e) => e.toJson()).toList(),
-        'employmentPromotion': employmentPromotion == null
-            ? ''
-            : employmentPromotion!.isEmpty
-                ? ''
-                : employmentPromotion,
+        'employmentPromotion':
+            employmentPromotion.isEmpty ? '' : employmentPromotion,
       };
 
   @override
@@ -601,7 +605,7 @@ class Employee {
           : json['altas'].map((e) {
               try {
                 return Alta.fromJson(e as Map<String, dynamic>);
-              } catch (exception, stackTrace) {
+              } catch (exception) {
                 Alta alta = Alta(
                   date: getDate(e),
                 );
@@ -716,18 +720,22 @@ class Employee {
     }
   }
 
-  double getSalary([DateTime? date]) {
+  double getSalary([DateTime? date, verbose = false]) {
     if (altas.isEmpty) {
       return 0.0;
     }
     date ??= DateTime.now();
     altas.sort((a, b) => b.date.compareTo(a.date));
+    if (verbose) {
+      for (var alta in altas) {
+        print(alta.toJson());
+      }
+    }
     try {
-      return altas
-          .firstWhere((element) => element.date.isBefore(date))
-          .salary
-          .last
-          .amount;
+      Alta curentAlta =
+          altas.firstWhere((element) => element.date.isBefore(date));
+      curentAlta.salary.sort((a, b) => a.date.compareTo(b.date));
+      return curentAlta.salary.last.amount;
     } catch (e) {
       print('Error: $e');
       return 0.0;
@@ -736,7 +744,7 @@ class Employee {
 
   int altaDays({DateTime? date}) {
     DateTime fromDate = getAltaDate();
-    altas.sort((a, b) => a.date.compareTo(b.date));
+    altas.sort((a, b) => b.date.compareTo(a.date));
     if (date == null) {
       date = DateTime.now();
       fromDate =
@@ -838,7 +846,7 @@ class Employee {
     if (altas.isEmpty) {
       return Baja.getEmpty();
     }
-    return altas.last.baja ?? Baja.getEmpty();
+    return altas.last.baja ?? Baja(date: DateTime(2099, 12, 31), reason: '');
   }
 
   bool isActive() {

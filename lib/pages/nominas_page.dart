@@ -1,12 +1,12 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, curly_braces_in_flow_control_structures
 
-import 'dart:js_interop_unsafe';
+// import 'dart:js_interop_unsafe';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/keep/v1.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
+// import 'package:googleapis/keep/v1.dart';
+// import 'package:googleapis/photoslibrary/v1.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/form_nomina.dart';
@@ -21,8 +21,7 @@ import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 class NominasPage extends StatefulWidget {
   final Profile? profile;
   final String? codeEmployee;
-  const NominasPage({Key? key, this.profile, this.codeEmployee})
-      : super(key: key);
+  const NominasPage({super.key, this.profile, this.codeEmployee});
 
   @override
   State<NominasPage> createState() => _NominasPageState();
@@ -38,7 +37,7 @@ class _NominasPageState extends State<NominasPage> {
   Widget mainMenuPanel = const Text('');
   Widget secondaryMenuPanel = const Row(children: []);
   DateTime fromDateFilter =
-      firstDayOfMonth(DateTime.now().subtract(Duration(days: 180)));
+      firstDayOfMonth(DateTime.now().subtract(const Duration(days: 180)));
   DateTime toDateFilter = lastDayOfMonth(DateTime.now());
   String employeeFilter = '';
   double minNetSalaryFilter = 0.0;
@@ -67,9 +66,7 @@ class _NominasPageState extends State<NominasPage> {
     }
 
     for (Nomina nomina in nominasToDownload) {
-      if (nomina.noSignedPath != null) {
-        paths.add(nomina.noSignedPath!);
-      }
+      paths.add(nomina.noSignedPath);
       if (nomina.signedPath != null) {
         paths.add(nomina.signedPath!);
       }
@@ -98,7 +95,7 @@ class _NominasPageState extends State<NominasPage> {
     }
     final blob = html.Blob([csv], 'text/csv');
     final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
+    html.AnchorElement(href: url)
       ..setAttribute('download', '$filename.csv')
       ..click();
     html.Url.revokeObjectUrl(url);
@@ -172,13 +169,13 @@ class _NominasPageState extends State<NominasPage> {
         addBtnRow(context, dialogFormNomina, -1),
         gralBtnRow(context, (context) async {
           String? filename = await showDialog(
-              context: context, builder: (context) => FileNameDialog());
+              context: context, builder: (context) => const FileNameDialog());
           if (filename != null && filename.isNotEmpty)
             exportNominasToCsv(filename);
         }, null, icon: Icons.download, text: 'Exportar'),
         gralBtnRow(context, (context) async {
           String? filename = await showDialog(
-              context: context, builder: (context) => FileNameDialog());
+              context: context, builder: (context) => const FileNameDialog());
           if (filename != null && filename.isNotEmpty)
             downloadZipNominas(filename);
         }, null, icon: Icons.download, text: 'Zip'),
@@ -304,7 +301,7 @@ class _NominasPageState extends State<NominasPage> {
         )),
         Expanded(
           child: TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
                 labelText: 'Filtrar por empleado',
                 hintText: 'Nombre, apellidos o DNI/NIE/ID',
                 prefixIcon: Icon(Icons.search)),
@@ -328,7 +325,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario neto mínimo',
                 hintText: toCurrency(minNetSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 minNetSalaryFilter = double.parse(value);
@@ -348,7 +345,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario neto máximo',
                 hintText: toCurrency(maxNetSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 maxNetSalaryFilter = double.parse(value);
@@ -368,7 +365,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario bruto mínimo',
                 hintText: toCurrency(minGrossSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 minGrossSalaryFilter = double.parse(value);
@@ -388,7 +385,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario bruto máximo',
                 hintText: toCurrency(maxGrossSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 maxGrossSalaryFilter = double.parse(value);
@@ -408,7 +405,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario total mínimo',
                 hintText: toCurrency(minTotalSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 minTotalSalaryFilter = double.parse(value);
@@ -428,7 +425,7 @@ class _NominasPageState extends State<NominasPage> {
             decoration: InputDecoration(
                 labelText: 'Salario total máximo',
                 hintText: toCurrency(maxTotalSalaryFilter),
-                prefixIcon: Icon(Icons.search)),
+                prefixIcon: const Icon(Icons.search)),
             onChanged: (value) {
               try {
                 maxTotalSalaryFilter = double.parse(value);
@@ -490,9 +487,9 @@ class _NominasPageState extends State<NominasPage> {
       sortAscending: sortAsc == 1,
       sortColumnIndex: sortColumnIndex,
       showCheckboxColumn: false,
-      headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.hovered)) {
+      headingRowColor:
+          WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.hovered)) {
           return headerListBgColor.withOpacity(0.5);
         }
         return headerListBgColor;
@@ -530,21 +527,21 @@ class _NominasPageState extends State<NominasPage> {
           .toList(),
       rows: filteredNominas
           .map((e) => DataRow(
-                  color: MaterialStateProperty.resolveWith<Color?>(
-                      (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.selected)) {
+                  color: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
                       return Theme.of(context)
                           .colorScheme
                           .primary
                           .withOpacity(0.08);
                     }
                     if (filteredNominas.indexOf(e).isEven) {
-                      if (states.contains(MaterialState.hovered)) {
+                      if (states.contains(WidgetState.hovered)) {
                         return Colors.grey[300];
                       }
                       return Colors.grey[200];
                     }
-                    if (states.contains(MaterialState.hovered)) {
+                    if (states.contains(WidgetState.hovered)) {
                       return Colors.white.withOpacity(0.5);
                     }
                     return Colors.white;

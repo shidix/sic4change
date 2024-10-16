@@ -54,8 +54,8 @@ class Organization {
         code = json["code"],
         financier = json["financier"],
         partner = json["partner"],
-        public = json["public"],
-        country = json["country"],
+        public = (json.containsKey("public")) ? json["public"] : false,
+        country = (json.containsKey("country")) ? json["country"] : "España",
         name = json['name'];
 
   Map<String, dynamic> toJson() => {

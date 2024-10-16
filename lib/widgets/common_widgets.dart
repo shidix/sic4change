@@ -2395,7 +2395,9 @@ class _FileNameDialogState extends State<FileNameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Enter file name'),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5.0))),
+      title: s4cTitleBar('Nombre de archivo'),
       content: TextField(
         controller: _fileNameController,
         decoration: InputDecoration(hintText: "Nombre de archivo"),
@@ -2405,7 +2407,7 @@ class _FileNameDialogState extends State<FileNameDialog> {
           onPressed: () {
             Navigator.of(context).pop(null); // Cancel
           },
-          child: Text('Cancel'),
+          child: Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {

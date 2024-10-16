@@ -149,6 +149,14 @@ class _InvoiceFormState extends State<InvoiceForm> {
                       decoration: const InputDecoration(labelText: 'Código'),
                       onSaved: (value) => _invoice.code = value!,
                     )),
+                Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      initialValue: _invoice.account,
+                      decoration: const InputDecoration(
+                          labelText: 'Cuenta de pago (si existe)'),
+                      onSaved: (value) => _invoice.account = value!,
+                    )),
               ]),
               TextFormField(
                 initialValue: _invoice.concept,
@@ -285,6 +293,25 @@ class _InvoiceFormState extends State<InvoiceForm> {
                     textToShow: toCurrency(_invoice.total, _invoice.currency),
                     textAlign: TextAlign.right,
                   ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                      padding: const EdgeInsets.only(left: 5),
+                      child: TextFormField(
+                        initialValue: toCurrency(_invoice.exchangeRate),
+                        decoration: const InputDecoration(
+                            labelText: 'Tasa de cambio',
+                            contentPadding: EdgeInsets.only(bottom: 1)),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, ingrese un porcentaje';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) =>
+                            _invoice.exchangeRate = fromCurrency(value!),
+                      )),
                 ),
               ]),
               TextFormField(
@@ -522,6 +549,7 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
         _formKey.currentState!.save();
         invoiceDistrib.percentaje =
             (invoiceDistrib.amount / invoice.total) * 100;
+        invoiceDistrib.exchangeRate = invoice.exchangeRate;
         invoiceDistrib.save();
         Navigator.of(context).pop(invoiceDistrib);
       }

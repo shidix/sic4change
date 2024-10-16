@@ -756,11 +756,13 @@ class Invoice extends Object {
   double base;
   double taxes;
   double total;
+  double exchangeRate = 1.0;
   String desglose;
   String provider;
   String document;
   String currency;
   String tracker;
+  String account = "";
   String? taxKind;
 
   SFinn finnObj = SFinn.getEmpty();
@@ -807,7 +809,6 @@ class Invoice extends Object {
         date = DateTime.now();
       }
     }
-
     DateTime paidDate = DateTime.now();
     try {
       paidDate = getDate(json["paidDate"]);
@@ -842,6 +843,16 @@ class Invoice extends Object {
         item.taxKind = "IVA";
       }
     }
+
+    if (json.containsKey("account")) {
+      item.account = json["account"];
+    } else {
+      item.account = "";
+    }
+
+    item.exchangeRate = ((json.containsKey("exchangeRate"))
+        ? json["exchangeRate"]
+        : 1.0) as double;
 
     return item;
   }
@@ -881,7 +892,9 @@ class Invoice extends Object {
         'provider': provider,
         'document': document,
         'currency': currency,
+        'account': account,
         'tracker': tracker,
+        'exchangeRate': exchangeRate,
         'taxKind': taxKind
       };
 
@@ -1056,6 +1069,7 @@ class InvoiceDistrib extends Object {
   String distribution;
   bool taxes = true;
   double percentaje;
+  double exchangeRate = 1.0;
   double amount;
 
   InvoiceDistrib(
@@ -1063,7 +1077,7 @@ class InvoiceDistrib extends Object {
       [this.amount = 0, this.taxes = true]);
 
   factory InvoiceDistrib.fromJson(Map<String, dynamic> json) {
-    return InvoiceDistrib(
+    InvoiceDistrib item = InvoiceDistrib(
       json["id"],
       json["uuid"],
       json["invoice"],
@@ -1072,6 +1086,11 @@ class InvoiceDistrib extends Object {
       json["amount"],
       json["taxes"],
     );
+
+    item.exchangeRate =
+        json.containsKey("exchangeRate") ? json["exchangeRate"] : 1.0;
+
+    return item;
   }
 
   Map<String, dynamic> toJson() => {
@@ -1081,6 +1100,7 @@ class InvoiceDistrib extends Object {
         'distribution': distribution,
         'percentaje': percentaje,
         'amount': amount,
+        'exchangeRate': exchangeRate,
         'taxes': taxes,
       };
 
@@ -1505,6 +1525,7 @@ class Distribution extends Object {
             Invoice.getByUuid(element).then((value) {
               if (value.id != "") {
                 item.invoices.add(value);
+                item.mapinvoices[element]["exchangeRate"] = value.exchangeRate;
               } else {
                 item.mapinvoices.remove(element);
                 item.save();
@@ -1639,7 +1660,11 @@ class Distribution extends Object {
     }
     for (var invoice in mapinvoices.values) {
       try {
-        total += invoice["amount"];
+        if (invoice.containsKey("exchangeRate")) {
+          total += invoice["amount"] * invoice["exchangeRate"];
+        } else {
+          total += invoice["amount"];
+        }
       } catch (e, stacktrace) {
         log(e.toString());
         log(stacktrace.toString());
