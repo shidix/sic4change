@@ -767,6 +767,7 @@ class Invoice extends Object {
 
   SFinn finnObj = SFinn.getEmpty();
   SProject projectObj = SProject("");
+  List<InvoiceDistrib> invoiceDistrib = [];
 
   Invoice(
     this.id,
@@ -1035,7 +1036,21 @@ class Invoice extends Object {
     }
     Invoice item = Invoice.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
+    item.invoiceDistrib = await InvoiceDistrib.getByInvoice(item);
     return item;
+  }
+
+  Future<double> getImputation(String? excludeId) async {
+    if (invoiceDistrib.isEmpty) {
+      invoiceDistrib = await InvoiceDistrib.getByInvoice(this);
+    }
+    double total = 0;
+    for (InvoiceDistrib distrib in invoiceDistrib) {
+      if (distrib.id != excludeId) {
+        total += distrib.amount;
+      }
+    }
+    return total;
   }
 
   static Future<List<Invoice>> getListUuids(listUuids) async {
