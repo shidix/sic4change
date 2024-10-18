@@ -444,6 +444,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     },
                   ),
                   IconButton(
+                    icon: const Icon(Icons.badge_outlined),
+                    tooltip: 'Información del empleado',
+                    onPressed: () {
+                      showDialog<void>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return EmployeeInfoCard(employee: e);
+                          });
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.trending_up_outlined),
                     tooltip: 'Modificar salario',
                     onPressed: () {
@@ -702,5 +713,132 @@ class _EmployeesPageState extends State<EmployeesPage> {
         ),
       ));
     }
+  }
+}
+
+class InfoField extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String value;
+  const InfoField({Key? key, required this.icon, required this.label, required this.value})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: 
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+          const SizedBox(height: 4),
+                Container(
+          padding: EdgeInsets.all(12),  // Padding para el contenido
+          decoration: BoxDecoration(
+            color: Colors.grey[300],  // Fondo con una tonalidad más oscura
+            borderRadius: BorderRadius.circular(8),  // Bordes redondeados
+          ),
+          child: 
+                    Row(children:[
+            Icon(icon),Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,  // Tamaño de texto más grande para el contenido
+              color: Colors.black87,  // Texto oscuro
+            ))],
+          ),
+        ),
+        ],
+      ),
+    );
+  }
+} 
+
+class EmployeeInfoCard extends StatefulWidget {
+  final Employee employee;
+  const EmployeeInfoCard({Key? key, required this.employee}) : super(key: key);
+
+  @override
+  State<EmployeeInfoCard> createState() => _EmployeeInfoCardState();
+}
+
+class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
+  @override
+  Widget build(BuildContext context) {
+
+    List<Row> contracts = [];
+
+    for (Alta alta in widget.employee.altas) {
+      contracts.add(Row(children: [
+        InfoField(icon: Icons.calendar_today, label: "Alta", value: DateFormat('dd/MM/yyyy').format(alta.date)),
+        InfoField(icon: Icons.calendar_today, label: "Baja", value: alta.baja != null ?DateFormat('dd/MM/yyyy').format(alta.baja!.date) : "Indefinido"),
+        InfoField(label: "Puesto", icon: Icons.work, value: widget.employee.position),
+        InfoField(label: "Categoría", icon: Icons.work, value: widget.employee.category),
+        InfoField(icon: Icons.euro, label: "Salario", value: toCurrency(alta.salary.last.amount)),
+        InfoField(label:'Días de contrato', icon: Icons.work_history_outlined, value: alta.altaDays().toString()),
+      ]));
+    }
+    return CustomPopupDialog(
+      context: context,
+      actionBtns: [],
+      title: 'Información del empleado',
+      icon: Icons.badge_outlined,
+      content: SizedBox(
+        
+        // width: MediaQuery.of(context).size.width * 0.9,
+        width:double.infinity,
+        child:SingleChildScrollView(child:
+      Column(
+        children: [
+          
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: 
+            SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child:
+            
+            Column(
+              children: [
+                Row(children:[
+                InfoField(icon:Icons.fingerprint, label: 'Código', value: widget.employee.code),
+                InfoField(icon:Icons.person,
+                    label: 'Nombre y apellidos',
+                    value:
+                        '${widget.employee.lastName1} ${widget.employee.lastName2}, ${widget.employee.firstName}'),
+                InfoField(icon: Icons.calendar_today,
+                    label: 'Fecha de nacimiento',
+                    value: DateFormat('dd/MM/yyyy')
+                        .format(widget.employee.bornDate!)),                InfoField(
+                  icon: Icons.email,
+                  label: 'Email', value: widget.employee.email),]),
+                ...contracts,
+                // InfoField(icon: Icons.calendar_today,
+                //     label: 'Fecha de alta',
+                //     value: DateFormat('dd/MM/yyyy')
+                //         .format(widget.employee.getAltaDate())),
+                // InfoField(icon: Icons.calendar_today,
+                //     label: 'Fecha de baja',
+                //     value: DateFormat('dd/MM/yyyy')
+                //         .format(widget.employee.getBajaDate())),
+                // InfoField(icon: Icons.work,
+                //   label: 'Cargo', value: widget.employee.position),
+                // InfoField(
+                //     icon: Icons.calendar_today,
+                //     label: 'Días de contrato',
+                //     value: widget.employee.altaDays().toString()),
+                // InfoField(
+                //     icon: Icons.euro,
+                //     label: 'Salario',
+                //     value: toCurrency(widget.employee.getSalary())),
+
+              ],
+            )),
+          ),
+        ],
+      ),
+    )));
   }
 }

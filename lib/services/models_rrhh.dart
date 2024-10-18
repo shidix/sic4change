@@ -432,6 +432,16 @@ class Alta {
     item.baja = Baja.getEmpty();
     return item;
   }
+
+  int altaDays() {
+    if (baja == null) {
+      return truncDate(DateTime.now()).difference(date).inDays + 1;
+    }
+    if (baja!.date.isAfter(DateTime.now())) {
+      return truncDate(DateTime.now()).difference(date).inDays + 1;
+    }
+    return truncDate(baja!.date).difference(date).inDays + 1;
+  }
 }
 
 class Baja {
