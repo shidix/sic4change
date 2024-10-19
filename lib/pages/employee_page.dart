@@ -738,10 +738,10 @@ class InfoField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (onPressed != null) {
-      return GestureDetector(
-          onTap: onPressed as void Function()?,
-          child: Expanded(
-              flex: flex,
+      return Expanded(
+          flex: flex,
+          child: GestureDetector(
+              onTap: onPressed as void Function()?,
               child: Padding(
                 padding: const EdgeInsets.all(5),
                 child: Column(
