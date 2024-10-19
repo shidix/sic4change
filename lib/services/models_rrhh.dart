@@ -331,6 +331,7 @@ class Alta {
   String position = '';
   String category = '';
   String employmentPromotion = '';
+  int annualPayments = 12;
   Baja? baja;
   List salary = [];
 
@@ -347,6 +348,7 @@ class Alta {
     this.employmentPromotion = '',
     this.position = '',
     this.category = '',
+    this.annualPayments = 12,
   });
 
   static Alta fromJson(Map<String, dynamic> json) {
@@ -360,6 +362,8 @@ class Alta {
       pathOthers: json['pathOthers'],
       position: json.containsKey('position') ? json['position'] : '',
       category: json.containsKey('category') ? json['category'] : '',
+      annualPayments:
+          json.containsKey('annualPayments') ? json['annualPayments'] : 12,
     );
     if (json.containsKey('baja')) {
       try {
@@ -409,6 +413,7 @@ class Alta {
         'salary': salary.map((e) => e.toJson()).toList(),
         'position': position,
         'category': category,
+        'annualPayments': annualPayments,
         'employmentPromotion':
             employmentPromotion.isEmpty ? '' : employmentPromotion,
       };
@@ -416,6 +421,17 @@ class Alta {
   @override
   String toString() {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  double getFiniquito() {
+    if (salary.isEmpty) {
+      return 0.0;
+    }
+    salary.sort((a, b) => a.date.compareTo(b.date));
+    double grossSalary = salary.last.amount;
+    double dailyPayment = grossSalary / 365;
+
+    return 0.0;
   }
 
   String setSalary(double salary) {
