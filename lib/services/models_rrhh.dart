@@ -328,6 +328,8 @@ class Alta {
   String? pathNDA;
   String? pathNIF;
   String? pathLOPD;
+  String position = '';
+  String category = '';
   String employmentPromotion = '';
   Baja? baja;
   List salary = [];
@@ -343,6 +345,8 @@ class Alta {
     this.pathLOPD,
     this.pathOthers,
     this.employmentPromotion = '',
+    this.position = '',
+    this.category = '',
   });
 
   static Alta fromJson(Map<String, dynamic> json) {
@@ -354,6 +358,8 @@ class Alta {
       pathNIF: json['pathNIF'],
       pathLOPD: json['pathLOPD'],
       pathOthers: json['pathOthers'],
+      position: json.containsKey('position') ? json['position'] : '',
+      category: json.containsKey('category') ? json['category'] : '',
     );
     if (json.containsKey('baja')) {
       try {
@@ -401,6 +407,8 @@ class Alta {
         'pathOthers': pathOthers,
         'baja': baja?.toJson(),
         'salary': salary.map((e) => e.toJson()).toList(),
+        'position': position,
+        'category': category,
         'employmentPromotion':
             employmentPromotion.isEmpty ? '' : employmentPromotion,
       };
@@ -566,8 +574,8 @@ class Employee {
   String lastName2;
   String email;
   String phone;
-  String position;
-  String category;
+  // String position;
+  // String category;
   String sex = 'O';
   String bankAccount = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
@@ -583,8 +591,8 @@ class Employee {
       required this.lastName2,
       required this.email,
       required this.phone,
-      required this.position,
-      required this.category,
+      // required this.position,
+      // required this.category,
       this.bankAccount = '',
       this.altas = const [],
       // this.bajas = const [],
@@ -607,8 +615,6 @@ class Employee {
           ? getDate(json['bornDate'],
               truncate: true, defaultValue: DateTime(2000, 1, 1))
           : truncDate(DateTime(2000, 1, 1)),
-      category: (json.containsKey('category')) ? json['category'] : '',
-      position: (json.containsKey('position')) ? json['position'] : '',
       bankAccount: (json.containsKey('bankAccount')) ? json['bankAccount'] : '',
       altas: (json['altas'] == null) || (json['altas'].isEmpty)
           ? []
@@ -623,18 +629,6 @@ class Employee {
                 return alta;
               }
             }).toList(),
-      // bajas: (json['bajas'] == null) || (json['bajas'].isEmpty)
-      //     ? []
-      //     : json['bajas'].map((e) {
-      //         try {
-      //           return Baja.fromJson(e as Map<String, dynamic>);
-      //         } catch (exception) {
-      //           return Baja(
-      //             date: getDate(e),
-      //             reason: '',
-      //           );
-      //         }
-      //       }).toList(),
       extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
           ? {}
           : json['extraDocs'],
@@ -647,14 +641,12 @@ class Employee {
         'lastName1': lastName1,
         'lastName2': lastName2,
         'email': email,
+        'sex': sex,
         'phone': phone,
         'photoPath': photoPath,
-        'category': category,
-        'position': position,
         'bornDate': getDate(bornDate,
             truncate: true, defaultValue: DateTime(2000, 1, 1)),
         'altas': altas.map((e) => e.toJson()).toList(),
-        // 'bajas': bajas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
         'bankAccount': bankAccount,
       };
@@ -688,6 +680,36 @@ class Employee {
 
   Future<void> delete() async {
     await collection.doc(id).delete();
+  }
+
+  String getPosition() {
+    if (altas.isEmpty) {
+      return '';
+    }
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    return altas.last.position;
+  }
+
+  void setPosition(String position) {
+    if (altas.isNotEmpty) {
+      altas.sort((a, b) => a.date.compareTo(b.date));
+      altas.last.position = position;
+    }
+  }
+
+  String getCategory() {
+    if (altas.isEmpty) {
+      return '';
+    }
+    altas.sort((a, b) => a.date.compareTo(b.date));
+    return altas.last.category;
+  }
+
+  void setCategory(String category) {
+    if (altas.isNotEmpty) {
+      altas.sort((a, b) => a.date.compareTo(b.date));
+      altas.last.category = category;
+    }
   }
 
   void updateDocument(dictDoc, newPath) {
@@ -774,8 +796,8 @@ class Employee {
         lastName2: '',
         email: '',
         phone: '',
-        position: '',
-        category: '',
+        // position: '',
+        // category: '',
         altas: [Alta.getEmpty()],
         // bajas: [],
         extraDocs: {});
@@ -861,8 +883,7 @@ class Employee {
 
   bool isActive() {
     return (altas.isNotEmpty &&
-        ((getBajaDate() == null) ||
-            getBajaDate().isAfter(DateTime.now()) ||
+        (getBajaDate().isAfter(DateTime.now()) ||
             getBajaDate().isAtSameMomentAs(DateTime.now())));
   }
 

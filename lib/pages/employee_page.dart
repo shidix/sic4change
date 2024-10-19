@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:js_interop_unsafe';
 import 'dart:html' as html;
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +15,7 @@ import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class EmployeesPage extends StatefulWidget {
   final Profile? profile;
-  const EmployeesPage({Key? key, this.profile}) : super(key: key);
+  const EmployeesPage({super.key, this.profile});
 
   @override
   State<EmployeesPage> createState() => _EmployeesPageState();
@@ -67,14 +66,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
             element.getBornDate().isBefore(maxBornDateFilter) &&
             element.getAltaDate().isAfter(minAltaDateFilter))
         .toList();
-    employeesFiltered.forEach((element) {
+    for (var element in employeesFiltered) {
       csv +=
-          '${element.code},${element.lastName1} ${element.lastName2},${element.firstName},${DateFormat('dd/MM/yyyy').format(element.bornDate!)},${DateFormat('dd/MM/yyyy').format(element.getAltaDate())},${DateFormat('dd/MM/yyyy').format(element.getBajaDate())},${element.position},${element.altaDays()},${element.getSalary()},${element.email}\n';
-    });
+          '${element.code},${element.lastName1} ${element.lastName2},${element.firstName},${DateFormat('dd/MM/yyyy').format(element.bornDate!)},${DateFormat('dd/MM/yyyy').format(element.getAltaDate())},${DateFormat('dd/MM/yyyy').format(element.getBajaDate())},${element.getPosition()},${element.altaDays()},${element.getSalary()},${element.email}\n';
+    }
     final bytes = utf8.encode(csv);
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
+    html.AnchorElement(href: url)
       ..setAttribute('download', "$filename.csv")
       ..click();
   }
@@ -428,7 +427,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     .isAfter(DateTime.now().add(const Duration(days: 3650))))
                 ? ' Indefinido'
                 : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
-            DataCell(Text(e.position)),
+            DataCell(Text(e.getPosition())),
             DataCell(Text(e.altaDays().toString())),
             DataCell(Text(toCurrency(e.getSalary()))),
             DataCell(Text(e.email)),
@@ -816,7 +815,7 @@ class InfoField extends StatelessWidget {
 
 class EmployeeInfoCard extends StatefulWidget {
   final Employee employee;
-  const EmployeeInfoCard({Key? key, required this.employee}) : super(key: key);
+  const EmployeeInfoCard({super.key, required this.employee});
 
   @override
   State<EmployeeInfoCard> createState() => _EmployeeInfoCardState();
@@ -845,12 +844,12 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         InfoField(
             label: "Puesto",
             icon: Icons.work,
-            value: widget.employee.position,
+            value: widget.employee.getPosition(),
             flex: 2),
         InfoField(
             label: "Categoría",
             icon: Icons.work,
-            value: widget.employee.category,
+            value: widget.employee.getCategory(),
             flex: 2),
         InfoField(
           icon: Icons.euro,
@@ -896,7 +895,7 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
     }
     return CustomPopupDialog(
         context: context,
-        actionBtns: [],
+        actionBtns: const [],
         title: 'Información del empleado',
         icon: Icons.badge_outlined,
         content: SizedBox(

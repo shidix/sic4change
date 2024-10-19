@@ -249,7 +249,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     )),
               ]),
               TextFormField(
-                initialValue: employee.position,
+                initialValue: employee.getPosition(),
                 decoration: const InputDecoration(labelText: 'Puesto'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -258,14 +258,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   return null;
                 },
                 onSaved: (String? value) {
-                  employee.position = value!;
+                  employee.setPosition(value!);
                 },
               ),
               TextFormField(
-                initialValue: employee.category,
+                initialValue: employee.getCategory(),
                 decoration: const InputDecoration(labelText: 'Categoría'),
                 onSaved: (String? value) {
-                  employee.category = value!;
+                  employee.setCategory(value!);
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {

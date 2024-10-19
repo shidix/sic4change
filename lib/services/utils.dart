@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' as math;
 
 const String statusFormulation = "1"; //En formulación
