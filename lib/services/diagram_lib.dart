@@ -5,6 +5,21 @@ import 'package:sic4change/widgets/common_widgets.dart';
 //--------------------------------------------------------------
 //                       DIAGRAM VALUES
 //--------------------------------------------------------------
+List diagramColors = [
+  Colors.red,
+  Colors.green,
+  Colors.blue,
+  Colors.orange,
+  Colors.purple,
+  Colors.lime,
+  Colors.brown,
+  Colors.cyan,
+  Colors.amber,
+  Colors.yellow,
+  Colors.indigo,
+  Colors.pink
+];
+
 class DiagramValues {
   String text;
   String percent;
@@ -111,7 +126,7 @@ List<PieChartSectionData> showingSections(List diagList) {
       titleStyle: const TextStyle(
         //fontSize: fontSize,
         fontWeight: FontWeight.bold,
-        color: Colors.black,
+        color: Colors.white,
         shadows: [Shadow(color: Colors.black, blurRadius: 2)],
       ),
     );
@@ -317,110 +332,4 @@ List<BarChartGroupData> getData(
     i = i + 1;
   }
   return datas;
-  return [
-    BarChartGroupData(
-      x: 0,
-      barsSpace: barsSpace,
-      barRods: [
-        BarChartRodData(
-          toY: 17,
-          rodStackItems: [
-            BarChartRodStackItem(0, 12, Colors.blue),
-            BarChartRodStackItem(12000000000, 17000000000, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),
-
-        /*BarChartRodData(
-          toY: 17000000000,
-          rodStackItems: [
-            BarChartRodStackItem(0, 2000000000, Colors.grey),
-            BarChartRodStackItem(2000000000, 12000000000, Colors.blue),
-            BarChartRodStackItem(12000000000, 17000000000, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),*/
-      ],
-    ),
-    BarChartGroupData(
-      x: 1,
-      barsSpace: barsSpace,
-      barRods: [
-        BarChartRodData(
-          toY: 31,
-          rodStackItems: [
-            BarChartRodStackItem(0, 18, Colors.blue),
-            BarChartRodStackItem(18, 31, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),
-
-/*        BarChartRodData(
-          toY: 31000000000,
-          rodStackItems: [
-            BarChartRodStackItem(0, 11000000000, Colors.grey),
-            BarChartRodStackItem(11000000000, 18000000000, Colors.blue),
-            BarChartRodStackItem(18000000000, 31000000000, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),*/
-      ],
-    ),
-    BarChartGroupData(
-      x: 2,
-      barsSpace: barsSpace,
-      barRods: [
-        BarChartRodData(
-          toY: 34,
-          rodStackItems: [
-            BarChartRodStackItem(0, 23, Colors.blue),
-            BarChartRodStackItem(23, 34, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),
-
-/*        BarChartRodData(
-          toY: 34000000000,
-          rodStackItems: [
-            BarChartRodStackItem(0, 6000000000, Colors.grey),
-            BarChartRodStackItem(6000000000, 23000000000, Colors.blue),
-            BarChartRodStackItem(23000000000, 34000000000, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),*/
-      ],
-    ),
-    BarChartGroupData(
-      x: 3,
-      barsSpace: barsSpace,
-      barRods: [
-        BarChartRodData(
-          toY: 14,
-          rodStackItems: [
-            BarChartRodStackItem(0, 12, Colors.blue),
-            BarChartRodStackItem(12, 14, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),
-
-        /*BarChartRodData(
-          toY: 14000000000,
-          rodStackItems: [
-            BarChartRodStackItem(0, 1000000000.5, Colors.grey),
-            BarChartRodStackItem(1000000000.5, 12000000000, Colors.blue),
-            BarChartRodStackItem(12000000000, 14000000000, Colors.cyan),
-          ],
-          borderRadius: BorderRadius.zero,
-          width: barsWidth,
-        ),*/
-      ],
-    ),
-  ];
 }

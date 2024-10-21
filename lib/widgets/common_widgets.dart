@@ -487,7 +487,7 @@ Widget customDropdownField(controller, options, current, hint, {width = 220}) {
 }
 
 Widget customLinearPercent(context, _offset, _percent, _color) {
-  var _percentText = _percent * 100;
+  var _percentText = (_percent * 100).toStringAsFixed(2);
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     LinearPercentIndicator(
       width: MediaQuery.of(context).size.width / _offset,
