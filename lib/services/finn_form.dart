@@ -523,6 +523,7 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
   late Invoice invoice;
   late double amount;
   late double percentaje;
+  late double amountImputed;
   final FocusNode amountListener = FocusNode();
   final FocusNode saveListener = FocusNode();
 
@@ -535,10 +536,20 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
     invoiceDistrib = widget.item;
     invoice = Invoice.getEmpty();
     percentageController.text = invoiceDistrib.percentaje.toStringAsFixed(2);
+    amountImputed = 0;
 
     Invoice.getByUuid(widget.item.invoice).then((value) {
       invoice = value;
-      if (mounted) setState(() {});
+      InvoiceDistrib.getByInvoice(value).then((invoiceDistribList) {
+        amountImputed = 0;
+        for (InvoiceDistrib item in invoiceDistribList) {
+          if (item.id != invoiceDistrib.id) {
+            amountImputed += item.amount;
+          }
+        }
+        if (mounted) setState(() {});
+      });
+      // if (mounted) setState(() {});
     });
   }
 
@@ -585,17 +596,21 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                           initialValue: toCurrency(
                               invoiceDistrib.amount, invoice.currency),
                           readOnly: false,
-                          decoration: const InputDecoration(
-                              labelText: 'Importe',
-                              contentPadding: EdgeInsets.only(bottom: 1)),
+                          decoration: InputDecoration(
+                              labelText:
+                                  'Importe (max: ${toCurrency(invoice.total - amountImputed)})',
+                              contentPadding: const EdgeInsets.only(bottom: 1)),
                           validator: (value) {
                             try {
                               if (value == null ||
                                   value.isEmpty ||
-                                  double.parse(value) <= 0) {
+                                  fromCurrency(value) <= 0 ||
+                                  (fromCurrency(value) + amountImputed >
+                                      invoice.total)) {
                                 return 'Por favor, ingrese un importe válido';
                               }
                             } catch (e) {
+                              print("Error: $e");
                               return 'Por favor, ingrese un importe válido';
                             }
                             return null;

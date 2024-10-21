@@ -307,7 +307,8 @@ class _FinnsPageState extends State<FinnsPage> {
 
       for (var item in dist.mapinvoices.values) {
         InvoiceDistrib inv = InvoiceDistrib.fromJson(item);
-        invoicesSummary[dist.partner.uuid]!['total'] += (inv.amount);
+        invoicesSummary[dist.partner.uuid]!['total'] +=
+            (inv.amount * inv.exchangeRate);
       }
     }
 
@@ -1592,7 +1593,7 @@ class _FinnsPageState extends State<FinnsPage> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Porcentaje asignado'),
+                title: const Text('Importe asignado'),
                 content: InvoiceDistributionForm(
                   key: null,
                   item: item,
