@@ -179,7 +179,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                           MaterialPageRoute(
                                               builder: ((context) =>
                                                   ProgrammePage(
-                                                      programme: programme))));
+                                                      programme: programme,
+                                                      returnToList: true))));
                                     },
                                   ),
                                   editBtn(context, callDialog,

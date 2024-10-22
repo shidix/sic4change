@@ -1,13 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/diagram_lib.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/programme_lib.dart';
 import 'package:sic4change/services/utils.dart';
@@ -20,7 +18,8 @@ Widget? _mainMenu;
 
 class ProgrammePage extends StatefulWidget {
   final Programme? programme;
-  const ProgrammePage({super.key, this.programme});
+  final bool? returnToList;
+  const ProgrammePage({super.key, this.programme, this.returnToList});
 
   @override
   State<ProgrammePage> createState() => _ProgrammePageState();
@@ -28,6 +27,7 @@ class ProgrammePage extends StatefulWidget {
 
 class _ProgrammePageState extends State<ProgrammePage> {
   Programme? programme;
+  bool returnToList = false;
   Profile? profile;
   List projects = [];
   List indicators = [];
@@ -84,6 +84,11 @@ class _ProgrammePageState extends State<ProgrammePage> {
   void initState() {
     super.initState();
     programme = widget.programme;
+    try {
+      returnToList = widget.returnToList!;
+    } catch (e) {
+      returnToList = false;
+    }
     _mainMenu = mainMenu(context, "/projects");
     loadProgrammeProjects();
 
@@ -139,8 +144,11 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 ],
               ),
             ),
-            goPage(context, "Volver", const ProjectsPage(),
-                Icons.arrow_circle_left_outlined),
+            (returnToList)
+                ? goPage(context, "Volver", const ProjectListPage(),
+                    Icons.arrow_circle_left_outlined)
+                : goPage(context, "Volver", const ProjectsPage(),
+                    Icons.arrow_circle_left_outlined),
           ],
         ));
   }
@@ -315,9 +323,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                         context, 3.5, totalGoals, percentBarPrimary)
                   ],
                 ),
-                //programmeProjectList(context),
+                programmeProjectList(context),
               ])),
-          /*SizedBox(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.45,
             child: Column(children: [
               Row(
@@ -335,7 +343,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
               ),
               programmeFinancierList(context),
             ]),
-          ),*/
+          ),
         ],
       ),
     );

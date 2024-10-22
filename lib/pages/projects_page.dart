@@ -195,18 +195,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   InkWell(
-                                    child: Image.network(
-                                      programme.logo,
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: ((context) =>
-                                                  ProgrammePage(
-                                                      programme: programme))));
-                                    },
-                                  ),
+                                      child: Image.network(
+                                        programme.logo,
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: ((context) =>
+                                                    ProgrammePage(
+                                                        programme:
+                                                            programme))));
+                                      }),
                                   /*InkWell(
                                     child: customText(programme.name, 16),
                                     onTap: () {

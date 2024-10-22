@@ -217,7 +217,7 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
         j += 1;
       }
     }
-    goalsPercent[proj.uuid] = totalProj / j;
+    goalsPercent[proj.uuid] = (j > 0) ? totalProj / j : 1;
   }
 
   double total = 0;
@@ -226,6 +226,7 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
     total += value;
     i += 1;
   });
-  goalsPercent["total"] = total / (i - 1);
+
+  goalsPercent["total"] = (i > 0) ? total / i : 1;
   return goalsPercent;
 }
