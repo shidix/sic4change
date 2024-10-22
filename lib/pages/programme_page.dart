@@ -159,7 +159,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         children: <Widget>[
           row1(),
           space(height: 20),
-          row2(),
+          //row2(),
           space(height: 10),
           row3(),
         ],
