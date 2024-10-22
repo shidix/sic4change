@@ -31,58 +31,20 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Profile? profile;
   List projects = [];
   List indicators = [];
-  //List financiers = [];
-  double totalBudget = 0.0;
-  double totalFinancing = 0.0;
-  double totalExecuted = 0.0;
-  double totalGoals = 0.0;
   Map<String, double> financiers = {};
-  Map<String, int> projStatus = {};
+  Map<String, double> goalsPercent = {};
+  Map<String, double> totalsExecuted = {};
+  Map<String, double> projStatus = {};
   Map<String, int> sourceFinancing = {};
+
+  double totalBudget = 0.0; //Suma de los presupuestos de los proyectos
+  double totalFinancing = 0.0; //Suma de las aportaciones de los financiadores
+  double totalExecuted =
+      0.0; //Suma de los importes de las facturas de los proyectos
+  double totalGoals =
+      0.0; //Suma de los porcentajes de los indicadores específicos de los proyectos
+
   int touchedIndex = -1;
-
-  Future<Map<String, double>> getProgrammeFinanciers() async {
-    /*List financiers = [];
-    for (SProject project in projects) {
-      //List finList = await project.getFinanciers();
-      List finList = await project.getFinns();
-      for (SFinn financier in finList) {
-        if (!financiers.contains(financier)) {
-          financiers.add(financier);
-        }
-      }
-    }*/
-
-    Map<String, double> finMap = {};
-    Map<String, String> finUUID = {};
-    Map<String, dynamic> finnInfo = {};
-
-    for (SProject project in projects) {
-      List<Organization> finList = await project.getFinanciers();
-      project.financiersObj = finList;
-      for (Organization financier in finList) {
-        finMap[financier.name] = 0;
-        finUUID[financier.name] = financier.uuid;
-      }
-    }
-
-    for (SProject project in projects) {
-      print("DBG: ${project.uuid}");
-      finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
-    }
-
-    finMap.forEach((key, value) async {
-      double amount = 0;
-      for (SProject project in projects) {
-        try {
-          amount += finnInfo[project.uuid].getContribByFinancier(finUUID[key]!);
-        } catch (e) {}
-      }
-      finMap[key] = amount;
-      totalFinancing = totalFinancing + amount;
-    });
-    return finMap;
-  }
 
   void loadProgrammeProjects() async {
     setState(() {
@@ -90,34 +52,18 @@ class _ProgrammePageState extends State<ProgrammePage> {
     });
     await getProjectsByProgramme(programme!.uuid).then((val) async {
       projects = val;
-      financiers = await getProgrammeFinanciers();
+      financiers = await getProgrammeFinanciers(projects);
       projStatus = setProjectByStatus(projects);
       sourceFinancing = await setSourceFinancing(projects);
-      totalExecuted = await getTotalExectuteBudget(projects);
-      totalGoals = await getGoalsMedia(projects);
-
-      /*projStatus["formulation"] =
-          await programme!.getProjectsByStatus(statusFormulation);
-      projStatus["sended"] = await programme!.getProjectsByStatus(statusSended);
-      projStatus["reject"] = await programme!.getProjectsByStatus(statusReject);
-      projStatus["refuse"] = await programme!.getProjectsByStatus(statusRefuse);
-      projStatus["approved"] =
-          await programme!.getProjectsByStatus(statusApproved);
-      projStatus["start"] = await programme!.getProjectsByStatus(statusStart);
-      projStatus["end"] = await programme!.getProjectsByStatus(statusEnds);
-      projStatus["justification"] =
-          await programme!.getProjectsByStatus(statusJustification);
-      projStatus["close"] = await programme!.getProjectsByStatus(statusClose);
-      projStatus["delivery"] =
-          await programme!.getProjectsByStatus(statusDelivery);*/
+      totalsExecuted = await getTotalExectuteBudget(projects);
+      goalsPercent = await getGoalsPercent(projects);
+      totalFinancing = financiers["total"]!;
+      totalGoals = goalsPercent["total"]!;
+      totalExecuted = totalsExecuted["total"]!;
     });
     setState(() {
       loading = false;
     });
-    /*for (SProject p in projects) {
-      await p.totalBudget();
-      totalBudget = totalBudget + p.dblbudget;
-    }*/
 
     for (SProject p in projects) {
       totalBudget = totalBudget + fromCurrency(p.budget);
@@ -162,9 +108,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    programmeGraph(),
-                    //programmeSummary(),
-                    //programmeImpact(),
+                    programmeGraphs(),
                     programmeProjects(context),
                   ],
                 )
@@ -197,36 +141,66 @@ class _ProgrammePageState extends State<ProgrammePage> {
             ),
             goPage(context, "Volver", const ProjectsPage(),
                 Icons.arrow_circle_left_outlined),
-            /*Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtn(context, callDialog, {"programme": null},
-                  text: "Añadir Programa"),
-            ])*/
           ],
         ));
   }
 
+/*-------------------------------------------------------------
+                      PROGRAMME GRAPHS
+  -------------------------------------------------------------*/
+  Widget programmeGraphs() {
+    return Container(
+      padding: const EdgeInsets.only(left: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[
+          row1(),
+          space(height: 20),
+          row2(),
+          space(height: 10),
+          row3(),
+        ],
+      ),
+    );
+  }
+
+  Widget row1() {
+    return Row(
+      children: [
+        diag1(),
+        diag2(),
+        diag3(),
+      ],
+    );
+  }
+
   Widget diag1() {
     List<DiagramValues> diagList = [
-      DiagramValues("Formulación", projStatus[statusFormulation].toString(),
-          diagramColors[0]),
+      DiagramValues("Formulación",
+          projStatus[statusFormulation]!.toStringAsFixed(2), diagramColors[0]),
+      DiagramValues("Enviados", projStatus[statusSended]!.toStringAsFixed(2),
+          diagramColors[1]),
+      DiagramValues("Rechazados", projStatus[statusReject]!.toStringAsFixed(2),
+          diagramColors[2]),
+      DiagramValues("Denegado", projStatus[statusRefuse]!.toStringAsFixed(2),
+          diagramColors[3]),
+      DiagramValues("Aprobado", projStatus[statusApproved]!.toStringAsFixed(2),
+          diagramColors[4]),
+      DiagramValues("Iniciado", projStatus[statusStart]!.toStringAsFixed(2),
+          diagramColors[5]),
+      DiagramValues("Finalizado", projStatus[statusEnds]!.toStringAsFixed(2),
+          diagramColors[6]),
       DiagramValues(
-          "Enviados", projStatus[statusSended].toString(), diagramColors[1]),
-      DiagramValues(
-          "Rechazados", projStatus[statusReject].toString(), diagramColors[2]),
-      DiagramValues(
-          "Denegado", projStatus[statusRefuse].toString(), diagramColors[3]),
-      DiagramValues(
-          "Aprobado", projStatus[statusApproved].toString(), diagramColors[4]),
-      DiagramValues(
-          "Iniciado", projStatus[statusStart].toString(), diagramColors[5]),
-      DiagramValues(
-          "Finalizado", projStatus[statusEnds].toString(), diagramColors[6]),
-      DiagramValues("Justificación", projStatus[statusJustification].toString(),
+          "Justificación",
+          projStatus[statusJustification]!.toStringAsFixed(2),
           diagramColors[7]),
-      DiagramValues(
-          "Cerrado", projStatus[statusClose].toString(), diagramColors[8]),
-      DiagramValues(
-          "Entregado", projStatus[statusDelivery].toString(), diagramColors[9]),
+      DiagramValues("Cerrado", projStatus[statusClose]!.toStringAsFixed(2),
+          diagramColors[8]),
+      DiagramValues("Entregado", projStatus[statusDelivery]!.toStringAsFixed(2),
+          diagramColors[9]),
     ];
 
     return SizedBox(
@@ -284,18 +258,12 @@ class _ProgrammePageState extends State<ProgrammePage> {
     );
   }
 
-  Widget diag4() {
+  Widget row2() {
     List<DiagramValues2> diagList = [];
     for (ProgrammeIndicators ind in indicators) {
       diagList.add(
           DiagramValues2(ind.name, ind.expected, ind.obtained, randomColor()));
     }
-
-    /*return SizedBox(
-      height: 300,
-      width: 450,
-      child: barDiagram(diagList),
-    );*/
 
     return Container(
       padding: const EdgeInsets.all(30),
@@ -323,7 +291,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     );
   }
 
-  Widget diag5() {
+  Widget row3() {
     return Container(
       padding: const EdgeInsets.all(30),
       child: Row(
@@ -362,7 +330,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   ),
                   //space(width: 10),
                   customLinearPercent(context, 3.5,
-                      (totalExecuted / totalBudget), percentBarPrimary)
+                      (totalExecuted / totalFinancing), percentBarPrimary)
                 ],
               ),
               programmeFinancierList(context),
@@ -375,7 +343,6 @@ class _ProgrammePageState extends State<ProgrammePage> {
 
   Widget programmeProjectList(context) {
     return ListView.builder(
-        //padding: const EdgeInsets.all(8),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
         itemCount: projects.length,
@@ -386,7 +353,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
               width: MediaQuery.of(context).size.width * 0.15,
               child: customText(proj.name, 14),
             ),
-            customLinearPercent(context, 3.5, 0.5, blueColor),
+            customLinearPercent(
+                context, 3.5, goalsPercent[proj.uuid], blueColor),
           ]);
         });
   }
@@ -398,250 +366,30 @@ class _ProgrammePageState extends State<ProgrammePage> {
         itemCount: financiers.length,
         itemBuilder: (BuildContext context, int index) {
           String key = financiers.keys.elementAt(index);
-          return Row(children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.15,
-              child: customText(key, 14),
-            ),
-            customLinearPercent(
-                context, 3.5, financiers[key]! / totalFinancing, blueColor),
-            //customText(financiers[key].toString(), 14)
-          ]);
+          double percent = (totalsExecuted[key]! > 0)
+              ? financiers[key]! / totalsExecuted[key]!
+              : 0;
+          return key != ("total")
+              ? Row(children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.15,
+                    child: customText(key, 14),
+                  ),
+                  customLinearPercent(context, 3.5, percent, blueColor),
+                  //customText(financiers[key].toString(), 14)
+                ])
+              : Container();
         });
   }
-
-  Widget programmeGraph() {
-    return Container(
-      padding: const EdgeInsets.only(left: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        verticalDirection: VerticalDirection.down,
-        children: <Widget>[
-          space(height: 20),
-          Row(
-            children: [
-              diag1(),
-              diag2(),
-              diag3(),
-            ],
-          ),
-          /*Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [indicators.isNotEmpty ? diag4() : Container()],
-          ),*/
-          diag4(),
-          space(height: 10),
-          diag5(),
-          /*Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              customText("Total ejecutado: $totalExecuted €", 16),
-              space(width: 20),
-              customText("Objetivos específicos: $totalGoals", 16)
-            ],
-          )*/
-        ],
-      ),
-    );
-  }
-
-  /*Widget diag6() {
-    return Container(
-      decoration: const BoxDecoration(
-          border:
-              Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
-      child: Column(children: [
-        /*Container(
-          padding: const EdgeInsets.only(top: 20, left: 20),
-          child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-            customText("Nº Proyectos", 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
-            customText(projects.length.toString(), 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
-          ]),
-        ),*/
-        //projectByStatus(context),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-                width: MediaQuery.of(context).size.width * 0.5,
-                child: programmeProjectList(context)),
-            SizedBox(
-                width: MediaQuery.of(context).size.width * 0.4,
-                child: programmeFinancierList(context)),
-          ],
-        ),
-      ]),
-    );
-  }*/
-
-  /*Widget programmeProjectList(context) {
-    return Column(
-      children: <Widget>[
-        Container(
-          padding: const EdgeInsets.only(top: 20, left: 20),
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            /*customText("Nº Proyectos", 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
-            customText(projects.length.toString(), 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),*/
-            customText("Inversión total", 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
-            customText("${currencyFormat.format(totalBudget)} €", 16,
-                bold: FontWeight.bold, textColor: headerListTitleColor),
-          ]),
-        ),
-        ListView.builder(
-            //padding: const EdgeInsets.all(8),
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: projects.length,
-            itemBuilder: (BuildContext context, int index) {
-              SProject proj = projects[index];
-              return Container(
-                height: 50,
-                padding: const EdgeInsets.only(top: 20, left: 20),
-                //padding: const EdgeInsets.all(15),
-                /*decoration: const BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(color: Color(0xffdfdfdf), width: 1)),
-                ),*/
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      customText(proj.name, 14),
-                      customLinearPercent(context, 4.5, 0.5, percentBarPrimary),
-                      customText(proj.budget, 14)
-                    ]),
-              );
-            })
-      ],
-    );
-  }*/
-
-  /*Widget programmeFinancierList(context) {
-    return Container(
-      padding: const EdgeInsets.only(right: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.only(top: 20, bottom: 20),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText("Financiadores", 16,
-                      bold: FontWeight.bold, textColor: headerListTitleColor),
-                  customText("", 16,
-                      bold: FontWeight.bold, textColor: headerListTitleColor),
-                ]),
-          ),
-          ListView.builder(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              itemCount: financiers.length,
-              itemBuilder: (BuildContext context, int index) {
-                //SFinn financier = financiers[index];
-                //final contrib = financier.getTotalContrib();
-                String key = financiers.keys.elementAt(index);
-                return SizedBox(
-                  height: 30,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        customText(key, 14),
-                        customText(financiers[key].toString(), 14)
-                      ]),
-                );
-              })
-        ],
-      ),
-    );
-  }*/
 
   Widget projectByStatus(context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: SizedBox(width: double.infinity, child: customText("", 14)
-          /*child: Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              children: [
-                TableRow(children: [
-                  customText("En formulación: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['formulation']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Presentados: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['sended']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Denegados: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['reject']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Rechazados: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['refuse']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Aprobados: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['approved']}", 14,
-                      bold: FontWeight.bold),
-                ]),
-                TableRow(children: [
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                  space(height: 10),
-                ]),
-                TableRow(children: [
-                  customText("En ejecución: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['start']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Finalizados: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['end']}", 14, bold: FontWeight.bold),
-                  customText("En evalución: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['justification']}", 14,
-                      bold: FontWeight.bold),
-                  customText("Cerrados: ", 14, textColor: headerListTitleColor),
-                  customText("${projStatus['close']}", 14,
-                      bold: FontWeight.bold),
-                  customText("En seguimiento: ", 14,
-                      textColor: headerListTitleColor),
-                  customText("${projStatus['delivery']}", 14,
-                      bold: FontWeight.bold),
-                ]),
-              ])*/
-          ),
+      child: SizedBox(width: double.infinity, child: customText("", 14)),
     );
   }
 
   Widget programmeImpact() {
-    /*return Container(
-        width: MediaQuery.of(context).size.width,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-            border:
-                Border(bottom: BorderSide(color: Color(0xffdfdfdf), width: 1))),
-        child: Column(*/
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -669,7 +417,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         space(height: 10),
         programmeIndicatorsRow(context),
       ],
-    ) /*)*/;
+    );
   }
 
   Widget programmeProjects(context) {
