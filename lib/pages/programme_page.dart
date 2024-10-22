@@ -161,7 +161,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
           space(height: 20),
           row2(),
           space(height: 10),
-          //row3(),
+          row3(),
         ],
       ),
     );
@@ -315,7 +315,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                         context, 3.5, totalGoals, percentBarPrimary)
                   ],
                 ),
-                programmeProjectList(context),
+                //programmeProjectList(context),
               ])),
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.45,
@@ -333,7 +333,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       (totalExecuted / totalFinancing), percentBarPrimary)
                 ],
               ),
-              programmeFinancierList(context),
+              //programmeFinancierList(context),
             ]),
           ),
         ],
