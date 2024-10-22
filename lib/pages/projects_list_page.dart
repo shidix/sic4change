@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -167,7 +168,20 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Image.network(programme.logo),
+                                  //Image.network(programme.logo),
+                                  InkWell(
+                                    child: Image.network(
+                                      programme.logo,
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) =>
+                                                  ProgrammePage(
+                                                      programme: programme))));
+                                    },
+                                  ),
                                   editBtn(context, callDialog,
                                       {'programme': programme}),
                                 ]);

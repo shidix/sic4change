@@ -317,7 +317,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 ),
                 //programmeProjectList(context),
               ])),
-          SizedBox(
+          /*SizedBox(
             width: MediaQuery.of(context).size.width * 0.45,
             child: Column(children: [
               Row(
@@ -333,9 +333,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       (totalExecuted / totalFinancing), percentBarPrimary)
                 ],
               ),
-              //programmeFinancierList(context),
+              programmeFinancierList(context),
             ]),
-          ),
+          ),*/
         ],
       ),
     );
