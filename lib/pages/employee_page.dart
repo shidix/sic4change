@@ -10,6 +10,7 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
@@ -503,12 +504,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
       }).toList(),
     );
 
-    SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
-            controller: ScrollController(),
-            scrollDirection: Axis.horizontal,
-            child: dataTable));
+    // SingleChildScrollView(
+    //     scrollDirection: Axis.vertical,
+    //     child: SingleChildScrollView(
+    //         controller: ScrollController(),
+    //         scrollDirection: Axis.horizontal,
+    //         child: dataTable));
 
     Widget listEmployees = SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -702,7 +703,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     } else {
       return SelectionArea(
           child: Scaffold(
-        body: Center(
+        body: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -711,6 +712,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,
+              footer(context),
             ],
           ),
         ),
