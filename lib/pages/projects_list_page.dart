@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/finns_page.dart';
+import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/models.dart';
@@ -10,6 +12,8 @@ import 'package:sic4change/widgets/project_list_menu_widget.dart';
 const projectTitle = "Proyectos";
 bool loading = false;
 Widget? _mainMenu;
+
+enum SampleItem { itemOne, itemTwo, itemThree }
 
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key, this.prList, this.prType});
@@ -288,6 +292,119 @@ class _ProjectListPageState extends State<ProjectListPage> {
 /*-------------------------------------------------------------
                      PROJECTS
 -------------------------------------------------------------*/
+
+  /*void callActionsDialog(context, args) {
+    actionsDialog(context, args["project"]);
+  }
+
+  Future<void> actionsDialog(context, project) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          //title: const Text('Modificar programa'),
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar programa'),
+          content: SingleChildScrollView(
+              child: Column(children: [
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                goPage(context, "+ Info", ProjectInfoPage(project: project),
+                    Icons.info,
+                    style: "bigBtn", extraction: () {}),
+                /*(project.folderObj.uuid != "")
+                ? goPage(context, "Documentos",
+                    DocumentsPage(currentFolder: project.folderObj), Icons.info,
+                    style: "bigBtn", extraction: () {})
+                : Container(),*/
+                goPage(context, "Marco técnico", GoalsPage(project: project),
+                    Icons.task,
+                    style: "bigBtn", extraction: () {
+                  setState(() {});
+                }),
+                goPage(context, "Presupuesto", FinnsPage(project: project),
+                    Icons.euro,
+                    style: "bigBtn", extraction: () {
+                  setState(() {});
+                }),
+              ])
+            ])
+          ])),
+          actions: <Widget>[
+            Row(children: [
+              Expanded(
+                  flex: 5,
+                  child: actionButton(
+                      context, "Cerrar", cancelItem, Icons.cancel, context))
+            ]),
+          ],
+        );
+      },
+    );
+  }*/
+
+  Widget actionsPopUpBtn(context, project) {
+    SampleItem? selectedMenu;
+    return PopupMenuButton<SampleItem>(
+      initialValue: selectedMenu,
+      // Callback that sets the selected popup menu item.
+      onSelected: (SampleItem item) async {
+        selectedMenu = item;
+        if (selectedMenu == SampleItem.itemOne) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) => ProjectInfoPage(
+                        project: project,
+                        returnToList: true,
+                      ))));
+        }
+        if (selectedMenu == SampleItem.itemTwo) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) => GoalsPage(
+                        project: project,
+                        returnToList: true,
+                      ))));
+        }
+        if (selectedMenu == SampleItem.itemThree) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) => FinnsPage(
+                        project: project,
+                        returnToList: true,
+                      ))));
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemOne,
+            child: Row(children: [
+              Icon(Icons.info_outline),
+              Text(' Mas Info'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+            value: SampleItem.itemTwo,
+            child: Row(children: [
+              Icon(Icons.task),
+              Text(' Marco Técnico'),
+            ])),
+        const PopupMenuItem<SampleItem>(
+          value: SampleItem.itemThree,
+          child: Row(
+            children: [
+              Icon(Icons.euro),
+              Text(' Presupuesto'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget projectList(context, param) {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
@@ -353,9 +470,13 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                 DateFormat('yyyy')
                                     .format(proj.datesObj.approved),
                                 14)),
-                        DataCell(Row(children: [
-                          goPageIcon(context, "Ver", Icons.info_outline,
-                              ProjectInfoPage(project: proj)),
+                        DataCell(Column(children: [
+                          /*editBtn(context, callActionsDialog, {'project': proj},
+                              icon: Icons.info_outline),*/
+                          actionsPopUpBtn(context, proj),
+
+                          /*goPageIcon(context, "Ver", Icons.info_outline,
+                              ProjectInfoPage(project: proj)),*/
                           //removeBtn(context, removeTaskDialog, {"task": task})
                         ]))
 

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
@@ -22,7 +23,8 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 double executedBudgetProject = 0;
 
 class FinnsPage extends StatefulWidget {
-  const FinnsPage({super.key, required this.project});
+  final bool? returnToList;
+  const FinnsPage({super.key, required this.project, this.returnToList});
 
   final SProject? project;
 
@@ -32,6 +34,7 @@ class FinnsPage extends StatefulWidget {
 
 class _FinnsPageState extends State<FinnsPage> {
   SProject? _project;
+  bool returnToList = false;
   Map<String, Organization> financiers = {};
   Map<String, Organization> partners = {};
   SFinnInfo finnInfo = SFinnInfo("", "", "");
@@ -59,10 +62,19 @@ class _FinnsPageState extends State<FinnsPage> {
   Widget? finnanciersContainer = Container();
   Widget? partnersContainer = Container();
 
+  bool getReturnList() {
+    try {
+      return widget.returnToList!;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _project = widget.project;
+    returnToList = getReturnList();
     loadInitialData();
     createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
   }
@@ -1457,8 +1469,13 @@ class _FinnsPageState extends State<FinnsPage> {
             space(width: 10),
             // finnAddBtn(context, project),
             // space(width: 10),
-            goPage(context, 'Volver', const ProjectsPage(),
-                Icons.arrow_circle_left_outlined),
+            /*goPage(context, 'Volver', const ProjectsPage(),
+                Icons.arrow_circle_left_outlined),*/
+            (returnToList)
+                ? goPage(context, "Volver", const ProjectListPage(),
+                    Icons.arrow_circle_left_outlined)
+                : goPage(context, "Volver", const ProjectsPage(),
+                    Icons.arrow_circle_left_outlined),
           ],
         ),
       ),

@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
@@ -23,7 +24,8 @@ Widget? _mainMenu;
 
 class ProjectInfoPage extends StatefulWidget {
   final SProject? project;
-  const ProjectInfoPage({super.key, this.project});
+  final bool? returnToList;
+  const ProjectInfoPage({super.key, this.project, this.returnToList});
 
   @override
   State<ProjectInfoPage> createState() => _ProjectInfoPageState();
@@ -33,6 +35,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   SProject? project;
   Profile? profile;
   bool _canEdit = false;
+  bool returnToList = false;
 
   void loadProject() async {
     setState(() {
@@ -68,6 +71,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   initState() {
     super.initState();
     project = widget.project;
+    try {
+      returnToList = widget.returnToList!;
+    } catch (e) {
+      returnToList = false;
+    }
     _mainMenu = mainMenu(context);
 
     final user = FirebaseAuth.instance.currentUser!;
@@ -109,8 +117,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   : customText("", 10),
               space(width: 10),
               //returnBtn(context),
-              goPage(context, "Volver", const ProjectsPage(),
-                  Icons.arrow_circle_left_outlined),
+              (returnToList)
+                  ? goPage(context, "Volver", const ProjectListPage(),
+                      Icons.arrow_circle_left_outlined)
+                  : goPage(context, "Volver", const ProjectsPage(),
+                      Icons.arrow_circle_left_outlined),
             ])
           ]),
           space(height: 20),

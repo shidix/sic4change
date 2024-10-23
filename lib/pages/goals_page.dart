@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -26,7 +27,8 @@ Widget? _mainMenu;
 
 class GoalsPage extends StatefulWidget {
   final SProject? project;
-  const GoalsPage({super.key, this.project});
+  final bool? returnToList;
+  const GoalsPage({super.key, this.project, this.returnToList});
 
   @override
   State<GoalsPage> createState() => _GoalsPageState();
@@ -37,6 +39,7 @@ class _GoalsPageState extends State<GoalsPage>
   SProject? project;
   Profile? userProfile;
   List? goals;
+  bool returnToList = false;
   Map<String, dynamic> results = {};
   Map<String, dynamic> goalIndicatorList = {};
   Map<String, dynamic> resultIndicatorList = {};
@@ -123,10 +126,19 @@ class _GoalsPageState extends State<GoalsPage>
     //stopLoading();
   }
 
+  bool getReturnList() {
+    try {
+      return widget.returnToList!;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   initState() {
     super.initState();
     project = widget.project;
+    returnToList = getReturnList();
     _mainMenu = mainMenu(context);
     loadInit();
     createLog("Acceso al Marco Lógico de la iniciativa: ${project!.name}");
@@ -177,7 +189,12 @@ class _GoalsPageState extends State<GoalsPage>
           children: [
             addBtn(context, editGoalDialog, {'goal': Goal(project.uuid)}),
             space(width: 10),
-            returnBtn(context),
+            //returnBtn(context),
+            (returnToList)
+                ? goPage(context, "Volver", const ProjectListPage(),
+                    Icons.arrow_circle_left_outlined)
+                : goPage(context, "Volver", const ProjectsPage(),
+                    Icons.arrow_circle_left_outlined),
           ],
         ),
       ),
