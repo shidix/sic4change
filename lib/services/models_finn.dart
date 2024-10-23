@@ -786,7 +786,7 @@ class Invoice extends Object {
     this.tracker,
   );
   factory Invoice.fromJson(Map<String, dynamic> json) {
-    if (!json.containsKey("taxname")) {
+    if (!json.containsKey("taxKind")) {
       json["taxKind"] = "I.V.A.";
     }
     if (!json.containsKey("currency")) {
@@ -797,7 +797,7 @@ class Invoice extends Object {
       }
     }
     if (!json.containsKey("imputation")) {
-      json["imputation"] = 100.0;
+      json["imputation"] = 0.0;
     }
     DateTime date = DateTime.now();
     try {

@@ -163,12 +163,16 @@ class _InvoiceFormState extends State<InvoiceForm> {
                 decoration: const InputDecoration(labelText: 'Concepto'),
                 onSaved: (value) => _invoice.concept = value!,
               ),
-              TextFormField(
-                initialValue: _invoice.provider,
-                decoration: const InputDecoration(labelText: 'Proveedor'),
-                onSaved: (value) => _invoice.provider = value!,
-              ),
               Row(children: [
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: _invoice.provider,
+                    decoration:
+                        const InputDecoration(labelText: 'C.I.F. Proveedor'),
+                    onSaved: (value) => _invoice.provider = value!,
+                  ),
+                ),
                 Expanded(
                     flex: 1,
                     child: CustomSelectFormField(

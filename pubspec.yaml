@@ -66,6 +66,7 @@ dependencies:
   #export_firebase_csv: ^1.0.9
   to_csv: ^4.0.4
   fl_chart: ^0.69.0
+  excel: ^4.0.6
 
 
 dev_dependencies:

@@ -1,3 +1,7 @@
+import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/finn_form.dart';
@@ -7,6 +11,8 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:uuid/uuid.dart';
+import 'package:excel/excel.dart';
 
 class InvoicePage extends StatefulWidget {
   const InvoicePage({super.key});
@@ -308,6 +314,8 @@ class _InvoicePageState extends State<InvoicePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      addBtnRow(context, pickAndImportExcel, null,
+                          text: "Importar Excel"),
                       addBtnRow(context, addInvoiceDialog, null,
                           text: "Añadir factura"),
                     ],
@@ -495,5 +503,142 @@ class _InvoicePageState extends State<InvoicePage> {
         }
       },
     );
+  }
+
+  Future<void> pickAndImportExcel(context) async {
+    // Seleccionar archivo
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls', 'csv'],
+    );
+
+    if (result != null) {
+      // Leer el archivo seleccionado
+      Uint8List? fileBytes = result.files.single.bytes;
+      List<String> errors = [];
+      int counter = 0;
+
+      if (fileBytes != null) {
+        // Procesar el archivo Excel
+        var excel = Excel.decodeBytes(fileBytes);
+        String table = 'Facturas';
+
+        var sheet = excel.tables[table]!;
+        int rowCounter = 0;
+        for (var row in sheet.rows.skip(1)) {
+          // Saltar la primera fila (encabezados)
+          rowCounter++;
+          if (row.isEmpty) continue;
+          if (row[0]!.value == null) break;
+
+          String provider = row[2]!.value.toString();
+          String number = row[3]!.value.toString();
+          DateTime date = DateTime.parse(row[4]!.value.toString());
+          DateTime paidDate = DateTime.parse(row[5]!.value.toString());
+          String concept = row[6]!.value.toString();
+          String currency = row[7]!.value.toString();
+          double base = double.parse(row[8]!.value.toString());
+          double taxes = double.parse(row[9]!.value.toString());
+          double total = double.parse(row[10]!.value.toString());
+          String taxKind = row[11]!.value.toString();
+          String tracker = row[12]!.value.toString();
+          if (tracker.isEmpty || tracker.length < 3) {
+            tracker = await Invoice.newTracker();
+          }
+
+          // Check if tracker exists in invoices
+          bool exists = false;
+          if (invoices
+              .where((element) => element.tracker == tracker)
+              .isNotEmpty) {
+            errors.add(
+                "Factura en la línea $rowCounter  con tracker $tracker ya existe");
+            exists = true;
+          }
+
+          //check provider and number
+          if (invoices
+              .where((element) =>
+                  element.provider == provider && element.number == number)
+              .isNotEmpty) {
+            errors.add(
+                "Factura en la línea $rowCounter  con proveedor $provider y número $number ya existe");
+            exists = true;
+          }
+          if (exists) {
+            continue;
+          }
+
+          // Crear el json de la factura a partir de los datos del Excel
+          Map<String, dynamic> json = {
+            'provider': provider,
+            'code': '',
+            'number': number,
+            'date': date.toIso8601String(),
+            'paidDate': paidDate.toIso8601String(),
+            'concept': concept,
+            'currency': currency,
+            'base': base,
+            'taxes': taxes,
+            'total': base + taxes,
+            'taxKind': taxKind,
+            'tracker': tracker,
+            'uuid': '',
+            'desglose': '',
+            'document': '',
+            'id': '',
+          };
+
+          // Crear la factura a partir del json
+          Invoice invoice = Invoice.fromJson(json);
+          invoice.save();
+
+          // Mapear datos a la clase Invoi
+          invoices.add(invoice);
+
+          counter++;
+        }
+        if (counter > 0) {
+          populateInvoices().then((value) {
+            setState(() {
+              containerInvoices = value;
+            });
+          });
+        }
+      }
+      if (errors.isNotEmpty) {
+        if (errors.isNotEmpty) {
+          errors.insert(0, "Errores en la importación:");
+        }
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0)),
+              titlePadding: EdgeInsets.zero,
+              title: s4cTitleBar('Resultado de la importación', context),
+              content: Column(
+                children: [
+                  Text(
+                      "Se han importado $counter facturas correctamente del archivo seleccionado."),
+                  ...errors.map((e) => Text(e)),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cerrar'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
+      // Procesar las facturas importadas
+    }
   }
 }
