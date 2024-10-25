@@ -2059,6 +2059,14 @@ class ProgrammeIndicators {
       } catch (e) {}
     }
   }
+
+  double getResultPercent() {
+    if (expected > 0) {
+      return obtained / expected;
+    } else {
+      return 1;
+    }
+  }
 }
 
 Future<List> getProgrammesIndicators(uuid) async {

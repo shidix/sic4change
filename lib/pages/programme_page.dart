@@ -250,9 +250,12 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Widget diag3() {
     List<DiagramValues> diagList = [];
     financiers.forEach((key, value) {
-      String label = "$key: $value";
-      double val = value * 100 / totalFinancing;
-      diagList.add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
+      if (key != "total") {
+        String label = "$key: $value";
+        double val = value * 100 / totalFinancing;
+        diagList
+            .add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
+      }
     });
 
     return SizedBox(
@@ -280,6 +283,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: programmeImpact(),
+          ),
+          /*SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +300,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   //child: barDiagram(diagList),
                   child: indicators.isNotEmpty
                       ? barDiagram(diagList)
-                      : Container())),
+                      : Container())),*/
         ],
       ),
     );
@@ -337,8 +344,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
                         bold: FontWeight.bold, textColor: headerListTitleColor),
                   ),
                   //space(width: 10),
-                  customLinearPercent(context, 3.5,
-                      (totalExecuted / totalFinancing), percentBarPrimary)
+                  customLinearPercent(
+                      context, 3.5, totalExecuted, percentBarPrimary)
                 ],
               ),
               programmeFinancierList(context),
@@ -350,6 +357,46 @@ class _ProgrammePageState extends State<ProgrammePage> {
   }
 
   Widget programmeProjectList(context) {
+    return ListView.builder(
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: goalsPercent.length,
+        itemBuilder: (BuildContext context, int index) {
+          String key = goalsPercent.keys.elementAt(index);
+          return (key != "total")
+              ? Row(children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.15,
+                    child: customText(key, 14),
+                  ),
+                  customLinearPercent(
+                      context, 3.5, goalsPercent[key], blueColor),
+                ])
+              : Container();
+        });
+  }
+
+  Widget programmeFinancierList(context) {
+    return ListView.builder(
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: totalsExecuted.length,
+        itemBuilder: (BuildContext context, int index) {
+          String key = totalsExecuted.keys.elementAt(index);
+          return (key != ("total"))
+              ? Row(children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.15,
+                    child: customText(key, 14),
+                  ),
+                  customLinearPercent(
+                      context, 3.5, totalsExecuted[key], blueColor),
+                ])
+              : Container();
+        });
+  }
+
+  /*Widget programmeProjectList(context) {
     return ListView.builder(
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
@@ -365,9 +412,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 context, 3.5, goalsPercent[proj.uuid], blueColor),
           ]);
         });
-  }
+  }*/
 
-  Widget programmeFinancierList(context) {
+  /*Widget programmeFinancierList(context) {
     return ListView.builder(
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
@@ -388,7 +435,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 ])
               : Container();
         });
-  }
+  }*/
 
   Widget projectByStatus(context) {
     return Container(
@@ -586,6 +633,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 label: customText("Res. Obtenido", 14,
                     bold: FontWeight.bold, textColor: headerListTitleColor),
               ),
+              DataColumn(label: Container()),
               DataColumn(label: Container())
             ],
             rows: indicators
@@ -595,6 +643,10 @@ class _ProgrammePageState extends State<ProgrammePage> {
                     DataCell(customText(indicator.name, 14)),
                     DataCell(customText(indicator.expected.toString(), 14)),
                     DataCell(customText(indicator.obtained.toString(), 14)),
+                    DataCell(Container(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: customLinearPercent(context, 3.5,
+                            indicator.getResultPercent(), percentBarPrimary))),
                     DataCell(Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

@@ -132,6 +132,79 @@ Map<String, int> setProjectByCountry(projects) {
 }
 
 Future<Map<String, double>> getTotalExectuteBudget(projects) async {
+  Map<String, double> projectsExecuted = {};
+  Map<String, Map> invoicesSummary = {};
+  Map<String, double> distribTotalByPartner = {};
+  double projTotal = 0;
+  double projDistrib = 0;
+
+  projectsExecuted["total"] = 0;
+  for (SProject proj in projects) {
+    List distribItems = await Distribution.byProject(proj.uuid);
+    double totalDistrib = 0;
+
+    for (var partner in proj!.partners) {
+      distribTotalByPartner[partner] = 0;
+    }
+    invoicesSummary = {};
+
+    double totalExecuted = 0;
+    double percentExecuted = 0;
+
+    for (Distribution dist in distribItems) {
+      if (dist.amount > 0) {
+        totalDistrib += dist.amount;
+      }
+
+      double aux = 0;
+      if (distribTotalByPartner.containsKey(dist.partner.uuid)) {
+        aux = distribTotalByPartner[dist.partner.uuid]!;
+        distribTotalByPartner[dist.partner.uuid] = aux + dist.amount;
+      } else {
+        distribTotalByPartner[dist.partner.uuid] = dist.amount;
+      }
+
+      if (!invoicesSummary.containsKey(dist.partner.uuid)) {
+        invoicesSummary[dist.partner.uuid] = {};
+      }
+
+      if (!invoicesSummary[dist.partner.uuid]!.containsKey('total')) {
+        invoicesSummary[dist.partner.uuid]!['total'] = 0;
+      }
+
+      for (var item in dist.mapinvoices.values) {
+        InvoiceDistrib inv = InvoiceDistrib.fromJson(item);
+        invoicesSummary[dist.partner.uuid]!['total'] +=
+            (inv.amount * inv.exchangeRate);
+      }
+    }
+
+    proj.partnersObj = await proj.getPartners();
+    for (Organization partner in proj.partnersObj) {
+      double executedByPartnerAmount = 0;
+      if (invoicesSummary.containsKey(partner.uuid)) {
+        executedByPartnerAmount = invoicesSummary[partner.uuid]!['total'];
+      }
+      if (!distribTotalByPartner.containsKey(partner.uuid)) {
+        distribTotalByPartner[partner.uuid] = 0;
+      }
+      totalExecuted += executedByPartnerAmount;
+    }
+
+    if (totalDistrib > 0) {
+      percentExecuted = totalExecuted / totalDistrib;
+      projTotal += totalExecuted;
+      projDistrib += totalDistrib;
+      projectsExecuted[proj.name] = percentExecuted;
+    }
+  }
+  if (projDistrib > 0) {
+    projectsExecuted["total"] = projTotal / projDistrib;
+  }
+  return projectsExecuted;
+}
+
+/*Future<Map<String, double>> getTotalExectuteBudget(projects) async {
   double total = 0;
   Map<String, Map> invoicesSummary = {};
   Map<String, double> totalsExecuted = {};
@@ -154,10 +227,8 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
       }
     }
 
-    //proj.partnersObj = await proj.getPartners();
-    proj.financiersObj = await proj.getFinanciers();
-    //for (Organization partner in proj.partnersObj) {
-    for (Organization partner in proj.financiersObj) {
+    proj.partnersObj = await proj.getPartners();
+    for (Organization partner in proj.partnersObj) {
       double executedByPartnerAmount = 0;
       if (invoicesSummary.containsKey(partner.uuid)) {
         executedByPartnerAmount = invoicesSummary[partner.uuid]!['total'];
@@ -168,7 +239,7 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
   }
   totalsExecuted["total"] = total;
   return totalsExecuted;
-}
+}*/
 
 /*Future<double> getTotalExectuteBudget(projects) async {
   double total = 0;
@@ -207,6 +278,7 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
 Future<Map<String, double>> getGoalsPercent(projects) async {
   Map<String, double> goalsPercent = {};
   goalsPercent["total"] = 0;
+  int i = 0;
   for (SProject proj in projects) {
     List goals = await getGoalsByProject(proj.uuid);
     double totalProj = 0;
@@ -215,18 +287,18 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
       if (goal.name != "OE0") {
         totalProj += await Goal.getIndicatorsPercent(goal.uuid);
         j += 1;
+        i += 1;
       }
     }
-    goalsPercent[proj.uuid] = (j > 0) ? totalProj / j : 1;
+    //goalsPercent[proj.uuid] = (j > 0) ? totalProj / j : 1;
+    goalsPercent[proj.name] = (j > 0) ? totalProj / j : 0;
   }
 
   double total = 0;
-  int i = 0;
   goalsPercent.forEach((key, value) {
     total += value;
-    i += 1;
   });
 
-  goalsPercent["total"] = (i > 0) ? total / i : 1;
+  goalsPercent["total"] = (i > 0) ? total / i : 0;
   return goalsPercent;
 }
