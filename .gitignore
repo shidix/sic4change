@@ -52,3 +52,9 @@ pubspec.lock
 windows/**
 *.sh
 lib/generated/
+
+
+.firebase/
+.firebaserc
+firebase.json
+web/404.html
