@@ -58,3 +58,4 @@ lib/generated/
 .firebaserc
 firebase.json
 web/404.html
+lib/firebase_options.dart
