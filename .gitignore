@@ -52,3 +52,4 @@ pubspec.lock
 windows/**
 *.sh
 lib/generated/
+lib/firebase_options.dart
