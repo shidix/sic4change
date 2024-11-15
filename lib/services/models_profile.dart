@@ -37,9 +37,9 @@ class Profile {
       holidaySupervisor: data['holidaySupervisor'],
       mainRole: data['mainRole'],
     );
-    profile.name = data['name'];
-    profile.position = data['position'];
-    profile.phone = data['phone'];
+    profile.name = (data['name'] != null) ? data['name'] : '';
+    profile.position = (data['position'] != null) ? data['position'] : '';
+    profile.phone = (data['phone'] != null) ? data['phone'] : '';
     return profile;
   }
 
@@ -106,16 +106,28 @@ class Profile {
   }
 
   static Future<Profile> getProfile(String email) async {
-    QuerySnapshot query = await db
-        .collection("s4c_profiles")
-        .where("email", isEqualTo: email)
-        .get();
-    if (query.docs.isEmpty) {
-      return Profile.getEmpty();
-    } else {
-      final dbResult = query.docs.first;
-      return Profile.fromFirestore(dbResult);
+    QuerySnapshot query = await db.collection("s4c_profiles").get();
+
+    List<Profile> items = [];
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Profile item = Profile.fromJson(data);
+      items.add(item);
     }
+    if (items.isNotEmpty) {
+      return items.firstWhere((element) => element.email == email,
+          orElse: () => Profile.getEmpty());
+    } else {
+      return Profile.getEmpty();
+    }
+
+    // if (query.docs.isEmpty) {
+    //   return Profile.getEmpty();
+    // } else {
+    //   final dbResult = query.docs.first;
+    //   return Profile.fromFirestore(dbResult);
+    // }
   }
 
   static Future<List<KeyValue>> getProfileHash() async {
