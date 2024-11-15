@@ -109,18 +109,35 @@ class _ProjectStatusPageState extends State<ProjectStatusPage>
           title: s4cTitleBar("Estado"),
           content: SingleChildScrollView(
               child: Column(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: projectStatus.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  setState(() => projectStatus.name = val);
-                },
-              )
-            ]),
+            Row(
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Nombre",
+                    initial: projectStatus.name,
+                    size: 440,
+                    //minLines: 2,
+                    //maxLines: 9999,
+                    fieldValue: (String val) {
+                      setState(() => projectStatus.name = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Color",
+                    initial: projectStatus.color,
+                    size: 440,
+                    //minLines: 2,
+                    //maxLines: 9999,
+                    fieldValue: (String val) {
+                      setState(() => projectStatus.color = val);
+                    },
+                  )
+                ]),
+              ],
+            )
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveProjectStatus, projectStatus),
@@ -146,12 +163,17 @@ class _ProjectStatusPageState extends State<ProjectStatusPage>
               label: customText("Nombre", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
+            DataColumn(
+              label: customText("Color", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(label: Container()),
           ],
           rows: projectStatus
               .map(
                 (status) => DataRow(cells: [
                   DataCell(Text(status.name)),
+                  DataCell(Text(status.color)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     editBtn(

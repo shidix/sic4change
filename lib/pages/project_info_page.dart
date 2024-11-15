@@ -813,6 +813,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                projectStatusChange(context, proj),
+                space(height: 5),
+                customRowDivider(),
+                space(height: 5),
                 projectManagerProgramme(context, proj),
                 space(height: 5),
                 customRowDivider(),
@@ -1688,9 +1692,497 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       },
     );
   }
+
+  /*--------------------------------------------------------------------*/
+  /*                           STATUS                                   */
+  /*--------------------------------------------------------------------*/
+  void saveCustomDate(List args) async {
+    ProjectDates dates = args[0];
+    dates.save();
+    project!.status = args[1];
+    project!.save();
+    //project!.changeStatus(dates);
+    loadProject();
+
+    Navigator.pop(context);
+  }
+
+  void saveCustomStatus(st) {
+    project!.status = st;
+    project!.save();
+    loadProject();
+  }
+
+  void callCustomDatesEditDialog(context, args) async {
+    editCustomDateDialog(context, args["project"], args["st"]);
+  }
+
+  Future<void> editCustomDateDialog(context, project, st) {
+    ProjectDates dates = project.datesObj;
+    switch (st) {
+      case statusReject:
+        dates.reject = dates.getReject();
+      case statusApproved:
+        dates.approved = dates.getApproved();
+      case statusRefuse:
+        dates.refuse = dates.getRefuse();
+      case statusStart:
+        dates.start = dates.getStart();
+      case statusEnds:
+        dates.end = dates.getEnd();
+      case statusJustification:
+        dates.justification = dates.getJustification();
+      case statusDelivery:
+        dates.delivery = dates.getDelivery();
+      default:
+        dates.sended = dates.getSended();
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Modificar plazos'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+                child: Column(children: [
+              Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  //customDateField(context, dates, st),
+                  (st == statusReject)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Denegación',
+                            selectedDate: dates.reject,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.reject = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusApproved)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Aprobación',
+                            selectedDate: dates.approved,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.approved = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusRefuse)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Rechazo',
+                            selectedDate: dates.refuse,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.refuse = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusStart)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Inicio',
+                            selectedDate: dates.start,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.start = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusEnds)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Inicio',
+                            selectedDate: dates.end,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.end = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusJustification)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Justificación',
+                            selectedDate: dates.justification,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.justification = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusDelivery)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Seguimiento',
+                            selectedDate: dates.delivery,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.delivery = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                  (st == statusSended)
+                      ? SizedBox(
+                          width: 220,
+                          child: DateTimePicker(
+                            labelText: 'Presentación',
+                            //selectedDate: dates.getSended(),
+                            selectedDate: dates.sended,
+                            onSelectedDate: (DateTime date) {
+                              setState(() {
+                                dates.sended = date;
+                              });
+                            },
+                          ))
+                      : Container(),
+                ])
+              ])
+            ]));
+          }),
+          actions: <Widget>[
+            dialogsBtns2(context, saveCustomDate, [dates, st])
+          ],
+        );
+      },
+    );
+  }
+
+  Widget projectStatusChange(context, project) {
+    return Row(
+      children: [
+        (project.statusInt() < 2)
+            ? /*addBtn(context, callDatesEditDialog, project,
+                icon: Icons.edit, text: "Presentar")*/
+            addBtnRow(context, callCustomDatesEditDialog,
+                {'project': project, 'st': statusSended},
+                text: "Presentar", icon: Icons.abc)
+            : Column(children: [
+                customText("Presentado", 16),
+                Row(
+                  children: [
+                    customText(project.datesObj.getSendedStr(), 16),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        saveCustomStatus(statusFormulation);
+                      },
+                    )
+                  ],
+                )
+              ]),
+        space(width: 20),
+        (project.statusInt() > 1) ? const Icon(Icons.arrow_right) : Container(),
+        space(width: 20),
+        (project.statusInt() == 2)
+            ? Row(children: [
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusApproved},
+                    text: "Aprobar", icon: Icons.abc),
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusReject},
+                    text: "Denegar", icon: Icons.abc),
+              ])
+            : (project.statusInt() == 3)
+                ? Column(children: [
+                    customText("Denegado", 16),
+                    Row(
+                      children: [
+                        customText(project.datesObj.getRejectStr(), 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            saveCustomStatus(statusSended);
+                          },
+                        )
+                      ],
+                    )
+                  ])
+                : (project.statusInt() >= 5)
+                    ? Column(children: [
+                        customText("Aprobado", 16),
+                        Row(
+                          children: [
+                            customText(project.datesObj.getApprovedStr(), 16),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                saveCustomStatus(statusSended);
+                              },
+                            )
+                          ],
+                        )
+                      ])
+                    : Container(),
+        space(width: 20),
+        (project.statusInt() > 4) ? const Icon(Icons.arrow_right) : Container(),
+        space(width: 20),
+        (project.statusInt() == 5)
+            ? Row(children: [
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusStart},
+                    text: "Iniciar", icon: Icons.abc),
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusRefuse},
+                    text: "Rechazar", icon: Icons.abc),
+              ])
+            : (project.statusInt() >= 6)
+                ? Column(children: [
+                    customText("Iniciado", 16),
+                    Row(
+                      children: [
+                        customText(project.datesObj.getStartStr(), 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            saveCustomStatus(statusApproved);
+                          },
+                        )
+                      ],
+                    )
+                  ])
+                : (project.statusInt() == 4)
+                    ? Column(children: [
+                        customText("Rechazado", 16),
+                        Row(
+                          children: [
+                            customText(project.datesObj.getRefuseStr(), 16),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                saveCustomStatus(statusApproved);
+                              },
+                            )
+                          ],
+                        )
+                      ])
+                    : Container(),
+        space(width: 20),
+        (project.statusInt() > 5) ? const Icon(Icons.arrow_right) : Container(),
+        space(width: 20),
+        (project.statusInt() == 6)
+            ? Row(children: [
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusEnds},
+                    text: "Finalizar", icon: Icons.abc),
+              ])
+            : (project.statusInt() >= 6)
+                ? Column(children: [
+                    customText("Finalizado", 16),
+                    Row(
+                      children: [
+                        customText(project.datesObj.getEndStr(), 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            saveCustomStatus(statusStart);
+                          },
+                        )
+                      ],
+                    )
+                  ])
+                : Container(),
+        space(width: 20),
+        (project.statusInt() > 6) ? const Icon(Icons.arrow_right) : Container(),
+        space(width: 20),
+        (project.statusInt() == 7)
+            ? Row(children: [
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusJustification},
+                    text: "Justificar", icon: Icons.abc),
+              ])
+            : (project.statusInt() >= 7)
+                ? Column(children: [
+                    customText("Justificado", 16),
+                    Row(
+                      children: [
+                        customText(project.datesObj.getJustificationStr(), 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            saveCustomStatus(statusEnds);
+                          },
+                        )
+                      ],
+                    )
+                  ])
+                : Container(),
+        space(width: 20),
+        (project.statusInt() > 7) ? const Icon(Icons.arrow_right) : Container(),
+        space(width: 20),
+        (project.statusInt() == 8)
+            ? Row(children: [
+                addBtnRow(context, callCustomDatesEditDialog,
+                    {'project': project, 'st': statusDelivery},
+                    text: "Evaluar", icon: Icons.abc),
+              ])
+            : (project.statusInt() >= 8)
+                ? Column(children: [
+                    customText("Evaluado", 16),
+                    Row(
+                      children: [
+                        customText(project.datesObj.getDeliveryStr(), 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            saveCustomStatus(statusJustification);
+                          },
+                        )
+                      ],
+                    )
+                  ])
+                : Container(),
+      ],
+    );
+  }
 }
 
-  /*Widget customDateField(context, dateController) {
+  /*Widget customDateField(context, dates, st) {
+    switch (st) {
+      case statusReject:
+        dates.reject = dates.getReject();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Denegación',
+              selectedDate: dates.reject,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.reject = date;
+                });
+              },
+            ));
+      case statusApproved:
+        dates.approved = dates.getApproved();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Aprobación',
+              selectedDate: dates.approved,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.approved = date;
+                });
+              },
+            ));
+      case statusRefuse:
+        dates.refuse = dates.getRefuse();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Rechazo',
+              selectedDate: dates.refuse,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.refuse = date;
+                });
+              },
+            ));
+      case statusStart:
+        dates.start = dates.getStart();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Inicio',
+              selectedDate: dates.start,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.start = date;
+                });
+              },
+            ));
+      case statusEnds:
+        dates.end = dates.getEnd();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Inicio',
+              selectedDate: dates.end,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.end = date;
+                });
+              },
+            ));
+      case statusJustification:
+        dates.justification = dates.getJustification();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Justificación',
+              selectedDate: dates.justification,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.justification = date;
+                });
+              },
+            ));
+      case statusClose:
+        dates.close = dates.getClose();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Cerrado',
+              selectedDate: dates.close,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.close = date;
+                });
+              },
+            ));
+      case statusDelivery:
+        dates.delivery = dates.getDelivery();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Seguimiento',
+              selectedDate: dates.delivery,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.delivery = date;
+                });
+              },
+            ));
+      default:
+        dates.sended = dates.getSended();
+        return SizedBox(
+            width: 220,
+            child: DateTimePicker(
+              labelText: 'Presentación',
+              //selectedDate: dates.getSended(),
+              selectedDate: dates.sended,
+              onSelectedDate: (DateTime date) {
+                setState(() {
+                  dates.sended = date;
+                });
+              },
+            ));
+    }
+  }*/
+
+
+/*Widget customDateField(context, dateController) {
     return SizedBox(
         width: 220,
         child: TextField(
@@ -1721,4 +2213,3 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           },
         ));
   }*/
-

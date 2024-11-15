@@ -177,18 +177,22 @@ Future<List> getGoals() async {
 Future<List> getGoalsByProject(String project) async {
   List<Goal> items = [];
 
-  QuerySnapshot query = await dbGoal
-      .orderBy("project")
-      .orderBy("main", descending: true)
-      .orderBy("name", descending: false)
-      .where("project", isEqualTo: project)
-      .get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Goal item = Goal.fromJson(data);
-    //await item.getIndicatorsPercent();
-    items.add(item);
+  try {
+    QuerySnapshot query = await dbGoal
+        .orderBy("project")
+        .orderBy("main", descending: true)
+        .orderBy("name", descending: false)
+        .where("project", isEqualTo: project)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Goal item = Goal.fromJson(data);
+      //await item.getIndicatorsPercent();
+      items.add(item);
+    }
+  } catch (e) {
+    print(e);
   }
   return items;
 }
