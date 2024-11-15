@@ -114,7 +114,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     programmeGraphs(),
-                    programmeProjects(context),
+                    //programmeProjects(context),
                   ],
                 )
           //programmeList(context),
@@ -662,6 +662,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         ),
       );
     } else {
+      return Container();
       return const CircularProgressIndicator();
     }
   }

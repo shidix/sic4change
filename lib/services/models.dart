@@ -2071,22 +2071,22 @@ class ProgrammeIndicators {
 
 Future<List> getProgrammesIndicators(uuid) async {
   List items = [];
-  try {
-    QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators
-        .orderBy("order", descending: true)
-        .where("programme", isEqualTo: uuid)
-        .get();
+  //try {
+  QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators
+      .orderBy("order", descending: true)
+      .where("programme", isEqualTo: uuid)
+      .get();
 
-    for (var doc in queryProgrammeIndicators.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = ProgrammeIndicators.fromJson(data);
-      await item.getSumValues();
-      items.add(item);
-    }
-  } catch (e) {
-    print(e);
+  for (var doc in queryProgrammeIndicators.docs) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    final item = ProgrammeIndicators.fromJson(data);
+    await item.getSumValues();
+    items.add(item);
   }
+  /*} catch (e) {
+    print(e);
+  }*/
   return items;
 }
 
