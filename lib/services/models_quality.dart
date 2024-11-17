@@ -291,12 +291,12 @@ class Gender extends Transversal {
     return db.collection(tableDB).get().then((value
         // get the first document that matches the project
         ) {
-      return value.docs.firstWhere((element) => element['project'] == project,
+      var item = value.docs.firstWhere(
+          (element) => element['project'] == project,
           orElse: () => throw "No document found");
+      return Gender.fromFirestore(item);
     }).then((value) {
-      Gender item = Gender.getEmpty();
-      item.project = project;
-      return item;
+      return value;
     }).catchError((error) {
       print("Gender.byProject :=> $error");
       Gender item = Gender.getEmpty();
