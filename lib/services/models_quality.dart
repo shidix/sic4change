@@ -204,8 +204,14 @@ class Transparency extends Transversal {
   }
 
   static Future<Transparency> byProject(String project) {
-    return collection.where("project", isEqualTo: project).get().then((value) {
-      return Transparency.fromFirestore(value.docs.first);
+    // get all the documents from the collection
+    return collection.get().then((value) {
+      // get the first document that matches the project
+      return value.docs.firstWhere((element) => element['project'] == project,
+          orElse: () => throw "No document found");
+    }).then((value) {
+      // return the Transparency object from the document
+      return Transparency.fromFirestore(value);
     }).catchError((error) {
       print("Transparency.byProject :=> $error");
       Transparency item = Transparency.getEmpty();
@@ -213,6 +219,16 @@ class Transparency extends Transversal {
       // item.save();
       return item;
     });
+
+    // return collection.where("project", isEqualTo: project).get().then((value) {
+    //   return Transparency.fromFirestore(value.docs.first);
+    // }).catchError((error) {
+    //   print("Transparency.byProject :=> $error");
+    //   Transparency item = Transparency.getEmpty();
+    //   item.project = project;
+    //   // item.save();
+    //   return item;
+    // });
   }
 }
 
@@ -272,19 +288,36 @@ class Gender extends Transversal {
   }
 
   static Future<Gender> byProject(String project) {
-    return db
-        .collection(tableDB)
-        .where("project", isEqualTo: project)
-        .get()
-        .then((value) {
-      return Gender.fromFirestore(value.docs.first);
+    return db.collection(tableDB).get().then((value
+        // get the first document that matches the project
+        ) {
+      return value.docs.firstWhere((element) => element['project'] == project,
+          orElse: () => throw "No document found");
+    }).then((value) {
+      Gender item = Gender.getEmpty();
+      item.project = project;
+      return item;
     }).catchError((error) {
       print("Gender.byProject :=> $error");
       Gender item = Gender.getEmpty();
       item.project = project;
-      // item.save();
       return item;
     });
+
+    // return
+    // return db
+    //     .collection(tableDB)
+    //     .where("project", isEqualTo: project)
+    //     .get()
+    //     .then((value) {
+    //   return Gender.fromFirestore(value.docs.first);
+    // }).catchError((error) {
+    //   print("Gender.byProject :=> $error");
+    //   Gender item = Gender.getEmpty();
+    //   item.project = project;
+    //   // item.save();
+    //   return item;
+    // });
   }
 }
 
