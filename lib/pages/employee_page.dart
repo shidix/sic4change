@@ -36,10 +36,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
   String employeeFilter = '';
   double minSalaryFilter = 0.0;
   double maxSalaryFilter = 1e6;
+  String positionFilter = '';
   DateTime minBornDateFilter =
       DateTime.now().subtract(const Duration(days: 365 * 100));
-  DateTime maxBornDateFilter =
-      DateTime.now().subtract(const Duration(days: 365 * 16));
+  DateTime maxBornDateFilter = DateTime.now();
   DateTime minAltaDateFilter =
       DateTime.now().subtract(const Duration(days: 365 * 10));
   DateTime maxAltaDateFilter =
@@ -61,6 +61,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
             (element.getFullName().toLowerCase().contains(employeeFilter) ||
                 (element.code.toLowerCase().startsWith(employeeFilter)) ||
                 (element.email.toLowerCase().contains(employeeFilter))) &&
+            (element
+                    .getPosition()
+                    .toLowerCase()
+                    .contains(positionFilter.toLowerCase()) ||
+                (positionFilter == '')) &&
             element.getSalary() >= minSalaryFilter &&
             element.getSalary() <= maxSalaryFilter &&
             element.getBornDate().isAfter(minBornDateFilter) &&
@@ -238,37 +243,57 @@ class _EmployeesPageState extends State<EmployeesPage> {
           ),
         ),
         Expanded(
-          child: FilterDateField(
-              labelText: 'Nacidos desde',
-              bottom: 17,
-              minYear: 1900,
-              maxYear: 2100,
-              selectedDate: minBornDateFilter,
-              onSelectedDate: (value) {
-                minBornDateFilter = value;
-                if (mounted) {
-                  setState(() {
-                    contentPanel = content(context);
-                  });
-                }
-              }),
+          child: TextField(
+            decoration: const InputDecoration(
+                labelText: 'Filtrar por cargo',
+                hintText: 'Cargo o categoría',
+                prefixIcon: Icon(Icons.search)),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                positionFilter = value;
+              } else {
+                positionFilter = '';
+              }
+              if (mounted) {
+                setState(() {
+                  contentPanel = content(context);
+                });
+              }
+            },
+          ),
         ),
-        Expanded(
-          child: FilterDateField(
-              labelText: 'Nacidos hasta',
-              bottom: 17,
-              minYear: 1900,
-              maxYear: 2100,
-              selectedDate: maxBornDateFilter,
-              onSelectedDate: (value) {
-                maxBornDateFilter = value;
-                if (mounted) {
-                  setState(() {
-                    contentPanel = content(context);
-                  });
-                }
-              }),
-        ),
+        // Expanded(
+        //   child: FilterDateField(
+        //       labelText: 'Nacidos desde',
+        //       bottom: 17,
+        //       minYear: 1900,
+        //       maxYear: 2100,
+        //       selectedDate: minBornDateFilter,
+        //       onSelectedDate: (value) {
+        //         minBornDateFilter = value;
+        //         if (mounted) {
+        //           setState(() {
+        //             contentPanel = content(context);
+        //           });
+        //         }
+        //       }),
+        // ),
+        // Expanded(
+        //   child: FilterDateField(
+        //       labelText: 'Nacidos hasta',
+        //       bottom: 17,
+        //       minYear: 1900,
+        //       maxYear: 2100,
+        //       selectedDate: maxBornDateFilter,
+        //       onSelectedDate: (value) {
+        //         maxBornDateFilter = value;
+        //         if (mounted) {
+        //           setState(() {
+        //             contentPanel = content(context);
+        //           });
+        //         }
+        //       }),
+        // ),
         Expanded(
           child: FilterDateField(
               labelText: 'Alta desde',
@@ -345,6 +370,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 (element.code.toLowerCase().startsWith(employeeFilter)) ||
                 (element.email.toLowerCase().contains(employeeFilter)) ||
                 (employeeFilter.isEmpty)) &&
+            (element
+                    .getPosition()
+                    .toLowerCase()
+                    .contains(positionFilter.toLowerCase()) ||
+                (positionFilter == '')) &&
             element.getSalary() >= minSalaryFilter &&
             element.getSalary() <= maxSalaryFilter &&
             element.getBornDate().isAfter(minBornDateFilter) &&
