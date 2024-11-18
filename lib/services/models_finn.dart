@@ -1167,10 +1167,17 @@ class InvoiceDistrib extends Object {
   }
 
   static Future<List<InvoiceDistrib>> getByInvoice(invoice) async {
+    if (invoice == null) {
+      return [];
+    }
+
     final collection = db.collection("s4c_invoicedistrib");
 
     QuerySnapshot<Map<String, dynamic>> query;
     if (invoice is List) {
+      if (invoice.isEmpty) {
+        return [];
+      }
       query = await collection
           .where("invoice", whereIn: invoice.map((e) => e.uuid).toList())
           .get();
@@ -1581,15 +1588,24 @@ class Distribution extends Object {
       };
 
   static Future<List<Distribution>> all() async {
-    final collection = db.collection("s4c_distributions");
-    List<Distribution> items = [];
-    final query = await collection.get();
-    for (var element in query.docs) {
-      Distribution item = Distribution.fromJson(element.data());
-      item.id = element.id;
-      items.add(item);
+    try {
+      final collection = db.collection("s4c_distributions");
+      List<Distribution> items = [];
+      final query = await collection.get();
+      if (query.docs.isEmpty) {
+        return items;
+      }
+      for (var element in query.docs) {
+        Distribution item = Distribution.fromJson(element.data());
+        item.id = element.id;
+        items.add(item);
+      }
+      return items;
+    } catch (e, stacktrace) {
+      log(e.toString());
+      log(stacktrace.toString());
+      return [];
     }
-    return items;
   }
 
   static Future<Distribution> getByUuid(String uuid) async {
