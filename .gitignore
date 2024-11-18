@@ -59,4 +59,4 @@ lib/generated/
 firebase.json
 firebase.json.orig
 web/404.html
-lib/firebase_options.dart
+lib/firebase_options.dart**
