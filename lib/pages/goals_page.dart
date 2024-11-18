@@ -367,8 +367,10 @@ class _GoalsPageState extends State<GoalsPage>
               expanded: false,
               bgColor: headerListBgColorResult,
               txtColor: mainMenuBtnSelectedColor),*/
-          customCollapse(context, "Resultados", resultList, goal,
-              expanded: false, style: "main"),
+          (goal.name != "OE0")
+              ? customCollapse(context, "Resultados", resultList, goal,
+                  expanded: false, style: "main")
+              : Container(),
           space(height: 10),
           customCollapse2(context, "Indicadores", goalIndicators, goal,
               expanded: false,
