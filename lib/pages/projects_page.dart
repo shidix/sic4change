@@ -444,8 +444,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
     List financiers = [];
     if (project.financiersObj.isNotEmpty) {
       for (var uuid in list) {
-        financiers
-            .add((getObject(project.financiersObj, uuid) as Organization).name);
+        try {
+          financiers.add(
+              (getObject(project.financiersObj, uuid) as Organization).name);
+        } catch (e) {
+          print(e);
+        }
       }
     }
 
