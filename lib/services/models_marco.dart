@@ -213,6 +213,7 @@ class GoalIndicator {
   String folder = "";
   String order = "";
   String code = "";
+  String unit = "";
   String goal = "";
   Folder? folderObj;
 
@@ -229,6 +230,7 @@ class GoalIndicator {
         folder = json['folder'],
         order = json['order'],
         code = json['code'],
+        unit = json['unit'],
         goal = json['goal'];
 
   Map<String, dynamic> toJson() => {
@@ -242,6 +244,7 @@ class GoalIndicator {
         'folder': folder,
         'order': order,
         'code': code,
+        'unit': unit,
         'goal': goal,
       };
 

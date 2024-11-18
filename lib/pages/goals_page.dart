@@ -1541,7 +1541,7 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Línea Base",
                     initial: indicator.base,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
@@ -1555,7 +1555,7 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Resultado Esperado",
                     initial: indicator.expected,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
@@ -1569,12 +1569,25 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Resultado Obtenido",
                     initial: indicator.obtained,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
                       indicator.obtained = val;
                       //setState(() => indicator.obtained = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Unidad de medida",
+                    initial: indicator.unit,
+                    size: 200,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      indicator.unit = val;
                     },
                   )
                 ]),
@@ -1647,11 +1660,15 @@ class _GoalsPageState extends State<GoalsPage>
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Esperado", 14,
+              label: customText("Res Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Obtenido", 14,
+              label: customText("Res Obtenido", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
+            DataColumn(
+              label: customText("Unidad de medida", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(label: Container()),
@@ -1680,6 +1697,7 @@ class _GoalsPageState extends State<GoalsPage>
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
                   DataCell(Text(indicator.obtained)),
+                  DataCell(Text(indicator.unit)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,
