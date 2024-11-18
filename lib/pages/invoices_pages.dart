@@ -363,6 +363,10 @@ class _InvoicePageState extends State<InvoicePage> {
     ).then(
       (value) {
         if (value != null) {
+          // if the invoice is new, add it to the list
+          if (invoice == null) {
+            invoices.add(value);
+          }
           populateInvoices().then((value) {
             setState(() {
               containerInvoices = value;
