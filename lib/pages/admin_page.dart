@@ -4,6 +4,7 @@ import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
 import 'package:sic4change/pages/admin_decision_page.dart';
+import 'package:sic4change/pages/admin_profiles_page.dart';
 import 'package:sic4change/pages/admin_project_status_page.dart';
 import 'package:sic4change/pages/admin_project_type_page.dart';
 import 'package:sic4change/pages/admin_province_page.dart';
@@ -11,6 +12,7 @@ import 'package:sic4change/pages/admin_reformulation_status_page.dart';
 import 'package:sic4change/pages/admin_reformulation_type_page.dart';
 import 'package:sic4change/pages/admin_region_page.dart';
 import 'package:sic4change/pages/admin_skateholder_page.dart';
+import 'package:sic4change/pages/admin_task_status_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -71,6 +73,11 @@ class _AdminPageState extends State<AdminPage> {
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
           projectList(context),
+          space(height: 20),
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: customTitle(context, "TAREAS")),
+          taskList(context),
         ],
       ),
     ));
@@ -116,6 +123,10 @@ class _AdminPageState extends State<AdminPage> {
         padding: const EdgeInsets.only(left: 50, right: 50),
         child:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          goPage(context, "Perfiles", const AdminProfilesPage(), Icons.man,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
           goPage(context, "Categorías", const CategoryPage(), Icons.category,
               style: "bigBtn", extraction: () {
             setState(() {});
@@ -158,6 +169,19 @@ class _AdminPageState extends State<AdminPage> {
             setState(() {});
           }),
           goPage(context, "Tipos", const ProjectTypePage(), Icons.type_specimen,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+        ]));
+  }
+
+  Widget taskList(context) {
+    return Container(
+        padding: const EdgeInsets.only(left: 50, right: 50),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          goPage(context, "Estados de reformulación", const TaskStatusPage(),
+              Icons.task,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),

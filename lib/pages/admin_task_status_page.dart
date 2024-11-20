@@ -1,41 +1,41 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
-const categoryTitle = "Categorías";
-List categories = [];
-bool loadingCategory = false;
+const taskStatusTitle = "Estados de tareas";
+List taskStatus = [];
+bool loadingStatus = false;
 Widget? _mainMenu;
 
-class CategoryPage extends StatefulWidget {
-  const CategoryPage({super.key});
+class TaskStatusPage extends StatefulWidget {
+  const TaskStatusPage({super.key});
 
   @override
-  State<CategoryPage> createState() => _CategoryPageState();
+  State<TaskStatusPage> createState() => _TaskStatusPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage>
+class _TaskStatusPageState extends State<TaskStatusPage>
     with SingleTickerProviderStateMixin {
   void setLoading() {
     setState(() {
-      loadingCategory = true;
+      loadingStatus = true;
     });
   }
 
   void stopLoading() {
     setState(() {
-      loadingCategory = false;
+      loadingStatus = false;
     });
   }
 
-  void loadCategories() async {
+  void loadTaskStatus() async {
     setLoading();
-    await getContactCategories().then((val) {
-      categories = val;
+    await TasksStatus.getTasksStatus().then((val) {
+      taskStatus = val;
       stopLoading();
     });
   }
@@ -44,7 +44,7 @@ class _CategoryPageState extends State<CategoryPage>
   initState() {
     super.initState();
     _mainMenu = mainMenu(context);
-    loadCategories();
+    loadTaskStatus();
   }
 
   @override
@@ -53,25 +53,25 @@ class _CategoryPageState extends State<CategoryPage>
         body: SingleChildScrollView(
       child: Column(children: [
         _mainMenu!,
-        categoryHeader(context),
-        loadingCategory
+        taskStatusHeader(context),
+        loadingStatus
             ? const Center(
                 child: CircularProgressIndicator(),
               )
-            : categoryList(context),
+            : taskStatusList(context),
         footer(context),
       ]),
     ));
   }
 
 /*-------------------------------------------------------------
-                            CATEGORIES
+                            TASK STATUS
 -------------------------------------------------------------*/
-  Widget categoryHeader(context) {
+  Widget taskStatusHeader(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(
         padding: const EdgeInsets.all(20),
-        child: customText("CATEGORÍAS", 20,
+        child: customText("ESTADOS DE TAREAS", 20,
             textColor: mainColor, bold: FontWeight.bold),
       ),
       Container(
@@ -79,7 +79,7 @@ class _CategoryPageState extends State<CategoryPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, editCategoryDialog, {'category': TasksStatus("")}),
+            addBtn(context, editTaskStatusDialog, {'status': TasksStatus("")}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -88,16 +88,16 @@ class _CategoryPageState extends State<CategoryPage>
     ]);
   }
 
-  void saveCategory(List args) async {
-    TasksStatus category = args[0];
-    category.save();
-    loadCategories();
+  void saveTaskStatus(List args) async {
+    TasksStatus status = args[0];
+    status.save();
+    loadTaskStatus();
 
     Navigator.pop(context);
   }
 
-  Future<void> editCategoryDialog(context, Map<String, dynamic> args) {
-    TasksStatus category = args["category"];
+  Future<void> editTaskStatusDialog(context, Map<String, dynamic> args) {
+    TasksStatus status = args["status"];
 
     return showDialog<void>(
       context: context,
@@ -105,31 +105,31 @@ class _CategoryPageState extends State<CategoryPage>
       builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar("Categoría"),
+          title: s4cTitleBar("Estados de tareas"),
           content: SingleChildScrollView(
               child: Column(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               CustomTextField(
                 labelText: "Nombre",
-                initial: category.name,
+                initial: status.name,
                 size: 900,
                 minLines: 2,
                 maxLines: 9999,
                 fieldValue: (String val) {
-                  setState(() => category.name = val);
+                  setState(() => status.name = val);
                 },
               )
             ]),
           ])),
           actions: <Widget>[
-            dialogsBtns(context, saveCategory, category),
+            dialogsBtns(context, saveTaskStatus, status),
           ],
         );
       },
     );
   }
 
-  Widget categoryList(context) {
+  Widget taskStatusList(context) {
     return Container(
       decoration: tableDecoration,
       child: SizedBox(
@@ -147,16 +147,15 @@ class _CategoryPageState extends State<CategoryPage>
             ),
             DataColumn(label: Container()),
           ],
-          rows: categories
+          rows: taskStatus
               .map(
-                (category) => DataRow(cells: [
-                  DataCell(Text(category.name)),
+                (status) => DataRow(cells: [
+                  DataCell(Text(status.name)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    editBtn(
-                        context, editCategoryDialog, {"category": category}),
+                    editBtn(context, editTaskStatusDialog, {"status": status}),
                     removeBtn(
-                        context, removeCategoryDialog, {"category": category})
+                        context, removeTaskStatusDialog, {"status": status})
                   ]))
                 ]),
               )
@@ -166,7 +165,7 @@ class _CategoryPageState extends State<CategoryPage>
     );
   }
 
-  void removeCategoryDialog(context, args) {
-    customRemoveDialog(context, args["category"], loadCategories, null);
+  void removeTaskStatusDialog(context, args) {
+    customRemoveDialog(context, args["status"], loadTaskStatus, null);
   }
 }

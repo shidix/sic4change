@@ -291,7 +291,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
             return GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
+                  crossAxisCount: 3,
                   childAspectRatio: 6,
                 ),
                 itemCount: folders.length,

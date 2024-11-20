@@ -519,248 +519,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         });
   }
 
-  Widget projectInfoDates(context, project) {
-    ProjectDates dates = project.datesObj;
-    return Column(children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        customText("Plazos", 15, bold: FontWeight.bold),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Editar fechas',
-          onPressed: () {
-            callDatesEditDialog(context, project);
-          },
-        )
-      ]),
-      Row(children: [
-        (project.statusInt() > 1)
-            ? Row(children: [
-                customText("Presentación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getSendedStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() == 3)
-            ? Row(children: [
-                customText("Denegación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getRejectStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() == 4)
-            ? Row(children: [
-                customText("Rechazo: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getRefuseStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Aprobación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getApprovedStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Inicio: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getStartStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Finalización: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getEndStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Justificación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getJustificationStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-      ]),
-    ]);
-  }
-
-  /*Widget projectInfoDates(context, project) {
-    return FutureBuilder(
-        future: getProjectDatesByProject(project.uuid),
-        builder: ((context, snapshot) {
-          print("--GGGGG---");
-          if (snapshot.hasData) {
-            var dates = snapshot.data!;
-            return Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Plazos", 15, bold: FontWeight.bold),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  tooltip: 'Editar fechas',
-                  onPressed: () {
-                    callDatesEditDialog(context, project);
-                  },
-                )
-              ]),
-              Row(children: [
-                (project.statusInt() > 1)
-                    ? Row(children: [
-                        customText("Presentación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getSendedStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() == 3)
-                    ? Row(children: [
-                        customText("Denegación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getRejectStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() == 4)
-                    ? Row(children: [
-                        customText("Rechazo: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getRefuseStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Aprobación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getApprovedStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Inicio: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getStartStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Finalización: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getEndStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Justificación: ", 14,
-                            bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getJustificationStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-              ]),
-              /*Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    (project.status == "12")
-                        ? TableRow(children: [
-                            customText("Presentación", 14,
-                                bold: FontWeight.bold),
-                            customText("Aprobación", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                          ])
-                        : TableRow(children: [
-                            customText("Presentación", 14,
-                                bold: FontWeight.bold),
-                            customText("Aprobación", 14, bold: FontWeight.bold),
-                            customText("Inicio", 14, bold: FontWeight.bold),
-                            customText("Finalización", 14,
-                                bold: FontWeight.bold),
-                            customText("Justificación", 14,
-                                bold: FontWeight.bold),
-                          ]),
-                    (project.status == "12")
-                        ? TableRow(children: [
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.sended),
-                                dates.getSendedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.approved),
-                                dates.getApprovedStr(),
-                                14),
-                            customText("", 14),
-                            customText("", 14),
-                            customText("", 14),
-                          ])
-                        : TableRow(children: [
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.sended),
-                                dates.getSendedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.approved),
-                                dates.getApprovedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.start),
-                                dates.getStartStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.end), 14),
-                                dates.getEndStr(),
-                                14),
-                            customText(
-                                /*DateFormat("dd-MM-yyyy")
-                                    .format(dates.justification),*/
-                                dates.getJustificationStr(),
-                                14),
-                          ])
-                  ]),
-              space(height: 10),
-              Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    TableRow(children: [
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("Denegación", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                    ]),
-                    TableRow(children: [
-                      customText("", 14),
-                      customText(
-                          //DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
-                          dates.getRejectStr(),
-                          14),
-                      customText("", 14),
-                      customText("", 14),
-                      customText("", 14),
-                    ])
-                  ]),*/
-            ]);
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }*/
-
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(
         future: getProjectLocationByProject(project.uuid),
@@ -852,11 +610,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 projectPartnersHeader(context, proj),
                 projectPartners(context, proj),
-                space(height: 5),
+                /*space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 projectInfoDates(context, proj),
-                /*space(height: 5),
+                space(height: 5),
                 customRowDivider(),
                 space(height: 5),
                 projectTracingHeader(context, proj),
@@ -947,6 +705,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   ),
                 ]),
               ]),
+              space(height: 20),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
@@ -964,6 +723,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   ),
                 ]),
               ]),
+              space(height: 20),
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
@@ -2057,6 +1817,248 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     );
   }
 }
+  /*Widget projectInfoDates(context, project) {
+    ProjectDates dates = project.datesObj;
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        customText("Plazos", 15, bold: FontWeight.bold),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: 'Editar fechas',
+          onPressed: () {
+            callDatesEditDialog(context, project);
+          },
+        )
+      ]),
+      Row(children: [
+        (project.statusInt() > 1)
+            ? Row(children: [
+                customText("Presentación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getSendedStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() == 3)
+            ? Row(children: [
+                customText("Denegación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getRejectStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() == 4)
+            ? Row(children: [
+                customText("Rechazo: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getRefuseStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Aprobación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getApprovedStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Inicio: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getStartStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Finalización: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getEndStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+        (project.statusInt() >= 5)
+            ? Row(children: [
+                customText("Justificación: ", 14, bold: FontWeight.bold),
+                space(width: 5),
+                customText(dates.getJustificationStr(), 14),
+                space(width: 10),
+              ])
+            : Container(),
+      ]),
+    ]);
+  }*/
+
+  /*Widget projectInfoDates(context, project) {
+    return FutureBuilder(
+        future: getProjectDatesByProject(project.uuid),
+        builder: ((context, snapshot) {
+          print("--GGGGG---");
+          if (snapshot.hasData) {
+            var dates = snapshot.data!;
+            return Column(children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                customText("Plazos", 15, bold: FontWeight.bold),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Editar fechas',
+                  onPressed: () {
+                    callDatesEditDialog(context, project);
+                  },
+                )
+              ]),
+              Row(children: [
+                (project.statusInt() > 1)
+                    ? Row(children: [
+                        customText("Presentación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getSendedStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() == 3)
+                    ? Row(children: [
+                        customText("Denegación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getRejectStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() == 4)
+                    ? Row(children: [
+                        customText("Rechazo: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getRefuseStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Aprobación: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getApprovedStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Inicio: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getStartStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Finalización: ", 14, bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getEndStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+                (project.statusInt() >= 5)
+                    ? Row(children: [
+                        customText("Justificación: ", 14,
+                            bold: FontWeight.bold),
+                        space(width: 5),
+                        customText(dates.getJustificationStr(), 14),
+                        space(width: 10),
+                      ])
+                    : Container(),
+              ]),
+              /*Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
+                    (project.status == "12")
+                        ? TableRow(children: [
+                            customText("Presentación", 14,
+                                bold: FontWeight.bold),
+                            customText("Aprobación", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                            customText("", 14, bold: FontWeight.bold),
+                          ])
+                        : TableRow(children: [
+                            customText("Presentación", 14,
+                                bold: FontWeight.bold),
+                            customText("Aprobación", 14, bold: FontWeight.bold),
+                            customText("Inicio", 14, bold: FontWeight.bold),
+                            customText("Finalización", 14,
+                                bold: FontWeight.bold),
+                            customText("Justificación", 14,
+                                bold: FontWeight.bold),
+                          ]),
+                    (project.status == "12")
+                        ? TableRow(children: [
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.sended),
+                                dates.getSendedStr(),
+                                14),
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.approved),
+                                dates.getApprovedStr(),
+                                14),
+                            customText("", 14),
+                            customText("", 14),
+                            customText("", 14),
+                          ])
+                        : TableRow(children: [
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.sended),
+                                dates.getSendedStr(),
+                                14),
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.approved),
+                                dates.getApprovedStr(),
+                                14),
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.start),
+                                dates.getStartStr(),
+                                14),
+                            customText(
+                                //DateFormat("dd-MM-yyyy").format(dates.end), 14),
+                                dates.getEndStr(),
+                                14),
+                            customText(
+                                /*DateFormat("dd-MM-yyyy")
+                                    .format(dates.justification),*/
+                                dates.getJustificationStr(),
+                                14),
+                          ])
+                  ]),
+              space(height: 10),
+              Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
+                    TableRow(children: [
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("Denegación", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
+                      customText("", 14, bold: FontWeight.bold),
+                    ]),
+                    TableRow(children: [
+                      customText("", 14),
+                      customText(
+                          //DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
+                          dates.getRejectStr(),
+                          14),
+                      customText("", 14),
+                      customText("", 14),
+                      customText("", 14),
+                    ])
+                  ]),*/
+            ]);
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }));
+  }*/
+
 
   /*Widget customDateField(context, dates, st) {
     switch (st) {
