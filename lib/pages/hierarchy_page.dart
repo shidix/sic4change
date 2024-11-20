@@ -214,6 +214,15 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Widget mainMenuPanel = Container();
 
   List<Department> departments = [];
+  Map<String, Department> departmentsHash = {};
+  Map<String, bool> expanded = {};
+  Map<String, String> departmentKeys = {};
+  List<Color> colors = [
+    Colors.white,
+    Colors.grey[100]!,
+    Colors.grey[200]!,
+    Colors.grey[400]!
+  ];
 
   @override
   void initState() {
@@ -221,12 +230,34 @@ class _HierarchyPageState extends State<HierarchyPage> {
     profile = widget.profile;
     Department.getDepartments().then((value) {
       departments = value;
+
+      for (Department d in departments) {
+        expanded[d.id!] = false;
+        departmentsHash[d.id!] = d;
+      }
+      for (Department d in departments) {
+        departmentKeys[d.id!] = d.name;
+        String parent = d.parent!;
+        while (parent != '') {
+          departmentKeys[d.id!] =
+              '${departmentsHash[parent]!.name}>${departmentKeys[d.id!]!}';
+          parent = departmentsHash[parent]!.parent!;
+        }
+      }
+
+      departments.sort(
+          (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
       contentPanel = departmentPanel();
 
       if (mounted) {
         setState(() {});
       }
     });
+  }
+
+  String createIndentationFromKey(String key) {
+    int count = key.split('>').length;
+    return ' ' * (count * 8);
   }
 
   Widget departmentPanel() {
@@ -252,58 +283,98 @@ class _HierarchyPageState extends State<HierarchyPage> {
         )),
         const DataColumn(label: Text('')),
       ];
-      List<DataRow> rows = departments
-          .map((department) => DataRow(cells: [
-                DataCell(Text(department.name)),
-                DataCell(Text((department.parent != null)
-                    ? departments
-                        .firstWhere((d) => d.id == department.parent,
-                            orElse: () => Department(name: '--'))
-                        .name
-                    : '--')),
-                DataCell(Text((department.manager != null)
-                    ? department.manager!.getFullName()
-                    : 'Sin supervisor/a')),
-                DataCell(
-                    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  // IconButton(
-                  //     icon: const Icon(Icons.edit),
-                  //     onPressed: () {},
-                  //     color: Colors.black),
-                  editBtn(context, (context, department) {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return CustomPopupDialog(
-                            context: context,
-                            title: 'Editar Departamento',
-                            icon: Icons.edit,
-                            content: DepartmentForm(
-                                profile: profile, department: department),
-                            actionBtns: null,
-                          );
-                        }).then((value) {
-                      if (value != null) {
-                        if (mounted) {
-                          setState(() {
-                            contentPanel = departmentPanel();
-                          });
-                        }
-                      }
-                    });
-                  }, department),
-                  removeConfirmBtn(context, (context) {
-                    department.delete().then((value) {
-                      departments.remove(department);
-                      if (mounted) {
-                        setState(() {
-                          contentPanel = departmentPanel();
-                        });
-                      }
-                    });
-                  }, null)
-                ]))
-              ]))
+      List<Department> departmentsRoot = departments
+          .where((department) => ((department.parent == null) ||
+              (department.parent == '') ||
+              (expanded[department.parent] == true)))
+          .toList();
+      List<DataRow> rows = departmentsRoot
+          .map((department) => DataRow(
+                  color: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
+                    if (department.parent == '') {
+                      return colors[0];
+                    }
+                    return colors[
+                        departmentKeys[department.id]!.split('>').length];
+                  }),
+                  cells: [
+                    (department.parent == '')
+                        ? DataCell(Text(department.name))
+                        : DataCell(Text(
+                            '${createIndentationFromKey(departmentKeys[department.id!]!)}${department.name}')),
+                    DataCell(Text((department.parent != null)
+                        ? departments
+                            .firstWhere((d) => d.id == department.parent,
+                                orElse: () => Department(name: '--'))
+                            .name
+                        : '--')),
+                    DataCell(Text((department.manager != null)
+                        ? department.manager!.getFullName()
+                        : 'Sin supervisor/a')),
+                    DataCell(Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // IconButton(
+                          //     icon: const Icon(Icons.edit),
+                          //     onPressed: () {},
+                          //     color: Colors.black),
+                          IconButton(
+                              icon: Icon((!expanded[department.id]!)
+                                  ? Icons.expand_more_outlined
+                                  : Icons.expand_less_outlined),
+                              onPressed: () {
+                                expanded[department.id!] =
+                                    !expanded[department.id]!;
+                                if (!expanded[department.id]!) {
+                                  for (String key in departmentKeys.keys) {
+                                    if (departmentKeys[key]!
+                                        .contains('${department.name}>')) {
+                                      expanded[key] = false;
+                                    }
+                                  }
+                                }
+                                if (mounted) {
+                                  setState(() {
+                                    contentPanel = departmentPanel();
+                                  });
+                                }
+                              }),
+                          editBtn(context, (context, department) {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return CustomPopupDialog(
+                                    context: context,
+                                    title: 'Editar Departamento',
+                                    icon: Icons.edit,
+                                    content: DepartmentForm(
+                                        profile: profile,
+                                        department: department),
+                                    actionBtns: null,
+                                  );
+                                }).then((value) {
+                              if (value != null) {
+                                if (mounted) {
+                                  setState(() {
+                                    contentPanel = departmentPanel();
+                                  });
+                                }
+                              }
+                            });
+                          }, department),
+                          removeConfirmBtn(context, (context) {
+                            department.delete().then((value) {
+                              departments.remove(department);
+                              if (mounted) {
+                                setState(() {
+                                  contentPanel = departmentPanel();
+                                });
+                              }
+                            });
+                          }, null)
+                        ]))
+                  ]))
           .toList();
       departmentsTable = DataTable(
           headingRowColor: WidgetStateProperty.resolveWith<Color?>(

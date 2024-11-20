@@ -447,7 +447,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
         try {
           financiers.add(
               (getObject(project.financiersObj, uuid) as Organization).name);
-        } catch (e) {}
+        } catch (e) {
+          print(e);
+        }
       }
     }
 
