@@ -124,7 +124,7 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     _mainMenu = mainMenu(context, "/contacts");
-    if (contacts.isEmpty) {
+    if (allContacts.isEmpty) {
       Contact.getAll().then((val) {
         allContacts = val;
         for (Contact c in allContacts) {
@@ -136,6 +136,11 @@ class _ContactsPageState extends State<ContactsPage> {
           });
         }
       });
+    } else {
+      contacts = allContacts;
+      if (mounted) {
+        setState(() {});
+      }
     }
     loadOrgs();
 
