@@ -12,6 +12,7 @@ const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];
 List contacts = [];
 List allContacts = [];
+List allOrgs = [];
 String currentOrg = "Ninguna seleccionada";
 bool orgsLoading = false;
 bool contactsLoading = false;
@@ -32,13 +33,25 @@ class _ContactsPageState extends State<ContactsPage> {
     setState(() {
       orgsLoading = true;
     });
-    await getOrganizations().then((val) {
-      orgs = val;
 
-      setState(() {
-        orgsLoading = false;
+    if (allOrgs.isEmpty) {
+      await getOrganizations().then((val) {
+        allOrgs = val;
+        orgs = val;
+
+        setState(() {
+          orgsLoading = false;
+        });
       });
-    });
+    } else {
+      orgs = allOrgs;
+      orgsLoading = false;
+      if (mounted) {
+        setState(() {
+          orgsLoading = false;
+        });
+      }
+    }
   }
 
   // void loadContacts(value) async {
@@ -74,19 +87,32 @@ class _ContactsPageState extends State<ContactsPage> {
       orgsLoading = true;
     });
 
-    await searchOrganizations(value).then((val) {
-      orgs = val;
+    if (value == "") {
+      orgs = allOrgs;
+    } else {
+      orgs = allOrgs
+          .where((element) =>
+              element.name.toLowerCase().contains(value.toLowerCase()))
+          .toList();
+    }
+    if (mounted) {
       setState(() {
         orgsLoading = false;
       });
-    });
+    }
+
+    // await searchOrganizations(value).then((val) {
+    //   orgs = val;
+    //   setState(() {
+    //     orgsLoading = false;
+    //   });
+    // });
   }
 
   void findContacts(value) async {
     setState(() {
       contactsLoading = true;
     });
-    print("DBG:> $value");
 
     if (value == "") {
       contacts = allContacts;
@@ -203,6 +229,9 @@ class _ContactsPageState extends State<ContactsPage> {
                   SizedBox(
                       width: 280,
                       child: SearchBar(
+                        onChanged: (value) {
+                          findOrganizations(value);
+                        },
                         onSubmitted: (value) {
                           findOrganizations(value);
                         },
