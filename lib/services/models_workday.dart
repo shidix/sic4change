@@ -89,33 +89,37 @@ class Workday {
   }
 
   static Future<Workday?> currentByUser(String email) async {
-    final database = db.collection("s4c_workday");
-    List<Workday> items = [];
-    DateTime today = DateTime.now();
-    today = truncDate(today);
-    final query = await database
-        .where("userId", isEqualTo: email)
-        .where("startDate", isGreaterThanOrEqualTo: today)
-        .get();
-    if (query.docs.isNotEmpty) {
-      for (var result in query.docs) {
-        Workday item = Workday.fromFirestore(result);
-        if (item.open) {
-          items.add(item);
+    try {
+      final database = db.collection("s4c_workday");
+      List<Workday> items = [];
+      DateTime today = DateTime.now();
+      today = truncDate(today);
+      final query = await database
+          .where("userId", isEqualTo: email)
+          .where("startDate", isGreaterThanOrEqualTo: today)
+          .get();
+      if (query.docs.isNotEmpty) {
+        for (var result in query.docs) {
+          Workday item = Workday.fromFirestore(result);
+          if (item.open) {
+            items.add(item);
+          }
         }
       }
-    }
-    if (items.isNotEmpty) {
-      items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
-      return items.first;
-    } else {
-      Workday empty = Workday.getEmpty();
-      empty.userId = email;
-      empty.open = true;
-      empty.startDate = DateTime.now();
-      empty.endDate = empty.startDate.add(const Duration(hours: 8));
-      empty.save();
-      return empty;
+      if (items.isNotEmpty) {
+        items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+        return items.first;
+      } else {
+        Workday empty = Workday.getEmpty();
+        empty.userId = email;
+        empty.open = true;
+        empty.startDate = DateTime.now();
+        empty.endDate = empty.startDate.add(const Duration(hours: 8));
+        empty.save();
+        return empty;
+      }
+    } catch (e) {
+      return null;
     }
   }
 
