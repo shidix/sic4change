@@ -1365,27 +1365,33 @@ class ProjectLocation {
 
   Future<Region> getRegion() async {
     try {
+      //if (region != "") {
       QuerySnapshot query =
           await dbRegion.where("uuid", isEqualTo: region).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       return Region.fromJson(data);
+      //}
     } catch (e) {
-      return Region("");
+      print(e);
     }
+    return Region("");
   }
 
   Future<Town> getTown() async {
     try {
+      //if (town != "") {
       QuerySnapshot query = await dbTown.where("uuid", isEqualTo: town).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       return Town.fromJson(data);
+      //}
     } catch (e) {
-      return Town("");
+      print(e);
     }
+    return Town("");
   }
 }
 

@@ -436,7 +436,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           charges.add(item2.toKeyValue());
         }
         await getContactCategories().then((value) async {
-          for (ContactCategory item3 in value) {
+          for (TasksStatus item3 in value) {
             categories.add(item3.toKeyValue());
           }
           await getZones().then((value) async {

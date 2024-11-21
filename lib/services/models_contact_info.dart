@@ -37,8 +37,8 @@ class ContactInfo {
 
   Organization orgObj = Organization("");
   ContactCharge chargeObj = ContactCharge("");
-  ContactCategory catObj = ContactCategory("");
-  ContactCategory subcatObj = ContactCategory("");
+  TasksStatus catObj = TasksStatus("");
+  TasksStatus subcatObj = TasksStatus("");
   ContactDecision decisionObj = ContactDecision("");
   Zone zoneObj = Zone("");
   Zone subzoneObj = Zone("");
@@ -164,29 +164,29 @@ class ContactInfo {
     }
   }
 
-  Future<ContactCategory> getCategory() async {
+  Future<TasksStatus> getCategory() async {
     try {
       QuerySnapshot query =
           await dbContactCategory.where("uuid", isEqualTo: category).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      return ContactCategory.fromJson(data);
+      return TasksStatus.fromJson(data);
     } catch (e) {
-      return ContactCategory("");
+      return TasksStatus("");
     }
   }
 
-  Future<ContactCategory> getSubcategory() async {
+  Future<TasksStatus> getSubcategory() async {
     try {
       QuerySnapshot query =
           await dbContactCategory.where("uuid", isEqualTo: subcategory).get();
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      return ContactCategory.fromJson(data);
+      return TasksStatus.fromJson(data);
     } catch (e) {
-      return ContactCategory("");
+      return TasksStatus("");
     }
   }
 
@@ -386,14 +386,14 @@ Future<List> getContactCharges() async {
 //--------------------------------------------------------------
 CollectionReference dbContactCategory = db.collection("s4c_contact_category");
 
-class ContactCategory {
+class TasksStatus {
   String id = "";
   String uuid = "";
   String name;
 
-  ContactCategory(this.name);
+  TasksStatus(this.name);
 
-  ContactCategory.fromJson(Map<String, dynamic> json)
+  TasksStatus.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'];
@@ -426,12 +426,12 @@ class ContactCategory {
 }
 
 Future<List> getContactCategories() async {
-  List<ContactCategory> items = [];
+  List<TasksStatus> items = [];
   QuerySnapshot query = await dbContactCategory.get();
   for (var doc in query.docs) {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
-    items.add(ContactCategory.fromJson(data));
+    items.add(TasksStatus.fromJson(data));
   }
   return items;
 }

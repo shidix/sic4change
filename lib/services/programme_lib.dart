@@ -106,14 +106,21 @@ Future<Map<String, int>> setSourceFinancing(projects) async {
       }
     }
   }
-  sources['Nacional/Publico'] =
-      ((sources['Nacional/Publico']! / total) * 100) as int;
-  sources['Nacional/Privado'] =
-      ((sources['Nacional/Privado']! / total) * 100) as int;
-  sources['Internacional/Publico'] =
-      ((sources['Internacional/Publico']! / total) * 100) as int;
-  sources['Internacional/Privado'] =
-      ((sources['Internacional/Privado']! / total) * 100) as int;
+  if (total != 0) {
+    sources['Nacional/Publico'] =
+        ((sources['Nacional/Publico']! / total) * 100) as int;
+    sources['Nacional/Privado'] =
+        ((sources['Nacional/Privado']! / total) * 100) as int;
+    sources['Internacional/Publico'] =
+        ((sources['Internacional/Publico']! / total) * 100) as int;
+    sources['Internacional/Privado'] =
+        ((sources['Internacional/Privado']! / total) * 100) as int;
+  } else {
+    sources['Nacional/Publico'] = 0;
+    sources['Nacional/Privado'] = 0;
+    sources['Internacional/Publico'] = 0;
+    sources['Internacional/Privado'] = 0;
+  }
   return sources;
 }
 

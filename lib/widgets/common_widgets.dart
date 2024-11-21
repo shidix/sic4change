@@ -1107,14 +1107,16 @@ Widget goPage(context, btnName, newContext, icon, {style = "", extraction}) {
 }
 
 Widget goPageDoc(context, btnName, newContext, icon, {style, extraction}) {
+  String name =
+      (btnName.length > 40) ? btnName.substring(0, 40) + '...' : btnName;
   Widget child = Container(
-      width: 250,
+      width: 300,
       height: 50,
       child: Row(
         children: [
           Icon(icon, color: subTitleColor),
           space(width: 5),
-          customText(btnName, 12, textColor: subTitleColor),
+          customText(name, 12, textColor: subTitleColor),
         ],
       ));
   return ElevatedButton(
