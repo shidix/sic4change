@@ -11,6 +11,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];
 List contacts = [];
+List allContacts = [];
+List allOrgs = [];
 String currentOrg = "Ninguna seleccionada";
 bool orgsLoading = false;
 bool contactsLoading = false;
@@ -31,55 +33,80 @@ class _ContactsPageState extends State<ContactsPage> {
     setState(() {
       orgsLoading = true;
     });
-    await getOrganizations().then((val) {
-      orgs = val;
 
-      setState(() {
-        orgsLoading = false;
-      });
-    });
-  }
+    if (allOrgs.isEmpty) {
+      await getOrganizations().then((val) {
+        allOrgs = val;
+        orgs = val;
 
-  void loadContacts(value) async {
-    setState(() {
-      contactsLoading = true;
-    });
-
-    if (value != "-1") {
-      await getContactsByOrg(value).then((val) {
-        contacts = val;
         setState(() {
-          contactsLoading = false;
+          orgsLoading = false;
         });
       });
     } else {
-      await getContacts().then((val) {
-        contacts = val;
+      orgs = allOrgs;
+      orgsLoading = false;
+      if (mounted) {
         setState(() {
-          contactsLoading = false;
+          orgsLoading = false;
         });
-      });
+      }
     }
-    if (mounted) {
-      setState(() {});
-    }
-    for (Contact c in contacts) {
-      await c.loadObjs();
-    }
-    setState(() {});
   }
+
+  // void loadContacts(value) async {
+  //   setState(() {
+  //     contactsLoading = true;
+  //   });
+
+  //   if (value != "-1") {
+  //     await getContactsByOrg(value).then((val) {
+  //       contacts = val;
+  //       setState(() {
+  //         contactsLoading = false;
+  //       });
+  //     });
+  //   } else {
+  //     await getContacts().then((val) {
+  //       contacts = val;
+  //       setState(() {
+  //         contactsLoading = false;
+  //       });
+  //     });
+  //   }
+  //   for (Contact c in contacts) {
+  //     await c.loadObjs();
+  //   }
+  //   if (mounted) {
+  //     setState(() {});
+  //   }
+  // }
 
   void findOrganizations(value) async {
     setState(() {
       orgsLoading = true;
     });
 
-    await searchOrganizations(value).then((val) {
-      orgs = val;
+    if (value == "") {
+      orgs = allOrgs;
+    } else {
+      orgs = allOrgs
+          .where((element) =>
+              element.name.toLowerCase().contains(value.toLowerCase()))
+          .toList();
+    }
+    if (mounted) {
       setState(() {
         orgsLoading = false;
       });
-    });
+    }
+
+    // await searchOrganizations(value).then((val) {
+    //   orgs = val;
+    //   setState(() {
+    //     orgsLoading = false;
+    //   });
+    // });
   }
 
   void findContacts(value) async {
@@ -87,19 +114,63 @@ class _ContactsPageState extends State<ContactsPage> {
       contactsLoading = true;
     });
 
-    searchContacts(value).then((val) {
-      contacts = val;
+    if (value == "") {
+      contacts = allContacts;
+    } else {
+      contacts = allContacts
+          .where((element) =>
+              (element.name.toLowerCase().contains(value.toLowerCase()) ||
+                  element.email.toLowerCase().contains(value.toLowerCase()) ||
+                  element.organizationObj.name
+                      .toLowerCase()
+                      .contains(value.toLowerCase()) ||
+                  element.companyObj.name
+                      .toLowerCase()
+                      .contains(value.toLowerCase()) ||
+                  element.positionObj.name
+                      .toLowerCase()
+                      .contains(value.toLowerCase()) ||
+                  element.phone.toLowerCase().contains(value.toLowerCase())))
+          .toList();
+    }
+    if (mounted) {
       setState(() {
         contactsLoading = false;
       });
-    });
+    }
+
+    // searchContacts(value).then((val) {
+    //   contacts = val;
+    //   setState(() {
+    //     contactsLoading = false;
+    //   });
+    // });
   }
 
   @override
   void initState() {
     _mainMenu = mainMenu(context, "/contacts");
+    if (allContacts.isEmpty) {
+      Contact.getAll().then((val) {
+        allContacts = val;
+        for (Contact c in allContacts) {
+          c.loadObjs().then((value) {
+            contacts.add(c);
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        }
+      });
+    } else {
+      contacts = allContacts;
+      if (mounted) {
+        setState(() {});
+      }
+    }
     loadOrgs();
-    loadContacts("");
+
+    // loadContacts("-1");
     super.initState();
   }
 
@@ -158,6 +229,9 @@ class _ContactsPageState extends State<ContactsPage> {
                   SizedBox(
                       width: 280,
                       child: SearchBar(
+                        onChanged: (value) {
+                          findOrganizations(value);
+                        },
                         onSubmitted: (value) {
                           findOrganizations(value);
                         },
@@ -169,6 +243,7 @@ class _ContactsPageState extends State<ContactsPage> {
                     context,
                     callEditOrgDialog,
                     {'org': Organization("")},
+                    text: "",
                   ),
                 ])),
         Container(
@@ -218,7 +293,14 @@ class _ContactsPageState extends State<ContactsPage> {
                         onSelectChanged: (bool? selected) {
                           if (selected == true) {
                             currentOrg = org.name;
-                            loadContacts(org.uuid);
+                            contacts = allContacts
+                                .where((element) =>
+                                    element.organizationObj.uuid == org.uuid)
+                                .toList();
+                            if (mounted) {
+                              setState(() {});
+                            }
+                            //loadContacts(org.uuid);
                           }
                         },
                         cells: [
@@ -355,10 +437,16 @@ class _ContactsPageState extends State<ContactsPage> {
 -------------------------------------------------------------*/
   void filterContacts(context, args) {
     if (args["filter"] == "all") {
-      loadContacts("-1");
+      findContacts("");
+      //loadContacts("-1");
     }
     if (args["filter"] == "generic") {
-      loadContacts("");
+      contacts = allContacts
+          .where((element) => element.organizationObj.name == "")
+          .toList();
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -375,11 +463,14 @@ class _ContactsPageState extends State<ContactsPage> {
                       width: 500,
                       child: SearchBar(
                         controller: searchController,
-                        padding: const MaterialStatePropertyAll<EdgeInsets>(
+                        padding: const WidgetStatePropertyAll<EdgeInsets>(
                             EdgeInsets.symmetric(horizontal: 12.0)),
-                        onSubmitted: (value) {
+                        onChanged: (value) {
                           findContacts(value);
                         },
+                        // onSubmitted: (value) {
+                        //   findContacts(value);
+                        // },
                         leading: const Icon(Icons.search),
                       )),
                   addBtnRow(context, filterContacts, {"filter": "generic"},
@@ -491,7 +582,13 @@ class _ContactsPageState extends State<ContactsPage> {
   void saveContact(List args) async {
     Contact contact = args[0];
     contact.save();
-    loadContacts("");
+    contact.loadObjs().then((value) {
+      allContacts.add(contact);
+      findContacts("");
+      setState(() {});
+    });
+
+    // loadContacts("");
 
     Navigator.pop(context);
   }
@@ -592,7 +689,15 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   void removeContactDialog(context, args) {
-    customRemoveDialog(context, args["contact"], loadContacts, "-1");
+    //customRemoveDialog(context, args["contact"], loadContacts, "-1");
+    Contact contact = args["contact"];
+    customRemoveDialog(context, args["contact"], () {
+      contacts.remove(contact);
+      allContacts.remove(contact);
+      if (mounted) {
+        setState(() {});
+      }
+    }, null);
   }
 
   /*Future<void> _removeContactDialog(context, _contact) async {

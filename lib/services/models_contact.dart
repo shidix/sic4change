@@ -65,7 +65,8 @@ class Contact {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbContacts.add(data);
+      dbContacts.add(data).then((value) => id = value.id);
+
       createLog("Creado el contacto: $name");
     } else {
       Map<String, dynamic> data = toJson();
