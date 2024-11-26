@@ -82,24 +82,44 @@ class _GoalsPageState extends State<GoalsPage>
       goals = val;
       for (Goal goal in goals!) {
         results[goal.uuid] = await getResultsByGoal(goal.uuid);
+        double resPercent = 0;
+        int i = 0;
         for (Result res in results[goal.uuid]) {
           resultIndicatorList[res.uuid] =
               await getResultIndicatorsByResult(res.uuid);
           resultActivityList[res.uuid] = await getActivitiesByResult(res.uuid);
+          double actPercent = 0;
+          int j = 0;
           for (Activity activity in resultActivityList[res.uuid]) {
             activityIndicatorList[activity.uuid] =
                 await getActivityIndicatorsByActivity(activity.uuid);
             activityIndicatorPercent[activity.uuid] =
                 await Activity.getIndicatorsPercent(activity.uuid);
+            actPercent += activityIndicatorPercent[activity.uuid];
+            j += 1;
           }
 
-          resultIndicatorPercent[res.uuid] =
-              await Result.getIndicatorsPercent(res.uuid);
-          resultIndicatorPercent[res.uuid] = 0;
+          /*resultIndicatorPercent[res.uuid] =
+              await Result.getIndicatorsPercent(res.uuid);*/
+          //resultIndicatorPercent[res.uuid] = 0;
+          double rPer = await Result.getIndicatorsPercent(res.uuid);
+          if (j != 0) {
+            resultIndicatorPercent[res.uuid] = (rPer + (actPercent / j)) / 2;
+          } else {
+            resultIndicatorPercent[res.uuid] = rPer;
+          }
+          resPercent = resPercent + rPer;
+          i += 1;
         }
         goalIndicatorList[goal.uuid] = await getGoalIndicatorsByGoal(goal.uuid);
-        goalIndicatorPercent[goal.uuid] =
-            await Goal.getIndicatorsPercent(goal.uuid);
+        /*goalIndicatorPercent[goal.uuid] =
+            await Goal.getIndicatorsPercent(goal.uuid);*/
+        double indPercent = await Goal.getIndicatorsPercent(goal.uuid);
+        if (i != 0) {
+          goalIndicatorPercent[goal.uuid] = (indPercent + (resPercent / i)) / 2;
+        } else {
+          goalIndicatorPercent[goal.uuid] = indPercent;
+        }
         if (first) {
           first = false;
           stopLoading();
@@ -836,6 +856,19 @@ class _GoalsPageState extends State<GoalsPage>
                     },
                   )
                 ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Unidad de medida",
+                    initial: indicator.unit,
+                    size: 200,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      indicator.unit = val;
+                    },
+                  )
+                ]),
               ],
             ),
           ])),
@@ -898,6 +931,10 @@ class _GoalsPageState extends State<GoalsPage>
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
+            DataColumn(
+              label: customText("Unidad de medida", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(label: Container()),
             /*DataColumn(
                 label: customText("Acciones", 14,
@@ -914,6 +951,7 @@ class _GoalsPageState extends State<GoalsPage>
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
                   DataCell(Text(indicator.obtained)),
+                  DataCell(Text(indicator.unit)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,
@@ -1214,7 +1252,7 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Línea Base",
                     initial: indicator.base,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
@@ -1227,7 +1265,7 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Resultado Esperado",
                     initial: indicator.expected,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
@@ -1240,11 +1278,24 @@ class _GoalsPageState extends State<GoalsPage>
                   CustomTextField(
                     labelText: "Resultado Obtenido",
                     initial: indicator.obtained,
-                    size: 290,
+                    size: 220,
                     minLines: 1,
                     maxLines: 1,
                     fieldValue: (String val) {
                       setState(() => indicator.obtained = val);
+                    },
+                  )
+                ]),
+                space(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CustomTextField(
+                    labelText: "Unidad de medida",
+                    initial: indicator.unit,
+                    size: 200,
+                    minLines: 1,
+                    maxLines: 1,
+                    fieldValue: (String val) {
+                      indicator.unit = val;
                     },
                   )
                 ]),
@@ -1311,6 +1362,10 @@ class _GoalsPageState extends State<GoalsPage>
               label: customText("Resultado Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
+            DataColumn(
+              label: customText("Unidad de medida", 14,
+                  bold: FontWeight.bold, textColor: headerListTitleColor),
+            ),
             DataColumn(label: Container()),
             /*DataColumn(
                 label: customText("Acciones", 14,
@@ -1327,6 +1382,7 @@ class _GoalsPageState extends State<GoalsPage>
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
                   DataCell(Text(indicator.obtained)),
+                  DataCell(Text(indicator.unit)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,

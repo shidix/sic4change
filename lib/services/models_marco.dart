@@ -525,6 +525,7 @@ class ResultIndicator {
   String base = "";
   String expected = "";
   String obtained = "";
+  String unit = "";
   String result = "";
 
   ResultIndicator(this.result);
@@ -537,6 +538,7 @@ class ResultIndicator {
         expected = json['expected'],
         obtained = json['obtained'],
         base = json['base'],
+        unit = json['unit'],
         result = json['result'];
 
   Map<String, dynamic> toJson() => {
@@ -547,6 +549,7 @@ class ResultIndicator {
         'base': base,
         'expected': expected,
         'obtained': obtained,
+        'unit': unit,
         'result': result,
       };
 
@@ -745,6 +748,7 @@ class ActivityIndicator {
   String base = "";
   String expected = "";
   String obtained = "";
+  String unit = "";
   String activity = "";
 
   ActivityIndicator(this.activity);
@@ -757,6 +761,7 @@ class ActivityIndicator {
         base = json['base'],
         expected = json['expected'],
         obtained = json['obtained'],
+        unit = json['unit'],
         activity = json['activity'];
 
   Map<String, dynamic> toJson() => {
@@ -767,6 +772,7 @@ class ActivityIndicator {
         'base': base,
         'expected': expected,
         'obtained': obtained,
+        'unit': unit,
         'activity': activity,
       };
 
