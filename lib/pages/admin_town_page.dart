@@ -140,7 +140,7 @@ class _TownPageState extends State<TownPage>
           sortColumnIndex: 0,
           showCheckboxColumn: false,
           headingRowColor:
-              MaterialStateColor.resolveWith((states) => headerListBgColor),
+              WidgetStateColor.resolveWith((states) => headerListBgColor),
           headingRowHeight: 40,
           columns: [
             DataColumn(
