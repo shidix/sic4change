@@ -493,7 +493,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                           },
                         )
                       : Container(),
-                  (e.isActive())
+                  (e.isActive() || (!e.isActive()))
                       ? IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () {

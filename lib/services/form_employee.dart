@@ -30,7 +30,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
   String selectedReason = '';
   String employmenPromotion = '';
 
-  late int reasonIndex;
+  late int indexReason;
 
   @override
   void initState() {
@@ -60,10 +60,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
       }
 
       selectedBajaDate = employee.getBajaDate();
-      int indexReason = -1;
+      indexReason = 0;
 
       if (employee.altas.isNotEmpty) {
-        reasons.values.toList().indexWhere(
+        indexReason = reasons.values.toList().indexWhere(
             (element) => element.name == employee.altas.last.baja.reason);
       }
       if (indexReason != -1) {
