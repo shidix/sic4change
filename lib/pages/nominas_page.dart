@@ -663,6 +663,7 @@ class _NominasPageState extends State<NominasPage> {
             nomina = Nomina.getEmpty();
             nomina.date = //first day of the month
                 DateTime(DateTime.now().year, DateTime.now().month, 1);
+            nomina.paymentDate = nomina.date.add(const Duration(days: 10));
           } else {
             nomina = nominas[index];
           }
