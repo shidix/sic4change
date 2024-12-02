@@ -498,6 +498,9 @@ class _EmployeeFormState extends State<EmployeeForm> {
                             reasonsOptions
                                 .add(KeyValue(newItem.uuid!, newItem.name));
                             reasons[newItem.uuid!] = newItem;
+                            reasonsOptions.sort((a, b) => reasons[a.key]!
+                                .order
+                                .compareTo(reasons[b.key]!.order));
                             contentIndex = 0;
                             setState(() {});
                           });
