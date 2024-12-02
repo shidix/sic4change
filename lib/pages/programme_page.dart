@@ -570,9 +570,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                 CustomTextField(
                   labelText: "Nombre",
                   initial: indicator.name,
-                  size: 800,
-                  minLines: 2,
-                  maxLines: 9999,
+                  size: 590,
+                  minLines: 1,
+                  maxLines: 1,
                   fieldValue: (String val) {
                     indicator.name = val;
                     //setState(() => indicator.name = val);
@@ -582,13 +582,42 @@ class _ProgrammePageState extends State<ProgrammePage> {
               space(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
+                  labelText: "Unidad de medida",
+                  initial: indicator.order.toString(),
+                  size: 200,
+                  minLines: 1,
+                  maxLines: 1,
+                  fieldValue: (String val) {
+                    indicator.order = int.parse(val);
+                    //setState(() => indicator.name = val);
+                  },
+                )
+              ]),
+              space(width: 10),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
                   labelText: "Orden",
                   initial: indicator.order.toString(),
-                  size: 100,
+                  size: 90,
+                  minLines: 1,
+                  maxLines: 1,
+                  fieldValue: (String val) {
+                    indicator.order = int.parse(val);
+                    //setState(() => indicator.name = val);
+                  },
+                )
+              ]),
+            ]),
+            Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Descripción",
+                  initial: indicator.description,
+                  size: 900,
                   minLines: 2,
                   maxLines: 9999,
                   fieldValue: (String val) {
-                    indicator.order = int.parse(val);
+                    indicator.description = val;
                     //setState(() => indicator.name = val);
                   },
                 )
@@ -626,11 +655,23 @@ class _ProgrammePageState extends State<ProgrammePage> {
                     bold: FontWeight.bold, textColor: headerListTitleColor),
               ),
               DataColumn(
-                label: customText("Res. Esperado", 14,
+                label: customText("Uds", 14,
                     bold: FontWeight.bold, textColor: headerListTitleColor),
               ),
               DataColumn(
-                label: customText("Res. Obtenido", 14,
+                label: customText("Resultado", 14,
+                    bold: FontWeight.bold, textColor: headerListTitleColor),
+              ),
+              /*DataColumn(
+                label: customText("Res. Esp.", 14,
+                    bold: FontWeight.bold, textColor: headerListTitleColor),
+              ),
+              DataColumn(
+                label: customText("Res. Obt.", 14,
+                    bold: FontWeight.bold, textColor: headerListTitleColor),
+              ),*/
+              DataColumn(
+                label: customText("Descripción", 14,
                     bold: FontWeight.bold, textColor: headerListTitleColor),
               ),
               DataColumn(label: Container()),
@@ -641,8 +682,18 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   (indicator) => DataRow(cells: [
                     DataCell(customText(indicator.order.toString(), 14)),
                     DataCell(customText(indicator.name, 14)),
-                    DataCell(customText(indicator.expected.toString(), 14)),
-                    DataCell(customText(indicator.obtained.toString(), 14)),
+                    DataCell(customText(indicator.unit, 14)),
+                    DataCell(Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          customText(
+                              "Esperado: ${indicator.expected.toString()}", 14),
+                          customText(
+                              "Obtenido: ${indicator.obtained.toString()}", 14)
+                        ])),
+                    //DataCell(customText(indicator.expected.toString(), 14)),
+                    //DataCell(customText(indicator.obtained.toString(), 14)),
+                    DataCell(customText(indicator.description, 14)),
                     DataCell(Container(
                         padding: const EdgeInsets.only(top: 10),
                         child: customLinearPercent(context, 3.5,

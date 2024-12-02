@@ -2012,6 +2012,8 @@ class ProgrammeIndicators {
   String id = "";
   String uuid = "";
   String name = "";
+  String description = "";
+  String unit = "";
   int order = 0;
   String programme;
   double expected = 0;
@@ -2023,6 +2025,8 @@ class ProgrammeIndicators {
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'],
+        description = json['description'],
+        unit = json['unit'],
         order = json['order'],
         programme = json['programme'];
 
@@ -2030,6 +2034,8 @@ class ProgrammeIndicators {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'description': description,
+        'unit': unit,
         'order': order,
         'programme': programme,
       };
