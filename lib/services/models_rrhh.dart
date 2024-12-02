@@ -567,7 +567,10 @@ class BajaReason {
 
   Future<BajaReason> save() async {
     if (uuid == null) {
-      await collection.add(toJson()).then((value) => uuid = value.id);
+      await collection.add(toJson()).then((value) {
+        uuid = value.id;
+        collection.doc(uuid).update({'uuid': uuid});
+      });
     } else {
       await collection.doc(uuid).update(toJson());
     }

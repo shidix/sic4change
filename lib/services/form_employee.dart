@@ -329,7 +329,15 @@ class _EmployeeFormState extends State<EmployeeForm> {
                           }
                           setState(() {});
                         })),
-                Expanded(flex: 4, child: bajaReason),
+                Expanded(flex: 3, child: bajaReason),
+                Expanded(
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: iconBtn(context, (context) {
+                          contentIndex = 2;
+                          setState(() {});
+                        }, null, icon: Icons.add))),
               ]),
               Row(children: [
                 // Add Expanded with DateTimePicker for Born date
@@ -373,7 +381,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
               ]),
             ],
           ))));
-    } else {
+    } else if (contentIndex == 1) {
       EmploymentPromotion newItem = EmploymentPromotion.getEmpty();
 
       return Form(
@@ -424,6 +432,92 @@ class _EmployeeFormState extends State<EmployeeForm> {
           ),
         ),
       )));
+    } else {
+      BajaReason newItem = BajaReason.getEmpty();
+      return Form(
+          key: UniqueKey(),
+          child: SizedBox(
+              child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  s4cSubTitleBar('Nuevo motivo de baja', null),
+                  TextFormField(
+                    initialValue: '',
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    enabled: true,
+                    onChanged: (String value) {
+                      newItem.name = value;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: '',
+                    decoration: const InputDecoration(labelText: 'Orden'),
+                    enabled: true,
+                    onChanged: (String value) {
+                      newItem.order = int.parse(value);
+                    },
+                  ),
+                  // Add field for extraDocumen (boolean)
+                  FormField<bool>(
+                    initialValue: newItem.extraDocument,
+                    builder: (field) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Switch(
+                                value: field.value ?? false,
+                                onChanged: (value) {
+                                  field.didChange(value);
+                                  newItem.extraDocument = value;
+                                },
+                              ),
+                              Text("Documentos adicionales"),
+                            ],
+                          ),
+                          if (field.hasError)
+                            Text(
+                              field.errorText ?? '',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  space(height: 30),
+                  Row(children: [
+                    Expanded(
+                        flex: 1,
+                        child: saveBtnForm(context, () {
+                          newItem.save().then((value) {
+                            reasonsOptions
+                                .add(KeyValue(newItem.uuid!, newItem.name));
+                            reasons[newItem.uuid!] = newItem;
+                            contentIndex = 0;
+                            setState(() {});
+                          });
+                          // reasonsOptions
+                          //     .add(KeyValue(newItem.uuid!, newItem.name));
+                          // reasons[newItem.uuid!] = newItem;
+                          // contentIndex = 0;
+                          // setState(() {});
+                        }, null)),
+                    Expanded(
+                        flex: 1,
+                        child: actionButton(context, cancelText, () {
+                          contentIndex = 0;
+                          setState(() {});
+                        }, Icons.cancel, null)),
+                  ]),
+                ],
+              ),
+            ),
+          )));
     }
   }
 }
