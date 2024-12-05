@@ -766,6 +766,7 @@ class TasksComments {
   String uuid = "";
   String comment = "";
   String user = "";
+  DateTime date = DateTime.now();
   String task;
 
   Profile? userObj;
@@ -778,6 +779,7 @@ class TasksComments {
         uuid = json["uuid"],
         comment = json['comment'],
         user = json['user'],
+        date = json['date'].toDate(),
         task = json['task'];
 
   Map<String, dynamic> toJson() => {
@@ -785,6 +787,7 @@ class TasksComments {
         'uuid': uuid,
         'comment': comment,
         'user': user,
+        'date': date,
         'task': task,
       };
 
@@ -822,14 +825,21 @@ class TasksComments {
 
   static Future<List<TasksComments>> getCommentsByTasks(String uuid) async {
     List<TasksComments> items = [];
-    QuerySnapshot query;
-    query = await dbTasksComments.where("task", isEqualTo: uuid).get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      TasksComments tc = TasksComments.fromJson(data);
-      await tc.getUser();
-      items.add(tc);
+    try {
+      QuerySnapshot query;
+      query = await dbTasksComments
+          .where("task", isEqualTo: uuid)
+          .orderBy('date', descending: true)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        TasksComments tc = TasksComments.fromJson(data);
+        await tc.getUser();
+        items.add(tc);
+      }
+    } catch (e) {
+      print(e);
     }
     return items;
   }

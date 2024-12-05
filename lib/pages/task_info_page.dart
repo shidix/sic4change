@@ -131,8 +131,15 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
 
       TasksStatus.getTasksStatus().then((value) {
         statusListCache = value;
-        task!.statusObj =
-            statusListCache.firstWhere((status) => status.uuid == task!.status);
+        /*task!.statusObj =
+            statusListCache.firstWhere((status) => status.uuid == task!.status);*/
+        statusListCache = value as List<TasksStatus>;
+        for (TasksStatus st in statusListCache) {
+          if (st.uuid == task!.status) {
+            task!.statusObj = st;
+            break;
+          }
+        }
         if (mounted) {
           setState(() {});
         }
