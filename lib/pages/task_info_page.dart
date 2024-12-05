@@ -45,12 +45,30 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
     task!.receiversObj = contactListCache
         .where((contact) => task!.receivers.contains(contact.uuid))
         .toList();
-    task!.projectObj =
-        projectListCache.firstWhere((proj) => proj.uuid == task!.project);
-    task!.programmeObj =
-        programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);
-    task!.statusObj =
-        statusListCache.firstWhere((status) => status.uuid == task!.status);
+    /*task!.projectObj =
+        projectListCache.firstWhere((proj) => proj.uuid == task!.project);*/
+    for (SProject pr in projectListCache) {
+      if (pr.uuid == task!.project) {
+        task!.projectObj = pr;
+        break;
+      }
+    }
+    /*task!.programmeObj =
+        programmeListCache.firstWhere((prog) => prog.uuid == task!.programme);*/
+    for (Programme pr in programmeListCache) {
+      if (pr.uuid == task!.programme) {
+        task!.programmeObj = pr;
+        break;
+      }
+    }
+    /*task!.statusObj =
+        statusListCache.firstWhere((status) => status.uuid == task!.status);*/
+    for (TasksStatus st in statusListCache) {
+      if (st.uuid == task!.status) {
+        task!.statusObj = st;
+        break;
+      }
+    }
     if (mounted) {
       setState(() {});
     }
@@ -578,10 +596,13 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void saveTask(List args) async {
+    print("--1--");
     STask task = args[0];
     task.save();
     await task.getFolder();
+    print("--2--");
     updateObjects();
+    print("--3--");
 
     Navigator.pop(context);
   }
