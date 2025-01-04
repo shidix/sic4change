@@ -1806,12 +1806,12 @@ class ReadOnlyTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color bgcolor = Colors.grey.shade100;
-    TextStyle? fgstyle = Theme.of(context)
-        .textTheme
-        .titleMedium!
-        .copyWith(backgroundColor: bgcolor);
+    // TextStyle? fgstyle = Theme.of(context)
+    //     .textTheme
+    //     .titleMedium!
+    //     .copyWith(backgroundColor: bgcolor);
     return Container(
-        color: bgcolor,
+        // color: bgcolor,
         child: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Column(
@@ -1838,8 +1838,16 @@ class ReadOnlyTextField extends StatelessWidget {
                           child: Text(
                             textToShow,
                             textAlign: textAlign,
-                            style:
-                                fgstyle, // Estilo similar al de un TextFormField
+                            // Estilo similar al de un TextFormField, pero con el texto en cursiva,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.black),
+
+                            // style:
+                            //     fgstyle, // Estilo similar al de un TextFormField
                           )))
                 ]),
                 const SizedBox(

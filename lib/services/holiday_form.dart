@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import, prefer_const_constructors
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,11 +24,23 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late HolidayRequest holidayRequest;
   late User user;
   bool isNewItem = false;
+  late Profile profile;
 
   @override
   void initState() {
     super.initState();
     user = widget.user!;
+    profile =
+        Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
+    Profile.getCurrentProfile().then((value) {
+      if (mounted) {
+        setState(() {
+          profile = value;
+        });
+      } else {
+        profile = value;
+      }
+    });
     isNewItem = (widget.currentRequest!.id == "");
     holidayRequest = widget.currentRequest!;
     if (isNewItem) {
@@ -161,7 +174,10 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               statusField,
               space(),
               ReadOnlyTextField(
-                  label: "Aprobado por", textToShow: holidayRequest.approvedBy),
+                  label: "Aprobado por ${profile.holidaySupervisor}",
+                  textToShow: (holidayRequest.approvedBy != '')
+                      ? holidayRequest.approvedBy
+                      : 'Pendiente de aprobación'),
               // TextFormField(
               //   initialValue: holidayRequest.approvedBy,
               //   decoration: const InputDecoration(labelText: 'Aprobado por'),
