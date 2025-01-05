@@ -78,6 +78,22 @@ Widget mainMenuUser(context, [user, url]) {
   );
 }
 
+Widget mainEmptyMenu(context, [url]) {
+  return Container(
+    padding: const EdgeInsets.all(3),
+    color: bgColor,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        logo(),
+        menuBtn(context, "Inicio", Icons.home, "/home",
+            color:
+                (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+      ],
+    ),
+  );
+}
+
 Widget mainMenuAdmin(context, [user, url]) {
   return Container(
     padding: const EdgeInsets.all(3),

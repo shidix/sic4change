@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/pages/admin_calendar_holidays.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
@@ -16,6 +17,7 @@ import 'package:sic4change/pages/admin_task_status_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -78,6 +80,12 @@ class _AdminPageState extends State<AdminPage> {
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "TAREAS")),
           taskList(context),
+          space(height: 20),
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: customTitle(context, "CONFIGURACIÓN")),
+          configList(context),
+          footer(context),
         ],
       ),
     ));
@@ -182,6 +190,18 @@ class _AdminPageState extends State<AdminPage> {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           goPage(context, "Estados de reformulación", const TaskStatusPage(),
               Icons.task,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+        ]));
+  }
+
+  Widget configList(context) {
+    return Container(
+        padding: const EdgeInsets.only(left: 50, right: 50),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          goPage(context, "Vacaciones", CalendarHolidaysPage(), Icons.settings,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
