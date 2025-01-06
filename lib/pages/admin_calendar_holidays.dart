@@ -7,6 +7,38 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+class MeetingDataSource extends CalendarDataSource {
+  MeetingDataSource(List<Appointment> source) {
+    appointments = source;
+  }
+
+  @override
+  DateTime getStartTime(int index) {
+    return appointments![index].from;
+  }
+
+  @override
+  DateTime getEndTime(int index) {
+    return appointments![index].to;
+  }
+
+  @override
+  String getSubject(int index) {
+    return appointments![index].eventName;
+  }
+
+  @override
+  Color getColor(int index) {
+    return appointments![index].background;
+  }
+
+  @override
+  bool isAllDay(int index) {
+    return appointments![index].isAllDay;
+  }
+}
 
 class CalendarHolidaysPage extends StatefulWidget {
   @override
@@ -19,6 +51,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Contact? contact;
   HolidaysConfig? holidaysConfig;
   Widget content = const Center(child: CircularProgressIndicator());
+  SfCalendar? calendar;
 
   @override
   initState() {
@@ -116,6 +149,40 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   }
 
   void fillContent() {
+    List<Appointment> meetings = holidaysConfig!.gralHolidays
+        .map((e) => Appointment(
+            subject: "Día festivo",
+            startTime: e,
+            endTime: e,
+            color: Colors.red,
+            isAllDay: true))
+        .toList();
+    calendar = SfCalendar(
+      view: CalendarView.schedule,
+      dataSource: MeetingDataSource(meetings),
+      monthCellBuilder: (BuildContext context, MonthCellDetails details) {
+        // Lista de días personalizados
+        final List<DateTime> customDays = holidaysConfig!.gralHolidays;
+
+        // Verifica si la celda actual está en la lista
+        final bool isCustomDay = customDays.any((customDay) =>
+            customDay.year == details.date.year &&
+            customDay.month == details.date.month &&
+            customDay.day == details.date.day);
+
+        // Devuelve el widget con fondo personalizado
+        return Container(
+          color: isCustomDay ? Colors.red : Colors.transparent,
+          alignment: Alignment.center,
+          child: Text(
+            details.date.day.toString(),
+            style: TextStyle(
+              color: isCustomDay ? Colors.white : Colors.black,
+            ),
+          ),
+        );
+      },
+    );
     content = Container(
       padding: const EdgeInsets.all(10),
       child: Column(
@@ -134,6 +201,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                     child: const Text("Añadir"))),
           ]),
           const SizedBox(height: 10),
+          calendar!,
         ],
       ),
     );
