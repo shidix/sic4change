@@ -62,15 +62,17 @@ class HolidaysConfig {
   }
 
   //byOrganization (uuid)
-  static Future<HolidaysConfig> byOrganization(String uuid) async {
+  static Future<List<HolidaysConfig>> byOrganization(String uuid) async {
     final database = db.collection("s4c_holidays_config");
     final query =
         await database.where("organization.uuid", isEqualTo: uuid).get();
     if (query.docs.isNotEmpty) {
-      return HolidaysConfig.fromFirestore(query.docs.first);
+      print("1");
+      return query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
     } else {
-      return HolidaysConfig.getEmpty();
-    }
+      print("2");
+      return [];
+    } 
   }
 
   void save() {

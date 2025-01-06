@@ -18,6 +18,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Profile? profile;
   Contact? contact;
   HolidaysConfig? holidaysConfig;
+  Widget content = const Center(child: CircularProgressIndicator());
 
   @override
   initState() {
@@ -35,12 +36,47 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
       Contact.byEmail(user.email!).then((value) {
         contact = value;
-
+        HolidaysConfig.byOrganization(contact!.organization).then((value) {
+          if (value != []) {
+            // ordenar value por el campo year
+            value.sort((a, b) => a.year.compareTo(b.year));
+            if (value.last.year == DateTime.now().year) {
+              holidaysConfig = value.last;
+            } else {
+              //copy last value and change year to current year
+              holidaysConfig = value.last;
+              holidaysConfig!.year = DateTime.now().year;
+              holidaysConfig!.id = "";
+              holidaysConfig!.save();
+            }
+            if (mounted) {
+              setState(() {});
+            }
+          }
+          else {
+            holidaysConfig = HolidaysConfig.getEmpty();
+            holidaysConfig!.year = DateTime.now().year;
+            holidaysConfig!.totalDays = 30;
+            Organization.byUuid(contact!.organization).then((value) {
+              holidaysConfig!.organization = value;
+              holidaysConfig!.save();
+              fillContent();
+              if (mounted) {
+                setState(() {});
+              }
+            });
+            if (mounted) {
+              setState(() {});
+            }
+          }
+        });
         if (mounted) {
           setState(() {});
         }
       });
     }
+
+
   }
 
   @override
@@ -50,9 +86,38 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       child: Column(children: [
         _mainMenu!,
         holidayHeader(context),
+        content,
         footer(context),
       ]),
     ));
+  }
+
+  void fillContent() {
+    content = Container(
+        padding: const EdgeInsets.all(10),
+        child: Column(children: [
+          Row(children: [
+            Expanded(
+              flex: 1,
+              child: Text("Año: ${holidaysConfig!.year}",
+                  style: const TextStyle(fontSize: 20))),
+            Expanded(
+              flex:1, 
+              child:
+              ElevatedButton(
+                  onPressed: () {
+                    //open dialog to add new holiday
+                  },
+                  child: const Text("Añadir"))),
+          ]),
+          const SizedBox(height: 10),
+          ],
+        ),
+      );
+      if (mounted) {
+        setState(() {});
+      }
+  
   }
 
   Widget holidayHeader(context) {
