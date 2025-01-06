@@ -531,7 +531,7 @@ class _ContactsPageState extends State<ContactsPage> {
         rows: contacts
             .map(
               (contact) => DataRow(cells: [
-                DataCell(Text(contact.name)),
+                DataCell(Text(contact.name + " " + contact.email)),
                 DataCell(
                   Text(contact.organizationObj.name),
                 ),

@@ -78,7 +78,7 @@ Widget mainMenuUser(context, [user, url]) {
   );
 }
 
-Widget mainEmptyMenu(context, [url]) {
+Widget mainMenuEmpty(context, [url]) {
   return Container(
     padding: const EdgeInsets.all(3),
     color: bgColor,

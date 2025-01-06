@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -28,7 +29,7 @@ class HolidaysConfig {
       totalDays: data['totalDays'],
       organization: Organization.fromJson(data['organization']),
       gralHolidays:
-          data['gralHolidays'].map<DateTime>((e) => e.toDate()).toList(),
+          data['gralHolidays'].map<DateTime>((e) => getDate(e)).toList(),
     );
   }
 
@@ -67,12 +68,10 @@ class HolidaysConfig {
     final query =
         await database.where("organization.uuid", isEqualTo: uuid).get();
     if (query.docs.isNotEmpty) {
-      print("1");
       return query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
     } else {
-      print("2");
       return [];
-    } 
+    }
   }
 
   void save() {

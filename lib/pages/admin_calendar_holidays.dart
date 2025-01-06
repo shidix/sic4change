@@ -23,7 +23,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   @override
   initState() {
     super.initState();
-    _mainMenu = mainEmptyMenu(context);
+    _mainMenu = mainMenuAdmin(context);
 
     if (profile == null) {
       final user = FirebaseAuth.instance.currentUser!;
@@ -36,47 +36,70 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
       Contact.byEmail(user.email!).then((value) {
         contact = value;
-        HolidaysConfig.byOrganization(contact!.organization).then((value) {
-          if (value != []) {
-            // ordenar value por el campo year
-            value.sort((a, b) => a.year.compareTo(b.year));
-            if (value.last.year == DateTime.now().year) {
-              holidaysConfig = value.last;
-            } else {
-              //copy last value and change year to current year
-              holidaysConfig = value.last;
-              holidaysConfig!.year = DateTime.now().year;
-              holidaysConfig!.id = "";
-              holidaysConfig!.save();
-            }
-            if (mounted) {
-              setState(() {});
-            }
-          }
-          else {
-            holidaysConfig = HolidaysConfig.getEmpty();
-            holidaysConfig!.year = DateTime.now().year;
-            holidaysConfig!.totalDays = 30;
-            Organization.byUuid(contact!.organization).then((value) {
-              holidaysConfig!.organization = value;
-              holidaysConfig!.save();
+
+        if (contact!.organization != "") {
+          HolidaysConfig.byOrganization(contact!.organization).then((value) {
+            if (value.isNotEmpty) {
+              value.sort((a, b) => a.year.compareTo(b.year));
+              if (value.last.year == DateTime.now().year) {
+                holidaysConfig = value.last;
+              } else {
+                holidaysConfig = value.last;
+                holidaysConfig!.year = DateTime.now().year;
+                holidaysConfig!.id = "";
+                holidaysConfig!.gralHolidays = [
+                  DateTime(holidaysConfig!.year, 1, 1),
+                  DateTime(holidaysConfig!.year, 12, 25),
+                ];
+                holidaysConfig!.save();
+              }
               fillContent();
               if (mounted) {
                 setState(() {});
               }
-            });
-            if (mounted) {
-              setState(() {});
+            } else {
+              holidaysConfig = HolidaysConfig.getEmpty();
+              holidaysConfig!.year = DateTime.now().year;
+              holidaysConfig!.totalDays = 30;
+              holidaysConfig!.gralHolidays = [
+                DateTime(holidaysConfig!.year, 1, 1),
+                DateTime(holidaysConfig!.year, 12, 25),
+              ];
+              Organization.byUuid(contact!.organization).then((value) {
+                holidaysConfig!.organization = value;
+                holidaysConfig!.save();
+                fillContent();
+                if (mounted) {
+                  setState(() {});
+                }
+              });
+              if (mounted) {
+                setState(() {});
+              }
             }
+          });
+          if (mounted) {
+            setState(() {});
           }
-        });
+        } else {
+          holidaysConfig = HolidaysConfig.getEmpty();
+          holidaysConfig!.year = DateTime.now().year;
+          holidaysConfig!.totalDays = 30;
+          holidaysConfig!.organization = Organization.getEmpty();
+          holidaysConfig!.gralHolidays = [
+            DateTime(holidaysConfig!.year, 1, 1),
+            DateTime(holidaysConfig!.year, 12, 25),
+          ];
+          fillContent();
+          if (mounted) {
+            setState(() {});
+          }
+        }
         if (mounted) {
           setState(() {});
         }
       });
     }
-
-
   }
 
   @override
@@ -94,30 +117,29 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
   void fillContent() {
     content = Container(
-        padding: const EdgeInsets.all(10),
-        child: Column(children: [
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
           Row(children: [
             Expanded(
-              flex: 1,
-              child: Text("Año: ${holidaysConfig!.year}",
-                  style: const TextStyle(fontSize: 20))),
+                flex: 1,
+                child: Text("Año: ${holidaysConfig!.year}",
+                    style: const TextStyle(fontSize: 20))),
             Expanded(
-              flex:1, 
-              child:
-              ElevatedButton(
-                  onPressed: () {
-                    //open dialog to add new holiday
-                  },
-                  child: const Text("Añadir"))),
+                flex: 1,
+                child: ElevatedButton(
+                    onPressed: () {
+                      //open dialog to add new holiday
+                    },
+                    child: const Text("Añadir"))),
           ]),
           const SizedBox(height: 10),
-          ],
-        ),
-      );
-      if (mounted) {
-        setState(() {});
-      }
-  
+        ],
+      ),
+    );
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Widget holidayHeader(context) {
