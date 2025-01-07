@@ -38,6 +38,13 @@ class MeetingDataSource extends CalendarDataSource {
   bool isAllDay(int index) {
     return appointments![index].isAllDay;
   }
+
+  //Sobreescribir el método onTap
+
+  @override
+  String? getNotes(int index) {
+    return appointments![index].notes;
+  }
 }
 
 class CalendarHolidaysPage extends StatefulWidget {
@@ -157,32 +164,54 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
             color: Colors.red,
             isAllDay: true))
         .toList();
+
     calendar = SfCalendar(
       view: CalendarView.schedule,
+      headerStyle: CalendarHeaderStyle(
+          backgroundColor: Theme.of(context).canvasColor,
+          textStyle: TextStyle(
+              backgroundColor: Theme.of(context).canvasColor,
+              color: Theme.of(context).canvasColor)),
       dataSource: MeetingDataSource(meetings),
-      monthCellBuilder: (BuildContext context, MonthCellDetails details) {
-        // Lista de días personalizados
-        final List<DateTime> customDays = holidaysConfig!.gralHolidays;
-
-        // Verifica si la celda actual está en la lista
-        final bool isCustomDay = customDays.any((customDay) =>
-            customDay.year == details.date.year &&
-            customDay.month == details.date.month &&
-            customDay.day == details.date.day);
-
-        // Devuelve el widget con fondo personalizado
-        return Container(
-          color: isCustomDay ? Colors.red : Colors.transparent,
-          alignment: Alignment.center,
-          child: Text(
-            details.date.day.toString(),
-            style: TextStyle(
-              color: isCustomDay ? Colors.white : Colors.black,
-            ),
-          ),
-        );
+      onTap: (CalendarTapDetails details) {
+        if (details.targetElement == CalendarElement.appointment) {
+          print(details.date);
+          final Appointment appointment = details.appointments![0];
+          final DateTime date = appointment.startTime;
+          final String dateString =
+              "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+          final String title = "$dateString";
+          final String message =
+              "¿Seguro que deseas eliminar este día festivo?";
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(title),
+                  content: Text(message),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        holidaysConfig!.gralHolidays.remove(date);
+                        holidaysConfig!.save();
+                        fillContent();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Eliminar'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancelar'),
+                    ),
+                  ],
+                );
+              });
+        }
       },
     );
+
     content = Container(
       padding: const EdgeInsets.all(10),
       child: Column(
@@ -197,6 +226,44 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                 child: ElevatedButton(
                     onPressed: () {
                       //open dialog to add new holiday
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Añadir día festivo"),
+                              content: Column(
+                                children: [
+                                  const Text("Selecciona la fecha:"),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        showDatePicker(
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime(2021),
+                                                lastDate: DateTime(2022))
+                                            .then((value) {
+                                          if (value != null) {
+                                            holidaysConfig!.gralHolidays
+                                                .add(value);
+                                            holidaysConfig!.save();
+                                            fillContent();
+                                          }
+                                        });
+                                      },
+                                      child: const Text("Seleccionar fecha")),
+                                ],
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Cancelar'),
+                                ),
+                              ],
+                            );
+                          });
                     },
                     child: const Text("Añadir"))),
           ]),
