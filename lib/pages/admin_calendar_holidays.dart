@@ -212,66 +212,39 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       },
     );
 
-    content = Container(
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        children: [
-          Row(children: [
-            Expanded(
-                flex: 1,
-                child: Text("Año: ${holidaysConfig!.year}",
-                    style: const TextStyle(fontSize: 20))),
-            Expanded(
-                flex: 1,
-                child: ElevatedButton(
-                    onPressed: () {
-                      //open dialog to add new holiday
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Añadir día festivo"),
-                              content: Column(
-                                children: [
-                                  const Text("Selecciona la fecha:"),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        showDatePicker(
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(2021),
-                                                lastDate: DateTime(2022))
-                                            .then((value) {
-                                          if (value != null) {
-                                            holidaysConfig!.gralHolidays
-                                                .add(value);
-                                            holidaysConfig!.save();
-                                            fillContent();
-                                          }
-                                        });
-                                      },
-                                      child: const Text("Seleccionar fecha")),
-                                ],
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Cancelar'),
-                                ),
-                              ],
-                            );
-                          });
-                    },
-                    child: const Text("Añadir"))),
-          ]),
-          const SizedBox(height: 10),
-          calendar!,
-        ],
-      ),
+    Widget contentCalendar = Column(
+      children: [
+        Row(children: [
+          Expanded(
+              flex: 1,
+              child: Text("Año: ${holidaysConfig!.year}",
+                  style: const TextStyle(fontSize: 20))),
+          Expanded(
+              flex: 1,
+              child: ElevatedButton(
+                  onPressed: () {
+                    //open dialog to add new holiday
+                    showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(DateTime.now().year),
+                            lastDate: DateTime(DateTime.now().year + 10))
+                        .then((value) {
+                      if (value != null) {
+                        holidaysConfig!.gralHolidays.add(value);
+                        holidaysConfig!.save();
+                        fillContent();
+                      }
+                    });
+                  },
+                  child: const Text("Añadir"))),
+        ]),
+        const SizedBox(height: 10),
+        calendar!,
+      ],
     );
+
+    content = contentCalendar;
     if (mounted) {
       setState(() {});
     }
