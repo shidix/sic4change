@@ -379,12 +379,17 @@ class _InvoicePageState extends State<InvoicePage> {
   }
 
   Future<void> removeInvoice(context, Invoice invoice) async {
+    String tracker = invoice.tracker;
     invoice.delete().then((value) {
       if (value) {
+        invoices.removeWhere((element) => element.tracker == tracker);
+
         populateInvoices().then((value) {
-          setState(() {
-            containerInvoices = value;
-          });
+          if (mounted) {
+            setState(() {
+              containerInvoices = value;
+            });
+          }
         });
       }
     });
