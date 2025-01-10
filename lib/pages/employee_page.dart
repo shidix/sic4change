@@ -859,6 +859,7 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
     List<Row> contracts = [];
 
     for (Alta alta in widget.employee.altas) {
+      print(alta.salary.length);
       contracts.add(Row(children: [
         InfoField(
           icon: Icons.calendar_today,
@@ -886,7 +887,9 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         InfoField(
           icon: Icons.euro,
           label: "Salario (${alta.salary.length})",
-          value: toCurrency(alta.salary.last.amount),
+          value: (alta.salary.isNotEmpty)
+              ? toCurrency(alta.salary.last.amount)
+              : toCurrency(0.0),
           onPressed: () {
             showDialog<void>(
                 context: context,
