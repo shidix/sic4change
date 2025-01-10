@@ -134,6 +134,7 @@ class _EventFormState extends State<EventForm> {
                 onChanged: (val) => setState(() => event.notes = val!),
               ),
               space(height: 16),
+              
               Row(
                   children: [
                         Expanded(
