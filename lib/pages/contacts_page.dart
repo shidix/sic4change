@@ -226,8 +226,8 @@ class _ContactsPageState extends State<ContactsPage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                      width: 280,
+                  Expanded(
+                      flex: 3,
                       child: SearchBar(
                         onChanged: (value) {
                           findOrganizations(value);
@@ -237,14 +237,22 @@ class _ContactsPageState extends State<ContactsPage> {
                         },
                         leading: const Icon(Icons.search),
                       )),
-                  addBtnRow(context, filterOrganizations, {"filter": "all"},
-                      text: "Ver todas", icon: Icons.search),
-                  addBtnRow(
-                    context,
-                    callEditOrgDialog,
-                    {'org': Organization("")},
-                    text: "",
-                  ),
+                  Expanded(
+                      flex: 1,
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            iconBtn(
+                                context, filterOrganizations, {"filter": "all"},
+                                text: "Vet Todas", icon: Icons.search),
+                            iconBtn(
+                              context,
+                              callEditOrgDialog,
+                              {'org': Organization("")},
+                              text: "Nueva Organización",
+                              icon: Icons.add,
+                            ),
+                          ]))
                 ])),
         Container(
           padding: const EdgeInsets.all(5),
@@ -264,7 +272,7 @@ class _ContactsPageState extends State<ContactsPage> {
     //if (orgs.isNotEmpty) {
     if (orgsLoading == false) {
       return SingleChildScrollView(
-          scrollDirection: Axis.vertical,
+          scrollDirection: Axis.horizontal,
           child: SizedBox(
             //width: double.infinity,
             //width: MediaQuery.of(context).size.width / 3,
@@ -474,10 +482,11 @@ class _ContactsPageState extends State<ContactsPage> {
                         leading: const Icon(Icons.search),
                       )),
                   addBtnRow(context, filterContacts, {"filter": "generic"},
-                      text: "Ver genéricos", icon: Icons.search),
+                      text: "Genéricos", icon: Icons.search),
                   addBtnRow(context, filterContacts, {"filter": "all"},
-                      text: "Ver todos", icon: Icons.search),
-                  addBtnRow(context, callEditDialog, {"contact": Contact("")}),
+                      text: "Todos", icon: Icons.search),
+                  addBtnRow(context, callEditDialog, {"contact": Contact("")},
+                      text: ""),
                 ])),
         Container(
             padding: const EdgeInsets.only(top: 20, left: 30),
