@@ -1,12 +1,163 @@
 // ignore_for_file: unused_import, prefer_const_constructors
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:googleapis/transcoder/v1.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+
+// class Event extends Appointment {
+//   final int index;
+//   Event(
+//       {required String subject,
+//       required DateTime startTime,
+//       required DateTime endTime,
+//       String? notes,
+//       Color? color,
+//       bool isAllDay = false,
+//       required this.index})
+//       : super(
+//             subject: subject,
+//             startTime: startTime,
+//             endTime: endTime,
+//             notes: notes,
+//             color: color ?? Colors.blue,
+//             isAllDay: isAllDay);
+
+// }
+
+class EventForm extends StatefulWidget {
+  final Event? currentEvent;
+  final int index;
+  final HolidaysConfig? holidaysConfig;
+
+  const EventForm(
+      {Key? key, this.currentEvent, this.holidaysConfig, required this.index})
+      : super(key: key);
+
+  @override
+  createState() => _EventFormState();
+}
+
+class _EventFormState extends State<EventForm> {
+  final _formKey = GlobalKey<FormState>();
+  late Event event;
+  late HolidaysConfig holidaysConfig;
+  bool isNewItem = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isNewItem = (widget.currentEvent!.subject == "");
+    event = widget.currentEvent!;
+    holidaysConfig = widget.holidaysConfig!;
+    if (isNewItem) {
+      event = Event(
+          subject: "",
+          startTime: DateTime.now(),
+          endTime: DateTime.now().add(Duration(hours: 1)),
+          isAllDay: false,
+          notes: "");
+    }
+  }
+
+  void saveItem(List args) {
+    BuildContext context = args[0];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      if (isNewItem) {
+        holidaysConfig!.gralHolidays.add(event);
+      } else {
+        holidaysConfig!.gralHolidays[widget.index] = event;
+      }
+      holidaysConfig.save();
+      formKey.currentState!.save();
+      Navigator.of(context).pop(event);
+    } else {
+      print(2);
+    }
+  }
+
+  void removeItem(List args) {
+    holidaysConfig.gralHolidays.removeAt(widget.index);
+    holidaysConfig.save();
+    Navigator.of(args[0]).pop(null);
+
+    // BuildContext context = args[0];
+    // Event event = args[1];
+    // GlobalKey<FormState> formKey = args[2];
+    // if (formKey.currentState!.validate()) {
+    //   formKey.currentState!.save();
+    //   Navigator.of(context).pop(event);
+    // }
+  }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Expanded> deleteButton = [];
+    int flex = 5;
+    if (!isNewItem) {
+      flex = 3;
+      deleteButton = [
+        Expanded(flex: 1, child: Container()),
+        Expanded(
+            flex: flex,
+            child: actionButton(context, "Eliminar", removeItem, Icons.delete,
+                [context, event, _formKey]))
+      ];
+    }
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextFormField(
+                initialValue: event.subject,
+                decoration: const InputDecoration(labelText: 'Evento'),
+                onChanged: (value) => event.subject = value,
+                // onSaved: (val) => setState(() => event.subject = val!),
+              ),
+              space(),
+              TextFormField(
+                initialValue: event.notes,
+                decoration: const InputDecoration(labelText: 'Notas'),
+                onChanged: (val) => setState(() => event.notes = val!),
+              ),
+              space(height: 16),
+              Row(
+                  children: [
+                        Expanded(
+                            flex: flex,
+                            child: actionButton(
+                                context,
+                                "Enviar",
+                                saveItem,
+                                Icons.save_outlined,
+                                [context, event, _formKey])),
+                        Expanded(flex: 1, child: Container()),
+                        Expanded(
+                            flex: flex,
+                            child: actionButton(context, "Cancelar", cancelItem,
+                                Icons.cancel, context))
+                      ] +
+                      deleteButton),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;

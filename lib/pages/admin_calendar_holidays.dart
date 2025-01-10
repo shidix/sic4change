@@ -1,53 +1,138 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/monitoring/v3.dart';
+import 'package:intl/intl.dart';
+import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+// import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-class MeetingDataSource extends CalendarDataSource {
-  MeetingDataSource(List<Appointment> source) {
-    appointments = source;
-  }
+class EventTile extends StatelessWidget {
+  final Event event;
 
-  @override
-  DateTime getStartTime(int index) {
-    return appointments![index].from;
-  }
+  const EventTile({super.key, required this.event});
 
   @override
-  DateTime getEndTime(int index) {
-    return appointments![index].to;
-  }
+  Widget build(BuildContext context) {
+    return Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+      Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Column(children: [
+            Row(children: [
+              // Fecha
+              Expanded(
+                  // Fecha
+                  flex: 1,
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.purple,
+                    child: Text(
+                      event.startTime.day.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  )),
+              Expanded(
+                  flex: 2,
+                  child: Text(
+                    DateFormat('EEE, MMM', 'es')
+                        .format(event.startTime)
+                        .toUpperCase(),
+                    style: TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  )),
+              // Información del evento
+              if (event.isAllDay)
+                Expanded(
+                    flex: 1,
+                    child: Icon(Icons.circle, color: Colors.red, size: 10)),
 
-  @override
-  String getSubject(int index) {
-    return appointments![index].eventName;
-  }
-
-  @override
-  Color getColor(int index) {
-    return appointments![index].background;
-  }
-
-  @override
-  bool isAllDay(int index) {
-    return appointments![index].isAllDay;
-  }
-
-  //Sobreescribir el método onTap
-
-  @override
-  String? getNotes(int index) {
-    return appointments![index].notes;
+              Expanded(
+                flex: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.subject,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: event.isAllDay ? Colors.grey : Colors.black,
+                      ),
+                    ),
+                    if (event.notes!.isNotEmpty)
+                      Text(
+                        event.notes!,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                  ],
+                ),
+              ),
+              // Icono o indicador (opcional)
+            ]),
+          ])),
+      Divider(thickness: 0.5, color: Colors.grey.shade400)
+    ]);
   }
 }
 
+class EventList extends StatelessWidget {
+  final List<Event> events;
+  final HolidaysConfig holidaysConfig;
+  final Function refresh;
+
+  const EventList(
+      {super.key,
+      required this.events,
+      required this.holidaysConfig,
+      required this.refresh});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        return InkWell(
+            child: EventTile(event: events[index]),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return CustomPopupDialog(
+                        context: context,
+                        title:
+                            "Editar evento ${DateFormat('EEE, d MMM', 'es').format(events[index].startTime)}",
+                        icon: Icons.edit,
+                        content: EventForm(
+                          holidaysConfig: holidaysConfig,
+                          index: index,
+                          currentEvent: events[index],
+                        ),
+                        actionBtns: null);
+                  }).then(
+                (value) {
+                  refresh();
+                },
+              );
+            });
+      },
+    );
+  }
+}
+
+//
 class CalendarHolidaysPage extends StatefulWidget {
+  const CalendarHolidaysPage({super.key});
+
   @override
   _CalendarHolidaysPageState createState() => _CalendarHolidaysPageState();
 }
@@ -56,9 +141,10 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Widget? _mainMenu;
   Profile? profile;
   Contact? contact;
+  List<HolidaysConfig>? holidaysList;
   HolidaysConfig? holidaysConfig;
   Widget content = const Center(child: CircularProgressIndicator());
-  SfCalendar? calendar;
+  Widget? listDatesView;
 
   @override
   initState() {
@@ -80,16 +166,28 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         if (contact!.organization != "") {
           HolidaysConfig.byOrganization(contact!.organization).then((value) {
             if (value.isNotEmpty) {
-              value.sort((a, b) => a.year.compareTo(b.year));
-              if (value.last.year == DateTime.now().year) {
-                holidaysConfig = value.last;
+              holidaysList = value
+                  .where((element) => element.year == DateTime.now().year)
+                  .toList();
+              if (holidaysList!.isNotEmpty) {
+                holidaysConfig = holidaysList!.last;
               } else {
                 holidaysConfig = value.last;
                 holidaysConfig!.year = DateTime.now().year;
                 holidaysConfig!.id = "";
                 holidaysConfig!.gralHolidays = [
-                  DateTime(holidaysConfig!.year, 1, 1),
-                  DateTime(holidaysConfig!.year, 12, 25),
+                  Event(
+                      subject: "Año Nuevo",
+                      startTime: DateTime(holidaysConfig!.year, 1, 1),
+                      endTime: DateTime(holidaysConfig!.year, 1, 1),
+                      notes: "",
+                      isAllDay: true),
+                  Event(
+                      subject: "Navidad",
+                      startTime: DateTime(holidaysConfig!.year, 12, 25),
+                      endTime: DateTime(holidaysConfig!.year, 12, 25),
+                      notes: "",
+                      isAllDay: true),
                 ];
                 holidaysConfig!.save();
               }
@@ -102,8 +200,18 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
               holidaysConfig!.year = DateTime.now().year;
               holidaysConfig!.totalDays = 30;
               holidaysConfig!.gralHolidays = [
-                DateTime(holidaysConfig!.year, 1, 1),
-                DateTime(holidaysConfig!.year, 12, 25),
+                Event(
+                    subject: "Año Nuevo",
+                    startTime: DateTime(holidaysConfig!.year, 1, 1),
+                    endTime: DateTime(holidaysConfig!.year, 1, 1),
+                    notes: "",
+                    isAllDay: true),
+                Event(
+                    subject: "Navidad",
+                    startTime: DateTime(holidaysConfig!.year, 12, 25),
+                    endTime: DateTime(holidaysConfig!.year, 12, 25),
+                    notes: "",
+                    isAllDay: true),
               ];
               Organization.byUuid(contact!.organization).then((value) {
                 holidaysConfig!.organization = value;
@@ -127,8 +235,20 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
           holidaysConfig!.totalDays = 30;
           holidaysConfig!.organization = Organization.getEmpty();
           holidaysConfig!.gralHolidays = [
-            DateTime(holidaysConfig!.year, 1, 1),
-            DateTime(holidaysConfig!.year, 12, 25),
+            Event(
+              subject: "Año Nuevo",
+              startTime: DateTime(holidaysConfig!.year, 1, 1),
+              endTime: DateTime(holidaysConfig!.year, 1, 1),
+              notes: "",
+              isAllDay: true,
+            ),
+            Event(
+              subject: "Navidad",
+              startTime: DateTime(holidaysConfig!.year, 12, 25),
+              endTime: DateTime(holidaysConfig!.year, 12, 25),
+              notes: "",
+              isAllDay: true,
+            ),
           ];
           fillContent();
           if (mounted) {
@@ -156,93 +276,124 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   }
 
   void fillContent() {
-    List<Appointment> meetings = holidaysConfig!.gralHolidays
-        .map((e) => Appointment(
-            subject: "Día festivo",
-            startTime: e,
-            endTime: e,
-            color: Colors.red,
-            isAllDay: true))
-        .toList();
+    if (holidaysList == null) {
+      return;
+    }
+    List<List<HolidaysConfig>> calendarList = resize(holidaysList!, 5);
 
-    calendar = SfCalendar(
-      view: CalendarView.schedule,
-      headerStyle: CalendarHeaderStyle(
-          backgroundColor: Theme.of(context).canvasColor,
-          textStyle: TextStyle(
-              backgroundColor: Theme.of(context).canvasColor,
-              color: Theme.of(context).canvasColor)),
-      dataSource: MeetingDataSource(meetings),
-      onTap: (CalendarTapDetails details) {
-        if (details.targetElement == CalendarElement.appointment) {
-          print(details.date);
-          final Appointment appointment = details.appointments![0];
-          final DateTime date = appointment.startTime;
-          final String dateString =
-              "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-          final String title = "$dateString";
-          final String message =
-              "¿Seguro que deseas eliminar este día festivo?";
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(title),
-                  content: Text(message),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        holidaysConfig!.gralHolidays.remove(date);
-                        holidaysConfig!.save();
-                        fillContent();
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Eliminar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Cancelar'),
-                    ),
-                  ],
-                );
-              });
-        }
-      },
-    );
+    if (calendarList.last.length < 5) {
+      calendarList.last.addAll(List.generate(
+          5 - calendarList.last.length, (index) => HolidaysConfig.getEmpty()));
+    }
 
-    Widget contentCalendar = Column(
-      children: [
-        Row(children: [
-          Expanded(
-              flex: 1,
-              child: Text("Año: ${holidaysConfig!.year}",
-                  style: const TextStyle(fontSize: 20))),
-          Expanded(
-              flex: 1,
-              child: ElevatedButton(
-                  onPressed: () {
-                    //open dialog to add new holiday
-                    showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(DateTime.now().year),
-                            lastDate: DateTime(DateTime.now().year + 10))
-                        .then((value) {
-                      if (value != null) {
-                        holidaysConfig!.gralHolidays.add(value);
-                        holidaysConfig!.save();
-                        fillContent();
-                      }
-                    });
-                  },
-                  child: const Text("Añadir"))),
-        ]),
-        const SizedBox(height: 10),
-        calendar!,
-      ],
-    );
+    content = Column(
+        children: calendarList.map((e) {
+      return Row(
+          children: e.map((f) {
+        return Expanded(
+            flex: 1,
+            child: (f.id != "")
+                ? actionButtonVertical(context, f.year.toString(),
+                    (HolidaysConfig calendar) {
+                    holidaysConfig = calendar;
+                    drawCalendart();
+                  }, Icons.calendar_month, f)
+                : Container());
+      }).toList());
+    }).toList());
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void drawCalendart() {
+    List<Event> meetings = holidaysConfig!.gralHolidays;
+
+    meetings.sort((a, b) => a.startTime.compareTo(b.endTime));
+
+    listDatesView = EventList(
+        events: meetings,
+        holidaysConfig: holidaysConfig!,
+        refresh: () {
+          drawCalendart();
+        });
+
+    Widget contentCalendar = SizedBox(
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Column(
+          children: [
+            Row(children: [
+              headerCell(
+                  flex: 1,
+                  text: Text(holidaysConfig!.year.toString(),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center)),
+            ]),
+            Row(
+              children: [
+                headerCell(
+                    text: Text("${holidaysConfig!.name}",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold))),
+              ],
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              addBtn(context, (context) {
+                //open dialog to add new holiday
+                showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(DateTime.now().year),
+                        lastDate: DateTime(DateTime.now().year + 10))
+                    .then((value) {
+                  if (value != null) {
+                    Event newEvent = Event(
+                        subject: "Día festivo",
+                        startTime: value,
+                        endTime: value,
+                        notes: "",
+                        isAllDay: true);
+                    holidaysConfig!.gralHolidays.add(newEvent);
+                    holidaysConfig!.save();
+                    drawCalendart();
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return CustomPopupDialog(
+                              context: context,
+                              title:
+                                  "Nuevo evento ${DateFormat('EEE, d MMM', 'es').format(newEvent.startTime)}",
+                              icon: Icons.edit,
+                              content: EventForm(
+                                holidaysConfig: holidaysConfig,
+                                index: holidaysConfig!.gralHolidays
+                                    .indexOf(newEvent),
+                                currentEvent: newEvent,
+                              ),
+                              actionBtns: null);
+                        }).then(
+                      (value) {
+                        drawCalendart();
+                      },
+                    );
+                  }
+                });
+              }, null),
+              space(width: 10),
+              actionButtonVertical(context, "Volver", () {
+                fillContent();
+              }, Icons.arrow_back, null),
+            ]),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: meetings.length * 80,
+              //width 50% del tamaño de la pantalla
+              child: listDatesView!,
+            ),
+          ],
+        ));
 
     content = contentCalendar;
     if (mounted) {

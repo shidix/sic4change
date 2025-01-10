@@ -7,15 +7,17 @@ final FirebaseFirestore db = FirebaseFirestore.instance;
 
 class HolidaysConfig {
   String id = "";
+  String name = "";
   int year;
   int totalDays;
   Organization organization;
-  List<DateTime> gralHolidays;
+  List<Event> gralHolidays;
 
   final database = db.collection("s4c_holidays_config");
 
   HolidaysConfig({
     required this.id,
+    required this.name,
     required this.year,
     required this.totalDays,
     required this.organization,
@@ -25,11 +27,13 @@ class HolidaysConfig {
   factory HolidaysConfig.fromJson(Map data) {
     return HolidaysConfig(
       id: data['id'],
+      // if data has key 'name' then assign it to name, otherwise assign empty string
+      name: data['name'] ?? '',
       year: data['year'],
       totalDays: data['totalDays'],
       organization: Organization.fromJson(data['organization']),
       gralHolidays:
-          data['gralHolidays'].map<DateTime>((e) => getDate(e)).toList(),
+          data['gralHolidays'].map<Event>((e) => Event.fromJson(e)).toList(),
     );
   }
 
@@ -41,20 +45,22 @@ class HolidaysConfig {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'name': name,
         'year': year,
         'totalDays': totalDays,
         'organization': organization.toJson(),
-        'gralHolidays': gralHolidays,
+        'gralHolidays': gralHolidays.map((e) => e.toJson()).toList(),
       };
 
   @override
   String toString() {
-    return 'HolidaysConfig{year: $year, totalDays: $totalDays, organization: $organization, gralHolidays: $gralHolidays}';
+    return 'HolidaysConfig{name: $name, year: $year, totalDays: $totalDays, organization: $organization, gralHolidays: $gralHolidays}';
   }
 
   static HolidaysConfig getEmpty() {
     return HolidaysConfig(
       id: '',
+      name: '',
       year: DateTime.now().year,
       totalDays: 0,
       organization: Organization.getEmpty(),
@@ -200,4 +206,38 @@ class HolidayRequest {
     });
     return items;
   }
+}
+
+class Event {
+  String subject;
+  DateTime startTime;
+  DateTime endTime;
+  String? notes;
+  bool isAllDay;
+
+  Event({
+    required this.subject,
+    required this.startTime,
+    required this.endTime,
+    required this.notes,
+    required this.isAllDay,
+  });
+
+  factory Event.fromJson(Map data) {
+    return Event(
+      subject: data['subject'],
+      startTime: getDate(data['startTime']),
+      endTime: getDate(data['endTime']),
+      notes: data['notes'],
+      isAllDay: data['isAllDay'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'subject': subject,
+        'startTime': startTime,
+        'endTime': endTime,
+        'notes': notes,
+        'isAllDay': isAllDay,
+      };
 }

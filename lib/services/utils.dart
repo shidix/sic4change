@@ -485,3 +485,12 @@ Color randomColor() {
   return Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
       .withOpacity(1.0);
 }
+
+List<List<T>> resize<T>(List<T> list, int ncols) {
+  List<List<T>> rows = [];
+  for (var i = 0; i < list.length; i += ncols) {
+    rows.add(
+        list.sublist(i, i + ncols > list.length ? list.length : i + ncols));
+  }
+  return rows;
+}

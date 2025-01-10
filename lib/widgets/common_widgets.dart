@@ -1026,14 +1026,16 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
 }
 
 Expanded headerCell(
-    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+    {int flex = 1, dynamic text = '', TextAlign textAlign = TextAlign.start}) {
   return Expanded(
       flex: flex,
-      child: Text(
-        text,
-        style: headerListStyle,
-        textAlign: textAlign,
-      ));
+      child: (text is String)
+          ? Text(
+              text,
+              style: headerListStyle,
+              textAlign: textAlign,
+            )
+          : text);
 }
 
 Expanded listCell(
@@ -2426,6 +2428,29 @@ class _FileNameDialogState extends State<FileNameDialog> {
           child: Text('OK'),
         ),
       ],
+    );
+  }
+}
+
+class DynamicGrid extends StatelessWidget {
+  // Lista de widgets para mostrar en el grid
+  final List<Widget> widgets;
+
+  const DynamicGrid({super.key, required this.widgets});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // Número de columnas
+        crossAxisSpacing: 10, // Espacio horizontal entre celdas
+        mainAxisSpacing: 10, // Espacio vertical entre celdas
+      ),
+      padding: const EdgeInsets.all(10),
+      itemCount: widgets.length, // Número de widgets en la lista
+      itemBuilder: (context, index) {
+        return widgets[index];
+      },
     );
   }
 }
