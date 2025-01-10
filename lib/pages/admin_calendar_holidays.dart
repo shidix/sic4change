@@ -34,7 +34,7 @@ class EventTile extends StatelessWidget {
                     backgroundColor: Colors.purple,
                     child: Text(
                       event.startTime.day.toString(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -47,12 +47,12 @@ class EventTile extends StatelessWidget {
                     DateFormat('EEE, MMM', 'es')
                         .format(event.startTime)
                         .toUpperCase(),
-                    style: TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                     textAlign: TextAlign.center,
                   )),
               // Información del evento
               if (event.isAllDay)
-                Expanded(
+                const Expanded(
                     flex: 1,
                     child: Icon(Icons.circle, color: Colors.red, size: 10)),
 
@@ -72,7 +72,7 @@ class EventTile extends StatelessWidget {
                     if (event.notes!.isNotEmpty)
                       Text(
                         event.notes!,
-                        style: TextStyle(color: Colors.grey),
+                        style: const TextStyle(color: Colors.grey),
                       ),
                   ],
                 ),
@@ -110,7 +110,7 @@ class EventList extends StatelessWidget {
                     return CustomPopupDialog(
                         context: context,
                         title:
-                            "Editar evento ${DateFormat('EEE, d MMM', 'es').format(events[index].startTime)}",
+                            "Editar evento ${DateFormat('EEE, d MMM', 'es').format(events[index].startTime).toUpperCase()}",
                         icon: Icons.edit,
                         content: EventForm(
                           holidaysConfig: holidaysConfig,
@@ -142,9 +142,31 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Profile? profile;
   Contact? contact;
   List<HolidaysConfig>? holidaysList;
+  Organization? currentOrganization;
   HolidaysConfig? holidaysConfig;
   Widget content = const Center(child: CircularProgressIndicator());
   Widget? listDatesView;
+
+  Widget holidayHeader(context) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Container(
+        padding: const EdgeInsets.all(20),
+        child: customText("Calendarios", 20,
+            textColor: mainColor, bold: FontWeight.bold),
+      ),
+      Container(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            addBtn(context, newYearDialog, null),
+            space(width: 10),
+            returnBtn(context),
+          ],
+        ),
+      ),
+    ]);
+  }
 
   @override
   initState() {
@@ -165,6 +187,10 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
         if (contact!.organization != "") {
           HolidaysConfig.byOrganization(contact!.organization).then((value) {
+            Organization.byUuid(contact!.organization).then((value) {
+              currentOrganization = value;
+            });
+
             if (value.isNotEmpty) {
               holidaysList = value
                   .where((element) => element.year == DateTime.now().year)
@@ -214,6 +240,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                     isAllDay: true),
               ];
               Organization.byUuid(contact!.organization).then((value) {
+                currentOrganization = value;
                 holidaysConfig!.organization = value;
                 holidaysConfig!.save();
                 fillContent();
@@ -293,10 +320,22 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         return Expanded(
             flex: 1,
             child: (f.id != "")
-                ? actionButtonVertical(context, f.year.toString(),
-                    (HolidaysConfig calendar) {
+                ? actionButtonVertical(
+                    context,
+                    Column(
+                      children: [
+                        Text(
+                          f.year.toString(),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          f.name,
+                          textAlign: TextAlign.center,
+                        )
+                      ],
+                    ), (HolidaysConfig calendar) {
                     holidaysConfig = calendar;
-                    drawCalendart();
+                    drawCalendar();
                   }, Icons.calendar_month, f)
                 : Container());
       }).toList());
@@ -306,7 +345,53 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     }
   }
 
-  void drawCalendart() {
+  void editYearDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return CustomPopupDialog(
+              context: context,
+              title: "Editar calendario",
+              icon: Icons.edit,
+              content: HolidayConfigForm(
+                holidaysConfig: holidaysConfig,
+                afterSave: () {
+                  drawCalendar();
+                },
+                afterDelete: () {
+                  holidaysList!.remove(holidaysConfig);
+                  fillContent();
+                },
+                index: holidaysList!.indexOf(holidaysConfig!),
+              ),
+              actionBtns: null);
+        });
+  }
+
+  void newYearDialog(context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          HolidaysConfig newItem = HolidaysConfig.getEmpty();
+          newItem.organization = currentOrganization!;
+          return CustomPopupDialog(
+              context: context,
+              title: "Nuevo calendario",
+              icon: Icons.edit,
+              content: HolidayConfigForm(
+                holidaysConfig: newItem,
+                afterSave: () {
+                  holidaysList!.add(newItem);
+                  holidaysConfig = newItem;
+                  drawCalendar();
+                },
+                index: -1,
+              ),
+              actionBtns: null);
+        });
+  }
+
+  void drawCalendar() {
     List<Event> meetings = holidaysConfig!.gralHolidays;
 
     meetings.sort((a, b) => a.startTime.compareTo(b.endTime));
@@ -315,95 +400,122 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         events: meetings,
         holidaysConfig: holidaysConfig!,
         refresh: () {
-          drawCalendart();
+          drawCalendar();
         });
 
-    Widget contentCalendar = SizedBox(
-        width: MediaQuery.of(context).size.width * 0.5,
-        child: Column(
-          children: [
-            Row(children: [
-              headerCell(
-                  flex: 1,
-                  text: Text(holidaysConfig!.year.toString(),
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center)),
-            ]),
-            Row(
+    Widget contentCalendar = Container(
+        decoration: tableDecoration,
+        child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            child: Column(
               children: [
-                headerCell(
-                    text: Text("${holidaysConfig!.name}",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold))),
+                Container(
+                    decoration: const BoxDecoration(
+                      color: mainColor,
+                    ),
+                    child: Row(children: [
+                      headerCell(
+                          flex: 5,
+                          text: Text(
+                            holidaysConfig!.year.toString(),
+                            style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                            textAlign: TextAlign.center,
+                          )),
+                      headerCell(
+                        flex: 5,
+                        text: Text(
+                            (holidaysConfig!.name != "")
+                                ? holidaysConfig!.name
+                                : 'Sin Nombre',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                      ),
+                      headerCell(
+                        flex: 5,
+                        text: Text("${holidaysConfig!.totalDays} días",
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                      ),
+                      headerCell(
+                          flex: 1,
+                          text: IconButton(
+                              onPressed: () {
+                                fillContent();
+                              },
+                              icon:
+                                  const Icon(Icons.close, color: Colors.white)))
+                    ])),
+                space(height: 10),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  actionButtonVertical(
+                      context, "Editar", editYearDialog, Icons.edit, null),
+                  space(width: 10),
+                  actionButtonVertical(context, "Festivo", (context) {
+                    //open dialog to add new holiday
+                    showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(DateTime.now().year),
+                            lastDate: DateTime(DateTime.now().year + 10))
+                        .then((value) {
+                      if (value != null) {
+                        Event newEvent = Event(
+                            subject: "Día festivo",
+                            startTime: value,
+                            endTime: value,
+                            notes: "",
+                            isAllDay: true);
+                        holidaysConfig!.gralHolidays.add(newEvent);
+                        holidaysConfig!.save();
+                        drawCalendar();
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return CustomPopupDialog(
+                                  context: context,
+                                  title:
+                                      "Nuevo evento ${DateFormat('EEE, d MMM', 'es').format(newEvent.startTime)}",
+                                  icon: Icons.edit,
+                                  content: EventForm(
+                                    holidaysConfig: holidaysConfig,
+                                    index: holidaysConfig!.gralHolidays
+                                        .indexOf(newEvent),
+                                    currentEvent: newEvent,
+                                  ),
+                                  actionBtns: null);
+                            }).then(
+                          (value) {
+                            drawCalendar();
+                          },
+                        );
+                      }
+                    });
+                  }, Icons.add_rounded, context),
+                  space(width: 10),
+                ]),
+                const SizedBox(height: 10),
+                SizedBox(
+                    height: meetings.length * 80,
+                    //width 50% del tamaño de la pantalla
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: listDatesView!,
+                    )),
               ],
-            ),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtn(context, (context) {
-                //open dialog to add new holiday
-                showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(DateTime.now().year),
-                        lastDate: DateTime(DateTime.now().year + 10))
-                    .then((value) {
-                  if (value != null) {
-                    Event newEvent = Event(
-                        subject: "Día festivo",
-                        startTime: value,
-                        endTime: value,
-                        notes: "",
-                        isAllDay: true);
-                    holidaysConfig!.gralHolidays.add(newEvent);
-                    holidaysConfig!.save();
-                    drawCalendart();
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return CustomPopupDialog(
-                              context: context,
-                              title:
-                                  "Nuevo evento ${DateFormat('EEE, d MMM', 'es').format(newEvent.startTime)}",
-                              icon: Icons.edit,
-                              content: EventForm(
-                                holidaysConfig: holidaysConfig,
-                                index: holidaysConfig!.gralHolidays
-                                    .indexOf(newEvent),
-                                currentEvent: newEvent,
-                              ),
-                              actionBtns: null);
-                        }).then(
-                      (value) {
-                        drawCalendart();
-                      },
-                    );
-                  }
-                });
-              }, null),
-              space(width: 10),
-              actionButtonVertical(context, "Volver", () {
-                fillContent();
-              }, Icons.arrow_back, null),
-            ]),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: meetings.length * 80,
-              //width 50% del tamaño de la pantalla
-              child: listDatesView!,
-            ),
-          ],
-        ));
+            )));
 
     content = contentCalendar;
     if (mounted) {
       setState(() {});
     }
-  }
-
-  Widget holidayHeader(context) {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        child: customTitle(context, "DÍAS FESTIVOS"));
   }
 }

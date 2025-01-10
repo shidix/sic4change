@@ -134,7 +134,6 @@ class _EventFormState extends State<EventForm> {
                 onChanged: (val) => setState(() => event.notes = val!),
               ),
               space(height: 16),
-              
               Row(
                   children: [
                         Expanded(
@@ -356,6 +355,138 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                       deleteButton),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class HolidayConfigForm extends StatefulWidget {
+  final HolidaysConfig? holidaysConfig;
+  final Function? afterSave;
+  final Function? afterDelete;
+  final int index;
+
+  const HolidayConfigForm(
+      {Key? key,
+      this.holidaysConfig,
+      this.afterSave,
+      this.afterDelete,
+      required this.index})
+      : super(key: key);
+
+  @override
+  createState() => _HolidayConfigFormState();
+}
+
+class _HolidayConfigFormState extends State<HolidayConfigForm> {
+  final _formKey = GlobalKey<FormState>();
+  late HolidaysConfig holidaysConfig;
+  bool isNewItem = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isNewItem = (widget.index == -1);
+    holidaysConfig = widget.holidaysConfig!;
+  }
+
+  void saveItem(List args) {
+    BuildContext context = args[0];
+    HolidaysConfig holidaysConfig = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      holidaysConfig.save();
+      if (widget.afterSave != null) {
+        widget.afterSave!();
+      }
+      Navigator.of(context).pop(holidaysConfig);
+    }
+  }
+
+  void removeItem(List args) {
+    BuildContext context = args[0];
+    HolidaysConfig holidaysConfig = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      holidaysConfig.delete();
+      if (widget.afterDelete != null) {
+        widget.afterDelete!();
+      }
+      Navigator.of(context).pop();
+    }
+  }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Expanded> deleteButton = [];
+    int flex = 5;
+    if (!isNewItem) {
+      flex = 3;
+      deleteButton = [
+        Expanded(flex: 1, child: Container()),
+        Expanded(
+            flex: flex,
+            child: actionButton(context, "Eliminar", removeItem, Icons.delete,
+                [context, holidaysConfig, _formKey]))
+      ];
+    }
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: SingleChildScrollView(
+          child: Column(children: [
+            TextFormField(
+              initialValue: holidaysConfig.year.toString(),
+              decoration: const InputDecoration(labelText: 'Año'),
+              onSaved: (val) =>
+                  setState(() => holidaysConfig.year = int.parse(val!)),
+            ),
+            space(),
+            TextFormField(
+              initialValue: holidaysConfig.name,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+              onSaved: (val) => setState(() {
+                holidaysConfig.name = val!;
+              }),
+            ),
+            space(),
+            TextFormField(
+              initialValue: holidaysConfig.totalDays.toString(),
+              //only numbers
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Días totales'),
+              onSaved: (val) => setState(() {
+                holidaysConfig.totalDays = int.parse(val!);
+              }),
+            ),
+            space(),
+            // Buttons
+            Row(
+                children: [
+                      Expanded(
+                          flex: flex,
+                          child: actionButton(
+                              context,
+                              "Enviar",
+                              saveItem,
+                              Icons.save_outlined,
+                              [context, holidaysConfig, _formKey])),
+                      Expanded(flex: 1, child: Container()),
+                      Expanded(
+                          flex: flex,
+                          child: actionButton(context, "Cancelar", cancelItem,
+                              Icons.cancel, context))
+                    ] +
+                    deleteButton),
+          ]),
         ),
       ),
     );
