@@ -71,7 +71,9 @@ Widget mainMenuUser(context, [user, url]) {
         if (user != null)
           Container(
             padding: const EdgeInsets.only(top: 22),
-            child: customText(user.email!, 14, textColor: Colors.white54),
+            child: (MediaQuery.of(context).size.width > 1300)
+                ? customText(user.email!, 14, textColor: Colors.white54)
+                : Container(),
           )
       ],
     ),

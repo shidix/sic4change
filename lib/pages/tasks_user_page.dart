@@ -322,8 +322,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
             children: [
               customSearchBar(table),
               space(height: 10),
-              SizedBox(
-                width: double.infinity,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: DataTable(
                   sortAscending: sortAsc,
                   sortColumnIndex: sortColumnIndex,
