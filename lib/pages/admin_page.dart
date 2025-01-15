@@ -5,6 +5,7 @@ import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
 import 'package:sic4change/pages/admin_decision_page.dart';
+import 'package:sic4change/pages/admin_position_page.dart';
 import 'package:sic4change/pages/admin_profiles_page.dart';
 import 'package:sic4change/pages/admin_project_status_page.dart';
 import 'package:sic4change/pages/admin_project_type_page.dart';
@@ -140,6 +141,10 @@ class _AdminPageState extends State<AdminPage> {
             setState(() {});
           }),
           goPage(context, "Cargos", const ChargePage(), Icons.cabin,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, "Posiciones", const PositionPage(), Icons.cabin,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
