@@ -393,14 +393,14 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
           } else {
             return CustomPopupDialog(
                 context: context,
-                title: "Aviso!!!!",
-                icon: Icons.edit,
+                title: "¡¡¡¡AVISO!!!!",
+                icon: Icons.warning,
                 content: Container(
                     padding: const EdgeInsets.all(20),
                     alignment: Alignment.center,
                     height: 100,
                     child: const Text(
-                        "No se puede crear un calendario porque tu usuatio no tiene una organización asignada. Verifica que el perfil esté registrado en los contactos.",
+                        "No se puede crear un calendario porque tu usuario no tiene una organización asignada. Verifica que el perfil esté registrado en los contactos.",
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold))),
                 actionBtns: null);
