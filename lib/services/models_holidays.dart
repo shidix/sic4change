@@ -241,3 +241,94 @@ class Event {
         'isAllDay': isAllDay,
       };
 }
+
+class HolidaysUser {
+  String id = "";
+  String name = "";
+  int year;
+  int totalDays;
+  String email;
+  List<Event> holidays;
+
+  final database = db.collection("s4c_holidays_user");
+
+  HolidaysUser({
+    required this.id,
+    required this.name,
+    required this.year,
+    required this.totalDays,
+    required this.email,
+    required this.holidays,
+  });
+
+  factory HolidaysUser.fromJson(Map data) {
+    return HolidaysUser(
+      id: data['id'],
+      name: data['name'] ?? '',
+      year: data['year'],
+      totalDays: data['totalDays'],
+      email: data['email'],
+      holidays: data['holidays'].map<Event>((e) => Event.fromJson(e)).toList(),
+    );
+  }
+
+  factory HolidaysUser.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return HolidaysUser.fromJson(data);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'year': year,
+        'totalDays': totalDays,
+        'email': email,
+        'holidays': holidays.map((e) => e.toJson()).toList(),
+      };
+
+  @override
+  String toString() {
+    return 'HolidaysUser{name: $name, year: $year, totalDays: $totalDays, organization: $email, holidays: $holidays}';
+  }
+
+  static HolidaysUser getEmpty() {
+    return HolidaysUser(
+      id: '',
+      name: '',
+      year: DateTime.now().year,
+      totalDays: 0,
+      email: 'none@none.com',
+      holidays: [],
+    );
+  }
+
+  //byOrganization (uuid)
+  static Future<List<HolidaysUser>> byEmail(String email) async {
+    final database = db.collection("s4c_holidays_user");
+    final query = await database.where("email", isEqualTo: email).get();
+    if (query.docs.isNotEmpty) {
+      return query.docs.map((e) => HolidaysUser.fromFirestore(e)).toList();
+    } else {
+      return [];
+    }
+  }
+
+  void save() {
+    if (id == "") {
+      Map<String, dynamic> data = toJson();
+      database.add(data).then((value) {
+        id = value.id;
+      });
+    } else {
+      Map<String, dynamic> data = toJson();
+      database.doc(id).set(data);
+    }
+  }
+
+  void delete() {
+    if (id != "") {
+      database.doc(id).delete();
+    }
+  }
+}
