@@ -304,6 +304,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
   void fillContent() {
     if (holidaysList == null) {
+      content = const Center(child: Text("No hay calendarios"));
       return;
     }
     List<List<HolidaysConfig>> calendarList = resize(holidaysList!, 5);
@@ -373,21 +374,37 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         context: context,
         builder: (context) {
           HolidaysConfig newItem = HolidaysConfig.getEmpty();
-          newItem.organization = currentOrganization!;
-          return CustomPopupDialog(
-              context: context,
-              title: "Nuevo calendario",
-              icon: Icons.edit,
-              content: HolidayConfigForm(
-                holidaysConfig: newItem,
-                afterSave: () {
-                  holidaysList!.add(newItem);
-                  holidaysConfig = newItem;
-                  drawCalendar();
-                },
-                index: -1,
-              ),
-              actionBtns: null);
+          if (currentOrganization != null) {
+            newItem.organization = currentOrganization!;
+            return CustomPopupDialog(
+                context: context,
+                title: "Nuevo calendario",
+                icon: Icons.edit,
+                content: HolidayConfigForm(
+                  holidaysConfig: newItem,
+                  afterSave: () {
+                    holidaysList!.add(newItem);
+                    holidaysConfig = newItem;
+                    drawCalendar();
+                  },
+                  index: -1,
+                ),
+                actionBtns: null);
+          } else {
+            return CustomPopupDialog(
+                context: context,
+                title: "Aviso!!!!",
+                icon: Icons.edit,
+                content: Container(
+                    padding: const EdgeInsets.all(20),
+                    alignment: Alignment.center,
+                    height: 100,
+                    child: const Text(
+                        "No se puede crear un calendario porque tu usuatio no tiene una organización asignada",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold))),
+                actionBtns: null);
+          }
         });
   }
 

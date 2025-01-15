@@ -206,7 +206,7 @@ class _AdminPageState extends State<AdminPage> {
         padding: const EdgeInsets.only(left: 50, right: 50),
         child:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          goPage(context, "Vacaciones", CalendarHolidaysPage(), Icons.settings,
+          goPage(context, "Calendarios", CalendarHolidaysPage(), Icons.settings,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
