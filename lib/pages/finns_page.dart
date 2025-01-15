@@ -706,9 +706,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                 {'finn': finn, 'index': -1},
                                 icon: Icons.send_outlined,
                                 text: 'Distribuir a socio')
-                          else
+                          else if (finn.partidas.isNotEmpty)
                             iconBtn(context, (context, args) {}, null,
-                                icon: null, text: 'Con subpartidas'),
+                                icon: Icons.warning, text: 'Con subpartidas'),
                         ])),
               ),
             ])));

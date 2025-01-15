@@ -390,8 +390,10 @@ class _DistributionFormState extends State<DistributionForm> {
       item = info.distributions[index];
     } else {
       item = Distribution.getEmpty();
-      item.partner = partners[0];
-      item.finn = finn;
+      if (partners.isNotEmpty) {
+        item.partner = partners[0];
+        item.finn = finn;
+      }
     }
   }
 
@@ -426,6 +428,12 @@ class _DistributionFormState extends State<DistributionForm> {
     // }
 
     List<Organization> partners = widget.partners;
+
+    if (partners.isEmpty) {
+      return const Center(
+        child: Text('No hay socios disponibles'),
+      );
+    }
 
     return Form(
       key: _formKey,

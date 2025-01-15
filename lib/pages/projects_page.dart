@@ -468,8 +468,15 @@ class _ProjectsPageState extends State<ProjectsPage> {
     List partners = [];
     if (project.partnersObj.isNotEmpty) {
       for (var uuid in list) {
-        partners
-            .add((getObject(project.partnersObj, uuid) as Organization).name);
+        Object? obj = getObject(project.partnersObj, uuid);
+        if (obj != Null) {
+          partners.add((obj as Organization).name);
+        } else {
+          project.partners.remove(uuid);
+          project.save();
+        }
+        // partners
+        //     .add((getObject(project.partnersObj, uuid) as Organization).name);
       }
     }
 
