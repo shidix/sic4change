@@ -377,19 +377,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 (positionFilter == '')) &&
             element.getSalary() >= minSalaryFilter &&
             element.getSalary() <= maxSalaryFilter &&
-            element.getBornDate().isAfter(minBornDateFilter) &&
-            element.getBornDate().isBefore(maxBornDateFilter) &&
+            // element.getBornDate().isAfter(minBornDateFilter) &&
+            // element.getBornDate().isBefore(maxBornDateFilter) &&
             element.getAltaDate().isAfter(minAltaDateFilter) &&
             element.getAltaDate().isBefore(maxAltaDateFilter) &&
             element.getBajaDate().isAfter(minBajaDateFilter) &&
             element.getBajaDate().isBefore(maxBajaDateFilter))
         .toList();
-
-    // List<Employee> employeesFiltered = employees
-    //     .where((element) => element.isActive() == altasVisible)
-    //     .toList();
-
-    // Filtros
 
     DataTable dataTable = DataTable(
       headingRowColor:
@@ -460,7 +454,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
             DataCell(Text(e.getPosition())),
             DataCell(Text(e.altaDays().toString())),
-            DataCell(Text(toCurrency(e.getSalary()))),
+            DataCell(Text(toCurrency(e.getSalary()),
+                style: (e.getSalary() <= 0.0)
+                    ? const TextStyle(color: Colors.red)
+                    : null)),
             DataCell(Text(e.email)),
             DataCell(
               Row(

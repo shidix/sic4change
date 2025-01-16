@@ -63,8 +63,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
       indexReason = 0;
 
       if (employee.altas.isNotEmpty) {
-        indexReason = reasons.values.toList().indexWhere(
-            (element) => element.name == employee.altas.last.baja.reason);
+        if (employee.altas.last.baja != null) {
+          indexReason = reasons.values.toList().indexWhere(
+              (element) => element.name == employee.altas.last.baja.reason);
+        } else {
+          indexReason = reasons.values
+              .toList()
+              .indexWhere((element) => element.order == -1);
+        }
       }
       if (indexReason != -1) {
         selectedReason = reasons.values.toList()[indexReason].uuid!;
