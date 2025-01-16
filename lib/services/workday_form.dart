@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +22,7 @@ class WorkdayFormState extends State<WorkdayForm> {
   final formKey = GlobalKey<FormState>();
   late Workday workday;
   late User user;
+  late Contact contact;
   bool isNewItem = false;
 
   @override
@@ -28,6 +31,16 @@ class WorkdayFormState extends State<WorkdayForm> {
 
     user = widget.user!;
     workday = widget.currentWorkday!;
+    contact = Contact.getEmpty();
+    contact.name = "Loading...";
+    contact.email = user.email!;
+
+    Contact.byEmail(user.email!).then((Contact contact) {
+      this.contact = contact;
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   Workday saveItem() {
@@ -59,7 +72,10 @@ class WorkdayFormState extends State<WorkdayForm> {
                         leading: const Icon(Icons.person),
                         title: (user.displayName != null)
                             ? Text(user.displayName!)
-                            : const Text(""))),
+                            : (contact.name != '')
+                                ? Text(contact.name)
+                                : Text(
+                                    "Nombre no indicado en perfil <${user.email!}>"))),
                 Expanded(
                     flex: 1,
                     child: ListTile(

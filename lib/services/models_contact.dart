@@ -60,6 +60,10 @@ class Contact {
     return KeyValue(uuid, name);
   }
 
+  static Contact getEmpty() {
+    return Contact("");
+  }
+
   Future<void> save() async {
     if (id == "") {
       var newUuid = const Uuid();
