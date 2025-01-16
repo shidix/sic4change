@@ -6,6 +6,7 @@ import "dart:developer" as dev;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+// import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
@@ -35,6 +36,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //bool _main = false;
+  late Map<String, TasksStatus> hashStatus;
   User user = FirebaseAuth.instance.currentUser!;
   Profile? profile;
   List<STask>? mytasks = [];
@@ -49,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   Widget mainMenuWidget = Container();
 
   Widget contentWorkPanel = Container();
+  Widget contentTasksPanel = Container();
 
   List<SProject>? myProjects;
 
@@ -61,14 +64,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadMyTasks() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      STask.getByAssigned(value.uuid).then((value) {
-        // mytasks = value;
-        setState(() {
-          mytasks = value;
-        });
-      });
+    // await Contact.byEmail(user.email!).then((value) {
+    //   contact = value;
+    //   STask.getByAssigned(value.uuid).then((value) {
+    //     print(value.length);
+    //     // mytasks = value;
+    //     setState(() {
+    //       mytasks = value;
+    //     });
+    //   });
+    // });
+    STask.getByAssigned(user.email!, lazy: true).then((value) {
+      mytasks = value;
+      contentTasksPanel = tasksPanel();
+      setState(() {});
     });
   }
 
@@ -172,18 +181,6 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {});
       }
-      // Workday.currentByUser(user.email!).then((value) {
-      //   currentWorkday = value;
-      //   // if (!myWorkdays!.contains(value)) {
-      //   //   myWorkdays!.add(value!);
-      //   // }
-      //   if (mounted) {
-      //     setState(() {
-      //       myWorkdays = myWorkdays;
-      //       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      //     });
-      //   }
-      // });
     });
   }
 
@@ -204,6 +201,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    hashStatus = {};
+    TasksStatus.getAll().then((value) {
+      if (value.isNotEmpty) {
+        for (var item in value) {
+          hashStatus[item.id] = item;
+          hashStatus[item.uuid] = item;
+        }
+      }
+    });
     if (user.email == null) {
       Navigator.of(context).pushNamed('/');
     } else {
@@ -225,6 +231,12 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {});
       }
+
+      loadMyTasks().then((value) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
 
       notif = 0;
       getNotifications();
@@ -251,7 +263,7 @@ class _HomePageState extends State<HomePage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 1, child: tasksPanel(context)),
+              Expanded(flex: 1, child: contentTasksPanel),
               Expanded(flex: 1, child: notifyPanel(context)),
             ],
           ),
@@ -1210,7 +1222,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: statusCard(task.statusObj.getName()),
+                          child: statusCard(
+                              (hashStatus.containsKey(task.status))
+                                  ? hashStatus[task.status]!.getName()
+                                  : ""),
                         ),
                       ],
                     )
@@ -1221,7 +1236,7 @@ class _HomePageState extends State<HomePage> {
               ));
   }
 
-  Widget tasksPanel(BuildContext context) {
+  Widget tasksPanel() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1264,10 +1279,10 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Padding(
+                                      Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Mis tareas",
+                                            "Mis tareas (${mytasks!.length})",
                                             style: cardHeaderText,
                                           )),
                                       Text(dateToES(DateTime.now()),

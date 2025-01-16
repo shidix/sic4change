@@ -174,10 +174,14 @@ class STask {
     if (project != "") {
       QuerySnapshot query =
           await dbProject.where("uuid", isEqualTo: project).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      projectObj = SProject.fromJson(data);
+      if (query.docs.isEmpty) {
+        projectObj = SProject("");
+      } else {
+        final doc = query.docs.first;
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        projectObj = SProject.fromJson(data);
+      }
     }
   }
 
@@ -322,19 +326,22 @@ class STask {
     return assignedStr;
   }*/
 
-  static Future<List<STask>> getByAssigned(uuid) async {
+  static Future<List<STask>> getByAssigned(uuid, {lazy = false}) async {
     List<STask> items = [];
     final query = await dbTasks.where("assigned", arrayContains: uuid).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
-      task.getProject();
-      task.getProgramme();
-      await task.getStatus();
-      await task.getSender();
-      await task.getAssigned();
-      //await task.getProgrammes();
+      if (!lazy) {
+        await task.getProject();
+        await task.getStatus();
+        await task.getSender();
+        await task.getAssigned();
+        await task.getReceivers();
+        await task.getReceiversOrg();
+        //await task.getProgrammes();
+      }
       items.add(task);
     }
     return items;
@@ -666,6 +673,17 @@ class TasksStatus {
         'uuid': uuid,
         'name': name,
       };
+
+  static Future<List<TasksStatus>> getAll() async {
+    List<TasksStatus> items = [];
+    QuerySnapshot query = await dbTasksStatus.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(TasksStatus.fromJson(data));
+    }
+    return items;
+  }
 
   KeyValue toKeyValue() {
     return KeyValue(uuid, name);
