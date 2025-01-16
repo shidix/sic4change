@@ -56,15 +56,24 @@ class Workday {
     return 'Workday $uuid $userId $startDate $endDate $open';
   }
 
-  void save() {
+  Future<Workday> save() async {
+    // if (id == "") {
+    //   id = uuid;
+    //   Map<String, dynamic> data = toJson();
+    //   database.add(data).then(data)
+    // } else {
+    //   Map<String, dynamic> data = toJson();
+    //   database.doc(id).set(data);
+    // }
     if (id == "") {
-      id = uuid;
-      Map<String, dynamic> data = toJson();
-      database.add(data);
+      await database.add(toJson()).then((value) {
+        uuid = value.id;
+        database.doc(uuid).update({'uuid': uuid});
+      });
     } else {
-      Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      await database.doc(id).update(toJson());
     }
+    return this;
   }
 
   void delete() {
@@ -81,7 +90,7 @@ class Workday {
     DateTime today = DateTime.now();
     return Workday(
         id: '',
-        uuid: const Uuid().v4(),
+        uuid: '',
         userId: email,
         open: open,
         startDate: truncDate(today).subtract(const Duration(hours: 16)),
