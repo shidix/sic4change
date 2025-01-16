@@ -428,8 +428,8 @@ class Alta {
       return 0.0;
     }
     salary.sort((a, b) => a.date.compareTo(b.date));
-    double grossSalary = salary.last.amount;
-    double dailyPayment = grossSalary / 365;
+    //double grossSalary = salary.last.amount;
+    //double dailyPayment = grossSalary / 365;
 
     return 0.0;
   }

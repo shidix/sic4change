@@ -224,7 +224,9 @@ class _NominaFormState extends State<NominaForm> {
                                   return null;
                                 },
                                 onChanged: (value) {
-                                  nomina.netSalary = double.parse(value);
+                                  if (value.isNotEmpty) {
+                                    nomina.netSalary = double.parse(value);
+                                  }
                                 },
                               )),
                         ),
@@ -248,7 +250,9 @@ class _NominaFormState extends State<NominaForm> {
                                   return null;
                                 },
                                 onChanged: (value) {
-                                  nomina.deductions = double.parse(value);
+                                  if (value.isNotEmpty) {
+                                    nomina.deductions = double.parse(value);
+                                  }
                                 },
                               )),
                         ),
@@ -273,8 +277,10 @@ class _NominaFormState extends State<NominaForm> {
                                   return null;
                                 },
                                 onChanged: (value) {
-                                  nomina.employeeSocialSecurity =
-                                      double.parse(value);
+                                  if (value.isNotEmpty) {
+                                    nomina.employeeSocialSecurity =
+                                        double.parse(value);
+                                  }
                                 },
                               )),
                         ),
@@ -299,7 +305,9 @@ class _NominaFormState extends State<NominaForm> {
                                   return null;
                                 },
                                 onChanged: (value) {
-                                  nomina.grossSalary = double.parse(value);
+                                  if (value.isNotEmpty) {
+                                    nomina.grossSalary = double.parse(value);
+                                  }
                                 },
                               )),
                         ),
@@ -325,8 +333,10 @@ class _NominaFormState extends State<NominaForm> {
                                   return null;
                                 },
                                 onChanged: (value) {
-                                  nomina.employerSocialSecurity =
-                                      double.parse(value);
+                                  if (value.isNotEmpty) {
+                                    nomina.employerSocialSecurity =
+                                        double.parse(value);
+                                  }
                                 },
                               )),
                         ),
