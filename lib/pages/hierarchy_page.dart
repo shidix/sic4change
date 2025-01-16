@@ -265,11 +265,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
     });
   }
 
-  // String createIndentationFromKey(String key) {
-  //   int count = key.split('>').length;
-  //   return ' ' * (count * 8);
-  // }
-
   String createIndentationFromDepartment(Department department) {
     Department current = department;
     int level = 0;
