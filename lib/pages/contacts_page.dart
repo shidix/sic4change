@@ -688,6 +688,16 @@ class _ContactsPageState extends State<ContactsPage> {
                 ),
               ]),
             ]),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Si no encuentra la posición o la empresa, contacte con el administrador',
+                  maxLines: 2,
+                  style: smallText,
+                )
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveContact, contact),
