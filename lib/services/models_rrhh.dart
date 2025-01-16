@@ -945,12 +945,13 @@ class Department {
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        'parent': parent,
+        'parent': (parent == null) ? '' : parent,
         'manager': manager?.toJson(),
         'employees': employees?.map((e) => e.toJson()).toList(),
       };
 
   Future<Department> save() async {
+    parent ??= '';
     if (id == null) {
       await collection.add(toJson()).then((value) => id = value.id);
     } else {
@@ -964,7 +965,7 @@ class Department {
   }
 
   static Department getEmpty() {
-    return Department(name: '', employees: []);
+    return Department(name: '', employees: [], parent: '');
   }
 
   static Future<List<Department>> getDepartments() async {

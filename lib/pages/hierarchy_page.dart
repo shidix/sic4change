@@ -214,6 +214,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Widget mainMenuPanel = Container();
 
   List<Department> departments = [];
+  List<Department> allDepartments = [];
   Map<String, Department> departmentsHash = {};
   Map<String, bool> expanded = {};
   Map<String, String> departmentKeys = {};
@@ -229,7 +230,12 @@ class _HierarchyPageState extends State<HierarchyPage> {
     super.initState();
     profile = widget.profile;
     Department.getDepartments().then((value) {
-      departments = value;
+      allDepartments = value;
+      for (Department d in allDepartments) {
+        expanded[d.id!] = false;
+        departmentsHash[d.id!] = d;
+      }
+      departments = allDepartments.where((d) => d.parent == '').toList();
 
       for (Department d in departments) {
         expanded[d.id!] = false;
@@ -239,6 +245,10 @@ class _HierarchyPageState extends State<HierarchyPage> {
         departmentKeys[d.id!] = d.name;
         String parent = d.parent!;
         while (parent != '') {
+          if (departmentsHash[parent] == null) {
+            parent = '';
+            break;
+          }
           departmentKeys[d.id!] =
               '${departmentsHash[parent]!.name}>${departmentKeys[d.id!]!}';
           parent = departmentsHash[parent]!.parent!;
@@ -255,9 +265,29 @@ class _HierarchyPageState extends State<HierarchyPage> {
     });
   }
 
-  String createIndentationFromKey(String key) {
-    int count = key.split('>').length;
-    return ' ' * (count * 8);
+  // String createIndentationFromKey(String key) {
+  //   int count = key.split('>').length;
+  //   return ' ' * (count * 8);
+  // }
+
+  String createIndentationFromDepartment(Department department) {
+    Department current = department;
+    int level = 0;
+    while (current.parent != '') {
+      level++;
+      current = departmentsHash[current.parent]!;
+    }
+    return ' ' * (level * 8);
+  }
+
+  int getLevel(Department department) {
+    Department current = department;
+    int level = 0;
+    while (current.parent != '') {
+      level++;
+      current = departmentsHash[current.parent]!;
+    }
+    return level;
   }
 
   Widget departmentPanel() {
@@ -283,11 +313,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
         )),
         const DataColumn(label: Text('')),
       ];
-      List<Department> departmentsRoot = departments
-          .where((department) => ((department.parent == null) ||
-              (department.parent == '') ||
-              (expanded[department.parent] == true)))
-          .toList();
+
+      List<Department> departmentsRoot = departments;
       List<DataRow> rows = departmentsRoot
           .map((department) => DataRow(
                   color: WidgetStateProperty.resolveWith<Color?>(
@@ -295,14 +322,13 @@ class _HierarchyPageState extends State<HierarchyPage> {
                     if (department.parent == '') {
                       return colors[0];
                     }
-                    return colors[
-                        departmentKeys[department.id]!.split('>').length];
+                    return colors[getLevel(department) % 4];
                   }),
                   cells: [
                     (department.parent == '')
                         ? DataCell(Text(department.name))
                         : DataCell(Text(
-                            '${createIndentationFromKey(departmentKeys[department.id!]!)}${department.name}')),
+                            '${createIndentationFromDepartment(department)}${department.name}')),
                     DataCell(Text((department.parent != null)
                         ? departments
                             .firstWhere((d) => d.id == department.parent,
@@ -315,10 +341,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
                     DataCell(Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // IconButton(
-                          //     icon: const Icon(Icons.edit),
-                          //     onPressed: () {},
-                          //     color: Colors.black),
                           IconButton(
                               icon: Icon((!expanded[department.id]!)
                                   ? Icons.expand_more_outlined
@@ -327,17 +349,20 @@ class _HierarchyPageState extends State<HierarchyPage> {
                                 expanded[department.id!] =
                                     !expanded[department.id]!;
                                 if (!expanded[department.id]!) {
-                                  for (String key in departmentKeys.keys) {
-                                    if (departmentKeys[key]!
-                                        .contains('${department.name}>')) {
-                                      expanded[key] = false;
-                                    }
-                                  }
+                                  departments.removeWhere(
+                                      (d) => d.parent == department.id);
+                                } else {
+                                  int index = departments.indexOf(department);
+                                  List<Department> children = allDepartments
+                                      .where((d) => d.parent == department.id)
+                                      .toList();
+
+                                  departments.insertAll(index + 1, children);
                                 }
                                 if (mounted) {
-                                  setState(() {
-                                    contentPanel = departmentPanel();
-                                  });
+                                  contentPanel = departmentPanel();
+
+                                  setState(() {});
                                 }
                               }),
                           editBtn(context, (context, department) {
@@ -402,7 +427,23 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 );
               }).then((value) {
             if (value != null) {
-              departments.add(value);
+              String parent = value.parent;
+              if (parent == '') {
+                departments.add(value);
+              } else {
+                int index = departments
+                    .indexOf(departments.firstWhere((d) => d.id == parent));
+                departments.insert(index + 1, value);
+              }
+              departmentsHash[value.id!] = value;
+              while (parent != '') {
+                expanded[parent] = true;
+                parent = departmentsHash[parent]!.parent!;
+              }
+
+              // remove brothers
+
+              expanded[value.id!] = false;
               if (mounted) {
                 setState(() {
                   contentPanel = departmentPanel();
