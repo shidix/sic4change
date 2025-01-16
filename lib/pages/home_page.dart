@@ -99,7 +99,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadMyWorkdays() async {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
-      print(2);
       await Contact.byEmail(user.email!).then((value) {
         contact = value;
         Workday.byUser(value.email).then((value) {
@@ -110,10 +109,7 @@ class _HomePageState extends State<HomePage> {
         });
       });
     } else {
-      print(1);
       setState(() {
-        print(currentWorkday!.open);
-
         if (currentWorkday!.open) {
           workdayButton = actionButton(
               context, null, workdayAction, Icons.stop_circle_outlined, context,
