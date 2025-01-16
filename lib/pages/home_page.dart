@@ -37,6 +37,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   //bool _main = false;
   late Map<String, TasksStatus> hashStatus;
+  late Map<String, SProject> hashProjects;
+
   User user = FirebaseAuth.instance.currentUser!;
   Profile? profile;
   List<STask>? mytasks = [];
@@ -52,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
+  Widget contentProjectsPanel = Container();
 
   List<SProject>? myProjects;
 
@@ -77,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     STask.getByAssigned(user.email!, lazy: true).then((value) {
       mytasks = value;
       contentTasksPanel = tasksPanel();
+      contentProjectsPanel = projectsPanel(context);
       setState(() {});
     });
   }
@@ -202,11 +206,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     hashStatus = {};
-    TasksStatus.getAll().then((value) {
+    hashProjects = {};
+    TasksStatus.all().then((value) {
       if (value.isNotEmpty) {
         for (var item in value) {
           hashStatus[item.id] = item;
           hashStatus[item.uuid] = item;
+        }
+      }
+    });
+    SProject.all().then((value) {
+      if (value.isNotEmpty) {
+        for (var item in value) {
+          hashProjects[item.id] = item;
+          hashProjects[item.uuid] = item;
         }
       }
     });
@@ -270,7 +283,7 @@ class _HomePageState extends State<HomePage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 1, child: projectsPanel(context)),
+              Expanded(flex: 1, child: contentProjectsPanel),
               //Expanded(flex: 1, child: logsPanel(context)),
             ],
           ),
@@ -1615,6 +1628,15 @@ class _HomePageState extends State<HomePage> {
 
 /////////// PROJECTS ///////////
   Widget projectsPanel(BuildContext context) {
+    myProjects = [];
+    for (STask task in mytasks!) {
+      if (hashProjects.containsKey(task.project)) {
+        SProject project = hashProjects[task.project]!;
+        if (!myProjects!.contains(project)) {
+          myProjects!.add(project);
+        }
+      }
+    }
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Container(

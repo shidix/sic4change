@@ -674,7 +674,7 @@ class TasksStatus {
         'name': name,
       };
 
-  static Future<List<TasksStatus>> getAll() async {
+  static Future<List<TasksStatus>> all() async {
     List<TasksStatus> items = [];
     QuerySnapshot query = await dbTasksStatus.get();
     for (var doc in query.docs) {
