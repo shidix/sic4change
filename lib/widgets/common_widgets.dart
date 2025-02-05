@@ -2481,7 +2481,7 @@ class _PasswordFieldState extends State<PasswordField> {
         labelText: 'Contraseña',
         fillColor: Colors.white,
         filled: true,
-        border: OutlineInputBorder(), // Añade un borde al campo
+        //border: OutlineInputBorder(), // Añade un borde al campo
         suffixIcon: IconButton(
           icon: Icon(
             _obscureText ? Icons.visibility_off : Icons.visibility,
