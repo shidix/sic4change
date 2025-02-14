@@ -2454,3 +2454,46 @@ class DynamicGrid extends StatelessWidget {
     );
   }
 }
+
+class PasswordField extends StatefulWidget {
+
+  final TextEditingController controller;
+
+  const PasswordField({super.key, required this.controller});
+
+  @override
+  _PasswordFieldState createState() => _PasswordFieldState();
+
+  
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  bool _obscureText = true; // Estado para ocultar o mostrar la contraseña
+  late TextEditingController _controller;
+
+  @override
+  Widget build(BuildContext context) {
+    _controller = widget.controller;
+    return TextFormField(
+      controller: _controller,
+      obscureText: _obscureText, // Oculta o muestra la contraseña
+      decoration: InputDecoration(
+        labelText: 'Contraseña',
+        fillColor: Colors.white,
+        filled: true,
+        //border: OutlineInputBorder(), // Añade un borde al campo
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureText ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText; // Cambia el estado
+            });
+          },
+        ),
+      ),
+    );
+  }
+}
+

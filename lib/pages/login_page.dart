@@ -177,14 +177,15 @@ Widget passsowdText() {
 Widget passwordField(passwdController) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: TextField(
-      controller: passwdController,
-      obscureText: true,
-      decoration: const InputDecoration(
-          hintText: "Introduce contraseña",
-          fillColor: Colors.white,
-          filled: true),
-    ),
+    child: PasswordField(controller: passwdController),
+    // child: TextField(
+    //   controller: passwdController,
+    //   obscureText: true,
+    //   decoration: const InputDecoration(
+    //       hintText: "Introduce contraseña",
+    //       fillColor: Colors.white,
+    //       filled: true),
+    // ),
   );
 }
 
