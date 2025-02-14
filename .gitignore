@@ -63,4 +63,4 @@ firebase.json.orig
 web/404.html
 lib/firebase_options.dart**
 
-macos
+macos**
