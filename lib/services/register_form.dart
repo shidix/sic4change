@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:uuid/uuid.dart';
 
 class RegisterForm extends StatefulWidget {
   final String email;
@@ -17,6 +18,30 @@ class _RegisterFormState extends State<RegisterForm> {
   String _errorMessage = '';
   String password = '';
   final _formKey = GlobalKey<FormState>();
+  bool userExists = false;
+
+  void initState() {
+    super.initState();
+    _checkUser();
+  }
+
+
+  Future<void> _checkUser() async {
+    try {
+      // Check if user exists
+      final user = await _auth.fetchSignInMethodsForEmail(widget.email);
+      if (user.isNotEmpty) {
+        setState(() {
+          userExists = true;
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message ?? "Error desconocido";
+      });
+    }
+  }
+
 
   Future<void> _register() async {
     try {
@@ -42,16 +67,16 @@ class _RegisterFormState extends State<RegisterForm> {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: widget.email,
-        password: password,
+        //password with random string
+        password: Uuid().v4(),
       );
-      print("Usuario registrado: ${userCredential.user?.email}");
-
       // Send email with the password
-      await userCredential.user?.sendEmailVerification();
+      // await userCredential.user?.sendEmailVerification();
       await _auth.sendPasswordResetEmail(email: widget.email);
       setState(() {
+        userExists = true;
         _errorMessage =
-            "Usuario registrado. Se le han enviado dos emails al usuario, uno para que verifique la cuenta y otra para que resetee la contraseña. Puedes cerrar el formulario";
+            "Usuario registrado. Se le ha enviado un email al usuario para que genere su password. Puedes cerrar el formulario.";
       });
 
       // Send email for password recovery
@@ -81,6 +106,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
+
     return Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -93,23 +119,24 @@ class _RegisterFormState extends State<RegisterForm> {
                   decoration: InputDecoration(labelText: "Email"),
                   readOnly: true,
                 ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Contraseña"),
-                  obscureText: true,
-                  onChanged: (value) {
-                    password = value;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor, introduzca una contraseña";
-                    }
-                    return null;
-                  },
-                ),
+                // TextFormField(
+                //   decoration: InputDecoration(labelText: "Contraseña"),
+                //   obscureText: true,
+                //   onChanged: (value) {
+                //     password = value;
+                //   },
+                //   validator: (value) {
+                //     if (value == null || value.isEmpty) {
+                //       return "Por favor, introduzca una contraseña";
+                //     }
+                //     return null;
+                //   },
+                // ),
                 SizedBox(height: 20),
-                saveBtnForm(context, _register),
+                !userExists?
+                actionButton(context, 'Crear cuenta de usuario', _register, Icons.key, null):
                 actionButton(
-                    context, 'Cambiar Password', _sendEmail, Icons.key, null),
+                    context, 'Solicitar cambio de password', _sendEmail, Icons.key, null),
                 if (_errorMessage.isNotEmpty)
                   Padding(
                     padding: EdgeInsets.only(top: 10),
