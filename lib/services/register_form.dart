@@ -22,9 +22,10 @@ class _RegisterFormState extends State<RegisterForm> {
 
   void initState() {
     super.initState();
-    _checkUser();
+    if (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
+      _checkUser();
+    }
   }
-
 
   Future<void> _checkUser() async {
     try {
@@ -41,7 +42,6 @@ class _RegisterFormState extends State<RegisterForm> {
       });
     }
   }
-
 
   Future<void> _register() async {
     try {
@@ -106,48 +106,57 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
-
-    return Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: widget.email,
-                  decoration: InputDecoration(labelText: "Email"),
-                  readOnly: true,
-                ),
-                // TextFormField(
-                //   decoration: InputDecoration(labelText: "Contraseña"),
-                //   obscureText: true,
-                //   onChanged: (value) {
-                //     password = value;
-                //   },
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty) {
-                //       return "Por favor, introduzca una contraseña";
-                //     }
-                //     return null;
-                //   },
-                // ),
-                SizedBox(height: 20),
-                !userExists?
-                actionButton(context, 'Crear cuenta de usuario', _register, Icons.key, null):
-                actionButton(
-                    context, 'Solicitar cambio de password', _sendEmail, Icons.key, null),
-                if (_errorMessage.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: Text(
-                      _errorMessage,
-                      style: TextStyle(color: Colors.red),
-                    ),
+    if (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
+      return Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: widget.email,
+                    decoration: InputDecoration(labelText: "Email"),
+                    readOnly: true,
                   ),
-              ],
+                  // TextFormField(
+                  //   decoration: InputDecoration(labelText: "Contraseña"),
+                  //   obscureText: true,
+                  //   onChanged: (value) {
+                  //     password = value;
+                  //   },
+                  //   validator: (value) {
+                  //     if (value == null || value.isEmpty) {
+                  //       return "Por favor, introduzca una contraseña";
+                  //     }
+                  //     return null;
+                  //   },
+                  // ),
+                  SizedBox(height: 20),
+                  !userExists
+                      ? actionButton(context, 'Crear cuenta de usuario',
+                          _register, Icons.key, null)
+                      : actionButton(context, 'Solicitar cambio de password',
+                          _sendEmail, Icons.key, null),
+                  if (_errorMessage.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        _errorMessage,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        ));
+          ));
+    } else {
+      return const SizedBox(
+          width: double.infinity,
+          height: 100,
+          child: Center(
+            child: Text("Email no válido"),
+          ));
+    }
   }
 }

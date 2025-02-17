@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 // import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
@@ -24,6 +25,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
+  late String message;
 
   @override
   void dispose() {
@@ -35,6 +37,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   initState() {
+    message = "";
     super.initState();
     //final user = FirebaseAuth.instance.currentUser!;
     //getProfile(user);
@@ -54,6 +57,30 @@ class _LoginPageState extends State<LoginPage> {
         loadProf = false;
       });
     }
+  }
+
+  void sendResetEmail(context, emailController) async {
+    String email = emailController.text.trim();
+    if ((email.isNotEmpty) &&
+        (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email))) {
+      try {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        message = "Se ha enviado un email para recuperar la contraseña";
+      } on FirebaseAuthException catch (e) {
+        message = e.message ?? "Error desconocido";
+      }
+    } else {
+      message = "Introduce un email válido";
+      // Wait 5 seconds and then clear the message with fadeout
+      Timer(const Duration(seconds: 3), () {
+        setState(() {
+          message = "";
+        });
+      });
+    }
+    setState(() {
+      message = message;
+    });
   }
 
   @override
@@ -81,7 +108,8 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       return Scaffold(
         body: Center(
-            child: loginBody(context, emailController, passwdController)),
+            child:
+                loginBody(context, emailController, passwdController, message)),
       );
     }
 /*
@@ -110,150 +138,175 @@ class _LoginPageState extends State<LoginPage> {
           }),
     );*/
   }
-}
 
-Widget loginBody(context, emailController, passwdController) {
-  return Container(
-    margin: const EdgeInsets.all(20.0),
-    child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [loginLogo()],
-          ),
-          space(height: 29),
-          usernameText(),
-          usernameField(emailController),
-          space(height: 29),
-          passsowdText(),
-          passwordField(passwdController),
-          space(height: 29),
-          forgotText(),
-          space(height: 29),
-          loginBtn(context, emailController, passwdController),
-          footer(context),
-        ]),
-  );
-}
-
-Widget loginLogo() {
-  return const Image(
-    image: AssetImage('assets/images/logo.jpg'),
-    alignment: Alignment.center,
-    height: 66,
-    fit: BoxFit.fitHeight,
-  );
-}
-
-Widget usernameText() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: customText("Correo electrónico", 20),
-  );
-}
-
-Widget usernameField(emailController) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: TextField(
-      controller: emailController,
-      decoration: const InputDecoration(
-          hintText: "Introduce un correo electrónico válido",
-          fillColor: Colors.white,
-          filled: true),
-    ),
-  );
-}
-
-Widget passsowdText() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: customText("Contraseña", 20),
-  );
-}
-
-Widget passwordField(passwdController) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: PasswordField(controller: passwdController),
-    // child: TextField(
-    //   controller: passwdController,
-    //   obscureText: true,
-    //   decoration: const InputDecoration(
-    //       hintText: "Introduce contraseña",
-    //       fillColor: Colors.white,
-    //       filled: true),
-    // ),
-  );
-}
-
-Widget forgotText() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: customText("He olvidado mi contraseña", 16, textColor: mainColor),
-  );
-}
-
-Widget loginBtn(context, emailController, passwdController) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 95),
-    child: ElevatedButton(
-      onPressed: () {
-        //Navigator.pushReplacementNamed(context, "/home");
-        signIn(context, emailController, passwdController);
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: mainColor,
-        minimumSize: const Size.fromHeight(50),
-      ),
-      child: customText("Entrar", 20, textColor: Colors.white),
-    ),
-  );
-}
-
-Future signIn(context, emailController, passwdController) async {
-  showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ));
-
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwdController.text.trim(),
+  Widget loginBody(context, emailController, passwdController, message) {
+    return Container(
+      margin: const EdgeInsets.all(20.0),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [loginLogo()],
+            ),
+            space(height: 29),
+            usernameText(),
+            usernameField(emailController),
+            space(height: 29),
+            passsowdText(),
+            passwordField(passwdController),
+            space(height: 29),
+            loginBtn(context, emailController, passwdController),
+            space(height: 29),
+            askPassButton(context, emailController),
+            space(height: 29),
+            Center(
+                child: Text(message,
+                    style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold))),
+            space(height: 29),
+            footer(context),
+          ]),
     );
-    final user = FirebaseAuth.instance.currentUser!;
-    if (FirebaseAuth.instance.currentUser != null) {
-      profile = await Profile.getProfile(user.email!);
-    } else {
+  }
+
+  Widget askPassButton(context, emailController) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: ElevatedButton(
+        onPressed: () {
+          sendResetEmail(context, emailController);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: mainColor,
+          minimumSize: const Size.fromHeight(50),
+        ),
+        child: customText("He olvidado mi contraseña", 20,
+            textColor: Colors.white),
+      ),
+    );
+  }
+
+  Widget loginLogo() {
+    return const Image(
+      image: AssetImage('assets/images/logo.jpg'),
+      alignment: Alignment.center,
+      height: 66,
+      fit: BoxFit.fitHeight,
+    );
+  }
+
+  Widget usernameText() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: customText("Correo electrónico", 20),
+    );
+  }
+
+  Widget usernameField(emailController) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: TextField(
+        controller: emailController,
+        decoration: const InputDecoration(
+            hintText: "Introduce un correo electrónico válido",
+            fillColor: Colors.white,
+            filled: true),
+      ),
+    );
+  }
+
+  Widget passsowdText() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: customText("Contraseña", 20),
+    );
+  }
+
+  Widget passwordField(passwdController) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: PasswordField(controller: passwdController),
+      // child: TextField(
+      //   controller: passwdController,
+      //   obscureText: true,
+      //   decoration: const InputDecoration(
+      //       hintText: "Introduce contraseña",
+      //       fillColor: Colors.white,
+      //       filled: true),
+      // ),
+    );
+  }
+
+  Widget forgotText() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: customText("He olvidado mi contraseña", 16, textColor: mainColor),
+    );
+  }
+
+  Widget loginBtn(context, emailController, passwdController) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 95),
+      child: ElevatedButton(
+        onPressed: () {
+          //Navigator.pushReplacementNamed(context, "/home");
+          signIn(context, emailController, passwdController);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: mainColor,
+          minimumSize: const Size.fromHeight(50),
+        ),
+        child: customText("Entrar", 20, textColor: Colors.white),
+      ),
+    );
+  }
+
+  Future signIn(context, emailController, passwdController) async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ));
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwdController.text.trim(),
+      );
+      final user = FirebaseAuth.instance.currentUser!;
+      if (FirebaseAuth.instance.currentUser != null) {
+        profile = await Profile.getProfile(user.email!);
+      } else {
+        Navigator.pop(context);
+        return;
+      }
+    } on FirebaseException catch (e) {
+      print(e);
+    }
+    //navigatorKey.currentState!.popUntil((route) => route.isFirst);
+
+    if (FirebaseAuth.instance.currentUser == null) {
       Navigator.pop(context);
       return;
-    }
-  } on FirebaseException catch (e) {
-    print(e);
-  }
-  //navigatorKey.currentState!.popUntil((route) => route.isFirst);
-
-  if (FirebaseAuth.instance.currentUser == null) {
-    Navigator.pop(context);
-    return;
-  } else {
-    Navigator.pop(context);
-    if (profile?.mainRole == "Admin") {
-      Navigator.push(context,
-          MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
-    } else if (profile?.mainRole == "Administrativo") {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: ((context) => EmployeesPage(profile: profile))));
     } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: ((context) => const HomePage())));
+      Navigator.pop(context);
+      if (profile?.mainRole == "Admin") {
+        Navigator.push(context,
+            MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+      } else if (profile?.mainRole == "Administrativo") {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: ((context) => EmployeesPage(profile: profile))));
+      } else {
+        Navigator.push(context,
+            MaterialPageRoute(builder: ((context) => const HomePage())));
+      }
     }
   }
 }
