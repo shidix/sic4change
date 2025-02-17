@@ -8,6 +8,7 @@ import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/register_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -497,6 +498,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
                             dialogFormEmployee(context, employees.indexOf(e));
                           })
                       : Container(),
+                  //Button for RegisterForm
+                  IconButton(
+                    icon: const Icon(Icons.lock),
+                    tooltip: 'Credenciales',
+                    onPressed: () {
+                      dialogFormRegister(context, employees.indexOf(e));
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Icons.euro_symbol),
                     tooltip: 'Nóminas del empleado',
@@ -705,6 +714,29 @@ class _EmployeesPageState extends State<EmployeesPage> {
         }
       },
     );
+  }
+
+  void dialogFormRegister(context, int indexOf) {
+    showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          Employee? employee;
+          if (indexOf >= employees.length) {
+            //show error message
+            return AlertDialog(
+              title: s4cTitleBar('Error', context, Icons.error),
+              content: const Text('No se puede registrar el usuario'),
+            );
+          } else {
+            employee = employees[indexOf];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Credenciales', context, Icons.lock),
+            content: RegisterForm(
+              email: employee.email,
+            ),
+          );
+        });
   }
 
   @override
