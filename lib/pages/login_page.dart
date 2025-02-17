@@ -108,8 +108,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       return Scaffold(
         body: Center(
-            child:
-                loginBody(context, emailController, passwdController, message)),
+            child: loginBody(emailController, passwdController, message)),
       );
     }
 
@@ -140,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
     );*/
   }
 
-  Widget loginBody(context, emailController, passwdController, message) {
+  Widget loginBody(emailController, passwdController, message) {
     return Container(
       margin: const EdgeInsets.all(20.0),
       child: Column(
