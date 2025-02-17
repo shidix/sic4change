@@ -286,7 +286,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
     } on FirebaseException catch (e) {
-      print(e);
+      message = e.message ?? "Error desconocido";
+      setState(() {
+        message = message;
+      });
     }
     //navigatorKey.currentState!.popUntil((route) => route.isFirst);
 
