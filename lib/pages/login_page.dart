@@ -85,13 +85,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*return Scaffold(
-      /*appBar: AppBar(
-        title: const Text('Login Page'),
-      ),*/
-      body: loginBody(context, emailController, passwdController),
-    );*/
-
     try {
       final user = FirebaseAuth.instance.currentUser!;
 
@@ -111,32 +104,6 @@ class _LoginPageState extends State<LoginPage> {
             child: loginBody(emailController, passwdController, message)),
       );
     }
-
-/*
-    return Scaffold(
-      body: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return const Center(child: Text("Something went wrong!"));
-            } else if (snapshot.hasData) {
-              print(snapshot.data);
-              //final user = FirebaseAuth.instance.currentUser!;
-              print("--1--");
-              print(profile);
-              if (profile?.mainRole == "Admin") {
-                print("--2--");
-                return const HomeAdminPage();
-              }
-              //Navigator.pushReplacementNamed(context, '/home');
-              return const HomePage();
-            } else {
-              return loginBody(context, emailController, passwdController);
-            }
-          }),
-    );*/
   }
 
   Widget loginBody(emailController, passwdController, message) {
@@ -230,14 +197,6 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 95),
       child: PasswordField(controller: passwdController),
-      // child: TextField(
-      //   controller: passwdController,
-      //   obscureText: true,
-      //   decoration: const InputDecoration(
-      //       hintText: "Introduce contraseña",
-      //       fillColor: Colors.white,
-      //       filled: true),
-      // ),
     );
   }
 
