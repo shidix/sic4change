@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -118,22 +119,31 @@ class _LoginPageState extends State<LoginPage> {
               children: [loginLogo()],
             ),
             space(height: 20),
-            usernameText(),
-            usernameField(emailController),
-            space(height: 20),
-            passsowdText(),
-            passwordField(passwdController),
-            space(height: 20),
-            loginBtn(context, emailController, passwdController),
-            space(height: 20),
-            askPassButton(context, emailController),
-            space(height: 20),
             Center(
-                child: Text(message,
-                    style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold))),
+                child: SizedBox(
+              width: // min between(100, MediaQuery.of(context).size.width * 0.5),
+                  max(700.0, MediaQuery.of(context).size.width * 0.5),
+              child: Column(
+                children: [
+                  usernameText(),
+                  usernameField(emailController),
+                  space(height: 20),
+                  passsowdText(),
+                  passwordField(passwdController),
+                  space(height: 20),
+                  loginBtn(context, emailController, passwdController),
+                  space(height: 20),
+                  askPassButton(context, emailController),
+                  space(height: 20),
+                  Center(
+                      child: Text(message,
+                          style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold))),
+                ],
+              ),
+            )),
             space(height: 20),
             footer(context),
           ]),
@@ -169,6 +179,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget usernameText() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 95),
+      alignment: Alignment.centerLeft,
       child: customText("Correo electrónico", 20),
     );
   }
@@ -189,6 +200,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget passsowdText() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 95),
+      alignment: Alignment.centerLeft,
       child: customText("Contraseña", 20),
     );
   }
