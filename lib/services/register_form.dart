@@ -30,16 +30,29 @@ class _RegisterFormState extends State<RegisterForm> {
   Future<void> _checkUser() async {
     try {
       // Check if user exists
-      final user = await _auth.fetchSignInMethodsForEmail(widget.email);
-      if (user.isNotEmpty) {
+      //final user = await _auth.fetchSignInMethodsForEmail(widget.email);
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: widget.email,
+        //password with random string
+        password: Uuid().v4(),
+      );
+      await _auth.sendPasswordResetEmail(email: widget.email);
+      setState(() {
+        userExists = true;
+        _errorMessage =
+            "Usuario registrado. Se le ha enviado un email al usuario para que genere su password. Puedes cerrar el formulario.";
+      });
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
         setState(() {
           userExists = true;
         });
+      } else {
+        setState(() {
+          _errorMessage = e.message ?? "Error desconocido";
+        });
       }
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message ?? "Error desconocido";
-      });
     }
   }
 
@@ -58,6 +71,7 @@ class _RegisterFormState extends State<RegisterForm> {
       final user = await _auth.fetchSignInMethodsForEmail(widget.email);
       if (user.isNotEmpty) {
         setState(() {
+          userExists = true;
           // Send email with the password
           _errorMessage = "El usuario ya existe";
           print("El usuario ya existe");
