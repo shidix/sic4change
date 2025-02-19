@@ -21,14 +21,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
   late Employee employee;
   List<KeyValue> promotions = [];
   int contentIndex = 0;
-  String employmentPromotion = '';
+  String employmentPromotion = 'Ninguna';
   double employeeSalary = 0;
   late DateTime selectedBajaDate;
   late DateTime selectedAltaDate;
   List<KeyValue> reasonsOptions = [];
   Map<String, BajaReason> reasons = {};
   String selectedReason = '';
-  String employmenPromotion = '';
 
   late int indexReason;
 
@@ -46,7 +45,15 @@ class _EmployeeFormState extends State<EmployeeForm> {
       employeeSalary = employee.getSalary();
     }
     EmploymentPromotion.getActive().then((value) {
+      value.sort((a, b) => a.order.compareTo(b.order));
       promotions = value.map((e) => KeyValue(e.name, e.name)).toList();
+      // check if promotions contains the current employmentPromotion as key
+      if (promotions
+              .indexWhere((element) => element.key == employmentPromotion) ==
+          -1) {
+        employmentPromotion = promotions[0].key;
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -400,6 +407,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               s4cSubTitleBar('Nueva situación de promoción de empleo', null),
+              TextFormField(
+                initialValue: 'Ninguna',
+                decoration: const InputDecoration(labelText: 'Orden'),
+                enabled: true,
+                onChanged: (String value) {
+                  newItem.order = int.parse(value);
+                },
+              ),
               TextFormField(
                 initialValue: '',
                 decoration: const InputDecoration(labelText: 'Nombre'),

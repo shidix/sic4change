@@ -231,12 +231,14 @@ class EmploymentPromotion {
   static final collection = db.collection("s4c_employment_promotions");
 
   bool active;
+  int order;
   String uuid;
   String name;
   String description;
 
   EmploymentPromotion(
       {required this.uuid,
+      required this.order,
       required this.active,
       required this.name,
       required this.description});
@@ -244,6 +246,7 @@ class EmploymentPromotion {
   factory EmploymentPromotion.fromJson(Map<String, dynamic> json) {
     return EmploymentPromotion(
         uuid: json['uuid'],
+        order: json.containsKey('order') ? json['order'] : 1000,
         active: json['active'],
         name: json['name'],
         description: json['description']);
@@ -252,13 +255,14 @@ class EmploymentPromotion {
   Map<String, dynamic> toJson() => {
         'uuid': uuid,
         'active': active,
+        'order': order,
         'name': name,
         'description': description
       };
 
   static EmploymentPromotion getEmpty() {
     return EmploymentPromotion(
-        uuid: '', active: true, name: '', description: '');
+        uuid: '', active: true, name: '', description: '', order: 1000);
   }
 
   static Future<List<EmploymentPromotion>> getAll() async {
@@ -345,7 +349,7 @@ class Alta {
     this.pathNIF,
     this.pathLOPD,
     this.pathOthers,
-    this.employmentPromotion = '',
+    this.employmentPromotion = 'Ninguna',
     this.position = '',
     this.category = '',
     this.annualPayments = 12,
