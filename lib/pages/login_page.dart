@@ -67,6 +67,11 @@ class _LoginPageState extends State<LoginPage> {
       try {
         await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
         message = "Se ha enviado un email para recuperar la contraseña";
+        Timer(const Duration(seconds: 5), () {
+          setState(() {
+            message = "";
+          });
+        });
       } on FirebaseAuthException catch (e) {
         message = e.message ?? "Error desconocido";
       }
