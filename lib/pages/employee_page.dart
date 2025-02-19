@@ -92,13 +92,21 @@ class _EmployeesPageState extends State<EmployeesPage> {
       case 1:
         return a.compareTo(b) * orderDirection;
       case 2:
-        return a.getAltaDate().compareTo(b.getAltaDate()) * orderDirection;
+        return a.bornDate!.compareTo(b.bornDate!) * orderDirection;
       case 3:
-        return a.getBajaDate().compareTo(b.getBajaDate()) * orderDirection;
+        return a.getAltaDate().compareTo(b.getAltaDate()) * orderDirection;
       case 4:
+        return a.getBajaDate().compareTo(b.getBajaDate()) * orderDirection;
+      case 5:
+        return a.getPosition().compareTo(b.getPosition()) * orderDirection;
+      case 6:
+        return a.altaDays().compareTo(b.altaDays()) * orderDirection;
+      case 7:
+        return a.getSalary().compareTo(b.getSalary()) * orderDirection;
+      case 8:
         return a.email.compareTo(b.email) * orderDirection;
       default:
-        return a.compareTo(b) * orderDirection;
+        return 0;
     }
   }
 
