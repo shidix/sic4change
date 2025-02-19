@@ -826,6 +826,32 @@ class Employee {
         extraDocs: {});
   }
 
+  static Future<Employee> byCode(String code) async {
+    // get from database
+    Employee item = Employee.getEmpty();
+    await collection.where('code', isEqualTo: code).get().then((value) {
+      if (value.docs.isEmpty) return Employee.getEmpty();
+      item = Employee.fromJson(value.docs.first.data());
+      item.id = value.docs.first.id;
+    });
+
+    return item;
+  }
+  
+  static Future<Employee> byEmail (String email) async {
+    // get from database
+    Employee item = Employee.getEmpty();
+    item.email = email;
+    item.firstName = email;
+    await collection.where('email', isEqualTo: email).get().then((value) {
+      if (value.docs.isEmpty) return Employee.getEmpty();
+      item = Employee.fromJson(value.docs.first.data());
+      item.id = value.docs.first.id;
+    });
+
+    return item;
+  }
+
   static Future<List<Employee>> getEmployees() async {
     // get from database
     List<Employee> items = [];

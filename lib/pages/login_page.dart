@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //import 'package:sic4change/generated/l10n.dart';
-import 'package:sic4change/pages/home_admin_page.dart';
+//import 'package:sic4change/pages/home_admin_page.dart';
 // import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/employee_page.dart';
@@ -98,11 +98,12 @@ class _LoginPageState extends State<LoginPage> {
         return const Center(child: CircularProgressIndicator());
       } else {
         sendAnalyticsEvent("Nuevo acceso", "Usuario: ${profile?.name}");
-        if (profile?.mainRole == "Admin") {
-          return const HomeAdminPage();
-        } else {
-          return const HomePage();
-        }
+        // if (profile?.mainRole == "Admin") {
+        //   return const HomeAdminPage();
+        // } else {
+        //   return const HomePage();
+        // }
+        return const HomePage();
       }
     } catch (e) {
       return Scaffold(
@@ -276,7 +277,9 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pop(context);
       if (profile?.mainRole == "Admin") {
         Navigator.push(context,
-            MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+        //    MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+                    MaterialPageRoute(builder: ((context) => const HomePage())));
+
       } else if (profile?.mainRole == "Administrativo") {
         Navigator.push(
             context,

@@ -13,6 +13,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/notifications_lib.dart';
@@ -53,6 +54,8 @@ class _HomePageState extends State<HomePage> {
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
   Widget mainMenuWidget = Container();
+  List<Employee> mypeople = [];
+  List<HolidayRequest> myPeopleHolidays = []; 
 
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
@@ -69,6 +72,12 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  Map<String, Color> holidayStatusColors = {
+    "pendiente": warningColor,
+    "aprobado": successColor,
+    "rechazado": dangerColor,
+  };
+
   Future<void> loadMyTasks() async {
     // await Contact.byEmail(user.email!).then((value) {
     //   contact = value;
@@ -83,7 +92,7 @@ class _HomePageState extends State<HomePage> {
     STask.getByAssigned(user.email!, lazy: false).then((value) {
       mytasks = value;
       contentTasksPanel = tasksPanel();
-      contentProjectsPanel = projectsPanel(context);
+      contentProjectsPanel = projectsPanel();
       setState(() {});
     });
   }
@@ -95,8 +104,9 @@ class _HomePageState extends State<HomePage> {
         myHolidays = value;
         holidayDays = widget.HOLIDAY_DAYS;
         for (HolidayRequest holiday in myHolidays!) {
+          if (holiday.status != "Rechazado") {
           holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+              getWorkingDaysBetween(holiday.startDate, holiday.endDate);}
         }
         setState(() {});
       });
@@ -163,8 +173,9 @@ class _HomePageState extends State<HomePage> {
       myHolidays = value;
       holidayDays = widget.HOLIDAY_DAYS;
       for (HolidayRequest holiday in myHolidays!) {
+        if (holiday.status != "Rechazado") {
         holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);}
       }
       if (mounted) {
         setState(() {});
@@ -185,6 +196,30 @@ class _HomePageState extends State<HomePage> {
       }
 
       contentWorkPanel = workTimePanel();
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    Profile.getProfiles().then((List<Profile> value) {
+      for (var element in value) {
+          if (element.holidaySupervisor.contains(user.email)) {
+            Employee.byEmail(element.email).then((value) {
+              if (value != null) {
+                mypeople.add(value);
+              }
+            });
+
+              HolidayRequest.byUser(element!.email).then((value) {
+                myPeopleHolidays.addAll(value);
+                if (mounted) {
+                  setState(() {});
+                }
+              });
+  
+          }
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -290,7 +325,13 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     } else if (_currentPage == "yourpeople") {
-      contents = [CircularProgressIndicator()];
+      contents = [        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentWorkPanel),
+            Expanded(flex: 1, child: holidayPeoplePanel(context)),
+          ],
+        ),];
     }
 
     return Scaffold(
@@ -327,7 +368,7 @@ class _HomePageState extends State<HomePage> {
               ? Colors.green.shade50
               : Colors.white),
       space(width: 10),
-      backButton(context),
+      // backButton(context),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -393,7 +434,7 @@ class _HomePageState extends State<HomePage> {
       currentWorkday!.startDate = DateTime.now();
       currentWorkday!.open = true;
       currentWorkday!.save().then((value) {
-        myWorkdays!.insert(0, value!);
+        myWorkdays!.insert(0, value);
         if (mounted) {
           setState(() {
             myWorkdays = myWorkdays;
@@ -443,7 +484,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withValues(alpha:0.5),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -969,8 +1010,10 @@ class _HomePageState extends State<HomePage> {
         myHolidays = value;
         holidayDays = 30;
         for (HolidayRequest holiday in myHolidays!) {
-          holidayDays -=
+          if (holiday.status != "Rechazado") {
+            holidayDays -=
               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+          }
         }
         setState(() {
           myHolidays = value;
@@ -1001,7 +1044,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget holidayRows(BuildContext context) {
+  Widget holidayRows() {
     return Container(
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -1067,12 +1110,12 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Card(
-                                      color: warningColor,
+                                      color: holidayStatusColors[holiday.status.toLowerCase()]!,
                                       child: Padding(
                                           padding: const EdgeInsets.all(10),
                                           child: Text(
                                             holiday.status,
-                                            style: const TextStyle(
+                                            style:  TextStyle(
                                                 color: Colors.white),
                                             textAlign: TextAlign.center,
                                           )))),
@@ -1090,6 +1133,219 @@ class _HomePageState extends State<HomePage> {
               ));
   }
 
+  Widget holidayPeopleRows() {
+    return Container(
+        height: 150,
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        color: Colors.white,
+        child: mypeople.isNotEmpty
+            ? ListView.builder(
+                shrinkWrap: true,
+                itemCount: myPeopleHolidays.length,
+                itemBuilder: (BuildContext context, int index) {
+                  HolidayRequest holiday = myPeopleHolidays.elementAt(index);
+                  Employee elementEmployee = mypeople.firstWhere(
+                      (element) => element.email == holiday.userId);
+
+                  return ListTile(
+                      subtitle: Column(children: [
+                        Row(
+                          children: [
+                            Expanded(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        "${elementEmployee.getFullName()} (${holiday.catetory})",
+                                        style: normalText,
+                                      )),
+                                )),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(holiday.startDate),
+                                    style: normalText,
+                                    textAlign: TextAlign.center,
+                                  )),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(holiday.endDate),
+                                    style: normalText,
+                                    textAlign: TextAlign.center,
+                                  )),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    getWorkingDaysBetween(
+                                            holiday.startDate, holiday.endDate)
+                                        .toString(),
+                                    style: normalText,
+                                    textAlign: TextAlign.center,
+                                  )),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Card(
+                                      color: holidayStatusColors[holiday.status.toLowerCase()]!,
+                                      child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Text(
+                                            holiday.status,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          )))),
+                            ),
+                          ],
+                        )
+                      ]),
+                      onTap: () {
+                        currentHoliday = holiday;
+                        addHolidayRequestDialog(context);
+                      });
+                })
+            : 
+                
+                SizedBox(
+                  width: double.infinity,
+                  child:Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [Expanded(child: Text("No hay solicitudes de vacaciones", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: mainColor)))],))
+
+              );
+  }
+
+
+  Widget holidayPeoplePanel(BuildContext contextt) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha:0.5),
+                    spreadRadius: 0,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3), // changes position of shadow
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(2),
+            child: Column(
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.grey[100],
+                    child: Row(
+                      children: [
+                        const Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Card(
+                                  child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 5),
+                                child: Icon(Icons.people, color: Colors.black),
+                              )),
+                            )),
+                        Expanded(
+                            flex: 5,
+                            child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: const [
+                                      Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            "Solicitudes de vacaciones",
+                                            style: cardHeaderText,
+                                          )),
+                                      Text(
+                                        "Personal a cargo",
+                                        style: subTitleText,
+                                      ),
+                                    ])),
+                        ),
+                        Expanded(
+                            flex: 2,
+                            child: actionButton(
+                                context,
+                                "Añadir solicitud",
+                                addHolidayRequestDialog,
+                                Icons.add,
+                                context)),
+                      ],
+                    )),
+                Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    color: Colors.white,
+                    child: const ListTile(
+                      title: Row(
+                        children: [
+                          Expanded(
+                              flex: 2,
+                              child: Text(
+                                "Empleado",
+                                style: subTitleText,
+                                textAlign: TextAlign.center,
+                              )),
+                          Expanded(
+                              flex: 1,
+                              child: Text(
+                                "Desde",
+                                style: subTitleText,
+                                textAlign: TextAlign.center,
+                              )),
+                          Expanded(
+                              flex: 1,
+                              child: Text(
+                                "Hasta",
+                                style: subTitleText,
+                                textAlign: TextAlign.center,
+                              )),
+                          Expanded(
+                              
+                                   flex: 1, child: Text("Días", style: subTitleText, textAlign: TextAlign.center)),
+                          Expanded(
+                              flex: 1,
+                              child: Text(
+                                "Estado",
+                                style: subTitleText,
+                                textAlign: TextAlign.center,
+                              )),
+                        ],
+                      ),
+                    )),
+                Divider(
+                  height: 1,
+                  color: Colors.grey[300],
+                ),
+                holidayPeopleRows(),
+              ],
+            )));
+  }
+
   Widget holidayPanel(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1098,7 +1354,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withValues(alpha: 0.5),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3),
@@ -1209,7 +1465,7 @@ class _HomePageState extends State<HomePage> {
                   height: 1,
                   color: Colors.grey[300],
                 ),
-                holidayRows(context),
+                holidayRows(),
               ],
             )));
   }
@@ -1287,7 +1543,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withValues(alpha:0.5),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -1657,7 +1913,7 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// PROJECTS ///////////
-  Widget projectsPanel(BuildContext context) {
+  Widget projectsPanel() {
     myProjects = [];
     for (STask task in mytasks!) {
       if (hashProjects.containsKey(task.project)) {

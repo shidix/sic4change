@@ -104,8 +104,8 @@ Widget mainMenuAdmin(context, [user, url]) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo(),
-        menuBtn(context, "Inicio", Icons.home, "/home_admin",
-            color: (url == "/home_admin")
+        menuBtn(context, "Inicio", Icons.home, "/home",
+            color: (url == "/home")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Programas", Icons.list_alt, "/project_list",
