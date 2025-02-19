@@ -39,6 +39,8 @@ class _HomePageState extends State<HomePage> {
   late Map<String, TasksStatus> hashStatus;
   late Map<String, SProject> hashProjects;
 
+  late String _currentPage;
+
   User user = FirebaseAuth.instance.currentUser!;
   Profile? profile;
   List<STask>? mytasks = [];
@@ -55,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
   Widget contentProjectsPanel = Container();
+  Widget topButtonsPanel = Container();
 
   List<SProject>? myProjects;
 
@@ -77,7 +80,7 @@ class _HomePageState extends State<HomePage> {
     //     });
     //   });
     // });
-    STask.getByAssigned(user.email!, lazy: true).then((value) {
+    STask.getByAssigned(user.email!, lazy: false).then((value) {
       mytasks = value;
       contentTasksPanel = tasksPanel();
       contentProjectsPanel = projectsPanel(context);
@@ -205,8 +208,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _currentPage = "home";
     hashStatus = {};
     hashProjects = {};
+    topButtonsPanel = topButtons(context);
     TasksStatus.all().then((value) {
       if (value.isNotEmpty) {
         for (var item in value) {
@@ -259,34 +264,44 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> contents = [];
+    if (_currentPage == "home") {
+      contents = [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentWorkPanel),
+            Expanded(flex: 1, child: holidayPanel(context)),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentTasksPanel),
+            Expanded(flex: 1, child: notifyPanel(context)),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentProjectsPanel),
+            //Expanded(flex: 1, child: logsPanel(context)),
+          ],
+        ),
+      ];
+    } else if (_currentPage == "yourpeople") {
+      contents = [CircularProgressIndicator()];
+    }
+
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(
         children: [
           mainMenuWidget,
           space(height: 10),
-          // topButtons(context),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: contentWorkPanel),
-              Expanded(flex: 1, child: holidayPanel(context)),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: contentTasksPanel),
-              Expanded(flex: 1, child: notifyPanel(context)),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: contentProjectsPanel),
-              //Expanded(flex: 1, child: logsPanel(context)),
-            ],
-          ),
+          topButtons(context),
+          space(height: 10),
+          ...contents,
           footer(context),
         ],
       ),
@@ -295,7 +310,22 @@ class _HomePageState extends State<HomePage> {
 
   Widget topButtons(BuildContext context) {
     List<Widget> buttons = [
-      actionButton(context, "Imprimir", printSummary, Icons.print, context),
+      actionButton(context, "Dashboard", () {
+        setState(() {
+          _currentPage = "home";
+        });
+      }, Icons.dashboard, null,
+          bgColor:
+              (_currentPage == "home") ? Colors.green.shade50 : Colors.white),
+      space(width: 10),
+      actionButton(context, "Personal a cargo", () {
+        setState(() {
+          _currentPage = "yourpeople";
+        });
+      }, Icons.people, null,
+          bgColor: (_currentPage == "yourpeople")
+              ? Colors.green.shade50
+              : Colors.white),
       space(width: 10),
       backButton(context),
     ];

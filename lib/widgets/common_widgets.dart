@@ -569,6 +569,7 @@ Widget actionButton(
     context, String? text, Function action, IconData? icon, dynamic args,
     {Color textColor = Colors.black54,
     Color iconColor = Colors.black54,
+    Color bgColor = Colors.white,
     double size = 30,
     double hPadding = 20.0,
     double vPadding = 20.0,
@@ -610,7 +611,7 @@ Widget actionButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
           side: const BorderSide(color: Color(0xff8fbc8f))),
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
     ),
     child: row,
     focusNode: listener,
@@ -2456,15 +2457,12 @@ class DynamicGrid extends StatelessWidget {
 }
 
 class PasswordField extends StatefulWidget {
-
   final TextEditingController controller;
 
   const PasswordField({super.key, required this.controller});
 
   @override
   _PasswordFieldState createState() => _PasswordFieldState();
-
-  
 }
 
 class _PasswordFieldState extends State<PasswordField> {
@@ -2496,4 +2494,3 @@ class _PasswordFieldState extends State<PasswordField> {
     );
   }
 }
-
