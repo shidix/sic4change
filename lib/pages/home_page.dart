@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage> {
   List<Workday>? myWorkdays = [];
   Widget mainMenuWidget = Container();
   List<Employee> mypeople = [];
-  List<HolidayRequest> myPeopleHolidays = []; 
+  List<HolidayRequest> myPeopleHolidays = [];
 
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
@@ -105,8 +105,9 @@ class _HomePageState extends State<HomePage> {
         holidayDays = widget.HOLIDAY_DAYS;
         for (HolidayRequest holiday in myHolidays!) {
           if (holiday.status != "Rechazado") {
-          holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);}
+            holidayDays -=
+                getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+          }
         }
         setState(() {});
       });
@@ -174,8 +175,9 @@ class _HomePageState extends State<HomePage> {
       holidayDays = widget.HOLIDAY_DAYS;
       for (HolidayRequest holiday in myHolidays!) {
         if (holiday.status != "Rechazado") {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);}
+          holidayDays -=
+              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
       }
       if (mounted) {
         setState(() {});
@@ -203,21 +205,20 @@ class _HomePageState extends State<HomePage> {
 
     Profile.getProfiles().then((List<Profile> value) {
       for (var element in value) {
-          if (element.holidaySupervisor.contains(user.email)) {
-            Employee.byEmail(element.email).then((value) {
-              if (value != null) {
-                mypeople.add(value);
-              }
-            });
+        if (element.holidaySupervisor.contains(user.email)) {
+          Employee.byEmail(element.email).then((value) {
+            if (value != null) {
+              mypeople.add(value);
+            }
+          });
 
-              HolidayRequest.byUser(element!.email).then((value) {
-                myPeopleHolidays.addAll(value);
-                if (mounted) {
-                  setState(() {});
-                }
-              });
-  
-          }
+          HolidayRequest.byUser(element!.email).then((value) {
+            myPeopleHolidays.addAll(value);
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        }
       }
 
       if (mounted) {
@@ -325,13 +326,15 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     } else if (_currentPage == "yourpeople") {
-      contents = [        Row(
+      contents = [
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 1, child: contentWorkPanel),
             Expanded(flex: 1, child: holidayPeoplePanel(context)),
           ],
-        ),];
+        ),
+      ];
     }
 
     return Scaffold(
@@ -484,7 +487,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withValues(alpha:0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -1012,7 +1015,7 @@ class _HomePageState extends State<HomePage> {
         for (HolidayRequest holiday in myHolidays!) {
           if (holiday.status != "Rechazado") {
             holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+                getWorkingDaysBetween(holiday.startDate, holiday.endDate);
           }
         }
         setState(() {
@@ -1110,13 +1113,14 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Card(
-                                      color: holidayStatusColors[holiday.status.toLowerCase()]!,
+                                      color: holidayStatusColors[
+                                          holiday.status.toLowerCase()]!,
                                       child: Padding(
                                           padding: const EdgeInsets.all(10),
                                           child: Text(
                                             holiday.status,
-                                            style:  TextStyle(
-                                                color: Colors.white),
+                                            style:
+                                                TextStyle(color: Colors.white),
                                             textAlign: TextAlign.center,
                                           )))),
                             ),
@@ -1144,8 +1148,8 @@ class _HomePageState extends State<HomePage> {
                 itemCount: myPeopleHolidays.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myPeopleHolidays.elementAt(index);
-                  Employee elementEmployee = mypeople.firstWhere(
-                      (element) => element.email == holiday.userId);
+                  Employee elementEmployee = mypeople
+                      .firstWhere((element) => element.email == holiday.userId);
 
                   return ListTile(
                       subtitle: Column(children: [
@@ -1202,7 +1206,8 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Card(
-                                      color: holidayStatusColors[holiday.status.toLowerCase()]!,
+                                      color: holidayStatusColors[
+                                          holiday.status.toLowerCase()]!,
                                       child: Padding(
                                           padding: const EdgeInsets.all(10),
                                           child: Text(
@@ -1220,17 +1225,19 @@ class _HomePageState extends State<HomePage> {
                         addHolidayRequestDialog(context);
                       });
                 })
-            : 
-                
-                SizedBox(
-                  width: double.infinity,
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [Expanded(child: Text("No hay solicitudes de vacaciones", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: mainColor)))],))
-
-              );
+            : SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Expanded(
+                        child: Text("No hay solicitudes de vacaciones",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, color: mainColor)))
+                  ],
+                )));
   }
-
 
   Widget holidayPeoplePanel(BuildContext contextt) {
     return Padding(
@@ -1240,7 +1247,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withValues(alpha:0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -1267,33 +1274,28 @@ class _HomePageState extends State<HomePage> {
                               )),
                             )),
                         Expanded(
-                            flex: 5,
-                            child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: const [
-                                      Padding(
-                                          padding: EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            "Solicitudes de vacaciones",
-                                            style: cardHeaderText,
-                                          )),
-                                      Text(
-                                        "Personal a cargo",
-                                        style: subTitleText,
-                                      ),
-                                    ])),
+                          flex: 5,
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "Solicitudes de vacaciones",
+                                          style: cardHeaderText,
+                                        )),
+                                    Text(
+                                      "Personal a cargo",
+                                      style: subTitleText,
+                                    ),
+                                  ])),
                         ),
                         Expanded(
                             flex: 2,
-                            child: actionButton(
-                                context,
-                                "Añadir solicitud",
-                                addHolidayRequestDialog,
-                                Icons.add,
-                                context)),
+                            child: actionButton(context, "Añadir solicitud",
+                                addHolidayRequestDialog, Icons.add, context)),
                       ],
                     )),
                 Container(
@@ -1325,8 +1327,10 @@ class _HomePageState extends State<HomePage> {
                                 textAlign: TextAlign.center,
                               )),
                           Expanded(
-                              
-                                   flex: 1, child: Text("Días", style: subTitleText, textAlign: TextAlign.center)),
+                              flex: 1,
+                              child: Text("Días",
+                                  style: subTitleText,
+                                  textAlign: TextAlign.center)),
                           Expanded(
                               flex: 1,
                               child: Text(
@@ -1354,7 +1358,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3),
@@ -1543,7 +1547,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withValues(alpha:0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
