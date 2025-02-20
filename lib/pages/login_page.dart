@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                   space(height: 10),
                   passsowdText(),
                   passwordField(passwdController),
-                  space(height: 10),
+                  space(height: 15),
                   loginBtn(context, emailController, passwdController),
                   space(height: 10),
                   askPassButton(context, emailController),
@@ -242,6 +242,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future signIn(context, emailController, passwdController) async {
+
+    Map<String, String> messages_i18n = {
+      "invalid-email": "Las credenciales son incorrectas o han expirado",
+      "invalid-credential": "Las credenciales son incorrectas o han expirado",
+      "user-not-found": "Usuario no encontrado",
+      "wrong-password": "Contraseña incorrecta",
+      "user-disabled": "Usuario deshabilitado",
+      "too-many-requests": "Demasiados intentos. Inténtelo más tarde",
+      "unknown": "Error desconocido"
+    };
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -262,7 +272,11 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
     } on FirebaseException catch (e) {
-      message = e.message ?? "Error desconocido";
+      if (messages_i18n.containsKey(e.code)) {
+        message = messages_i18n[e.code]!;
+      } else {
+        message = "Se ha producido un error. Contacte con el administrador";
+      }
       setState(() {
         message = message;
       });
