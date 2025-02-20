@@ -133,14 +133,13 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   usernameText(),
                   usernameField(emailController),
-                  space(height: 20),
+                  space(height: 10),
                   passsowdText(),
                   passwordField(passwdController),
-                  space(height: 20),
+                  space(height: 10),
                   loginBtn(context, emailController, passwdController),
-                  space(height: 20),
+                  space(height: 10),
                   askPassButton(context, emailController),
-                  space(height: 20),
                   Center(
                       child: Text(message,
                           style: const TextStyle(
