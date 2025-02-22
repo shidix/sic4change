@@ -1,9 +1,9 @@
 #!/bin/bash
-export PATH=/home/danidiaz/develop/flutter/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+#export PATH=/home/danidiaz/develop/flutter/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 #flutter build --release
 while true
 do
-    echo $(date) "Restarting app... "
+    echo $(date) "Restarting app in port 8989... "
     cd /var/www/flutter/sic4change
     flutter pub get
     flutter build web --release --web-renderer html
