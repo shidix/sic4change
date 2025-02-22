@@ -105,6 +105,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
         return a.getSalary().compareTo(b.getSalary()) * orderDirection;
       case 8:
         return a.email.compareTo(b.email) * orderDirection;
+      case 9:
+        return a.email.compareTo(b.email) * orderDirection;
       default:
         return 0;
     }
