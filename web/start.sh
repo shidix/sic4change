@@ -3,7 +3,7 @@
 #flutter build --release
 while true
 do
-    echo $(date) "Restarting app... "
+    echo $(date) "Restarting app in port 8989... "
     cd /var/www/flutter/sic4change
     flutter pub get
     flutter build web --release --web-renderer html
