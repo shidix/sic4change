@@ -98,6 +98,8 @@ flutter:
     - assets/images/logo.jpg
     - assets/images/logo_s4c.png
     - assets/images/logo_ministerio.png
+    - assets/images/logo_RTR.png
+    - assets/images/logo_NGEU.png
   #   - images/a_dot_ham.jpeg
 
 

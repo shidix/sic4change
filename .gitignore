@@ -64,3 +64,5 @@ web/404.html
 lib/firebase_options.dart**
 
 macos**
+
+**.old

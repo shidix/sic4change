@@ -32,11 +32,11 @@ Widget footer(context) {
                               ]))),
                 ),
                 Expanded(
-                    flex: 1,
+                    flex: 3,
                     child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: Align(
-                            alignment: Alignment.centerLeft,
+                            alignment: Alignment.center,
                             child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -47,7 +47,43 @@ Widget footer(context) {
                                         'assets/images/logo_ministerio.png'),
                                     height: 100,
                                   )
-                                ]))))
+                                ])))),
+                                // logo_RTR
+                Expanded(
+                    flex: 2,
+                    child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText('Con la colaboración de:', 15),
+                                  const Image(
+                                    image: AssetImage(
+                                        'assets/images/logo_RTR.png'),
+                                    height: 100,
+                                  )
+                                ])))),
+                                // logo_NGEU
+                Expanded(
+                    flex: 2,
+                    child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText('Con la colaboración de:', 15),
+                                  const Image(
+                                    image: AssetImage(
+                                        'assets/images/logo_NGEU.png'),
+                                    height: 100,
+                                  )
+                                ])))),
               ],
             ),
             space(height: 10),
