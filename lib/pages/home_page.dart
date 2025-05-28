@@ -1127,10 +1127,10 @@ class _HomePageState extends State<HomePage> {
                           ],
                         )
                       ]),
-                      onTap: () {
+                      onTap: (holiday.status.toUpperCase()=='PENDIENTE')?() {
                         currentHoliday = holiday;
                         addHolidayRequestDialog(context);
-                      });
+                      }: null);
                 })
             : const Center(
                 child: CircularProgressIndicator(),
