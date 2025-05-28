@@ -65,4 +65,5 @@ lib/firebase_options.dart**
 
 macos**
 
+macos/Flutter/GeneratedPluginRegistrant.swift
 **.old
