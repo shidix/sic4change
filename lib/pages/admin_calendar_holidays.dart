@@ -171,8 +171,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   @override
   initState() {
     super.initState();
-    _mainMenu = mainMenuAdmin(context);
-
+    _mainMenu = mainMenu(context);
     if (profile == null) {
       final user = FirebaseAuth.instance.currentUser!;
       Profile.getProfile(user.email!).then((value) {
@@ -257,30 +256,65 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
             setState(() {});
           }
         } else {
-          holidaysConfig = HolidaysConfig.getEmpty();
-          holidaysConfig!.year = DateTime.now().year;
-          holidaysConfig!.totalDays = 30;
-          holidaysConfig!.organization = Organization.getEmpty();
-          holidaysConfig!.gralHolidays = [
-            Event(
-              subject: "Año Nuevo",
-              startTime: DateTime(holidaysConfig!.year, 1, 1),
-              endTime: DateTime(holidaysConfig!.year, 1, 1),
-              notes: "",
-              isAllDay: true,
-            ),
-            Event(
-              subject: "Navidad",
-              startTime: DateTime(holidaysConfig!.year, 12, 25),
-              endTime: DateTime(holidaysConfig!.year, 12, 25),
-              notes: "",
-              isAllDay: true,
-            ),
-          ];
-          fillContent();
-          if (mounted) {
-            setState(() {});
-          }
+          Organization.byDomain(user.email!).then((value) {
+            currentOrganization = value;
+            HolidaysConfig.byOrganization(currentOrganization!.uuid)
+                .then((value) {
+              holidaysList = value
+                  .where((element) => element.year == DateTime.now().year)
+                  .toList();
+              if (holidaysList!.isNotEmpty) {
+                holidaysConfig = holidaysList!.last;
+              } else {
+                holidaysConfig = value.last;
+                holidaysConfig!.year = DateTime.now().year;
+                holidaysConfig!.id = "";
+                holidaysConfig!.gralHolidays = [
+                  Event(
+                      subject: "Año Nuevo",
+                      startTime: DateTime(holidaysConfig!.year, 1, 1),
+                      endTime: DateTime(holidaysConfig!.year, 1, 1),
+                      notes: "",
+                      isAllDay: true),
+                  Event(
+                      subject: "Navidad",
+                      startTime: DateTime(holidaysConfig!.year, 12, 25),
+                      endTime: DateTime(holidaysConfig!.year, 12, 25),
+                      notes: "",
+                      isAllDay: true),
+                ];
+                holidaysConfig!.save();
+              }
+              fillContent();
+              if (mounted) {
+                setState(() {});
+              }
+            });
+            // holidaysConfig = HolidaysConfig.getEmpty();
+            // holidaysConfig!.year = DateTime.now().year;
+            // holidaysConfig!.totalDays = 30;
+            // holidaysConfig!.organization = Organization.getEmpty();
+            // holidaysConfig!.gralHolidays = [
+            //   Event(
+            //     subject: "Año Nuevo",
+            //     startTime: DateTime(holidaysConfig!.year, 1, 1),
+            //     endTime: DateTime(holidaysConfig!.year, 1, 1),
+            //     notes: "",
+            //     isAllDay: true,
+            //   ),
+            //   Event(
+            //     subject: "Navidad",
+            //     startTime: DateTime(holidaysConfig!.year, 12, 25),
+            //     endTime: DateTime(holidaysConfig!.year, 12, 25),
+            //     notes: "",
+            //     isAllDay: true,
+            //   ),
+            // ];
+            fillContent();
+            if (mounted) {
+              setState(() {});
+            }
+          });
         }
         if (mounted) {
           setState(() {});
@@ -318,7 +352,10 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         children: calendarList.map((e) {
       return Row(
           children: e.map((f) {
-        return Expanded(
+        return 
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Expanded(
             flex: 1,
             child: (f.id != "")
                 ? actionButtonVertical(
@@ -338,7 +375,9 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                     holidaysConfig = calendar;
                     drawCalendar();
                   }, Icons.calendar_month, f)
-                : Container());
+                : Container()
+            )
+          );
       }).toList());
     }).toList());
     if (mounted) {
@@ -383,6 +422,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                 content: HolidayConfigForm(
                   holidaysConfig: newItem,
                   afterSave: () {
+                    holidaysList ??= [];
                     holidaysList!.add(newItem);
                     holidaysConfig = newItem;
                     drawCalendar();
@@ -390,7 +430,8 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                   index: -1,
                 ),
                 actionBtns: null);
-          } else {
+          } 
+          else {
             return CustomPopupDialog(
                 context: context,
                 title: "¡¡¡¡AVISO!!!!",

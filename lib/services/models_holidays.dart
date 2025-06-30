@@ -81,6 +81,22 @@ class HolidaysConfig {
   }
 
   void save() {
+    if (gralHolidays.isEmpty) {
+      gralHolidays.add(Event(
+        subject: 'Año Nuevo',
+        startTime: DateTime(year, 1, 1),
+        endTime: DateTime(year, 1, 1),
+        notes: 'Año Nuevo',
+        isAllDay: true,
+      ));
+      gralHolidays.add(Event(
+        subject: 'Navidad',
+        startTime: DateTime(year, 12, 25),
+        endTime: DateTime(year, 12, 25),
+        notes: 'Navidad',
+        isAllDay: true,
+      ));
+    }
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) {

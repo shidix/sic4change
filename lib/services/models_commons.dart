@@ -41,6 +41,7 @@ class Organization {
   bool financier = false;
   bool partner = false;
   bool public = false;
+  String domain = "";
 
   Country countryObj = Country("");
   //String type = "";
@@ -56,6 +57,7 @@ class Organization {
         partner = json["partner"],
         public = (json.containsKey("public")) ? json["public"] : false,
         country = (json.containsKey("country")) ? json["country"] : "España",
+        // domain = (json.containsKey("domain")) ? json["domain"] : "",
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
@@ -67,6 +69,7 @@ class Organization {
         'public': public,
         'country': country,
         'name': name,
+        'domain': domain,
         //'type': type,
       };
 
@@ -153,6 +156,24 @@ class Organization {
     Organization item = Organization("None");
     QuerySnapshot query =
         dbOrg.where("uuid", isEqualTo: uuid).get() as QuerySnapshot;
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = Organization.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
+  }
+
+  static Future<Organization> byDomain(String email) async {
+    Organization item = Organization("None");
+    String domain = email.split("@").last;
+    QuerySnapshot query = await dbOrg.where("domain", isEqualTo: domain).get();
+
     if (query.docs.isNotEmpty) {
       try {
         Map<String, dynamic> data =

@@ -165,6 +165,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             customText("Público", 14,
                 bold: FontWeight.bold, align: TextAlign.center),*/
             customText("País", 14, bold: FontWeight.bold),
+            customText("Dominio", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             space(height: 10),
@@ -172,6 +173,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             /*space(height: 10),
             space(height: 10),
             space(height: 10),*/
+            space(height: 10),
             space(height: 10),
           ]),
           TableRow(children: [
@@ -181,6 +183,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             Icon(org?.isPartner()),
             Icon(org?.isPublic()),*/
             customText(org?.countryObj.name, 16),
+            customText(org?.domain, 16),
           ])
         ]);
   }
@@ -342,6 +345,19 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                     },
                   );
                 })
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomTextField(
+                  labelText: "Dominio",
+                  initial: org.domain,
+                  size: 300,
+                  fieldValue: (String val) {
+                    org.domain = val;
+                    /*setState(() {
+                    });*/
+                  },
+                )
               ]),
             ]),
             Row(children: [

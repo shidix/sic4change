@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -14,6 +16,12 @@ class Profile {
   String mainRole;
 
   final database = db.collection("s4c_profiles");
+
+  static const String ADMIN = 'Admin';
+  static const String TECHNICIAN = 'Técnico';
+  static const String SUPERVISOR = 'Supervisor';
+  static const String ADMINISTRATIVE = 'Administrativo';
+  static const String USER = 'Usuario';
 
   static const List<String> profiles = [
     'Admin',
