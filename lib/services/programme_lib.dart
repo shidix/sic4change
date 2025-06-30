@@ -150,7 +150,7 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
     List distribItems = await Distribution.byProject(proj.uuid);
     double totalDistrib = 0;
 
-    for (var partner in proj!.partners) {
+    for (var partner in proj.partners) {
       distribTotalByPartner[partner] = 0;
     }
     invoicesSummary = {};
