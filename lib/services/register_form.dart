@@ -31,12 +31,14 @@ class _RegisterFormState extends State<RegisterForm> {
     try {
       // Check if user exists
       //final user = await _auth.fetchSignInMethodsForEmail(widget.email);
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: widget.email,
-        //password with random string
-        password: Uuid().v4(),
-      );
+      // UserCredential userCredential =
+      //     await _auth.createUserWithEmailAndPassword(
+      //   email: widget.email,
+      //   //password with random string
+      //   password: Uuid().v4(),
+      // );
+      await _auth.createUserWithEmailAndPassword(
+          email: widget.email, password: const Uuid().v4());
       await _auth.sendPasswordResetEmail(email: widget.email);
       setState(() {
         userExists = true;
@@ -78,11 +80,16 @@ class _RegisterFormState extends State<RegisterForm> {
         });
         return;
       }
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
+      // UserCredential userCredential =
+      //     await _auth.createUserWithEmailAndPassword(
+      //   email: widget.email,
+      //   //password with random string
+      //   password: Uuid().v4(),
+      // );
+
+      await _auth.createUserWithEmailAndPassword(
         email: widget.email,
-        //password with random string
-        password: Uuid().v4(),
+        password: const Uuid().v4(),
       );
       // Send email with the password
       // await userCredential.user?.sendEmailVerification();

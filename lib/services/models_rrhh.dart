@@ -837,8 +837,8 @@ class Employee {
 
     return item;
   }
-  
-  static Future<Employee> byEmail (String email) async {
+
+  static Future<Employee> byEmail(String email) async {
     // get from database
     Employee item = Employee.getEmpty();
     item.email = email;
@@ -850,6 +850,11 @@ class Employee {
     });
 
     return item;
+  }
+
+  static Future<List<Employee>> getAll() async {
+    // get from database
+    return await getEmployees();
   }
 
   static Future<List<Employee>> getEmployees() async {
@@ -867,6 +872,18 @@ class Employee {
     items.sort((a, b) => a.compareTo(b));
 
     return items;
+  }
+
+  static Future<Employee> byId(String id) async {
+    // get from database
+    Employee item = Employee.getEmpty();
+    await collection.doc(id).get().then((value) {
+      if (!value.exists) return Employee.getEmpty();
+      item = Employee.fromJson(value.data()!);
+      item.id = value.id;
+    });
+
+    return item;
   }
 
   Future<String> photoFileUrl() async {

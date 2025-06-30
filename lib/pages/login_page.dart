@@ -92,7 +92,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     try {
-      final user = FirebaseAuth.instance.currentUser!;
+      // final user = FirebaseAuth.instance.currentUser!;
+      FirebaseAuth.instance.currentUser!;
 
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
@@ -242,7 +243,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future signIn(context, emailController, passwdController) async {
-
     Map<String, String> messages_i18n = {
       "invalid-email": "Las credenciales son incorrectas o han expirado",
       "invalid-credential": "Las credenciales son incorrectas o han expirado",
@@ -289,10 +289,10 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       Navigator.pop(context);
       if (profile?.mainRole == "Admin") {
-        Navigator.push(context,
-        //    MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
-                    MaterialPageRoute(builder: ((context) => const HomePage())));
-
+        Navigator.push(
+            context,
+            //    MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
+            MaterialPageRoute(builder: ((context) => const HomePage())));
       } else if (profile?.mainRole == "Administrativo") {
         Navigator.push(
             context,

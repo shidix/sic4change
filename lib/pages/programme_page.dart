@@ -714,7 +714,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
       );
     } else {
       return Container();
-      return const CircularProgressIndicator();
+      // return const CircularProgressIndicator();
     }
   }
 

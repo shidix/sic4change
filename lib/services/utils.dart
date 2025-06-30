@@ -12,6 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'dart:math' as math;
 
+import 'package:sic4change/services/models_profile.dart';
+
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
 const String statusReject = "3"; //Denegado
@@ -493,4 +495,20 @@ List<List<T>> resize<T>(List<T> list, int ncols) {
         list.sublist(i, i + ncols > list.length ? list.length : i + ncols));
   }
   return rows;
+}
+
+void checkPermissions(
+    BuildContext context, Profile profile, List<String> allowedRole,
+    {String? message}) {
+  if (!allowedRole.contains(profile.mainRole)) {
+    String msg = message ?? "No tienes permisos para acceder a esta sección.";
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.red,
+      ),
+    );
+    Navigator.pop(context);
+    Navigator.pushNamed(context, '/');
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,6 +13,7 @@ class HolidaysConfig {
   int totalDays;
   Organization organization;
   List<Event> gralHolidays;
+  List<Employee> employees = [];
 
   final database = db.collection("s4c_holidays_config");
 
@@ -25,16 +27,33 @@ class HolidaysConfig {
   });
 
   factory HolidaysConfig.fromJson(Map data) {
-    return HolidaysConfig(
+    HolidaysConfig temp = HolidaysConfig(
       id: data['id'],
-      // if data has key 'name' then assign it to name, otherwise assign empty string
       name: data['name'] ?? '',
       year: data['year'],
       totalDays: data['totalDays'],
       organization: Organization.fromJson(data['organization']),
-      gralHolidays:
-          data['gralHolidays'].map<Event>((e) => Event.fromJson(e)).toList(),
+      gralHolidays: (data['gralHolidays'] as List)
+          .map<Event>((e) => Event.fromJson(e))
+          .toList(),
     );
+    if (data['employees'] != null &&
+        data['employees'] is List &&
+        data['employees'].isNotEmpty) {
+      for (var idEmployee in data['employees']) {
+        Employee.byId(idEmployee).then((employee) {
+          if (employee.id != "") {
+            temp.employees.add(employee);
+          }
+        }).catchError((error) {
+          print("Error getting employee by id: $error");
+        });
+      }
+    } else {
+      temp.employees = [];
+    }
+
+    return temp;
   }
 
   factory HolidaysConfig.fromFirestore(DocumentSnapshot doc) {
@@ -50,6 +69,7 @@ class HolidaysConfig {
         'totalDays': totalDays,
         'organization': organization.toJson(),
         'gralHolidays': gralHolidays.map((e) => e.toJson()).toList(),
+        'employees': employees.map((e) => e.id).toList(),
       };
 
   @override
@@ -97,6 +117,7 @@ class HolidaysConfig {
         isAllDay: true,
       ));
     }
+    print(employees);
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) {
@@ -112,6 +133,20 @@ class HolidaysConfig {
     if (id != "") {
       database.doc(id).delete();
     }
+  }
+
+  HolidaysConfig addEmployee(Employee employee) {
+    if (!employees.any((e) => e.id == employee.id)) {
+      employees.add(employee);
+      save();
+    }
+    return this;
+  }
+
+  HolidaysConfig removeEmployee(Employee employee) {
+    employees.removeWhere((e) => e.id == employee.id);
+    save();
+    return this;
   }
 }
 

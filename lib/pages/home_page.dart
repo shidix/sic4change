@@ -207,12 +207,10 @@ class _HomePageState extends State<HomePage> {
       for (var element in value) {
         if (element.holidaySupervisor.contains(user.email)) {
           Employee.byEmail(element.email).then((value) {
-            if (value != null) {
-              mypeople.add(value);
-            }
+            mypeople.add(value);
           });
 
-          HolidayRequest.byUser(element!.email).then((value) {
+          HolidayRequest.byUser(element.email).then((value) {
             myPeopleHolidays.addAll(value);
             if (mounted) {
               setState(() {});
@@ -1127,10 +1125,12 @@ class _HomePageState extends State<HomePage> {
                           ],
                         )
                       ]),
-                      onTap: (holiday.status.toUpperCase()=='PENDIENTE')?() {
-                        currentHoliday = holiday;
-                        addHolidayRequestDialog(context);
-                      }: null);
+                      onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
+                          ? () {
+                              currentHoliday = holiday;
+                              addHolidayRequestDialog(context);
+                            }
+                          : null);
                 })
             : const Center(
                 child: CircularProgressIndicator(),

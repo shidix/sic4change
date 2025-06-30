@@ -548,7 +548,7 @@ class _InvoicePageState extends State<InvoicePage> {
           String currency = row[7]!.value.toString();
           double base = double.parse(row[8]!.value.toString());
           double taxes = double.parse(row[9]!.value.toString());
-          double total = double.parse(row[10]!.value.toString());
+          // double total = double.parse(row[10]!.value.toString());
           String taxKind = row[11]!.value.toString();
           String tracker = row[12]!.value.toString();
           if (tracker.isEmpty || tracker.length < 3) {

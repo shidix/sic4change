@@ -36,7 +36,8 @@ Widget secondaryMenu(context, int option, Profile? profile) {
           : goPage(context, 'Departamentos', null, Icons.account_tree),
       space(width: 10),
       (option != CALENDAR_ITEM)
-          ? goPage(context, 'Calendarios', const CalendarHolidaysPage(), Icons.calendar_today)
+          ? goPage(context, 'Calendarios', const CalendarHolidaysPage(),
+              Icons.calendar_today)
           : goPage(context, 'Calendarios', null, Icons.calendar_today),
       space(width: 10),
       backButton(context),

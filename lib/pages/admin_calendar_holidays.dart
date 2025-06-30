@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/monitoring/v3.dart';
+// import 'package:googleapis/monitoring/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -146,6 +147,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   HolidaysConfig? holidaysConfig;
   Widget content = const Center(child: CircularProgressIndicator());
   Widget? listDatesView;
+  // List<Employee>? employees;
 
   Widget holidayHeader(context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -172,11 +174,15 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   initState() {
     super.initState();
     _mainMenu = mainMenu(context);
+
     if (profile == null) {
       final user = FirebaseAuth.instance.currentUser!;
       Profile.getProfile(user.email!).then((value) {
         profile = value;
+
         if (mounted) {
+          checkPermissions(
+              context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
           setState(() {});
         }
       });
@@ -320,6 +326,9 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
           setState(() {});
         }
       });
+    } else {
+      checkPermissions(
+          context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
     }
   }
 
@@ -341,48 +350,46 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       content = const Center(child: Text("No hay calendarios"));
       return;
     }
+
     List<List<HolidaysConfig>> calendarList = resize(holidaysList!, 5);
 
-    if (calendarList.last.length < 5) {
-      calendarList.last.addAll(List.generate(
-          5 - calendarList.last.length, (index) => HolidaysConfig.getEmpty()));
-    }
+    // if (calendarList.last.length < 5) {
+    //   calendarList.last.addAll(List.generate(
+    //       5 - calendarList.last.length, (index) => HolidaysConfig.getEmpty()));
+    // }
 
     content = Column(
-        children: calendarList.map((e) {
-      return Row(
-          children: e.map((f) {
-        return 
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Expanded(
-            flex: 1,
-            child: (f.id != "")
-                ? actionButtonVertical(
-                    context,
-                    Column(
-                      children: [
-                        Text(
-                          f.year.toString(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          f.name,
-                          textAlign: TextAlign.center,
-                        )
-                      ],
-                    ), (HolidaysConfig calendar) {
-                    holidaysConfig = calendar;
-                    drawCalendar();
-                  }, Icons.calendar_month, f)
-                : Container()
-            )
+      children: calendarList.map((row) {
+        return Row(
+            children: row.map((cell) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: actionButtonVertical(
+                context,
+                Column(
+                  children: [
+                    Text(
+                      cell.year.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      cell.name,
+                      textAlign: TextAlign.center,
+                    )
+                  ],
+                ), (HolidaysConfig calendar) {
+              holidaysConfig = calendar;
+              drawCalendar();
+            }, Icons.calendar_month, cell),
           );
-      }).toList());
-    }).toList());
+        }).toList());
+      }).toList(),
+    );
+
     if (mounted) {
       setState(() {});
     }
+    return;
   }
 
   void editYearDialog() {
@@ -430,8 +437,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                   index: -1,
                 ),
                 actionBtns: null);
-          } 
-          else {
+          } else {
             return CustomPopupDialog(
                 context: context,
                 title: "¡¡¡¡AVISO!!!!",
@@ -558,6 +564,24 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                       }
                     });
                   }, Icons.add_rounded, context),
+                  space(width: 10),
+                  actionButtonVertical(context, "Usuarios", (context) {
+                    // open dialog to add new employee
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return CustomPopupDialog(
+                              context: context,
+                              title: "Usuarios",
+                              icon: Icons.people,
+                              content: HolidayConfigUserForm(
+                                  holidaysConfig: holidaysConfig!,
+                                  afterSave: () {
+                                    drawCalendar();
+                                  }),
+                              actionBtns: null);
+                        });
+                  }, Icons.people, context),
                   space(width: 10),
                 ]),
                 const SizedBox(height: 10),

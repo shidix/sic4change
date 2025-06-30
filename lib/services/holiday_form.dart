@@ -2,7 +2,9 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:googleapis/transcoder/v1.dart';
+import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
@@ -70,9 +72,9 @@ class _EventFormState extends State<EventForm> {
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
       if (isNewItem) {
-        holidaysConfig!.gralHolidays.add(event);
+        holidaysConfig.gralHolidays.add(event);
       } else {
-        holidaysConfig!.gralHolidays[widget.index] = event;
+        holidaysConfig.gralHolidays[widget.index] = event;
       }
       holidaysConfig.save();
       formKey.currentState!.save();
@@ -131,7 +133,7 @@ class _EventFormState extends State<EventForm> {
               TextFormField(
                 initialValue: event.notes,
                 decoration: const InputDecoration(labelText: 'Notas'),
-                onChanged: (val) => setState(() => event.notes = val!),
+                onChanged: (val) => setState(() => event.notes = val),
               ),
               space(height: 16),
               Row(
@@ -488,6 +490,135 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
                     deleteButton),
           ]),
         ),
+      ),
+    );
+  }
+}
+
+class HolidayConfigUserForm extends StatefulWidget {
+  final HolidaysConfig? holidaysConfig;
+  final Function? afterSave;
+  final Function? afterDelete;
+
+  const HolidayConfigUserForm(
+      {Key? key, this.holidaysConfig, this.afterSave, this.afterDelete})
+      : super(key: key);
+
+  @override
+  createState() => _HolidayConfigUserFormState();
+}
+
+class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
+  final _formKey = GlobalKey<FormState>();
+  late HolidaysConfig holidaysConfig;
+  bool isNewItem = false;
+  List<Employee> employees = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the list of employees from the organization
+    Employee.getAll().then((value) {
+      employees = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    holidaysConfig = widget.holidaysConfig!;
+  }
+
+  // void saveItem(List args) {
+  //   BuildContext context = args[0];
+  //   HolidaysConfig holidaysConfig = args[1];
+  //   GlobalKey<FormState> formKey = args[2];
+  //   if (formKey.currentState!.validate()) {
+  //     formKey.currentState!.save();
+  //     holidaysConfig.save();
+  //     if (widget.afterSave != null) {
+  //       widget.afterSave!();
+  //     }
+  //     Navigator.of(context).pop(holidaysConfig);
+  //   }
+  // }
+
+  // void removeItem(List args) {
+  //   BuildContext context = args[0];
+  //   HolidaysConfig holidaysConfig = args[1];
+  //   GlobalKey<FormState> formKey = args[2];
+  //   if (formKey.currentState!.validate()) {
+  //     formKey.currentState!.save();
+  //     holidaysConfig.save();
+  //     if (widget.afterDelete != null) {
+  //       widget.afterDelete!();
+  //     }
+  //     Navigator.of(context).pop();
+  //   }
+  // }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // My form is a list or buttons with the user names; if the user is already in the list, the button has background color green, if not, it has background color red. Press button to add or remove user from the list.
+    List<Widget> userButtons = [];
+
+    userButtons = employees.map((employee) {
+      bool isSelected =
+          holidaysConfig.employees.any((element) => element.id == employee.id);
+      return Padding(
+        padding: const EdgeInsets.all(5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: (holidaysConfig.employees
+                    .any((element) => element.code == employee.code))
+                ? Colors.white
+                : Colors.grey,
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          padding: const EdgeInsets.all(5),
+          child: Row(children: [
+            Expanded(
+              flex: 3,
+              child: Text(employee.getFullName(),
+                  style: TextStyle(
+                      color: (holidaysConfig.employees
+                              .any((element) => element.code == employee.code))
+                          ? Colors.black
+                          : Colors.white)),
+            ),
+            Expanded(
+              flex: 1,
+              child: iconBtn(context, (context) {
+                if (isSelected) {
+                  holidaysConfig = holidaysConfig.removeEmployee(employee);
+                } else {
+                  holidaysConfig = holidaysConfig.addEmployee(employee);
+                }
+                if (mounted) {
+                  setState(() {});
+                }
+              }, null,
+                  text: '',
+                  icon: (isSelected) ? Icons.remove : Icons.add_outlined,
+                  color: (isSelected) ? Colors.red : Colors.white),
+            )
+          ]),
+        ),
+      );
+    }).toList();
+
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: SingleChildScrollView(
+            child: Column(
+          children: userButtons,
+        )),
       ),
     );
   }

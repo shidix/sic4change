@@ -1808,7 +1808,7 @@ class ReadOnlyTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgcolor = Colors.grey.shade100;
+    // Color bgcolor = Colors.grey.shade100;
     // TextStyle? fgstyle = Theme.of(context)
     //     .textTheme
     //     .titleMedium!

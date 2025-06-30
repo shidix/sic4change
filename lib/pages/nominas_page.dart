@@ -108,6 +108,7 @@ class _NominasPageState extends State<NominasPage> {
     if (widget.profile == null) {
       Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
           .then((value) {
+        checkPermissions(context, value, [Profile.ADMINISTRATIVE]);
         profile = value;
         secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
         if (mounted) {
@@ -116,6 +117,7 @@ class _NominasPageState extends State<NominasPage> {
       });
     } else {
       profile = widget.profile;
+      checkPermissions(context, profile!, [Profile.ADMINISTRATIVE]);
       secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
     }
 
