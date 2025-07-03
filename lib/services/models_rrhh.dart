@@ -988,7 +988,9 @@ class Department {
         } else {
           if (e is Map<String, dynamic>) {
             // if e is a map, create an Employee from it
-            item.employees!.add(Employee.fromJson(e as Map<String, dynamic>));
+            Employee.byId(e['id']).then((value) {
+              item.employees!.add(value);
+            });
           }
         }
       }
