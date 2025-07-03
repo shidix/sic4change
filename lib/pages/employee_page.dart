@@ -406,13 +406,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
       columns: [
         'Código',
         'Apellidos, Nombre',
-        'Fecha Nac.',
+        // 'Fecha Nac.',
         'Alta',
         'Baja',
-        'Cargo',
+        // 'Cargo',
         'Días C.',
         'Salario',
-        'Email',
+        // 'Email',
         ''
       ].map((e) {
         return DataColumn(
@@ -455,21 +455,20 @@ class _EmployeesPageState extends State<EmployeesPage> {
               Text(e.code),
             ),
             DataCell(Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
-            DataCell(Text(DateFormat('dd/MM/yyyy')
-                .format((e.bornDate != null) ? e.bornDate! : DateTime.now()))),
+            // DataCell(Text(DateFormat('dd/MM/yyyy').format((e.bornDate != null) ? e.bornDate! : DateTime.now()))),
             DataCell(Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
             DataCell(Text((e
                     .getBajaDate()
                     .isAfter(DateTime.now().add(const Duration(days: 3650))))
                 ? ' Indefinido'
                 : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
-            DataCell(Text(e.getPosition())),
+            // DataCell(Text(e.getPosition())),
             DataCell(Text(e.altaDays().toString())),
             DataCell(Text(toCurrency(e.getSalary()),
                 style: (e.getSalary() <= 0.0)
                     ? const TextStyle(color: Colors.red)
                     : null)),
-            DataCell(Text(e.email)),
+            // DataCell(Text(e.email)),
             DataCell(
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,

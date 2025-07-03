@@ -1008,6 +1008,13 @@ class Department {
   }
 
   Future<void> delete() async {
+    List<Department> childrens = await Department.getDepartmentsByParent(id!);
+    if (childrens.isNotEmpty) {
+      for (var child in childrens) {
+        child.parent = parent;
+        await child.save();
+      }
+    }
     await collection.doc(id).delete();
   }
 
