@@ -63,6 +63,13 @@ class _DepartmentFormState extends State<DepartmentForm> {
           .where((d) => (d.id != department.id))
           .map((d) => KeyValue(d.id.toString(), d.name))
           .toList();
+      // For every department, check if parent is in keys; if not, set to empty
+      for (Department d in allDepartments) {
+        if (!optionsDepartment.any((e) => e.key == d.parent)) {
+          d.parent = '';
+          d.save();
+        }
+      }
       if (mounted) {
         setState(() {});
       }

@@ -31,22 +31,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Contact? contact;
   List<HolidayRequest>? myHolidays = [];
   int holidayDays = 0;
-  //SProject? project;
-
-  /*void loadProject() async {
-    setState(() {
-      projLoading = false;
-    });
-
-    await project!.reload().then((val) {
-      /*Navigator.popAndPushNamed(context, "/project_info",
-          arguments: {"project": val});*/
-      setState(() {
-        project = val;
-        projLoading = true;
-      });
-    });
-  }*/
 
   @override
   initState() {

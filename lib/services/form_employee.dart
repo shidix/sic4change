@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -116,6 +117,17 @@ class _EmployeeFormState extends State<EmployeeForm> {
           employee.altas.add(alta);
         }
         employee.save();
+        // Check if exists profile with email
+        Profile.getProfile(employee.email).then((profile) {
+          if (profile.email == '') {
+            // Create profile
+            Profile newProfile = Profile(id: '',
+                email: employee.email,
+                holidaySupervisor: [],
+                mainRole: 'Usuario');
+            newProfile.save();
+          }
+        });
         Navigator.of(context).pop(employee);
       }
     }
