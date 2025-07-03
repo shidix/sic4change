@@ -296,26 +296,6 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                 setState(() {});
               }
             });
-            // holidaysConfig = HolidaysConfig.getEmpty();
-            // holidaysConfig!.year = DateTime.now().year;
-            // holidaysConfig!.totalDays = 30;
-            // holidaysConfig!.organization = Organization.getEmpty();
-            // holidaysConfig!.gralHolidays = [
-            //   Event(
-            //     subject: "Año Nuevo",
-            //     startTime: DateTime(holidaysConfig!.year, 1, 1),
-            //     endTime: DateTime(holidaysConfig!.year, 1, 1),
-            //     notes: "",
-            //     isAllDay: true,
-            //   ),
-            //   Event(
-            //     subject: "Navidad",
-            //     startTime: DateTime(holidaysConfig!.year, 12, 25),
-            //     endTime: DateTime(holidaysConfig!.year, 12, 25),
-            //     notes: "",
-            //     isAllDay: true,
-            //   ),
-            // ];
             fillContent();
             if (mounted) {
               setState(() {});
