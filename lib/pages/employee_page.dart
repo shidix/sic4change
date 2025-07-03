@@ -273,38 +273,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
             },
           ),
         ),
-        // Expanded(
-        //   child: FilterDateField(
-        //       labelText: 'Nacidos desde',
-        //       bottom: 17,
-        //       minYear: 1900,
-        //       maxYear: 2100,
-        //       selectedDate: minBornDateFilter,
-        //       onSelectedDate: (value) {
-        //         minBornDateFilter = value;
-        //         if (mounted) {
-        //           setState(() {
-        //             contentPanel = content(context);
-        //           });
-        //         }
-        //       }),
-        // ),
-        // Expanded(
-        //   child: FilterDateField(
-        //       labelText: 'Nacidos hasta',
-        //       bottom: 17,
-        //       minYear: 1900,
-        //       maxYear: 2100,
-        //       selectedDate: maxBornDateFilter,
-        //       onSelectedDate: (value) {
-        //         maxBornDateFilter = value;
-        //         if (mounted) {
-        //           setState(() {
-        //             contentPanel = content(context);
-        //           });
-        //         }
-        //       }),
-        // ),
         Expanded(
           child: FilterDateField(
               labelText: 'Alta desde',
@@ -412,7 +380,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         // 'Cargo',
         'Días C.',
         'Salario',
-        // 'Email',
+        'Email',
         ''
       ].map((e) {
         return DataColumn(
@@ -468,7 +436,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 style: (e.getSalary() <= 0.0)
                     ? const TextStyle(color: Colors.red)
                     : null)),
-            // DataCell(Text(e.email)),
+            DataCell(Text(e.email)),
             DataCell(
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
