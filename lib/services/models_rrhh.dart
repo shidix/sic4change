@@ -977,10 +977,22 @@ class Department {
         manager: json.containsKey('manager')
             ? Employee.fromJson(json['manager'])
             : null,
-        employees: json.containsKey('employees')
-            ? (json['employees'].map((e) => Employee.fromJson(e)).toList())
-                .cast<Employee>()
-            : null);
+        employees: []);
+
+    if (json.containsKey('employees')) {
+      for (var e in json['employees']) {
+        if (e is String) {
+          Employee.byId(e).then((value) {
+            item.employees!.add(value);
+          });
+        } else {
+          if (e is Map<String, dynamic>) {
+            // if e is a map, create an Employee from it
+            item.employees!.add(Employee.fromJson(e as Map<String, dynamic>));
+          }
+        }
+      }
+    }
 
     // if (json.containsKey('employees')) {
     //   List<dynamic> list =
@@ -994,7 +1006,7 @@ class Department {
         'name': name,
         'parent': (parent == null) ? '' : parent,
         'manager': manager?.toJson(),
-        'employees': employees?.map((e) => e.toJson()).toList(),
+        'employees': employees?.map((e) => e.id).toList(),
       };
 
   Future<Department> save() async {

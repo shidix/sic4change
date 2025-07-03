@@ -185,9 +185,19 @@ class _NominasPageState extends State<NominasPage> {
     );
 
     for (int i = 0; i < nominas.length; i++) {
-      nominas[i].employee = employees
+      // Check if the employee is in the list of employees
+      if (employees
           .where((element) => element.code == nominas[i].employeeCode)
-          .first;
+          .isEmpty) {
+        // If not, set the employee to null
+        nominas[i].employee = Employee.getEmpty();
+      }
+      // If the employee is in the list, set the employee to the employee object
+      else {
+        nominas[i].employee = employees
+            .where((element) => element.code == nominas[i].employeeCode)
+            .first;
+      }
     }
     nominas.sort(compareNomina);
 
