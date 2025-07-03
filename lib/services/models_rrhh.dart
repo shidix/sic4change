@@ -981,16 +981,20 @@ class Department {
 
     if (json.containsKey('employees')) {
       for (var e in json['employees']) {
-        if (e is String) {
-          Employee.byId(e).then((value) {
-            item.employees!.add(value);
-          });
-        } else {
-          if (e is Map<String, dynamic>) {
-            // if e is a map, create an Employee from it
-            Employee.byId(e['id']).then((value) {
+        if (e != null) {
+          if (e is String) {
+            Employee.byId(e).then((value) {
               item.employees!.add(value);
             });
+          } else {
+            if (e is Map<String, dynamic>) {
+              // if e is a map, create an Employee from it
+              Employee.byCode(e['code']).then((value) {
+                if (value.id != null) {
+                  item.employees!.add(value);
+                }
+              });
+            }
           }
         }
       }
