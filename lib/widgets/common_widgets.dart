@@ -2495,72 +2495,197 @@ class _PasswordFieldState extends State<PasswordField> {
   }
 }
 
-class TreeNode {
-  final String key;
+class TreeNode extends StatefulWidget {
   final String label;
   final int level;
-  final List<TreeNode> childrens;
+  TreeNode? parent;
+  List<TreeNode> childrens;
   bool expanded = false;
+  bool visible = false;
+  ValueChanged<TreeNode> onSelected;
 
-  TreeNode(this.key, this.label, [this.level = 0, this.childrens = const []]);
 
-  void printNode() {
-    print('${' ' * level}$label (key: $key, level: $level)');
-    for (var child in childrens) {
-      child.printNode();
-    }
-  }
-
-  List<ListTile> toggle() {
-    expanded = !expanded;
-    ListTile tile = ListTile(
-      title: Padding(
-          padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
-      onTap: () {
-        expanded = !expanded;
-        printNode();
-      },
-    );
-    if (expanded) {
-      List<ListTile> childrenTiles = childrens
-          .map((child) => child.toggle())
-          .expand((element) => element)
-          .toList();
-      return [tile, ...childrenTiles];
-    } else {
-      return List<ListTile>.from([tile]);
-    }
-  }
-}
-
-class TreeView extends StatelessWidget {
-  final List<TreeNode> nodes;
-  final ValueChanged<TreeNode> onItemSelected;
-
-  const TreeView({
-    super.key,
-    required this.nodes,
-    required this.onItemSelected,
+  TreeNode({
+    required this.label,
+    required this.level,
+    required this.onSelected,
+    this.childrens = const [],
+    this.parent,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: nodes.length,
-      itemBuilder: (context, index) {
-        return LongPressDraggable(
-          data: nodes[index],
-          feedback: Material(
-            child: ListTile(
-              title: Text(nodes[index].label),
-            ),
-          ),
-          child: ListTile(
-            title: Text(nodes[index].label),
-            onTap: () => onItemSelected(nodes[index]),
-          ),
-        );
-      },
-    );
-  }
+  _TreeNodeState createState() => _TreeNodeState();
+
+  
+  
+  // void printNode() {
+  //   print('${' ' * level}$label (key: $key, level: $level)');
+  //   for (var child in childrens) {
+  //     child.printNode();
+  //   }
+  // }
+
+
+  // void collapse() {
+  //   expanded = false;
+  //   print('Node toggled: $label (expanded: $expanded)');
+
+  //   for (var child in childrens) {
+  //     child.collapse();
+  //   }
+  // }
+
+  // void expand() {
+  //   expanded = true;
+  //   for (var child in childrens) {
+  //     if (child.expanded) {
+
+  //       child.expand();
+  //     }
+  //     expanded = true;
+  //   }
+  // }
+
+  // void toggle() {
+  //   expanded = !expanded;
+  //   printNode();
+  //   if (!expanded) {
+  //     collapse();
+  //   }
+  //   else {
+  //     expand();
+  //   }
+  // }
+
 }
+
+
+
+class _TreeNodeState extends State<TreeNode> {
+  String get label => widget.label;
+  int get level => widget.level;
+  List<TreeNode> get childrens => widget.childrens;
+  bool get expanded => widget.expanded;
+  set expanded(bool value) {
+    widget.expanded = value;
+
+    // widget.onSelected(widget);
+    print('Node toggled: $label (expanded: ${widget.expanded})');
+    if (value) {
+        expand();
+      } else {
+        collapse();
+      } 
+    setState(() {
+
+    });
+  }
+
+
+  void collapse() {
+    for (var child in childrens) {
+      child.expanded = false;
+    }
+  }
+
+  void expand() {
+    for (var child in childrens) {
+      if (child.expanded) {
+      }
+    }
+  }
+
+  void toggle() {
+    expanded = !expanded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return ((expanded) || (level==0))?ListTile(
+      title: Padding(
+          padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
+      onTap: () {
+        // toggle();
+        // setState(() {
+        //   expanded = expanded;
+
+        // });
+        toggle();
+      },
+      trailing: Icon(
+        expanded ? Icons.expand_less : Icons.expand_more,
+        color: Theme.of(context).primaryColor,
+      ),
+    ):Container();
+
+  }
+
+
+  // List<ListTile> toggle() {
+  //   expanded = !expanded;
+  //   ListTile tile = ListTile(
+  //     title: Padding(
+  //         padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
+  //     onTap: () {
+  //       expanded = !expanded;
+  //       printNode();
+  //     },
+  //   );
+  //   if (expanded) {
+  //     List<ListTile> childrenTiles = childrens
+  //         .map((child) => child.toggle())
+  //         .expand((element) => element)
+  //         .toList();
+  //     return [tile, ...childrenTiles];
+  //   } else {
+  //     return List<ListTile>.from([tile]);
+  //   }
+  // }
+}
+
+
+// class TreeView extends StatefulWidget {
+//   final List<TreeNode> nodes;
+//   final ValueChanged<TreeNode> onItemSelected;
+
+//   const TreeView({
+//     super.key,
+//     required this.nodes,
+//     required this.onItemSelected,
+//   });
+
+//   @override
+//   _TreeViewState createState() => _TreeViewState();
+// }
+// class _TreeViewState extends State<TreeView> {
+
+//   List <TreeNode> get nodes => widget.nodes;
+
+
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView.builder(
+//       itemCount: nodes.length,
+//       itemBuilder: (context, index) {
+//         return Draggable<TreeNode>(
+//           data: nodes[index],
+//           feedback: Container(color: Colors.deepOrange, width:100, height: 100, child: Text(nodes[index].label)),
+//           childWhenDragging: Container(),
+//           child: 
+//           DragTarget<TreeNode>(
+//             onAccept: (data) {
+//               widget.onItemSelected(data);
+//             },
+//             builder: (context, candidateData, rejectedData) {
+//               return Column(
+//                 children: nodes[index],
+//               );
+//             },
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }

@@ -225,6 +225,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Map<String, Department> departmentsHash = {};
   Map<String, bool> expanded = {};
   Map<String, String> departmentKeys = {};
+  List<TreeNode> treeNodes = [];
   List<Color> colors = [
     Colors.white,
     Colors.grey[100]!,
@@ -264,6 +265,31 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
       departments.sort(
           (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
+
+
+      TreeNode createTreeNode(Department department, TreeNode? parent) {
+        TreeNode item = TreeNode(
+          label:department.name,
+          level:getLevel(department),
+          onSelected: (node) {setState(() {
+            contentPanel = departmentPanel();
+            expanded[department.id!] = !expanded[department.id!]!;
+          });},
+          parent: parent
+        );
+
+        item.childrens = allDepartments
+            .where((d) => d.parent == department.id)
+            .map((d) => createTreeNode(d, item))
+            .toList();
+
+        return item;
+      }
+
+      treeNodes = allDepartments
+          .where((d) => d.parent == '')
+          .map((d) => createTreeNode(d, null))
+          .toList();
       contentPanel = departmentPanel();
 
       if (mounted) {
@@ -458,68 +484,12 @@ class _HierarchyPageState extends State<HierarchyPage> {
       ],
     );
 
-    // departmentsHash contains all departments with their id as key. This id is uded as parent in the department object.
 
-    // List<String> keys = departmentsHash.keys.toList();
-
-    // List<Widget> addChildren(String key) {
-    //   if (allDepartments
-    //       .where((d) => d.parent == key)
-    //       .isEmpty) {
-    //     return [];
-    //   }
-    //   List<Department> children = allDepartments
-    //       .where((d) => d.parent == key)
-    //       .toList();
-    //   return ()
-    // }
-
-    // TreeView treeView = TreeView(
-    //   onItemSelected: (node) {
-    //     print('Selected node: ${node.key}');
-    //   },
-    //   nodes: departments.map((d) {
-    //     return TreeNode(
-    //       d.id!,
-    //       d.name,
-    //       getLevel(d),
-    //       allDepartments
-    //           .where((child) => child.parent == d.id)
-    //           .map((child) => TreeNode(
-    //                 child.id!,
-    //                 child.name,
-    //                 getLevel(child),
-    //               ))
-    //           .toList(),
-    //     );
-    //   }).toList(),
-    // );
-
-    TreeNode createTreeNode(Department department) {
-      return TreeNode(
-        department.id!,
-        department.name,
-        getLevel(department),
-        allDepartments
-            .where((child) => child.parent == department.id)
-            .map((child) => createTreeNode(child))
-            .toList(),
-      );
-    }
-
-    List<TreeNode> treeNodes = departments
-        .where((d) => d.parent == '')
-        .map((d) => createTreeNode(d))
-        .toList();
 
     // Widget treeView = ListTile(title: const Text('Aux'));
 
-    List<Widget> treeView = [];
-    for (var node in treeNodes) {
-      treeView.addAll(
-        node.toggle(),
-      );
-    }
+    List<Widget> treeView = treeNodes;
+
 
     ListView treeViewList = ListView.builder(
       shrinkWrap: true,
@@ -528,7 +498,11 @@ class _HierarchyPageState extends State<HierarchyPage> {
       itemBuilder: (context, index) {
         return treeView[index];
       },
+      
+
     );
+
+    // TreeView treeViewList = TreeView(nodes: treeNodes, onItemSelected: (node) {print('Selected node: ${node.key}');});
 
     return SingleChildScrollView(
       child: Row(children: [
