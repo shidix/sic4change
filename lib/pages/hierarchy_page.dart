@@ -294,6 +294,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Widget departmentPanel() {
     Widget departmentsTable;
+
     if (departments.isEmpty) {
       departmentsTable = const Text('No hay departamentos definidos');
     } else {
@@ -457,15 +458,98 @@ class _HierarchyPageState extends State<HierarchyPage> {
       ],
     );
 
+    // departmentsHash contains all departments with their id as key. This id is uded as parent in the department object.
+
+    // List<String> keys = departmentsHash.keys.toList();
+
+    // List<Widget> addChildren(String key) {
+    //   if (allDepartments
+    //       .where((d) => d.parent == key)
+    //       .isEmpty) {
+    //     return [];
+    //   }
+    //   List<Department> children = allDepartments
+    //       .where((d) => d.parent == key)
+    //       .toList();
+    //   return ()
+    // }
+
+    // TreeView treeView = TreeView(
+    //   onItemSelected: (node) {
+    //     print('Selected node: ${node.key}');
+    //   },
+    //   nodes: departments.map((d) {
+    //     return TreeNode(
+    //       d.id!,
+    //       d.name,
+    //       getLevel(d),
+    //       allDepartments
+    //           .where((child) => child.parent == d.id)
+    //           .map((child) => TreeNode(
+    //                 child.id!,
+    //                 child.name,
+    //                 getLevel(child),
+    //               ))
+    //           .toList(),
+    //     );
+    //   }).toList(),
+    // );
+
+    TreeNode createTreeNode(Department department) {
+      return TreeNode(
+        department.id!,
+        department.name,
+        getLevel(department),
+        allDepartments
+            .where((child) => child.parent == department.id)
+            .map((child) => createTreeNode(child))
+            .toList(),
+      );
+    }
+
+    List<TreeNode> treeNodes = departments
+        .where((d) => d.parent == '')
+        .map((d) => createTreeNode(d))
+        .toList();
+
+    // Widget treeView = ListTile(title: const Text('Aux'));
+
+    List<Widget> treeView = [];
+    for (var node in treeNodes) {
+      treeView.addAll(
+        node.toggle(),
+      );
+    }
+
+    ListView treeViewList = ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: treeView.length,
+      itemBuilder: (context, index) {
+        return treeView[index];
+      },
+    );
+
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          titleBar,
-          toolsBar,
-          space(height: 10),
-          SizedBox(width: double.infinity, child: departmentsTable),
-        ],
-      ),
+      child: Row(children: [
+        Expanded(flex: 1, child: Column(children: [treeViewList])),
+        Expanded(
+          flex: 4,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                titleBar,
+                toolsBar,
+                space(height: 10),
+                SizedBox(width: double.infinity, child: departmentsTable),
+              ],
+            ),
+          ),
+        ),
+      ]),
     );
   }
 

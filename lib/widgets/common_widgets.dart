@@ -2494,3 +2494,73 @@ class _PasswordFieldState extends State<PasswordField> {
     );
   }
 }
+
+class TreeNode {
+  final String key;
+  final String label;
+  final int level;
+  final List<TreeNode> childrens;
+  bool expanded = false;
+
+  TreeNode(this.key, this.label, [this.level = 0, this.childrens = const []]);
+
+  void printNode() {
+    print('${' ' * level}$label (key: $key, level: $level)');
+    for (var child in childrens) {
+      child.printNode();
+    }
+  }
+
+  List<ListTile> toggle() {
+    expanded = !expanded;
+    ListTile tile = ListTile(
+      title: Padding(
+          padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
+      onTap: () {
+        expanded = !expanded;
+        printNode();
+      },
+    );
+    if (expanded) {
+      List<ListTile> childrenTiles = childrens
+          .map((child) => child.toggle())
+          .expand((element) => element)
+          .toList();
+      return [tile, ...childrenTiles];
+    } else {
+      return List<ListTile>.from([tile]);
+    }
+  }
+}
+
+class TreeView extends StatelessWidget {
+  final List<TreeNode> nodes;
+  final ValueChanged<TreeNode> onItemSelected;
+
+  const TreeView({
+    super.key,
+    required this.nodes,
+    required this.onItemSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: nodes.length,
+      itemBuilder: (context, index) {
+        return LongPressDraggable(
+          data: nodes[index],
+          feedback: Material(
+            child: ListTile(
+              title: Text(nodes[index].label),
+            ),
+          ),
+          child: ListTile(
+            title: Text(nodes[index].label),
+            onTap: () => onItemSelected(nodes[index]),
+          ),
+        );
+      },
+    );
+  }
+}
