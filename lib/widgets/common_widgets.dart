@@ -2500,66 +2500,24 @@ class TreeNode extends StatefulWidget {
   final int level;
   TreeNode? parent;
   List<TreeNode> childrens;
-  bool expanded = false;
-  bool visible = false;
+  bool expanded = true;
+  bool visible = true;
   ValueChanged<TreeNode> onSelected;
-
+  ValueChanged<TreeNode> onMainSelected;
 
   TreeNode({
     required this.label,
     required this.level,
     required this.onSelected,
-    this.childrens = const [],
+    required this.onMainSelected,
+    this.expanded = true,
+    this.visible = true,
     this.parent,
-  });
+  }) : childrens = [];
 
   @override
   _TreeNodeState createState() => _TreeNodeState();
-
-  
-  
-  // void printNode() {
-  //   print('${' ' * level}$label (key: $key, level: $level)');
-  //   for (var child in childrens) {
-  //     child.printNode();
-  //   }
-  // }
-
-
-  // void collapse() {
-  //   expanded = false;
-  //   print('Node toggled: $label (expanded: $expanded)');
-
-  //   for (var child in childrens) {
-  //     child.collapse();
-  //   }
-  // }
-
-  // void expand() {
-  //   expanded = true;
-  //   for (var child in childrens) {
-  //     if (child.expanded) {
-
-  //       child.expand();
-  //     }
-  //     expanded = true;
-  //   }
-  // }
-
-  // void toggle() {
-  //   expanded = !expanded;
-  //   printNode();
-  //   if (!expanded) {
-  //     collapse();
-  //   }
-  //   else {
-  //     expand();
-  //   }
-  // }
-
 }
-
-
 
 class _TreeNodeState extends State<TreeNode> {
   String get label => widget.label;
@@ -2568,30 +2526,28 @@ class _TreeNodeState extends State<TreeNode> {
   bool get expanded => widget.expanded;
   set expanded(bool value) {
     widget.expanded = value;
-
-    // widget.onSelected(widget);
-    print('Node toggled: $label (expanded: ${widget.expanded})');
-    if (value) {
-        expand();
-      } else {
-        collapse();
-      } 
-    setState(() {
-
-    });
+    (value) ? expand() : collapse();
+    if (mounted) {
+      setState(() {});
+      widget.onSelected(widget);
+    }
   }
 
+  set visible(bool value) {
+    widget.visible = value;
+    if (widget.expanded) expand();
+    setState(() {});
+  }
 
   void collapse() {
     for (var child in childrens) {
-      child.expanded = false;
+      child.visible = false;
     }
   }
 
   void expand() {
     for (var child in childrens) {
-      if (child.expanded) {
-      }
+      child.visible = true;
     }
   }
 
@@ -2601,91 +2557,88 @@ class _TreeNodeState extends State<TreeNode> {
 
   @override
   Widget build(BuildContext context) {
+    List<Color> colors = [
+      Colors.white,
+      Colors.grey[100]!,
+      Colors.grey[200]!,
+      Colors.grey[300]!,
+      Colors.grey[400]!
+    ];
 
-    return ((expanded) || (level==0))?ListTile(
-      title: Padding(
-          padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
-      onTap: () {
-        // toggle();
-        // setState(() {
-        //   expanded = expanded;
-
-        // });
-        toggle();
-      },
-      trailing: Icon(
-        expanded ? Icons.expand_less : Icons.expand_more,
-        color: Theme.of(context).primaryColor,
+    Widget nodeLayout = Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: Colors.grey,
+            width: 2.0,
+          ),
+        ),
       ),
-    ):Container();
+      child: ListTile(
+        title: Text(label),
+        onTap: () {
+          widget.onMainSelected(widget);
+          //widget.onSelected(widget);
+        },
+        tileColor: colors[(level) % colors.length],
+        trailing: null,
+      ),
+    );
 
+    Widget iconLayout = Container(
+      color: colors[(level) % colors.length],
+      child: ListTile(
+        title: const Text(""),
+        onTap: () {
+          toggle();
+          widget.onSelected(widget);
+        },
+        tileColor: colors[(level) % colors.length],
+        trailing: (childrens.isNotEmpty)
+            ? Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                color: Colors.grey,
+              )
+            : null,
+      ),
+    );
+
+    List<Widget> identations = [];
+    for (int i = 0; i < level; i++) {
+      identations.add(
+        Expanded(
+          flex: 1,
+          child: Container(
+              decoration: const BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Colors.grey, // No border for identation
+                    width: 2.0,
+                  ),
+                ),
+              ),
+              child: ListTile(
+                title: const Text(""),
+                tileColor: colors[i % colors.length],
+                onTap: () {
+                  // Do nothing, just for the identation
+                },
+              )),
+        ),
+      );
+    }
+
+    // Calculate the new flex value based on the level; i want to keep the relative size of the node at 0.7
+    int newFlex = (8 - level);
+    return (widget.visible)
+        ? Row(
+            children: [
+              ...identations,
+              // Expanded(flex: 2, child: iconLayout),
+              Expanded(flex: newFlex, child: nodeLayout),
+              Expanded(flex: 2, child: iconLayout),
+            ],
+          )
+        : Container();
   }
-
-
-  // List<ListTile> toggle() {
-  //   expanded = !expanded;
-  //   ListTile tile = ListTile(
-  //     title: Padding(
-  //         padding: EdgeInsets.only(left: level * 20.0), child: Text(label)),
-  //     onTap: () {
-  //       expanded = !expanded;
-  //       printNode();
-  //     },
-  //   );
-  //   if (expanded) {
-  //     List<ListTile> childrenTiles = childrens
-  //         .map((child) => child.toggle())
-  //         .expand((element) => element)
-  //         .toList();
-  //     return [tile, ...childrenTiles];
-  //   } else {
-  //     return List<ListTile>.from([tile]);
-  //   }
-  // }
 }
-
-
-// class TreeView extends StatefulWidget {
-//   final List<TreeNode> nodes;
-//   final ValueChanged<TreeNode> onItemSelected;
-
-//   const TreeView({
-//     super.key,
-//     required this.nodes,
-//     required this.onItemSelected,
-//   });
-
-//   @override
-//   _TreeViewState createState() => _TreeViewState();
-// }
-// class _TreeViewState extends State<TreeView> {
-
-//   List <TreeNode> get nodes => widget.nodes;
-
-
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListView.builder(
-//       itemCount: nodes.length,
-//       itemBuilder: (context, index) {
-//         return Draggable<TreeNode>(
-//           data: nodes[index],
-//           feedback: Container(color: Colors.deepOrange, width:100, height: 100, child: Text(nodes[index].label)),
-//           childWhenDragging: Container(),
-//           child: 
-//           DragTarget<TreeNode>(
-//             onAccept: (data) {
-//               widget.onItemSelected(data);
-//             },
-//             builder: (context, candidateData, rejectedData) {
-//               return Column(
-//                 children: nodes[index],
-//               );
-//             },
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }

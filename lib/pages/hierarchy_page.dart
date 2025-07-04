@@ -225,13 +225,69 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Map<String, Department> departmentsHash = {};
   Map<String, bool> expanded = {};
   Map<String, String> departmentKeys = {};
-  List<TreeNode> treeNodes = [];
   List<Color> colors = [
     Colors.white,
     Colors.grey[100]!,
     Colors.grey[200]!,
     Colors.grey[400]!
   ];
+
+  TreeNode? rootNode;
+
+  TreeNode createTreeNode(Department department, TreeNode? parent) {
+    TreeNode item = TreeNode(
+        label: department.name,
+        level: getLevel(department) + 1,
+        onSelected: (node) {
+          setState(() {
+            contentPanel = departmentPanel();
+          });
+        },
+        onMainSelected: (node) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return CustomPopupDialog(
+                  context: context,
+                  title: 'Editar Departamento',
+                  icon: Icons.edit,
+                  content:
+                      DepartmentForm(profile: profile, department: department),
+                  actionBtns: null,
+                );
+              }).then((value) {
+            if (value != null) {
+              if (mounted) {
+                setState(() {
+                  contentPanel = departmentPanel();
+                });
+              }
+            }
+          });
+        },
+        parent: parent);
+    item.childrens = allDepartments
+        .where((d) => d.parent == department.id)
+        .map((d) => createTreeNode(d, item))
+        .toList();
+    return item;
+  }
+
+  List<Widget> getTreeNodes(TreeNode? node) {
+    List<Widget> nodes = [];
+    if (node == null) return nodes;
+
+    if (node.visible) {
+      nodes.add(node);
+    }
+
+    if (node.childrens.isNotEmpty && node.expanded) {
+      for (TreeNode child in node.childrens) {
+        nodes.addAll(getTreeNodes(child));
+      }
+    }
+    return nodes;
+  }
 
   @override
   void initState() {
@@ -266,30 +322,22 @@ class _HierarchyPageState extends State<HierarchyPage> {
       departments.sort(
           (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
 
-
-      TreeNode createTreeNode(Department department, TreeNode? parent) {
-        TreeNode item = TreeNode(
-          label:department.name,
-          level:getLevel(department),
-          onSelected: (node) {setState(() {
+      rootNode = TreeNode(
+        label: 'Departamentos',
+        level: 0,
+        onSelected: (node) {
+          setState(() {
             contentPanel = departmentPanel();
-            expanded[department.id!] = !expanded[department.id!]!;
-          });},
-          parent: parent
-        );
+          });
+        },
+        onMainSelected: (node) {},
+      );
 
-        item.childrens = allDepartments
-            .where((d) => d.parent == department.id)
-            .map((d) => createTreeNode(d, item))
-            .toList();
-
-        return item;
-      }
-
-      treeNodes = allDepartments
+      rootNode!.childrens = allDepartments
           .where((d) => d.parent == '')
-          .map((d) => createTreeNode(d, null))
+          .map((d) => createTreeNode(d, rootNode))
           .toList();
+
       contentPanel = departmentPanel();
 
       if (mounted) {
@@ -484,46 +532,31 @@ class _HierarchyPageState extends State<HierarchyPage> {
       ],
     );
 
-
-
-    // Widget treeView = ListTile(title: const Text('Aux'));
-
-    List<Widget> treeView = treeNodes;
-
-
-    ListView treeViewList = ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: treeView.length,
-      itemBuilder: (context, index) {
-        return treeView[index];
-      },
-      
-
-    );
-
-    // TreeView treeViewList = TreeView(nodes: treeNodes, onItemSelected: (node) {print('Selected node: ${node.key}');});
+    List<Widget> treeView = getTreeNodes(rootNode);
 
     return SingleChildScrollView(
-      child: Row(children: [
-        Expanded(flex: 1, child: Column(children: [treeViewList])),
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                titleBar,
-                toolsBar,
-                space(height: 10),
-                SizedBox(width: double.infinity, child: departmentsTable),
-              ],
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 2, child: Column(children: [titleBar, ...treeView])),
+            Expanded(
+              flex: 5,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleBar,
+                    toolsBar,
+                    space(height: 10),
+                    SizedBox(width: double.infinity, child: departmentsTable),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      ]),
+          ]),
     );
   }
 
