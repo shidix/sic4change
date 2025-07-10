@@ -1732,53 +1732,6 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
                 child: actionButton(
                     context, "Cancelar", cancelItem, Icons.cancel, context))
           ])
-          /*Expanded(
-              flex: 5,
-              child: ElevatedButton(
-                onPressed: () {
-                  obj.delete();
-                  if (args == null) {
-                    action();
-                  } else {
-                    action(args);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 20.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  backgroundColor: Colors.white,
-                ),
-                child: Row(children: [
-                  const Icon(Icons.remove),
-                  space(width: 10),
-                  customText(removeText, 14)
-                ]),
-              )),*/
-          /*TextButton(
-            child: const Text(removeText),
-            onPressed: () async {
-              obj.delete();
-              if (args == null) {
-                action();
-              } else {
-                action(args);
-              }
-              Navigator.of(context).pop();
-            },
-          ),*/
-          /*space(width: 10),
-          Expanded(
-              flex: 5,
-              child: actionButton(
-                  context, "Cancelar", cancelItem, Icons.cancel, context))*/
-          /*TextButton(
-            child: const Text(cancelText),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),*/
         ],
       );
     },
@@ -2333,12 +2286,12 @@ class FilterDateField extends StatelessWidget {
           title: (labelText is String)
               ? Text(
                   labelText,
-                  style: TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10),
                   maxLines: 1,
                 )
               : labelText,
           subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate),
-              style: TextStyle(fontSize: 12)),
+              style: const TextStyle(fontSize: 12)),
           onTap: () async {
             final DateTime? picked = await showDatePicker(
                 context: context,
@@ -2378,7 +2331,7 @@ Widget mainHeader(title, List<Widget> buttons) {
     Container(
       padding: (buttons.isNotEmpty)
           ? const EdgeInsets.only(left: 40)
-          : EdgeInsets.all(40),
+          : const EdgeInsets.all(40),
       child: (title is String)
           ? Text(title,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -2403,7 +2356,7 @@ class FileNameDialog extends StatefulWidget {
 }
 
 class _FileNameDialogState extends State<FileNameDialog> {
-  TextEditingController _fileNameController = TextEditingController();
+  final TextEditingController _fileNameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -2413,20 +2366,20 @@ class _FileNameDialogState extends State<FileNameDialog> {
       title: s4cTitleBar('Nombre de archivo'),
       content: TextField(
         controller: _fileNameController,
-        decoration: InputDecoration(hintText: "Nombre de archivo"),
+        decoration: const InputDecoration(hintText: "Nombre de archivo"),
       ),
       actions: [
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(null); // Cancel
           },
-          child: Text('Cancelar'),
+          child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(_fileNameController.text); // Confirm
           },
-          child: Text('OK'),
+          child: const Text('OK'),
         ),
       ],
     );
@@ -2496,6 +2449,7 @@ class _PasswordFieldState extends State<PasswordField> {
 }
 
 class TreeNode extends StatefulWidget {
+  final dynamic item;
   final String label;
   final int level;
   TreeNode? parent;
@@ -2506,6 +2460,7 @@ class TreeNode extends StatefulWidget {
   ValueChanged<TreeNode> onMainSelected;
 
   TreeNode({
+    required this.item,
     required this.label,
     required this.level,
     required this.onSelected,
@@ -2517,6 +2472,61 @@ class TreeNode extends StatefulWidget {
 
   @override
   _TreeNodeState createState() => _TreeNodeState();
+
+  static TreeNode createTreeNode(dynamic item, TreeNode? parent,
+      {int level = 0,
+      Function? onSelected,
+      Function? onMainSelected,
+      List<dynamic>? allItems}) {
+    TreeNode node = TreeNode(
+        item: item,
+        label: item.name,
+        level: level,
+        onSelected: onSelected != null
+            ? (node) {
+                onSelected(node);
+              }
+            : (node) {
+                // Default action if not provided
+                print("Node selected: ${node.label}");
+              },
+        onMainSelected: onMainSelected != null
+            ? (node) {
+                onMainSelected(node);
+              }
+            : (node) {
+                // Default action if not provided
+                print("Main node selected: ${node.label}");
+              },
+        parent: parent);
+
+    if (parent != null) {
+      node.visible = parent.expanded;
+    } else {
+      node.expanded = true; // Root node is always expanded
+      node.visible = true; // Root node is always visible
+    }
+
+    if (allItems == null) {
+      node.childrens = [];
+    } else {
+      node.childrens = allItems
+          .where((d) => d.parent == item.id)
+          .map((d) => createTreeNode(d, node,
+              level: level + 1,
+              onSelected: onSelected,
+              onMainSelected: onMainSelected,
+              allItems: allItems))
+          .toList();
+    }
+    // print("Parent: ${parent?.label ?? 'None'}, "
+    //     "Node: ${node.label}, "
+    //     "Childrens: ${node.childrens.length}, "
+    //     "Level: $level, "
+    //     "Expanded: ${node.expanded}, "
+    //     "Visible: ${node.visible}");
+    return node;
+  }
 }
 
 class _TreeNodeState extends State<TreeNode> {
@@ -2524,6 +2534,7 @@ class _TreeNodeState extends State<TreeNode> {
   int get level => widget.level;
   List<TreeNode> get childrens => widget.childrens;
   bool get expanded => widget.expanded;
+
   set expanded(bool value) {
     widget.expanded = value;
     (value) ? expand() : collapse();
@@ -2578,7 +2589,6 @@ class _TreeNodeState extends State<TreeNode> {
         title: Text(label),
         onTap: () {
           widget.onMainSelected(widget);
-          //widget.onSelected(widget);
         },
         tileColor: colors[(level) % colors.length],
         trailing: null,
@@ -2627,15 +2637,11 @@ class _TreeNodeState extends State<TreeNode> {
         ),
       );
     }
-
-    // Calculate the new flex value based on the level; i want to keep the relative size of the node at 0.7
-    int newFlex = (8 - level);
     return (widget.visible)
         ? Row(
             children: [
               ...identations,
-              // Expanded(flex: 2, child: iconLayout),
-              Expanded(flex: newFlex, child: nodeLayout),
+              Expanded(flex: (8 - level), child: nodeLayout),
               Expanded(flex: 2, child: iconLayout),
             ],
           )

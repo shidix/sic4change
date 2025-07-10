@@ -11,11 +11,13 @@ import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 class DepartmentForm extends StatefulWidget {
   final Profile? profile;
   final Department? department;
+  final Function? onSaved;
 
   @override
   _DepartmentFormState createState() => _DepartmentFormState();
 
-  const DepartmentForm({super.key, this.profile, this.department});
+  const DepartmentForm(
+      {super.key, this.profile, this.department, this.onSaved});
 }
 
 class _DepartmentFormState extends State<DepartmentForm> {
@@ -85,6 +87,9 @@ class _DepartmentFormState extends State<DepartmentForm> {
           orElse: () => Employee.getEmpty());
       department.employees = currentEmployees;
       department.save().then((value) {
+        if (widget.onSaved != null) {
+          widget.onSaved!();
+        }
         Navigator.of(context).pop(department);
       });
     }
@@ -225,6 +230,9 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Map<String, Department> departmentsHash = {};
   Map<String, bool> expanded = {};
   Map<String, String> departmentKeys = {};
+  String? parentDepartment;
+  Department? currentDepartment;
+
   List<Color> colors = [
     Colors.white,
     Colors.grey[100]!,
@@ -234,59 +242,80 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   TreeNode? rootNode;
 
-  TreeNode createTreeNode(Department department, TreeNode? parent) {
-    TreeNode item = TreeNode(
-        label: department.name,
-        level: getLevel(department) + 1,
-        onSelected: (node) {
-          setState(() {
-            contentPanel = departmentPanel();
-          });
-        },
-        onMainSelected: (node) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return CustomPopupDialog(
-                  context: context,
-                  title: 'Editar Departamento',
-                  icon: Icons.edit,
-                  content:
-                      DepartmentForm(profile: profile, department: department),
-                  actionBtns: null,
-                );
-              }).then((value) {
-            if (value != null) {
-              if (mounted) {
-                setState(() {
-                  contentPanel = departmentPanel();
-                });
-              }
-            }
-          });
-        },
-        parent: parent);
-    item.childrens = allDepartments
-        .where((d) => d.parent == department.id)
-        .map((d) => createTreeNode(d, item))
-        .toList();
-    return item;
-  }
-
-  List<Widget> getTreeNodes(TreeNode? node) {
-    List<Widget> nodes = [];
+  List<TreeNode> getTreeNodes(TreeNode? node) {
+    List<TreeNode> nodes = [];
     if (node == null) return nodes;
 
     if (node.visible) {
       nodes.add(node);
     }
-
     if (node.childrens.isNotEmpty && node.expanded) {
       for (TreeNode child in node.childrens) {
         nodes.addAll(getTreeNodes(child));
       }
     }
     return nodes;
+  }
+
+  Department dialogEditDepartment(BuildContext contextt) {
+    Department department = currentDepartment!;
+    parentDepartment = department.parent;
+    showDialog(
+        context: context,
+        builder: (context) {
+          print(
+              'Dialog for department: ${department.name}, parent: ${department.parent}');
+          return CustomPopupDialog(
+            context: context,
+            title: 'Editar Departamento',
+            icon: Icons.edit,
+            content: DepartmentForm(
+                profile: profile,
+                department: department,
+                onSaved: () {
+                  if (mounted) {
+                    setState(() {
+                      contentPanel = departmentPanel();
+                    });
+                  }
+                }),
+            actionBtns: null,
+          );
+        }).then((value) {
+      if (value != null) {
+        print(
+            'Previous parent: $parentDepartment, New parent: ${value.parent}');
+        if (parentDepartment != value.parent) {
+          TreeNode currentNode = getTreeNodes(rootNode)
+              .firstWhere((node) => node.item.id == value.id);
+
+          print(currentNode.label);
+          // Update the parent department if it has changed
+          if (parentDepartment != null) {
+            TreeNode parentNode = getTreeNodes(rootNode)
+                .firstWhere((node) => node.item.id == parentDepartment);
+            // Loop through all nodes to find the parent node
+            getTreeNodes(rootNode)
+                .firstWhere((node) => node.item.id == parentDepartment)
+                .childrens
+                .remove(currentNode);
+            // currentNode.level = parentNode.level + 1;
+          }
+          getTreeNodes(rootNode)
+              .firstWhere((node) => node.item.id == value.parent)
+              .childrens
+              .add(currentNode);
+        }
+
+        if (mounted) {
+          setState(() {
+            print('Department updated: ${value.name}, parent: ${value.parent}');
+            contentPanel = departmentPanel();
+          });
+        }
+      }
+    });
+    return department;
   }
 
   @override
@@ -302,7 +331,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
       departments = allDepartments.where((d) => d.parent == '').toList();
 
       for (Department d in departments) {
-        expanded[d.id!] = false;
+        expanded[d.id!] = true;
         departmentsHash[d.id!] = d;
       }
       for (Department d in departments) {
@@ -322,20 +351,26 @@ class _HierarchyPageState extends State<HierarchyPage> {
       departments.sort(
           (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
 
-      rootNode = TreeNode(
-        label: 'Departamentos',
-        level: 0,
-        onSelected: (node) {
-          setState(() {
-            contentPanel = departmentPanel();
-          });
-        },
-        onMainSelected: (node) {},
-      );
+      Department rootDepartment = Department.getEmpty();
+      rootDepartment.name = 'Departamentos';
+      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: 0,
+          onSelected: (node) {
+        setState(() {
+          contentPanel = departmentPanel();
+        });
+      }, onMainSelected: (node) {});
 
       rootNode!.childrens = allDepartments
           .where((d) => d.parent == '')
-          .map((d) => createTreeNode(d, rootNode))
+          .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
+                setState(() {
+                  expanded[d.id!] = node.expanded;
+                  contentPanel = departmentPanel();
+                });
+              }, onMainSelected: (node) {
+                currentDepartment = node.item as Department;
+                dialogEditDepartment(context);
+              }, allItems: allDepartments))
           .toList();
 
       contentPanel = departmentPanel();

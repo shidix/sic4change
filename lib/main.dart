@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
     '/orgchart': (context) => const Orgchart(),
     '/profile': (context) => const ProfilePage(),
     '/admin': (context) => const AdminPage(),
-    '/invoices': (context) => InvoicePage(),
+    '/invoices': (context) => const InvoicePage(),
     '/logs': (context) => const LogPage(),
     '/hierarchy': (context) => const HierarchyPage(),
   };
