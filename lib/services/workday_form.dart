@@ -84,12 +84,47 @@ class WorkdayFormState extends State<WorkdayForm> {
                         user.email!,
                       ),
                     )),
+                
+                Expanded(
+                    flex: 1,
+                    child: ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title: const Text("Horas"),
+                      subtitle: Text(workday.hours().toStringAsFixed(2)),
+                    )),
+
+                // Add checkbox for open workday
+                Expanded(flex: 1, child: ListTile (
+                  leading: const Icon(Icons.work),
+                  title: const Text("Jornada Abierta"),
+                  trailing: Checkbox(
+                    value: workday.open,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        workday.open = value ?? false;
+                      });
+                    },
+                  ),
+                )),
+                
+              ]),
+              Divider(thickness: 1, color: Colors.grey[400]),
+              const Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Text("Inicio de Jornada", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center,)),
+                Expanded(
+                    flex: 1,
+                    child:  Text("Fin de Jornada", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center,)),
+              ],
+              
+              ),
+              Row(children: [
                 Expanded(
                     flex: 1,
                     child: ListTile(
                       leading: const Icon(Icons.date_range),
-                      title: const Text("Fecha"),
-                      subtitle: Text(
+                      title: Text(
                           DateFormat('dd/MM/yyyy').format(workday.startDate)),
                       onTap: (workday.id == "")
                           ? () async {
@@ -110,15 +145,12 @@ class WorkdayFormState extends State<WorkdayForm> {
                               }
                             }
                           : null,
-                    ))
-              ]),
-              Row(children: [
+                    )),
                 Expanded(
                     flex: 1,
                     child: ListTile(
-                      leading: const Icon(Icons.date_range),
-                      title: const Text("Inicio de jornada"),
-                      subtitle:
+                      leading: const Icon(Icons.access_time),
+                      title:
                           Text(DateFormat('HH:mm').format(workday.startDate)),
                       onTap: () async {
                         final TimeOfDay? picked = await showTimePicker(
@@ -143,34 +175,70 @@ class WorkdayFormState extends State<WorkdayForm> {
                             if (newStartDate.isBefore(workday.endDate)) {
                               workday.startDate = newStartDate;
                             } else {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Error"),
-                                      content: const Text(
-                                          "La fecha de inicio de jornada no puede ser posterior a la de fin"),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text("OK"),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        )
-                                      ],
-                                    );
-                                  });
+                              double elapsedTime = workday.endDate
+                                  .difference(workday.startDate)
+                                  .inMinutes
+                                  .toDouble();
+
+                              newStartDate = newStartDate.subtract(
+                                  Duration(hours: 24));
+                              workday.startDate = newStartDate;
+                              workday.endDate = newStartDate
+                                  .add(Duration(minutes: elapsedTime.toInt()));
+                              // showDialog(
+                              //     context: context,
+                              //     builder: (BuildContext context) {
+                              //       return AlertDialog(
+                              //         title: const Text("Error"),
+                              //         content: const Text(
+                              //             "La fecha de inicio de jornada no puede ser posterior a la de fin"),
+                              //         actions: [
+                              //           TextButton(
+                              //             child: const Text("OK"),
+                              //             onPressed: () {
+                              //               Navigator.of(context).pop();
+                              //             },
+                              //           )
+                              //         ],
+                              //       );
+                              //     });
                             }
                           });
                         }
                       },
                     )),
-                Expanded(
+                  Expanded(
                     flex: 1,
                     child: ListTile(
                       leading: const Icon(Icons.date_range),
-                      title: const Text("Fin de jornada"),
-                      subtitle:
+                      // title: const Text("Fecha Fin"),
+                      title: Text(
+                          DateFormat('dd/MM/yyyy').format(workday.endDate)),
+                      onTap: (workday.id == "")
+                          ? () async {
+                              final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: workday.endDate,
+                                  firstDate: DateTime(2015, 8),
+                                  lastDate: DateTime(2101));
+                              if (picked != null &&
+                                  picked != workday.endDate &&
+                                  mounted) {
+                                setState(() {
+                                  workday.endDate = truncDate(picked)
+                                      .add(const Duration(hours: 8));
+                                  workday.endDate = truncDate(picked)
+                                      .add(const Duration(hours: 16));
+                                });
+                              }
+                            }
+                          : null,
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title:
                           Text(DateFormat('HH:mm').format(workday.endDate)),
                       onTap: () async {
                         final TimeOfDay? picked = await showTimePicker(
@@ -220,13 +288,6 @@ class WorkdayFormState extends State<WorkdayForm> {
                         }
                       },
                     )),
-                Expanded(
-                    flex: 1,
-                    child: ListTile(
-                      leading: const Icon(Icons.access_time),
-                      title: const Text("Horas"),
-                      subtitle: Text(workday.hours().toStringAsFixed(2)),
-                    ))
               ]),
               const SizedBox(height: 16.0),
               const Divider(),
