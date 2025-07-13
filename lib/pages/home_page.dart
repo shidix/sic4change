@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names
 
+import 'dart:async';
 import 'dart:math';
 import 'dart:html' as html;
 import "dart:developer" as dev;
@@ -39,6 +40,7 @@ class _HomePageState extends State<HomePage> {
   //bool _main = false;
   late Map<String, TasksStatus> hashStatus;
   late Map<String, SProject> hashProjects;
+  Timer? _timer;
 
   late String _currentPage;
 
@@ -69,6 +71,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -128,7 +131,8 @@ class _HomePageState extends State<HomePage> {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
       await Contact.byEmail(user.email!).then((value) {
         contact = value;
-        Workday.byUser(value.email).then((value) {
+        Workday.byUser(value.email, DateTime.now().subtract(Duration(days: 40)))
+            .then((value) {
           setState(() {
             myWorkdays = value;
             myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
@@ -292,6 +296,12 @@ class _HomePageState extends State<HomePage> {
 
       notif = 0;
       getNotifications();
+
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(minutes: 5), (timer) {
+        getNotifications();
+        loadMyData();
+      });
       //getLogs();
     }
   }
@@ -451,7 +461,6 @@ class _HomePageState extends State<HomePage> {
   Widget workTimePanel() {
     if (myWorkdays!.isNotEmpty) {
       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-
       currentWorkday = myWorkdays!.first;
     }
 
@@ -615,6 +624,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget worktimeRows() {
+    myWorkdays ??= [];
+    // Filter workdays to only include those for the last 30 days
+    // DateTime thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+    // myWorkdays = myWorkdays!
+    //     .where((workday) => workday.startDate.isAfter(thirtyDaysAgo))
+    //     .toList();
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),

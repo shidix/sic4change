@@ -136,7 +136,7 @@ class Workday {
       [DateTime? fromDate]) async {
     final database = db.collection("s4c_workday");
     List<Workday> items = [];
-    fromDate ??= DateTime.now().subtract(const Duration(days: 7));
+    fromDate ??= DateTime.now().subtract(const Duration(days: 40));
 
     final query = await database
         .where("userId", isEqualTo: email)
