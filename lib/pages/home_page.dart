@@ -297,11 +297,11 @@ class _HomePageState extends State<HomePage> {
       notif = 0;
       getNotifications();
 
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(minutes: 5), (timer) {
-        getNotifications();
-        loadMyData();
-      });
+      // _timer?.cancel();
+      // _timer = Timer.periodic(const Duration(minutes: 60), (timer) {
+      //   getNotifications();
+      //   loadMyData();
+      // });
       //getLogs();
     }
   }
