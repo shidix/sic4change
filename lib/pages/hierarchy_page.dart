@@ -289,7 +289,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
           TreeNode currentNode = getTreeNodes(rootNode)
               .firstWhere((node) => node.item.id == value.id);
 
-          print(currentNode.label);
           // Update the parent department if it has changed
           if (parentDepartment != null) {
             TreeNode parentNode = getTreeNodes(rootNode)
@@ -353,7 +352,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
       Department rootDepartment = Department.getEmpty();
       rootDepartment.name = 'Departamentos';
-      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: 0,
+      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
           onSelected: (node) {
         setState(() {
           contentPanel = departmentPanel();
