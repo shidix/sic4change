@@ -117,7 +117,6 @@ class HolidaysConfig {
         isAllDay: true,
       ));
     }
-    print(employees);
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) {
@@ -380,6 +379,97 @@ class HolidaysUser {
   void delete() {
     if (id != "") {
       database.doc(id).delete();
+    }
+  }
+}
+
+
+class HolidaysCategory {
+  static const tableDb = "s4c_holidays_category";
+  String id;
+  String name;
+  Organization? organization;
+  int days;
+
+  HolidaysCategory({
+    required this.id,
+    required this.name,
+    required this.organization,
+    this.days = 0,
+  });
+
+  factory HolidaysCategory.fromJson(Map data) {
+    HolidaysCategory item = HolidaysCategory(
+      id: data['id'],
+      name: data['name'] ?? '',
+      organization: null,
+      days: data['days'] ?? 0,
+    );
+
+    String orgUuid = data['organization'];
+
+    Organization.byUuid(orgUuid).then((org) {
+      item.organization = org;
+    }).catchError((error) {
+      print("Error getting organization by uuid: $error");
+    });
+    return item;
+
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'organization': organization?.uuid ?? '',
+        'days': days,
+      };
+
+  @override
+  String toString() {
+    return 'HolidaysCategory{id: $id, name: $name, organization: ${organization?.name}, days: $days}';
+  }
+
+  void save() {
+    final database = db.collection(tableDb);
+    if (id == "") {
+      Map<String, dynamic> data = toJson();
+      database.add(data).then((value) {
+        id = value.id;
+        save();
+      });
+    } else {
+      Map<String, dynamic> data = toJson();
+      database.doc(id).set(data);
+    }
+  } 
+
+  void delete() {
+    final database = db.collection(tableDb);
+    if (id != "") {
+      database.doc(id).delete();
+    }
+  }
+
+  static HolidaysCategory getEmpty({String id = '', String name = '', Organization? organization, int days = 0}) {
+    return HolidaysCategory(
+      id: id,
+      name: name,
+      organization: organization ?? Organization.getEmpty(),
+      days: days,
+    );
+  }
+
+  static Future<List<HolidaysCategory>> byOrganization(Organization organization) async {
+    String uuid = organization.uuid;
+    if (uuid.isEmpty) {
+      return [];
+    }
+    final database = db.collection(tableDb);
+    final query = await database.where("organization", isEqualTo: uuid).get();
+    if (query.docs.isNotEmpty) {
+      return query.docs.map((e) => HolidaysCategory.fromJson(e.data())).toList();
+    } else {
+      return [];
     }
   }
 }

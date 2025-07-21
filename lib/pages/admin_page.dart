@@ -6,6 +6,7 @@ import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_companies_page.dart';
 import 'package:sic4change/pages/admin_country_page.dart';
 import 'package:sic4change/pages/admin_decision_page.dart';
+import 'package:sic4change/pages/admin_holidays_categories_page.dart';
 import 'package:sic4change/pages/admin_position_page.dart';
 import 'package:sic4change/pages/admin_profiles_page.dart';
 import 'package:sic4change/pages/admin_project_status_page.dart';
@@ -211,11 +212,17 @@ class _AdminPageState extends State<AdminPage> {
     return Container(
         padding: const EdgeInsets.only(left: 50, right: 50),
         child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          goPage(context, "Calendarios", CalendarHolidaysPage(), Icons.settings,
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+              goPage(context, "Calendarios", CalendarHolidaysPage(), Icons.settings,
               style: "bigBtn", extraction: () {
-            setState(() {});
-          }),
-        ]));
+                setState(() {});
+              }),
+              space(width: 20),
+              goPage(context, "Categorías de vacaciones y permisos",
+                  AdminHolidaysCategoriesPage(), Icons.category,
+                  style: "bigBtn", extraction: () {
+                setState(() {});
+              }),
+          ]));
   }
 }
