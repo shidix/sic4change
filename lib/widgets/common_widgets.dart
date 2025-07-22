@@ -2648,3 +2648,46 @@ class _TreeNodeState extends State<TreeNode> {
         : Container();
   }
 }
+
+class CheckboxFormField extends FormField<bool> {
+  CheckboxFormField({
+    Key? key,
+    required Widget title,
+    bool initialValue = false,
+    FormFieldSetter<bool>? onSaved,
+    FormFieldValidator<bool>? validator,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+    bool enabled = true,
+  }) : super(
+          key: key,
+          initialValue: initialValue,
+          onSaved: onSaved,
+          validator: validator,
+          autovalidateMode: autovalidateMode,
+          builder: (FormFieldState<bool> state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CheckboxListTile(
+                  value: state.value,
+                  title: title,
+                  controlAffinity: ListTileControlAffinity.trailing,
+                  onChanged: enabled
+                      ? (bool? value) {
+                          state.didChange(value ?? false);
+                        }
+                      : null,
+                ),
+                if (state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      state.errorText ?? '',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+}

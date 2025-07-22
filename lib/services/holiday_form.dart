@@ -623,3 +623,132 @@ class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
     );
   }
 }
+
+class HolidaysCategoryForm extends StatefulWidget {
+  final HolidaysCategory? category;
+  final Function? afterSave;
+  final Function? afterDelete;
+
+  const HolidaysCategoryForm(
+      {Key? key, this.category, this.afterSave, this.afterDelete})
+      : super(key: key);
+
+  @override
+  createState() => _HolidaysCategoryFormState();
+}
+
+class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
+  final _formKey = GlobalKey<FormState>();
+  late HolidaysCategory category;
+  bool isNewItem = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isNewItem = (widget.category!.id == "");
+    category = widget.category!;
+  }
+
+  void saveItem(List args) {
+    BuildContext context = args[0];
+    HolidaysCategory category = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      category.save();
+      if (widget.afterSave != null) {
+        widget.afterSave!();
+      }
+      Navigator.of(context).pop(category);
+    }
+  }
+
+  void removeItem(List args) {
+    BuildContext context = args[0];
+    HolidaysCategory category = args[1];
+    GlobalKey<FormState> formKey = args[2];
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      category.delete();
+      if (widget.afterDelete != null) {
+        widget.afterDelete!();
+      }
+      Navigator.of(context).pop();
+    }
+  }
+
+  void cancelItem(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Expanded> deleteButton = [];
+    int flex = 5;
+    if (!isNewItem) {
+      flex = 3;
+      deleteButton = [
+        Expanded(flex: 1, child: Container()),
+        Expanded(
+            flex: flex,
+            child: actionButton(context, "Eliminar", removeItem, Icons.delete,
+                [context, category, _formKey]))
+      ];
+    }
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: SingleChildScrollView(
+          child: Column(children: [
+            TextFormField(
+              initialValue: category.name,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+              onSaved: (val) => setState(() => category.name = val!),
+            ),
+            space(),
+            TextFormField(
+              initialValue: category.days.toString(),
+              keyboardType: TextInputType.number,
+              decoration:
+                  const InputDecoration(labelText: 'Número de días'),
+              onSaved: (val) => setState(() {
+                category.days = int.parse(val!);
+              }),
+            ),
+            space(),
+            CheckboxFormField(
+              title: const Text('¿Requiere documento?'),
+              initialValue: category.docRequired,
+              onSaved: (val) => setState(() => category.docRequired = val!),
+            ),
+            space(height: 16),
+            CheckboxFormField(
+              title: const Text('¿Retroactivo?'),
+              initialValue: category.retroactive,
+              onSaved: (val) => setState(() => category.retroactive = val!),
+            ),
+            space(height: 16),
+            Row(
+                children: [
+                      Expanded(
+                          flex: flex,
+                          child: actionButton(
+                              context,
+                              "Enviar",
+                              saveItem,
+                              Icons.save_outlined,
+                              [context, category, _formKey])),
+                      Expanded(flex: 1, child: Container()),
+                      Expanded(
+                          flex: flex,
+                          child: actionButton(context, "Cancelar", cancelItem,
+                              Icons.cancel, context))
+                    ] +
+                    deleteButton),
+          ]),
+        ),
+      ),
+    );
+  }
+}

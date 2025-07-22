@@ -388,6 +388,8 @@ class HolidaysCategory {
   static const tableDb = "s4c_holidays_category";
   String id;
   String name;
+  bool docRequired = false;
+  bool retroactive = false;
   Organization? organization;
   int days;
 
@@ -395,6 +397,8 @@ class HolidaysCategory {
     required this.id,
     required this.name,
     required this.organization,
+    this.docRequired = false,
+    this.retroactive = false,
     this.days = 0,
   });
 
@@ -403,6 +407,8 @@ class HolidaysCategory {
       id: data['id'],
       name: data['name'] ?? '',
       organization: null,
+      docRequired: data['docRequired'] ?? false,
+      retroactive: data['retroactive'] ?? false,
       days: data['days'] ?? 0,
     );
 
@@ -421,6 +427,8 @@ class HolidaysCategory {
         'id': id,
         'name': name,
         'organization': organization?.uuid ?? '',
+        'docRequired': docRequired,
+        'retroactive': retroactive,
         'days': days,
       };
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/dfareporting/v4.dart';
+import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
@@ -56,7 +57,6 @@ class _AdminHolidaysCategoriesPageState extends State<AdminHolidaysCategoriesPag
     }
 
     if (currentOrganization == null) {
-      print (user!.email);
       Organization.byDomain(user.email!).then((value) {
         currentOrganization = value;
         if (mounted) {
@@ -109,8 +109,8 @@ class _AdminHolidaysCategoriesPageState extends State<AdminHolidaysCategoriesPag
           ],
         ),
       );
-      categories.isEmpty? content = Text("No hay categorías disponibles",
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)):
+      categories.isEmpty? content = const Text("No hay categorías disponibles",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)):
           content = ListView.builder(
         shrinkWrap: true,
         itemCount: categories.length,
@@ -118,7 +118,7 @@ class _AdminHolidaysCategoriesPageState extends State<AdminHolidaysCategoriesPag
           HolidaysCategory category = categories[index];
           return ListTile(
             title: Text(category.name),
-            subtitle: Text("Días: ${category.days}"),
+            subtitle: Text("Días: ${category.days}, Requiere documento: ${category.docRequired ? 'Sí' : 'No'}, Retroactivo: ${category.retroactive ? 'Sí' : 'No'}"),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -146,61 +146,34 @@ class _AdminHolidaysCategoriesPageState extends State<AdminHolidaysCategoriesPag
     ));
   }
 
+
+  Widget editionForm(BuildContext context, HolidaysCategory category) {
+    return SingleChildScrollView(
+      child: HolidaysCategoryForm(
+        category: category,
+      ),
+    );
+  }
+
   Future<void> editCategory(context,Map<String, dynamic> args) async {
     HolidaysCategory category = args['category'];
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(category.id == "" ? "Nueva categoría" : "Editar categoría"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: TextEditingController(text: category.name),
-                  decoration: const InputDecoration(labelText: "Nombre"),
-                  onChanged: (value) {
-                    category.name = value;
-                  },
-                ),
-                TextField(
-                  controller: TextEditingController(text: category.days.toString()),
-                  decoration: const InputDecoration(labelText: "Número de días"),
-                  onChanged: (value) {
-                    category.days = int.tryParse(value) ?? 0;
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text("Cancelar"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (category.id == "") {
-                    category.save();
-                    categories.add(category);
-                    setState(() {});
-                      Navigator.of(context).pop();
-                  } else {
-                    category.save();
-                    int index = categories.indexWhere((c) => c.id == category.id);
-                    if (index != -1) {
-                      categories[index] = category;
-                      setState(() {});
-                      Navigator.of(context).pop();
-                    }
-                  }
-                },
-                child: const Text("Guardar"),
-              ),
-            ],
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar(category.id.isEmpty ? "Nueva categoría" : "Editar categoría"),
+            content: editionForm(context, category),
           );
-        });
+        }).then((value) {
+          int index = categories.indexWhere((c) => c.id == category.id);
+          if (index != -1) {
+            categories[index] = category;
+          } else {
+            categories.add(category);
+          }
+          setState(() {});
+        },);
   }
 
 }

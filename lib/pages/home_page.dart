@@ -464,6 +464,27 @@ class _HomePageState extends State<HomePage> {
       currentWorkday = myWorkdays!.first;
     }
 
+    // Set workday.open to false for all workdays except the first one
+    for (var workday in myWorkdays!) {
+      if (workday != currentWorkday) {
+        if (workday.open) {
+
+          workday.open = false;
+          // Set the endDate to 23.59:59 of the same day
+          workday.endDate = DateTime(
+              workday.startDate.year,
+              workday.startDate.month,
+              workday.startDate.day,
+              23,
+              59,
+              59);
+          workday.save();
+        }
+
+      }
+    }
+
+
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
           context, null, workdayAction, Icons.stop_circle_outlined, context,

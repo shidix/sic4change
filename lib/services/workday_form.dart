@@ -185,23 +185,6 @@ class WorkdayFormState extends State<WorkdayForm> {
                               workday.startDate = newStartDate;
                               workday.endDate = newStartDate
                                   .add(Duration(minutes: elapsedTime.toInt()));
-                              // showDialog(
-                              //     context: context,
-                              //     builder: (BuildContext context) {
-                              //       return AlertDialog(
-                              //         title: const Text("Error"),
-                              //         content: const Text(
-                              //             "La fecha de inicio de jornada no puede ser posterior a la de fin"),
-                              //         actions: [
-                              //           TextButton(
-                              //             child: const Text("OK"),
-                              //             onPressed: () {
-                              //               Navigator.of(context).pop();
-                              //             },
-                              //           )
-                              //         ],
-                              //       );
-                              //     });
                             }
                           });
                         }
