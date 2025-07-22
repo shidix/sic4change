@@ -213,7 +213,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        holiday.catetory,
+                                        (holiday.category == null)
+                                            ? "Sin categoría"
+                                            : holiday.category!.name,
                                         style: normalText,
                                       )),
                                 )),

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:uuid/uuid.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -151,9 +151,9 @@ class HolidaysConfig {
 
 class HolidayRequest {
   String id;
-  String uuid;
+  // String uuid;
   String userId;
-  String catetory;
+  HolidaysCategory? category;
   DateTime startDate;
   DateTime endDate;
   DateTime requestDate;
@@ -165,9 +165,9 @@ class HolidayRequest {
 
   HolidayRequest({
     required this.id,
-    required this.uuid,
+    // required this.uuid,
     required this.userId,
-    required this.catetory,
+    required this.category,
     required this.startDate,
     required this.endDate,
     required this.requestDate,
@@ -177,11 +177,11 @@ class HolidayRequest {
   });
 
   factory HolidayRequest.fromJson(Map data) {
-    return HolidayRequest(
+    HolidayRequest item = HolidayRequest(
       id: data['id'],
-      uuid: data['uuid'],
+      // uuid: data['uuid'],
       userId: data['userId'],
-      catetory: data['catetory'],
+      category: null,
       startDate: data['startDate'].toDate(),
       endDate: data['endDate'].toDate(),
       requestDate: data['requestDate'].toDate(),
@@ -189,6 +189,16 @@ class HolidayRequest {
       status: data['status'],
       approvedBy: data['approvedBy'],
     );
+
+    String catUuid = data['category'];
+
+    HolidaysCategory.byId(catUuid).then((cat) {
+      item.category = cat;
+    }).catchError((error) {
+      print("Error getting category by uuid: $error");
+    });
+
+    return item;
   }
 
   factory HolidayRequest.fromFirestore(DocumentSnapshot doc) {
@@ -199,9 +209,9 @@ class HolidayRequest {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'uuid': uuid,
+        // 'uuid': uuid,
         'userId': userId,
-        'catetory': catetory,
+        'category': category?.id ?? '',
         'startDate': startDate,
         'endDate': endDate,
         'requestDate': requestDate,
@@ -212,14 +222,16 @@ class HolidayRequest {
 
   @override
   String toString() {
-    return 'HolidayRequest{id: $id, uuid: $uuid, userId: $userId, catetory: $catetory, startDate: $startDate, endDate: $endDate, requestDate: $requestDate, approvalDate: $approvalDate, status: $status, approvedBy: $approvedBy}';
+    return 'HolidayRequest{id: $id, userId: $userId, catetory: $category, startDate: $startDate, endDate: $endDate, requestDate: $requestDate, approvalDate: $approvalDate, status: $status, approvedBy: $approvedBy}';
   }
 
   void save() {
     if (id == "") {
-      id = uuid;
       Map<String, dynamic> data = toJson();
-      database.add(data);
+      database.add(data).then((value) {
+        id = value.id;
+        save(); // Save again to update the id
+      });
     } else {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
@@ -235,9 +247,9 @@ class HolidayRequest {
   static HolidayRequest getEmpty() {
     return HolidayRequest(
       id: '',
-      uuid: Uuid().v4(),
+      // uuid: Uuid().v4(),
       userId: '',
-      catetory: 'Vacaciones',
+      category: null,
       startDate: DateTime.now(),
       endDate: DateTime.now(),
       requestDate: DateTime.now(),
@@ -245,6 +257,16 @@ class HolidayRequest {
       status: 'Pendiente',
       approvedBy: '',
     );
+  }
+
+  static Future<HolidayRequest> byId(String id) async {
+    final database = db.collection("s4c_holidays");
+    final doc = await database.doc(id).get();
+    if (doc.exists) {
+      return HolidayRequest.fromFirestore(doc);
+    } else {
+      return getEmpty();
+    }
   }
 
   static Future<List<HolidayRequest>> byUser(String uuid) async {
@@ -383,7 +405,6 @@ class HolidaysUser {
   }
 }
 
-
 class HolidaysCategory {
   static const tableDb = "s4c_holidays_category";
   String id;
@@ -420,7 +441,6 @@ class HolidaysCategory {
       print("Error getting organization by uuid: $error");
     });
     return item;
-
   }
 
   Map<String, dynamic> toJson() => {
@@ -449,7 +469,7 @@ class HolidaysCategory {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
     }
-  } 
+  }
 
   void delete() {
     final database = db.collection(tableDb);
@@ -458,7 +478,11 @@ class HolidaysCategory {
     }
   }
 
-  static HolidaysCategory getEmpty({String id = '', String name = '', Organization? organization, int days = 0}) {
+  static HolidaysCategory getEmpty(
+      {String id = '',
+      String name = '',
+      Organization? organization,
+      int days = 0}) {
     return HolidaysCategory(
       id: id,
       name: name,
@@ -467,7 +491,18 @@ class HolidaysCategory {
     );
   }
 
-  static Future<List<HolidaysCategory>> byOrganization(Organization organization) async {
+  static Future<HolidaysCategory> byId(String id) async {
+    final database = db.collection(tableDb);
+    final doc = await database.doc(id).get();
+    if (doc.exists) {
+      return HolidaysCategory.fromJson(doc.data() as Map<String, dynamic>);
+    } else {
+      return getEmpty();
+    }
+  }
+
+  static Future<List<HolidaysCategory>> byOrganization(
+      Organization organization) async {
     String uuid = organization.uuid;
     if (uuid.isEmpty) {
       return [];
@@ -475,7 +510,9 @@ class HolidaysCategory {
     final database = db.collection(tableDb);
     final query = await database.where("organization", isEqualTo: uuid).get();
     if (query.docs.isNotEmpty) {
-      return query.docs.map((e) => HolidaysCategory.fromJson(e.data())).toList();
+      return query.docs
+          .map((e) => HolidaysCategory.fromJson(e.data()))
+          .toList();
     } else {
       return [];
     }

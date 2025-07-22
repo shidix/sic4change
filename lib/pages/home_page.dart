@@ -9,8 +9,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -42,6 +44,8 @@ class _HomePageState extends State<HomePage> {
   late Map<String, SProject> hashProjects;
   Timer? _timer;
 
+  Organization? currentOrganization;
+
   late String _currentPage;
 
   User user = FirebaseAuth.instance.currentUser!;
@@ -50,6 +54,7 @@ class _HomePageState extends State<HomePage> {
   Contact? contact;
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
+  List<HolidaysCategory>? holCat = [];
   int holidayDays = 0;
 
   Workday? currentWorkday;
@@ -69,8 +74,7 @@ class _HomePageState extends State<HomePage> {
   List notificationList = [];
   //List logList = [];
 
-  bool onHolidays (String userEmail, DateTime date)  {
-
+  bool onHolidays(String userEmail, DateTime date) {
     if (myHolidays == null) return false;
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.userId == userEmail &&
@@ -95,16 +99,6 @@ class _HomePageState extends State<HomePage> {
   };
 
   Future<void> loadMyTasks() async {
-    // await Contact.byEmail(user.email!).then((value) {
-    //   contact = value;
-    //   STask.getByAssigned(value.uuid).then((value) {
-    //     print(value.length);
-    //     // mytasks = value;
-    //     setState(() {
-    //       mytasks = value;
-    //     });
-    //   });
-    // });
     STask.getByAssigned(user.email!, lazy: false).then((value) {
       mytasks = value;
       contentTasksPanel = tasksPanel();
@@ -117,8 +111,13 @@ class _HomePageState extends State<HomePage> {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
       HolidayRequest.byUser(value.uuid).then((value) {
+        holidayDays = 0;
+        for (HolidaysCategory cat in holCat!) {
+          if (!cat.retroactive) {
+            holidayDays += cat.days;
+          }
+        }
         myHolidays = value;
-        holidayDays = widget.HOLIDAY_DAYS;
         for (HolidayRequest holiday in myHolidays!) {
           if (holiday.status != "Rechazado") {
             holidayDays -=
@@ -189,7 +188,6 @@ class _HomePageState extends State<HomePage> {
     });
     HolidayRequest.byUser(user.email!).then((value) {
       myHolidays = value;
-      holidayDays = widget.HOLIDAY_DAYS;
       for (HolidayRequest holiday in myHolidays!) {
         if (holiday.status != "Rechazado") {
           holidayDays -=
@@ -263,6 +261,22 @@ class _HomePageState extends State<HomePage> {
     hashStatus = {};
     hashProjects = {};
     topButtonsPanel = topButtons(context);
+    if (currentOrganization == null) {
+      Organization.byDomain(user.email!).then((value) {
+        currentOrganization = value;
+        if (currentOrganization != null) {
+          HolidaysCategory.byOrganization(currentOrganization!).then((value) {
+            holCat = value;
+            for (HolidaysCategory cat in holCat!) {
+              if (!cat.retroactive) {
+                holidayDays += cat.days;
+              }
+            }
+            setState(() {});
+          });
+        }
+      });
+    }
     TasksStatus.all().then((value) {
       if (value.isNotEmpty) {
         for (var item in value) {
@@ -481,22 +495,14 @@ class _HomePageState extends State<HomePage> {
     for (var workday in myWorkdays!) {
       if (workday != currentWorkday) {
         if (workday.open) {
-
           workday.open = false;
           // Set the endDate to 23.59:59 of the same day
-          workday.endDate = DateTime(
-              workday.startDate.year,
-              workday.startDate.month,
-              workday.startDate.day,
-              23,
-              59,
-              59);
+          workday.endDate = DateTime(workday.startDate.year,
+              workday.startDate.month, workday.startDate.day, 23, 59, 59);
           workday.save();
         }
-
       }
     }
-
 
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
@@ -723,16 +729,14 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 item.open
                                     ? "En curso"
-                                    : (((myWorkdays!
-                                                .elementAt(index)
-                                                .endDate
-                                                .difference(myWorkdays!
-                                                    .elementAt(index)
-                                                    .startDate)
-                                                .inMinutes) /
-                                            60))
+                                    : (myWorkdays!.elementAt(index).hours())
                                         .toStringAsFixed(2),
-                                style: (item.open) ? successText : normalText,
+                                style: (item.open)
+                                    ? successText
+                                    : (myWorkdays!.elementAt(index).hours() <
+                                            10)
+                                        ? normalText
+                                        : warningText,
                                 textAlign: TextAlign.center,
                               )),
                         ),
@@ -1077,6 +1081,7 @@ class _HomePageState extends State<HomePage> {
       currentHoliday = HolidayRequest.getEmpty();
       currentHoliday!.userId = user.email!;
     }
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -1085,10 +1090,15 @@ class _HomePageState extends State<HomePage> {
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Solicitud de días libres', context),
           content: HolidayRequestForm(
-            key: null,
-            currentRequest: currentHoliday,
-            user: user,
-          ),
+              key: null,
+              currentRequest: currentHoliday,
+              user: user,
+              categories: holCat!,
+              granted: myHolidays!
+                  .where((element) =>
+                      (element.status.toLowerCase() == "aprobado" ||
+                          element.status.toLowerCase() == "concedido"))
+                  .toList()),
         );
       },
     );
@@ -1117,7 +1127,9 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        holiday.catetory,
+                                        (holiday.category != null)
+                                            ? "${holiday.category!.name}"
+                                            : 'Cargando...',
                                         style: normalText,
                                       )),
                                 )),
@@ -1212,7 +1224,7 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        "${elementEmployee.getFullName()} (${holiday.catetory})",
+                                        "${elementEmployee.getFullName()} (${holiday.category})",
                                         style: normalText,
                                       )),
                                 )),
@@ -1691,128 +1703,6 @@ class _HomePageState extends State<HomePage> {
 
 /////////// NOTIFICATIONS ///////////
 
-  /*Widget notifyPanelSubHead() {
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-        color: Colors.white,
-        child: const ListTile(
-          title: Row(
-            children: [
-              Expanded(
-                  flex: 2,
-                  child: Text(
-                    "Concepto",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Desde",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Hasta",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Días Totales",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-            ],
-          ),
-        ));
-  }
-
-  Widget notifyPanelContentOld() {
-    return Container(
-        height: 150,
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        color: Colors.white,
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: 3,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                  subtitle: Column(children: [
-                Row(
-                  children: [
-                    Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                ([
-                                  'Vacaciones',
-                                  'Asuntos propios',
-                                  'Enfermedad'
-                                ]).elementAt(Random().nextInt(3)),
-                                style: normalText,
-                              )),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "A"
-                            /*DateFormat('dd-MM-yyyy').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(0))*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "B"
-                            /*DateFormat('dd-MM-yyyy').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(1))*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "C"
-                            /*getWorkingDaysBetween(
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(0),
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(1))
-                                            .toString()*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                  ],
-                )
-              ]));
-            }));
-  }*/
   Widget notifyPanelHead() {
     return Container(
         padding: const EdgeInsets.all(10),

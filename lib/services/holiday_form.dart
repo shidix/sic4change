@@ -164,8 +164,15 @@ class _EventFormState extends State<EventForm> {
 class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
   final User? user;
+  final List<HolidaysCategory> categories;
+  final List<HolidayRequest> granted;
 
-  const HolidayRequestForm({Key? key, this.currentRequest, this.user})
+  const HolidayRequestForm(
+      {Key? key,
+      this.currentRequest,
+      this.user,
+      required this.categories,
+      required this.granted})
       : super(key: key);
 
   @override
@@ -175,6 +182,8 @@ class HolidayRequestForm extends StatefulWidget {
 class _HolidayRequestFormState extends State<HolidayRequestForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidayRequest holidayRequest;
+  late List<HolidayRequest> granted;
+  late List<HolidaysCategory> categories;
   late User user;
   bool isNewItem = false;
   late Profile profile;
@@ -183,6 +192,9 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   void initState() {
     super.initState();
     user = widget.user!;
+    categories = widget.categories;
+    granted = widget.granted;
+
     profile =
         Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
     Profile.getCurrentProfile().then((value) {
@@ -273,23 +285,41 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
 
     Widget categorySelectField;
     List<DropdownMenuItem<String>>? categoryList = [];
-    for (String category in [
-      'Vacaciones',
-      'Permiso',
-      'Licencia',
-      'Ausencia',
-      'Asuntos Propios',
-      'Enfermedad'
-    ]) {
+    for (HolidaysCategory category in categories) {
+      if (category.id == '') {
+        continue; // Skip empty categories
+      }
+      int daysGranted = 0;
+      // Sum the days granted for this category
+      for (HolidayRequest grantedRequest in granted) {
+        if (grantedRequest.category!.id == category.id &&
+            grantedRequest.status == 'Aprobado') {
+          daysGranted += grantedRequest.endDate
+                  .difference(grantedRequest.startDate)
+                  .inDays +
+              1;
+        }
+      }
       categoryList.add(DropdownMenuItem(
-          value: category, child: Text(category.toUpperCase())));
+          value: category.id,
+          child: Text(
+              "${category.name.toUpperCase()} (${category.days - daysGranted})")));
+    }
+
+    // Check if holidayRequest.category is in the list, if not, add it
+    if (!categoryList
+        .any((item) => item.value == holidayRequest.category!.id)) {
+      categoryList.add(DropdownMenuItem(
+          value: holidayRequest.category!.id,
+          child: Text(holidayRequest.category!.name.toUpperCase())));
     }
     categorySelectField = DropdownButtonFormField(
-        value: holidayRequest.catetory,
+        value: holidayRequest.category!.id,
         decoration: const InputDecoration(labelText: 'Categoría'),
         items: categoryList,
         onChanged: (value) {
-          holidayRequest.catetory = value.toString();
+          holidayRequest.category =
+              categories.firstWhere((cat) => cat.id == value);
         });
     return Form(
       key: _formKey,
@@ -710,8 +740,7 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
             TextFormField(
               initialValue: category.days.toString(),
               keyboardType: TextInputType.number,
-              decoration:
-                  const InputDecoration(labelText: 'Número de días'),
+              decoration: const InputDecoration(labelText: 'Número de días'),
               onSaved: (val) => setState(() {
                 category.days = int.parse(val!);
               }),

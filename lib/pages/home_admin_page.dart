@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_tasks.dart';
@@ -36,11 +37,13 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
   Contact? contact;
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
+  List<HolidaysCategory>? holCat = [];
   int holidayDays = 0;
 
   Workday? currentWorkday;
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
+  Organization? currentOrganization;
 
   List<SProject>? myProjects;
 
@@ -152,6 +155,20 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
   @override
   void initState() {
     super.initState();
+    user = FirebaseAuth.instance.currentUser!;
+    Organization.byDomain(user.email!).then((value) {
+      currentOrganization = value;
+      if (currentOrganization != null) {
+        HolidaysCategory.byOrganization(currentOrganization!).then((value) {
+          holCat = value;
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
+      setState(() {});
+    });
+
     loadMyData();
     autoStartWorkday(context);
   }
@@ -853,6 +870,10 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
             key: null,
             currentRequest: currentHoliday,
             user: user,
+            categories: holCat!,
+            granted: myHolidays!
+                .where((element) => element.status == "Aprobado")
+                .toList(),
           ),
         );
       },
@@ -882,7 +903,9 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        holiday.catetory,
+                                        (holiday.category == null)
+                                            ? "Sin categoría"
+                                            : holiday.category!.name,
                                         style: normalText,
                                       )),
                                 )),
