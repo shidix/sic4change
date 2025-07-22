@@ -69,6 +69,19 @@ class _HomePageState extends State<HomePage> {
   List notificationList = [];
   //List logList = [];
 
+  bool onHolidays (String userEmail, DateTime date)  {
+
+    if (myHolidays == null) return false;
+    for (HolidayRequest holiday in myHolidays!) {
+      if (holiday.userId == userEmail &&
+          date.isAfter(holiday.startDate) &&
+          date.isBefore(holiday.endDate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
