@@ -225,7 +225,7 @@ class HolidayRequest {
     return 'HolidayRequest{id: $id, userId: $userId, catetory: $category, startDate: $startDate, endDate: $endDate, requestDate: $requestDate, approvalDate: $approvalDate, status: $status, approvedBy: $approvedBy}';
   }
 
-  void save() {
+  void save2() {
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) {
@@ -236,6 +236,18 @@ class HolidayRequest {
       Map<String, dynamic> data = toJson();
       database.doc(id).set(data);
     }
+  }
+
+  Future<HolidayRequest> save() async {
+    if (id == "") {
+      Map<String, dynamic> data = toJson();
+      DocumentReference docRef = await database.add(data);
+      id = docRef.id;
+    } else {
+      Map<String, dynamic> data = toJson();
+      await database.doc(id).set(data);
+    }
+    return this;
   }
 
   void delete() {

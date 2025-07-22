@@ -108,25 +108,52 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadMyHolidays() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      HolidayRequest.byUser(value.uuid).then((value) {
-        holidayDays = 0;
-        for (HolidaysCategory cat in holCat!) {
-          if (!cat.retroactive) {
-            holidayDays += cat.days;
-          }
-        }
-        myHolidays = value;
-        for (HolidayRequest holiday in myHolidays!) {
-          if (holiday.status != "Rechazado") {
-            holidayDays -=
-                getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-          }
-        }
-        setState(() {});
+    if (contact == null) {
+      await Contact.byEmail(user.email!).then((value) {
+        contact = value;
       });
-    });
+    }
+    if (holCat == null) {
+      await HolidaysCategory.byOrganization(currentOrganization!).then((value) {
+        holCat = value;
+      });
+    }
+    holidayDays = 0;
+    for (HolidaysCategory cat in holCat!) {
+      if (!cat.retroactive) {
+        holidayDays += cat.days;
+      }
+    }
+    myHolidays ??= [];
+    if (!myHolidays!.isEmpty) {
+      myHolidays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      for (HolidayRequest holiday in myHolidays!) {
+        if (holiday.status != "Rechazado") {
+          holidayDays -=
+              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
+      }
+    }
+
+    // await Contact.byEmail(user.email!).then((value) {
+    //   contact = value;
+    //   HolidayRequest.byUser(value.uuid).then((value) {
+    //     holidayDays = 0;
+    //     for (HolidaysCategory cat in holCat!) {
+    //       if (!cat.retroactive) {
+    //         holidayDays += cat.days;
+    //       }
+    //     }
+    //     myHolidays = value;
+    //     for (HolidayRequest holiday in myHolidays!) {
+    //       if (holiday.status != "Rechazado") {
+    //         holidayDays -=
+    //             getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+    //       }
+    //     }
+    //     setState(() {});
+    //   });
+    // });
   }
 
   Future<void> loadMyProjects() async {
@@ -253,6 +280,23 @@ class _HomePageState extends State<HomePage> {
       setState(() {});
     });
   }*/
+
+  int updateHolidayDays() {
+    int counter = 0;
+    if (holCat == null) return 0;
+    for (HolidaysCategory cat in holCat!) {
+      if (!cat.retroactive) {
+        counter += cat.days;
+      }
+    }
+    if (myHolidays == null) return counter;
+    for (HolidayRequest holiday in myHolidays!) {
+      if (holiday.status != "Rechazado") {
+        counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+      }
+    }
+    return counter;
+  }
 
   @override
   void initState() {
@@ -1059,30 +1103,36 @@ class _HomePageState extends State<HomePage> {
 /////////// HOLIDAYS ///////////
   void addHolidayRequestDialog(context) {
     _addHolidayRequestDialog(context).then((value) {
-      currentHoliday = null;
-      HolidayRequest.byUser(user.email!).then((value) {
-        myHolidays = value;
-        holidayDays = 30;
-        for (HolidayRequest holiday in myHolidays!) {
-          if (holiday.status != "Rechazado") {
-            holidayDays -=
-                getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-          }
+      if (value == null) {
+        currentHoliday = null;
+        return;
+      }
+      if (value.id == "") {
+        // Remove currentHoliday from myHolidays
+        myHolidays!.removeWhere((holiday) => holiday.id == currentHoliday!.id);
+        currentHoliday = null;
+      } else {
+        // Check if the new holiday request is already in myHolidays
+        if (!myHolidays!.contains(value)) {
+          myHolidays!.add(value);
         }
+      }
+      if (mounted) {
         setState(() {
-          myHolidays = value;
+          myHolidays = myHolidays;
+          holidayDays = updateHolidayDays();
         });
-      });
+      }
     });
   }
 
-  Future<void> _addHolidayRequestDialog(context) {
+  Future<HolidayRequest?> _addHolidayRequestDialog(context) {
     if (currentHoliday == null) {
       currentHoliday = HolidayRequest.getEmpty();
       currentHoliday!.userId = user.email!;
     }
 
-    return showDialog<void>(
+    return showDialog<HolidayRequest>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
@@ -1128,7 +1178,7 @@ class _HomePageState extends State<HomePage> {
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
                                         (holiday.category != null)
-                                            ? "${holiday.category!.name}"
+                                            ? holiday.category!.name
                                             : 'Cargando...',
                                         style: normalText,
                                       )),
@@ -1212,6 +1262,10 @@ class _HomePageState extends State<HomePage> {
                   Employee elementEmployee = mypeople
                       .firstWhere((element) => element.email == holiday.userId);
 
+                  String categoryName = holiday.category != null
+                      ? holiday.category!.name
+                      : 'Cargando...';
+
                   return ListTile(
                       subtitle: Column(children: [
                         Row(
@@ -1224,7 +1278,7 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        "${elementEmployee.getFullName()} (${holiday.category})",
+                                        "${elementEmployee.getFullName()} ($categoryName)",
                                         style: normalText,
                                       )),
                                 )),

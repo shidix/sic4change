@@ -223,8 +223,11 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
-      holidayRequest.save();
-      Navigator.of(context).pop(holidayRequest);
+      holidayRequest.save().then((value) {
+        if (mounted) {
+          Navigator.of(context).pop(value);
+        }
+      });
     }
   }
 
@@ -235,7 +238,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
       holidayRequest.delete();
-      Navigator.of(context).pop(holidayRequest);
+      Navigator.of(context).pop(HolidayRequest.getEmpty());
     }
   }
 
@@ -307,11 +310,19 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     }
 
     // Check if holidayRequest.category is in the list, if not, add it
-    if (!categoryList
-        .any((item) => item.value == holidayRequest.category!.id)) {
-      categoryList.add(DropdownMenuItem(
-          value: holidayRequest.category!.id,
-          child: Text(holidayRequest.category!.name.toUpperCase())));
+    // if (!categoryList.any((item) => item.value == holidayRequest.category!.id)) {
+    //   categoryList.add(DropdownMenuItem(
+    //       value: holidayRequest.category!.id,
+    //       child: Text(holidayRequest.category!.name.toUpperCase())));
+    // }
+    if (holidayRequest.category == null) {
+      // If category is null, set it to the first category in the list
+      if (categoryList.isNotEmpty) {
+        holidayRequest.category = categories.first;
+      } else {
+        holidayRequest.category = HolidaysCategory.getEmpty();
+        holidayRequest.category!.name = 'Sin categoría';
+      }
     }
     categorySelectField = DropdownButtonFormField(
         value: holidayRequest.category!.id,
