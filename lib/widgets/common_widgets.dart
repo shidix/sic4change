@@ -2451,7 +2451,7 @@ class _PasswordFieldState extends State<PasswordField> {
 class TreeNode extends StatefulWidget {
   final dynamic item;
   final String label;
-  final int level;
+  int level;
   TreeNode? parent;
   List<TreeNode> childrens;
   bool expanded = true;
@@ -2481,7 +2481,7 @@ class TreeNode extends StatefulWidget {
     TreeNode node = TreeNode(
         item: item,
         label: item.name,
-        level: level,
+        level: (parent != null) ? parent.level + 1 : 0,
         onSelected: onSelected != null
             ? (node) {
                 onSelected(node);

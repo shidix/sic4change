@@ -25,12 +25,14 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Widget mainMenuPanel = Container();
 
   List<Department> departments = [];
+  List<Widget> treeView = [];
   List<Department> allDepartments = [];
   Map<String, Department> departmentsHash = {};
   Map<String, bool> expanded = {};
   Map<String, String> departmentKeys = {};
   String? parentDepartment;
   Department? currentDepartment;
+  
 
   List<Color> colors = [
     Colors.white,
@@ -41,16 +43,42 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   TreeNode? rootNode;
 
-  List<TreeNode> getTreeNodes(TreeNode? node) {
+  void createFullTree() {
+      Department rootDepartment = Department.getEmpty();
+      rootDepartment.name = 'Departamentos';
+      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
+          onSelected: (node) {
+        setState(() {
+          contentPanel = departmentPanel();
+        });
+      }, onMainSelected: (node) {});
+
+      rootNode!.childrens = allDepartments
+          .where((d) => d.parent == '')
+          .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
+                setState(() {
+                  expanded[d.id!] = node.expanded;
+                  contentPanel = departmentPanel();
+                });
+              }, onMainSelected: (node) {
+                currentDepartment = node.item as Department;
+                dialogEditDepartment(context);
+              }, allItems: allDepartments))
+          .toList();
+
+    }
+
+  List<TreeNode> getTreeNodes(TreeNode? node, {int level = 0}) {
+
     List<TreeNode> nodes = [];
     if (node == null) return nodes;
-
+    node.level = level;
     if (node.visible) {
       nodes.add(node);
     }
     if (node.childrens.isNotEmpty && node.expanded) {
       for (TreeNode child in node.childrens) {
-        nodes.addAll(getTreeNodes(child));
+        nodes.addAll(getTreeNodes(child, level: level + 1));
       }
     }
     return nodes;
@@ -62,8 +90,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
     showDialog(
         context: context,
         builder: (context) {
-          print(
-              'Dialog for department: ${department.name}, parent: ${department.parent}');
           return CustomPopupDialog(
             context: context,
             title: 'Editar Departamento',
@@ -81,37 +107,13 @@ class _HierarchyPageState extends State<HierarchyPage> {
             actionBtns: null,
           );
         }).then((value) {
-      if (value != null) {
-        print(
-            'Previous parent: $parentDepartment, New parent: ${value.parent}');
-        if (parentDepartment != value.parent) {
-          TreeNode currentNode = getTreeNodes(rootNode)
-              .firstWhere((node) => node.item.id == value.id);
-
-          // Update the parent department if it has changed
-          if (parentDepartment != null) {
-            TreeNode parentNode = getTreeNodes(rootNode)
-                .firstWhere((node) => node.item.id == parentDepartment);
-            // Loop through all nodes to find the parent node
-            getTreeNodes(rootNode)
-                .firstWhere((node) => node.item.id == parentDepartment)
-                .childrens
-                .remove(currentNode);
-            // currentNode.level = parentNode.level + 1;
+          if (value != null) {
+            if (mounted) {
+              setState(() {
+                contentPanel = departmentPanel();
+              });
+            }
           }
-          getTreeNodes(rootNode)
-              .firstWhere((node) => node.item.id == value.parent)
-              .childrens
-              .add(currentNode);
-        }
-
-        if (mounted) {
-          setState(() {
-            print('Department updated: ${value.name}, parent: ${value.parent}');
-            contentPanel = departmentPanel();
-          });
-        }
-      }
     });
     return department;
   }
@@ -148,28 +150,29 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
       departments.sort(
           (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
+      createFullTree();
 
-      Department rootDepartment = Department.getEmpty();
-      rootDepartment.name = 'Departamentos';
-      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
-          onSelected: (node) {
-        setState(() {
-          contentPanel = departmentPanel();
-        });
-      }, onMainSelected: (node) {});
+      // Department rootDepartment = Department.getEmpty();
+      // rootDepartment.name = 'Departamentos';
+      // rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
+      //     onSelected: (node) {
+      //   setState(() {
+      //     contentPanel = departmentPanel();
+      //   });
+      // }, onMainSelected: (node) {});
 
-      rootNode!.childrens = allDepartments
-          .where((d) => d.parent == '')
-          .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
-                setState(() {
-                  expanded[d.id!] = node.expanded;
-                  contentPanel = departmentPanel();
-                });
-              }, onMainSelected: (node) {
-                currentDepartment = node.item as Department;
-                dialogEditDepartment(context);
-              }, allItems: allDepartments))
-          .toList();
+      // rootNode!.childrens = allDepartments
+      //     .where((d) => d.parent == '')
+      //     .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
+      //           setState(() {
+      //             expanded[d.id!] = node.expanded;
+      //             contentPanel = departmentPanel();
+      //           });
+      //         }, onMainSelected: (node) {
+      //           currentDepartment = node.item as Department;
+      //           dialogEditDepartment(context);
+      //         }, allItems: allDepartments))
+      //     .toList();
 
       contentPanel = departmentPanel();
 
@@ -201,6 +204,9 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Widget departmentPanel() {
     Widget departmentsTable;
+
+    createFullTree();
+    treeView = getTreeNodes(rootNode);
 
     if (departments.isEmpty) {
       departmentsTable = const Text('No hay departamentos definidos');
@@ -356,6 +362,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
               expanded[value.id!] = false;
               if (mounted) {
                 setState(() {
+
                   contentPanel = departmentPanel();
                 });
               }
@@ -365,7 +372,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
       ],
     );
 
-    List<Widget> treeView = getTreeNodes(rootNode);
+    createFullTree();
+    treeView = getTreeNodes(rootNode);
 
     return SingleChildScrollView(
       child: Row(
