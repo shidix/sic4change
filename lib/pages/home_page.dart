@@ -134,26 +134,6 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
-
-    // await Contact.byEmail(user.email!).then((value) {
-    //   contact = value;
-    //   HolidayRequest.byUser(value.uuid).then((value) {
-    //     holidayDays = 0;
-    //     for (HolidaysCategory cat in holCat!) {
-    //       if (!cat.retroactive) {
-    //         holidayDays += cat.days;
-    //       }
-    //     }
-    //     myHolidays = value;
-    //     for (HolidayRequest holiday in myHolidays!) {
-    //       if (holiday.status != "Rechazado") {
-    //         holidayDays -=
-    //             getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-    //       }
-    //     }
-    //     setState(() {});
-    //   });
-    // });
   }
 
   Future<void> loadMyProjects() async {

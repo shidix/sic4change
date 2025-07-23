@@ -1017,8 +1017,8 @@ class Department {
 
   Future<Department> save() async {
     parent ??= '';
-    if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+    if ((id == null) || (id == '')) {
+      await collection.add(toJson()).then((value) { id = value.id; save();});
     } else {
       await collection.doc(id).update(toJson());
     }
