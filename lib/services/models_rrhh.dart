@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:flutter/material.dart';
+
 // import 'package:uuid/uuid.dart';
 
 class Nomina {
@@ -602,6 +605,7 @@ class Employee {
   String sex = 'O';
   String bankAccount = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
+  String? organization;
   List altas = [];
   // List bajas = [];
   Map<String, dynamic> extraDocs = {};
@@ -614,6 +618,7 @@ class Employee {
       required this.lastName2,
       required this.email,
       required this.phone,
+      required this.organization,
       // required this.position,
       // required this.category,
       this.bankAccount = '',
@@ -633,6 +638,8 @@ class Employee {
       email: json['email'],
       phone: json['phone'],
       photoPath: json['photoPath'],
+      organization:
+          (json.containsKey('organization')) ? json['organization'] : null,
       sex: (json.containsKey('sex')) ? json['sex'] : 'O',
       bornDate: (json.containsKey('bornDate'))
           ? getDate(json['bornDate'],
@@ -665,6 +672,7 @@ class Employee {
         'lastName2': lastName2,
         'email': email,
         'sex': sex,
+        'organization': organization,
         'phone': phone,
         'photoPath': photoPath,
         'bornDate': getDate(bornDate,
@@ -819,6 +827,7 @@ class Employee {
         lastName2: '',
         email: '',
         phone: '',
+        organization: null,
         // position: '',
         // category: '',
         altas: [Alta.getEmpty()],
@@ -857,20 +866,43 @@ class Employee {
     return await getEmployees();
   }
 
-  static Future<List<Employee>> getEmployees() async {
+  static Future<List<Employee>> getEmployees(
+      {Organization? organization}) async {
     // get from database
     List<Employee> items = [];
-    await collection.get().then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Employee item = Employee.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
+    if (organization != null) {
+      await collection
+          .where('organization', isEqualTo: organization.id)
+          .get()
+          .then((value) {
+        if (value.docs.isEmpty) return [];
+        items = value.docs.map((e) {
+          Employee item = Employee.fromJson(e.data());
+          item.id = e.id;
+          return item;
+        }).toList();
+      });
+    }
 
-    items.sort((a, b) => a.compareTo(b));
-
+    if (items.isEmpty) {
+      await collection.get().then((value) {
+        if (value.docs.isEmpty) return [];
+        items = value.docs.map((e) {
+          Employee item = Employee.fromJson(e.data());
+          if (!e.data().containsKey('organization')) {
+            item.organization = null;
+          }
+          item.id = e.id;
+          return item;
+        }).toList();
+      });
+      if (organization != null) {
+        items = items
+            .where((element) => ((element.organization == organization.id) ||
+                (element.organization == null)))
+            .toList();
+      }
+    }
     return items;
   }
 
@@ -964,61 +996,67 @@ class Department {
 
   String? id;
   String name;
-  String? parent;
+  Department? parent;
   Employee? manager;
-  List<Employee>? employees = [];
+  List<Employee> employees = [];
+  Organization? organization;
 
-  Department({required this.name, this.parent, this.manager, this.employees});
+  Future<void> loadData(Map<String, dynamic> json) async {
+    name = json['name'];
+    final results = await Future.wait([
+      Employee.byId(json['manager']),
+      Organization.byId(json['organization']),
+      Department.byId(json['parent']),
+      // get employees by employee codes
+      Future.wait((json['employees'] as List).map((e) => Employee.byId(e)))
+    ]);
+    manager = results[0] as Employee?;
+    organization = results[1] as Organization?;
+
+    parent = (json.containsKey('parent')) ? json['parent'] : null;
+    manager = (json.containsKey('manager')) ? json['manager'] : null;
+    employees = (json.containsKey('employees'))
+        ? json['employees'].map((e) => Employee.fromJson(e)).toList()
+        : [];
+    organization =
+        (json.containsKey('organization')) ? json['organization'] : null;
+  }
+
+  Department(
+      {required this.name,
+      this.parent,
+      this.manager,
+      required this.employees,
+      required this.organization});
 
   static Department fromJson(Map<String, dynamic> json) {
-    Department item = Department(
-        name: json['name'],
-        parent: json['parent'],
-        manager: json.containsKey('manager')
-            ? Employee.fromJson(json['manager'])
-            : null,
-        employees: []);
-
-    if (json.containsKey('employees')) {
-      for (var e in json['employees']) {
-        if (e != null) {
-          if (e is String) {
-            Employee.byId(e).then((value) {
-              item.employees!.add(value);
-            });
-          } else {
-            if (e is Map<String, dynamic>) {
-              // if e is a map, create an Employee from it
-              Employee.byCode(e['code']).then((value) {
-                if (value.id != null) {
-                  item.employees!.add(value);
-                }
-              });
-            }
-          }
-        }
-      }
-    }
-
-    // if (json.containsKey('employees')) {
-    //   List<dynamic> list =
-    //       json['employees'].map((e) => Employee.fromJson(e)).toList();
-    //   item.employees = list.cast<Employee>();
-    // }
+    // Department item = Department(
+    //     name: json['name'],
+    //     parent: (json.containsKey('parent')) ? json['parent'] : null,
+    //     employees: (json.containsKey('employees')) ? json['employees'] : [],
+    //     organization:
+    //         (json.containsKey('organization')) ? json['organization'] : null);
+    Department item = getEmpty();
+    item.loadData(json);
     return item;
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        'parent': (parent == null) ? '' : parent,
-        'manager': manager?.toJson(),
-        'employees': employees?.map((e) => e.id).toList(),
+        'parent': (parent == null) ? '' : parent?.id,
+        'manager': (manager == null) ? '' : manager?.id,
+        'employees': employees.map((e) => e.id).toList(),
+        'id': id,
+        'organization': (organization == null) ? '' : organization?.id
       };
 
   Future<Department> save() async {
-    parent ??= '';
+    parent ??= null;
     if ((id == null) || (id == '')) {
-      await collection.add(toJson()).then((value) { id = value.id; save();});
+      await collection.add(toJson()).then((value) {
+        id = value.id;
+        save();
+      });
     } else {
       await collection.doc(id).update(toJson());
     }
@@ -1036,24 +1074,75 @@ class Department {
     await collection.doc(id).delete();
   }
 
-  static Department getEmpty() {
-    return Department(name: '', employees: [], parent: '');
+  String getLabel() {
+    String label = name.toUpperCase();
+    if (manager != null) {
+      label +=
+          ', supervisor: ${manager!.getFullName()}, employees (${employees!.length})';
+    }
+    if (employees != null && employees!.isNotEmpty) {
+      label += ', employees (${employees!.length}): ';
+      // Print the frist 5 employees names and if more than 5, add the text 'and more'
+      for (int i = 0; i < employees!.length && i < 5; i++) {
+        label += employees![i].getFullName();
+        if (i < employees!.length - 1) {
+          label += ', ';
+        }
+      }
+      if (employees!.length > 5) {
+        label += ' and more';
+      }
+    } else {
+      label += ', no employees';
+    }
+
+    return label;
   }
 
-  static Future<List<Department>> getDepartments() async {
+  static Department getEmpty() {
+    return Department(
+        name: '', employees: [], parent: null, organization: null);
+  }
+
+  static Future<List<Department>> getDepartments(
+      {Organization? organization}) async {
     // get from database
     List<Department> items = [];
-    await collection.get().then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Department item = Department.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
 
-    items.sort((a, b) => a.name.compareTo(b.name));
-
+    try {
+      if (organization != null) {
+        await collection
+            .where('organization', isEqualTo: organization.id)
+            .get()
+            .then((value) {
+          if (value.docs.isEmpty) return [];
+          items = value.docs.map((e) {
+            Department item = Department.fromJson(e.data());
+            item.id = e.id;
+            return item;
+          }).toList();
+        });
+      }
+      if (items.isEmpty) {
+        await collection.get().then((value) {
+          if (value.docs.isEmpty) return [];
+          items = value.docs.map((e) {
+            Department item = Department.fromJson(e.data());
+            item.id = e.id;
+            return item;
+          }).toList();
+        });
+      }
+      if (organization != null) {
+        items = items
+            .where((element) =>
+                (element.organization == organization.id) ||
+                (element.organization == null))
+            .toList();
+      }
+    } catch (e) {
+      print('Error getting departments: $e');
+    }
     return items;
   }
 
@@ -1095,5 +1184,230 @@ class Department {
     items.sort((a, b) => a.name.compareTo(b.name));
 
     return items;
+  }
+
+  static Future<Department> byId(String id) async {
+    // get from database
+    Department item = Department.getEmpty();
+    await collection.doc(id).get().then((value) {
+      if (!value.exists) return Department.getEmpty();
+      item = Department.fromJson(value.data()!);
+      item.id = value.id;
+    });
+
+    return item;
+  }
+}
+
+class TreeNode extends StatefulWidget {
+  final dynamic item;
+  final String label;
+  int level;
+  TreeNode? parent;
+  List<TreeNode> childrens;
+  bool expanded = true;
+  bool visible = true;
+  ValueChanged<TreeNode> onSelected;
+  ValueChanged<TreeNode> onMainSelected;
+
+  TreeNode({
+    required this.item,
+    required this.label,
+    required this.level,
+    required this.onSelected,
+    required this.onMainSelected,
+    this.expanded = true,
+    this.visible = true,
+    this.parent,
+  }) : childrens = [];
+
+  @override
+  _TreeNodeState createState() => _TreeNodeState();
+
+  static TreeNode createTreeNode(Department item, TreeNode? parent,
+      {int level = 0,
+      Function? onSelected,
+      Function? onMainSelected,
+      List<dynamic>? allItems,
+      String? mylabel}) {
+    //Typecaste the item to the expected type
+
+    print("Creating TreeNode for item: ${item.name}, "
+        "Parent: ${parent?.label ?? 'None'}, "
+        "Level: $level"
+        ", All Items: ${allItems?.length ?? 0}");
+
+    TreeNode node = TreeNode(
+        item: item,
+        label: mylabel ?? item.name,
+        level: (parent != null) ? parent.level + 1 : 0,
+        onSelected: onSelected != null
+            ? (node) {
+                onSelected(node);
+              }
+            : (node) {
+                // Default action if not provided
+                print("Node selected: ${node.label}");
+              },
+        onMainSelected: onMainSelected != null
+            ? (node) {
+                onMainSelected(node);
+              }
+            : (node) {
+                // Default action if not provided
+                print("Main node selected: ${node.label}");
+              },
+        parent: parent);
+
+    if (parent != null) {
+      node.visible = parent.expanded;
+    } else {
+      node.expanded = true; // Root node is always expanded
+      node.visible = true; // Root node is always visible
+    }
+
+    if (allItems == null) {
+      node.childrens = [];
+    } else {
+      node.childrens = allItems
+          .where((d) => d.parent == item.id)
+          .map((d) => createTreeNode(d, node,
+              level: level + 1,
+              onSelected: onSelected,
+              onMainSelected: onMainSelected,
+              allItems: allItems,
+              mylabel: d.getLabel()))
+          .toList();
+    }
+
+    // print("Parent: ${parent?.label ?? 'None'}, "
+    //     "Node: ${node.label}, "
+    //     "Childrens: ${node.childrens.length}, "
+    //     "Level: $level, "
+    //     "Expanded: ${node.expanded}, "
+    //     "Visible: ${node.visible}");
+    return node;
+  }
+}
+
+class _TreeNodeState extends State<TreeNode> {
+  String get label => widget.label;
+  int get level => widget.level;
+  List<TreeNode> get childrens => widget.childrens;
+  bool get expanded => widget.expanded;
+
+  set expanded(bool value) {
+    widget.expanded = value;
+    (value) ? expand() : collapse();
+    if (mounted) {
+      setState(() {});
+      widget.onSelected(widget);
+    }
+  }
+
+  set visible(bool value) {
+    widget.visible = value;
+    if (widget.expanded) expand();
+    setState(() {});
+  }
+
+  void collapse() {
+    for (var child in childrens) {
+      child.visible = false;
+    }
+  }
+
+  void expand() {
+    for (var child in childrens) {
+      child.visible = true;
+    }
+  }
+
+  void toggle() {
+    expanded = !expanded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Color> colors = [
+      Colors.white,
+      Colors.grey[100]!,
+      Colors.grey[200]!,
+      Colors.grey[300]!,
+      Colors.grey[400]!
+    ];
+
+    Widget nodeLayout = Container(
+      decoration: (level > 0)
+          ? const BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: Colors.grey,
+                  width: 2.0,
+                ),
+              ),
+            )
+          : null,
+      child: ListTile(
+        title: Text(label),
+        onTap: () {
+          widget.onMainSelected(widget);
+        },
+        tileColor: colors[(level) % colors.length],
+        trailing: null,
+      ),
+    );
+
+    Widget iconLayout = Container(
+      color: colors[(level) % colors.length],
+      child: ListTile(
+        title: const Text(""),
+        onTap: () {
+          toggle();
+          widget.onSelected(widget);
+        },
+        tileColor: colors[(level) % colors.length],
+        trailing: (childrens.isNotEmpty)
+            ? Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                color: Colors.grey,
+              )
+            : null,
+      ),
+    );
+
+    List<Widget> identations = [];
+    for (int i = 0; i < level; i++) {
+      identations.add(
+        Expanded(
+          flex: 1,
+          child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Colors.grey, // No border for identation
+                    width: (i > 0) ? 2.0 : 0.0,
+                  ),
+                ),
+              ),
+              child: ListTile(
+                title: const Text(""),
+                tileColor: colors[i % colors.length],
+                onTap: () {
+                  // Do nothing, just for the identation
+                },
+              )),
+        ),
+      );
+    }
+    return (widget.visible)
+        ? Row(
+            children: [
+              ...identations,
+              Expanded(flex: (18 - level), child: nodeLayout),
+              Expanded(flex: 2, child: iconLayout),
+            ],
+          )
+        : Container();
   }
 }

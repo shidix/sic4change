@@ -17,9 +17,12 @@ import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/employee_page.dart';
+import 'package:sic4change/services/models_profile.dart';
+
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
 //final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -30,7 +33,18 @@ void main() async {
     options: DefaultFirebaseOptions.web,
   );
 
-  initializeDateFormatting('es_ES', '').then((_) => runApp(MyApp()));
+  initializeDateFormatting('es_ES', '').then((_) => runApp(
+        // MultiProvider(
+        //   providers: [
+        //     ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        //   ],
+        //   child: MyApp(),
+        // ),
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider(),
+          child: MyApp(),
+        ),
+      ));
   // runApp(MyApp());
 }
 
@@ -48,7 +62,7 @@ class MyApp extends StatelessWidget {
   final _routes = {
     '/': (context) => const LoginPage(),
     '/home': (context) => const HomePage(),
-    '/home_operator': (context) => const EmployeesPage(profile: null),
+    '/home_operator': (context) => const HierarchyPage(),
     '/home_admin': (context) => const HomeAdminPage(),
     '/projects': (context) => const ProjectsPage(),
     '/project_list': (context) => const ProjectListPage(),
@@ -68,7 +82,7 @@ class MyApp extends StatelessWidget {
     '/activities': (context) => const ActivitiesPage(),
     '/activity_indicators': (context) => const ActivityIndicatorsPage(),
     '/result_tasks': (context) => const ResultTasksPage(),
-    '/rrhh': (context) => const NominasPage(profile: null),
+    '/rrhh': (context) => const HierarchyPage(),
     '/risks': (context) => const RisksPage(),
     '/transfers': (context) => TransfersPage(
           project: null,

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -10,12 +11,12 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class HierarchyPage extends StatefulWidget {
-  final Profile? profile;
+  // final Profile? profile;
 
   @override
   _HierarchyPageState createState() => _HierarchyPageState();
 
-  const HierarchyPage({super.key, this.profile});
+  const HierarchyPage({super.key});
 }
 
 class _HierarchyPageState extends State<HierarchyPage> {
@@ -25,6 +26,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Widget mainMenuPanel = Container();
 
   List<Department> departments = [];
+  List<Employee> employees = [];
   List<Widget> treeView = [];
   List<Department> allDepartments = [];
   Map<String, Department> departmentsHash = {};
@@ -32,7 +34,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
   Map<String, String> departmentKeys = {};
   String? parentDepartment;
   Department? currentDepartment;
-  
+  Organization? currentOrganization;
 
   List<Color> colors = [
     Colors.white,
@@ -43,50 +45,41 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   TreeNode? rootNode;
 
-  void createFullTree() {
-      Department rootDepartment = Department.getEmpty();
-      rootDepartment.name = 'Departamentos';
-      rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
-          onSelected: (node) {
-        setState(() {
-          contentPanel = departmentPanel();
-        });
-      }, onMainSelected: (node) {});
+  // void createFullTree() {
+  //   Department rootDepartment = Department.getEmpty();
+  //   rootDepartment.id = '';
+  //   rootDepartment.name = 'Departamentos';
+  //   rootNode = TreeNode.createTreeNode(
+  //     rootDepartment,
+  //     null,
+  //     onMainSelected: (node) {
+  //       currentDepartment = node.item as Department;
+  //       print(node.item.name);
+  //     },
+  //     level: 0,
+  //     allItems: allDepartments,
+  //   );
+  //   //treeView = getTreeNodes(rootNode);
+  // }
 
-      rootNode!.childrens = allDepartments
-          .where((d) => d.parent == '')
-          .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
-                setState(() {
-                  expanded[d.id!] = node.expanded;
-                  contentPanel = departmentPanel();
-                });
-              }, onMainSelected: (node) {
-                currentDepartment = node.item as Department;
-                dialogEditDepartment(context);
-              }, allItems: allDepartments))
-          .toList();
-
-    }
-
-  List<TreeNode> getTreeNodes(TreeNode? node, {int level = 0}) {
-
-    List<TreeNode> nodes = [];
-    if (node == null) return nodes;
-    node.level = level;
-    if (node.visible) {
-      nodes.add(node);
-    }
-    if (node.childrens.isNotEmpty && node.expanded) {
-      for (TreeNode child in node.childrens) {
-        nodes.addAll(getTreeNodes(child, level: level + 1));
-      }
-    }
-    return nodes;
-  }
+  // List<TreeNode> getTreeNodes(TreeNode? node, {int level = 0}) {
+  //   List<TreeNode> nodes = [];
+  //   if (node == null) return nodes;
+  //   node.level = level;
+  //   if (node.visible) {
+  //     nodes.add(node);
+  //   }
+  //   if (node.childrens.isNotEmpty && node.expanded) {
+  //     for (TreeNode child in node.childrens) {
+  //       nodes.addAll(getTreeNodes(child, level: level + 1));
+  //     }
+  //   }
+  //   return nodes;
+  // }
 
   Department dialogEditDepartment(BuildContext contextt) {
     Department department = currentDepartment!;
-    parentDepartment = department.parent;
+    parentDepartment = department.parent?.id;
     showDialog(
         context: context,
         builder: (context) {
@@ -107,79 +100,89 @@ class _HierarchyPageState extends State<HierarchyPage> {
             actionBtns: null,
           );
         }).then((value) {
-          if (value != null) {
-            if (mounted) {
-              setState(() {
-                contentPanel = departmentPanel();
-              });
-            }
-          }
+      if (value != null) {
+        if (mounted) {
+          setState(() {
+            contentPanel = departmentPanel();
+          });
+        }
+      }
     });
     return department;
+  }
+
+  Future<void> initializeData(context) async {
+    try {
+      while (Provider.of<ProfileProvider>(context, listen: false).profile ==
+          null) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      currentOrganization = await Organization.byDomain(
+          FirebaseAuth.instance.currentUser!.email!);
+      final results = await Future.wait([
+        // Department.getDepartments(organization: currentOrganization),
+        // Employee.getEmployees(organization: currentOrganization),
+        Future.value(List<Department>.empty()),
+        Future.value(List<Employee>.empty()),
+      ]);
+      setState(() {
+        allDepartments = results[0] as List<Department>;
+        employees = results[1] as List<Employee>;
+        contentPanel = departmentPanel();
+        mainMenuPanel = mainMenu(context, "/rrhh");
+        secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
+
+        // for (Department d in allDepartments) {
+        //   departmentsHash[d.id!] = d;
+        //   expanded[d.id!] = false;
+        // }
+
+        // for (Department d in allDepartments) {
+        //   if (d.parent == '') {
+        //     departments.add(d);
+        //   }
+        // }
+
+        // for (Department d in departments) {
+        //   departmentKeys[d.id!] = d.name;
+        //   String parent = d.parent!;
+        //   while (parent != '') {
+        //     if (departmentsHash[parent] == null) {
+        //       parent = '';
+        //       break;
+        //     }
+        //     departmentKeys[d.id!] =
+        //         '${departmentsHash[parent]!.name}>${departmentKeys[d.id!]!}';
+        //     parent = departmentsHash[parent]!.parent!;
+        //   }
+        // }
+
+        // departments.sort((a, b) =>
+        //     departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
+
+        // currentOrganization = organizations.isNotEmpty ? organizations.first : null;
+
+        // createFullTree();
+      });
+    } catch (e) {
+      print('Error initializing data: $e');
+      setState(() {
+        allDepartments = List<Department>.empty();
+        employees = List<Employee>.empty();
+        contentPanel = departmentPanel();
+        return;
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    profile = widget.profile;
-    Department.getDepartments().then((value) {
-      allDepartments = value;
-      for (Department d in allDepartments) {
-        expanded[d.id!] = false;
-        departmentsHash[d.id!] = d;
-      }
-      departments = allDepartments.where((d) => d.parent == '').toList();
-
-      for (Department d in departments) {
-        expanded[d.id!] = true;
-        departmentsHash[d.id!] = d;
-      }
-      for (Department d in departments) {
-        departmentKeys[d.id!] = d.name;
-        String parent = d.parent!;
-        while (parent != '') {
-          if (departmentsHash[parent] == null) {
-            parent = '';
-            break;
-          }
-          departmentKeys[d.id!] =
-              '${departmentsHash[parent]!.name}>${departmentKeys[d.id!]!}';
-          parent = departmentsHash[parent]!.parent!;
-        }
-      }
-
-      departments.sort(
-          (a, b) => departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
-      createFullTree();
-
-      // Department rootDepartment = Department.getEmpty();
-      // rootDepartment.name = 'Departamentos';
-      // rootNode = TreeNode.createTreeNode(rootDepartment, null, level: -1,
-      //     onSelected: (node) {
-      //   setState(() {
-      //     contentPanel = departmentPanel();
-      //   });
-      // }, onMainSelected: (node) {});
-
-      // rootNode!.childrens = allDepartments
-      //     .where((d) => d.parent == '')
-      //     .map((d) => TreeNode.createTreeNode(d, rootNode, onSelected: (node) {
-      //           setState(() {
-      //             expanded[d.id!] = node.expanded;
-      //             contentPanel = departmentPanel();
-      //           });
-      //         }, onMainSelected: (node) {
-      //           currentDepartment = node.item as Department;
-      //           dialogEditDepartment(context);
-      //         }, allItems: allDepartments))
-      //     .toList();
-
-      contentPanel = departmentPanel();
-
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    print('Initializing HierarchyPage');
+    mainMenuPanel = mainMenu(context, "/rrhh");
+    secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
+    initializeData(context);
   }
 
   String createIndentationFromDepartment(Department department) {
@@ -203,129 +206,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
   }
 
   Widget departmentPanel() {
-    Widget departmentsTable;
-
-    createFullTree();
-    treeView = getTreeNodes(rootNode);
-
-    if (departments.isEmpty) {
-      departmentsTable = const Text('No hay departamentos definidos');
-    } else {
-      List<DataColumn> columns = [
-        const DataColumn(
-            label: Text(
-          'Nombre',
-          style: headerListStyle,
-        )),
-        const DataColumn(
-            label: Text(
-          'Depende de',
-          style: headerListStyle,
-        )),
-        const DataColumn(
-            label: Text(
-          'Supervisor/a',
-          style: headerListStyle,
-        )),
-        const DataColumn(label: Text('')),
-      ];
-
-      List<Department> departmentsRoot = departments;
-      List<DataRow> rows = departmentsRoot
-          .map((department) => DataRow(
-                  color: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states) {
-                    if (department.parent == '') {
-                      return colors[0];
-                    }
-                    return colors[getLevel(department) % 4];
-                  }),
-                  cells: [
-                    (department.parent == '')
-                        ? DataCell(Text(department.name))
-                        : DataCell(Text(
-                            '${createIndentationFromDepartment(department)}${department.name}')),
-                    DataCell(Text((department.parent != null)
-                        ? departments
-                            .firstWhere((d) => d.id == department.parent,
-                                orElse: () => Department(name: '--'))
-                            .name
-                        : '--')),
-                    DataCell(Text((department.manager != null)
-                        ? department.manager!.getFullName()
-                        : 'Sin supervisor/a')),
-                    DataCell(Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                              icon: Icon((!expanded[department.id]!)
-                                  ? Icons.expand_more_outlined
-                                  : Icons.expand_less_outlined),
-                              onPressed: () {
-                                expanded[department.id!] =
-                                    !expanded[department.id]!;
-                                if (!expanded[department.id]!) {
-                                  departments.removeWhere(
-                                      (d) => d.parent == department.id);
-                                } else {
-                                  int index = departments.indexOf(department);
-                                  List<Department> children = allDepartments
-                                      .where((d) => d.parent == department.id)
-                                      .toList();
-
-                                  departments.insertAll(index + 1, children);
-                                }
-                                if (mounted) {
-                                  contentPanel = departmentPanel();
-
-                                  setState(() {});
-                                }
-                              }),
-                          editBtn(context, (context, department) {
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return CustomPopupDialog(
-                                    context: context,
-                                    title: 'Editar Departamento',
-                                    icon: Icons.edit,
-                                    content: DepartmentForm(
-                                        profile: profile,
-                                        department: department),
-                                    actionBtns: null,
-                                  );
-                                }).then((value) {
-                              if (value != null) {
-                                if (mounted) {
-                                  setState(() {
-                                    contentPanel = departmentPanel();
-                                  });
-                                }
-                              }
-                            });
-                          }, department),
-                          removeConfirmBtn(context, (context) {
-                            department.delete().then((value) {
-                              departments.remove(department);
-                              if (mounted) {
-                                setState(() {
-                                  contentPanel = departmentPanel();
-                                });
-                              }
-                            });
-                          }, null)
-                        ]))
-                  ]))
-          .toList();
-      departmentsTable = DataTable(
-          headingRowColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-            return headerListBgColor;
-          }),
-          columns: columns,
-          rows: rows);
-    }
-
+    print("Departments: ${allDepartments.length}");
+    print("Employees: ${employees.length}");
     Widget titleBar = s4cTitleBar('Departamentos');
     Widget toolsBar = Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -341,46 +223,17 @@ class _HierarchyPageState extends State<HierarchyPage> {
                   content: DepartmentForm(profile: profile),
                   actionBtns: null,
                 );
-              }).then((value) {
-            if (value != null) {
-              String parent = value.parent;
-              if (parent == '') {
-                departments.add(value);
-              } else {
-                int index = departments
-                    .indexOf(departments.firstWhere((d) => d.id == parent));
-                departments.insert(index + 1, value);
-              }
-              departmentsHash[value.id!] = value;
-              while (parent != '') {
-                expanded[parent] = true;
-                parent = departmentsHash[parent]!.parent!;
-              }
-
-              // remove brothers
-
-              expanded[value.id!] = false;
-              if (mounted) {
-                setState(() {
-
-                  contentPanel = departmentPanel();
-                });
-              }
-            }
-          });
+              });
         }, null)
       ],
     );
-
-    createFullTree();
-    treeView = getTreeNodes(rootNode);
 
     return SingleChildScrollView(
       child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 2, child: Column(children: [titleBar, ...treeView])),
+            // Expanded(flex: 2, child: Column(children: [titleBar, ...treeView])),
             Expanded(
               flex: 5,
               child: Container(
@@ -392,7 +245,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
                     titleBar,
                     toolsBar,
                     space(height: 10),
-                    SizedBox(width: double.infinity, child: departmentsTable),
+                    ...treeView,
+                    // SizedBox(width: double.infinity, child: departmentsTable),
                   ],
                 ),
               ),
@@ -403,23 +257,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   @override
   Widget build(BuildContext context) {
-    // return to login_page if profile is null
-    if (profile == null) {
-      Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-          .then((value) {
-        profile = value;
-        mainMenuPanel =
-            mainMenuOperator(context, url: "/rrhh", profile: profile);
-        secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM, profile);
-
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    } else {
-      mainMenuPanel = mainMenuOperator(context, url: "/rrhh", profile: profile);
-      secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM, profile);
-    }
+    profile = context.watch<ProfileProvider>().profile;
     return SelectionArea(
         child: Scaffold(
             body: SingleChildScrollView(

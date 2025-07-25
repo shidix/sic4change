@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/form_nomina.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -19,9 +20,9 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class NominasPage extends StatefulWidget {
-  final Profile? profile;
+  // final Profile? profile;
   final String? codeEmployee;
-  const NominasPage({super.key, this.profile, this.codeEmployee});
+  const NominasPage({super.key, this.codeEmployee});
 
   @override
   State<NominasPage> createState() => _NominasPageState();
@@ -101,25 +102,38 @@ class _NominasPageState extends State<NominasPage> {
     html.Url.revokeObjectUrl(url);
   }
 
+  Future<void> init(context) async {
+    while (
+        Provider.of<ProfileProvider>(context, listen: false).profile == null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    setState(() {
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    mainMenuPanel = mainMenu(context, "/rrhh");
+    init(context);
 
-    if (widget.profile == null) {
-      Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-          .then((value) {
-        checkPermissions(context, value, [Profile.ADMINISTRATIVE]);
-        profile = value;
-        secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    } else {
-      profile = widget.profile;
-      checkPermissions(context, profile!, [Profile.ADMINISTRATIVE]);
-      secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
-    }
+    // if (widget.profile == null) {
+    //   Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
+    //       .then((value) {
+    //     checkPermissions(context, value, [Profile.ADMINISTRATIVE]);
+    //     profile = value;
+    //     secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+    // } else {
+    //   profile = widget.profile;
+    //   checkPermissions(context, profile!, [Profile.ADMINISTRATIVE]);
+    //   secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
+    // }
 
     Employee.getEmployees().then((value) {
       employees = value;
@@ -758,7 +772,7 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
+              // mainMenuOperator(context, url: "/rrhh", profile: profile),
               const CircularProgressIndicator(),
               const Text(
                 'Loading profile...',

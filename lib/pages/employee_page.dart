@@ -4,6 +4,7 @@ import 'dart:html' as html;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -16,8 +17,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class EmployeesPage extends StatefulWidget {
-  final Profile? profile;
-  const EmployeesPage({super.key, this.profile});
+  const EmployeesPage({super.key});
 
   @override
   State<EmployeesPage> createState() => _EmployeesPageState();
@@ -26,7 +26,7 @@ class EmployeesPage extends StatefulWidget {
 class _EmployeesPageState extends State<EmployeesPage> {
   bool altasVisible = true;
   GlobalKey mainMenuKey = GlobalKey();
-  Profile? profile;
+  late final Profile profile;
   List<Employee> employees = [];
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
@@ -115,36 +115,44 @@ class _EmployeesPageState extends State<EmployeesPage> {
   @override
   void initState() {
     super.initState();
+    mainMenuPanel = mainMenu(context, "/rrhh");
+
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile ??
+        Profile.getEmpty();
+
     Employee.getEmployees().then((value) {
       employees = value;
       selectedEmployees = List.filled(employees.length, true);
-      contentPanel = content(context);
+      // contentPanel = content(context);
       if (mounted) {
-        setState(() {});
+        setState(() {
+          contentPanel = content(context);
+        });
       }
     });
-    secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
-    if (widget.profile == null) {
-      Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-          .then((value) {
-        profile = value;
-        mainMenuPanel = mainMenuOperator(context,
-            url: "/rrhh", profile: profile, key: mainMenuKey);
+    secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM);
 
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    } else {
-      profile = widget.profile;
-      mainMenuPanel = mainMenuOperator(context,
-          url: "/rrhh", profile: profile, key: mainMenuKey);
-      secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
+    // if (widget.profile == null) {
+    //   Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
+    //       .then((value) {
+    //     profile = value;
+    //     mainMenuPanel = mainMenuOperator(context,
+    //         url: "/rrhh", profile: profile, key: mainMenuKey);
 
-      if (mounted) {
-        setState(() {});
-      }
-    }
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+    // } else {
+    //   profile = widget.profile;
+    //   mainMenuPanel = mainMenuOperator(context,
+    //       url: "/rrhh", profile: profile, key: mainMenuKey);
+    //   secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
+
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+    // }
   }
 
   Widget content(context) {
@@ -490,8 +498,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => NominasPage(
-                                  profile: profile, codeEmployee: e.code)));
+                              builder: (context) =>
+                                  NominasPage(codeEmployee: e.code)));
                     },
                   ),
                   (e.isActive())
@@ -720,6 +728,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
   Widget build(BuildContext context) {
     // return to login_page if profile is null
     if (profile == null) {
+      print("Profile is null, redirecting to login page");
       return SelectionArea(
           child: Scaffold(
         body: Center(

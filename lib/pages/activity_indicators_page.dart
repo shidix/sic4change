@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
@@ -18,6 +21,7 @@ class ActivityIndicatorsPage extends StatefulWidget {
 
 class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   Activity? activity;
+  late final Profile? profile;
 
   void loadActivityIndicators(value) async {
     await getActivityIndicatorsByActivity(value).then((val) {
@@ -29,6 +33,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   @override
   initState() {
     super.initState();
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     activity = widget.activity;
   }
 

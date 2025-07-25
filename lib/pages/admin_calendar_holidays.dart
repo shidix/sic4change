@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/monitoring/v3.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -173,7 +174,10 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   @override
   initState() {
     super.initState();
-    _mainMenu = mainMenu(context);
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    checkPermissions(
+        context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    _mainMenu = mainMenu(context, profile);
 
     if (profile == null) {
       final user = FirebaseAuth.instance.currentUser!;
@@ -249,18 +253,9 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                 holidaysConfig!.organization = value;
                 holidaysConfig!.save();
                 fillContent();
-                if (mounted) {
-                  setState(() {});
-                }
               });
-              if (mounted) {
-                setState(() {});
-              }
             }
           });
-          if (mounted) {
-            setState(() {});
-          }
         } else {
           Organization.byDomain(user.email!).then((value) {
             currentOrganization = value;
@@ -292,19 +287,13 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                 holidaysConfig!.save();
               }
               fillContent();
-              if (mounted) {
-                setState(() {});
-              }
             });
             fillContent();
-            if (mounted) {
-              setState(() {});
-            }
           });
         }
-        if (mounted) {
-          setState(() {});
-        }
+        // if (mounted) {
+        //   setState(() {});
+        // }
       });
     } else {
       checkPermissions(

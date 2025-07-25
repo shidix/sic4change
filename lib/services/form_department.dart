@@ -28,8 +28,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
   List<KeyValue> optionsDepartment = [];
 
   late String name;
-  late String manager;
-  late String parent;
+  late Employee? manager;
+  late Department? parent;
 
   @override
   void initState() {
@@ -38,11 +38,11 @@ class _DepartmentFormState extends State<DepartmentForm> {
     profile = widget.profile;
     name = department.name;
     if (department.manager != null) {
-      manager = department.manager!.email;
+      manager = department.manager;
     } else {
-      manager = profile!.email;
+      manager = null;
     }
-    parent = department.parent.toString();
+    parent = department.parent;
     for (Employee e in department.employees!) {
       currentEmployees.add(e);
     }
@@ -63,8 +63,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
           .toList();
       // For every department, check if parent is in keys; if not, set to empty
       for (Department d in allDepartments) {
-        if (!optionsDepartment.any((e) => e.key == d.parent)) {
-          d.parent = '';
+        if (!optionsDepartment.any((e) => e.key == d.parent!.id)) {
+          d.parent = null;
           d.save();
         }
       }
@@ -117,11 +117,13 @@ class _DepartmentFormState extends State<DepartmentForm> {
                 CustomSelectFormField(
                   labelText: "Depende de",
                   initial: (department.parent != null)
-                      ? department.parent.toString()
+                      ? department.parent!.id!.toString()
                       : '',
                   options: optionsDepartment,
                   onSelectedOpt: (value) {
-                    parent = value;
+                    parent = allDepartments.firstWhere(
+                        (d) => d.id.toString() == value,
+                        orElse: () => Department.getEmpty());
                   },
                 ),
                 CustomSelectFormField(
@@ -129,7 +131,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
                   initial: profile!.email,
                   options: supervisors,
                   onSelectedOpt: (value) {
-                    manager = value;
+                    manager = employees.firstWhere((e) => e.email == value,
+                        orElse: () => Employee.getEmpty());
                   },
                 ),
                 const Text('Empleados', style: mainText),

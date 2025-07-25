@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -20,6 +22,7 @@ class CategoryPage extends StatefulWidget {
 
 class _CategoryPageState extends State<CategoryPage>
     with SingleTickerProviderStateMixin {
+  late final Profile? profile;
   void setLoading() {
     setState(() {
       loadingCategory = true;
@@ -43,6 +46,7 @@ class _CategoryPageState extends State<CategoryPage>
   @override
   initState() {
     super.initState();
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     _mainMenu = mainMenu(context);
     loadCategories();
   }

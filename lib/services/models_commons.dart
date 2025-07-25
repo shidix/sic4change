@@ -82,11 +82,28 @@ class Organization {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbOrg.add(data);
+      dbOrg.add(data).then(
+        (value) {
+          id = value.id;
+          dbOrg.doc(id).update({"id": id, "uuid": uuid});
+        },
+      );
     } else {
       Map<String, dynamic> data = toJson();
       dbOrg.doc(id).set(data);
     }
+  }
+
+  static Future<Organization> byId(String id) async {
+    Organization item = Organization("None");
+    await dbOrg.doc(id).get().then((doc) {
+      if (doc.exists) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        item = Organization.fromJson(data);
+      }
+    });
+    return item;
   }
 
   Future<void> delete() async {

@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 
 final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -76,12 +77,13 @@ class Profile {
     return KeyValue(email, email);
   }
 
-  factory Profile.getEmpty() {
+  factory Profile.getEmpty(
+      {String email = "none@none.com", String id = "", String mainRole = ""}) {
     return Profile(
-      id: "",
-      email: "",
+      id: id,
+      email: email,
       holidaySupervisor: [],
-      mainRole: "",
+      mainRole: mainRole,
     );
   }
 
@@ -154,9 +156,47 @@ class Profile {
     try {
       final user = FirebaseAuth.instance.currentUser!;
       String email = user.email!;
-      return getProfile(email);
+      Profile result = await getProfile(email);
+      print("Current profile from Firebase: $result.email, $result.id");
+      return result;
     } catch (e) {
-      return Profile.getEmpty();
+      print("Error getting current profile: $e");
+      return Profile.getEmpty(
+          email: "none@none.com", mainRole: Profile.ADMINISTRATIVE);
     }
   }
+}
+
+class ProfileProvider with ChangeNotifier {
+  Profile? _profile;
+
+  Profile? get profile => _profile;
+
+  void loadProfile() async {
+    _profile = await Profile.getCurrentProfile();
+    notifyListeners();
+  }
+
+  void setProfile(Profile profile) {
+    _profile = profile;
+    notifyListeners();
+  }
+
+  void clearProfile() {
+    _profile = null;
+    notifyListeners();
+  }
+
+  // Future<void> loadProfile() async {
+  //   // _profile = await Profile.getCurrentProfile();
+  //   _profile = await Future.delayed(Duration(seconds: 5), () {
+  //     return Profile.getEmpty(email: "none@none.com");
+  //   });
+  //   notifyListeners();
+  // }
+
+  // void clear() {
+  //   _profile = null;
+  //   notifyListeners();
+  // }
 }

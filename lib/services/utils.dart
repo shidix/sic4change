@@ -5,10 +5,12 @@ import 'package:archive/archive.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'dart:math' as math;
 
@@ -511,4 +513,18 @@ void checkPermissions(
     Navigator.pop(context);
     Navigator.pushNamed(context, '/');
   }
+}
+
+void signOut(BuildContext context) {
+  FirebaseAuth.instance.signOut().then((value) {
+    Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+  }).catchError((e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error al cerrar sesión: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  });
 }

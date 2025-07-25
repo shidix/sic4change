@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sic4change/pages/hierarchy_page.dart';
 //import 'package:sic4change/generated/l10n.dart';
 //import 'package:sic4change/pages/home_admin_page.dart';
 // import 'package:sic4change/pages/nominas_page.dart';
@@ -266,7 +268,13 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = FirebaseAuth.instance.currentUser!;
       if (FirebaseAuth.instance.currentUser != null) {
-        profile = await Profile.getProfile(user.email!);
+        print(user.email);
+
+        // profile = await Profile.getProfile(user.email!);
+        // await Provider.of<ProfileProvider>(context, listen: false)
+        //     .loadProfile();
+        Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+        profile = Provider.of<ProfileProvider>(context, listen: false).profile;
       } else {
         Navigator.pop(context);
         return;
@@ -294,10 +302,11 @@ class _LoginPageState extends State<LoginPage> {
             //    MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
             MaterialPageRoute(builder: ((context) => const HomePage())));
       } else if (profile?.mainRole == "Administrativo") {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: ((context) => EmployeesPage(profile: profile))));
+        Navigator.pushReplacementNamed(context, "/hierarchy");
+        // Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: ((context) => HierarchyPage(profile: profile))));
       } else {
         Navigator.push(context,
             MaterialPageRoute(builder: ((context) => const HomePage())));

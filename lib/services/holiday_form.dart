@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:googleapis/transcoder/v1.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -186,7 +187,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late List<HolidaysCategory> categories;
   late User user;
   bool isNewItem = false;
-  late Profile profile;
+  late Profile? profile;
 
   @override
   void initState() {
@@ -195,17 +196,18 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     categories = widget.categories;
     granted = widget.granted;
 
-    profile =
-        Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
-    Profile.getCurrentProfile().then((value) {
-      if (mounted) {
-        setState(() {
-          profile = value;
-        });
-      } else {
-        profile = value;
-      }
-    });
+    // profile =
+    //     Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
+    // Profile.getCurrentProfile().then((value) {
+    //   if (mounted) {
+    //     setState(() {
+    //       profile = value;
+    //     });
+    //   } else {
+    //     profile = value;
+    //   }
+    // });
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     isNewItem = (widget.currentRequest!.id == "");
     holidayRequest = widget.currentRequest!;
     if (isNewItem) {
@@ -368,7 +370,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               statusField,
               space(),
               ReadOnlyTextField(
-                  label: "Aprobado por ${profile.holidaySupervisor}",
+                  label: "Aprobado por ${profile?.holidaySupervisor}",
                   textToShow: (holidayRequest.approvedBy != '')
                       ? holidayRequest.approvedBy
                       : 'Pendiente de aprobación'),
