@@ -3,8 +3,6 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           RISKS
 //--------------------------------------------------------------

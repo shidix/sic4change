@@ -8,9 +8,7 @@ import 'package:flutter/material.dart';
 // import 'package:uuid/uuid.dart';
 
 class Nomina {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_nominas");
-  static final storage = FirebaseStorage.instance;
+  static const String tbName = "s4c_nominas";
 
   String? id;
   String employeeCode;
@@ -112,15 +110,21 @@ class Nomina {
 
   Future<Nomina> save() async {
     if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => id = value.id);
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Nomina getEmpty() {
@@ -142,7 +146,8 @@ class Nomina {
     beforeAt ??= DateTime.now().add(const Duration(days: 3650));
     atfterAt ??= DateTime.now().subtract(const Duration(days: 3650));
     List<Nomina> items = [];
-    await collection
+    await FirebaseFirestore.instance
+        .collection(tbName)
         .where('date', isGreaterThanOrEqualTo: atfterAt)
         .where('date', isLessThanOrEqualTo: beforeAt)
         .get()
@@ -230,8 +235,7 @@ class Nomina {
 }
 
 class EmploymentPromotion {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_employment_promotions");
+  static const String tbName = "s4c_employment_promotions";
 
   bool active;
   int order;
@@ -271,7 +275,7 @@ class EmploymentPromotion {
   static Future<List<EmploymentPromotion>> getAll() async {
     // get from database
     List<EmploymentPromotion> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
@@ -285,7 +289,11 @@ class EmploymentPromotion {
   static Future<List<EmploymentPromotion>> getActive() async {
     // get from database
     List<EmploymentPromotion> items = [];
-    await collection.where('active', isEqualTo: true).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('active', isEqualTo: true)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
@@ -298,15 +306,21 @@ class EmploymentPromotion {
 
   Future<EmploymentPromotion> save() async {
     if (uuid.isEmpty) {
-      await collection.add(toJson()).then((value) => uuid = value.id);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => uuid = value.id);
     } else {
-      await collection.doc(uuid).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(uuid)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(uuid).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(uuid).delete();
   }
 }
 
@@ -523,8 +537,7 @@ class Baja {
 }
 
 class BajaReason {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_baja_reasons");
+  static const String tbName = "s4c_baja_reasons";
 
   String name;
   String? uuid;
@@ -560,7 +573,7 @@ class BajaReason {
   static Future<List<BajaReason>> getAll() async {
     // get from database
     List<BajaReason> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         BajaReason item = BajaReason.fromJson(e.data());
@@ -574,24 +587,32 @@ class BajaReason {
 
   Future<BajaReason> save() async {
     if (uuid == null) {
-      await collection.add(toJson()).then((value) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
         uuid = value.id;
-        collection.doc(uuid).update({'uuid': uuid});
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(uuid)
+            .update({'uuid': uuid});
       });
     } else {
-      await collection.doc(uuid).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(uuid)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(uuid).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(uuid).delete();
   }
 }
 
 class Employee {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_employees");
+  static const String tbName = "s4c_employees";
 
   String? id;
   String code;
@@ -702,15 +723,21 @@ class Employee {
     altas.sort((a, b) => a.date.compareTo(b.date));
     // bajas.sort((a, b) => a.date.compareTo(b.date));
     if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => id = value.id);
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   String getPosition() {
@@ -838,7 +865,11 @@ class Employee {
   static Future<Employee> byCode(String code) async {
     // get from database
     Employee item = Employee.getEmpty();
-    await collection.where('code', isEqualTo: code).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('code', isEqualTo: code)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return Employee.getEmpty();
       item = Employee.fromJson(value.docs.first.data());
       item.id = value.docs.first.id;
@@ -852,7 +883,11 @@ class Employee {
     Employee item = Employee.getEmpty();
     item.email = email;
     item.firstName = email;
-    await collection.where('email', isEqualTo: email).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('email', isEqualTo: email)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return Employee.getEmpty();
       item = Employee.fromJson(value.docs.first.data());
       item.id = value.docs.first.id;
@@ -871,7 +906,8 @@ class Employee {
     // get from database
     List<Employee> items = [];
     if (organization != null) {
-      await collection
+      await FirebaseFirestore.instance
+          .collection(tbName)
           .where('organization', isEqualTo: organization.id)
           .get()
           .then((value) {
@@ -885,7 +921,7 @@ class Employee {
     }
 
     if (items.isEmpty) {
-      await collection.get().then((value) {
+      await FirebaseFirestore.instance.collection(tbName).get().then((value) {
         if (value.docs.isEmpty) return [];
         items = value.docs.map((e) {
           Employee item = Employee.fromJson(e.data());
@@ -909,7 +945,11 @@ class Employee {
   static Future<Employee> byId(String id) async {
     // get from database
     Employee item = Employee.getEmpty();
-    await collection.doc(id).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .doc(id)
+        .get()
+        .then((value) {
       if (!value.exists) return Employee.getEmpty();
       item = Employee.fromJson(value.data()!);
       item.id = value.id;
@@ -991,8 +1031,7 @@ class Employee {
 }
 
 class Department {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_departments");
+  static const String tbName = 's4c_departments';
 
   String? id;
   String name;
@@ -1053,12 +1092,18 @@ class Department {
   Future<Department> save() async {
     parent ??= null;
     if ((id == null) || (id == '')) {
-      await collection.add(toJson()).then((value) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
         id = value.id;
         save();
       });
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
@@ -1071,7 +1116,7 @@ class Department {
         await child.save();
       }
     }
-    await collection.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   String getLabel() {
@@ -1080,7 +1125,7 @@ class Department {
       label +=
           ', supervisor: ${manager!.getFullName()}, employees (${employees!.length})';
     }
-    if (employees != null && employees!.isNotEmpty) {
+    if (employees.isNotEmpty) {
       label += ', employees (${employees!.length}): ';
       // Print the frist 5 employees names and if more than 5, add the text 'and more'
       for (int i = 0; i < employees!.length && i < 5; i++) {
@@ -1089,7 +1134,7 @@ class Department {
           label += ', ';
         }
       }
-      if (employees!.length > 5) {
+      if (employees.length > 5) {
         label += ' and more';
       }
     } else {
@@ -1111,7 +1156,8 @@ class Department {
 
     try {
       if (organization != null) {
-        await collection
+        await FirebaseFirestore.instance
+            .collection(tbName)
             .where('organization', isEqualTo: organization.id)
             .get()
             .then((value) {
@@ -1124,7 +1170,7 @@ class Department {
         });
       }
       if (items.isEmpty) {
-        await collection.get().then((value) {
+        await FirebaseFirestore.instance.collection(tbName).get().then((value) {
           if (value.docs.isEmpty) return [];
           items = value.docs.map((e) {
             Department item = Department.fromJson(e.data());
@@ -1150,7 +1196,7 @@ class Department {
       String employeeCode) async {
     // get from database
     List<Department> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         Department item = Department.fromJson(e.data());
@@ -1172,7 +1218,11 @@ class Department {
     // get from database
     List<Department> items = [];
 
-    await collection.where('parent', isEqualTo: parent).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('parent', isEqualTo: parent)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         Department item = Department.fromJson(e.data());
@@ -1189,7 +1239,11 @@ class Department {
   static Future<Department> byId(String id) async {
     // get from database
     Department item = Department.getEmpty();
-    await collection.doc(id).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .doc(id)
+        .get()
+        .then((value) {
       if (!value.exists) return Department.getEmpty();
       item = Department.fromJson(value.data()!);
       item.id = value.id;

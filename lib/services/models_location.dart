@@ -5,8 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           COUNTRY
 //--------------------------------------------------------------
@@ -17,7 +15,7 @@ class Country {
   String name = "";
   String code = "";
 
-  static CollectionReference dbCountry = db.collection("s4c_country");
+  static const String tbName = "s4c_country";
 
   Country(this.name);
 
@@ -43,35 +41,40 @@ class Country {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbCountry.add(data).then((value) {
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
       });
     } else {
       Map<String, dynamic> data = toJson();
-      dbCountry.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbCountry.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Future<Country?> byId(String id) {
-    return dbCountry.doc(id).get().then((value) => (value.exists)
-        ? Country.fromJson(value.data() as Map<String, dynamic>)
-        : null);
+    return FirebaseFirestore.instance.collection(tbName).doc(id).get().then(
+        (value) => (value.exists)
+            ? Country.fromJson(value.data() as Map<String, dynamic>)
+            : null);
   }
 
   static Future<Country?> byUuid(String uuid) {
-    return dbCountry.where("uuid", isEqualTo: uuid).get().then((value) =>
-        (value.docs.isNotEmpty)
+    return FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) => (value.docs.isNotEmpty)
             ? Country.fromJson(value.docs.first.data() as Map<String, dynamic>)
             : null);
   }
 
   static Future<List<Country>> getAll() async {
     List<Country> items = [];
-    QuerySnapshot query = await dbCountry.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -83,7 +86,8 @@ class Country {
   static Future<List> getCountries() async {
     List<Country> items = [];
 
-    QuerySnapshot query = await dbCountry.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -95,7 +99,8 @@ class Country {
   static Future<List<KeyValue>> getCountriesHash() async {
     List<KeyValue> items = [];
 
-    QuerySnapshot query = await dbCountry.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -114,8 +119,6 @@ class Province {
   String id = "";
   String uuid = "";
   String name = "";
-
-  // static final CollectionReference dbProvince = FirebaseFirestore.instance.collection("s4c_province");
 
   Province(this.name);
 

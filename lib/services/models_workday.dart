@@ -2,9 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/utils.dart';
-import 'package:uuid/uuid.dart';
-
-final FirebaseFirestore db = FirebaseFirestore.instance;
+// import 'package:uuid/uuid.dart';
 
 class Workday {
   String id;
@@ -14,7 +12,7 @@ class Workday {
   DateTime startDate;
   DateTime endDate;
 
-  final database = db.collection("s4c_workday");
+  static const String tbName = "s4c_workday";
 
   Workday({
     required this.id,
@@ -66,19 +64,28 @@ class Workday {
     //   database.doc(id).set(data);
     // }
     if (id == "") {
-      await database.add(toJson()).then((value) {
+      await FirebaseFirestore.instance
+          .collection(Workday.tbName)
+          .add(toJson())
+          .then((value) {
         uuid = value.id;
-        database.doc(uuid).update({'uuid': uuid});
+        FirebaseFirestore.instance
+            .collection(Workday.tbName)
+            .doc(uuid)
+            .update({'uuid': uuid});
       });
     } else {
-      await database.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(Workday.tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
 
   void delete() {
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(Workday.tbName).doc(id).delete();
     }
   }
 
@@ -99,11 +106,11 @@ class Workday {
 
   static Future<Workday?> currentByUser(String email) async {
     try {
-      final database = db.collection("s4c_workday");
       List<Workday> items = [];
       DateTime today = DateTime.now();
       today = truncDate(today);
-      final query = await database
+      final query = await FirebaseFirestore.instance
+          .collection(Workday.tbName)
           .where("userId", isEqualTo: email)
           .where("startDate", isGreaterThanOrEqualTo: today)
           .get();
@@ -134,11 +141,11 @@ class Workday {
 
   static Future<List<Workday>> byUser(String email,
       [DateTime? fromDate]) async {
-    final database = db.collection("s4c_workday");
     List<Workday> items = [];
     fromDate ??= DateTime.now().subtract(const Duration(days: 40));
 
-    final query = await database
+    final query = await FirebaseFirestore.instance
+        .collection(Workday.tbName)
         .where("userId", isEqualTo: email)
         .where("startDate",
             isGreaterThanOrEqualTo:

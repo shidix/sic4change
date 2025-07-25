@@ -4,8 +4,6 @@ import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:uuid/uuid.dart';
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
-
 class HolidaysConfig {
   String id = "";
   String name = "";
@@ -15,7 +13,7 @@ class HolidaysConfig {
   List<Event> gralHolidays;
   List<Employee> employees = [];
 
-  final database = db.collection("s4c_holidays_config");
+  static const String tbName = "s4c_holidays_config";
 
   HolidaysConfig({
     required this.id,
@@ -90,9 +88,10 @@ class HolidaysConfig {
 
   //byOrganization (uuid)
   static Future<List<HolidaysConfig>> byOrganization(String uuid) async {
-    final database = db.collection("s4c_holidays_config");
-    final query =
-        await database.where("organization.uuid", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("organization", isEqualTo: uuid)
+        .get();
     if (query.docs.isNotEmpty) {
       return query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
     } else {
@@ -119,18 +118,18 @@ class HolidaysConfig {
     }
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) {
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
       });
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   void delete() {
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
   }
 
@@ -161,7 +160,7 @@ class HolidayRequest {
   String status;
   String approvedBy;
 
-  static final database = db.collection("s4c_holidays");
+  static const String tbName = "s4c_holidays";
 
   HolidayRequest({
     required this.id,
@@ -228,31 +227,32 @@ class HolidayRequest {
   void save2() {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) {
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
         save(); // Save again to update the id
       });
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<HolidayRequest> save() async {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      DocumentReference docRef = await database.add(data);
+      DocumentReference docRef =
+          await FirebaseFirestore.instance.collection(tbName).add(data);
       id = docRef.id;
     } else {
       Map<String, dynamic> data = toJson();
-      await database.doc(id).set(data);
+      await FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
     return this;
   }
 
   void delete() {
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
   }
 
@@ -272,8 +272,8 @@ class HolidayRequest {
   }
 
   static Future<HolidayRequest> byId(String id) async {
-    final database = db.collection("s4c_holidays");
-    final doc = await database.doc(id).get();
+    final doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     if (doc.exists) {
       return HolidayRequest.fromFirestore(doc);
     } else {
@@ -282,9 +282,11 @@ class HolidayRequest {
   }
 
   static Future<List<HolidayRequest>> byUser(String uuid) async {
-    final database = db.collection("s4c_holidays");
     List<HolidayRequest> items = [];
-    final query = await database.where("userId", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("userId", isEqualTo: uuid)
+        .get();
     query.docs.forEach((result) {
       items.add(HolidayRequest.fromFirestore(result));
     });
@@ -334,7 +336,7 @@ class HolidaysUser {
   String email;
   List<Event> holidays;
 
-  final database = db.collection("s4c_holidays_user");
+  static const String tbName = "s4c_holidays_user";
 
   HolidaysUser({
     required this.id,
@@ -389,8 +391,10 @@ class HolidaysUser {
 
   //byOrganization (uuid)
   static Future<List<HolidaysUser>> byEmail(String email) async {
-    final database = db.collection("s4c_holidays_user");
-    final query = await database.where("email", isEqualTo: email).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("email", isEqualTo: email)
+        .get();
     if (query.docs.isNotEmpty) {
       return query.docs.map((e) => HolidaysUser.fromFirestore(e)).toList();
     } else {
@@ -401,24 +405,24 @@ class HolidaysUser {
   void save() {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) {
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
       });
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   void delete() {
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
   }
 }
 
 class HolidaysCategory {
-  static const tableDb = "s4c_holidays_category";
+  static const tbName = "s4c_holidays_category";
   String id;
   String name;
   bool docRequired = false;
@@ -470,21 +474,20 @@ class HolidaysCategory {
   }
 
   void save() {
-    final database = db.collection(tableDb);
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) {
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
         save();
       });
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   void delete() {
-    final database = db.collection(tableDb);
+    final database = FirebaseFirestore.instance.collection(tbName);
     if (id != "") {
       database.doc(id).delete();
     }
@@ -504,8 +507,8 @@ class HolidaysCategory {
   }
 
   static Future<HolidaysCategory> byId(String id) async {
-    final database = db.collection(tableDb);
-    final doc = await database.doc(id).get();
+    final doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     if (doc.exists) {
       return HolidaysCategory.fromJson(doc.data() as Map<String, dynamic>);
     } else {
@@ -519,8 +522,10 @@ class HolidaysCategory {
     if (uuid.isEmpty) {
       return [];
     }
-    final database = db.collection(tableDb);
-    final query = await database.where("organization", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("organization", isEqualTo: uuid)
+        .get();
     if (query.docs.isNotEmpty) {
       return query.docs
           .map((e) => HolidaysCategory.fromJson(e.data()))

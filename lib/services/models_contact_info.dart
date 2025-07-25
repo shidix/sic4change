@@ -4,8 +4,6 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           CONTACTS
 //--------------------------------------------------------------

@@ -19,7 +19,6 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
-FirebaseFirestore db = FirebaseFirestore.instance;
 double executedBudgetProject = 0;
 
 class FinnsPage extends StatefulWidget {

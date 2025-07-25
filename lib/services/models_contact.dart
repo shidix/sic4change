@@ -8,13 +8,12 @@ import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                           CONTACTS
 //--------------------------------------------------------------
 
 class Contact {
+  static const tbName = "s4c_contacts";
   String id = "";
   String uuid = "";
   String name = "";
@@ -324,24 +323,6 @@ class Contact {
     return await getByUuid(uuid);
   }
 
-  // static Future<List> getContacts() async {
-  //   List<Contact> items = [];
-  //   QuerySnapshot query = await dbContacts.get();
-
-  //   for (var doc in query.docs) {
-  //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  //     data["id"] = doc.id;
-  //     Contact item = Contact.fromJson(data);
-  //     /*await item.getOrganization();
-  //     await item.getCompany();
-  //     await item.getPosition();
-  //     item.projectsObj = await item.getProjects();*/
-  //     items.add(item);
-  //     //items.add(Contact.fromJson(data));
-  //   }
-  //   return items;
-  // }
-
   static Future<List<KeyValue>> getContactsHash() async {
     List<KeyValue> items = [];
     QuerySnapshot query =
@@ -359,16 +340,24 @@ class Contact {
     List<KeyValue> items = [];
     List<String> emailList = [];
 
-    QuerySnapshot queryPro = await db.collection("s4c_profiles").get();
-    for (var doc in queryPro.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      Profile item = Profile.fromJson(data);
-      emailList.add(item.email);
+    // QuerySnapshot queryPro = await FirebaseFirestore.instance
+    //     .collection("s4c_profiles")
+    //     .get();
+    // for (var doc in queryPro.docs) {
+    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //   data["id"] = doc.id;
+    //   Profile item = Profile.fromJson(data);
+
+    //   emailList.add(item.email);
+    //   emailList.add(item.email);
+    // }
+    List<Profile> profiles = await Profile.getProfiles();
+    for (var profile in profiles) {
+      emailList.add(profile.email);
     }
 
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_contacts").get();
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -546,6 +535,8 @@ class Company {
 //--------------------------------------------------------------
 
 class Position {
+  static const tbName = "s4c_positions";
+
   String id = "";
   String uuid = "";
   String name;
@@ -573,26 +564,29 @@ class Position {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      db.collection("s4c_positions").add(data);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
-      db.collection("s4c_positions").doc(id).set(data);
+      await FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await db.collection("s4c_positions").doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Future<Position> byUuid(String uuid) async {
     Position item = Position("");
-    await db
-        .collection("s4c_positions")
+    await FirebaseFirestore.instance
+        .collection(tbName)
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Position.fromJson(data);
     });
@@ -601,7 +595,8 @@ class Position {
 
   static Future<List> getPositions() async {
     List<Position> items = [];
-    QuerySnapshot query = await db.collection("s4c_positions").get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
 
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -613,7 +608,8 @@ class Position {
 
   static Future<List<KeyValue>> getPositionsHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await db.collection("s4c_positions").get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;

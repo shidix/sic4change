@@ -3,13 +3,13 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                      CONTACTS TRACKING
 //--------------------------------------------------------------
 
 class ContactTracking {
+  static const String tbName = "s4c_contact_tracking";
+
   String id = "";
   String uuid = "";
   String contact;
@@ -22,8 +22,6 @@ class ContactTracking {
   String topics = "";
   String agreements = "";
   String nextSteps = "";
-
-  static final dbContactTracking = db.collection("contactTracking");
 
   ContactTracking(this.contact);
 
@@ -59,25 +57,26 @@ class ContactTracking {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbContactTracking.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
       createLog(
           "Creado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
     } else {
       Map<String, dynamic> data = toJson();
-      dbContactTracking.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
       createLog(
           "Modificado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
     }
   }
 
   Future<void> delete() async {
-    await dbContactTracking.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     createLog(
         "Borrado seguimiento $name en el contacto: ${Contact.getContactName(contact)}");
   }
 
   Future<ContactTracking> reload() async {
-    DocumentSnapshot doc = await dbContactTracking.doc(id).get();
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     ContactTracking contactTracking = ContactTracking.fromJson(data);
@@ -85,10 +84,10 @@ class ContactTracking {
     return contactTracking;
   }
 
-
   static Future<List> getContactTrackings() async {
     List<ContactTracking> items = [];
-    QuerySnapshot query = await dbContactTracking.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -101,7 +100,8 @@ class ContactTracking {
     List<ContactTracking> items = [];
 
     try {
-      QuerySnapshot query = await dbContactTracking
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection(tbName)
           .where("contact", isEqualTo: contact)
           .orderBy('date', descending: true)
           .get();
@@ -118,4 +118,19 @@ class ContactTracking {
     return items;
   }
 
+  static Future<ContactTracking> byUuid(String uuid) async {
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
+
+    if (query.docs.isEmpty) {
+      throw Exception("No contact tracking found with UUID: $uuid");
+    }
+
+    DocumentSnapshot doc = query.docs.first;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    return ContactTracking.fromJson(data);
+  }
 }

@@ -4,8 +4,6 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
-
 class Transversal {
   final CollectionReference database;
   String id;
@@ -77,7 +75,7 @@ class Quality extends Transversal {
   // String calification;
   // List<TransversalQuestion> qualityQuestions;
 
-  static final collection = db.collection("s4c_quality");
+  static const tbName = "s4c_quality";
 
   Quality({
     required String id,
@@ -86,7 +84,7 @@ class Quality extends Transversal {
     required String calification,
     required List<TransversalQuestion> questions,
   }) : super(
-          database: db.collection("s4c_quality"),
+          database: FirebaseFirestore.instance.collection(tbName),
           id: id,
           uuid: uuid,
           project: project,
@@ -131,7 +129,11 @@ class Quality extends Transversal {
   }
 
   static Future<Quality> byProject(String project) async {
-    return collection.where("project", isEqualTo: project).get().then((value) {
+    return FirebaseFirestore.instance
+        .collection(tbName)
+        .where("project", isEqualTo: project)
+        .get()
+        .then((value) {
       Quality item = Quality.fromFirestore(value.docs.first);
       return item;
       // if (item.questions.isNotEmpty) {
@@ -150,7 +152,7 @@ class Quality extends Transversal {
 }
 
 class Transparency extends Transversal {
-  static final collection = db.collection("s4c_transparency");
+  static const String tbName = "s4c_transparency";
 
   Transparency({
     required String id,
@@ -159,7 +161,7 @@ class Transparency extends Transversal {
     required String calification,
     required List<TransversalQuestion> questions,
   }) : super(
-          database: db.collection("s4c_transparency"),
+          database: FirebaseFirestore.instance.collection(tbName),
           id: id,
           uuid: uuid,
           project: project,
@@ -205,7 +207,7 @@ class Transparency extends Transversal {
 
   static Future<Transparency> byProject(String project) {
     // get all the documents from the collection
-    return collection.get().then((value) {
+    return FirebaseFirestore.instance.collection(tbName).get().then((value) {
       // get the first document that matches the project
       return value.docs.firstWhere((element) => element['project'] == project,
           orElse: () => throw "No document found");
@@ -233,8 +235,7 @@ class Transparency extends Transversal {
 }
 
 class Gender extends Transversal {
-  static const tableDB = "s4c_gender";
-  final collection = db.collection(tableDB);
+  static const String tbName = "s4c_gender";
 
   Gender({
     required String id,
@@ -243,7 +244,7 @@ class Gender extends Transversal {
     required String calification,
     required List<TransversalQuestion> questions,
   }) : super(
-          database: db.collection(tableDB),
+          database: FirebaseFirestore.instance.collection(tbName),
           id: id,
           uuid: uuid,
           project: project,
@@ -288,7 +289,7 @@ class Gender extends Transversal {
   }
 
   static Future<Gender> byProject(String project) {
-    return db.collection(tableDB).get().then((value
+    return FirebaseFirestore.instance.collection(tbName).get().then((value
         // get the first document that matches the project
         ) {
       var item = value.docs.firstWhere(
@@ -322,8 +323,7 @@ class Gender extends Transversal {
 }
 
 class Environment extends Transversal {
-  static const tableDB = "s4c_environment";
-  final collection = db.collection(tableDB);
+  static const String tbName = "s4c_environment";
 
   Environment({
     required String id,
@@ -332,7 +332,7 @@ class Environment extends Transversal {
     required String calification,
     required List<TransversalQuestion> questions,
   }) : super(
-          database: db.collection(tableDB),
+          database: FirebaseFirestore.instance.collection(tbName),
           id: id,
           uuid: uuid,
           project: project,
@@ -377,8 +377,8 @@ class Environment extends Transversal {
   }
 
   static Future<Environment> byProject(String project) {
-    return db
-        .collection(tableDB)
+    return FirebaseFirestore.instance
+        .collection(tbName)
         .where("project", isEqualTo: project)
         .get()
         .then((value) {

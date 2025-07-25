@@ -5,8 +5,6 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 String getRandomString(_length) {
   const _chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -20,13 +18,14 @@ String getRandomString(_length) {
 //--------------------------------------------------------------
 
 class Folder {
+  static const String tbName = "s4c_folders";
   String id = "";
   String uuid = "";
   String name = "";
   String loc = "";
   String parent = "";
 
-  static CollectionReference dbFolder = db.collection("s4c_folders");
+  // static CollectionReference dbFolder = db.collection("s4c_folders");
 
   Folder(this.name, this.parent);
 
@@ -51,15 +50,18 @@ class Folder {
       uuid = newUuid.v4();
       loc = await getLoc();
       Map<String, dynamic> data = toJson();
-      dbFolder.add(data);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
-      dbFolder.doc(id).set(data);
+      await FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbFolder.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   Future<bool> haveChildren() async {
@@ -78,7 +80,10 @@ class Folder {
     var loc = "";
     do {
       loc = getRandomString(4);
-      query = await dbFolder.where("loc", isEqualTo: loc).get();
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("loc", isEqualTo: loc)
+          .get();
     } while (query.size > 0);
     return loc;
   }
@@ -86,7 +91,10 @@ class Folder {
   static Future<Folder> byLoc(String loc) async {
     QuerySnapshot? query;
 
-    query = await dbFolder.where("loc", isEqualTo: loc).get();
+    query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("loc", isEqualTo: loc)
+        .get();
     if (query.size == 0) {
       return Folder("", "");
     } else {
@@ -103,12 +111,14 @@ class Folder {
 
     try {
       if (parentUuid != "") {
-        queryFolders = await dbFolder
+        queryFolders = await FirebaseFirestore.instance
+            .collection(tbName)
             .where("parent", isEqualTo: parentUuid)
             .orderBy("name", descending: false)
             .get();
       } else {
-        queryFolders = await dbFolder
+        queryFolders = await FirebaseFirestore.instance
+            .collection(tbName)
             .where("parent", isEqualTo: "")
             .orderBy("name", descending: false)
             .get();
@@ -126,7 +136,10 @@ class Folder {
   }
 
   static Future<Folder?> getFolderByUuid(String uuid) async {
-    QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: uuid).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
     if (query.docs.isEmpty) {
       return null;
     }

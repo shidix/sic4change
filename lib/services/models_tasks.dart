@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -8,8 +9,6 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
-
-FirebaseFirestore db = FirebaseFirestore.instance;
 
 //--------------------------------------------------------------
 //                           TASKS
@@ -24,6 +23,7 @@ Map<String, dynamic> getOccupationCell(val) {
 }
 
 class STask {
+  static const String tbName = "s4c_tasks";
   String id = "";
   String uuid = "";
   String name;
@@ -61,9 +61,6 @@ class STask {
 
   List<KeyValue> progList = [];
   List<KeyValue> projList = [];
-
-  static final dbTasks = db.collection("s4c_tasks");
-
 
   STask(this.name);
 
@@ -130,19 +127,25 @@ class STask {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbTasks.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
-      dbTasks.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbTasks.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   Future<void> updateAssigned() async {
-    await dbTasks.doc(id).update({"assigned": assigned});
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .doc(id)
+        .update({"assigned": assigned});
   }
 
   /*Future<void> updateProgrammes() async {
@@ -150,7 +153,8 @@ class STask {
   }*/
 
   Future<STask> reload() async {
-    DocumentSnapshot doc = await dbTasks.doc(id).get();
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     STask.fromJson(data);
@@ -235,29 +239,31 @@ class STask {
     }
   }*/
   Future<void> getSender() async {
-    final dbProfile = db.collection("s4c_profiles");
+    // final dbProfile = db.collection("s4c_profiles");
+    // if (sender != "") {
+    //   QuerySnapshot query =
+    //       await dbProfile.where("email", isEqualTo: sender).get();
+    //   final doc = query.docs.first;
+    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //   data["id"] = doc.id;
+    //   senderObj = Profile.fromJson(data);
+    // }
     if (sender != "") {
-      QuerySnapshot query =
-          await dbProfile.where("email", isEqualTo: sender).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      senderObj = Profile.fromJson(data);
+      senderObj = await Profile.byEmail(sender);
     }
   }
 
   Future<void> getAssigned() async {
-    final dbProfile = db.collection("s4c_profiles");
-
     List<Profile> listAssigned = [];
     for (String item in assigned) {
       try {
-        QuerySnapshot query =
-            await dbProfile.where("email", isEqualTo: item).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        Profile prof = Profile.fromJson(data);
+        // QuerySnapshot query =
+        //     await dbProfile.where("email", isEqualTo: item).get();
+        // final doc = query.docs.first;
+        // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // data["id"] = doc.id;
+        // Profile prof = Profile.fromJson(data);
+        Profile prof = await Profile.byEmail(item);
         listAssigned.add(prof);
       } catch (e) {
         print(e);
@@ -287,21 +293,23 @@ class STask {
 
   Future<String> getObjRelation(model, objId) async {
     if (model == "s4c_activities") {
-      final q =
-          await db.collection(model).where("uuid", isEqualTo: objId).get();
-      final d = q.docs.first;
-      final Map<String, dynamic> data = d.data();
-      data["id"] = d.id;
-      Activity act = Activity.fromJson(data);
+      // final q =
+      //     await db.collection(model).where("uuid", isEqualTo: objId).get();
+      // final d = q.docs.first;
+      // final Map<String, dynamic> data = d.data();
+      // data["id"] = d.id;
+      // Activity act = Activity.fromJson(data);
+      Activity act = await Activity.byUuid(objId);
       return act.name;
     } else {
       if (model == "s4c_contact_tracking") {
-        final q =
-            await db.collection(model).where("uuid", isEqualTo: objId).get();
-        final d = q.docs.first;
-        final Map<String, dynamic> data = d.data();
-        data["id"] = d.id;
-        ContactTracking tracking = ContactTracking.fromJson(data);
+        // final q =
+        //     await db.collection(model).where("uuid", isEqualTo: objId).get();
+        // final d = q.docs.first;
+        // final Map<String, dynamic> data = d.data();
+        // data["id"] = d.id;
+        // ContactTracking tracking = ContactTracking.fromJson(data);
+        ContactTracking tracking = await ContactTracking.byUuid(objId);
         return tracking.name;
       }
     }
@@ -318,7 +326,8 @@ class STask {
     //   String objDesc = await getObjRelation(r.model, r.objId);
     //   relations += "$objDesc (${getModelRelation(r.model)});";
     // }
-    List<TasksRelation> relationsList = await TasksRelation.getRelationsByTasks(uuid);
+    List<TasksRelation> relationsList =
+        await TasksRelation.getRelationsByTasks(uuid);
     for (TasksRelation r in relationsList) {
       String objDesc = await getObjRelation(r.model, r.objId);
       relations += "$objDesc (${getModelRelation(r.model)});";
@@ -328,7 +337,10 @@ class STask {
 
   static Future<List<STask>> getByAssigned(uuid, {lazy = false}) async {
     List<STask> items = [];
-    final query = await dbTasks.where("assigned", arrayContains: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("assigned", arrayContains: uuid)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
@@ -347,7 +359,6 @@ class STask {
     return items;
   }
 
-
   Future<void> getReceivers() async {
     List<Contact> listReceivers = [];
     for (String item in receivers) {
@@ -360,7 +371,6 @@ class STask {
         // Contact contact = Contact.fromJson(data);
         Contact contact = await Contact.byUuid(item);
         listReceivers.add(contact);
-
       } catch (e) {}
     }
     receiversObj = listReceivers;
@@ -405,7 +415,8 @@ class STask {
     //DateTime tomorrow = DateTime(now.year, now.month, now.day + 1);
     Map<String, dynamic> row = {};
     try {
-      final query = await dbTasks
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
           .where("assigned", arrayContains: user.toString())
           .where("dealDate", isLessThanOrEqualTo: now)
           .get();
@@ -477,11 +488,11 @@ class STask {
     }
   }
 
-
   static Future<List> getTasks() async {
     List<STask> items = [];
     try {
-      QuerySnapshot query = await dbTasks.get();
+      QuerySnapshot query =
+          await FirebaseFirestore.instance.collection(tbName).get();
 
       for (var doc in query.docs) {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -504,7 +515,8 @@ class STask {
 
   static Future<List<KeyValue>> getTasksHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await dbTasks.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
 
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -517,7 +529,10 @@ class STask {
 
   static Future<List> getTasksBySender(sender) async {
     List<STask> items = [];
-    QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("sender", isEqualTo: sender)
+        .get();
 
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -541,9 +556,12 @@ class STask {
     QuerySnapshot? query;
 
     if (name != "") {
-      query = await dbTasks.where("name", isEqualTo: name).get();
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("name", isEqualTo: name)
+          .get();
     } else {
-      query = await dbTasks.get();
+      query = await FirebaseFirestore.instance.collection(tbName).get();
     }
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -553,20 +571,17 @@ class STask {
     }
     return items;
   }
-
 }
-
 
 //--------------------------------------------------------------
 //                           TASKS STATUS
 //--------------------------------------------------------------
 
 class TasksStatus {
+  static const String tbName = "s4c_tasks_status";
   String id = "";
   String uuid = "";
   String name;
-
-  static final dbTasksStatus = db.collection("s4c_tasks_status");
 
   //TasksStatus(this.id, this.uuid, this.name);
   TasksStatus(this.name);
@@ -584,7 +599,8 @@ class TasksStatus {
 
   static Future<List<TasksStatus>> all() async {
     List<TasksStatus> items = [];
-    QuerySnapshot query = await dbTasksStatus.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -602,15 +618,15 @@ class TasksStatus {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      dbTasksStatus.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbTasksStatus.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbTasksStatus.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   String getName() {
@@ -646,9 +662,12 @@ class TasksStatus {
     List<TasksStatus> items = [];
     QuerySnapshot query;
     if (uuids != null) {
-      query = await dbTasksStatus.where("uuid", whereIn: uuids).get();
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("uuid", whereIn: uuids)
+          .get();
     } else {
-      query = await dbTasksStatus.get();
+      query = await FirebaseFirestore.instance.collection(tbName).get();
     }
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -660,7 +679,10 @@ class TasksStatus {
   }
 
   static Future<TasksStatus> byUuid(String uuid) async {
-    QuerySnapshot query = await dbTasksStatus.where("uuid", isEqualTo: uuid).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
     if (query.docs.isEmpty) {
       return TasksStatus("Sin estado");
     } else {
@@ -673,7 +695,8 @@ class TasksStatus {
 
   static Future<List<KeyValue>> getTasksStatusHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await dbTasksStatus.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -681,7 +704,6 @@ class TasksStatus {
     }
     return items;
   }
-
 }
 
 //--------------------------------------------------------------
@@ -696,8 +718,7 @@ class TasksComments {
   DateTime date = DateTime.now();
   String task;
 
-  static final dbTasksComments = db.collection("s4c_tasks_comments");
-
+  static const String tbName = "s4c_tasks_comments";
 
   Profile? userObj;
 
@@ -730,19 +751,19 @@ class TasksComments {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbTasksComments.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbTasksComments.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbTasksComments.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   Future<void> getUser() async {
-    final dbProfile = db.collection("s4c_profiles");
+    final dbProfile = FirebaseFirestore.instance.collection("s4c_profiles");
     if (user != "") {
       QuerySnapshot query =
           await dbProfile.where("email", isEqualTo: user).get();
@@ -757,7 +778,8 @@ class TasksComments {
     List<TasksComments> items = [];
     try {
       QuerySnapshot query;
-      query = await dbTasksComments
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
           .where("task", isEqualTo: uuid)
           .orderBy('date', descending: true)
           .get();
@@ -786,7 +808,7 @@ class TasksRelation {
   String model = "";
   String task;
 
-  static final dbTasksRelation = db.collection("s4c_tasks_relation");
+  static const String tbName = "s4c_tasks_relation";
 
   TasksRelation(this.task);
 
@@ -814,15 +836,15 @@ class TasksRelation {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbTasksRelation.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbTasksRelation.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbTasksRelation.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static String getModelRelation(model) {
@@ -832,12 +854,7 @@ class TasksRelation {
 
   static Future<String> getObjRelation(model, objId) async {
     if (model == "s4c_activities") {
-      final q =
-          await db.collection(model).where("uuid", isEqualTo: objId).get();
-      final d = q.docs.first;
-      final Map<String, dynamic> data = d.data();
-      data["id"] = d.id;
-      Activity act = Activity.fromJson(data);
+      Activity act = await Activity.byUuid(objId);
       return act.name;
     }
     return "";
@@ -846,7 +863,10 @@ class TasksRelation {
   static Future<List<TasksRelation>> getRelationsByTasks(String uuid) async {
     List<TasksRelation> items = [];
     QuerySnapshot query;
-    query = await dbTasksRelation.where("task", isEqualTo: uuid).get();
+    query = await FirebaseFirestore.instance
+        .collection(TasksRelation.tbName)
+        .where("task", isEqualTo: uuid)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;

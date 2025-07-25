@@ -3,13 +3,13 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 //--------------------------------------------------------------
 //                      CONTACTS CLAIM
 //--------------------------------------------------------------
 
 class ContactClaim {
+  static const String tbName = "s4c_contact_claims";
+
   String id = "";
   String uuid = "";
   String contact;
@@ -25,8 +25,6 @@ class ContactClaim {
   DateTime resolutionDate = DateTime.now();
   Contact contactObj = Contact("");
   Contact managerObj = Contact("");
-
-  static final dbContactClaim = db.collection("contact_claims");
 
   ContactClaim(this.contact);
 
@@ -64,25 +62,34 @@ class ContactClaim {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbContactClaim.add(data);
+      FirebaseFirestore.instance.collection(ContactClaim.tbName).add(data);
       createLog(
           "Creada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
     } else {
       Map<String, dynamic> data = toJson();
-      dbContactClaim.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection(ContactClaim.tbName)
+          .doc(id)
+          .set(data);
       createLog(
           "Modificada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
     }
   }
 
   Future<void> delete() async {
-    await dbContactClaim.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection(ContactClaim.tbName)
+        .doc(id)
+        .delete();
     createLog(
         "Borrada reclamación $name en el contacto: ${Contact.getContactName(contact)}");
   }
 
   Future<ContactClaim> reload() async {
-    DocumentSnapshot doc = await dbContactClaim.doc(id).get();
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection(ContactClaim.tbName)
+        .doc(id)
+        .get();
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     ContactClaim contactClaim = ContactClaim.fromJson(data);
@@ -118,10 +125,10 @@ class ContactClaim {
     }
   }
 
-
   static Future<List<ContactClaim>> getContactClaims() async {
     List<ContactClaim> items = [];
-    QuerySnapshot query = await dbContactClaim.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(ContactClaim.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -137,8 +144,10 @@ class ContactClaim {
   static Future<List> getClaimsByContact(String contact) async {
     List<ContactClaim> items = [];
 
-    QuerySnapshot query =
-        await dbContactClaim.where("contact", isEqualTo: contact).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(ContactClaim.tbName)
+        .where("contact", isEqualTo: contact)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -151,4 +160,3 @@ class ContactClaim {
     return items;
   }
 }
-

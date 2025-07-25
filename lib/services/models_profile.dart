@@ -5,9 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
-
 class Profile {
+  static const String tbName = "s4c_profiles";
+
   String id;
   String email;
   String name = "";
@@ -15,8 +15,6 @@ class Profile {
   String phone = "";
   List<dynamic> holidaySupervisor;
   String mainRole;
-
-  final database = db.collection("s4c_profiles");
 
   static const String ADMIN = 'Admin';
   static const String TECHNICIAN = 'Técnico';
@@ -90,59 +88,61 @@ class Profile {
   void save() {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .add(data)
+          .then((value) => id = value.id);
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).update(data);
+      FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .doc(id)
+          .update(data);
     }
   }
 
   void delete() {
-    database.doc(id).delete();
+    FirebaseFirestore.instance.collection(Profile.tbName).doc(id).delete();
   }
 
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
     if ((emails != null) && (emails.isNotEmpty)) {
-      return db
-          .collection("s4c_profiles")
+      return FirebaseFirestore.instance
+          .collection(Profile.tbName)
           .where("email", whereIn: emails)
           .get()
           .then((snap) =>
               snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
     }
 
-    return db.collection("s4c_profiles").get().then(
+    return FirebaseFirestore.instance.collection(Profile.tbName).get().then(
         (snap) => snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
   }
 
   static Future<Profile> getProfile(String email) async {
-    QuerySnapshot query = await db.collection("s4c_profiles").get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(Profile.tbName)
+        .where("email", isEqualTo: email)
+        .get();
 
-    List<Profile> items = [];
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      Profile item = Profile.fromJson(data);
-      items.add(item);
-    }
-    if (items.isNotEmpty) {
-      return items.firstWhere((element) => element.email == email,
-          orElse: () => Profile.getEmpty());
-    } else {
-      return Profile.getEmpty();
+    if (query.docs.isEmpty) {
+      return Profile.getEmpty(email: email, mainRole: Profile.USER);
     }
 
-    // if (query.docs.isEmpty) {
-    //   return Profile.getEmpty();
-    // } else {
-    //   final dbResult = query.docs.first;
-    //   return Profile.fromFirestore(dbResult);
-    // }
+    DocumentSnapshot doc = query.docs.first;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    return Profile.fromJson(data);
+  }
+
+  static Future<Profile> byEmail(String email) async {
+    return await getProfile(email);
   }
 
   static Future<List<KeyValue>> getProfileHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await db.collection("s4c_profiles").get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(Profile.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
