@@ -18,9 +18,6 @@ class Risk {
   String project = "";
   Map<String, dynamic> extraInfo = {};
 
-  static final CollectionReference dbRisk =
-      db.collection("s4c_risks");
-
   Risk(this.project);
 
   void checkExtraInfo() {
@@ -92,6 +89,7 @@ class Risk {
   }
 
   Future<void> save() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
@@ -108,13 +106,14 @@ class Risk {
   }
 
   Future<void> delete() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     await dbRisk.doc(id).delete();
     createLog(
         "Borrado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
   }
 
-
   static Future<List> getRisks() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     List<Risk> items = [];
 
     QuerySnapshot query = await dbRisk.get();
@@ -127,9 +126,11 @@ class Risk {
   }
 
   static Future<List> getRisksByProject(String project) async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     List<Risk> items = [];
 
-    QuerySnapshot query = await dbRisk.where("project", isEqualTo: project).get();
+    QuerySnapshot query =
+        await dbRisk.where("project", isEqualTo: project).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -138,4 +139,3 @@ class Risk {
     return items;
   }
 }
-

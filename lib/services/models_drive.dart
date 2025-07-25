@@ -135,7 +135,6 @@ class Folder {
     data["id"] = doc.id;
     return Folder.fromJson(data);
   }
-
 }
 
 //--------------------------------------------------------------
@@ -149,9 +148,6 @@ class SFile {
   String folder = "";
   String link = "";
   String loc = "";
-
-  static final CollectionReference dbFile =
-      db.collection("s4c_files");
 
   SFile(this.name, this.folder, this.link);
 
@@ -178,15 +174,15 @@ class SFile {
       uuid = newUuid.v4();
       loc = await getLoc();
       Map<String, dynamic> data = toJson();
-      dbFile.add(data);
+      FirebaseFirestore.instance.collection("s4c_files").add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbFile.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_files").doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbFile.doc(id).delete();
+    await FirebaseFirestore.instance.collection("s4c_files").doc(id).delete();
   }
 
   Future<String> getLoc() async {
@@ -195,7 +191,10 @@ class SFile {
     var loc = "";
     do {
       loc = getRandomString(4);
-      query = await dbFile.where("loc", isEqualTo: loc).get();
+      query = await FirebaseFirestore.instance
+          .collection("s4c_files")
+          .where("loc", isEqualTo: loc)
+          .get();
     } while (query.size > 0);
     return loc;
   }
@@ -203,7 +202,10 @@ class SFile {
   static Future<SFile> byLoc(String loc) async {
     QuerySnapshot? query;
 
-    query = await dbFile.where("loc", isEqualTo: loc).get();
+    query = await FirebaseFirestore.instance
+        .collection("s4c_files")
+        .where("loc", isEqualTo: loc)
+        .get();
     if (query.size == 0) {
       return SFile("", "", "");
     } else {
@@ -214,7 +216,6 @@ class SFile {
     }
   }
 
-
   static Future<List> getFiles(String folder) async {
     List files = [];
     QuerySnapshot? query;
@@ -224,7 +225,8 @@ class SFile {
     // } else {
     //   query = await dbFile.where("folder", isEqualTo: "").get();
     // }
-    query = await dbFile
+    query = await FirebaseFirestore.instance
+        .collection("s4c_files")
         .where("folder", isEqualTo: folder)
         .orderBy("name", descending: false)
         .get();

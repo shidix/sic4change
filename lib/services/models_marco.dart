@@ -21,8 +21,6 @@ class Goal {
   String project = "";
   double indicatorsPercent = 0;
 
-  static final CollectionReference dbGoal = db.collection("s4c_goals");
-
   String projectName = "";
 
   /*Goal(
@@ -51,19 +49,22 @@ class Goal {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoal.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_goals")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el objetivo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbGoal.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_goals").doc(id).set(data);
       createLog(
           "Modificado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
     }
   }
 
   Future<void> delete() async {
-    await dbGoal.doc(id).delete();
+    await FirebaseFirestore.instance.collection("s4c_goals").doc(id).delete();
     createLog(
         "Borrado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
   }
@@ -80,11 +81,11 @@ class Goal {
   }*/
 
   static Future<double> getIndicatorsPercent(uuid) async {
-
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    List<GoalIndicator> indicators = await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    List<GoalIndicator> indicators =
+        await GoalIndicator.getGoalIndicatorsByGoal(uuid);
     for (GoalIndicator indicator in indicators) {
       try {
         totalExpected += double.parse(indicator.expected);
@@ -105,7 +106,8 @@ class Goal {
     Goal item;
     Programme prog = await Programme.byUuid(programme);
     try {
-      QuerySnapshot query = await dbGoal
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goals")
           .where("project", isEqualTo: project)
           .where("name", isEqualTo: "OE0")
           .get();
@@ -124,8 +126,10 @@ class Goal {
       item.description = prog.impact;
       item.save();
     }
-    List indicators = await ProgrammeIndicators.getProgrammesIndicators(programme);
-    List goalIndicators = await GoalIndicator.getGoalIndicatorsByGoal(item.uuid);
+    List indicators =
+        await ProgrammeIndicators.getProgrammesIndicators(programme);
+    List goalIndicators =
+        await GoalIndicator.getGoalIndicatorsByGoal(item.uuid);
     for (ProgrammeIndicators indicator in indicators) {
       bool exist = false;
       for (GoalIndicator gi in goalIndicators) {
@@ -149,7 +153,11 @@ class Goal {
 
   static Future<Goal> byUuid(uuid) async {
     Goal item = Goal("");
-    await dbGoal.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_goals")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -158,11 +166,11 @@ class Goal {
     return item;
   }
 
-
   static Future<List> getGoals() async {
     List<Goal> items = [];
 
-    QuerySnapshot query = await dbGoal.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_goals").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -175,7 +183,8 @@ class Goal {
     List<Goal> items = [];
 
     try {
-      QuerySnapshot query = await dbGoal
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goals")
           .orderBy("project")
           .orderBy("main", descending: true)
           .orderBy("name", descending: false)
@@ -195,7 +204,6 @@ class Goal {
   }
 }
 
-
 //--------------------------------------------------------------
 //                     GOALS INDICATOR
 //--------------------------------------------------------------
@@ -214,9 +222,6 @@ class GoalIndicator {
   String unit = "";
   String goal = "";
   Folder? folderObj;
-
-  static final CollectionReference dbGoalIndicator =
-      db.collection("s4c_goal_indicators");
 
   GoalIndicator(this.goal);
 
@@ -254,19 +259,28 @@ class GoalIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoalIndicator.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbGoalIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbGoalIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_goal_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Eliminado el indicador '$name' en el objetivo '${getGoalName()}'");
   }
@@ -288,11 +302,12 @@ class GoalIndicator {
     return g.name;
   }
 
-
   static Future<List> getGoalIndicators() async {
     List<GoalIndicator> items = [];
 
-    QuerySnapshot query = await dbGoalIndicator.get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_goal_indicators")
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -303,13 +318,15 @@ class GoalIndicator {
     return items;
   }
 
-  static Future<List<GoalIndicator>> getGoalIndicatorsByGoal(String goal) async {
+  static Future<List<GoalIndicator>> getGoalIndicatorsByGoal(
+      String goal) async {
     List<GoalIndicator> items = [];
 
     //QuerySnapshot query =
     //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
     try {
-      QuerySnapshot query = await dbGoalIndicator
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
           .orderBy("goal")
           .orderBy("order", descending: true)
           .where("goal", isEqualTo: goal)
@@ -332,8 +349,10 @@ class GoalIndicator {
     List<GoalIndicator> items = [];
 
     try {
-      QuerySnapshot query =
-          await dbGoalIndicator.where("code", isEqualTo: code).get();
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .where("code", isEqualTo: code)
+          .get();
       for (var doc in query.docs) {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
@@ -346,7 +365,6 @@ class GoalIndicator {
     }
     return items;
   }
-
 }
 
 //--------------------------------------------------------------
@@ -363,8 +381,6 @@ class Result {
   String source = "";
   String goal = "";
   double indicatorsPercent = 0;
-
-  static final CollectionReference dbResult = db.collection("s4c_results");
 
   /*Result(this.id, this.uuid, this.name, this.description, this.indicator_text,
       this.indicator_percent, this.source, this.goal);*/
@@ -396,19 +412,22 @@ class Result {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResult.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_results")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el resultado '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbResult.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_results").doc(id).set(data);
       createLog(
           "Modificado el resultado '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbResult.doc(id).delete();
+    await FirebaseFirestore.instance.collection("s4c_results").doc(id).delete();
     createLog(
         "Eliminado el resultado '$name' en el objetivo '${getGoalName()}'");
   }
@@ -421,7 +440,10 @@ class Result {
     QuerySnapshot? queryG;
     QuerySnapshot? queryP;
 
-    query = await dbResult.where("uuid", isEqualTo: uuid).get();
+    query = await FirebaseFirestore.instance
+        .collection("s4c_results")
+        .where("uuid", isEqualTo: uuid)
+        .get();
     final dbRes = query.docs.first;
     final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
     data["id"] = dbRes.id;
@@ -489,7 +511,11 @@ class Result {
 
   static Future<Result> byUuid(uuid) async {
     Result item = Result("");
-    await dbResult.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_results")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -501,7 +527,8 @@ class Result {
   static Future<List> getResults() async {
     List<Result> items = [];
 
-    QuerySnapshot query = await dbResult.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_results").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -514,9 +541,8 @@ class Result {
     List<Result> items = [];
 
     try {
-      QuerySnapshot query = await dbResult
-          //.orderBy("goal")
-          //.orderBy("main", descending: true)
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_results")
           .where("goal", isEqualTo: goal)
           .get();
       for (var doc in query.docs) {
@@ -531,9 +557,7 @@ class Result {
     }
     return items;
   }
-
 }
-
 
 //--------------------------------------------------------------
 //                     RESULT INDICATOR
@@ -549,9 +573,6 @@ class ResultIndicator {
   String obtained = "";
   String unit = "";
   String result = "";
-
-  static final CollectionReference dbResultIndicator =
-      db.collection("s4c_result_indicators");
 
   ResultIndicator(this.result);
 
@@ -583,19 +604,29 @@ class ResultIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResultIndicator.add(data).then((value) => id = value.id);
+
+      FirebaseFirestore.instance
+          .collection("s4c_result_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbResultIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_result_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbResultIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Borrado el indicador '$name' en el resultado '${getResultName()}'");
   }
@@ -613,7 +644,11 @@ class ResultIndicator {
 
   static Future<ResultIndicator> byUuid(uuid) async {
     ResultIndicator item = ResultIndicator("");
-    await dbResultIndicator.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -625,7 +660,9 @@ class ResultIndicator {
   static Future<List<ResultIndicator>> getResultIndicators() async {
     List<ResultIndicator> items = [];
 
-    QuerySnapshot query = await dbResultIndicator.get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -635,11 +672,14 @@ class ResultIndicator {
     return items;
   }
 
-  static Future<List<ResultIndicator>> getResultIndicatorsByResult(String result) async {
+  static Future<List<ResultIndicator>> getResultIndicatorsByResult(
+      String result) async {
     List<ResultIndicator> items = [];
 
-    QuerySnapshot query =
-        await dbResultIndicator.where("result", isEqualTo: result).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .where("result", isEqualTo: result)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -648,7 +688,6 @@ class ResultIndicator {
     return items;
   }
 }
-
 
 //--------------------------------------------------------------
 //                           ACTIVITY
@@ -663,8 +702,6 @@ class Activity {
   DateTime iniDate = DateTime.now();
   DateTime endDate = DateTime.now();
   double indicatorsPercent = 0;
-
-  static final CollectionReference dbActivity = db.collection("s4c_activities");
 
   Activity(this.result);
 
@@ -692,19 +729,25 @@ class Activity {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivity.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_activities")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creada la actividad '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbActivity.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_activities").doc(id).set(data);
       createLog(
           "Modificada la actividad '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbActivity.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .doc(id)
+        .delete();
     createLog(
         "Borrada la actividad '$name' en el resultado '${getResultName()}'");
   }
@@ -752,7 +795,11 @@ class Activity {
 
   static Future<Activity> byUuid(uuid) async {
     Activity item = Activity("");
-    await dbActivity.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -761,11 +808,11 @@ class Activity {
     return item;
   }
 
-
   static Future<List> getActivities() async {
     List<Activity> items = [];
 
-    QuerySnapshot query = await dbActivity.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_activities").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -778,8 +825,10 @@ class Activity {
   static Future<List> getActivitiesByResult(result) async {
     List<Activity> items = [];
 
-    QuerySnapshot query =
-        await dbActivity.where("result", isEqualTo: result).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .where("result", isEqualTo: result)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -789,13 +838,11 @@ class Activity {
     }
     return items;
   }
-
 }
 
 //--------------------------------------------------------------
 //                     ACTIVITY INDICATOR
 //--------------------------------------------------------------
-
 
 class ActivityIndicator {
   String id = "";
@@ -807,9 +854,6 @@ class ActivityIndicator {
   String obtained = "";
   String unit = "";
   String activity = "";
-
-  static final CollectionReference dbActivityIndicator =
-      db.collection("s4c_activity_indicators");
 
   ActivityIndicator(this.activity);
 
@@ -841,19 +885,28 @@ class ActivityIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivityIndicator.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_activity_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en la actividad '${getActivityName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbActivityIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_activity_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en la actividad '${getActivityName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbActivityIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Borrado el indicador '$name' en la actividad '${getActivityName()}'");
   }
@@ -873,7 +926,9 @@ class ActivityIndicator {
   static Future<List> getActivityIndicators() async {
     List<ActivityIndicator> items = [];
 
-    QuerySnapshot query = await dbActivityIndicator.get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -883,11 +938,14 @@ class ActivityIndicator {
     return items;
   }
 
-  static Future<List<ActivityIndicator>> getActivityIndicatorsByActivity(String _activity) async {
+  static Future<List<ActivityIndicator>> getActivityIndicatorsByActivity(
+      String _activity) async {
     List<ActivityIndicator> items = [];
 
-    QuerySnapshot query =
-        await dbActivityIndicator.where("activity", isEqualTo: _activity).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .where("activity", isEqualTo: _activity)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -895,9 +953,7 @@ class ActivityIndicator {
     }
     return items;
   }
-
 }
-
 
 Future<String> getProjectByActivityIndicator(String _uuid) async {
   // QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
@@ -946,9 +1002,6 @@ class ResultTask {
   String name = "";
   String result = "";
 
-  static final CollectionReference dbResultTask =
-      db.collection("s4c_result_tasks");
-
   ResultTask(this.result);
 
   ResultTask.fromJson(Map<String, dynamic> json)
@@ -969,22 +1022,28 @@ class ResultTask {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResultTask.add(data);
+      FirebaseFirestore.instance.collection("s4c_result_tasks").add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbResultTask.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_result_tasks")
+          .doc(id)
+          .set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbResultTask.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_result_tasks")
+        .doc(id)
+        .delete();
   }
-
 
   static Future<List> getResultTasks() async {
     List<ResultTask> items = [];
 
-    QuerySnapshot query = await dbResultTask.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_result_tasks").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -996,8 +1055,10 @@ class ResultTask {
   static Future<List> getResultTasksByResult(String _result) async {
     List<ResultTask> items = [];
 
-    QuerySnapshot query =
-        await dbResultTask.where("result", isEqualTo: _result).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_tasks")
+        .where("result", isEqualTo: _result)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -1005,7 +1066,6 @@ class ResultTask {
     }
     return items;
   }
-
 }
 
 Future<String> getProjectByResultTask(String _uuid) async {

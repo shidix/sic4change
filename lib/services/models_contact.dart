@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'dart:developer' as dev;
 import 'package:sic4change/services/models.dart';
@@ -27,9 +28,6 @@ class Contact {
   Company companyObj = Company("");
   Position positionObj = Position("");
   List<SProject> projectsObj = [];
-
-  static final CollectionReference dbContacts =
-      db.collection("s4c_contacts");
 
   /*Contact(this.name, this.company, this.position, this.email, this.phone,
       this.organization);*/
@@ -71,18 +69,24 @@ class Contact {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbContacts.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_contacts")
+          .add(data)
+          .then((value) => id = value.id);
 
       createLog("Creado el contacto: $name");
     } else {
       Map<String, dynamic> data = toJson();
-      dbContacts.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_contacts").doc(id).set(data);
       createLog("Modificado el contacto: $name");
     }
   }
 
   Future<void> delete() async {
-    await dbContacts.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .doc(id)
+        .delete();
     createLog("Borrado el contacto: $name");
   }
 
@@ -180,11 +184,17 @@ class Contact {
     List<Contact> items = [];
     QuerySnapshot query;
     if (uuids != null) {
-      query = await dbContacts.where("uuid", whereIn: uuids).get();
+      query = await FirebaseFirestore.instance
+          .collection("s4c_contacts")
+          .where("uuid", whereIn: uuids)
+          .get();
     } else if (ids != null) {
-      query = await dbContacts.where("id", whereIn: ids).get();
+      query = await FirebaseFirestore.instance
+          .collection("s4c_contacts")
+          .where("id", whereIn: ids)
+          .get();
     } else {
-      query = await dbContacts.get();
+      query = await FirebaseFirestore.instance.collection("s4c_contacts").get();
     }
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -247,8 +257,10 @@ class Contact {
 
   static Future<Contact> byEmail(String email) async {
     try {
-      QuerySnapshot query =
-          await dbContacts.where("email", isEqualTo: email).get();
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_contacts")
+          .where("email", isEqualTo: email)
+          .get();
       final dbResult = query.docs.first;
       final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
       data["id"] = dbResult.id;
@@ -261,7 +273,11 @@ class Contact {
 
   static Future<Contact> getByUuid(String uuid) async {
     Contact item = Contact("");
-    await dbContacts.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -272,7 +288,8 @@ class Contact {
 
   static Future<List<Contact>> getAll() async {
     List<Contact> items = [];
-    QuerySnapshot query = await dbContacts.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_contacts").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -283,7 +300,11 @@ class Contact {
 
   static Future<String> getContactName(String uuid) async {
     Contact item = Contact("");
-    await dbContacts.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -301,9 +322,7 @@ class Contact {
 
   static Future<Contact> byUuid(String uuid) async {
     return await getByUuid(uuid);
-
   }
-
 
   // static Future<List> getContacts() async {
   //   List<Contact> items = [];
@@ -325,7 +344,8 @@ class Contact {
 
   static Future<List<KeyValue>> getContactsHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await dbContacts.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_contacts").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -347,7 +367,8 @@ class Contact {
       emailList.add(item.email);
     }
 
-    QuerySnapshot query = await dbContacts.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_contacts").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -360,7 +381,10 @@ class Contact {
   }
 
   static Future<Contact> getContactByUuid(String uuid) async {
-    QuerySnapshot query = await dbContacts.where("uuid", isEqualTo: uuid).get();
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .where("uuid", isEqualTo: uuid)
+        .get();
     final dbResult = query.docs.first;
     final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
     data["id"] = dbResult.id;
@@ -372,9 +396,12 @@ class Contact {
     QuerySnapshot? query;
 
     if (name != "") {
-      query = await dbContacts.where("name", isEqualTo: name).get();
+      query = await FirebaseFirestore.instance
+          .collection("s4c_contacts")
+          .where("name", isEqualTo: name)
+          .get();
     } else {
-      query = await dbContacts.get();
+      query = await FirebaseFirestore.instance.collection("s4c_contacts").get();
     }
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -394,8 +421,10 @@ class Contact {
 
   static Future<List> getContactsByOrg(org) async {
     List<Contact> items = [];
-    QuerySnapshot? query =
-        await dbContacts.where("organization", isEqualTo: org).get();
+    QuerySnapshot? query = await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .where("organization", isEqualTo: org)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -411,8 +440,10 @@ class Contact {
 
   static Future<List<KeyValue>> getContactsByOrgHash(org) async {
     List<KeyValue> items = [];
-    QuerySnapshot? query =
-        await dbContacts.where("organization", isEqualTo: org).get();
+    QuerySnapshot? query = await FirebaseFirestore.instance
+        .collection("s4c_contacts")
+        .where("organization", isEqualTo: org)
+        .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -421,7 +452,6 @@ class Contact {
     }
     return items;
   }
-
 }
 
 //--------------------------------------------------------------
@@ -432,9 +462,6 @@ class Company {
   String id = "";
   String uuid = "";
   String name;
-
-  static final CollectionReference dbComp =
-      db.collection("s4c_companies");
 
   Company(this.name);
 
@@ -459,20 +486,27 @@ class Company {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      dbComp.add(data);
+      FirebaseFirestore.instance.collection("s4c_companies").add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbComp.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_companies").doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbComp.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_companies")
+        .doc(id)
+        .delete();
   }
 
   static Future<Company> byUuid(String uuid) async {
     Company item = Company("");
-    await dbComp.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_companies")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -483,7 +517,8 @@ class Company {
 
   static Future<List> getCompanies() async {
     List<Company> items = [];
-    QuerySnapshot query = await dbComp.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_companies").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -494,7 +529,8 @@ class Company {
 
   static Future<List<KeyValue>> getCompaniesHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await dbComp.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_companies").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -503,9 +539,7 @@ class Company {
     }
     return items;
   }
-
 }
-
 
 //--------------------------------------------------------------
 //                           POSITION
@@ -515,9 +549,6 @@ class Position {
   String id = "";
   String uuid = "";
   String name;
-
-  static final CollectionReference dbPos =
-      db.collection("s4c_positions");
 
   Position(this.name);
 
@@ -542,20 +573,24 @@ class Position {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      dbPos.add(data);
+      db.collection("s4c_positions").add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbPos.doc(id).set(data);
+      db.collection("s4c_positions").doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbPos.doc(id).delete();
+    await db.collection("s4c_positions").doc(id).delete();
   }
 
   static Future<Position> byUuid(String uuid) async {
     Position item = Position("");
-    await dbPos.where("uuid", isEqualTo: uuid).get().then((value) {
+    await db
+        .collection("s4c_positions")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -566,7 +601,7 @@ class Position {
 
   static Future<List> getPositions() async {
     List<Position> items = [];
-    QuerySnapshot query = await dbPos.get();
+    QuerySnapshot query = await db.collection("s4c_positions").get();
 
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -578,7 +613,7 @@ class Position {
 
   static Future<List<KeyValue>> getPositionsHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await dbPos.get();
+    QuerySnapshot query = await db.collection("s4c_positions").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -587,5 +622,4 @@ class Position {
     }
     return items;
   }
-
 }
