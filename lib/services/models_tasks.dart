@@ -10,12 +10,10 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-CollectionReference dbProject = db.collection("s4c_projects");
 
 //--------------------------------------------------------------
 //                           TASKS
 //--------------------------------------------------------------
-final dbTasks = db.collection("s4c_tasks");
 
 Map<String, dynamic> getOccupationCell(val) {
   Color col = Colors.green;
@@ -63,6 +61,9 @@ class STask {
 
   List<KeyValue> progList = [];
   List<KeyValue> projList = [];
+
+  static final dbTasks = db.collection("s4c_tasks");
+
 
   STask(this.name);
 
@@ -172,40 +173,45 @@ class STask {
 
   Future<void> getProject() async {
     if (project != "") {
-      QuerySnapshot query =
-          await dbProject.where("uuid", isEqualTo: project).get();
-      if (query.docs.isEmpty) {
-        projectObj = SProject("");
-      } else {
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        projectObj = SProject.fromJson(data);
-      }
+      // QuerySnapshot query =
+      //     await dbProject.where("uuid", isEqualTo: project).get();
+      // if (query.docs.isEmpty) {
+      //   projectObj = SProject("");
+      // } else {
+      //   final doc = query.docs.first;
+      //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      //   data["id"] = doc.id;
+      //   projectObj = SProject.fromJson(data);
+      // }
+      projectObj = await SProject.byUuid(project);
     }
   }
 
   Future<void> getProgramme() async {
     if (programme != "") {
-      QuerySnapshot query =
-          await dbProgramme.where("uuid", isEqualTo: programme).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      programmeObj = Programme.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProgramme.where("uuid", isEqualTo: programme).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // programmeObj = Programme.fromJson(data);
+      programmeObj = await Programme.byUuid(programme);
     }
   }
 
   Future<void> getStatus() async {
+    // if (status != "") {
+    //   QuerySnapshot query =
+    //       await dbTasksStatus.where("uuid", isEqualTo: status).get();
+    //   final doc = query.docs.first;
+    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //   data["id"] = doc.id;
+    //   statusObj = TasksStatus.fromJson(data);
+    // } else {
+    //   statusObj = TasksStatus("Sin estado");
+    // }
     if (status != "") {
-      QuerySnapshot query =
-          await dbTasksStatus.where("uuid", isEqualTo: status).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      statusObj = TasksStatus.fromJson(data);
-    } else {
-      statusObj = TasksStatus("Sin estado");
+      statusObj = await TasksStatus.byUuid(status);
     }
   }
 
@@ -304,27 +310,21 @@ class STask {
 
   Future<void> getRelations() async {
     String relations = "";
-    final query = await dbTasksRelation.where("task", isEqualTo: uuid).get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data();
-      data["id"] = doc.id;
-      TasksRelation r = TasksRelation.fromJson(data);
+    // final query = await dbTasksRelation.where("task", isEqualTo: uuid).get();
+    // for (var doc in query.docs) {
+    //   final Map<String, dynamic> data = doc.data();
+    //   data["id"] = doc.id;
+    //   TasksRelation r = TasksRelation.fromJson(data);
+    //   String objDesc = await getObjRelation(r.model, r.objId);
+    //   relations += "$objDesc (${getModelRelation(r.model)});";
+    // }
+    List<TasksRelation> relationsList = await TasksRelation.getRelationsByTasks(uuid);
+    for (TasksRelation r in relationsList) {
       String objDesc = await getObjRelation(r.model, r.objId);
       relations += "$objDesc (${getModelRelation(r.model)});";
     }
     rel = relations;
   }
-
-  /*String getAssignedStr() {
-    String assignedStr = "";
-    for (Contact item in assignedObj) {
-      assignedStr += "${item.name},";
-    }
-    assignedStr = (assignedStr.length > 0)
-        ? assignedStr.substring(0, assignedStr.length - 1)
-        : assignedStr;
-    return assignedStr;
-  }*/
 
   static Future<List<STask>> getByAssigned(uuid, {lazy = false}) async {
     List<STask> items = [];
@@ -347,82 +347,20 @@ class STask {
     return items;
   }
 
-  /*static Future<List<STask>> getByUser(uuid) async {
-    List<STask> items = [];
-
-    final query = await dbTasks.get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data();
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
-      //await task.getAssigned();
-      //await task.getRelations();
-      items.add(task);
-    }
-
-    /*final query = await dbTasks.where("assigned", arrayContains: uuid).get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data();
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
-      // task.getProject();
-      // await task.getStatus();
-      // await task.getSender();
-      await task.getAssigned();
-      // await task.getReceivers();
-      // await task.getReceiversOrg();
-      //await task.getProgrammes();
-      items.add(task);
-    }
-    final query2 = await dbTasks.where("sender", isEqualTo: uuid).get();
-    if (query2.docs.isNotEmpty) {
-      for (var doc in query2.docs) {
-        final Map<String, dynamic> data = doc.data();
-        data["id"] = doc.id;
-        STask task = STask.fromJson(data);
-        // task.getProject();
-        // await task.getStatus();
-        // await task.getSender();
-        await task.getAssigned();
-        // await task.getReceivers();
-        // await task.getReceiversOrg();
-        //await task.getProgrammes();
-          items.add(task);
-      }
-    }*/
-    return items;
-  }*/
-
-  /*static List<STask> getByAssigned2(uuid) {
-    List<STask> items = [];
-    dbTasks.where("assigned", arrayContains: uuid).snapshots().listen((event) {
-      for (var doc in event.docs) {
-        final Map<String, dynamic> data = doc.data();
-        data["id"] = doc.id;
-        STask task = STask.fromJson(data);
-        task.getProject();
-        task.getStatus();
-        task.getSender();
-        task.getAssigned();
-        task.getReceiversOrg();
-        //task.getProgrammes();
-        items.add(task);
-      }
-    });
-    return items;
-  }*/
 
   Future<void> getReceivers() async {
     List<Contact> listReceivers = [];
     for (String item in receivers) {
       try {
-        QuerySnapshot query =
-            await dbContacts.where("uuid", isEqualTo: item).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        Contact contact = Contact.fromJson(data);
+        // QuerySnapshot query =
+        //     await dbContacts.where("uuid", isEqualTo: item).get();
+        // final doc = query.docs.first;
+        // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // data["id"] = doc.id;
+        // Contact contact = Contact.fromJson(data);
+        Contact contact = await Contact.byUuid(item);
         listReceivers.add(contact);
+
       } catch (e) {}
     }
     receiversObj = listReceivers;
@@ -432,11 +370,12 @@ class STask {
     List<Organization> listReceivers = [];
     for (String item in receivers) {
       try {
-        QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: item).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        Organization org = Organization.fromJson(data);
+        // QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: item).get();
+        // final doc = query.docs.first;
+        // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // data["id"] = doc.id;
+        // Organization org = Organization.fromJson(data);
+        Organization org = await Organization.byUuid(item);
         listReceivers.add(org);
       } catch (e) {}
     }
@@ -460,22 +399,6 @@ class STask {
       KeyValue("Baja", "Baja")
     ];
   }
-
-  /*Future<void> getProgrammes() async {
-    List<Programme> listProgrammes = [];
-    for (String item in programmes) {
-      try {
-        QuerySnapshot query =
-            await dbProgramme.where("uuid", isEqualTo: item).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        Programme programme = Programme.fromJson(data);
-        listProgrammes.add(programme);
-      } catch (e) {}
-    }
-    programmesObj = listProgrammes;
-  }*/
 
   static Future<Map<String, dynamic>> getOccupation(user) async {
     DateTime now = DateTime.now();
@@ -553,112 +476,97 @@ class STask {
       progList.add(p.toKeyValue());
     }
   }
-}
 
-Future<List> getTasks() async {
-  List<STask> items = [];
-  try {
+
+  static Future<List> getTasks() async {
+    List<STask> items = [];
+    try {
+      QuerySnapshot query = await dbTasks.get();
+
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        STask task = STask.fromJson(data);
+        /*await task.getProject();
+        await task.getStatus();
+        await task.getSender();
+        await task.getAssigned();
+        await task.getReceivers();
+        await task.getReceiversOrg();*/
+        //await task.getProgrammes();
+        items.add(task);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
+
+  static Future<List<KeyValue>> getTasksHash() async {
+    List<KeyValue> items = [];
     QuerySnapshot query = await dbTasks.get();
 
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       STask task = STask.fromJson(data);
-      /*await task.getProject();
+      items.add(task.toKeyValue());
+    }
+    return items;
+  }
+
+  static Future<List> getTasksBySender(sender) async {
+    List<STask> items = [];
+    QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
+
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      STask task = STask.fromJson(data);
+      await task.getProject();
+      await task.getProgramme();
       await task.getStatus();
       await task.getSender();
       await task.getAssigned();
       await task.getReceivers();
-      await task.getReceiversOrg();*/
+      await task.getReceiversOrg();
       //await task.getProgrammes();
       items.add(task);
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List> searchTasks(name) async {
+    List<STask> items = [];
+    QuerySnapshot? query;
+
+    if (name != "") {
+      query = await dbTasks.where("name", isEqualTo: name).get();
+    } else {
+      query = await dbTasks.get();
+    }
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = STask.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
+
 }
 
-Future<List<KeyValue>> getTasksHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbTasks.get();
-
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask task = STask.fromJson(data);
-    items.add(task.toKeyValue());
-  }
-  return items;
-}
-
-Future<List> getTasksBySender(sender) async {
-  List<STask> items = [];
-  QuerySnapshot query = await dbTasks.where("sender", isEqualTo: sender).get();
-
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask task = STask.fromJson(data);
-    await task.getProject();
-    await task.getProgramme();
-    await task.getStatus();
-    await task.getSender();
-    await task.getAssigned();
-    await task.getReceivers();
-    await task.getReceiversOrg();
-    //await task.getProgrammes();
-    items.add(task);
-  }
-  return items;
-}
-
-Future<List> searchTasks(name) async {
-  List<STask> items = [];
-  QuerySnapshot? query;
-
-  if (name != "") {
-    query = await dbTasks.where("name", isEqualTo: name).get();
-  } else {
-    query = await dbTasks.get();
-  }
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = STask.fromJson(data);
-    items.add(item);
-  }
-  return items;
-}
-
-/*Future<List> getTasksByAssigned(user) async {
-  List<STask> items = [];
-  QuerySnapshot query =
-      await dbTasks.where("assigned", arrayContains: user).get();
-
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask task = STask.fromJson(data);
-    await task.getProject();
-    await task.getStatus();
-    await task.getSender();
-    await task.getAssigned();
-    await task.getProgrammes();
-    items.add(task);
-  }
-  return items;
-}*/
 
 //--------------------------------------------------------------
 //                           TASKS STATUS
 //--------------------------------------------------------------
-final dbTasksStatus = db.collection("s4c_tasks_status");
 
 class TasksStatus {
   String id = "";
   String uuid = "";
   String name;
+
+  static final dbTasksStatus = db.collection("s4c_tasks_status");
 
   //TasksStatus(this.id, this.uuid, this.name);
   TasksStatus(this.name);
@@ -750,34 +658,35 @@ class TasksStatus {
 
     return items;
   }
-}
 
-Future<List> getTasksStatus() async {
-  List<TasksStatus> items = [];
-  QuerySnapshot query = await dbTasksStatus.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(TasksStatus.fromJson(data));
+  static Future<TasksStatus> byUuid(String uuid) async {
+    QuerySnapshot query = await dbTasksStatus.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      return TasksStatus("Sin estado");
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      return TasksStatus.fromJson(data);
+    }
   }
-  return items;
-}
 
-Future<List<KeyValue>> getTasksStatusHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbTasksStatus.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(TasksStatus.fromJson(data).toKeyValue());
+  static Future<List<KeyValue>> getTasksStatusHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbTasksStatus.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(TasksStatus.fromJson(data).toKeyValue());
+    }
+    return items;
   }
-  return items;
+
 }
 
 //--------------------------------------------------------------
 //                       TASKS COMMENTS
 //--------------------------------------------------------------
-final dbTasksComments = db.collection("s4c_tasks_comments");
 
 class TasksComments {
   String id = "";
@@ -786,6 +695,9 @@ class TasksComments {
   String user = "";
   DateTime date = DateTime.now();
   String task;
+
+  static final dbTasksComments = db.collection("s4c_tasks_comments");
+
 
   Profile? userObj;
 
@@ -866,7 +778,6 @@ class TasksComments {
 //--------------------------------------------------------------
 //                       TASKS RELATION
 //--------------------------------------------------------------
-final dbTasksRelation = db.collection("s4c_tasks_relation");
 
 class TasksRelation {
   String id = "";
@@ -874,6 +785,8 @@ class TasksRelation {
   String objId = "";
   String model = "";
   String task;
+
+  static final dbTasksRelation = db.collection("s4c_tasks_relation");
 
   TasksRelation(this.task);
 

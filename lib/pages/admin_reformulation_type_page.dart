@@ -34,7 +34,7 @@ class _ReformulationTypePageState extends State<ReformulationTypePage>
 
   void loadReformulationTypes() async {
     setLoading();
-    await getReformulationTypes().then((val) {
+    await ReformulationType.getReformulationTypes().then((val) {
       reformulationTypes = val;
       stopLoading();
     });

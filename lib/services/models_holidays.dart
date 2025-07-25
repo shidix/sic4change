@@ -161,7 +161,7 @@ class HolidayRequest {
   String status;
   String approvedBy;
 
-  final database = db.collection("s4c_holidays");
+  static final database = db.collection("s4c_holidays");
 
   HolidayRequest({
     required this.id,

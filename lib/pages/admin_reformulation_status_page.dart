@@ -35,10 +35,12 @@ class _ReformulationStatusPageState extends State<ReformulationStatusPage>
 
   void loadReformulationStatus() async {
     setLoading();
-    await getReformulationStatus().then((val) {
-      reformulationStatus = val;
-      stopLoading();
-    });
+    reformulationStatus = await ReformulationStatus.getReformulationStatus();
+    stopLoading();
+    // await getReformulationStatus().then((val) {
+    //   reformulationStatus = val;
+    //   stopLoading();
+    // });
   }
 
   @override

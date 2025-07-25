@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 final FirebaseFirestore db = FirebaseFirestore.instance;
 
 class Transversal {
-  CollectionReference database;
+  final CollectionReference database;
   String id;
   String uuid;
   String project;

@@ -38,10 +38,12 @@ class _PositionPageState extends State<PositionPage>
 
   void loadPositions() async {
     setLoading();
-    await getPositions().then((val) {
-      positions = val;
-      stopLoading();
-    });
+    positions = await Position.getPositions();
+    stopLoading();
+    // await getPositions().then((val) {
+    //   positions = val;
+    //   stopLoading();
+    // });
   }
 
   @override

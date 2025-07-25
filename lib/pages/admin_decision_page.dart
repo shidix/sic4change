@@ -36,10 +36,12 @@ class _DecisionPageState extends State<DecisionPage>
 
   void loadDecisions() async {
     setLoading();
-    await getContactDecisions().then((val) {
-      decisions = val;
-      stopLoading();
-    });
+    decisions = await ContactDecision.getContactDecisions();
+    stopLoading();
+    // await getContactDecisions().then((val) {
+    //   decisions = val;
+    //   stopLoading();
+    // });
   }
 
   @override

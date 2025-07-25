@@ -287,7 +287,7 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
   goalsPercent["total"] = 0;
   int i = 0;
   for (SProject proj in projects) {
-    List goals = await getGoalsByProject(proj.uuid);
+    List goals = await Goal.getGoalsByProject(proj.uuid);
     double totalProj = 0;
     int j = 0;
     for (Goal goal in goals) {

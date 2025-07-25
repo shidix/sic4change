@@ -34,10 +34,12 @@ class _RegionPageState extends State<RegionPage>
 
   void loadRegions() async {
     setLoading();
-    await getRegions().then((val) {
-      regions = val;
-      stopLoading();
-    });
+    regions = await Region.getRegions();
+    stopLoading();
+    // await getRegions().then((val) {
+    //   regions = val;
+    //   stopLoading();
+    // });
   }
 
   @override

@@ -26,7 +26,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   Profile? currentProfile;
 
   void loadActivities(value) async {
-    await getActivitiesByResult(value).then((val) {
+    await Activity.getActivitiesByResult(value).then((val) {
       activities = val;
     });
     setState(() {});
@@ -147,7 +147,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   Widget activityList(context, result) {
     return FutureBuilder(
-        future: getActivitiesByResult(result.uuid),
+        future: Activity.getActivitiesByResult(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             activities = snapshot.data!;

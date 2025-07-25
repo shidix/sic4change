@@ -118,7 +118,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           setState(() {});
         }
       });
-      getProgrammes().then((value) {
+      Programme.getProgrammes().then((value) {
         //List l = value;
         programmeListCache = value as List<Programme>;
         for (Programme p in programmeListCache) {
@@ -577,8 +577,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         programmeListCache.map((e) => e.toKeyValue()).toList();
     //programmeList.add(KeyValue("", ""));*/
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     List<KeyValue> contactList =
         contactListCache.map((e) => e.toKeyValue()).toList();

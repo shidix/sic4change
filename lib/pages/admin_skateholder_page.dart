@@ -35,10 +35,12 @@ class _StakeholderPageState extends State<StakeholderPage>
 
   void loadStakeholders() async {
     setLoading();
-    await getContactStakeholders().then((val) {
-      stakeholders = val;
-      stopLoading();
-    });
+    stakeholders = await ContactStakeholder.getContactStakeholders();
+    stopLoading();
+    // await getContactStakeholders().then((val) {
+    //   stakeholders = val;
+    //   stopLoading();
+    // });
   }
 
   @override

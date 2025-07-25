@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-CollectionReference dbBitacora = db.collection("s4c_bitacora");
 
 class Bitacora extends Object {
   String id = "";
@@ -19,6 +18,9 @@ class Bitacora extends Object {
   List<dynamic> others = [];
 
   Bitacora(this.projectUuid);
+  
+  static final CollectionReference dbBitacora = db.collection("s4c_bitacora");
+
 
   static Bitacora fromJson(Map<String, dynamic> json) {
     Bitacora item = Bitacora(json['projectUuid']);

@@ -7,12 +7,10 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-CollectionReference dbProject = db.collection("s4c_projects");
 
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------
-CollectionReference dbGoal = db.collection("s4c_goals");
 
 class Goal {
   String id = "";
@@ -22,6 +20,8 @@ class Goal {
   bool main = false;
   String project = "";
   double indicatorsPercent = 0;
+
+  static final CollectionReference dbGoal = db.collection("s4c_goals");
 
   String projectName = "";
 
@@ -80,15 +80,12 @@ class Goal {
   }*/
 
   static Future<double> getIndicatorsPercent(uuid) async {
-    QuerySnapshot query =
-        await dbGoalIndicator.where("goal", isEqualTo: uuid).get();
+
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      GoalIndicator indicator = GoalIndicator.fromJson(data);
+    List<GoalIndicator> indicators = await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    for (GoalIndicator indicator in indicators) {
       try {
         totalExpected += double.parse(indicator.expected);
         // ignore: empty_catches
@@ -128,7 +125,7 @@ class Goal {
       item.save();
     }
     List indicators = await getProgrammesIndicators(programme);
-    List goalIndicators = await getGoalIndicatorsByGoal(item.uuid);
+    List goalIndicators = await GoalIndicator.getGoalIndicatorsByGoal(item.uuid);
     for (ProgrammeIndicators indicator in indicators) {
       bool exist = false;
       for (GoalIndicator gi in goalIndicators) {
@@ -160,47 +157,48 @@ class Goal {
     });
     return item;
   }
-}
 
-Future<List> getGoals() async {
-  List<Goal> items = [];
 
-  QuerySnapshot query = await dbGoal.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Goal.fromJson(data));
-  }
-  return items;
-}
+  static Future<List> getGoals() async {
+    List<Goal> items = [];
 
-Future<List> getGoalsByProject(String project) async {
-  List<Goal> items = [];
-
-  try {
-    QuerySnapshot query = await dbGoal
-        .orderBy("project")
-        .orderBy("main", descending: true)
-        .orderBy("name", descending: false)
-        .where("project", isEqualTo: project)
-        .get();
+    QuerySnapshot query = await dbGoal.get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      Goal item = Goal.fromJson(data);
-      //await item.getIndicatorsPercent();
-      items.add(item);
+      items.add(Goal.fromJson(data));
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List> getGoalsByProject(String project) async {
+    List<Goal> items = [];
+
+    try {
+      QuerySnapshot query = await dbGoal
+          .orderBy("project")
+          .orderBy("main", descending: true)
+          .orderBy("name", descending: false)
+          .where("project", isEqualTo: project)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Goal item = Goal.fromJson(data);
+        //await item.getIndicatorsPercent();
+        items.add(item);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
 }
+
 
 //--------------------------------------------------------------
 //                     GOALS INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbGoalIndicator = db.collection("s4c_goals_indicators");
 
 class GoalIndicator {
   String id = "";
@@ -216,6 +214,9 @@ class GoalIndicator {
   String unit = "";
   String goal = "";
   Folder? folderObj;
+
+  static final CollectionReference dbGoalIndicator =
+      db.collection("s4c_goal_indicators");
 
   GoalIndicator(this.goal);
 
@@ -277,78 +278,80 @@ class GoalIndicator {
   }
 
   Future<String> getGoalName() async {
-    Goal g = Goal("");
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    g = Goal.fromJson(data);
+    // Goal g = Goal("");
+    // QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // g = Goal.fromJson(data);
+    Goal g = await Goal.byUuid(goal);
     return g.name;
   }
-}
 
-Future<List> getGoalIndicators() async {
-  List<GoalIndicator> items = [];
 
-  QuerySnapshot query = await dbGoalIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    GoalIndicator item = GoalIndicator.fromJson(data);
-    item.getFolder();
-    items.add(item);
-  }
-  return items;
-}
+  static Future<List> getGoalIndicators() async {
+    List<GoalIndicator> items = [];
 
-Future<List> getGoalIndicatorsByGoal(String goal) async {
-  List<GoalIndicator> items = [];
-
-  //QuerySnapshot query =
-  //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
-  try {
-    QuerySnapshot query = await dbGoalIndicator
-        .orderBy("goal")
-        .orderBy("order", descending: true)
-        .where("goal", isEqualTo: goal)
-        .get();
+    QuerySnapshot query = await dbGoalIndicator.get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       GoalIndicator item = GoalIndicator.fromJson(data);
-      await item.getFolder();
-      items.add(item);
-      //items.add(GoalIndicator.fromJson(data));
-    }
-  } catch (e) {
-    print(e);
-  }
-  return items;
-}
-
-Future<List> getGoalIndicatorsByCode(String code) async {
-  List<GoalIndicator> items = [];
-
-  try {
-    QuerySnapshot query =
-        await dbGoalIndicator.where("code", isEqualTo: code).get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      GoalIndicator item = GoalIndicator.fromJson(data);
-      await item.getFolder();
+      item.getFolder();
       items.add(item);
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List<GoalIndicator>> getGoalIndicatorsByGoal(String goal) async {
+    List<GoalIndicator> items = [];
+
+    //QuerySnapshot query =
+    //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
+    try {
+      QuerySnapshot query = await dbGoalIndicator
+          .orderBy("goal")
+          .orderBy("order", descending: true)
+          .where("goal", isEqualTo: goal)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        GoalIndicator item = GoalIndicator.fromJson(data);
+        await item.getFolder();
+        items.add(item);
+        //items.add(GoalIndicator.fromJson(data));
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
+
+  static Future<List> getGoalIndicatorsByCode(String code) async {
+    List<GoalIndicator> items = [];
+
+    try {
+      QuerySnapshot query =
+          await dbGoalIndicator.where("code", isEqualTo: code).get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        GoalIndicator item = GoalIndicator.fromJson(data);
+        await item.getFolder();
+        items.add(item);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
+
 }
 
 //--------------------------------------------------------------
 //                           RESULT
 //--------------------------------------------------------------
-CollectionReference dbResult = db.collection("s4c_results");
 
 class Result {
   String id = "";
@@ -360,6 +363,8 @@ class Result {
   String source = "";
   String goal = "";
   double indicatorsPercent = 0;
+
+  static final CollectionReference dbResult = db.collection("s4c_results");
 
   /*Result(this.id, this.uuid, this.name, this.description, this.indicator_text,
       this.indicator_percent, this.source, this.goal);*/
@@ -422,18 +427,20 @@ class Result {
     data["id"] = dbRes.id;
     result = Result.fromJson(data);
 
-    queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
-    final dbG = queryG.docs.first;
-    final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
-    dataGoal["id"] = dbG.id;
-    goal = Goal.fromJson(dataGoal);
+    // queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
+    // final dbG = queryG.docs.first;
+    // final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+    // dataGoal["id"] = dbG.id;
+    // goal = Goal.fromJson(dataGoal);
+    goal = await Goal.byUuid(result.goal);
 
-    queryP = await dbProject.where("uuid", isEqualTo: goal.project).get();
-    final dbProj = queryP.docs.first;
-    final Map<String, dynamic> dataProject =
-        dbProj.data() as Map<String, dynamic>;
-    dataProject["id"] = dbProj.id;
-    project = SProject.fromJson(dataProject);
+    // queryP = await dbProject.where("uuid", isEqualTo: goal.project).get();
+    // final dbProj = queryP.docs.first;
+    // final Map<String, dynamic> dataProject =
+    //     dbProj.data() as Map<String, dynamic>;
+    // dataProject["id"] = dbProj.id;
+    // project = SProject.fromJson(dataProject);
+    project = await SProject.byUuid(goal.project);
 
     return "${project.name} > ${goal.name} > ${result.name}";
   }
@@ -442,25 +449,27 @@ class Result {
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    try {
-      QuerySnapshot query =
-          await dbResultIndicator.where("result", isEqualTo: uuid).get();
-      for (var doc in query.docs) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        ResultIndicator indicator = ResultIndicator.fromJson(data);
-        try {
-          totalExpected += double.parse(indicator.expected);
-          // ignore: empty_catches
-        } catch (e) {}
-        try {
-          totalObtained += double.parse(indicator.obtained);
-          // ignore: empty_catches
-        } catch (e) {}
-      }
-    } catch (e) {
-      print(e);
-    }
+    // try {
+    //   QuerySnapshot query =
+    //       await dbResultIndicator.where("result", isEqualTo: uuid).get();
+    //   for (var doc in query.docs) {
+    //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //     data["id"] = doc.id;
+    //     ResultIndicator indicator = ResultIndicator.fromJson(data);
+    //     try {
+    //       totalExpected += double.parse(indicator.expected);
+    //       // ignore: empty_catches
+    //     } catch (e) {}
+    //     try {
+    //       totalObtained += double.parse(indicator.obtained);
+    //       // ignore: empty_catches
+    //     } catch (e) {}
+    //   }
+    // } catch (e) {
+    //   print(e);
+    // }
+    List<ResultIndicator> indicators =
+        await ResultIndicator.getResultIndicatorsByResult(uuid);
     if (totalExpected > 0) total = totalObtained / totalExpected;
     if (total > 1) total = 1;
     //indicatorsPercent = total;
@@ -468,54 +477,67 @@ class Result {
   }
 
   Future<String> getGoalName() async {
-    Goal g = Goal("");
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    g = Goal.fromJson(data);
+    // Goal g = Goal("");
+    // QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // g = Goal.fromJson(data);
+    Goal g = await Goal.byUuid(goal);
     return g.name;
   }
-}
 
-Future<List> getResults() async {
-  List<Result> items = [];
-
-  QuerySnapshot query = await dbResult.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Result.fromJson(data));
+  static Future<Result> byUuid(uuid) async {
+    Result item = Result("");
+    await dbResult.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Result.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getResultsByGoal(String goal) async {
-  List<Result> items = [];
+  static Future<List> getResults() async {
+    List<Result> items = [];
 
-  try {
-    QuerySnapshot query = await dbResult
-        //.orderBy("goal")
-        //.orderBy("main", descending: true)
-        .where("goal", isEqualTo: goal)
-        .get();
+    QuerySnapshot query = await dbResult.get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      Result item = Result.fromJson(data);
-      //await item.getIndicatorsPercent();
-      items.add(item);
+      items.add(Result.fromJson(data));
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List<Result>> getResultsByGoal(String goal) async {
+    List<Result> items = [];
+
+    try {
+      QuerySnapshot query = await dbResult
+          //.orderBy("goal")
+          //.orderBy("main", descending: true)
+          .where("goal", isEqualTo: goal)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Result item = Result.fromJson(data);
+        //await item.getIndicatorsPercent();
+        items.add(item);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
+
 }
+
 
 //--------------------------------------------------------------
 //                     RESULT INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbResultIndicator = db.collection("s4c_result_indicators");
 
 class ResultIndicator {
   String id = "";
@@ -527,6 +549,9 @@ class ResultIndicator {
   String obtained = "";
   String unit = "";
   String result = "";
+
+  static final CollectionReference dbResultIndicator =
+      db.collection("s4c_result_indicators");
 
   ResultIndicator(this.result);
 
@@ -576,46 +601,58 @@ class ResultIndicator {
   }
 
   Future<String> getResultName() async {
-    Result r = Result("");
-    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    r = Result.fromJson(data);
+    // Result r = Result("");
+    // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // r = Result.fromJson(data);
+    Result r = await Result.byUuid(result);
     return r.name;
   }
-}
 
-Future<List> getResultIndicators() async {
-  List<ResultIndicator> items = [];
-
-  QuerySnapshot query = await dbResultIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = ActivityIndicator.fromJson(data);
-    items.add(ResultIndicator.fromJson(data));
+  static Future<ResultIndicator> byUuid(uuid) async {
+    ResultIndicator item = ResultIndicator("");
+    await dbResultIndicator.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ResultIndicator.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getResultIndicatorsByResult(String result) async {
-  List<ResultIndicator> items = [];
+  static Future<List<ResultIndicator>> getResultIndicators() async {
+    List<ResultIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbResultIndicator.where("result", isEqualTo: result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultIndicator.fromJson(data));
+    QuerySnapshot query = await dbResultIndicator.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = ActivityIndicator.fromJson(data);
+      items.add(ResultIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
+  static Future<List<ResultIndicator>> getResultIndicatorsByResult(String result) async {
+    List<ResultIndicator> items = [];
+
+    QuerySnapshot query =
+        await dbResultIndicator.where("result", isEqualTo: result).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultIndicator.fromJson(data));
+    }
+    return items;
+  }
 }
+
 
 //--------------------------------------------------------------
 //                           ACTIVITY
 //--------------------------------------------------------------
-CollectionReference dbActivity = db.collection("s4c_activities");
 
 class Activity {
   String id = "";
@@ -626,6 +663,8 @@ class Activity {
   DateTime iniDate = DateTime.now();
   DateTime endDate = DateTime.now();
   double indicatorsPercent = 0;
+
+  static final CollectionReference dbActivity = db.collection("s4c_activities");
 
   Activity(this.result);
 
@@ -671,24 +710,29 @@ class Activity {
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
-    QuerySnapshot query =
-        await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
+    // QuerySnapshot query =
+    //     await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
+    // double totalExpected = 0;
+    // double totalObtained = 0;
+    // double total = 0;
+    // for (var doc in query.docs) {
+    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //   data["id"] = doc.id;
+    //   ActivityIndicator indicator = ActivityIndicator.fromJson(data);
+    //   try {
+    //     totalExpected += double.parse(indicator.expected);
+    //     // ignore: empty_catches
+    //   } catch (e) {}
+    //   try {
+    //     totalObtained += double.parse(indicator.obtained);
+    //     // ignore: empty_catches
+    //   } catch (e) {}
+    // }
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      ActivityIndicator indicator = ActivityIndicator.fromJson(data);
-      try {
-        totalExpected += double.parse(indicator.expected);
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        totalObtained += double.parse(indicator.obtained);
-        // ignore: empty_catches
-      } catch (e) {}
-    }
+    List<ActivityIndicator> indicators =
+        await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
     if (totalExpected > 0) total = totalObtained / totalExpected;
     if (total > 1) total = 1;
     //indicatorsPercent = total;
@@ -696,49 +740,62 @@ class Activity {
   }
 
   Future<String> getResultName() async {
-    Result r = Result("");
-    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    r = Result.fromJson(data);
+    // Result r = Result("");
+    // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // r = Result.fromJson(data);
+    Result r = await Result.byUuid(result);
     return r.name;
   }
-}
 
-Future<List> getActivities() async {
-  List<Activity> items = [];
-
-  QuerySnapshot query = await dbActivity.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = Activity.fromJson(data);
-    items.add(Activity.fromJson(data));
+  static Future<Activity> byUuid(uuid) async {
+    Activity item = Activity("");
+    await dbActivity.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = Activity.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getActivitiesByResult(result) async {
-  List<Activity> items = [];
 
-  QuerySnapshot query =
-      await dbActivity.where("result", isEqualTo: result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Activity item = Activity.fromJson(data);
-    //await item.getIndicatorsPercent();
-    items.add(item);
+  static Future<List> getActivities() async {
+    List<Activity> items = [];
+
+    QuerySnapshot query = await dbActivity.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = Activity.fromJson(data);
+      items.add(Activity.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
+  static Future<List> getActivitiesByResult(result) async {
+    List<Activity> items = [];
+
+    QuerySnapshot query =
+        await dbActivity.where("result", isEqualTo: result).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Activity item = Activity.fromJson(data);
+      //await item.getIndicatorsPercent();
+      items.add(item);
+    }
+    return items;
+  }
+
 }
 
 //--------------------------------------------------------------
 //                     ACTIVITY INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbActivityIndicator =
-    db.collection("s4c_activity_indicators");
+
 
 class ActivityIndicator {
   String id = "";
@@ -750,6 +807,9 @@ class ActivityIndicator {
   String obtained = "";
   String unit = "";
   String activity = "";
+
+  static final CollectionReference dbActivityIndicator =
+      db.collection("s4c_activity_indicators");
 
   ActivityIndicator(this.activity);
 
@@ -799,71 +859,79 @@ class ActivityIndicator {
   }
 
   Future<String> getActivityName() async {
-    Activity a = Activity("");
-    QuerySnapshot query =
-        await dbActivity.where("uuid", isEqualTo: activity).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    a = Activity.fromJson(data);
+    // Activity a = Activity("");
+    // QuerySnapshot query =
+    //     await dbActivity.where("uuid", isEqualTo: activity).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // a = Activity.fromJson(data);
+    Activity a = await Activity.byUuid(activity);
     return a.name;
   }
-}
 
-Future<List> getActivityIndicators() async {
-  List<ActivityIndicator> items = [];
+  static Future<List> getActivityIndicators() async {
+    List<ActivityIndicator> items = [];
 
-  QuerySnapshot query = await dbActivityIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = ActivityIndicator.fromJson(data);
-    items.add(ActivityIndicator.fromJson(data));
+    QuerySnapshot query = await dbActivityIndicator.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = ActivityIndicator.fromJson(data);
+      items.add(ActivityIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getActivityIndicatorsByActivity(String _activity) async {
-  List<ActivityIndicator> items = [];
+  static Future<List<ActivityIndicator>> getActivityIndicatorsByActivity(String _activity) async {
+    List<ActivityIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbActivityIndicator.where("activity", isEqualTo: _activity).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ActivityIndicator.fromJson(data));
+    QuerySnapshot query =
+        await dbActivityIndicator.where("activity", isEqualTo: _activity).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ActivityIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
 }
+
 
 Future<String> getProjectByActivityIndicator(String _uuid) async {
-  QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
-  final dbAct = query.docs.first;
-  final Map<String, dynamic> data = dbAct.data() as Map<String, dynamic>;
-  data["id"] = dbAct.id;
-  Activity activity = Activity.fromJson(data);
+  // QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
+  // final dbAct = query.docs.first;
+  // final Map<String, dynamic> data = dbAct.data() as Map<String, dynamic>;
+  // data["id"] = dbAct.id;
+  // Activity activity = Activity.fromJson(data);
+  Activity activity = await Activity.byUuid(_uuid);
 
-  QuerySnapshot queryR =
-      await dbResult.where("uuid", isEqualTo: activity.result).get();
-  final dbRes = queryR.docs.first;
-  final Map<String, dynamic> dataResult = dbRes.data() as Map<String, dynamic>;
-  dataResult["id"] = dbRes.id;
-  Result result = Result.fromJson(dataResult);
+  // QuerySnapshot queryR =
+  //     await dbResult.where("uuid", isEqualTo: activity.result).get();
+  // final dbRes = queryR.docs.first;
+  // final Map<String, dynamic> dataResult = dbRes.data() as Map<String, dynamic>;
+  // dataResult["id"] = dbRes.id;
+  // Result result = Result.fromJson(dataResult);
+  Result result = await Result.byUuid(activity.result);
 
-  QuerySnapshot queryG =
-      await dbGoal.where("uuid", isEqualTo: result.goal).get();
-  final dbG = queryG.docs.first;
-  final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
-  dataGoal["id"] = dbG.id;
-  Goal goal = Goal.fromJson(dataGoal);
+  // QuerySnapshot queryG =
+  //     await dbGoal.where("uuid", isEqualTo: result.goal).get();
+  // final dbG = queryG.docs.first;
+  // final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+  // dataGoal["id"] = dbG.id;
+  // Goal goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot queryP =
-      await dbProject.where("uuid", isEqualTo: goal.project).get();
-  final dbProj = queryP.docs.first;
-  final Map<String, dynamic> dataProject =
-      dbProj.data() as Map<String, dynamic>;
-  dataProject["id"] = dbProj.id;
-  SProject project = SProject.fromJson(dataProject);
+  Goal goal = await Goal.byUuid(result.goal);
+
+  // QuerySnapshot queryP =
+  //     await dbProject.where("uuid", isEqualTo: goal.project).get();
+  // final dbProj = queryP.docs.first;
+  // final Map<String, dynamic> dataProject =
+  //     dbProj.data() as Map<String, dynamic>;
+  // dataProject["id"] = dbProj.id;
+  // SProject project = SProject.fromJson(dataProject);
+  SProject project = await SProject.byUuid(goal.project);
 
   return "${project.name} > ${goal.name} > ${result.name} > ${activity.name}";
 }
@@ -871,13 +939,15 @@ Future<String> getProjectByActivityIndicator(String _uuid) async {
 //--------------------------------------------------------------
 //                       RESULT TASK
 //--------------------------------------------------------------
-CollectionReference dbResultTask = db.collection("s4c_result_tasks");
 
 class ResultTask {
   String id = "";
   String uuid = "";
   String name = "";
   String result = "";
+
+  static final CollectionReference dbResultTask =
+      db.collection("s4c_result_tasks");
 
   ResultTask(this.result);
 
@@ -909,55 +979,61 @@ class ResultTask {
   Future<void> delete() async {
     await dbResultTask.doc(id).delete();
   }
-}
 
-Future<List> getResultTasks() async {
-  List<ResultTask> items = [];
 
-  QuerySnapshot query = await dbResultTask.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultTask.fromJson(data));
+  static Future<List> getResultTasks() async {
+    List<ResultTask> items = [];
+
+    QuerySnapshot query = await dbResultTask.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultTask.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getResultTasksByResult(String _result) async {
-  List<ResultTask> items = [];
+  static Future<List> getResultTasksByResult(String _result) async {
+    List<ResultTask> items = [];
 
-  QuerySnapshot query =
-      await dbResultTask.where("result", isEqualTo: _result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultTask.fromJson(data));
+    QuerySnapshot query =
+        await dbResultTask.where("result", isEqualTo: _result).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultTask.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
 }
 
 Future<String> getProjectByResultTask(String _uuid) async {
-  QuerySnapshot query = await dbResult.where("uuid", isEqualTo: _uuid).get();
-  final _dbResult = query.docs.first;
-  final Map<String, dynamic> dataResult =
-      _dbResult.data() as Map<String, dynamic>;
-  dataResult["id"] = _dbResult.id;
-  Result _result = Result.fromJson(dataResult);
+  // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: _uuid).get();
+  // final _dbResult = query.docs.first;
+  // final Map<String, dynamic> dataResult =
+  //     _dbResult.data() as Map<String, dynamic>;
+  // dataResult["id"] = _dbResult.id;
+  // Result _result = Result.fromJson(dataResult);
+  Result _result = await Result.byUuid(_uuid);
 
-  QuerySnapshot queryG =
-      await dbGoal.where("uuid", isEqualTo: _result.goal).get();
-  final _dbGoal = queryG.docs.first;
-  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
-  dataGoal["id"] = _dbGoal.id;
-  Goal _goal = Goal.fromJson(dataGoal);
+  // QuerySnapshot queryG =
+  //     await dbGoal.where("uuid", isEqualTo: _result.goal).get();
+  // final _dbGoal = queryG.docs.first;
+  // final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
+  // dataGoal["id"] = _dbGoal.id;
+  // Goal _goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot queryP =
-      await dbProject.where("uuid", isEqualTo: _goal.project).get();
-  final _dbProject = queryP.docs.first;
-  final Map<String, dynamic> dataProject =
-      _dbProject.data() as Map<String, dynamic>;
-  dataProject["id"] = _dbProject.id;
-  SProject _project = SProject.fromJson(dataProject);
+  Goal _goal = await Goal.byUuid(_result.goal);
+
+  // QuerySnapshot queryP =
+  //     await dbProject.where("uuid", isEqualTo: _goal.project).get();
+  // final _dbProject = queryP.docs.first;
+  // final Map<String, dynamic> dataProject =
+  //     _dbProject.data() as Map<String, dynamic>;
+  // dataProject["id"] = _dbProject.id;
+  // SProject _project = SProject.fromJson(dataProject);
+  SProject _project = await SProject.byUuid(_goal.project);
 
   return "${_project.name} > ${_goal.name} > ${_result.name}";
 }

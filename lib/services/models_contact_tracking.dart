@@ -8,7 +8,6 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                      CONTACTS TRACKING
 //--------------------------------------------------------------
-CollectionReference dbContactTracking = db.collection("s4c_contact_tracking");
 
 class ContactTracking {
   String id = "";
@@ -23,6 +22,8 @@ class ContactTracking {
   String topics = "";
   String agreements = "";
   String nextSteps = "";
+
+  static final dbContactTracking = db.collection("contactTracking");
 
   ContactTracking(this.contact);
 
@@ -83,36 +84,38 @@ class ContactTracking {
 
     return contactTracking;
   }
-}
 
-Future<List> getContactTrackings() async {
-  List<ContactTracking> items = [];
-  QuerySnapshot query = await dbContactTracking.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ContactTracking.fromJson(data));
-  }
-  return items;
-}
 
-Future<List> getTrakingsByContact(String contact) async {
-  List<ContactTracking> items = [];
-
-  try {
-    QuerySnapshot query = await dbContactTracking
-        .where("contact", isEqualTo: contact)
-        .orderBy('date', descending: true)
-        .get();
-    /*QuerySnapshot query =
-      await dbContactTracking.where("contact", isEqualTo: contact).get();*/
+  static Future<List> getContactTrackings() async {
+    List<ContactTracking> items = [];
+    QuerySnapshot query = await dbContactTracking.get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       items.add(ContactTracking.fromJson(data));
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List> getTrakingsByContact(String contact) async {
+    List<ContactTracking> items = [];
+
+    try {
+      QuerySnapshot query = await dbContactTracking
+          .where("contact", isEqualTo: contact)
+          .orderBy('date', descending: true)
+          .get();
+      /*QuerySnapshot query =
+        await dbContactTracking.where("contact", isEqualTo: contact).get();*/
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        items.add(ContactTracking.fromJson(data));
+      }
+    } catch (e) {
+      print(e);
+    }
+    return items;
+  }
+
 }

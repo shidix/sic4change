@@ -18,7 +18,6 @@ String getRandomString(_length) {
 //--------------------------------------------------------------
 //                           FOLDERS
 //--------------------------------------------------------------
-CollectionReference dbFolder = db.collection("s4c_folders");
 
 class Folder {
   String id = "";
@@ -26,6 +25,8 @@ class Folder {
   String name = "";
   String loc = "";
   String parent = "";
+
+  static CollectionReference dbFolder = db.collection("s4c_folders");
 
   Folder(this.name, this.parent);
 
@@ -63,7 +64,7 @@ class Folder {
 
   Future<bool> haveChildren() async {
     List folders = await getFolders(uuid);
-    List files = await getFiles(uuid);
+    List files = await SFile.getFiles(uuid);
     if ((folders.isNotEmpty) || (files.isNotEmpty)) {
       return true;
     } else {
@@ -95,51 +96,51 @@ class Folder {
       return Folder.fromJson(data);
     }
   }
-}
 
-Future<List> getFolders(String parent_uuid) async {
-  List folders = [];
-  QuerySnapshot? queryFolders;
+  static Future<List> getFolders(String parentUuid) async {
+    List folders = [];
+    QuerySnapshot? queryFolders;
 
-  try {
-    if (parent_uuid != "") {
-      queryFolders = await dbFolder
-          .where("parent", isEqualTo: parent_uuid)
-          .orderBy("name", descending: false)
-          .get();
-    } else {
-      queryFolders = await dbFolder
-          .where("parent", isEqualTo: "")
-          .orderBy("name", descending: false)
-          .get();
+    try {
+      if (parentUuid != "") {
+        queryFolders = await dbFolder
+            .where("parent", isEqualTo: parentUuid)
+            .orderBy("name", descending: false)
+            .get();
+      } else {
+        queryFolders = await dbFolder
+            .where("parent", isEqualTo: "")
+            .orderBy("name", descending: false)
+            .get();
+      }
+      for (var doc in queryFolders.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        final folder = Folder.fromJson(data);
+        folders.add(folder);
+      }
+    } catch (e) {
+      print(e);
     }
-    for (var doc in queryFolders.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final folder = Folder.fromJson(data);
-      folders.add(folder);
-    }
-  } catch (e) {
-    print(e);
+    return folders;
   }
-  return folders;
-}
 
-Future<Folder?> getFolderByUuid(String uuid) async {
-  QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: uuid).get();
-  if (query.docs.isEmpty) {
-    return null;
+  static Future<Folder?> getFolderByUuid(String uuid) async {
+    QuerySnapshot query = await dbFolder.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      return null;
+    }
+    final doc = query.docs.first;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    return Folder.fromJson(data);
   }
-  final doc = query.docs.first;
-  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  data["id"] = doc.id;
-  return Folder.fromJson(data);
+
 }
 
 //--------------------------------------------------------------
 //                           FILES
 //--------------------------------------------------------------
-CollectionReference dbFile = db.collection("s4c_files");
 
 class SFile {
   String id = "";
@@ -148,6 +149,9 @@ class SFile {
   String folder = "";
   String link = "";
   String loc = "";
+
+  static final CollectionReference dbFile =
+      db.collection("s4c_files");
 
   SFile(this.name, this.folder, this.link);
 
@@ -209,25 +213,31 @@ class SFile {
       return SFile.fromJson(data);
     }
   }
+
+
+  static Future<List> getFiles(String folder) async {
+    List files = [];
+    QuerySnapshot? query;
+
+    // if (folder != "") {
+    //   query = await dbFile.where("folder", isEqualTo: folder).get();
+    // } else {
+    //   query = await dbFile.where("folder", isEqualTo: "").get();
+    // }
+    query = await dbFile
+        .where("folder", isEqualTo: folder)
+        .orderBy("name", descending: false)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final file = SFile.fromJson(data);
+      files.add(file);
+    }
+    return files;
+  }
 }
 
-Future<List> getFiles(String folder) async {
-  List files = [];
-  QuerySnapshot? query;
-
-  if (folder != "") {
-    query = await dbFile.where("folder", isEqualTo: folder).get();
-  } else {
-    query = await dbFile.where("folder", isEqualTo: "").get();
-  }
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final file = SFile.fromJson(data);
-    files.add(file);
-  }
-  return files;
-}
 
 /*Future<String> getLoc() async {
   QuerySnapshot? query;

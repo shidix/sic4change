@@ -182,7 +182,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             /*Icon(org?.isFinancier()),
             Icon(org?.isPartner()),
             Icon(org?.isPublic()),*/
-            customText(org?.countryObj.name, 16),
+            customText(org?.countryObj?.name, 16),
             customText(org?.domain, 16),
           ])
         ]);
@@ -274,8 +274,8 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   void callEditOrgDialog(context, Map<String, dynamic> args) async {
     Organization org = args["org"];
     OrganizationBilling billing = args["billing"];
-    List<KeyValue> types = await getOrganizationsTypeHash();
-    List<KeyValue> countries = await getCountriesHash();
+    List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
+    List<KeyValue> countries = await Country.getCountriesHash();
     orgEditDialog(context, org, billing, types, countries);
   }
 

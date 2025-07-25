@@ -27,7 +27,6 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
-  //User user = FirebaseAuth.instance.currentUser!;
 
   void loadOrgs() async {
     setState(() {
@@ -35,14 +34,12 @@ class _ContactsPageState extends State<ContactsPage> {
     });
 
     if (allOrgs.isEmpty) {
-      await getOrganizations().then((val) {
-        allOrgs = val;
-        orgs = val;
-
-        setState(() {
-          orgsLoading = false;
-        });
+      orgs = await Organization.getOrganizations();
+      allOrgs = orgs;
+      setState(() {
+        orgsLoading = false;
       });
+
     } else {
       orgs = allOrgs;
       orgsLoading = false;
@@ -54,33 +51,6 @@ class _ContactsPageState extends State<ContactsPage> {
     }
   }
 
-  // void loadContacts(value) async {
-  //   setState(() {
-  //     contactsLoading = true;
-  //   });
-
-  //   if (value != "-1") {
-  //     await getContactsByOrg(value).then((val) {
-  //       contacts = val;
-  //       setState(() {
-  //         contactsLoading = false;
-  //       });
-  //     });
-  //   } else {
-  //     await getContacts().then((val) {
-  //       contacts = val;
-  //       setState(() {
-  //         contactsLoading = false;
-  //       });
-  //     });
-  //   }
-  //   for (Contact c in contacts) {
-  //     await c.loadObjs();
-  //   }
-  //   if (mounted) {
-  //     setState(() {});
-  //   }
-  // }
 
   void findOrganizations(value) async {
     setState(() {
@@ -582,9 +552,9 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void callEditDialog(context, Map<String, dynamic> args) async {
     Contact contact = args["contact"];
-    List<KeyValue> organizations = await getOrganizationsHash();
-    List<KeyValue> companies = await getCompaniesHash();
-    List<KeyValue> positions = await getPositionsHash();
+    List<KeyValue> organizations = await Organization.getOrganizationsHash();
+    List<KeyValue> companies = await Company.getCompaniesHash();
+    List<KeyValue> positions = await Position.getPositionsHash();
     _contactEditDialog(context, contact, organizations, companies, positions);
   }
 

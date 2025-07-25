@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+// import 'package:googleapis/dfareporting/v4.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
@@ -225,7 +226,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectDatesAudit(context, project) {
     return FutureBuilder(
-        future: getProjectDatesAuditByProject(project.uuid),
+        future: ProjectDatesAudit.getProjectDatesAuditByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             List dates = snapshot.data!;
@@ -277,7 +278,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectDatesEval(context, project) {
     return FutureBuilder(
-        future: getProjectDatesEvalByProject(project.uuid),
+        future: ProjectDatesEval.getProjectDatesEvalByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             List dates = snapshot.data!;
@@ -330,7 +331,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectTracing(context, project) {
     return FutureBuilder(
-        future: getProjectDatesTracingByProject(project.uuid),
+        future: ProjectDatesTracing.getProjectDatesTracingByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             List dates = snapshot.data!;
@@ -521,7 +522,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(
-        future: getProjectLocationByProject(project.uuid),
+        future: ProjectLocation.getProjectLocationByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             var loc = snapshot.data!;
@@ -647,11 +648,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callProjectEditDialog(context, project) async {
-    List<KeyValue> ambits = await getAmbitsHash();
-    List<KeyValue> types = await getProjectTypesHash();
-    List<KeyValue> status = await getProjectStatusHash();
-    List<KeyValue> contacts = await getContactsByOrgHash(s4cUuid);
-    List<KeyValue> programmes = await getProgrammesHash();
+    List<KeyValue> ambits = await Ambit.getAmbitsHash();
+    List<KeyValue> types = await ProjectType.getProjectTypesHash();
+    List<KeyValue> status = await ProjectStatus.getProjectStatusHash();
+    List<KeyValue> contacts = await Contact.getContactsByOrgHash(s4cUuid);
+    List<KeyValue> programmes = await Programme.getProgrammesHash();
     editProjectDialog(
         context, project, ambits, types, status, contacts, programmes);
   }
@@ -899,7 +900,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void callFinancierEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
     //List<KeyValue> financiers = await getOrganizationsHash();
-    List<KeyValue> financiers = await getFinanciersHash();
+    List<KeyValue> financiers = await Organization.getFinanciersHash();
     editProjectFinancierDialog(context, project, financiers);
   }
 
@@ -959,7 +960,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     SProject project = args["project"];
     //List<KeyValue> contacts = await getContactsHash();
     //List<KeyValue> orgs = await getOrganizationsHash();
-    List<KeyValue> orgs = await getPartnersHash();
+    List<KeyValue> orgs = await Organization.getPartnersHash();
     editProjectPartnerDialog(context, project, orgs);
     //editProjectPartnerDialog(context, project, contacts);
   }
@@ -1367,11 +1368,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callLocationEditDialog(context, project) async {
-    List<KeyValue> countries = await getCountriesHash();
-    List<KeyValue> provinces = await getProvincesHash();
-    List<KeyValue> regions = await getRegionsHash();
-    List<KeyValue> towns = await getTownsHash();
-    await getProjectLocationByProject(project.uuid).then((value) async {
+    List<KeyValue> countries = await Country.getCountriesHash();
+    List<KeyValue> provinces = await Province.getProvincesHash();
+    List<KeyValue> regions = await Region.getRegionsHash();
+    List<KeyValue> towns = await Town.getTownsHash();
+    await ProjectLocation.getProjectLocationByProject(project.uuid).then((value) async {
       editProjectLocationDialog(
           context, value, project, countries, provinces, regions, towns);
     });

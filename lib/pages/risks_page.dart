@@ -41,7 +41,7 @@ class _RisksPageState extends State<RisksPage> {
   List goals = [];
   List<Row> containerRisk = [];
   void loadRisks(value) async {
-    await getRisksByProject(value).then((val) {
+    await Risk.getRisksByProject(value).then((val) {
       risks = val;
       for (Risk risk in risks) {
         if (!risk.extraInfo.containsKey("mitigations")) {
@@ -54,9 +54,10 @@ class _RisksPageState extends State<RisksPage> {
   }
 
   void loadGoals() async {
-    await getGoalsByProject(project!.uuid).then((val) {
-      goals = val;
-    });
+    // await getGoalsByProject(project!.uuid).then((val) {
+    //   goals = val;
+    // });
+    goals = await Goal.getGoalsByProject(project!.uuid);
     setState(() {});
   }
 
@@ -74,11 +75,14 @@ class _RisksPageState extends State<RisksPage> {
       }
     });
 
-    getGoalsByProject(project!.uuid).then((val) {
+    Goal.getGoalsByProject(project!.uuid).then((val) {
       goals = val;
+      if (mounted) {
+        setState(() {});
+      }
     });
 
-    getRisksByProject(project!.uuid).then((val) {
+    Risk.getRisksByProject(project!.uuid).then((val) {
       risks = val;
       if (mounted) {
         setState(() {});

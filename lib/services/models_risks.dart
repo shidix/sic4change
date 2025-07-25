@@ -4,12 +4,10 @@ import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-CollectionReference dbProject = db.collection("s4c_projects");
 
 //--------------------------------------------------------------
 //                           RISKS
 //--------------------------------------------------------------
-CollectionReference dbRisk = db.collection("s4c_risks");
 
 class Risk {
   String id = "";
@@ -19,6 +17,9 @@ class Risk {
   String occur = "No";
   String project = "";
   Map<String, dynamic> extraInfo = {};
+
+  static final CollectionReference dbRisk =
+      db.collection("s4c_risks");
 
   Risk(this.project);
 
@@ -111,28 +112,30 @@ class Risk {
     createLog(
         "Borrado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
   }
-}
 
-Future<List> getRisks() async {
-  List<Risk> items = [];
 
-  QuerySnapshot query = await dbRisk.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Risk.fromJson(data));
+  static Future<List> getRisks() async {
+    List<Risk> items = [];
+
+    QuerySnapshot query = await dbRisk.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Risk.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getRisksByProject(String project) async {
-  List<Risk> items = [];
+  static Future<List> getRisksByProject(String project) async {
+    List<Risk> items = [];
 
-  QuerySnapshot query = await dbRisk.where("project", isEqualTo: project).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Risk.fromJson(data));
+    QuerySnapshot query = await dbRisk.where("project", isEqualTo: project).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Risk.fromJson(data));
+    }
+    return items;
   }
-  return items;
 }
+

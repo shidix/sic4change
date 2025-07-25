@@ -57,29 +57,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     //setState(() {});
   }
 
-  /*Future<List<GoogleAPI.Event>> getGoogleEventsData() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-    final GoogleAPIClient httpClient =
-        GoogleAPIClient(await googleUser!.authHeaders);
-
-    final GoogleAPI.CalendarApi calendarApi = GoogleAPI.CalendarApi(httpClient);
-    final GoogleAPI.Events calEvents = await calendarApi.events.list(
-      "primary",
-    );
-    final List<GoogleAPI.Event> appointments = <GoogleAPI.Event>[];
-    if (calEvents.items != null) {
-      for (int i = 0; i < calEvents.items!.length; i++) {
-        final GoogleAPI.Event event = calEvents.items![i];
-        if (event.start == null) {
-          continue;
-        }
-        appointments.add(event);
-      }
-    }
-
-    return appointments;
-  }*/
+ 
 
   @override
   void initState() {
@@ -246,15 +224,15 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   }
 
   void callEditDialog(context, HashMap args) async {
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

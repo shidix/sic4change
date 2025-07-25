@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-CollectionReference dbEvaluation = db.collection("s4c_evaluation");
 
 class Evaluation extends Object {
   String id = "";
@@ -14,6 +13,9 @@ class Evaluation extends Object {
 
   List<dynamic> conclussions = [];
   List<dynamic> requirements = [];
+
+  static CollectionReference dbEvaluation =
+      db.collection('evaluations');
 
   Evaluation(this.projectUuid);
 
@@ -85,126 +87,3 @@ class Evaluation extends Object {
     save();
   }
 }
-
-// class EvaluationConclussion extends Object {
-//   int index;
-//   String description = "";
-//   bool isRefML = false;
-//   String unit = "";
-//   int relevance = 0;
-//   int feasibility = 0;
-//   String recipientResponse =""; 
-//   String improvementAction = "";
-//   DateTime deadline = DateTime.now();
-//   String verificationMethod = "";
-//   String followUp = "";
-//   DateTime followUpDate = DateTime.now();
-//   String supervision = "";
-//   String observations = "";
-
-//   EvaluationConclussion(this.index);
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'description': description,
-//       'isRefML': isRefML,
-//       'unit': unit,
-//       'relevance': relevance,
-//       'feasibility': feasibility,
-//       'recipientResponse': recipientResponse,
-//       'improvementAction': improvementAction,
-//       'deadline': deadline,
-//       'verificationMethod': verificationMethod,
-//       'followUp': followUp,
-//       'followUpDate': followUpDate,
-//       'supervision': supervision,
-//       'observations': observations,
-//     };
-//   }
-
-//   // fromJson
-//   EvaluationConclussion.fromJson(Map<String, dynamic> json, this.index) {
-//     description = json['description'];
-//     isRefML = json['isRefML'];
-//     unit = json['unit'];
-//     relevance = json['relevance'];
-//     feasibility = json['feasibility'];
-//     recipientResponse = json['recipientResponse'];
-//     improvementAction = json['improvementAction'];
-//     deadline = json['deadline'].toDate();
-//     verificationMethod = json['verificationMethod'];
-//     followUp = json['followUp'];
-//     followUpDate = json['followUpDate'].toDate();
-//     supervision = json['supervision'];
-//     observations = json['observations'];
-//   }
-
-
-//   @override
-//   String toString() {
-//     return toJson().toString();
-//   }
-// }
-
-// class EvaluationRequirement extends Object {
-//   int index;
-//   String stakeholder = "";
-//   String description = "";
-//   bool isRefML = false;
-//   String unit = "";
-//   int relevance = 0;
-//   int feasibility = 0;
-//   String recipientResponse =""; 
-//   String improvementAction = "";
-//   DateTime deadline = DateTime.now();
-//   String verificationMethod = "";
-//   String followUp = "";
-//   DateTime followUpDate = DateTime.now();
-//   String supervision = "";
-//   String observations = "";
-
-//   EvaluationRequirement(this.index);
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'stakeholder': stakeholder,
-//       'description': description,
-//       'isRefML': isRefML,
-//       'unit': unit,
-//       'relevance': relevance,
-//       'feasibility': feasibility,
-//       'recipientResponse': recipientResponse,
-//       'improvementAction': improvementAction,
-//       'deadline': deadline,
-//       'verificationMethod': verificationMethod,
-//       'followUp': followUp,
-//       'followUpDate': followUpDate,
-//       'supervision': supervision,
-//       'observations': observations,
-//     };
-//   }
-
-//   // fromJson
-//   EvaluationRequirement.fromJson(Map<String, dynamic> json, this.index) {
-//     stakeholder = json['stakeholder'];
-//     description = json['description'];
-//     isRefML = json['isRefML'];
-//     unit = json['unit'];
-//     relevance = json['relevance'];
-//     feasibility = json['feasibility'];
-//     recipientResponse = json['recipientResponse'];
-//     improvementAction = json['improvementAction'];
-//     deadline = json['deadline'].toDate();
-//     verificationMethod = json['verificationMethod'];
-//     followUp = json['followUp'];
-//     followUpDate = json['followUpDate'].toDate();
-//     supervision = json['supervision'];
-//     observations = json['observations'];
-//   }
-
-
-//   @override
-//   String toString() {
-//     return toJson().toString();
-//   }
-// }

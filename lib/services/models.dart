@@ -21,7 +21,6 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                           PROJECTS
 //--------------------------------------------------------------
-CollectionReference dbProject = db.collection("s4c_projects");
 
 class SProject {
   String id = "";
@@ -55,19 +54,12 @@ class SProject {
 
   double dblbudget = 0;
 
+  static final CollectionReference dbProject =
+      db.collection("s4c_projects");
+
   SProject(
     this.name,
   );
-  /*SProject(this.uuid, this.name,
-      [this.description = "",
-      this.type = "",
-      this.budget = "",
-      this.manager = "",
-      this.programme = "",
-      this.announcement = "",
-      this.ambit = "",
-      this.audit = false,
-      this.evaluation = false]);*/
 
   factory SProject.fromJson(Map<String, dynamic> json) {
     SProject item = SProject(json['name']);
@@ -191,6 +183,18 @@ class SProject {
     return items;
   }
 
+  static Future<List<SProject>> byProjectType(List<ProjectType> ptList) async {
+    List<SProject> items = [];
+    if (ptList.isEmpty) return items;
+    QuerySnapshot query = await dbProject.where("type", whereIn: ptList.map((e) => e.uuid).toList()).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = SProject.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
   Future<void> updateProjectFinanciers() async {
     await dbProject.doc(id).update({"financiers": financiers});
   }
@@ -261,25 +265,21 @@ class SProject {
 
   Future<ProjectDates> getDates() async {
     if (datesObj.project == "") {
-      datesObj = await getProjectDatesByProject(uuid);
+      datesObj = await ProjectDates.getProjectDatesByProject(uuid);
     }
     return datesObj;
   }
 
   Future<ProjectLocation> getLocation() async {
     if (locationObj.project == "") {
-      locationObj = await getProjectLocationByProject(uuid);
+      locationObj = await ProjectLocation.getProjectLocationByProject(uuid);
     }
     return locationObj;
   }
 
   Future<Ambit> getAmbit() async {
     try {
-      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Ambit.fromJson(data);
+      return await Ambit.byUuid(ambit);
     } catch (e) {
       return Ambit("");
     }
@@ -288,12 +288,13 @@ class SProject {
   Future<ProjectType> getProjectType() async {
     //if (typeObj.name == "") {
     try {
-      QuerySnapshot query =
-          await dbProjectType.where("uuid", isEqualTo: type).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ProjectType.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProjectType.where("uuid", isEqualTo: type).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ProjectType.fromJson(data);
+      return await ProjectType.byUuid(type);
     } catch (e) {
       return ProjectType("");
     }
@@ -305,12 +306,13 @@ class SProject {
   Future<ProjectStatus> getProjectStatus() async {
     //if (statusObj.name == "") {
     try {
-      QuerySnapshot query =
-          await dbProjectStatus.where("uuid", isEqualTo: status).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ProjectStatus.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProjectStatus.where("uuid", isEqualTo: status).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ProjectStatus.fromJson(data);
+      return await ProjectStatus.byUuid(status);
     } catch (e) {
       return ProjectStatus("");
     }
@@ -321,12 +323,13 @@ class SProject {
 
   Future<Contact> getManager() async {
     try {
-      QuerySnapshot query =
-          await dbContacts.where("uuid", isEqualTo: manager).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Contact.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbContacts.where("uuid", isEqualTo: manager).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Contact.fromJson(data);
+      return Contact.byUuid(manager);
     } catch (e) {
       return Contact("");
     }
@@ -348,12 +351,13 @@ class SProject {
 
   Future<Programme> getProgramme() async {
     try {
-      QuerySnapshot query =
-          await dbProgramme.where("uuid", isEqualTo: programme).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Programme.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProgramme.where("uuid", isEqualTo: programme).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Programme.fromJson(data);
+      return await Programme.byUuid(programme);
     } catch (e) {
       print(e);
       return Programme("");
@@ -392,11 +396,12 @@ class SProject {
       List<Organization> finList = [];
       for (String fin in financiers) {
         try {
-          QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: fin).get();
-          final doc = query.docs.first;
-          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data["id"] = doc.id;
-          Organization financier = Organization.fromJson(data);
+          // QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: fin).get();
+          // final doc = query.docs.first;
+          // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          // data["id"] = doc.id;
+          // Organization financier = Organization.fromJson(data);
+          Organization financier = await Organization.byUuid(fin);
           finList.add(financier);
         } catch (e) {
           print(e);
@@ -439,11 +444,12 @@ class SProject {
       List<Organization> parList = [];
       for (String par in partners) {
         try {
-          QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: par).get();
-          final doc = query.docs.first;
-          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data["id"] = doc.id;
-          Organization org = Organization.fromJson(data);
+          // QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: par).get();
+          // final doc = query.docs.first;
+          // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          // data["id"] = doc.id;
+          // Organization org = Organization.fromJson(data);
+          Organization org = await Organization.byUuid(par);
           parList.add(org);
         } catch (e) {}
       }
@@ -476,6 +482,11 @@ class SProject {
       item = SProject.fromJson(data);
     });
     return item;
+  }
+
+  static Future<SProject> byUuid(String uuid) async {
+    return await getByUuid(uuid);
+
   }
 
   Future<void> loadObjs() async {
@@ -552,7 +563,7 @@ class SProject {
     if (folder == "") {
       return createFolder();
     }
-    Folder? f = await getFolderByUuid(folder);
+    Folder? f = await Folder.getFolderByUuid(folder);
     if (f == null) {
       return createFolder();
     }
@@ -599,105 +610,114 @@ class SProject {
     proj = SProject.fromJson(data);
     return proj.name;
   }
-}
 
-Future<List> getProjects() async {
-  List items = [];
-  QuerySnapshot queryProject = await dbProject.get();
-  for (var doc in queryProject.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = SProject.fromJson(data);
-    try {
-      /*item.ambitObj = await item.getAmbit();
-      item.typeObj = await item.getProjectType();
-      item.managerObj = await item.getManager();
-      item.programmeObj = await item.getProgramme();
-      item.financiersObj = await item.getFinanciers();
-      item.partnersObj = await item.getPartners();
-      item.datesObj = await item.getDates();*/
-      // item.typeObj = await item.getProjectType();
-      // item.managerObj = await item.getManager();
-      // item.programmeObj = await item.getProgramme();
-      // item.financiersObj = await item.getFinanciers();
-      // item.partnersObj = await item.getPartners();
-      // item.datesObj = await item.getDates();
-    } catch (e) {}
-    items.add(item);
-  }
-  return items;
-}
 
-Future<List<KeyValue>> getProjectsHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot queryProject = await dbProject.get();
-  for (var doc in queryProject.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = SProject.fromJson(data);
-    items.add(item.toKeyValue());
-  }
-  return items;
-}
+    // static Future<List> getProjects() async {
+    //   List items = [];
+    //   QuerySnapshot queryProject = await dbProject.get();
+    //   for (var doc in queryProject.docs) {
+    //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //     data["id"] = doc.id;
+    //     final item = SProject.fromJson(data);
+    //     try {
+    //       /*item.ambitObj = await item.getAmbit();
+    //       item.typeObj = await item.getProjectType();
+    //       item.managerObj = await item.getManager();
+    //       item.programmeObj = await item.getProgramme();
+    //       item.financiersObj = await item.getFinanciers();
+    //       item.partnersObj = await item.getPartners();
+    //       item.datesObj = await item.getDates();*/
+    //       // item.typeObj = await item.getProjectType();
+    //       // item.managerObj = await item.getManager();
+    //       // item.programmeObj = await item.getProgramme();
+    //       // item.financiersObj = await item.getFinanciers();
+    //       // item.partnersObj = await item.getPartners();
+    //       // item.datesObj = await item.getDates();
+    //     } catch (e) {}
+    //     items.add(item);
+    //   }
+    //   return items;
+    // }
 
-Future<SProject> getProjectById(String id) async {
-  DocumentSnapshot _doc = await dbProject.doc(id).get();
-  final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-  data["id"] = _doc.id;
-  return SProject.fromJson(data);
-}
+    static Future<List<KeyValue>> getProjectsHash() async {
+      List<KeyValue> items = [];
+      QuerySnapshot queryProject = await dbProject.get();
+      for (var doc in queryProject.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        final item = SProject.fromJson(data);
+        items.add(item.toKeyValue());
+      }
+      return items;
+    }
 
-Future<SProject?> getProjectByUuid(String uuid) async {
-  QuerySnapshot query = await dbProject.where("uuid", isEqualTo: uuid).get();
-  final doc = query.docs.first;
-  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  data["id"] = doc.id;
-  return SProject.fromJson(data);
-}
+    static Future<SProject> getProjectById(String id) async {
+      DocumentSnapshot _doc = await dbProject.doc(id).get();
+      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+      data["id"] = _doc.id;
+      return SProject.fromJson(data);
+    }
 
-Future<List> getProjectsByType(String type) async {
-  List items = [];
-  QuerySnapshot query =
-      await dbProjectType.where("name", isEqualTo: type).get();
-  if (query.docs.isNotEmpty) {
-    final doc = query.docs.first;
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    ProjectType pt = ProjectType.fromJson(data);
-
-    query = await dbProject.where("type", isEqualTo: pt.uuid).get();
-    for (var doc in query.docs) {
+    static Future<SProject?> getProjectByUuid(String uuid) async {
+      QuerySnapshot query = await dbProject.where("uuid", isEqualTo: uuid).get();
+      final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      final item = SProject.fromJson(data);
-      items.add(item);
+      return SProject.fromJson(data);
     }
-  }
-  return items;
-}
 
-Future<List> getProjectsByProgramme(String programme) async {
-  List items = [];
-  QuerySnapshot query =
-      await dbProject.where("programme", isEqualTo: programme).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = SProject.fromJson(data);
-    items.add(item);
-  }
-  return items;
+    static Future<List<SProject>> getProjectsByType(String type) async {
+      List<SProject> items = [];
+      ProjectType pt = await ProjectType.byName(type);
+      if (pt.id == "") {
+        return items; // No project type found
+      }
+      items = await SProject.byProjectType([pt]);
+      // QuerySnapshot query =
+      //     await dbProjectType.where("name", isEqualTo: type).get();
+      // if (query.docs.isNotEmpty) {
+      //   final doc = query.docs.first;
+      //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      //   data["id"] = doc.id;
+      //   ProjectType pt = ProjectType.fromJson(data);
+
+      //   query = await dbProject.where("type", isEqualTo: pt.uuid).get();
+      //   for (var doc in query.docs) {
+      //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      //     data["id"] = doc.id;
+      //     final item = SProject.fromJson(data);
+      //     items.add(item);
+      //   }
+      // }
+      return items;
+    }
+
+    static Future<List<SProject>> getProjectsByProgramme(String programme) async {
+      List<SProject> items = <SProject>[];
+      QuerySnapshot query =
+          await dbProject.where("programme", isEqualTo: programme).get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        final item = SProject.fromJson(data);
+        items.add(item);
+      }
+      return items;
+    }
+
 }
 
 //--------------------------------------------------------------
 //                       PROJECT TYPE
 //--------------------------------------------------------------
-CollectionReference dbProjectType = db.collection("s4c_project_type");
 
 class ProjectType {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbProjectType =
+      db.collection("s4c_project_type");
 
   ProjectType(this.name);
 
@@ -735,46 +755,71 @@ class ProjectType {
   Future<void> delete() async {
     await dbProjectType.doc(id).delete();
   }
-}
 
-Future<List> getProjectTypes() async {
-  List items = [];
-  QuerySnapshot queryProjectType = await dbProjectType.get();
-
-  for (var doc in queryProjectType.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final _item = ProjectType.fromJson(data);
-    items.add(_item);
+  static Future<ProjectType> byUuid(uuid) async {
+    ProjectType item = ProjectType("");
+    await dbProjectType.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ProjectType.fromJson(data);
+    });
+    return item;
   }
 
-  return items;
-}
-
-Future<List<KeyValue>> getProjectTypesHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot queryProjectType = await dbProjectType.get();
-
-  for (var doc in queryProjectType.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = ProjectType.fromJson(data);
-    items.add(item.toKeyValue());
+  static Future<ProjectType> byName(name) async {
+    ProjectType item = ProjectType("");
+    await dbProjectType.where("name", isEqualTo: name).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ProjectType.fromJson(data);
+    });
+    return item;
   }
 
-  return items;
+  static Future<List> getProjectTypes() async {
+    List items = [];
+    QuerySnapshot queryProjectType = await dbProjectType.get();
+
+    for (var doc in queryProjectType.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final _item = ProjectType.fromJson(data);
+      items.add(_item);
+    }
+
+    return items;
+  }
+
+  static Future<List<KeyValue>> getProjectTypesHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot queryProjectType = await dbProjectType.get();
+
+    for (var doc in queryProjectType.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ProjectType.fromJson(data);
+      items.add(item.toKeyValue());
+    }
+
+    return items;
+  }
 }
+
 
 //--------------------------------------------------------------
 //                       PROJECT STATUS
 //--------------------------------------------------------------
-CollectionReference dbProjectStatus = db.collection("s4c_project_status");
 
 class ProjectStatus {
   String id = "";
   String uuid = "";
   String color = "";
   String name = "";
+
+  static final CollectionReference dbProjectStatus =
+      db.collection("s4c_project_status");
 
   ProjectStatus(this.name);
 
@@ -821,40 +866,41 @@ class ProjectStatus {
     });
     return item;
   }
-}
 
-Future<List> getProjectStatus() async {
-  List items = [];
-  QuerySnapshot queryProjectStatus = await dbProjectStatus.get();
 
-  for (var doc in queryProjectStatus.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = ProjectStatus.fromJson(data);
-    items.add(item);
+  static Future<List> getProjectStatus() async {
+    List items = [];
+    QuerySnapshot queryProjectStatus = await dbProjectStatus.get();
+
+    for (var doc in queryProjectStatus.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ProjectStatus.fromJson(data);
+      items.add(item);
+    }
+
+    return items;
   }
 
-  return items;
-}
+  static Future<List<KeyValue>> getProjectStatusHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot queryProjectStatus = await dbProjectStatus.get();
 
-Future<List<KeyValue>> getProjectStatusHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot queryProjectStatus = await dbProjectStatus.get();
+    for (var doc in queryProjectStatus.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ProjectStatus.fromJson(data);
+      items.add(item.toKeyValue());
+    }
 
-  for (var doc in queryProjectStatus.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = ProjectStatus.fromJson(data);
-    items.add(item.toKeyValue());
+    return items;
   }
-
-  return items;
 }
+
 
 //--------------------------------------------------------------
 //                       PROJECT DATES
 //--------------------------------------------------------------
-CollectionReference dbDates = db.collection("s4c_project_dates");
 DateTime maxDate = DateTime(2100, 12, 31);
 DateTime limitDate = DateTime(2100, 12, 30);
 
@@ -884,6 +930,9 @@ class ProjectDates {
   DateTime reject = maxDate;
   DateTime refuse = maxDate;
   String project = "";
+
+  static final CollectionReference dbDates =
+      db.collection("s4c_project_dates");
 
   ProjectDates(this.project);
 
@@ -1021,9 +1070,9 @@ class ProjectDates {
         ? ""
         : DateFormat("dd-MM-yyyy").format(refuse);
   }
-}
 
-Future<List> getProjectDates() async {
+
+static Future<List> getProjectDates() async {
   List items = [];
   QuerySnapshot query = await dbDates.get();
 
@@ -1037,14 +1086,14 @@ Future<List> getProjectDates() async {
   return items;
 }
 
-Future<ProjectDates> getProjectDatesById(String id) async {
+static Future<ProjectDates> getProjectDatesById(String id) async {
   DocumentSnapshot doc = await dbDates.doc(id).get();
   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
   data["id"] = doc.id;
   return ProjectDates.fromJson(data);
 }
 
-Future<ProjectDates> getProjectDatesByProject(String project) async {
+static Future<ProjectDates> getProjectDatesByProject(String project) async {
   QuerySnapshot query =
       await dbDates.where("project", isEqualTo: project).get();
   if (query.docs.isEmpty) {
@@ -1058,16 +1107,19 @@ Future<ProjectDates> getProjectDatesByProject(String project) async {
   return ProjectDates.fromJson(data);
 }
 
+}
+
 //--------------------------------------------------------------
 //                       PROJECT DATES TRACING
 //--------------------------------------------------------------
-CollectionReference dbDatesTra = db.collection("s4c_project_dates_tracing");
 
 class ProjectDatesTracing {
   String id = "";
   String uuid = "";
   DateTime date = DateTime.now();
   String project = "";
+
+  static final CollectionReference dbDatesTra = db.collection("s4c_project_dates_tracing");
 
   ProjectDatesTracing(this.project);
 
@@ -1099,9 +1151,9 @@ class ProjectDatesTracing {
   Future<void> delete() async {
     await dbDatesTra.doc(id).delete();
   }
-}
 
-Future<List> getProjectDatesTracing() async {
+
+static Future<List> getProjectDatesTracing() async {
   List items = [];
   QuerySnapshot query = await dbDatesTra.get();
 
@@ -1115,14 +1167,8 @@ Future<List> getProjectDatesTracing() async {
   return items;
 }
 
-/*Future<ProjectDatesTracing> getProjectDatesTracingById(String id) async {
-  DocumentSnapshot doc = await dbDatesTra.doc(id).get();
-  final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  data["id"] = doc.id;
-  return ProjectDatesTracing.fromJson(data);
-}*/
 
-Future<List> getProjectDatesTracingByProject(String project) async {
+static Future<List> getProjectDatesTracingByProject(String project) async {
   List items = [];
   QuerySnapshot query =
       await dbDatesTra.where("project", isEqualTo: project).get();
@@ -1136,17 +1182,20 @@ Future<List> getProjectDatesTracingByProject(String project) async {
 
   return items;
 }
+}
+
 
 //--------------------------------------------------------------
 //                       PROJECT DATES AUDIT
 //--------------------------------------------------------------
-CollectionReference dbDatesAudit = db.collection("s4c_project_dates_audit");
 
 class ProjectDatesAudit {
   String id = "";
   String uuid = "";
   DateTime date = DateTime.now();
   String project = "";
+
+  static final CollectionReference dbDatesAudit = db.collection("s4c_project_dates_audit");
 
   ProjectDatesAudit(this.project);
 
@@ -1178,9 +1227,8 @@ class ProjectDatesAudit {
   Future<void> delete() async {
     await dbDatesAudit.doc(id).delete();
   }
-}
 
-Future<List> getProjectDatesAudit() async {
+static Future<List> getProjectDatesAudit() async {
   List items = [];
   QuerySnapshot query = await dbDatesAudit.get();
 
@@ -1194,7 +1242,7 @@ Future<List> getProjectDatesAudit() async {
   return items;
 }
 
-Future<List> getProjectDatesAuditByProject(String project) async {
+static Future<List> getProjectDatesAuditByProject(String project) async {
   List items = [];
   QuerySnapshot query =
       await dbDatesAudit.where("project", isEqualTo: project).get();
@@ -1208,17 +1256,21 @@ Future<List> getProjectDatesAuditByProject(String project) async {
 
   return items;
 }
+}
+
 
 //--------------------------------------------------------------
 //                       PROJECT DATES EVALUATION
 //--------------------------------------------------------------
-CollectionReference dbDatesEval = db.collection("s4c_project_dates_eval");
 
 class ProjectDatesEval {
   String id = "";
   String uuid = "";
   DateTime date = DateTime.now();
   String project = "";
+
+  static final CollectionReference dbDatesEval =
+      db.collection("s4c_project_dates_eval");
 
   ProjectDatesEval(this.project);
 
@@ -1250,9 +1302,9 @@ class ProjectDatesEval {
   Future<void> delete() async {
     await dbDatesEval.doc(id).delete();
   }
-}
 
-Future<List> getProjectDatesEval() async {
+
+static Future<List> getProjectDatesEval() async {
   List items = [];
   QuerySnapshot query = await dbDatesEval.get();
 
@@ -1266,7 +1318,7 @@ Future<List> getProjectDatesEval() async {
   return items;
 }
 
-Future<List> getProjectDatesEvalByProject(String project) async {
+static Future<List> getProjectDatesEvalByProject(String project) async {
   List items = [];
   QuerySnapshot query =
       await dbDatesEval.where("project", isEqualTo: project).get();
@@ -1280,11 +1332,12 @@ Future<List> getProjectDatesEvalByProject(String project) async {
 
   return items;
 }
+}
+
 
 //--------------------------------------------------------------
 //                       PROJECT LOCATION
 //--------------------------------------------------------------
-CollectionReference dbLocation = db.collection("s4c_project_location");
 
 class ProjectLocation {
   String id = "";
@@ -1299,6 +1352,8 @@ class ProjectLocation {
   Province provinceObj = Province("");
   Region regionObj = Region("");
   Town townObj = Town("");
+  static final CollectionReference dbLocation = db.collection("s4c_project_location");
+
 
   ProjectLocation(this.project);
 
@@ -1339,12 +1394,14 @@ class ProjectLocation {
 
   Future<Country> getCountry() async {
     try {
-      QuerySnapshot query =
-          await dbCountry.where("uuid", isEqualTo: country).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Country.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbCountry.where("uuid", isEqualTo: country).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Country.fromJson(data);
+      Country? countryObj = await Country.byUuid(country);
+      return countryObj ?? Country("");
     } catch (e) {
       return Country("");
     }
@@ -1352,12 +1409,13 @@ class ProjectLocation {
 
   Future<Province> getProvince() async {
     try {
-      QuerySnapshot query =
-          await dbProvince.where("uuid", isEqualTo: province).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Province.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProvince.where("uuid", isEqualTo: province).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Province.fromJson(data);
+      return await Province.byUuid(province);
     } catch (e) {
       return Province("");
     }
@@ -1366,13 +1424,14 @@ class ProjectLocation {
   Future<Region> getRegion() async {
     try {
       //if (region != "") {
-      QuerySnapshot query =
-          await dbRegion.where("uuid", isEqualTo: region).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Region.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbRegion.where("uuid", isEqualTo: region).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Region.fromJson(data);
       //}
+      return await Region.byUuid(region);
     } catch (e) {
       print(e);
     }
@@ -1381,21 +1440,22 @@ class ProjectLocation {
 
   Future<Town> getTown() async {
     try {
-      //if (town != "") {
-      QuerySnapshot query = await dbTown.where("uuid", isEqualTo: town).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Town.fromJson(data);
-      //}
+      // //if (town != "") {
+      // QuerySnapshot query = await dbTown.where("uuid", isEqualTo: town).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Town.fromJson(data);
+      // //}
+      return await Town.byUuid(town);
     } catch (e) {
       print(e);
     }
     return Town("");
   }
-}
 
-Future<List> getProjectLocation() async {
+
+static Future<List> getProjectLocation() async {
   List items = [];
   QuerySnapshot query = await dbLocation.get();
 
@@ -1409,7 +1469,7 @@ Future<List> getProjectLocation() async {
   return items;
 }
 
-Future<ProjectLocation> getProjectLocationByProject(String _project) async {
+static Future<ProjectLocation> getProjectLocationByProject(String _project) async {
   QuerySnapshot query =
       await dbLocation.where("project", isEqualTo: _project).get();
 
@@ -1430,114 +1490,12 @@ Future<ProjectLocation> getProjectLocationByProject(String _project) async {
   return pl;
 }
 
-//--------------------------------------------------------------
-//                       PROJECT FINANCIER
-//--------------------------------------------------------------
-/*CollectionReference dbFinancier = db.collection("s4c_financier");
-
-class Financier {
-  String id = "";
-  String uuid = "";
-  String name = "";
-  String organization = "";
-
-  Financier(this.name);
-
-  factory Financier.fromJson(Map<String, dynamic> json) {
-    Financier item = Financier(json['name']);
-    item.id = json["id"];
-    item.uuid = json["uuid"];
-    item.name = json['name'];
-    try {
-      item.organization = json['organization'];
-    } catch (e) {
-      Map<String, String> equivalencies = {
-        "078bdde3-f409-41fb-8a10-f6840c199dca":
-            "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00",
-        "4aa7eb9c-c780-49db-bdea-fc65ba1098b1":
-            "0acabf09-b760-4ff2-b347-0facca7a9b13"
-      };
-      if (equivalencies.containsKey(item.uuid)) {
-        item.organization = equivalencies[item.uuid]!;
-        item.save();
-      } else {
-        item.organization = "";
-      }
-    }
-    return item;
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-      };
-
-  KeyValue toKeyValue() {
-    return KeyValue(uuid, name);
-  }
-
-  Future<void> save() async {
-    if (id == "") {
-      var newUuid = const Uuid();
-      uuid = newUuid.v4();
-      Map<String, dynamic> data = toJson();
-      dbFinancier.add(data);
-    } else {
-      Map<String, dynamic> data = toJson();
-      dbFinancier.doc(id).set(data);
-    }
-  }
-
-  Future<void> delete() async {
-    await dbFinancier.doc(id).delete();
-  }
-
-  static Future<Financier> getByUuid(String uuid) async {
-    Financier item = Financier("");
-    await dbFinancier.where("uuid", isEqualTo: uuid).get().then((value) {
-      final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      item = Financier.fromJson(data);
-    });
-    return item;
-  }
 }
-
-Future<List> getFinanciers() async {
-  List items = [];
-  QuerySnapshot queryFinancier = await dbFinancier.get();
-
-  for (var doc in queryFinancier.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Financier.fromJson(data);
-    items.add(item);
-  }
-
-  return items;
-}
-
-Future<List<KeyValue>> getFinanciersHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot queryFinancier = await dbFinancier.get();
-
-  for (var doc in queryFinancier.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Financier.fromJson(data);
-    items.add(item.toKeyValue());
-  }
-
-  return items;
-}*/
 
 //--------------------------------------------------------------
 //                       PROJECT REFORMULATION
 //--------------------------------------------------------------
-CollectionReference dbReformulation =
-    db.collection("s4c_project_reformulation");
+
 
 class Reformulation {
   String id = "";
@@ -1560,6 +1518,9 @@ class Reformulation {
   ReformulationType typeObj = ReformulationType();
   ReformulationStatus statusObj = ReformulationStatus();
   Folder folderObj = Folder("", "");
+
+  static final CollectionReference dbReformulation =
+      db.collection("s4c_reformulation");
 
   Reformulation(this.project);
 
@@ -1624,12 +1585,13 @@ class Reformulation {
 
   Future<SProject> getProject() async {
     try {
-      QuerySnapshot query =
-          await dbProject.where("uuid", isEqualTo: project).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return SProject.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbProject.where("uuid", isEqualTo: project).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return SProject.fromJson(data);
+      return await SProject.byUuid(project);
     } catch (e) {
       print(e);
       return SProject("");
@@ -1638,12 +1600,13 @@ class Reformulation {
 
   Future<Organization> getFinancier() async {
     try {
-      QuerySnapshot query =
-          await dbOrg.where("uuid", isEqualTo: financier).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Organization.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbOrg.where("uuid", isEqualTo: financier).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Organization.fromJson(data);
+      return await Organization.byUuid(financier);
     } catch (e) {
       return Organization("");
     }
@@ -1651,12 +1614,13 @@ class Reformulation {
 
   Future<ReformulationType> getType() async {
     try {
-      QuerySnapshot query =
-          await dbReformulationType.where("uuid", isEqualTo: type).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ReformulationType.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbReformulationType.where("uuid", isEqualTo: type).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ReformulationType.fromJson(data);
+      return await ReformulationType.byUuid(type);
     } catch (e) {
       return ReformulationType();
     }
@@ -1664,12 +1628,13 @@ class Reformulation {
 
   Future<ReformulationStatus> getStatus() async {
     try {
-      QuerySnapshot query =
-          await dbReformulationStatus.where("uuid", isEqualTo: status).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ReformulationStatus.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbReformulationStatus.where("uuid", isEqualTo: status).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ReformulationStatus.fromJson(data);
+      return await ReformulationStatus.byUuid(status);
     } catch (e) {
       return ReformulationStatus();
     }
@@ -1700,63 +1665,66 @@ class Reformulation {
     if (folder == "") {
       return createFolder();
     }
-    Folder? f = await getFolderByUuid(folder);
+    Folder? f = await Folder.getFolderByUuid(folder);
     if (f == null) {
       return createFolder();
     }
     return f;
   }
-}
 
-Future<List> getReformulations() async {
-  List items = [];
-  QuerySnapshot query = await dbReformulation.get();
+  static Future<List> getReformulations() async {
+    List items = [];
+    QuerySnapshot query = await dbReformulation.get();
 
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Reformulation.fromJson(data);
-    /*item.projectObj = await item.getProject();
-    item.financierObj = await item.getFinancier();
-    item.typeObj = await item.getType();
-    item.statusObj = await item.getStatus();
-    item.folderObj = await item.getFolder();*/
-    items.add(item);
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = Reformulation.fromJson(data);
+      /*item.projectObj = await item.getProject();
+      item.financierObj = await item.getFinancier();
+      item.typeObj = await item.getType();
+      item.statusObj = await item.getStatus();
+      item.folderObj = await item.getFolder();*/
+      items.add(item);
+    }
+
+    return items;
   }
 
-  return items;
-}
+  static Future<List> getReformulationsByProject(uuid) async {
+    List items = [];
+    QuerySnapshot query =
+        await dbReformulation.where("project", isEqualTo: uuid).get();
 
-Future<List> getReformulationsByProject(uuid) async {
-  List items = [];
-  QuerySnapshot query =
-      await dbReformulation.where("project", isEqualTo: uuid).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = Reformulation.fromJson(data);
+      item.projectObj = await item.getProject();
+      item.financierObj = await item.getFinancier();
+      item.typeObj = await item.getType();
+      item.statusObj = await item.getStatus();
+      item.folderObj = await item.getFolder();
+      items.add(item);
+    }
 
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Reformulation.fromJson(data);
-    item.projectObj = await item.getProject();
-    item.financierObj = await item.getFinancier();
-    item.typeObj = await item.getType();
-    item.statusObj = await item.getStatus();
-    item.folderObj = await item.getFolder();
-    items.add(item);
+    return items;
   }
-
-  return items;
 }
+
 
 //--------------------------------------------------------------
 //                       PROJECT REFORMULATION TYPE
 //--------------------------------------------------------------
-CollectionReference dbReformulationType =
-    db.collection("s4c_project_reformulation_type");
+
 
 class ReformulationType {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbReformulationType =
+      db.collection("s4c_project_reformulation_type");
 
   ReformulationType();
 
@@ -1790,44 +1758,58 @@ class ReformulationType {
   Future<void> delete() async {
     await dbReformulationType.doc(id).delete();
   }
-}
 
-Future<List> getReformulationTypes() async {
-  List items = [];
-  QuerySnapshot query = await dbReformulationType.get();
-
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = ReformulationType.fromJson(data);
-    items.add(item);
+  static Future<ReformulationType> byUuid(uuid) async {
+    ReformulationType item = ReformulationType();
+    await dbReformulationType.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ReformulationType.fromJson(data);
+    });
+    return item;
   }
 
-  return items;
+  static Future<List> getReformulationTypes() async {
+    List items = [];
+    QuerySnapshot query = await dbReformulationType.get();
+
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ReformulationType.fromJson(data);
+      items.add(item);
+    }
+
+    return items;
+  }
+
+  static Future<List<KeyValue>> getReformulationTypesHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbReformulationType.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ReformulationType item = ReformulationType.fromJson(data);
+      items.add(item.toKeyValue());
+    }
+    return items;
+  }
 }
 
-Future<List<KeyValue>> getReformulationTypesHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbReformulationType.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    ReformulationType item = ReformulationType.fromJson(data);
-    items.add(item.toKeyValue());
-  }
-  return items;
-}
 
 //--------------------------------------------------------------
 //                       PROJECT REFORMULATION STATUS
 //--------------------------------------------------------------
-CollectionReference dbReformulationStatus =
-    db.collection("s4c_project_reformulation_status");
+
 
 class ReformulationStatus {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbReformulationStatus =
+      db.collection("s4c_project_reformulation_status");
 
   ReformulationStatus();
 
@@ -1861,38 +1843,49 @@ class ReformulationStatus {
   Future<void> delete() async {
     await dbReformulationStatus.doc(id).delete();
   }
-}
 
-Future<List> getReformulationStatus() async {
-  List items = [];
-  QuerySnapshot query = await dbReformulationStatus.get();
-
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = ReformulationStatus.fromJson(data);
-    items.add(item);
+  static Future<ReformulationStatus> byUuid(uuid) async {
+    ReformulationStatus item = ReformulationStatus();
+    await dbReformulationStatus.where("uuid", isEqualTo: uuid).get().then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      item = ReformulationStatus.fromJson(data);
+    });
+    return item;
   }
 
-  return items;
-}
+  static Future<List> getReformulationStatus() async {
+    List items = [];
+    QuerySnapshot query = await dbReformulationStatus.get();
 
-Future<List<KeyValue>> getReformulationStatusHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbReformulationStatus.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    ReformulationStatus item = ReformulationStatus.fromJson(data);
-    items.add(item.toKeyValue());
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ReformulationStatus.fromJson(data);
+      items.add(item);
+    }
+
+    return items;
   }
-  return items;
+
+  static Future<List<KeyValue>> getReformulationStatusHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbReformulationStatus.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ReformulationStatus item = ReformulationStatus.fromJson(data);
+      items.add(item.toKeyValue());
+    }
+    return items;
+  }
+
 }
 
 //--------------------------------------------------------------
 //                       PROGRAMME
 //--------------------------------------------------------------
-CollectionReference dbProgramme = db.collection("s4c_programmes");
 
 class Programme {
   String id = "";
@@ -1903,6 +1896,9 @@ class Programme {
   String impact = "";
   String logo = "";
   int projects = 0;
+
+  static final CollectionReference dbProgramme =
+      db.collection("s4c_programmes");
 
   Programme(this.name);
 
@@ -1949,17 +1945,30 @@ class Programme {
   }
 
   Future<void> getProjects() async {
-    QuerySnapshot query =
-        await dbProject.where("programme", isEqualTo: uuid).get();
-    projects = query.docs.length;
+    // QuerySnapshot query =
+    //     await dbProject.where("programme", isEqualTo: uuid).get();
+    // projects = query.docs.length;
+    List<SProject> projectsList = await SProject.getProjectsByProgramme(uuid);
   }
 
   Future<int> getProjectsByStatus(status) async {
-    QuerySnapshot query = await dbProject
-        .where("programme", isEqualTo: uuid)
-        .where("status", isEqualTo: status)
-        .get();
-    return query.docs.length;
+    if (status == "") {
+      return 0;
+    }
+    List<SProject> projectsList =
+        await SProject.getProjectsByProgramme(uuid);
+    if (projectsList.isEmpty) {
+      return 0;
+    }
+    return projectsList
+        .where((project) => project.status == status)
+        .length;
+
+    // QuerySnapshot query = await dbProject
+    //     .where("programme", isEqualTo: uuid)
+    //     .where("status", isEqualTo: status)
+    //     .get();
+    // return query.docs.length;
   }
 
   static Future<Programme> byUuid(uuid) async {
@@ -1972,41 +1981,41 @@ class Programme {
     });
     return item;
   }
-}
 
-Future<List<Programme>> getProgrammes() async {
-  List<Programme> items = [];
-  QuerySnapshot queryProgramme = await dbProgramme.get();
+  static Future<List<Programme>> getProgrammes() async {
+    List<Programme> items = [];
+    QuerySnapshot queryProgramme = await dbProgramme.get();
 
-  for (var doc in queryProgramme.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Programme.fromJson(data);
-    await item.getProjects();
-    items.add(item);
+    for (var doc in queryProgramme.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = Programme.fromJson(data);
+      await item.getProjects();
+      items.add(item);
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List<KeyValue>> getProgrammesHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot queryProgramme = await dbProgramme.get();
+  static Future<List<KeyValue>> getProgrammesHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot queryProgramme = await dbProgramme.get();
 
-  for (var doc in queryProgramme.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Programme.fromJson(data);
-    item.getProjects();
-    items.add(item.toKeyValue());
+    for (var doc in queryProgramme.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = Programme.fromJson(data);
+      item.getProjects();
+      items.add(item.toKeyValue());
+    }
+    return items;
   }
-  return items;
+
 }
 
 //--------------------------------------------------------------
 //                       PROGRAMME INDICATORS
 //--------------------------------------------------------------
-CollectionReference dbProgrammeIndicators =
-    db.collection("s4c_programmes_indicators");
+
 
 class ProgrammeIndicators {
   String id = "";
@@ -2018,6 +2027,9 @@ class ProgrammeIndicators {
   String programme;
   double expected = 0;
   double obtained = 0;
+
+  static final CollectionReference dbProgrammeIndicators =
+      db.collection("s4c_programme_indicators");
 
   ProgrammeIndicators(this.programme);
 
@@ -2061,7 +2073,7 @@ class ProgrammeIndicators {
   }
 
   Future<void> getSumValues() async {
-    List goalIndicators = await getGoalIndicatorsByCode(uuid);
+    List goalIndicators = await GoalIndicator.getGoalIndicatorsByCode(uuid);
     for (GoalIndicator gi in goalIndicators) {
       try {
         expected += double.parse(gi.expected);
@@ -2079,9 +2091,9 @@ class ProgrammeIndicators {
       return 1;
     }
   }
-}
 
-Future<List> getProgrammesIndicators(uuid) async {
+
+static Future<List> getProgrammesIndicators(uuid) async {
   List items = [];
   //try {
   QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators
@@ -2102,7 +2114,7 @@ Future<List> getProgrammesIndicators(uuid) async {
   return items;
 }
 
-Future<List<KeyValue>> getProgrammesIndicatorsHash() async {
+static Future<List<KeyValue>> getProgrammesIndicatorsHash() async {
   List<KeyValue> items = [];
   QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators.get();
 
@@ -2113,4 +2125,6 @@ Future<List<KeyValue>> getProgrammesIndicatorsHash() async {
     items.add(item.toKeyValue());
   }
   return items;
+}
+
 }

@@ -49,15 +49,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void loadProgrammes() async {
-    await getProgrammes().then((val) {
-      programList = val;
-    });
+    programList = await Programme.getProgrammes();
     setState(() {});
   }
 
   void loadProjects() async {
     setLoading();
-    await getProjects().then((val) {
+    await SProject.getProjects().then((val) {
       if (mounted) {
         setState(() {
           prList = val;
@@ -171,7 +169,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
         child: FutureBuilder(
-            future: getProgrammes(),
+            future: Programme.getProgrammes(),
             builder: ((context, snapshot) {
               if (snapshot.hasData) {
                 programList = snapshot.data!;
@@ -685,18 +683,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     SProject project = args[0];
 
-    ProjectDates pd = await getProjectDatesByProject(project.uuid);
+    ProjectDates pd = await ProjectDates.getProjectDatesByProject(project.uuid);
     pd.delete();
 
-    ProjectLocation pl = await getProjectLocationByProject(project.uuid);
+    ProjectLocation pl = await ProjectLocation.getProjectLocationByProject(project.uuid);
     pl.delete();
 
-    List refList = await getReformulationsByProject(project.uuid);
+    List refList = await Reformulation.getReformulationsByProject(project.uuid);
     for (Reformulation ref in refList) {
       ref.delete();
     }
 
-    List riskList = await getRisksByProject(project.uuid);
+    List riskList = await Risk.getRisksByProject(project.uuid);
     for (Risk risk in riskList) {
       risk.delete();
     }
@@ -746,7 +744,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       bt.delete();
     }
 
-    Folder? folder = await getFolderByUuid(project.folder);
+    Folder? folder = await Folder.getFolderByUuid(project.folder);
     bool haveChildren = await folder!.haveChildren();
     if (!haveChildren) {
       folder.delete();

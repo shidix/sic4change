@@ -30,7 +30,6 @@ class KeyValue {
 //--------------------------------------------------------------
 //                       ORGANIZATIONS
 //--------------------------------------------------------------
-CollectionReference dbOrg = db.collection("s4c_organizations");
 
 class Organization {
   String id = "";
@@ -43,7 +42,10 @@ class Organization {
   bool public = false;
   String domain = "";
 
-  Country countryObj = Country("");
+  static final CollectionReference dbOrg = db.collection("s4c_organizations");
+
+
+  Country? countryObj = Country("");
   //String type = "";
   //OrganizationType typeObj = OrganizationType("");
 
@@ -154,18 +156,18 @@ class Organization {
     return items;
   }
 
-  Future<Country> getCountry() async {
+  Future<Country?> getCountry() async {
     try {
-      QuerySnapshot query =
-          await dbCountry.where("uuid", isEqualTo: country).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      print(data);
-      return Country.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbCountry.where("uuid", isEqualTo: country).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Country.fromJson(data);
+      return await Country.byUuid(country);
     } catch (e) {
       print(e);
-      return Country("");
+      return null;
     }
   }
 
@@ -222,23 +224,27 @@ class Organization {
   }
 
   Future<OrganizationBilling> getBilling() async {
-    OrganizationBilling item = OrganizationBilling("");
-    QuerySnapshot query =
-        await dbOrgBill.where("organization", isEqualTo: uuid).get();
 
-    if (query.docs.isNotEmpty) {
-      try {
-        Map<String, dynamic> data =
-            query.docs.first.data() as Map<String, dynamic>;
-        data["id"] = query.docs.first.id;
-        item = OrganizationBilling.fromJson(data);
-      } catch (e) {
-        print("ERROR : $e");
-      }
-    } else {
-      item.organization = uuid;
-      item.save();
-    }
+    OrganizationBilling item = OrganizationBilling("");
+
+    item = await OrganizationBilling.byOrganization(uuid);
+
+    // QuerySnapshot query =
+    //     await dbOrgBill.where("organization", isEqualTo: uuid).get();
+
+    // if (query.docs.isNotEmpty) {
+    //   try {
+    //     Map<String, dynamic> data =
+    //         query.docs.first.data() as Map<String, dynamic>;
+    //     data["id"] = query.docs.first.id;
+    //     item = OrganizationBilling.fromJson(data);
+    //   } catch (e) {
+    //     print("ERROR : $e");
+    //   }
+    // } else {
+    //   item.organization = uuid;
+    //   item.save();
+    // }
     return item;
   }
 
@@ -273,84 +279,70 @@ class Organization {
   factory Organization.getEmpty() {
     return Organization("");
   }
-}
 
-Future<List> getOrganizations() async {
-  List<Organization> items = [];
-  QuerySnapshot query = await dbOrg.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Organization item = Organization.fromJson(data);
-    //await item.getType();
-    items.add(item);
-    //items.add(Organization.fromJson(data));
-  }
-  return items;
-}
-
-Future<List<KeyValue>> getOrganizationsHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbOrg.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Organization item = Organization.fromJson(data);
-    items.add(item.toKeyValue());
-  }
-  return items;
-}
-
-Future<List<KeyValue>> getFinanciersHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbOrg.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Organization item = Organization.fromJson(data);
-    if (item.financier) {
+  static Future<List<KeyValue>> getOrganizationsHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbOrg.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Organization item = Organization.fromJson(data);
       items.add(item.toKeyValue());
     }
+    return items;
   }
-  return items;
-}
 
-Future<List<KeyValue>> getPartnersHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbOrg.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Organization item = Organization.fromJson(data);
-    if (item.partner) {
-      items.add(item.toKeyValue());
+  static Future<List<KeyValue>> getFinanciersHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbOrg.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Organization item = Organization.fromJson(data);
+      if (item.financier) {
+        items.add(item.toKeyValue());
+      }
     }
+    return items;
   }
-  return items;
-}
 
-Future<List> searchOrganizations(name) async {
-  List<Organization> items = [];
-  QuerySnapshot? query;
+  static Future<List<KeyValue>> getPartnersHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbOrg.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Organization item = Organization.fromJson(data);
+      if (item.partner) {
+        items.add(item.toKeyValue());
+      }
+    }
+    return items;
+  }
 
-  if (name != "") {
-    query = await dbOrg.where("name", isEqualTo: name).get();
-  } else {
-    query = await dbOrg.get();
+  static Future<List> searchOrganizations(name) async {
+    List<Organization> items = [];
+    QuerySnapshot? query;
+
+    if (name != "") {
+      query = await dbOrg.where("name", isEqualTo: name).get();
+    } else {
+      query = await dbOrg.get();
+    }
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = Organization.fromJson(data);
+      items.add(item);
+    }
+    return items;
   }
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    final item = Organization.fromJson(data);
-    items.add(item);
-  }
-  return items;
+
 }
 
 //--------------------------------------------------------------
 //                       ORGANIZATION BILLING
 //--------------------------------------------------------------
-CollectionReference dbOrgBill = db.collection("s4c_organization_billing");
 
 class OrganizationBilling {
   String id = "";
@@ -361,6 +353,9 @@ class OrganizationBilling {
   String cif = "";
   String organization = "";
   Organization org = Organization("");
+
+  static final CollectionReference dbOrgBill =
+      db.collection("s4c_organizations_billing");
 
   OrganizationBilling(this.name);
 
@@ -403,18 +398,18 @@ class OrganizationBilling {
     await dbOrgBill.doc(id).delete();
   }
 
-  Future<void> getOrganization() async {
-    try {
-      QuerySnapshot query =
-          await dbOrg.where("uuid", isEqualTo: organization).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      org = Organization.fromJson(data);
-    } catch (e) {
-      //return Company("");
-    }
-  }
+  // Future<void> getOrganization() async {
+  //   try {
+  //     QuerySnapshot query =
+  //         await dbOrg.where("uuid", isEqualTo: organization).get();
+  //     final doc = query.docs.first;
+  //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //     data["id"] = doc.id;
+  //     org = Organization.fromJson(data);
+  //   } catch (e) {
+  //     //return Company("");
+  //   }
+  // }
 
   static Future<OrganizationBilling> byOrganization(String uuid) async {
     OrganizationBilling item = OrganizationBilling("None");
@@ -438,12 +433,14 @@ class OrganizationBilling {
 //--------------------------------------------------------------
 //                   ORGANIZATIONS TYPES
 //--------------------------------------------------------------
-CollectionReference dbOrgType = db.collection("s4c_organizations_type");
 
 class OrganizationType {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbOrgType =
+      db.collection("s4c_organization_types");
 
   OrganizationType(this.name);
 
@@ -477,40 +474,43 @@ class OrganizationType {
   Future<void> delete() async {
     await dbOrgType.doc(id).delete();
   }
+
+
+  static Future<List> getOrganizationsType() async {
+    List<OrganizationType> items = [];
+    QuerySnapshot query = await dbOrgType.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(OrganizationType.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<List<KeyValue>> getOrganizationsTypeHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbOrgType.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      OrganizationType item = OrganizationType.fromJson(data);
+      items.add(item.toKeyValue());
+    }
+    return items;
+  }
 }
 
-Future<List> getOrganizationsType() async {
-  List<OrganizationType> items = [];
-  QuerySnapshot query = await dbOrgType.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(OrganizationType.fromJson(data));
-  }
-  return items;
-}
-
-Future<List<KeyValue>> getOrganizationsTypeHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbOrgType.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    OrganizationType item = OrganizationType.fromJson(data);
-    items.add(item.toKeyValue());
-  }
-  return items;
-}
 
 //--------------------------------------------------------------
 //                       ZONE
 //--------------------------------------------------------------
-CollectionReference dbZone = db.collection("s4c_zone");
 
 class Zone {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbZone = db.collection("s4c_zones");
 
   Zone(this.name);
 
@@ -544,28 +544,46 @@ class Zone {
   Future<void> delete() async {
     await dbZone.doc(id).delete();
   }
-}
 
-Future<List> getZones() async {
-  List<Zone> items = [];
-  QuerySnapshot query = await dbZone.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Zone.fromJson(data));
+  static Future<Zone> byUuid(String uuid) async {
+    Zone item = Zone("None");
+    QuerySnapshot query = await dbZone.where("uuid", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = Zone.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
   }
-  return items;
-}
 
+
+  static Future<List> getZones() async {
+    List<Zone> items = [];
+    QuerySnapshot query = await dbZone.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Zone.fromJson(data));
+    }
+    return items;
+  }
+}
 //--------------------------------------------------------------
 //                       AMBIT
 //--------------------------------------------------------------
-CollectionReference dbAmbit = db.collection("s4c_ambits");
 
 class Ambit {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbAmbit = db.collection("s4c_ambits");
 
   Ambit(this.name);
 
@@ -599,34 +617,51 @@ class Ambit {
   Future<void> delete() async {
     await dbAmbit.doc(id).delete();
   }
+
+  static Future<Ambit> byUuid(String uuid) async {
+    Ambit item = Ambit("None");
+    QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = Ambit.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
+  }
+
+  static Future<List> getAmbits() async {
+    List<Ambit> items = [];
+    QuerySnapshot query = await dbAmbit.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Ambit.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<List<KeyValue>> getAmbitsHash() async {
+    List<KeyValue> items = [];
+    QuerySnapshot query = await dbAmbit.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Ambit.fromJson(data).toKeyValue());
+    }
+    return items;
+  }
 }
 
-Future<List> getAmbits() async {
-  List<Ambit> items = [];
-  QuerySnapshot query = await dbAmbit.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Ambit.fromJson(data));
-  }
-  return items;
-}
-
-Future<List<KeyValue>> getAmbitsHash() async {
-  List<KeyValue> items = [];
-  QuerySnapshot query = await dbAmbit.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Ambit.fromJson(data).toKeyValue());
-  }
-  return items;
-}
 
 //--------------------------------------------------------------
 //                       SECTOR
 //--------------------------------------------------------------
-CollectionReference dbSector = db.collection("s4c_sectors");
 
 class Sector {
   String id = "";
@@ -634,6 +669,9 @@ class Sector {
   String name;
 
   Sector(this.name);
+
+  static final CollectionReference dbSector = db.collection("s4c_sectors");
+
 
   Sector.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -665,23 +703,41 @@ class Sector {
   Future<void> delete() async {
     await dbSector.doc(id).delete();
   }
+
+  static Future<Sector> byUuid(String uuid) async {
+    Sector item = Sector("None");
+    QuerySnapshot query = await dbSector.where("uuid", isEqualTo: uuid).get();
+
+    if (query.docs.isNotEmpty) {
+      try {
+        Map<String, dynamic> data =
+            query.docs.first.data() as Map<String, dynamic>;
+        data["id"] = query.docs.first.id;
+        item = Sector.fromJson(data);
+      } catch (e) {
+        print("ERROR : $e");
+      }
+    }
+    return item;
+  }
+
+  static Future<List> getSectors() async {
+    List<Sector> items = [];
+    QuerySnapshot query = await dbSector.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Sector.fromJson(data));
+    }
+    return items;
+  }
 }
 
-Future<List> getSectors() async {
-  List<Sector> items = [];
-  QuerySnapshot query = await dbAmbit.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Sector.fromJson(data));
-  }
-  return items;
-}
+
 
 //--------------------------------------------------------------
 //                       NOTIFICATIONS
 //--------------------------------------------------------------
-CollectionReference dbNotifications = db.collection("s4c_notifications");
 
 class SNotification {
   String id = "";
@@ -692,6 +748,9 @@ class SNotification {
   bool readed = false;
   DateTime date = DateTime.now();
   DateTime readDate = DateTime(2100, 12, 31);
+
+  static final CollectionReference dbNotifications =
+      db.collection("s4c_notifications");
 
   SNotification(this.sender);
 
@@ -767,7 +826,6 @@ class SNotification {
 //--------------------------------------------------------------
 //                       LOGS
 //--------------------------------------------------------------
-CollectionReference dbLogs = db.collection("s4c_logs");
 
 class SLogs {
   String id = "";
@@ -776,6 +834,8 @@ class SLogs {
   String user;
   String msg = "";
   DateTime date = DateTime.now();
+
+  static final CollectionReference dbLogs = db.collection("s4c_logs");
 
   SLogs(this.user);
 

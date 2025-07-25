@@ -36,7 +36,7 @@ class _ZonePageState extends State<ZonePage>
 
   void loadZones() async {
     setLoading();
-    await getZones().then((val) {
+    await Zone.getZones().then((val) {
       zones = val;
       stopLoading();
     });

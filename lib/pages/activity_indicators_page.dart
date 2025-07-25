@@ -24,9 +24,10 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   late final Profile? profile;
 
   void loadActivityIndicators(value) async {
-    await getActivityIndicatorsByActivity(value).then((val) {
-      aiList = val;
-    });
+    // await getActivityIndicatorsByActivity(value).then((val) {
+    //   aiList = val;
+    // });
+    aiList = await ActivityIndicator.getActivityIndicatorsByActivity(value);
     setState(() {});
   }
 
@@ -150,7 +151,7 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorList(context, activity) {
     return FutureBuilder(
-        future: getActivityIndicatorsByActivity(activity.uuid),
+        future: ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             aiList = snapshot.data!;

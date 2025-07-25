@@ -36,10 +36,12 @@ class _TownPageState extends State<TownPage>
 
   void loadTowns() async {
     setLoading();
-    await getTowns().then((val) {
-      towns = val;
-      stopLoading();
-    });
+    towns = await Town.getTowns();
+    stopLoading();
+    // await getTowns().then((val) {
+    //   towns = val;
+    //   stopLoading();
+    // });
   }
 
   @override

@@ -30,12 +30,19 @@ class _TasksPageState extends State<TasksPage> {
       taskLoading = false;
     });
 
-    await getTasks().then((val) {
-      tasks = val;
+    tasks = await STask.getTasks();
+    if (mounted) {
       setState(() {
+        tasks = tasks;
         taskLoading = true;
       });
-    });
+    }
+    // await getTasks().then((val) {
+    //   tasks = val;
+    //   setState(() {
+    //     taskLoading = true;
+    //   });
+    // });
     //setState(() {});
   }
 

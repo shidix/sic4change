@@ -27,7 +27,7 @@ class _ResultsPageState extends State<ResultsPage> {
   Goal? goal;
 
   void loadResults(value) async {
-    await getResultsByGoal(value).then((val) {
+    await Result.getResultsByGoal(value).then((val) {
       results = val;
       //print(contact_list);
     });
@@ -190,7 +190,7 @@ class _ResultsPageState extends State<ResultsPage> {
 
   Widget resultList(context, _goal) {
     return FutureBuilder(
-        future: getResultsByGoal(_goal.uuid),
+        future: Result.getResultsByGoal(_goal.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             results = snapshot.data!;

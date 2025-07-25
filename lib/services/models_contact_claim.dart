@@ -8,7 +8,6 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                      CONTACTS CLAIM
 //--------------------------------------------------------------
-CollectionReference dbContactClaim = db.collection("s4c_contact_claim");
 
 class ContactClaim {
   String id = "";
@@ -26,6 +25,8 @@ class ContactClaim {
   DateTime resolutionDate = DateTime.now();
   Contact contactObj = Contact("");
   Contact managerObj = Contact("");
+
+  static final dbContactClaim = db.collection("contact_claims");
 
   ContactClaim(this.contact);
 
@@ -91,12 +92,13 @@ class ContactClaim {
 
   Future<void> getContact() async {
     try {
-      QuerySnapshot query =
-          await dbContacts.where("uuid", isEqualTo: contact).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      contactObj = Contact.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbContacts.where("uuid", isEqualTo: contact).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // contactObj = Contact.fromJson(data);
+      contactObj = await Contact.byUuid(contact);
     } catch (e) {
       //return Position("");
     }
@@ -104,46 +106,49 @@ class ContactClaim {
 
   Future<void> getManager() async {
     try {
-      QuerySnapshot query =
-          await dbContacts.where("uuid", isEqualTo: manager).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      managerObj = Contact.fromJson(data);
+      managerObj = await Contact.byUuid(manager);
+      // QuerySnapshot query =
+      //     await dbContacts.where("uuid", isEqualTo: manager).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // managerObj = Contact.fromJson(data);
     } catch (e) {
       //return Position("");
     }
   }
-}
 
-Future<List> getContactClaims() async {
-  List<ContactClaim> items = [];
-  QuerySnapshot query = await dbContactClaim.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    ContactClaim item = ContactClaim.fromJson(data);
-    await item.getContact();
-    await item.getManager();
-    items.add(item);
-    //items.add(ContactClaim.fromJson(data));
+
+  static Future<List<ContactClaim>> getContactClaims() async {
+    List<ContactClaim> items = [];
+    QuerySnapshot query = await dbContactClaim.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ContactClaim item = ContactClaim.fromJson(data);
+      await item.getContact();
+      await item.getManager();
+      items.add(item);
+      //items.add(ContactClaim.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getClaimsByContact(String contact) async {
-  List<ContactClaim> items = [];
+  static Future<List> getClaimsByContact(String contact) async {
+    List<ContactClaim> items = [];
 
-  QuerySnapshot query =
-      await dbContactClaim.where("contact", isEqualTo: contact).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    ContactClaim item = ContactClaim.fromJson(data);
-    await item.getContact();
-    await item.getManager();
-    items.add(item);
-    //items.add(ContactClaim.fromJson(data));
+    QuerySnapshot query =
+        await dbContactClaim.where("contact", isEqualTo: contact).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      ContactClaim item = ContactClaim.fromJson(data);
+      await item.getContact();
+      await item.getManager();
+      items.add(item);
+      //items.add(ContactClaim.fromJson(data));
+    }
+    return items;
   }
-  return items;
 }
+

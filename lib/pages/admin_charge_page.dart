@@ -37,10 +37,12 @@ class _ChargePageState extends State<ChargePage>
 
   void loadCharges() async {
     setLoading();
-    await getContactCharges().then((val) {
-      charges = val;
-      stopLoading();
-    });
+    charges = await ContactCharge.getContactCharges();
+    stopLoading();
+    // await getContactCharges().then((val) {
+    //   charges = val;
+    //   stopLoading();
+    // });
   }
 
   @override

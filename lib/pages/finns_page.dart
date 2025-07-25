@@ -83,7 +83,7 @@ class _FinnsPageState extends State<FinnsPage> {
     Invoice.newTracker().then((val) {
       tracker = val;
     });
-    getOrganizations().then((val) {
+    Organization.getOrganizations().then((val) {
       for (Organization item in val) {
         if (_project!.financiers.contains(item.uuid)) {
           financiers[item.uuid] = item;

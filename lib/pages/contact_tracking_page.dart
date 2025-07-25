@@ -50,10 +50,12 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
   }*/
 
   void loadContactTracking() async {
-    await getTrakingsByContact(contact!.uuid).then((val) {
-      trackingList = val;
-    });
-    setState(() {});
+
+    trackingList = await ContactTracking.getTrakingsByContact(
+        widget.contact!.uuid);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -241,15 +243,15 @@ class _ContactTrackingPageState extends State<ContactTrackingPage> {
 /*--------------------------------------------------------------------*/
   void callTaskEditDialog(context, HashMap args) async {
     ContactTracking tracking = args["tracking"];
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

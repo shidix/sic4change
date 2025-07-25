@@ -9,13 +9,14 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                           COUNTRY
 //--------------------------------------------------------------
-CollectionReference dbCountry = db.collection("s4c_country");
 
 class Country {
   String id = "";
   String uuid = "";
   String name = "";
   String code = "";
+
+  static CollectionReference dbCountry = db.collection("s4c_country");
 
   Country(this.name);
 
@@ -54,6 +55,13 @@ class Country {
     await dbCountry.doc(id).delete();
   }
 
+  static Future<Country?> byId(String id) {
+    return dbCountry.doc(id).get().then((value) =>
+        (value.exists)
+            ? Country.fromJson(value.data() as Map<String, dynamic>)
+            : null);
+  }
+
   static Future<Country?> byUuid(String uuid) {
     return dbCountry.where("uuid", isEqualTo: uuid).get().then((value) =>
         (value.docs.isNotEmpty)
@@ -71,41 +79,45 @@ class Country {
     }
     return items;
   }
-}
 
-Future<List> getCountries() async {
-  List<Country> items = [];
 
-  QuerySnapshot query = await dbCountry.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Country.fromJson(data));
+  static Future<List> getCountries() async {
+    List<Country> items = [];
+
+    QuerySnapshot query = await dbCountry.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Country.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List<KeyValue>> getCountriesHash() async {
-  List<KeyValue> items = [];
+  static Future<List<KeyValue>> getCountriesHash() async {
+    List<KeyValue> items = [];
 
-  QuerySnapshot query = await dbCountry.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Country.fromJson(data).toKeyValue());
+    QuerySnapshot query = await dbCountry.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Country.fromJson(data).toKeyValue());
+    }
+    return items;
   }
-  return items;
+
 }
 
 //--------------------------------------------------------------
 //                           PROVINCE
 //--------------------------------------------------------------
-CollectionReference dbProvince = db.collection("s4c_province");
 
 class Province {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbProvince = db.collection("s4c_province");
+
 
   Province(this.name);
 
@@ -139,41 +151,59 @@ class Province {
   Future<void> delete() async {
     await dbProvince.doc(id).delete();
   }
-}
 
-Future<List> getProvinces() async {
-  List<Province> items = [];
+  /// Static methods
+  /// 
+  static Future<Province> byId(String id) {
+    return dbProvince.doc(id).get().then((value) =>
+        (value.exists)
+            ? Province.fromJson(value.data() as Map<String, dynamic>)
+            : Province(""));
+  } 
 
-  QuerySnapshot query = await dbProvince.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Province.fromJson(data));
+  static Future<Province> byUuid(String uuid) {
+    return dbProvince.where("uuid", isEqualTo: uuid).get().then((value) =>
+        (value.docs.isNotEmpty)
+            ? Province.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            : Province(""));
   }
-  return items;
-}
 
-Future<List<KeyValue>> getProvincesHash() async {
-  List<KeyValue> items = [];
+  static Future<List> getProvinces() async {
+    List<Province> items = [];
 
-  QuerySnapshot query = await dbProvince.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Province.fromJson(data).toKeyValue());
+    QuerySnapshot query = await dbProvince.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Province.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
+  static Future<List<KeyValue>> getProvincesHash() async {
+    List<KeyValue> items = [];
+
+    QuerySnapshot query = await dbProvince.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Province.fromJson(data).toKeyValue());
+    }
+    return items;
+  }
+
 }
 
 //--------------------------------------------------------------
 //                           REGION
 //--------------------------------------------------------------
-CollectionReference dbRegion = db.collection("s4c_region");
 
 class Region {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbRegion = db.collection("s4c_region");
 
   Region(this.name);
 
@@ -207,41 +237,58 @@ class Region {
   Future<void> delete() async {
     await dbRegion.doc(id).delete();
   }
-}
 
-Future<List> getRegions() async {
-  List<Region> items = [];
-
-  QuerySnapshot query = await dbRegion.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Region.fromJson(data));
+  static Future<Region> byId(String id) {
+    return dbRegion.doc(id).get().then((value) =>
+        (value.exists)
+            ? Region.fromJson(value.data() as Map<String, dynamic>)
+            : Region(""));
   }
-  return items;
-}
 
-Future<List<KeyValue>> getRegionsHash() async {
-  List<KeyValue> items = [];
-
-  QuerySnapshot query = await dbRegion.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Region.fromJson(data).toKeyValue());
+  static Future<Region> byUuid(String uuid) {
+    return dbRegion.where("uuid", isEqualTo: uuid).get().then((value) =>
+        (value.docs.isNotEmpty)
+            ? Region.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            : Region(""));
   }
-  return items;
+
+  static Future<List> getRegions() async {
+    List<Region> items = [];
+
+    QuerySnapshot query = await dbRegion.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Region.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<List<KeyValue>> getRegionsHash() async {
+    List<KeyValue> items = [];
+
+    QuerySnapshot query = await dbRegion.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Region.fromJson(data).toKeyValue());
+    }
+    return items;
+  }
+
 }
+
 
 //--------------------------------------------------------------
 //                      TOWN
 //--------------------------------------------------------------
-CollectionReference dbTown = db.collection("s4c_town");
 
 class Town {
   String id = "";
   String uuid = "";
   String name = "";
+
+  static final CollectionReference dbTown = db.collection("s4c_town");
 
   Town(this.name);
 
@@ -275,28 +322,45 @@ class Town {
   Future<void> delete() async {
     await dbTown.doc(id).delete();
   }
-}
 
-Future<List> getTowns() async {
-  List<Town> items = [];
-
-  QuerySnapshot query = await dbTown.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Town.fromJson(data));
+  //byUuid
+  static Future<Town> byId(String id) {
+    return dbTown.doc(id).get().then((value) =>
+        (value.exists)
+            ? Town.fromJson(value.data() as Map<String, dynamic>)
+            : Town(""));
   }
-  return items;
-}
 
-Future<List<KeyValue>> getTownsHash() async {
-  List<KeyValue> items = [];
-
-  QuerySnapshot query = await dbTown.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Town.fromJson(data).toKeyValue());
+  static Future<Town> byUuid(String uuid) {
+    return dbTown.where("uuid", isEqualTo: uuid).get().then((value) =>
+        (value.docs.isNotEmpty)
+            ? Town.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            : Town(""));
   }
-  return items;
+
+
+  static Future<List> getTowns() async {
+    List<Town> items = [];
+
+    QuerySnapshot query = await dbTown.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Town.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<List<KeyValue>> getTownsHash() async {
+    List<KeyValue> items = [];
+
+    QuerySnapshot query = await dbTown.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Town.fromJson(data).toKeyValue());
+    }
+    return items;
+  }
+
 }

@@ -8,7 +8,6 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 //--------------------------------------------------------------
 //                           CONTACTS
 //--------------------------------------------------------------
-CollectionReference dbContactInfo = db.collection("s4c_contact_info");
 
 class ContactInfo {
   String id = "";
@@ -37,8 +36,8 @@ class ContactInfo {
 
   Organization orgObj = Organization("");
   ContactCharge chargeObj = ContactCharge("");
-  TasksStatus catObj = TasksStatus("");
-  TasksStatus subcatObj = TasksStatus("");
+  ContactCategory catObj = ContactCategory("");
+  ContactCategory subcatObj = ContactCategory("");
   ContactDecision decisionObj = ContactDecision("");
   Zone zoneObj = Zone("");
   Zone subzoneObj = Zone("");
@@ -46,6 +45,9 @@ class ContactInfo {
   Sector sectorObj = Sector("");
   ContactStakeholder stakeholderObj = ContactStakeholder("");
   List<SProject> projectsObj = [];
+
+  static final CollectionReference dbContactInfo = db.collection("s4c_contact_info");
+
 
   ContactInfo(this.contact);
 
@@ -140,12 +142,13 @@ class ContactInfo {
 
   Future<Organization> getOrganization() async {
     try {
-      QuerySnapshot query =
-          await dbOrg.where("uuid", isEqualTo: organization).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Organization.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbOrg.where("uuid", isEqualTo: organization).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Organization.fromJson(data);
+      return await Organization.byDomain(organization);
     } catch (e) {
       return Organization("");
     }
@@ -153,51 +156,55 @@ class ContactInfo {
 
   Future<ContactCharge> getCharge() async {
     try {
-      QuerySnapshot query =
-          await dbContactCharge.where("uuid", isEqualTo: charge).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ContactCharge.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbContactCharge.where("uuid", isEqualTo: charge).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ContactCharge.fromJson(data);
+      return await ContactCharge.byUuid(charge);
     } catch (e) {
       return ContactCharge("");
     }
   }
 
-  Future<TasksStatus> getCategory() async {
+  Future<ContactCategory> getCategory() async {
     try {
-      QuerySnapshot query =
-          await dbContactCategory.where("uuid", isEqualTo: category).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return TasksStatus.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbContactCategory.where("uuid", isEqualTo: category).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return TasksStatus.fromJson(data);
+      return await ContactCategory.byUuid(category);
     } catch (e) {
-      return TasksStatus("");
+      return ContactCategory("");
     }
   }
 
-  Future<TasksStatus> getSubcategory() async {
+  Future<ContactCategory> getSubcategory() async {
     try {
-      QuerySnapshot query =
-          await dbContactCategory.where("uuid", isEqualTo: subcategory).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return TasksStatus.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbContactCategory.where("uuid", isEqualTo: subcategory).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return TasksStatus.fromJson(data);
+      return await ContactCategory.byUuid(subcategory);
     } catch (e) {
-      return TasksStatus("");
+      return ContactCategory("");
     }
   }
 
   Future<ContactDecision> getDecision() async {
     try {
-      QuerySnapshot query =
-          await dbContactDecision.where("uuid", isEqualTo: decision).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ContactDecision.fromJson(data);
+      return await ContactDecision.byUuid(decision);
+      // QuerySnapshot query =
+      //     await dbContactDecision.where("uuid", isEqualTo: decision).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ContactDecision.fromJson(data);
     } catch (e) {
       return ContactDecision("");
     }
@@ -205,11 +212,12 @@ class ContactInfo {
 
   Future<Zone> getZone() async {
     try {
-      QuerySnapshot query = await dbZone.where("uuid", isEqualTo: zone).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Zone.fromJson(data);
+      return await Zone.byUuid(zone);
+      // QuerySnapshot query = await dbZone.where("uuid", isEqualTo: zone).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Zone.fromJson(data);
     } catch (e) {
       return Zone("");
     }
@@ -217,12 +225,13 @@ class ContactInfo {
 
   Future<Zone> getSubzone() async {
     try {
-      QuerySnapshot query =
-          await dbZone.where("uuid", isEqualTo: subzone).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Zone.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbZone.where("uuid", isEqualTo: subzone).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Zone.fromJson(data);
+      return await Zone.byUuid(subzone);
     } catch (e) {
       return Zone("");
     }
@@ -230,11 +239,12 @@ class ContactInfo {
 
   Future<Ambit> getAmbit() async {
     try {
-      QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Ambit.fromJson(data);
+      // QuerySnapshot query = await dbAmbit.where("uuid", isEqualTo: ambit).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Ambit.fromJson(data);
+      return await Ambit.byUuid(ambit);
     } catch (e) {
       return Ambit("");
     }
@@ -242,12 +252,13 @@ class ContactInfo {
 
   Future<ContactStakeholder> getSkateholder() async {
     try {
-      QuerySnapshot query =
-          await dbContactSkatehoder.where("uuid", isEqualTo: stakeholder).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return ContactStakeholder.fromJson(data);
+      return await ContactStakeholder.byUuid(stakeholder);
+      // QuerySnapshot query =
+      //     await dbContactSkatehoder.where("uuid", isEqualTo: stakeholder).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return ContactStakeholder.fromJson(data);
     } catch (e) {
       return ContactStakeholder("");
     }
@@ -255,65 +266,81 @@ class ContactInfo {
 
   Future<Sector> getSector() async {
     try {
-      QuerySnapshot query =
-          await dbSector.where("uuid", isEqualTo: sector).get();
-      final doc = query.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      return Sector.fromJson(data);
+      // QuerySnapshot query =
+      //     await dbSector.where("uuid", isEqualTo: sector).get();
+      // final doc = query.docs.first;
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // return Sector.fromJson(data);
+      return await Sector.byUuid(sector);
     } catch (e) {
       return Sector("");
     }
   }
 
   Future<List<SProject>> getProjects() async {
-    List<SProject> prList = [];
-    for (String pr in projects) {
-      try {
-        QuerySnapshot query =
-            await dbProject.where("uuid", isEqualTo: pr).get();
-        final doc = query.docs.first;
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        SProject project = SProject.fromJson(data);
-        prList.add(project);
-      } catch (e) {}
-    }
+
+    List<SProject> prList = await SProject.getProjects(uuids:projects as List<String>);
+    // for (String pr in projects) {
+
+      // try {
+      //   QuerySnapshot query =
+      //       await dbProject.where("uuid", isEqualTo: pr).get();
+      //   final doc = query.docs.first;
+      //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      //   data["id"] = doc.id;
+      //   SProject project = SProject.fromJson(data);
+      //   prList.add(project);
+      // } catch (e) {}
+    // }
     return prList;
   }
-}
 
-Future<ContactInfo> getContactInfoByContact(String uuid) async {
-  ContactInfo contactInfo = ContactInfo(uuid);
-  try {
+  static Future<ContactInfo> byUuid(String uuid) async {
+    ContactInfo contactInfo = ContactInfo(uuid);
     QuerySnapshot query =
-        await dbContactInfo.where("contact", isEqualTo: uuid).get();
-    final dbResult = query.docs.first;
-    final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
-    if (data.isEmpty) {
-      //contactInfo = ContactInfo(uuid);
+        await dbContactInfo.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
       contactInfo.save();
-    } else {
-      data["id"] = dbResult.id;
-      contactInfo = ContactInfo.fromJson(data);
-      contactInfo.orgObj = await contactInfo.getOrganization();
-      contactInfo.chargeObj = await contactInfo.getCharge();
-      contactInfo.catObj = await contactInfo.getCategory();
-      contactInfo.subcatObj = await contactInfo.getSubcategory();
-      contactInfo.zoneObj = await contactInfo.getZone();
-      contactInfo.subzoneObj = await contactInfo.getSubzone();
-      contactInfo.ambitObj = await contactInfo.getAmbit();
-      contactInfo.sectorObj = await contactInfo.getSector();
-      contactInfo.stakeholderObj = await contactInfo.getSkateholder();
-      contactInfo.decisionObj = await contactInfo.getDecision();
-      //contactInfo.projectsObj = await contactInfo.getProjects();
     }
-  } catch (exc) {
-    print(exc);
+    contactInfo.reload();
+    return contactInfo;
   }
+  static Future<ContactInfo> getContactInfoByContact(String uuid) async {
+    ContactInfo contactInfo = ContactInfo(uuid);
+    try {
+      // QuerySnapshot query =
+      //     await dbContactInfo.where("contact", isEqualTo: uuid).get();
+      // final dbResult = query.docs.first;
+      // final Map<String, dynamic> data = dbResult.data() as Map<String, dynamic>;
+      // if (data.isEmpty) {
+      //   contactInfo.save();
+      // } else {
+      //   data["id"] = dbResult.id;
+      //   contactInfo = ContactInfo.fromJson(data);
+      //   contactInfo.orgObj = await contactInfo.getOrganization();
+      //   contactInfo.chargeObj = await contactInfo.getCharge();
+      //   contactInfo.catObj = await contactInfo.getCategory();
+      //   contactInfo.subcatObj = await contactInfo.getSubcategory();
+      //   contactInfo.zoneObj = await contactInfo.getZone();
+      //   contactInfo.subzoneObj = await contactInfo.getSubzone();
+      //   contactInfo.ambitObj = await contactInfo.getAmbit();
+      //   contactInfo.sectorObj = await contactInfo.getSector();
+      //   contactInfo.stakeholderObj = await contactInfo.getSkateholder();
+      //   contactInfo.decisionObj = await contactInfo.getDecision();
+      // }
+      contactInfo = await ContactInfo.byUuid(uuid);
+      // await contactInfo.reload();
+      return contactInfo; 
+    } catch (exc) {
+      print(exc);
+    }
 
-  return contactInfo;
+    return contactInfo;
+  }
 }
+
+
 
 /*Future<List> getContactInfos() async {
   List<ContactInfo> items = [];
@@ -329,12 +356,14 @@ Future<ContactInfo> getContactInfoByContact(String uuid) async {
 //--------------------------------------------------------------
 //                           CHARGES
 //--------------------------------------------------------------
-CollectionReference dbContactCharge = db.collection("s4c_contact_charge");
 
 class ContactCharge {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbContactCharge =
+      db.collection("s4c_contact_charge");
 
   ContactCharge(this.name);
 
@@ -368,32 +397,51 @@ class ContactCharge {
   Future<void> delete() async {
     await dbContactCharge.doc(id).delete();
   }
+
+  static Future<List> getContactCharges() async {
+    List<ContactCharge> items = [];
+    QuerySnapshot query = await dbContactCharge.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ContactCharge.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<ContactCharge> byUuid(String uuid) async {
+    ContactCharge contactCharge = ContactCharge(uuid);
+    QuerySnapshot query =
+        await dbContactCharge.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      contactCharge.save();
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      contactCharge = ContactCharge.fromJson(data);
+    }
+    return contactCharge;
+  }
 }
 
-Future<List> getContactCharges() async {
-  List<ContactCharge> items = [];
-  QuerySnapshot query = await dbContactCharge.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ContactCharge.fromJson(data));
-  }
-  return items;
-}
+
 
 //--------------------------------------------------------------
 //                           CATEGORIES
 //--------------------------------------------------------------
-CollectionReference dbContactCategory = db.collection("s4c_contact_category");
 
-class TasksStatus {
+class ContactCategory {
   String id = "";
   String uuid = "";
   String name;
 
-  TasksStatus(this.name);
+  static final CollectionReference dbContactCategory =
+      db.collection("s4c_contact_category");
 
-  TasksStatus.fromJson(Map<String, dynamic> json)
+  ContactCategory(this.name);
+
+  ContactCategory.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
         name = json['name'];
@@ -423,28 +471,47 @@ class TasksStatus {
   Future<void> delete() async {
     await dbContactCategory.doc(id).delete();
   }
+
+  static Future<List> getContactCategories() async {
+    List<ContactCategory> items = [];
+    QuerySnapshot query = await dbContactCategory.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ContactCategory.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<ContactCategory> byUuid(String uuid) async {
+    ContactCategory tasksStatus = ContactCategory(uuid);
+    QuerySnapshot query =
+        await dbContactCategory.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      tasksStatus.save();
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      tasksStatus = ContactCategory.fromJson(data);
+    }
+    return tasksStatus;
+  }
 }
 
-Future<List> getContactCategories() async {
-  List<TasksStatus> items = [];
-  QuerySnapshot query = await dbContactCategory.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(TasksStatus.fromJson(data));
-  }
-  return items;
-}
+
 
 //--------------------------------------------------------------
 //                           DECISION
 //--------------------------------------------------------------
-CollectionReference dbContactDecision = db.collection("s4c_contact_decision");
 
 class ContactDecision {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbContactDecision =
+      db.collection("s4c_contact_decision");
 
   ContactDecision(this.name);
 
@@ -478,29 +545,48 @@ class ContactDecision {
   Future<void> delete() async {
     await dbContactDecision.doc(id).delete();
   }
+
+  static Future<List> getContactDecisions() async {
+    List<ContactDecision> items = [];
+    QuerySnapshot query = await dbContactDecision.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ContactDecision.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<ContactDecision> byUuid(String uuid) async {
+    ContactDecision contactDecision = ContactDecision(uuid);
+    QuerySnapshot query =
+        await dbContactDecision.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      contactDecision.save();
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      contactDecision = ContactDecision.fromJson(data);
+    }
+    return contactDecision;
+  }
 }
 
-Future<List> getContactDecisions() async {
-  List<ContactDecision> items = [];
-  QuerySnapshot query = await dbContactDecision.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ContactDecision.fromJson(data));
-  }
-  return items;
-}
+
 
 //--------------------------------------------------------------
 //                           SKATEHOLDER
 //--------------------------------------------------------------
-CollectionReference dbContactSkatehoder =
-    db.collection("s4c_contact_stakeholder");
+
 
 class ContactStakeholder {
   String id = "";
   String uuid = "";
   String name;
+
+  static final CollectionReference dbContactStakeholder =
+      db.collection("s4c_contact_stakeholder");
 
   ContactStakeholder(this.name);
 
@@ -524,25 +610,41 @@ class ContactStakeholder {
       var newUuid = Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbContactSkatehoder.add(data);
+      dbContactStakeholder.add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbContactSkatehoder.doc(id).set(data);
+      dbContactStakeholder.doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbContactSkatehoder.doc(id).delete();
+    await dbContactStakeholder.doc(id).delete();
+  }
+
+ static Future<List> getContactStakeholders() async {
+    List<ContactStakeholder> items = [];
+    QuerySnapshot query = await dbContactStakeholder.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ContactStakeholder.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<ContactStakeholder> byUuid(String uuid) async {
+    ContactStakeholder contactStakeholder = ContactStakeholder(uuid);
+    QuerySnapshot query =
+        await dbContactStakeholder.where("uuid", isEqualTo: uuid).get();
+    if (query.docs.isEmpty) {
+      contactStakeholder.save();
+    } else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      contactStakeholder = ContactStakeholder.fromJson(data);
+    }
+    return contactStakeholder;
   }
 }
 
-Future<List> getContactStakeholders() async {
-  List<ContactStakeholder> items = [];
-  QuerySnapshot query = await dbContactSkatehoder.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ContactStakeholder.fromJson(data));
-  }
-  return items;
-}

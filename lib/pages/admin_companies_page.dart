@@ -38,10 +38,12 @@ class _CompanyPageState extends State<CompanyPage>
 
   void loadCompanies() async {
     setLoading();
-    await getCompanies().then((val) {
-      companies = val;
-      stopLoading();
-    });
+    companies = await Company.getCompanies();
+    stopLoading();
+    // await getCompanies().then((val) {
+    //   companies = val;
+    //   stopLoading();
+    // });
   }
 
   @override

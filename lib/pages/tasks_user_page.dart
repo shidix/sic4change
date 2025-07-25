@@ -55,7 +55,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       tasksLoading = true;
       myTasksLoading = true;
     });
-    await getTasks().then((value) {
+    await STask.getTasks().then((value) {
       List<STask> tList = value as List<STask>;
       for (STask t in tList) {
         t.rel = "Cargando...";
@@ -382,15 +382,15 @@ class _TasksUserPageState extends State<TasksUserPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void callEditDialog(context, HashMap args) async {
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

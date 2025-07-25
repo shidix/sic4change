@@ -195,7 +195,7 @@ class _ContactClaimInfoPageState extends State<ContactClaimInfoPage> {
   }
 
   Future<void> editDialog(context, claim) async {
-    List<KeyValue> contacts = await getContactsProfilesHash();
+    List<KeyValue> contacts = await Contact.getContactsProfilesHash();
     editClaimInfoDialog(context, claim, contacts);
   }
 

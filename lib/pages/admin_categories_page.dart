@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -37,10 +38,11 @@ class _CategoryPageState extends State<CategoryPage>
 
   void loadCategories() async {
     setLoading();
-    await getContactCategories().then((val) {
-      categories = val;
-      stopLoading();
-    });
+    categories = await ContactCategory.getContactCategories();
+    // await getContactCategories().then((val) {
+    //   categories = val;
+    //   stopLoading();
+    // });
   }
 
   @override
@@ -83,7 +85,7 @@ class _CategoryPageState extends State<CategoryPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, editCategoryDialog, {'category': TasksStatus("")}),
+            addBtn(context, editCategoryDialog, {'category': ContactCategory("")}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -93,7 +95,7 @@ class _CategoryPageState extends State<CategoryPage>
   }
 
   void saveCategory(List args) async {
-    TasksStatus category = args[0];
+    ContactCategory category = args[0];
     category.save();
     loadCategories();
 
@@ -101,7 +103,7 @@ class _CategoryPageState extends State<CategoryPage>
   }
 
   Future<void> editCategoryDialog(context, Map<String, dynamic> args) {
-    TasksStatus category = args["category"];
+    ContactCategory category = args["category"];
 
     return showDialog<void>(
       context: context,
