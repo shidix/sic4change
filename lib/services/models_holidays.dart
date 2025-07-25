@@ -43,9 +43,7 @@ class HolidaysConfig {
           if (employee.id != "") {
             temp.employees.add(employee);
           }
-        }).catchError((error) {
-          print("Error getting employee by id: $error");
-        });
+        }).catchError((error) {});
       }
     } else {
       temp.employees = [];
@@ -193,9 +191,7 @@ class HolidayRequest {
 
     HolidaysCategory.byId(catUuid).then((cat) {
       item.category = cat;
-    }).catchError((error) {
-      print("Error getting category by uuid: $error");
-    });
+    }).catchError((error) {});
 
     return item;
   }
@@ -453,9 +449,7 @@ class HolidaysCategory {
 
     Organization.byUuid(orgUuid).then((org) {
       item.organization = org;
-    }).catchError((error) {
-      print("Error getting organization by uuid: $error");
-    });
+    }).catchError((error) {});
     return item;
   }
 

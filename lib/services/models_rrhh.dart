@@ -816,18 +816,17 @@ class Employee {
     }
     date ??= DateTime.now();
     altas.sort((a, b) => b.date.compareTo(a.date));
-    if (verbose) {
-      for (var alta in altas) {
-        print(alta.toJson());
-      }
-    }
+    // if (verbose) {
+    //   for (var alta in altas) {
+    //     print('Alta: ${alta.date}, Salary: ${alta.salary}');
+    //   }
+    // }
     try {
       Alta curentAlta =
           altas.firstWhere((element) => element.date.isBefore(date));
       curentAlta.salary.sort((a, b) => a.date.compareTo(b.date));
       return curentAlta.salary.last.amount;
     } catch (e) {
-      print('Error: $e');
       return 0.0;
     }
   }
@@ -1123,14 +1122,14 @@ class Department {
     String label = name.toUpperCase();
     if (manager != null) {
       label +=
-          ', supervisor: ${manager!.getFullName()}, employees (${employees!.length})';
+          ', supervisor: ${manager!.getFullName()}, employees (${employees.length})';
     }
     if (employees.isNotEmpty) {
-      label += ', employees (${employees!.length}): ';
+      label += ', employees (${employees.length}): ';
       // Print the frist 5 employees names and if more than 5, add the text 'and more'
-      for (int i = 0; i < employees!.length && i < 5; i++) {
-        label += employees![i].getFullName();
-        if (i < employees!.length - 1) {
+      for (int i = 0; i < employees.length && i < 5; i++) {
+        label += employees[i].getFullName();
+        if (i < employees.length - 1) {
           label += ', ';
         }
       }
@@ -1186,9 +1185,7 @@ class Department {
                 (element.organization == null))
             .toList();
       }
-    } catch (e) {
-      print('Error getting departments: $e');
-    }
+    } catch (e) {}
     return items;
   }
 
@@ -1206,7 +1203,7 @@ class Department {
     });
 
     items = items
-        .where((element) => element.employees!.contains(employeeCode))
+        .where((element) => element.employees.contains(employeeCode))
         .toList();
 
     items.sort((a, b) => a.name.compareTo(b.name));
@@ -1273,7 +1270,8 @@ class TreeNode extends StatefulWidget {
     this.expanded = true,
     this.visible = true,
     this.parent,
-  }) : childrens = [];
+    this.childrens = const [],
+  });
 
   @override
   _TreeNodeState createState() => _TreeNodeState();
@@ -1286,11 +1284,6 @@ class TreeNode extends StatefulWidget {
       String? mylabel}) {
     //Typecaste the item to the expected type
 
-    print("Creating TreeNode for item: ${item.name}, "
-        "Parent: ${parent?.label ?? 'None'}, "
-        "Level: $level"
-        ", All Items: ${allItems?.length ?? 0}");
-
     TreeNode node = TreeNode(
         item: item,
         label: mylabel ?? item.name,
@@ -1301,7 +1294,6 @@ class TreeNode extends StatefulWidget {
               }
             : (node) {
                 // Default action if not provided
-                print("Node selected: ${node.label}");
               },
         onMainSelected: onMainSelected != null
             ? (node) {
@@ -1309,7 +1301,6 @@ class TreeNode extends StatefulWidget {
               }
             : (node) {
                 // Default action if not provided
-                print("Main node selected: ${node.label}");
               },
         parent: parent);
 

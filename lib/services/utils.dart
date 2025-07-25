@@ -280,7 +280,6 @@ double currencyToDouble(String value) {
     try {
       return double.parse(value);
     } catch (e) {
-      print("Error al convertir $value a double");
       return 0.0;
     }
   }
@@ -315,9 +314,7 @@ Future<String> uploadFileToStorage(PlatformFile file,
   try {
     uploadTask = ref.putData(pickedFileBytes!);
     await uploadTask.whenComplete(() => null);
-  } catch (e) {
-    print(e);
-  }
+  } catch (e) {}
   return path;
 }
 
@@ -415,7 +412,6 @@ Future<bool> openFileUrl(context, String path) async {
 
     return true;
   } catch (e) {
-    print(e);
     return false;
   }
 }
@@ -442,12 +438,10 @@ Uint8List createZip(List<Uint8List> filesData, List<String> fileNames) {
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
     if (zipData == null) {
-      print("ZipData is null");
       return Uint8List(0);
     }
     return (Uint8List.fromList(zipData));
   } catch (e) {
-    print(e);
     return Uint8List(0);
   } finally {
     archive.clear();
@@ -467,10 +461,7 @@ Future<void> compressAndDownloadFiles(
       final ref = FirebaseStorage.instance.ref().child(path);
       final data = await ref.getData();
       filesData.add(Uint8List.fromList(data!));
-    } catch (e) {
-      print("Error al cargar el archivo $path");
-      print(e);
-    }
+    } catch (e) {}
   }
 
   // 2. Crear el archivo ZIP

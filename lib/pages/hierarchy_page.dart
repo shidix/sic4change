@@ -166,7 +166,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
         // createFullTree();
       });
     } catch (e) {
-      print('Error initializing data: $e');
       setState(() {
         allDepartments = List<Department>.empty();
         employees = List<Employee>.empty();
@@ -179,7 +178,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
   @override
   void initState() {
     super.initState();
-    print('Initializing HierarchyPage');
     mainMenuPanel = mainMenu(context, "/rrhh");
     secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
     initializeData(context);
@@ -206,8 +204,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
   }
 
   Widget departmentPanel() {
-    print("Departments: ${allDepartments.length}");
-    print("Employees: ${employees.length}");
     Widget titleBar = s4cTitleBar('Departamentos');
     Widget toolsBar = Row(
       mainAxisAlignment: MainAxisAlignment.end,

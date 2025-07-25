@@ -13,8 +13,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/tasks_menu_widget.dart';
-import 'package:googleapis/calendar/v3.dart' as GoogleAPI;
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 const pageUsersTaskTitle = "Carga de tareas por usuario";
 List users = [];
@@ -56,8 +54,6 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     });
     //setState(() {});
   }
-
- 
 
   @override
   void initState() {
@@ -170,7 +166,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 child: customText("${occupation[us.email][row]['text']} %", 14),
               )));
     } catch (e) {
-      print(e);
+      // Handle error, e.g., log it or show a message
     }
     return SizedBox.expand(
         child: Container(

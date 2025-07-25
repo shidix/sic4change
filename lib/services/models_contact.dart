@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'dart:developer' as dev;
 import 'package:sic4change/services/models.dart';
@@ -242,7 +241,7 @@ class Contact {
       //   //contactInfo.projectsObj = await contactInfo.getProjects();
       // }
     } catch (exc) {
-      print(exc);
+      // Handle error
     }
 
     return contactInfo;
@@ -265,7 +264,6 @@ class Contact {
       data["id"] = dbResult.id;
       return Contact.fromJson(data);
     } catch (e) {
-      print(e);
       return Contact("");
     }
   }

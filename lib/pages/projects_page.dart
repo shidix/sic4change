@@ -446,7 +446,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           financiers.add(
               (getObject(project.financiersObj, uuid) as Organization).name);
         } catch (e) {
-          print(e);
+          continue; // Ignore errors if the object is not found
         }
       }
     }
@@ -686,7 +686,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ProjectDates pd = await ProjectDates.getProjectDatesByProject(project.uuid);
     pd.delete();
 
-    ProjectLocation pl = await ProjectLocation.getProjectLocationByProject(project.uuid);
+    ProjectLocation pl =
+        await ProjectLocation.getProjectLocationByProject(project.uuid);
     pl.delete();
 
     List refList = await Reformulation.getReformulationsByProject(project.uuid);

@@ -144,7 +144,7 @@ class _CompanyPageState extends State<CompanyPage>
           sortColumnIndex: 0,
           showCheckboxColumn: false,
           headingRowColor:
-              MaterialStateColor.resolveWith((states) => headerListBgColor),
+              WidgetStateColor.resolveWith((states) => headerListBgColor),
           headingRowHeight: 40,
           columns: [
             DataColumn(

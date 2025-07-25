@@ -6,7 +6,6 @@ import 'package:sic4change/pages/admin_page.dart';
 import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/pages/home_admin_page.dart';
 import 'package:sic4change/pages/log_page.dart';
-import 'package:sic4change/pages/nominas_page.dart';
 import 'package:sic4change/pages/index.dart';
 
 // Importaciones de firebase
@@ -16,7 +15,6 @@ import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
-import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 
 import 'firebase_options.dart';

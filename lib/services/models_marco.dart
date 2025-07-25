@@ -195,9 +195,7 @@ class Goal {
         //await item.getIndicatorsPercent();
         items.add(item);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 }
@@ -337,9 +335,7 @@ class GoalIndicator {
         items.add(item);
         //items.add(GoalIndicator.fromJson(data));
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 
@@ -358,9 +354,7 @@ class GoalIndicator {
         await item.getFolder();
         items.add(item);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 }
@@ -434,18 +428,19 @@ class Result {
     Result result;
     Goal goal;
     SProject project;
-    QuerySnapshot? query;
-    QuerySnapshot? queryG;
-    QuerySnapshot? queryP;
+    // QuerySnapshot? query;
+    // QuerySnapshot? queryG;
+    // QuerySnapshot? queryP;
 
-    query = await FirebaseFirestore.instance
-        .collection("s4c_results")
-        .where("uuid", isEqualTo: uuid)
-        .get();
-    final dbRes = query.docs.first;
-    final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
-    data["id"] = dbRes.id;
-    result = Result.fromJson(data);
+    // query = await FirebaseFirestore.instance
+    //     .collection("s4c_results")
+    //     .where("uuid", isEqualTo: uuid)
+    //     .get();
+    // final dbRes = query.docs.first;
+    // final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+    // data["id"] = dbRes.id;
+    // result = Result.fromJson(data);
+    result = await Result.byUuid(uuid);
 
     // queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
     // final dbG = queryG.docs.first;
@@ -469,40 +464,25 @@ class Result {
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    // try {
-    //   QuerySnapshot query =
-    //       await dbResultIndicator.where("result", isEqualTo: uuid).get();
-    //   for (var doc in query.docs) {
-    //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    //     data["id"] = doc.id;
-    //     ResultIndicator indicator = ResultIndicator.fromJson(data);
-    //     try {
-    //       totalExpected += double.parse(indicator.expected);
-    //       // ignore: empty_catches
-    //     } catch (e) {}
-    //     try {
-    //       totalObtained += double.parse(indicator.obtained);
-    //       // ignore: empty_catches
-    //     } catch (e) {}
-    //   }
-    // } catch (e) {
-    //   print(e);
-    // }
+
     List<ResultIndicator> indicators =
         await ResultIndicator.getResultIndicatorsByResult(uuid);
+    for (ResultIndicator indicator in indicators) {
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
+    }
     if (totalExpected > 0) total = totalObtained / totalExpected;
     if (total > 1) total = 1;
-    //indicatorsPercent = total;
-    return total;
+    return total * 100;
   }
 
   Future<String> getGoalName() async {
-    // Goal g = Goal("");
-    // QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
-    // final dbP = query.docs.first;
-    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    // data["id"] = dbP.id;
-    // g = Goal.fromJson(data);
     Goal g = await Goal.byUuid(goal);
     return g.name;
   }
@@ -550,9 +530,7 @@ class Result {
         //await item.getIndicatorsPercent();
         items.add(item);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 }
@@ -769,11 +747,34 @@ class Activity {
     //     // ignore: empty_catches
     //   } catch (e) {}
     // }
+    // double totalExpected = 0;
+    // double totalObtained = 0;
+    // double total = 0;
+    // List<ActivityIndicator> indicators =
+    //     await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
+    // if (totalExpected > 0) total = totalObtained / totalExpected;
+    // if (total > 1) total = 1;
+    // //indicatorsPercent = total;
+    // return total;
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
     List<ActivityIndicator> indicators =
         await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
+    for (ActivityIndicator indicator in indicators) {
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        total +=
+            double.parse(indicator.obtained) / double.parse(indicator.expected);
+      } catch (e) {}
+    }
     if (totalExpected > 0) total = totalObtained / totalExpected;
     if (total > 1) total = 1;
     //indicatorsPercent = total;

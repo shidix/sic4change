@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_contact.dart';
-import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -84,7 +83,7 @@ class WorkdayFormState extends State<WorkdayForm> {
                         user.email!,
                       ),
                     )),
-                
+
                 Expanded(
                     flex: 1,
                     child: ListTile(
@@ -94,30 +93,41 @@ class WorkdayFormState extends State<WorkdayForm> {
                     )),
 
                 // Add checkbox for open workday
-                Expanded(flex: 1, child: ListTile (
-                  leading: const Icon(Icons.work),
-                  title: const Text("Jornada Abierta"),
-                  trailing: Checkbox(
-                    value: workday.open,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        workday.open = value ?? false;
-                      });
-                    },
-                  ),
-                )),
-                
+                Expanded(
+                    flex: 1,
+                    child: ListTile(
+                      leading: const Icon(Icons.work),
+                      title: const Text("Jornada Abierta"),
+                      trailing: Checkbox(
+                        value: workday.open,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            workday.open = value ?? false;
+                          });
+                        },
+                      ),
+                    )),
               ]),
               Divider(thickness: 1, color: Colors.grey[400]),
-              const Row(children: [
-                Expanded(
-                    flex: 1,
-                    child: Text("Inicio de Jornada", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center,)),
-                Expanded(
-                    flex: 1,
-                    child:  Text("Fin de Jornada", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center,)),
-              ],
-              
+              const Row(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: Text(
+                        "Inicio de Jornada",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      )),
+                  Expanded(
+                      flex: 1,
+                      child: Text(
+                        "Fin de Jornada",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      )),
+                ],
               ),
               Row(children: [
                 Expanded(
@@ -180,8 +190,8 @@ class WorkdayFormState extends State<WorkdayForm> {
                                   .inMinutes
                                   .toDouble();
 
-                              newStartDate = newStartDate.subtract(
-                                  Duration(hours: 24));
+                              newStartDate =
+                                  newStartDate.subtract(Duration(hours: 24));
                               workday.startDate = newStartDate;
                               workday.endDate = newStartDate
                                   .add(Duration(minutes: elapsedTime.toInt()));
@@ -190,7 +200,7 @@ class WorkdayFormState extends State<WorkdayForm> {
                         }
                       },
                     )),
-                  Expanded(
+                Expanded(
                     flex: 1,
                     child: ListTile(
                       leading: const Icon(Icons.date_range),
@@ -221,8 +231,7 @@ class WorkdayFormState extends State<WorkdayForm> {
                     flex: 1,
                     child: ListTile(
                       leading: const Icon(Icons.access_time),
-                      title:
-                          Text(DateFormat('HH:mm').format(workday.endDate)),
+                      title: Text(DateFormat('HH:mm').format(workday.endDate)),
                       onTap: () async {
                         final TimeOfDay? picked = await showTimePicker(
                             context: context,

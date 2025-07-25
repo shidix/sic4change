@@ -1,4 +1,3 @@
-import 'package:googleapis/mybusinessbusinessinformation/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -21,7 +20,6 @@ Future<Map<String, double>> getProgrammeFinanciers(projects) async {
   }
 
   for (SProject project in projects) {
-    print("DBG: ${project.uuid}");
     finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
   }
 

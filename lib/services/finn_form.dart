@@ -622,7 +622,6 @@ class _InvoiceDistributionFormState extends State<InvoiceDistributionForm> {
                                 return 'Por favor, ingrese un importe válido';
                               }
                             } catch (e) {
-                              print("Error: $e");
                               return 'Por favor, ingrese un importe válido';
                             }
                             return null;

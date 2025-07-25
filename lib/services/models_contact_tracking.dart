@@ -112,9 +112,7 @@ class ContactTracking {
         data["id"] = doc.id;
         items.add(ContactTracking.fromJson(data));
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 

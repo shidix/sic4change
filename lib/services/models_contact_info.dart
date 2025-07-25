@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
@@ -343,9 +342,7 @@ class ContactInfo {
       contactInfo = await ContactInfo.byUuid(uuid);
       // await contactInfo.reload();
       return contactInfo;
-    } catch (exc) {
-      print(exc);
-    }
+    } catch (exc) {}
 
     return contactInfo;
   }

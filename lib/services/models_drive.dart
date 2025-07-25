@@ -129,9 +129,7 @@ class Folder {
         final folder = Folder.fromJson(data);
         folders.add(folder);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return folders;
   }
 

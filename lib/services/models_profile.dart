@@ -159,7 +159,6 @@ class Profile {
       Profile result = await getProfile(email);
       return result;
     } catch (e) {
-      print("Error getting current profile: $e");
       return Profile.getEmpty(
           email: "none@none.com", mainRole: Profile.ADMINISTRATIVE);
     }

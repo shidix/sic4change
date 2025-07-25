@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -265,9 +264,7 @@ class STask {
         // Profile prof = Profile.fromJson(data);
         Profile prof = await Profile.byEmail(item);
         listAssigned.add(prof);
-      } catch (e) {
-        print(e);
-      }
+      } catch (e) {}
     }
     assignedObj = listAssigned;
   }
@@ -450,9 +447,7 @@ class STask {
         'week': getOccupationCell(weekVal),
         'month': getOccupationCell(monthVal)
       };
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return row;
   }
 
@@ -507,9 +502,7 @@ class STask {
         //await task.getProgrammes();
         items.add(task);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 
@@ -790,9 +783,7 @@ class TasksComments {
         await tc.getUser();
         items.add(tc);
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return items;
   }
 }

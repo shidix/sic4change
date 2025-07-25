@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -727,42 +726,22 @@ class _EmployeesPageState extends State<EmployeesPage> {
   @override
   Widget build(BuildContext context) {
     // return to login_page if profile is null
-    if (profile == null) {
-      print("Profile is null, redirecting to login page");
-      return SelectionArea(
-          child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
-              const CircularProgressIndicator(),
-              const Text(
-                'Loading profile...',
-              ),
-            ],
-          ),
+    return SelectionArea(
+        child: Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            mainMenuPanel,
+            Padding(
+                padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
+            contentPanel,
+            footer(context),
+          ],
         ),
-      ));
-    } else {
-      return SelectionArea(
-          child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              mainMenuPanel,
-              Padding(
-                  padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
-              contentPanel,
-              footer(context),
-            ],
-          ),
-        ),
-      ));
-    }
+      ),
+    ));
   }
 }
 
@@ -874,7 +853,6 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
     List<Row> contracts = [];
 
     for (Alta alta in widget.employee.altas) {
-      print(alta.salary.length);
       contracts.add(Row(children: [
         InfoField(
           icon: Icons.calendar_today,

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
@@ -151,7 +150,8 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorList(context, activity) {
     return FutureBuilder(
-        future: ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid),
+        future:
+            ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             aiList = snapshot.data!;

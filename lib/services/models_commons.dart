@@ -191,7 +191,7 @@ class Organization {
         data["id"] = query.docs.first.id;
         item = Organization.fromJson(data);
       } catch (e) {
-        print("ERROR : $e");
+//        print("ERROR : $e");
       }
     }
     return item;

@@ -80,9 +80,7 @@ class _EventFormState extends State<EventForm> {
       holidaysConfig.save();
       formKey.currentState!.save();
       Navigator.of(context).pop(event);
-    } else {
-      print(2);
-    }
+    } else {}
   }
 
   void removeItem(List args) {

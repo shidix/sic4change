@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sic4change/pages/contact_calendar_page.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -85,7 +84,8 @@ class _CategoryPageState extends State<CategoryPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            addBtn(context, editCategoryDialog, {'category': ContactCategory("")}),
+            addBtn(
+                context, editCategoryDialog, {'category': ContactCategory("")}),
             space(width: 10),
             returnBtn(context),
           ],
@@ -144,7 +144,7 @@ class _CategoryPageState extends State<CategoryPage>
           sortColumnIndex: 0,
           showCheckboxColumn: false,
           headingRowColor:
-              MaterialStateColor.resolveWith((states) => headerListBgColor),
+              WidgetStateColor.resolveWith((states) => headerListBgColor),
           headingRowHeight: 40,
           columns: [
             DataColumn(

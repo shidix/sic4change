@@ -64,7 +64,6 @@ class _RegisterFormState extends State<RegisterForm> {
       if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
         setState(() {
           _errorMessage = "El email no tiene un formato válido";
-          print("El email no tiene un formato válido");
         });
         return;
       }
@@ -76,7 +75,6 @@ class _RegisterFormState extends State<RegisterForm> {
           userExists = true;
           // Send email with the password
           _errorMessage = "El usuario ya existe";
-          print("El usuario ya existe");
         });
         return;
       }

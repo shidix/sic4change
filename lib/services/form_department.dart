@@ -43,7 +43,7 @@ class _DepartmentFormState extends State<DepartmentForm> {
       manager = null;
     }
     parent = department.parent;
-    for (Employee e in department.employees!) {
+    for (Employee e in department.employees) {
       currentEmployees.add(e);
     }
     Employee.getEmployees().then((value) {

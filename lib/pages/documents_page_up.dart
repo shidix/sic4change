@@ -2,7 +2,7 @@
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -56,20 +56,18 @@ class _DocumentsUpPageState extends State<DocumentsUpPage> {
       // final snapshot = await uploadTask!.whenComplete(() => {});
 
       fileUrl = await ref.getDownloadURL();
-      print(fileUrl);
 
       setState(() {
         uploadTask = null;
       });
     } catch (err) {
-      print(err);
+      // Handle error
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
-    print(user.toString());
+    // final user = FirebaseAuth.instance.currentUser!;
 
     return Scaffold(
       body: Column(

@@ -142,7 +142,6 @@ class Quality extends Transversal {
       //   return Quality.getEmpty();
       // }
     }).catchError((error) {
-      print("Quality.byProject :=> $error");
       Quality item = Quality.getEmpty();
       item.project = project;
       // item.save();
@@ -215,7 +214,6 @@ class Transparency extends Transversal {
       // return the Transparency object from the document
       return Transparency.fromFirestore(value);
     }).catchError((error) {
-      print("Transparency.byProject :=> $error");
       Transparency item = Transparency.getEmpty();
       item.project = project;
       // item.save();
@@ -299,7 +297,6 @@ class Gender extends Transversal {
     }).then((value) {
       return value;
     }).catchError((error) {
-      print("Gender.byProject :=> $error");
       Gender item = Gender.getEmpty();
       item.project = project;
       return item;
@@ -384,7 +381,6 @@ class Environment extends Transversal {
         .then((value) {
       return Environment.fromFirestore(value.docs.first);
     }).catchError((error) {
-      print("Environment.byProject :=> $error");
       Environment item = Environment.getEmpty();
       item.project = project;
       // item.save();
@@ -432,7 +428,6 @@ class TransversalQuestion {
           return a.compareTo(b);
         }
       } catch (e) {
-        print("Error: $e");
         return aSlices[i].compareTo(bSlices[i]);
       }
     }

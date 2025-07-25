@@ -364,9 +364,6 @@ class _FinnsPageState extends State<FinnsPage> {
       }
     }
 
-    print("--b--");
-    print(totalDistrib);
-    print(totalExecuted);
     if (totalDistrib > 0) {
       percentExecuted = totalExecuted / totalDistrib;
     }

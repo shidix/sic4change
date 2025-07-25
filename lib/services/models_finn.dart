@@ -88,7 +88,6 @@ class SFinnInfo extends Object {
       }
     } catch (e) {
       log('ERROR in SFinnInfo.byProject');
-      print(e);
     }
     return null;
   }

@@ -77,7 +77,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
       currentFolder = null;
     }*/
 
-    if (currentFolder != null) print(currentFolder!.name);
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -172,7 +171,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
           uploadTask = null;
         });
       } catch (err) {
-        print(err);
+        // Handle error
       }
     }
   }

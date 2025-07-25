@@ -4,7 +4,6 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/logs_lib.dart';
@@ -376,7 +375,6 @@ class SProject {
       // return Programme.fromJson(data);
       return await Programme.byUuid(programme);
     } catch (e) {
-      print(e);
       return Programme("");
     }
     /*if (programmeObj.name == "") {
@@ -421,7 +419,7 @@ class SProject {
           Organization financier = await Organization.byUuid(fin);
           finList.add(financier);
         } catch (e) {
-          print(e);
+          //
         }
       }
       return finList;
@@ -468,7 +466,9 @@ class SProject {
           // Organization org = Organization.fromJson(data);
           Organization org = await Organization.byUuid(par);
           parList.add(org);
-        } catch (e) {}
+        } catch (e) {
+          // Handle error, e.g., log it or show a message
+        }
       }
       return parList;
     } else {
@@ -1529,9 +1529,7 @@ class ProjectLocation {
       // return Region.fromJson(data);
       //}
       return await Region.byUuid(region);
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return Region("");
   }
 
@@ -1545,9 +1543,7 @@ class ProjectLocation {
       // return Town.fromJson(data);
       // //}
       return await Town.byUuid(town);
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     return Town("");
   }
 
@@ -1699,7 +1695,6 @@ class Reformulation {
       // return SProject.fromJson(data);
       return await SProject.byUuid(project);
     } catch (e) {
-      print(e);
       return SProject("");
     }
   }
@@ -2072,10 +2067,12 @@ class Programme {
   }
 
   Future<void> getProjects() async {
-    // QuerySnapshot query =
-    //     await dbProject.where("programme", isEqualTo: uuid).get();
-    // projects = query.docs.length;
     List<SProject> projectsList = await SProject.getProjectsByProgramme(uuid);
+    if (projectsList.isEmpty) {
+      projects = 0;
+    } else {
+      projects = projectsList.length;
+    }
   }
 
   Future<int> getProjectsByStatus(status) async {

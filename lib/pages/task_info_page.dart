@@ -603,13 +603,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void saveTask(List args) async {
-    print("--1--");
     STask task = args[0];
     task.save();
     await task.getFolder();
-    print("--2--");
     updateObjects();
-    print("--3--");
 
     Navigator.pop(context);
   }

@@ -266,8 +266,8 @@ class _LoginPageState extends State<LoginPage> {
         email: emailController.text.trim(),
         password: passwdController.text.trim(),
       );
-      final user = FirebaseAuth.instance.currentUser!;
-      if (FirebaseAuth.instance.currentUser != null) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
         profile = await Profile.getCurrentProfile();
         Provider.of<ProfileProvider>(context, listen: false)
             .setProfile(profile!);

@@ -47,33 +47,26 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
     );
   }*/
   Future<String> get _localPath async {
-    print("--a.1.1--");
     final directory = await getApplicationDocumentsDirectory();
     //final directory = "/home/zeben/develop/sic4change/";
 
-    print("--a.1.2--");
     return directory.absolute.path;
     //return directory.path;
   }
 
   Future<File> get _localFile async {
-    print("--a.1--");
     final path = await _localPath;
-    print("--a.2--");
     return File('$path/logs.txt');
   }
 
   Future<File> writeLog(String value) async {
-    print("--a--");
     final file = await _localFile;
 
-    print("--b--");
-    print(value);
     // Write the file
     try {
       file.writeAsString(value);
     } catch (e) {
-      print(e);
+      // Handle error
     }
     return file.writeAsString(value);
   }
@@ -89,12 +82,8 @@ class _ContactCalendarPageState extends State<ContactCalendarPage> {
   @override
   void initState() {
     super.initState();
-    print("--1--");
     writeLog("--1--");
-    print("--1.1--");
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
-      print("--2--");
-      print(account);
       setState(() {
         _currentUser = account;
       });

@@ -39,9 +39,7 @@ class _OrgchartState extends State<Orgchart> {
     });
   }
 
-  void testAction(context) {
-    print("testAction");
-  }
+  void testAction(context) {}
 
   void addProfileDialog(Map<String, dynamic> args) {
     BuildContext context = args['context'];

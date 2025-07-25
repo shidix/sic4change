@@ -71,7 +71,7 @@ class _NominaFormState extends State<NominaForm> {
       uploadTask = ref.putData(pickedFileBytes!);
       await uploadTask.whenComplete(() => null);
     } catch (e) {
-      print(e);
+      //
     }
     return path;
   }

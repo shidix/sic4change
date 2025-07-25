@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -125,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
     myHolidays ??= [];
-    if (!myHolidays!.isEmpty) {
+    if (myHolidays!.isNotEmpty) {
       myHolidays!.sort((a, b) => b.startDate.compareTo(a.startDate));
       for (HolidayRequest holiday in myHolidays!) {
         if (holiday.status != "Rechazado") {

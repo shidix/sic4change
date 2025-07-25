@@ -211,18 +211,18 @@ class _AdminPageState extends State<AdminPage> {
   Widget configList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 50, right: 50),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              goPage(context, "Calendarios", CalendarHolidaysPage(), Icons.settings,
+        child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          goPage(context, "Calendarios", const CalendarHolidaysPage(),
+              Icons.settings,
               style: "bigBtn", extraction: () {
-                setState(() {});
-              }),
-              space(width: 20),
-              goPage(context, "Categorías de vacaciones y permisos",
-                  AdminHolidaysCategoriesPage(), Icons.category,
-                  style: "bigBtn", extraction: () {
-                setState(() {});
-              }),
-          ]));
+            setState(() {});
+          }),
+          space(width: 20),
+          goPage(context, "Categorías de vacaciones y permisos",
+              AdminHolidaysCategoriesPage(), Icons.category, style: "bigBtn",
+              extraction: () {
+            setState(() {});
+          }),
+        ]));
   }
 }
