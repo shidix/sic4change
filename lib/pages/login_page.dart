@@ -268,13 +268,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = FirebaseAuth.instance.currentUser!;
       if (FirebaseAuth.instance.currentUser != null) {
-        print(user.email);
-
-        // profile = await Profile.getProfile(user.email!);
-        // await Provider.of<ProfileProvider>(context, listen: false)
-        //     .loadProfile();
-        Provider.of<ProfileProvider>(context, listen: false).loadProfile();
-        profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+        profile = await Profile.getCurrentProfile();
+        Provider.of<ProfileProvider>(context, listen: false)
+            .setProfile(profile!);
       } else {
         Navigator.pop(context);
         return;
@@ -297,16 +293,12 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       Navigator.pop(context);
       if (profile?.mainRole == "Admin") {
-        Navigator.push(
-            context,
-            //    MaterialPageRoute(builder: ((context) => const HomeAdminPage())));
-            MaterialPageRoute(builder: ((context) => const HomePage())));
-      } else if (profile?.mainRole == "Administrativo") {
-        Navigator.pushReplacementNamed(context, "/hierarchy");
+        Navigator.pushReplacementNamed(context, "/home");
         // Navigator.push(
         //     context,
-        //     MaterialPageRoute(
-        //         builder: ((context) => HierarchyPage(profile: profile))));
+        //     MaterialPageRoute(builder: ((context) => const HomePage())));
+      } else if (profile?.mainRole == "Administrativo") {
+        Navigator.pushReplacementNamed(context, "/hierarchy");
       } else {
         Navigator.push(context,
             MaterialPageRoute(builder: ((context) => const HomePage())));

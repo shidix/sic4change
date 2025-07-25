@@ -157,7 +157,6 @@ class Profile {
       final user = FirebaseAuth.instance.currentUser!;
       String email = user.email!;
       Profile result = await getProfile(email);
-      print("Current profile from Firebase: $result.email, $result.id");
       return result;
     } catch (e) {
       print("Error getting current profile: $e");
