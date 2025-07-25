@@ -1,7 +1,6 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers, unnecessary_null_comparison
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
