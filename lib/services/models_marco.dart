@@ -124,7 +124,7 @@ class Goal {
       item.description = prog.impact;
       item.save();
     }
-    List indicators = await getProgrammesIndicators(programme);
+    List indicators = await ProgrammeIndicators.getProgrammesIndicators(programme);
     List goalIndicators = await GoalIndicator.getGoalIndicatorsByGoal(item.uuid);
     for (ProgrammeIndicators indicator in indicators) {
       bool exist = false;
