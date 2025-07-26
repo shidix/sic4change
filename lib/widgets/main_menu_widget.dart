@@ -84,12 +84,27 @@ Widget mainMenuEmpty(context, [url]) {
     padding: const EdgeInsets.all(3),
     color: bgColor,
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        logo(),
-        menuBtn(context, "Inicio", Icons.home, "/home",
-            color:
-                (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
+        Expanded(
+            flex: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                logo(),
+                menuBtn(context, "Inicio", Icons.home, "/home",
+                    color: (url == "/home")
+                        ? mainMenuBtnSelectedColor
+                        : mainMenuBtnColor),
+              ],
+            )),
+        Expanded(
+            flex: 2,
+            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              (FirebaseAuth.instance.currentUser != null)
+                  ? logoutBtn(context, "Salir", Icons.arrow_back)
+                  : Container(),
+            ]))
       ],
     ),
   );

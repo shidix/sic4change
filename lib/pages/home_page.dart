@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -97,14 +98,14 @@ class _HomePageState extends State<HomePage> {
     "rechazado": dangerColor,
   };
 
-  Future<void> loadMyTasks() async {
-    STask.getByAssigned(user.email!, lazy: false).then((value) {
-      mytasks = value;
-      contentTasksPanel = tasksPanel();
-      contentProjectsPanel = projectsPanel();
-      setState(() {});
-    });
-  }
+  // Future<void> loadMyTasks() async {
+  //   STask.getByAssigned(user.email!, lazy: false).then((value) {
+  //     mytasks = value;
+  //     contentTasksPanel = tasksPanel();
+  //     contentProjectsPanel = projectsPanel();
+  //     setState(() {});
+  //   });
+  // }
 
   Future<void> loadMyHolidays() async {
     if (contact == null) {
@@ -178,72 +179,59 @@ class _HomePageState extends State<HomePage> {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
     });
-    contact!.getProjects().then((value) {
-      if (mounted) {
-        setState(() {
-          myProjects = value;
+    final results = await Future.wait([
+      contact!.getProjects(),
+      STask.getByAssigned(user.email!, lazy: true),
+      HolidayRequest.byUser(user.email!),
+      Workday.byUser(user.email!),
+      Profile.getProfiles(),
+    ]);
+
+    myProjects = results[0] as List<SProject>;
+    mytasks = results[1] as List<STask>;
+    contentTasksPanel = tasksPanel();
+    contentProjectsPanel = projectsPanel();
+    myHolidays = results[2] as List<HolidayRequest>;
+    for (HolidayRequest holiday in myHolidays!) {
+      if (holiday.status != "Rechazado") {
+        holidayDays -=
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+      }
+    }
+    myWorkdays = results[3] as List<Workday>;
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    if ((myWorkdays!.first.open) &&
+        (truncDate(myWorkdays!.first.startDate) == truncDate(DateTime.now()))) {
+      currentWorkday = myWorkdays!.first;
+    } else {
+      currentWorkday = Workday.getEmpty();
+      currentWorkday!.userId = user.email!;
+      currentWorkday!.open = true;
+      currentWorkday!.save();
+    }
+
+    contentWorkPanel = workTimePanel();
+
+    List<Profile> myPeople = results[4] as List<Profile>;
+
+    for (Profile element in myPeople) {
+      if (element.holidaySupervisor.contains(user.email)) {
+        Employee.byEmail(element.email).then((value) {
+          mypeople.add(value);
+        });
+
+        HolidayRequest.byUser(element.email).then((value) {
+          myPeopleHolidays.addAll(value);
+          if (mounted) {
+            setState(() {});
+          }
         });
       }
-    });
-    STask.getByAssigned(contact!.uuid).then((value) {
-      if (mounted) {
-        setState(() {
-          mytasks = value;
-        });
-      }
-    });
-    HolidayRequest.byUser(user.email!).then((value) {
-      myHolidays = value;
-      for (HolidayRequest holiday in myHolidays!) {
-        if (holiday.status != "Rechazado") {
-          holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        }
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    Workday.byUser(user.email!).then((value) {
-      myWorkdays = value;
-      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      if ((myWorkdays!.first.open) &&
-          (truncDate(myWorkdays!.first.startDate) ==
-              truncDate(DateTime.now()))) {
-        currentWorkday = myWorkdays!.first;
-      } else {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = user.email!;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
+    }
 
-      contentWorkPanel = workTimePanel();
-      if (mounted) {
-        setState(() {});
-      }
-    });
-
-    Profile.getProfiles().then((List<Profile> value) {
-      for (var element in value) {
-        if (element.holidaySupervisor.contains(user.email)) {
-          Employee.byEmail(element.email).then((value) {
-            mypeople.add(value);
-          });
-
-          HolidayRequest.byUser(element.email).then((value) {
-            myPeopleHolidays.addAll(value);
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
-      }
-
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void getNotifications() async {
@@ -277,6 +265,75 @@ class _HomePageState extends State<HomePage> {
     return counter;
   }
 
+  void initializeData() async {
+    final results = await Future.wait([
+      HolidaysCategory.byOrganization(currentOrganization!),
+      TasksStatus.all(),
+      SProject.all(),
+    ]);
+
+    holCat = results[0] as List<HolidaysCategory>;
+    for (HolidaysCategory cat in holCat!) {
+      if (!cat.retroactive) {
+        holidayDays += cat.days;
+      }
+    }
+    final tasksStatusList = results[1] as List<TasksStatus>;
+    if (tasksStatusList.isNotEmpty) {
+      for (var item in tasksStatusList) {
+        hashStatus[item.id] = item;
+        hashStatus[item.uuid] = item;
+      }
+    }
+    final projectsList = results[2] as List<SProject>;
+    if (projectsList.isNotEmpty) {
+      for (var item in projectsList) {
+        hashProjects[item.id] = item;
+        hashProjects[item.uuid] = item;
+      }
+    }
+    await loadMyData();
+    autoStartWorkday(context);
+
+    // await loadMyTasks();
+
+    // if (user.email == null) {
+    //   Navigator.of(context).pushNamed('/');
+    // } else {
+    //   Profile.getProfile(user.email!).then((value) {
+    //     profile = value;
+    //     if ((profile != null) && (profile!.mainRole == "Administrativo")) {
+    //       mainMenuWidget = mainMenuOperator(context,
+    //           url: ModalRoute.of(context)!.settings.name, profile: profile);
+    //     } else {
+    //       mainMenuWidget = mainMenu(context, "/home");
+    //     }
+
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+    //   loadMyData();
+    //   autoStartWorkday(context);
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+
+    //   loadMyTasks().then((value) {
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+
+    //   notif = 0;
+    //   getNotifications();
+
+    // }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -284,75 +341,29 @@ class _HomePageState extends State<HomePage> {
     hashStatus = {};
     hashProjects = {};
     topButtonsPanel = topButtons(context);
-    if (currentOrganization == null) {
-      Organization.byDomain(user.email!).then((value) {
-        currentOrganization = value;
-        if (currentOrganization != null) {
-          HolidaysCategory.byOrganization(currentOrganization!).then((value) {
-            holCat = value;
-            for (HolidaysCategory cat in holCat!) {
-              if (!cat.retroactive) {
-                holidayDays += cat.days;
-              }
-            }
-            setState(() {});
-          });
-        }
-      });
-    }
-    TasksStatus.all().then((value) {
-      if (value.isNotEmpty) {
-        for (var item in value) {
-          hashStatus[item.id] = item;
-          hashStatus[item.uuid] = item;
-        }
+    mainMenuWidget = mainMenu(context, "/home");
+
+    Provider.of<ProfileProvider>(context, listen: false).addListener(() {
+      if (!mounted) return;
+      currentOrganization =
+          Provider.of<ProfileProvider>(context, listen: false).organization;
+
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      mainMenuWidget = mainMenu(context, "/home");
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
       }
+
+      if (mounted) setState(() {});
     });
-    SProject.all().then((value) {
-      if (value.isNotEmpty) {
-        for (var item in value) {
-          hashProjects[item.id] = item;
-          hashProjects[item.uuid] = item;
-        }
-      }
-    });
-    if (user.email == null) {
-      Navigator.of(context).pushNamed('/');
+
+    currentOrganization =
+        Provider.of<ProfileProvider>(context, listen: false).organization;
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    if ((profile == null) || (currentOrganization == null)) {
+      Provider.of<ProfileProvider>(context, listen: false).loadProfile();
     } else {
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
-        if ((profile != null) && (profile!.mainRole == "Administrativo")) {
-          mainMenuWidget = mainMenuOperator(context,
-              url: ModalRoute.of(context)!.settings.name, profile: profile);
-        } else {
-          mainMenuWidget = mainMenu(context, "/home");
-        }
-
-        if (mounted) {
-          setState(() {});
-        }
-      });
-      loadMyData();
-      autoStartWorkday(context);
-      if (mounted) {
-        setState(() {});
-      }
-
-      loadMyTasks().then((value) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-
-      notif = 0;
-      getNotifications();
-
-      // _timer?.cancel();
-      // _timer = Timer.periodic(const Duration(minutes: 60), (timer) {
-      //   getNotifications();
-      //   loadMyData();
-      // });
-      //getLogs();
+      initializeData();
     }
   }
 
@@ -1222,8 +1233,9 @@ class _HomePageState extends State<HomePage> {
                             }
                           : null);
                 })
-            : const Center(
-                child: CircularProgressIndicator(),
+            : Center(
+                child: Container(),
+                // child: CircularProgressIndicator(),
               ));
   }
 
@@ -1619,9 +1631,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: statusCard(
-                              (hashStatus.containsKey(task.status))
-                                  ? hashStatus[task.status]!.getName()
+                          child:
+                              statusCard((hashStatus.containsKey(task.status))
+                                  ? (hashStatus[task.status] != null)
+                                      ? hashStatus[task.status]!.getName()
+                                      : "Not found"
                                   : ""),
                         ),
                       ],

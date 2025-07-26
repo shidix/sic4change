@@ -63,34 +63,68 @@ class STask {
 
   STask(this.name);
 
-  STask.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        description = json['description'],
-        comments = json['comments'],
-        status = json['status'],
-        priority = json['priority'],
-        duration = json['duration'],
-        durationMin = json['durationMin'],
-        dealDate = json['dealDate'].toDate(),
-        deadLineDate = json['deadLineDate'].toDate(),
-        newDeadLineDate = json['newDeadLineDate'].toDate(),
-        sender = json['sender'],
-        project = json['project'],
-        programme = json['programme'],
-        folder = json['folder'],
-        assigned =
-            (json['assigned'] as List).map((item) => item as String).toList(),
-        receivers =
-            (json['receivers'] as List).map((item) => item as String).toList(),
-        receiversOrg = (json['receiversOrg'] as List)
-            .map((item) => item as String)
-            .toList(),
-        /*programmes =
-            (json['programmes'] as List).map((item) => item as String).toList(),*/
-        public = json['public'],
-        revision = json['revision'];
+  static STask fromJson(Map<String, dynamic> json) {
+    STask task = STask(json['name']);
+    task.id = json["id"];
+    task.uuid = json["uuid"];
+    task.description = json['description'] ?? "";
+    task.comments = json['comments'] ?? "";
+    task.status = json['status'] ?? "";
+    task.priority = json['priority'] ?? "";
+    task.duration = json['duration'] ?? 0;
+    task.durationMin = json['durationMin'] ?? 0;
+    task.dealDate = (json['dealDate'] != null)
+        ? (json['dealDate'] as Timestamp).toDate()
+        : DateTime.now();
+    task.deadLineDate = (json['deadLineDate'] != null)
+        ? (json['deadLineDate'] as Timestamp).toDate()
+        : DateTime.now();
+    task.newDeadLineDate = (json['newDeadLineDate'] != null)
+        ? (json['newDeadLineDate'] as Timestamp).toDate()
+        : DateTime.now();
+    task.sender = json['sender'] ?? "";
+    task.project = json['project'] ?? "";
+    task.programme = json['programme'] ?? "";
+    task.folder = json['folder'] ?? "";
+    task.assigned =
+        (json['assigned'] as List).map((item) => item as String).toList();
+    task.receivers =
+        (json['receivers'] as List).map((item) => item as String).toList();
+    task.receiversOrg =
+        (json['receiversOrg'] as List).map((item) => item as String).toList();
+    // task.programmes = (json['programmes'] as List).map((item) => item as String).toList();
+    task.public = json['public'] ?? false;
+    task.revision = json['revision'] ?? false;
+
+    // id = json["id"],
+    //   uuid = json["uuid"],
+    //   name = json['name'],
+    //   description = json['description'],
+    //   comments = json['comments'],
+    //   status = json['status'],
+    //   priority = json['priority'],
+    //   duration = json['duration'],
+    //   durationMin = json['durationMin'],
+    //   dealDate = json['dealDate'].toDate(),
+    //   deadLineDate = json['deadLineDate'].toDate(),
+    //   newDeadLineDate = json['newDeadLineDate'].toDate(),
+    //   sender = json['sender'],
+    //   project = json['project'],
+    //   programme = json['programme'],
+    //   folder = json['folder'],
+    //   assigned =
+    //       (json['assigned'] as List).map((item) => item as String).toList(),
+    //   receivers =
+    //       (json['receivers'] as List).map((item) => item as String).toList(),
+    //   receiversOrg = (json['receiversOrg'] as List)
+    //       .map((item) => item as String)
+    //       .toList(),
+    //   /*programmes =
+    //       (json['programmes'] as List).map((item) => item as String).toList(),*/
+    //   public = json['public'],
+    //   revision = json['revision'];
+    return task;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,

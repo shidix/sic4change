@@ -271,6 +271,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
   void initState() {
     super.initState();
     Provider.of<ProfileProvider>(context, listen: false).addListener(() {
+      if (!mounted) return;
       profile = Provider.of<ProfileProvider>(context, listen: false).profile;
       currentOrganization =
           Provider.of<ProfileProvider>(context, listen: false).organization;
@@ -290,9 +291,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
     if (profile == null || currentOrganization == null) {
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
     }
-
-    // print("Profile: ${profile?.email}");
-    // print("Organization: ${currentOrganization?.name}");
   }
 
   String createIndentationFromDepartment(Department department) {

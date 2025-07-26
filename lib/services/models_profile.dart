@@ -187,6 +187,7 @@ class Profile {
 class ProfileProvider with ChangeNotifier {
   Profile? _profile;
   Organization? _organization;
+  bool _loading = false;
   Organization? get organization => _organization;
   set organization(Organization? value) {
     _organization = value;
@@ -198,17 +199,19 @@ class ProfileProvider with ChangeNotifier {
   Profile? get profile => _profile;
 
   void loadProfile() async {
+    if (_profile != null || _loading) {
+      return; // Profile already loaded
+    }
+    _loading = true;
     Profile.getCurrentProfile().then((value) {
       _profile = value;
-      notifyListeners();
-    });
-    if (_profile != null) {
-      _organization = await _profile!.getOrganization();
-    }
-    Organization.byDomain(_profile?.email ?? "none@sic4change.org")
-        .then((value) {
-      _organization = value;
-      notifyListeners();
+
+      Organization.byDomain(_profile?.email ?? "none@sic4change.org")
+          .then((value) {
+        _organization = value;
+        _loading = false;
+        notifyListeners();
+      });
     });
   }
 
@@ -221,9 +224,8 @@ class ProfileProvider with ChangeNotifier {
       });
     } else {
       _organization = null;
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   void clearProfile() {

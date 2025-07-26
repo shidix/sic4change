@@ -154,8 +154,15 @@ class Contact {
     }
 
     // List<SProject> projectList = [];
+
+    if (projects.isEmpty) {
+      return [];
+    }
     for (String pr in projects) {
       try {
+        if (pr.isEmpty) {
+          continue;
+        }
         // QuerySnapshot query =
         //     await dbProject.where("uuid", isEqualTo: pr).get();
         // if (query.docs.isEmpty) {
@@ -166,6 +173,7 @@ class Contact {
         // data["id"] = doc.id;
         // SProject projObj = SProject.fromJson(data);
         // // await projObj.reload();
+
         SProject projObj = await SProject.byUuid(pr);
         projectsObj.add(projObj);
         projObj.reload();
