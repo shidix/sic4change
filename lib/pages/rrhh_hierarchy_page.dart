@@ -168,8 +168,10 @@ class _HierarchyPageState extends State<HierarchyPage> {
             title: 'Editar Departamento',
             icon: Icons.edit,
             content: DepartmentForm(
-                profile: profile,
+                profile: profile!,
                 department: department,
+                employees: [...employees],
+                allDepartments: [...allDepartments],
                 onSaved: () {
                   if (mounted) {
                     setState(() {
@@ -303,11 +305,35 @@ class _HierarchyPageState extends State<HierarchyPage> {
           showDialog(
             context: context,
             builder: (context) {
+              currentDepartment = Department(
+                name: 'Nuevo Departamento',
+                parent: parentDepartment,
+                manager: profile!.id,
+                employees: [],
+                organization: currentOrganization?.id,
+              );
               return CustomPopupDialog(
                 context: context,
                 title: 'Nuevo Departamento',
                 icon: Icons.add,
-                content: DepartmentForm(profile: profile),
+                content: DepartmentForm(
+                    profile: profile!,
+                    department: currentDepartment!,
+                    employees: [...employees],
+                    allDepartments: [...allDepartments],
+                    onSaved: () {
+                      if (mounted) {
+                        allDepartments.add(currentDepartment!);
+                        departmentsHash[currentDepartment!.id!] =
+                            currentDepartment!;
+                        setState(() {
+                          contentPanel = departmentPanel();
+                        });
+                      }
+                    },
+                    onDelete: () {
+                      // Do nothing, no delete action for new department
+                    }),
                 actionBtns: null,
               );
             },
