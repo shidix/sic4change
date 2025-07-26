@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -32,6 +34,13 @@ class _DepartmentFormState extends State<DepartmentForm> {
   late Employee? manager;
   late Department? parent;
 
+  int getLevel(Department? department) {
+    if (department == null || department.parent == null) return 0;
+    return getLevel(allDepartments.firstWhere((d) => d.id == department.parent,
+            orElse: () => Department.getEmpty())) +
+        1;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -61,20 +70,34 @@ class _DepartmentFormState extends State<DepartmentForm> {
     });
 
     Department.getDepartments().then((value) {
-      allDepartments = value;
+      Queue<Department> queue = Queue<Department>();
+      value.sort((a, b) => b.name.compareTo(a.name));
+      for (Department d in value) {
+        if (d.parent == null) {
+          queue.addFirst(d);
+        }
+      }
+      allDepartments = [];
+      while (queue.isNotEmpty) {
+        Department d = queue.removeFirst();
+        allDepartments.add(d);
+        for (Department child in value) {
+          if (child.parent == d.id) {
+            queue.addFirst(child);
+          }
+        }
+      }
+
       optionsDepartment = allDepartments
-          .where((d) => (d.id != department.id))
-          .map((d) => KeyValue(d.id.toString(), d.name))
+          .map(
+              (d) => KeyValue(d.id.toString(), " " * getLevel(d) * 10 + d.name))
           .toList();
+
+      optionsDepartment.insert(0, KeyValue('none', '-- NINGUNO --'));
       parent = allDepartments.firstWhere((d) => d.id == department.parent,
           orElse: () => Department.getEmpty());
       // For every department, check if parent is in keys; if not, set to empty
-      for (Department d in allDepartments) {
-        if (!optionsDepartment.any((e) => e.key == d.parent)) {
-          d.parent = null;
-          d.save();
-        }
-      }
+
       if (mounted) {
         setState(() {});
       }
@@ -135,11 +158,19 @@ class _DepartmentFormState extends State<DepartmentForm> {
                 CustomSelectFormField(
                   labelText: "Depende de",
                   initial:
-                      (department.parent != null) ? department.parent! : '',
+                      (department.parent != null) ? department.parent! : 'none',
                   options: optionsDepartment,
                   onSelectedOpt: (value) {
-                    parent = allDepartments.firstWhere((d) => d.id == value,
-                        orElse: () => Department.getEmpty());
+                    if (value == department.id) {
+                      return;
+                    }
+                    if (value == 'none') {
+                      parent = null;
+                    } else {
+                      parent = allDepartments.firstWhere(
+                          (d) => d.id.toString() == value,
+                          orElse: () => Department.getEmpty());
+                    }
                   },
                 ),
                 CustomSelectFormField(

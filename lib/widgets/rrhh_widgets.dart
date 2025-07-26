@@ -3,7 +3,7 @@ import 'package:sic4change/services/models_rrhh.dart';
 
 class TreeNode extends StatefulWidget {
   final dynamic item;
-  final String label;
+  final dynamic label;
   int level;
   bool expanded = true;
   bool visible = true;
@@ -33,7 +33,7 @@ class TreeNode extends StatefulWidget {
       Function? onMainSelected,
       Function? onEdit,
       Function? onDelete,
-      String? mylabel}) {
+      dynamic? mylabel}) {
     //Typecaste the item to the expected type
 
     TreeNode node = TreeNode(
@@ -55,7 +55,7 @@ class TreeNode extends StatefulWidget {
 }
 
 class _TreeNodeState extends State<TreeNode> {
-  String get label => widget.label;
+  dynamic get label => widget.label;
   int get level => widget.level;
   bool get expanded => widget.expanded;
 
@@ -88,7 +88,9 @@ class _TreeNodeState extends State<TreeNode> {
       Colors.green[400]!
     ];
 
+    final GlobalKey _nodeKey = GlobalKey();
     Widget nodeLayout = Container(
+      key: _nodeKey,
       decoration: (level > 0)
           ? const BoxDecoration(
               border: Border(
@@ -111,7 +113,7 @@ class _TreeNodeState extends State<TreeNode> {
               ),
             ),
       child: ListTile(
-        title: Text(label),
+        title: (label is String) ? Text(label) : label as Widget,
         onTap: () {
           widget.onSelected(widget);
         },
@@ -121,6 +123,7 @@ class _TreeNodeState extends State<TreeNode> {
     );
 
     List<Widget> identations = [];
+
     for (int i = 0; i < level; i++) {
       identations.add(
         Expanded(
@@ -135,7 +138,11 @@ class _TreeNodeState extends State<TreeNode> {
                 ),
               ),
               child: ListTile(
-                title: const Text("\n"),
+                title: const Column(children: [
+                  Text(' ', style: TextStyle(fontSize: 16)),
+                  Text(' ', style: TextStyle(fontSize: 14)),
+                  Text(' ', style: TextStyle(fontSize: 12)),
+                ]), // Empty container for identation
                 tileColor: colors[i % colors.length],
                 onTap: () {
                   // Do nothing, just for the identation

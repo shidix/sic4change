@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:excel/excel.dart';
+// import 'package:excel/excel.dart' as excelPackage;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -84,8 +84,20 @@ class _HierarchyPageState extends State<HierarchyPage> {
       }).join(', ');
 
       TreeNode node = TreeNode(
-        label:
-            '${last.name} - Supervisor: $managerName\nEmpleados: $employeesNames',
+        label: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(last.name,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('Supervisor: $managerName',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w400, fontSize: 14)),
+            Text('Empleados: $employeesNames',
+                style: const TextStyle(fontSize: 12)),
+          ],
+        ),
         item: last,
         level: level,
         expanded: true,
@@ -289,33 +301,45 @@ class _HierarchyPageState extends State<HierarchyPage> {
       children: [
         addBtnRow(context, (context) {
           showDialog(
-              context: context,
-              builder: (context) {
-                return CustomPopupDialog(
-                  context: context,
-                  title: 'Nuevo Departamento',
-                  icon: Icons.add,
-                  content: DepartmentForm(profile: profile),
-                  actionBtns: null,
-                );
-              });
-        }, null)
+            context: context,
+            builder: (context) {
+              return CustomPopupDialog(
+                context: context,
+                title: 'Nuevo Departamento',
+                icon: Icons.add,
+                content: DepartmentForm(profile: profile),
+                actionBtns: null,
+              );
+            },
+          );
+        }, null, text: 'Nuevo Departamento'),
       ],
     );
 
     createFullTree();
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(children: [
         titleBar,
-        Padding(padding: const EdgeInsets.all(5), child: toolsBar),
-        (MediaQuery.of(context).size.width < 1300)
-            ? Center(
-                child: Text('Scroll horizontal para ver más datos',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12)))
-            : Container(),
-        Padding(
-            padding: const EdgeInsets.all(5),
-            child: Column(children: treeView)),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+          padding: const EdgeInsets.all(0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey, width: 1),
+          ),
+          child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Column(
+                children: [toolsBar, space(height: 10), ...treeView],
+              )),
+        ),
+        // Padding(padding: const EdgeInsets.all(5), child: toolsBar),
+        // Padding(
+        //     padding: const EdgeInsets.all(5),
+        //     child: Column(children: treeView)),
       ] // ListView.builder
           ),
     );
