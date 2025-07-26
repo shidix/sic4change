@@ -351,9 +351,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
   @override
   Widget build(BuildContext context) {
     profile = context.watch<ProfileProvider>().profile;
-    print('HierarchyPage build: ${profile?.name}');
-    print('${allDepartments.length} departments loaded');
-    print('${employees.length} employees loaded');
 
     return SelectionArea(
         child: Scaffold(
