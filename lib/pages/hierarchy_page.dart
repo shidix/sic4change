@@ -1,3 +1,6 @@
+import 'dart:collection';
+
+import 'package:excel/excel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -45,41 +48,105 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   TreeNode? rootNode;
 
-  // void createFullTree() {
-  //   Department rootDepartment = Department.getEmpty();
-  //   rootDepartment.id = '';
-  //   rootDepartment.name = 'Departamentos';
-  //   rootNode = TreeNode.createTreeNode(
-  //     rootDepartment,
-  //     null,
-  //     onMainSelected: (node) {
-  //       currentDepartment = node.item as Department;
-  //       print(node.item.name);
-  //     },
-  //     level: 0,
-  //     allItems: allDepartments,
-  //   );
-  //   //treeView = getTreeNodes(rootNode);
-  // }
+  void createFullTree() {
+    List<Department> departmentsWithoutParent = allDepartments
+        .where((d) => (d.parent == null || d.parent == ''))
+        .toList();
+    departmentsWithoutParent.sort((a, b) => a.name.compareTo(b.name));
 
-  // List<TreeNode> getTreeNodes(TreeNode? node, {int level = 0}) {
-  //   List<TreeNode> nodes = [];
-  //   if (node == null) return nodes;
-  //   node.level = level;
-  //   if (node.visible) {
-  //     nodes.add(node);
-  //   }
-  //   if (node.childrens.isNotEmpty && node.expanded) {
-  //     for (TreeNode child in node.childrens) {
-  //       nodes.addAll(getTreeNodes(child, level: level + 1));
-  //     }
-  //   }
-  //   return nodes;
-  // }
+    Queue<Department> queue = Queue<Department>.from(departmentsWithoutParent);
+    // Generate a Queue<int> with queue.length elements, each initialized to 0
+    Queue<int> levels =
+        Queue<int>.from(Iterable.generate(queue.length, (i) => 0));
+
+    List<TreeNode> fullTree = [];
+
+    while (queue.isNotEmpty) {
+      Department last = queue.removeFirst();
+      int level = levels.removeFirst();
+
+      // Generate label from department: // "Department Name - Supervisor "
+      Employee? manager = (last.manager != null && last.manager != '')
+          ? employees.firstWhere(
+              (emp) => emp.id == last.manager,
+              orElse: () => Employee.getEmpty(),
+            )
+          : null;
+      String managerName = manager?.getFullName() ?? '';
+
+      String employeesNames = (last.employees).map((e) {
+        Employee? emp = employees.firstWhere(
+          (emp) => emp.id == e,
+          orElse: () => Employee.getEmpty(),
+        );
+        return emp.getFullName();
+      }).join(', ');
+
+      TreeNode node = TreeNode(
+        label:
+            '${last.name} - Supervisor: $managerName\nEmpleados: $employeesNames',
+        item: last,
+        level: level,
+        expanded: true,
+        visible: true,
+        onSelected: (node) {
+          currentDepartment = node.item as Department;
+          dialogEditDepartment(context);
+        },
+      );
+      fullTree.add(node);
+      List<Department> children =
+          allDepartments.where((d) => d.parent == last.id).toList();
+      children.sort((a, b) => a.name.compareTo(b.name));
+      for (Department child in children) {
+        queue.addFirst(child);
+        levels.addFirst(level + 1);
+      }
+    }
+    treeView = fullTree;
+  }
+
+  void dialogDeleteDepartment(BuildContext contextt) {
+    Department department = currentDepartment!;
+    parentDepartment = department.parent;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return CustomPopupDialog(
+            context: context,
+            title: 'Eliminar Departamento',
+            icon: Icons.delete,
+            content: Text(
+                '¿Está seguro de que desea eliminar el departamento ${department.name}?'),
+            actionBtns: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(null);
+                },
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  allDepartments.removeWhere((d) => d.id == department.id);
+                  departmentsHash.remove(department.id);
+                  await department.delete();
+                  if (mounted) {
+                    setState(() {
+                      contentPanel = departmentPanel();
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Eliminar'),
+              ),
+            ],
+          );
+        });
+  }
 
   Department dialogEditDepartment(BuildContext contextt) {
     Department department = currentDepartment!;
-    parentDepartment = department.parent?.id;
+    parentDepartment = department.parent;
     showDialog(
         context: context,
         builder: (context) {
@@ -93,6 +160,24 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 onSaved: () {
                   if (mounted) {
                     setState(() {
+                      // Update the department in the list
+                      int index = allDepartments
+                          .indexWhere((d) => d.id == department.id);
+                      if (index != -1) {
+                        allDepartments[index] = department;
+                      } else {
+                        allDepartments.add(department);
+                      }
+                      departmentsHash[department.id!] = department;
+                      contentPanel = departmentPanel();
+                    });
+                  }
+                },
+                onDelete: () {
+                  if (mounted) {
+                    setState(() {
+                      allDepartments.removeWhere((d) => d.id == department.id);
+                      departmentsHash.remove(department.id);
                       contentPanel = departmentPanel();
                     });
                   }
@@ -121,13 +206,21 @@ class _HierarchyPageState extends State<HierarchyPage> {
       currentOrganization = await Organization.byDomain(
           FirebaseAuth.instance.currentUser!.email!);
       final results = await Future.wait([
-        // Department.getDepartments(organization: currentOrganization),
-        // Employee.getEmployees(organization: currentOrganization),
-        Future.value(List<Department>.empty()),
-        Future.value(List<Employee>.empty()),
+        Department.getDepartments(organization: currentOrganization),
+        Employee.getEmployees(organization: currentOrganization),
       ]);
+
+      var aux = results[0] as List<Department>;
+      if (aux.isEmpty) {
+        aux = await Department.getDepartments();
+        for (Department d in aux) {
+          d.organization = currentOrganization?.id;
+          await d.save();
+        }
+      }
+
       setState(() {
-        allDepartments = results[0] as List<Department>;
+        allDepartments = aux;
         employees = results[1] as List<Employee>;
         contentPanel = departmentPanel();
         mainMenuPanel = mainMenu(context, "/rrhh");
@@ -166,12 +259,15 @@ class _HierarchyPageState extends State<HierarchyPage> {
         // createFullTree();
       });
     } catch (e) {
-      setState(() {
-        allDepartments = List<Department>.empty();
-        employees = List<Employee>.empty();
-        contentPanel = departmentPanel();
-        return;
-      });
+      print('Error initializing data: $e');
+      if (mounted) {
+        setState(() {
+          allDepartments = List<Department>.empty();
+          employees = List<Employee>.empty();
+          contentPanel = departmentPanel();
+          return;
+        });
+      }
     }
   }
 
@@ -224,6 +320,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
       ],
     );
 
+    createFullTree();
     return SingleChildScrollView(
       child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -254,6 +351,10 @@ class _HierarchyPageState extends State<HierarchyPage> {
   @override
   Widget build(BuildContext context) {
     profile = context.watch<ProfileProvider>().profile;
+    print('HierarchyPage build: ${profile?.name}');
+    print('${allDepartments.length} departments loaded');
+    print('${employees.length} employees loaded');
+
     return SelectionArea(
         child: Scaffold(
             body: SingleChildScrollView(

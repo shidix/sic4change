@@ -845,7 +845,7 @@ class Employee {
     return date.difference(truncDate(fromDate)).inDays + 1;
   }
 
-  static Employee getEmpty() {
+  static Employee getEmpty({name = ''}) {
     return Employee(
         code: '',
         firstName: '',
@@ -1034,31 +1034,10 @@ class Department {
 
   String? id;
   String name;
-  Department? parent;
-  Employee? manager;
-  List<Employee> employees = [];
-  Organization? organization;
-
-  Future<void> loadData(Map<String, dynamic> json) async {
-    name = json['name'];
-    final results = await Future.wait([
-      Employee.byId(json['manager']),
-      Organization.byId(json['organization']),
-      Department.byId(json['parent']),
-      // get employees by employee codes
-      Future.wait((json['employees'] as List).map((e) => Employee.byId(e)))
-    ]);
-    manager = results[0] as Employee?;
-    organization = results[1] as Organization?;
-
-    parent = (json.containsKey('parent')) ? json['parent'] : null;
-    manager = (json.containsKey('manager')) ? json['manager'] : null;
-    employees = (json.containsKey('employees'))
-        ? json['employees'].map((e) => Employee.fromJson(e)).toList()
-        : [];
-    organization =
-        (json.containsKey('organization')) ? json['organization'] : null;
-  }
+  String? parent;
+  String? manager;
+  List<String> employees = [];
+  String? organization;
 
   Department(
       {required this.name,
@@ -1068,24 +1047,31 @@ class Department {
       required this.organization});
 
   static Department fromJson(Map<String, dynamic> json) {
-    // Department item = Department(
-    //     name: json['name'],
-    //     parent: (json.containsKey('parent')) ? json['parent'] : null,
-    //     employees: (json.containsKey('employees')) ? json['employees'] : [],
-    //     organization:
-    //         (json.containsKey('organization')) ? json['organization'] : null);
-    Department item = getEmpty();
-    item.loadData(json);
+    Department item = Department(
+        name: json['name'],
+        parent: (json.containsKey('parent')) ? json['parent'] : null,
+        manager: (json.containsKey('manager')) ? json['manager'] : null,
+        employees: (json.containsKey('employees'))
+            ? List<String>.from(json['employees'])
+            : [],
+        organization:
+            (json.containsKey('organization')) ? json['organization'] : null);
+    if (json.containsKey('id')) {
+      item.id = (json['id'] == null) ? '' : json['id'];
+    } else {
+      item.id = '';
+    }
+
     return item;
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'parent': (parent == null) ? '' : parent?.id,
-        'manager': (manager == null) ? '' : manager?.id,
-        'employees': employees.map((e) => e.id).toList(),
         'id': id,
-        'organization': (organization == null) ? '' : organization?.id
+        'name': name,
+        'parent': parent,
+        'manager': manager,
+        'employees': employees,
+        'organization': organization
       };
 
   Future<Department> save() async {
@@ -1118,17 +1104,19 @@ class Department {
     await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
-  String getLabel() {
+  Future<String> getLabel() async {
     String label = name.toUpperCase();
+    Employee managerObj = await Employee.byId(manager ?? '');
     if (manager != null) {
       label +=
-          ', supervisor: ${manager!.getFullName()}, employees (${employees.length})';
+          ', supervisor: ${managerObj.getFullName()}, employees (${employees.length})';
     }
     if (employees.isNotEmpty) {
       label += ', employees (${employees.length}): ';
       // Print the frist 5 employees names and if more than 5, add the text 'and more'
       for (int i = 0; i < employees.length && i < 5; i++) {
-        label += employees[i].getFullName();
+        Employee employeeObj = await Employee.byId(employees[i]);
+        label += employeeObj.getFullName();
         if (i < employees.length - 1) {
           label += ', ';
         }
@@ -1167,8 +1155,7 @@ class Department {
             return item;
           }).toList();
         });
-      }
-      if (items.isEmpty) {
+      } else {
         await FirebaseFirestore.instance.collection(tbName).get().then((value) {
           if (value.docs.isEmpty) return [];
           items = value.docs.map((e) {
@@ -1178,14 +1165,27 @@ class Department {
           }).toList();
         });
       }
-      if (organization != null) {
-        items = items
-            .where((element) =>
-                (element.organization == organization.id) ||
-                (element.organization == null))
-            .toList();
-      }
-    } catch (e) {}
+
+      // if (items.isEmpty) {
+      //   await FirebaseFirestore.instance.collection(tbName).get().then((value) {
+      //     if (value.docs.isEmpty) return [];
+      //     items = value.docs.map((e) {
+      //       Department item = Department.fromJson(e.data());
+      //       item.id = e.id;
+      //       return item;
+      //     }).toList();
+      //   });
+      // }
+      // if (organization != null) {
+      //   items = items
+      //       .where((element) =>
+      //           (element.organization == organization.id) ||
+      //           (element.organization == null))
+      //       .toList();
+      // }
+    } catch (e) {
+      print('Error getting departments: $e');
+    }
     return items;
   }
 
@@ -1254,40 +1254,41 @@ class TreeNode extends StatefulWidget {
   final dynamic item;
   final String label;
   int level;
-  TreeNode? parent;
-  List<TreeNode> childrens;
   bool expanded = true;
   bool visible = true;
   ValueChanged<TreeNode> onSelected;
-  ValueChanged<TreeNode> onMainSelected;
+  // ValueChanged<TreeNode> onMainSelected;
+  // ValueChanged<TreeNode> onEdit;
+  // ValueChanged<TreeNode>? onDelete;
 
   TreeNode({
     required this.item,
     required this.label,
     required this.level,
     required this.onSelected,
-    required this.onMainSelected,
+    // required this.onMainSelected,
+    // required this.onEdit,
+    // required this.onDelete,
     this.expanded = true,
     this.visible = true,
-    this.parent,
-    this.childrens = const [],
   });
 
   @override
   _TreeNodeState createState() => _TreeNodeState();
 
-  static TreeNode createTreeNode(Department item, TreeNode? parent,
+  static TreeNode createTreeNode(Department item,
       {int level = 0,
       Function? onSelected,
       Function? onMainSelected,
-      List<dynamic>? allItems,
+      Function? onEdit,
+      Function? onDelete,
       String? mylabel}) {
     //Typecaste the item to the expected type
 
     TreeNode node = TreeNode(
         item: item,
         label: mylabel ?? item.name,
-        level: (parent != null) ? parent.level + 1 : 0,
+        level: level,
         onSelected: onSelected != null
             ? (node) {
                 onSelected(node);
@@ -1295,42 +1296,9 @@ class TreeNode extends StatefulWidget {
             : (node) {
                 // Default action if not provided
               },
-        onMainSelected: onMainSelected != null
-            ? (node) {
-                onMainSelected(node);
-              }
-            : (node) {
-                // Default action if not provided
-              },
-        parent: parent);
-
-    if (parent != null) {
-      node.visible = parent.expanded;
-    } else {
-      node.expanded = true; // Root node is always expanded
-      node.visible = true; // Root node is always visible
-    }
-
-    if (allItems == null) {
-      node.childrens = [];
-    } else {
-      node.childrens = allItems
-          .where((d) => d.parent == item.id)
-          .map((d) => createTreeNode(d, node,
-              level: level + 1,
-              onSelected: onSelected,
-              onMainSelected: onMainSelected,
-              allItems: allItems,
-              mylabel: d.getLabel()))
-          .toList();
-    }
-
-    // print("Parent: ${parent?.label ?? 'None'}, "
-    //     "Node: ${node.label}, "
-    //     "Childrens: ${node.childrens.length}, "
-    //     "Level: $level, "
-    //     "Expanded: ${node.expanded}, "
-    //     "Visible: ${node.visible}");
+        expanded: true, // Default to expanded
+        visible: true // Default to visible
+        );
     return node;
   }
 }
@@ -1338,12 +1306,11 @@ class TreeNode extends StatefulWidget {
 class _TreeNodeState extends State<TreeNode> {
   String get label => widget.label;
   int get level => widget.level;
-  List<TreeNode> get childrens => widget.childrens;
   bool get expanded => widget.expanded;
 
   set expanded(bool value) {
     widget.expanded = value;
-    (value) ? expand() : collapse();
+    // (value) ? expand() : collapse();
     if (mounted) {
       setState(() {});
       widget.onSelected(widget);
@@ -1352,20 +1319,8 @@ class _TreeNodeState extends State<TreeNode> {
 
   set visible(bool value) {
     widget.visible = value;
-    if (widget.expanded) expand();
+    // if (widget.expanded) expand();
     setState(() {});
-  }
-
-  void collapse() {
-    for (var child in childrens) {
-      child.visible = false;
-    }
-  }
-
-  void expand() {
-    for (var child in childrens) {
-      child.visible = true;
-    }
   }
 
   void toggle() {
@@ -1375,11 +1330,11 @@ class _TreeNodeState extends State<TreeNode> {
   @override
   Widget build(BuildContext context) {
     List<Color> colors = [
-      Colors.white,
-      Colors.grey[100]!,
-      Colors.grey[200]!,
-      Colors.grey[300]!,
-      Colors.grey[400]!
+      Colors.green[50]!,
+      Colors.green[100]!,
+      Colors.green[200]!,
+      Colors.green[300]!,
+      Colors.green[400]!
     ];
 
     Widget nodeLayout = Container(
@@ -1392,32 +1347,21 @@ class _TreeNodeState extends State<TreeNode> {
                 ),
               ),
             )
-          : null,
+          : const BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Colors.black87, // No border for level 0
+                  width: 2.0,
+                ),
+              ),
+            ),
       child: ListTile(
         title: Text(label),
         onTap: () {
-          widget.onMainSelected(widget);
-        },
-        tileColor: colors[(level) % colors.length],
-        trailing: null,
-      ),
-    );
-
-    Widget iconLayout = Container(
-      color: colors[(level) % colors.length],
-      child: ListTile(
-        title: const Text(""),
-        onTap: () {
-          toggle();
           widget.onSelected(widget);
         },
         tileColor: colors[(level) % colors.length],
-        trailing: (childrens.isNotEmpty)
-            ? Icon(
-                expanded ? Icons.expand_less : Icons.expand_more,
-                color: Colors.grey,
-              )
-            : null,
+        trailing: null,
       ),
     );
 
@@ -1436,7 +1380,7 @@ class _TreeNodeState extends State<TreeNode> {
                 ),
               ),
               child: ListTile(
-                title: const Text(""),
+                title: const Text("\n"),
                 tileColor: colors[i % colors.length],
                 onTap: () {
                   // Do nothing, just for the identation
@@ -1449,8 +1393,7 @@ class _TreeNodeState extends State<TreeNode> {
         ? Row(
             children: [
               ...identations,
-              Expanded(flex: (18 - level), child: nodeLayout),
-              Expanded(flex: 2, child: iconLayout),
+              Expanded(flex: (14 - level), child: nodeLayout),
             ],
           )
         : Container();
