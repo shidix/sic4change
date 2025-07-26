@@ -188,15 +188,8 @@ Widget mainMenu(context, [url]) {
       Provider.of<ProfileProvider>(context, listen: false).profile;
   if (profile == null) {
     // Load profile if not already loaded
-    print("Loading profile for email: $email");
     Provider.of<ProfileProvider>(context, listen: false).loadProfile();
     profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-    // Optionally, you can return a loading indicator here
-
-    // Profile.getProfile(email).then((value) {
-    //   Provider.of<ProfileProvider>(context, listen: false).setProfile(value);
-    //   profile = value;
-    // });
   }
 
   return Builder(

@@ -95,8 +95,8 @@ class Organization {
     }
   }
 
-  static Future<Organization> byId(String id) async {
-    Organization item = Organization("None");
+  static Future<Organization?> byId(String id) async {
+    Organization? item;
     await FirebaseFirestore.instance
         .collection("s4c_organizations")
         .doc(id)

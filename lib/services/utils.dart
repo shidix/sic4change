@@ -507,6 +507,7 @@ void checkPermissions(
 }
 
 void signOut(BuildContext context) {
+  print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
   FirebaseAuth.instance.signOut().then((value) {
     Provider.of<ProfileProvider>(context, listen: false).clearProfile();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
@@ -518,4 +519,22 @@ void signOut(BuildContext context) {
       ),
     );
   });
+}
+
+List<dynamic> wait4ProfileAndOrganization(
+  BuildContext context,
+) {
+  List<dynamic> result = [];
+
+  // Wait for the profile and organization to be loaded. Show a loading message in status bar.
+
+  DateTime startTime = DateTime.now();
+  while (DateTime.now().difference(startTime) < const Duration(seconds: 5) &&
+      (Provider.of<ProfileProvider>(context, listen: false).profile == null ||
+          Provider.of<ProfileProvider>(context, listen: false).organization ==
+              null)) {}
+  result.add(Provider.of<ProfileProvider>(context, listen: false).profile);
+  result.add(Provider.of<ProfileProvider>(context, listen: false).organization);
+
+  return result;
 }

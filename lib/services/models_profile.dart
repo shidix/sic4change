@@ -114,9 +114,14 @@ class Profile {
 
   Future<Organization?> getOrganization() async {
     if (organization == null || organization!.isEmpty) {
-      return null;
+      if (email.isNotEmpty) {
+        return Organization.byDomain(email);
+      }
+      return Organization("Sin organización");
     }
-    return await Organization.byId(organization!);
+    Organization? result = await Organization.byId(organization!);
+    result ??= Organization("Sin organización");
+    return result;
   }
 
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
@@ -188,9 +193,7 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ProfileProvider() {
-    loadProfile();
-  }
+  ProfileProvider() {}
 
   Profile? get profile => _profile;
 
@@ -199,19 +202,25 @@ class ProfileProvider with ChangeNotifier {
     if (_profile != null) {
       _organization = await _profile!.getOrganization();
     }
-    _organization ??= await Organization.byDomain(_profile?.email ?? "");
+    print("Profile loaded: ${_profile?.email}");
+    print("Organization loaded: ${_organization?.name}");
     notifyListeners();
   }
 
-  void setProfile(Profile profile) {
-    if (profile.id != _profile?.id) {
-      _profile = profile;
-      notifyListeners();
+  Future<void> setProfile(Profile profile) async {
+    _profile = profile;
+    if (profile.organization != null && profile.organization!.isNotEmpty) {
+      _organization = await profile.getOrganization();
+    } else {
+      _organization = null;
     }
+
+    notifyListeners();
   }
 
   void clearProfile() {
     _profile = null;
+    _organization = null;
     notifyListeners();
   }
 

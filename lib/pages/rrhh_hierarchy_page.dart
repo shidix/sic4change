@@ -8,6 +8,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/form_department.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -221,23 +222,29 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Future<void> initializeData(context) async {
     try {
-      int tries = 10;
-      while ((Provider.of<ProfileProvider>(context, listen: false).profile ==
-                  null ||
-              Provider.of<ProfileProvider>(context, listen: false)
-                      .organization ==
-                  null) &&
-          tries > 0) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        tries--;
-      }
+      // int tries = 10;
+      // while ((Provider.of<ProfileProvider>(context, listen: false).profile ==
+      //             null ||
+      //         Provider.of<ProfileProvider>(context, listen: false)
+      //                 .organization ==
+      //             null) &&
+      //     tries > 0) {
+      //   await Future.delayed(const Duration(milliseconds: 100), () => tries--);
+      // }
+
+      // var profile_info = await wait4ProfileAndOrganization(context);
+
+      DateTime startTime = DateTime.now();
+      while (
+          DateTime.now().difference(startTime) < const Duration(seconds: 5) &&
+              (Provider.of<ProfileProvider>(context, listen: false).profile ==
+                      null ||
+                  Provider.of<ProfileProvider>(context, listen: false)
+                          .organization ==
+                      null)) {}
       profile = Provider.of<ProfileProvider>(context, listen: false).profile;
       currentOrganization =
           Provider.of<ProfileProvider>(context, listen: false).organization;
-      print("Current Organization: ${currentOrganization?.name}");
-      print("Current Profile: ${profile?.email}");
-      // currentOrganization = await Organization.byDomain(
-      //     FirebaseAuth.instance.currentUser!.email!);
       final results = await Future.wait([
         Department.getDepartments(organization: currentOrganization),
         Employee.getEmployees(organization: currentOrganization),

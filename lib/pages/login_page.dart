@@ -4,14 +4,11 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import 'package:sic4change/pages/hierarchy_page.dart';
-//import 'package:sic4change/generated/l10n.dart';
-//import 'package:sic4change/pages/home_admin_page.dart';
-// import 'package:sic4change/pages/nominas_page.dart';
+
 import 'package:sic4change/pages/home_page.dart';
-// import 'package:sic4change/pages/employee_page.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 
@@ -268,10 +265,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // profile = await Profile.getCurrentProfile();
-        // Provider.of<ProfileProvider>(context, listen: false)
-        //     .setProfile(profile!);
-        Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+        profile = await Profile.getCurrentProfile();
+        await Provider.of<ProfileProvider>(context, listen: false)
+            .setProfile(profile!);
       } else {
         Navigator.pop(context);
         return;
