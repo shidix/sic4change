@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/employee_page.dart';
+import 'package:sic4change/pages/rrhh_employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
