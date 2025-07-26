@@ -1047,6 +1047,22 @@ class Department {
       required this.organization});
 
   static Department fromJson(Map<String, dynamic> json) {
+    // if (json.containsKey('manager')) {
+    //   if (json['manager'] is String) {
+    //     if (json['manager'].isEmpty) {
+    //       json['manager'] = null;
+    //     }
+    //   } else if (json['manager'] is Map<String, dynamic>) {
+    //     if (json['manager'].containsKey('id')) {
+    //       json['manager'] = json['manager']['id'];
+    //     } else {
+    //       json['manager'] = null;
+    //     }
+    //   }
+    // } else {
+    //   json['manager'] = null;
+    // }
+
     Department item = Department(
         name: json['name'],
         parent: (json.containsKey('parent')) ? json['parent'] : null,
