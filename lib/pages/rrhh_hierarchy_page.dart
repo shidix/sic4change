@@ -222,18 +222,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Future<void> initializeData(context) async {
     try {
-      // int tries = 10;
-      // while ((Provider.of<ProfileProvider>(context, listen: false).profile ==
-      //             null ||
-      //         Provider.of<ProfileProvider>(context, listen: false)
-      //                 .organization ==
-      //             null) &&
-      //     tries > 0) {
-      //   await Future.delayed(const Duration(milliseconds: 100), () => tries--);
-      // }
-
-      // var profile_info = await wait4ProfileAndOrganization(context);
-
       DateTime startTime = DateTime.now();
       while (
           DateTime.now().difference(startTime) < const Duration(seconds: 5) &&
@@ -282,9 +270,29 @@ class _HierarchyPageState extends State<HierarchyPage> {
   @override
   void initState() {
     super.initState();
+    Provider.of<ProfileProvider>(context, listen: false).addListener(() {
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      currentOrganization =
+          Provider.of<ProfileProvider>(context, listen: false).organization;
+
+      if (profile != null && currentOrganization != null) {
+        mainMenuPanel = mainMenu(context, "/rrhh");
+        secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
+        initializeData(context);
+      }
+    });
+
     mainMenuPanel = mainMenu(context, "/rrhh");
     secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
-    initializeData(context);
+    contentPanel = const Text('Cargando perfil...',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold));
+
+    if (profile == null || currentOrganization == null) {
+      Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+    }
+
+    // print("Profile: ${profile?.email}");
+    // print("Organization: ${currentOrganization?.name}");
   }
 
   String createIndentationFromDepartment(Department department) {

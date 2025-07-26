@@ -198,19 +198,27 @@ class ProfileProvider with ChangeNotifier {
   Profile? get profile => _profile;
 
   void loadProfile() async {
-    _profile = await Profile.getCurrentProfile();
+    Profile.getCurrentProfile().then((value) {
+      _profile = value;
+      notifyListeners();
+    });
     if (_profile != null) {
       _organization = await _profile!.getOrganization();
     }
-    print("Profile loaded: ${_profile?.email}");
-    print("Organization loaded: ${_organization?.name}");
-    notifyListeners();
+    Organization.byDomain(_profile?.email ?? "none@sic4change.org")
+        .then((value) {
+      _organization = value;
+      notifyListeners();
+    });
   }
 
   Future<void> setProfile(Profile profile) async {
     _profile = profile;
     if (profile.organization != null && profile.organization!.isNotEmpty) {
-      _organization = await profile.getOrganization();
+      profile.getOrganization().then((value) {
+        _organization = value;
+        notifyListeners();
+      });
     } else {
       _organization = null;
     }

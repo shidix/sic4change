@@ -186,11 +186,11 @@ Widget mainMenu(context, [url]) {
   String email = user.email!;
   Profile? profile =
       Provider.of<ProfileProvider>(context, listen: false).profile;
-  if (profile == null) {
-    // Load profile if not already loaded
-    Provider.of<ProfileProvider>(context, listen: false).loadProfile();
-    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-  }
+  // if (profile == null) {
+  //   // Load profile if not already loaded
+  //   Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+  //   profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+  // }
 
   return Builder(
     builder: (context) {
