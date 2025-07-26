@@ -268,9 +268,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        profile = await Profile.getCurrentProfile();
-        Provider.of<ProfileProvider>(context, listen: false)
-            .setProfile(profile!);
+        // profile = await Profile.getCurrentProfile();
+        // Provider.of<ProfileProvider>(context, listen: false)
+        //     .setProfile(profile!);
+        Provider.of<ProfileProvider>(context, listen: false).loadProfile();
       } else {
         Navigator.pop(context);
         return;

@@ -15,6 +15,7 @@ class Profile {
   String phone = "";
   List<dynamic> holidaySupervisor;
   String mainRole;
+  String? organization;
 
   static const String ADMIN = 'Admin';
   static const String TECHNICIAN = 'Técnico';
@@ -35,6 +36,7 @@ class Profile {
     required this.email,
     required this.holidaySupervisor,
     required this.mainRole,
+    this.organization,
   });
 
   factory Profile.fromJson(Map data) {
@@ -43,6 +45,10 @@ class Profile {
       email: data['email'],
       holidaySupervisor: data['holidaySupervisor'],
       mainRole: data['mainRole'],
+      organization:
+          data.containsKey('organization') && data['organization'] != null
+              ? data['organization']
+              : null,
     );
     profile.name = (data['name'] != null) ? data['name'] : '';
     profile.position = (data['position'] != null) ? data['position'] : '';
@@ -64,11 +70,12 @@ class Profile {
         'phone': phone,
         'holidaySupervisor': holidaySupervisor,
         'mainRole': mainRole,
+        'organization': organization,
       };
 
   @override
   String toString() {
-    return 'Profile{id: $id, email: $email, holidaySupervisor: $holidaySupervisor, mainRole: $mainRole}';
+    return 'Profile{id: $id, email: $email, holidaySupervisor: $holidaySupervisor, mainRole: $mainRole, organization: $organization}';
   }
 
   KeyValue toKeyValue() {
@@ -103,6 +110,13 @@ class Profile {
 
   void delete() {
     FirebaseFirestore.instance.collection(Profile.tbName).doc(id).delete();
+  }
+
+  Future<Organization?> getOrganization() async {
+    if (organization == null || organization!.isEmpty) {
+      return null;
+    }
+    return await Organization.byId(organization!);
   }
 
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
@@ -167,17 +181,33 @@ class Profile {
 
 class ProfileProvider with ChangeNotifier {
   Profile? _profile;
+  Organization? _organization;
+  Organization? get organization => _organization;
+  set organization(Organization? value) {
+    _organization = value;
+    notifyListeners();
+  }
+
+  ProfileProvider() {
+    loadProfile();
+  }
 
   Profile? get profile => _profile;
 
   void loadProfile() async {
     _profile = await Profile.getCurrentProfile();
+    if (_profile != null) {
+      _organization = await _profile!.getOrganization();
+    }
+    _organization ??= await Organization.byDomain(_profile?.email ?? "");
     notifyListeners();
   }
 
   void setProfile(Profile profile) {
-    _profile = profile;
-    notifyListeners();
+    if (profile.id != _profile?.id) {
+      _profile = profile;
+      notifyListeners();
+    }
   }
 
   void clearProfile() {

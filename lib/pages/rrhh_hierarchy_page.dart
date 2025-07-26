@@ -221,13 +221,23 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Future<void> initializeData(context) async {
     try {
-      while (Provider.of<ProfileProvider>(context, listen: false).profile ==
-          null) {
+      int tries = 10;
+      while ((Provider.of<ProfileProvider>(context, listen: false).profile ==
+                  null ||
+              Provider.of<ProfileProvider>(context, listen: false)
+                      .organization ==
+                  null) &&
+          tries > 0) {
         await Future.delayed(const Duration(milliseconds: 100));
+        tries--;
       }
       profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-      currentOrganization = await Organization.byDomain(
-          FirebaseAuth.instance.currentUser!.email!);
+      currentOrganization =
+          Provider.of<ProfileProvider>(context, listen: false).organization;
+      print("Current Organization: ${currentOrganization?.name}");
+      print("Current Profile: ${profile?.email}");
+      // currentOrganization = await Organization.byDomain(
+      //     FirebaseAuth.instance.currentUser!.email!);
       final results = await Future.wait([
         Department.getDepartments(organization: currentOrganization),
         Employee.getEmployees(organization: currentOrganization),

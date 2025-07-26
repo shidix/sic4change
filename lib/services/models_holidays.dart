@@ -283,9 +283,9 @@ class HolidayRequest {
         .collection(tbName)
         .where("userId", isEqualTo: uuid)
         .get();
-    query.docs.forEach((result) {
+    for (var result in query.docs) {
       items.add(HolidayRequest.fromFirestore(result));
-    });
+    }
     return items;
   }
 }

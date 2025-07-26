@@ -3,7 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 
 // import 'package:uuid/uuid.dart';
 
@@ -1047,21 +1047,21 @@ class Department {
       required this.organization});
 
   static Department fromJson(Map<String, dynamic> json) {
-    // if (json.containsKey('manager')) {
-    //   if (json['manager'] is String) {
-    //     if (json['manager'].isEmpty) {
-    //       json['manager'] = null;
-    //     }
-    //   } else if (json['manager'] is Map<String, dynamic>) {
-    //     if (json['manager'].containsKey('id')) {
-    //       json['manager'] = json['manager']['id'];
-    //     } else {
-    //       json['manager'] = null;
-    //     }
-    //   }
-    // } else {
-    //   json['manager'] = null;
-    // }
+    if (json.containsKey('manager')) {
+      if (json['manager'] is String) {
+        if (json['manager'].isEmpty) {
+          json['manager'] = null;
+        }
+      } else if (json['manager'] is Map<String, dynamic>) {
+        if (json['manager'].containsKey('id')) {
+          json['manager'] = json['manager']['id'];
+        } else {
+          json['manager'] = null;
+        }
+      }
+    } else {
+      json['manager'] = null;
+    }
 
     Department item = Department(
         name: json['name'],
@@ -1181,26 +1181,8 @@ class Department {
           }).toList();
         });
       }
-
-      // if (items.isEmpty) {
-      //   await FirebaseFirestore.instance.collection(tbName).get().then((value) {
-      //     if (value.docs.isEmpty) return [];
-      //     items = value.docs.map((e) {
-      //       Department item = Department.fromJson(e.data());
-      //       item.id = e.id;
-      //       return item;
-      //     }).toList();
-      //   });
-      // }
-      // if (organization != null) {
-      //   items = items
-      //       .where((element) =>
-      //           (element.organization == organization.id) ||
-      //           (element.organization == null))
-      //       .toList();
-      // }
     } catch (e) {
-      print('Error getting departments: $e');
+      // print('Error getting departments: $e');
     }
     return items;
   }
