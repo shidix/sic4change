@@ -12,6 +12,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
+import 'package:sic4change/widgets/rrhh_widgets.dart';
 
 class HierarchyPage extends StatefulWidget {
   // final Profile? profile;
@@ -106,43 +107,43 @@ class _HierarchyPageState extends State<HierarchyPage> {
     treeView = fullTree;
   }
 
-  void dialogDeleteDepartment(BuildContext contextt) {
-    Department department = currentDepartment!;
-    parentDepartment = department.parent;
-    showDialog(
-        context: context,
-        builder: (context) {
-          return CustomPopupDialog(
-            context: context,
-            title: 'Eliminar Departamento',
-            icon: Icons.delete,
-            content: Text(
-                '¿Está seguro de que desea eliminar el departamento ${department.name}?'),
-            actionBtns: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(null);
-                },
-                child: const Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  allDepartments.removeWhere((d) => d.id == department.id);
-                  departmentsHash.remove(department.id);
-                  await department.delete();
-                  if (mounted) {
-                    setState(() {
-                      contentPanel = departmentPanel();
-                    });
-                  }
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Eliminar'),
-              ),
-            ],
-          );
-        });
-  }
+  // void dialogDeleteDepartment(BuildContext contextt) {
+  //   Department department = currentDepartment!;
+  //   parentDepartment = department.parent;
+  //   showDialog(
+  //       context: context,
+  //       builder: (context) {
+  //         return CustomPopupDialog(
+  //           context: context,
+  //           title: 'Eliminar Departamento',
+  //           icon: Icons.delete,
+  //           content: Text(
+  //               '¿Está seguro de que desea eliminar el departamento ${department.name}?'),
+  //           actionBtns: [
+  //             TextButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop(null);
+  //               },
+  //               child: const Text('Cancelar'),
+  //             ),
+  //             TextButton(
+  //               onPressed: () async {
+  //                 allDepartments.removeWhere((d) => d.id == department.id);
+  //                 departmentsHash.remove(department.id);
+  //                 await department.delete();
+  //                 if (mounted) {
+  //                   setState(() {
+  //                     contentPanel = departmentPanel();
+  //                   });
+  //                 }
+  //                 Navigator.of(context).pop();
+  //               },
+  //               child: const Text('Eliminar'),
+  //             ),
+  //           ],
+  //         );
+  //       });
+  // }
 
   Department dialogEditDepartment(BuildContext contextt) {
     Department department = currentDepartment!;
@@ -176,6 +177,14 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 onDelete: () {
                   if (mounted) {
                     setState(() {
+                      List<Department> childrens = allDepartments
+                          .where((d) => d.parent == department.id)
+                          .map((d) => d)
+                          .toList();
+                      for (Department child in childrens) {
+                        child.parent = department.parent;
+                        child.save();
+                      }
                       allDepartments.removeWhere((d) => d.id == department.id);
                       departmentsHash.remove(department.id);
                       contentPanel = departmentPanel();
@@ -225,38 +234,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
         contentPanel = departmentPanel();
         mainMenuPanel = mainMenu(context, "/rrhh");
         secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
-
-        // for (Department d in allDepartments) {
-        //   departmentsHash[d.id!] = d;
-        //   expanded[d.id!] = false;
-        // }
-
-        // for (Department d in allDepartments) {
-        //   if (d.parent == '') {
-        //     departments.add(d);
-        //   }
-        // }
-
-        // for (Department d in departments) {
-        //   departmentKeys[d.id!] = d.name;
-        //   String parent = d.parent!;
-        //   while (parent != '') {
-        //     if (departmentsHash[parent] == null) {
-        //       parent = '';
-        //       break;
-        //     }
-        //     departmentKeys[d.id!] =
-        //         '${departmentsHash[parent]!.name}>${departmentKeys[d.id!]!}';
-        //     parent = departmentsHash[parent]!.parent!;
-        //   }
-        // }
-
-        // departments.sort((a, b) =>
-        //     departmentKeys[a.id!]!.compareTo(departmentKeys[b.id!]!));
-
-        // currentOrganization = organizations.isNotEmpty ? organizations.first : null;
-
-        // createFullTree();
       });
     } catch (e) {
       print('Error initializing data: $e');
@@ -300,7 +277,13 @@ class _HierarchyPageState extends State<HierarchyPage> {
   }
 
   Widget departmentPanel() {
-    Widget titleBar = s4cTitleBar('Departamentos');
+    Widget titleBar = s4cTitleBar(const Padding(
+        padding: EdgeInsets.all(5),
+        child: Text('Departamentos',
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold))));
     Widget toolsBar = Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -321,30 +304,20 @@ class _HierarchyPageState extends State<HierarchyPage> {
     );
 
     createFullTree();
-    return SingleChildScrollView(
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Expanded(flex: 2, child: Column(children: [titleBar, ...treeView])),
-            Expanded(
-              flex: 5,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleBar,
-                    toolsBar,
-                    space(height: 10),
-                    ...treeView,
-                    // SizedBox(width: double.infinity, child: departmentsTable),
-                  ],
-                ),
-              ),
-            ),
-          ]),
+    return Card(
+      child: Column(children: [
+        titleBar,
+        Padding(padding: const EdgeInsets.all(5), child: toolsBar),
+        (MediaQuery.of(context).size.width < 1300)
+            ? Center(
+                child: Text('Scroll horizontal para ver más datos',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12)))
+            : Container(),
+        Padding(
+            padding: const EdgeInsets.all(5),
+            child: Column(children: treeView)),
+      ] // ListView.builder
+          ),
     );
   }
 
