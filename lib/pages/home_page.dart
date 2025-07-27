@@ -25,6 +25,7 @@ import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/holidays_widgets.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 // import 'package:sic4change/pages/contacts_page.dart';
@@ -148,43 +149,65 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadMyWorkdays() async {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
-      await Contact.byEmail(user.email!).then((value) {
-        contact = value;
-        Workday.byUser(value.email, DateTime.now().subtract(Duration(days: 40)))
-            .then((value) {
-          setState(() {
-            myWorkdays = value;
-            myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-          });
-        });
-      });
+      myWorkdays = await Workday.byUser(user.email!);
+      if (myWorkdays!.isEmpty) {
+        currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+        currentWorkday!.save();
+        myWorkdays = [currentWorkday!];
+      }
+    }
+
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    currentWorkday = myWorkdays!.first;
+    if (!currentWorkday!.open) {
+      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+      currentWorkday!.save();
+      myWorkdays!.insert(0, currentWorkday!);
     } else {
-      setState(() {
-        if (currentWorkday!.open) {
-          workdayButton = actionButton(
-              context, null, workdayAction, Icons.stop_circle_outlined, context,
-              iconColor: dangerColor);
-        } else {
-          workdayButton = actionButton(context, null, workdayAction,
-              Icons.play_circle_outline_sharp, context,
-              iconColor: successColor);
+      // Check if the current workday is from today; if not, close it and create a new one
+      if (truncDate(currentWorkday!.startDate) != truncDate(DateTime.now())) {
+        currentWorkday!.endDate = truncDate(currentWorkday!.startDate)
+            .add(Duration(hours: 23, minutes: 59, seconds: 59));
+        currentWorkday!.open = false;
+        currentWorkday!.save();
+        currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+        currentWorkday!.save();
+        myWorkdays!.insert(0, currentWorkday!);
+      }
+    }
+    // Set workday.open to false for all workdays except the first one
+    for (var workday in myWorkdays!) {
+      if (workday != currentWorkday) {
+        if (workday.open) {
+          workday.open = false;
+          // Set the endDate to 23.59:59 of the same day
+          workday.endDate = DateTime(workday.startDate.year,
+              workday.startDate.month, workday.startDate.day, 23, 59, 59);
+          workday.save();
         }
-        myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-        myWorkdays = myWorkdays;
-      });
+      }
+    }
+
+    if (currentWorkday!.open) {
+      workdayButton = actionButton(
+          context, null, workdayAction, Icons.stop_circle_outlined, context,
+          iconColor: dangerColor);
+    } else {
+      workdayButton = actionButton(context, null, workdayAction,
+          Icons.play_circle_outline_sharp, context,
+          iconColor: successColor);
     }
   }
 
   Future<void> loadMyData() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-    });
+    contact ??= await Contact.byEmail(user.email!);
     final results = await Future.wait([
       contact!.getProjects(),
       STask.getByAssigned(user.email!, lazy: true),
       HolidayRequest.byUser(user.email!),
       Workday.byUser(user.email!),
       Profile.getProfiles(),
+      getNotificationList(user.email)
     ]);
 
     myProjects = results[0] as List<SProject>;
@@ -228,6 +251,9 @@ class _HomePageState extends State<HomePage> {
         });
       }
     }
+    NotificationValues nVal = results[5] as NotificationValues;
+    notificationList = nVal.nList;
+    notif = nVal.unread;
 
     if (mounted) {
       setState(() {});
@@ -293,42 +319,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
     await loadMyData();
-    autoStartWorkday(context);
-
-    // await loadMyTasks();
-
-    // if (user.email == null) {
-    //   Navigator.of(context).pushNamed('/');
-    // } else {
-    //   Profile.getProfile(user.email!).then((value) {
-    //     profile = value;
-    //     if ((profile != null) && (profile!.mainRole == "Administrativo")) {
-    //       mainMenuWidget = mainMenuOperator(context,
-    //           url: ModalRoute.of(context)!.settings.name, profile: profile);
-    //     } else {
-    //       mainMenuWidget = mainMenu(context, "/home");
-    //     }
-
-    //     if (mounted) {
-    //       setState(() {});
-    //     }
-    //   });
-    //   loadMyData();
-    //   autoStartWorkday(context);
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-
-    //   loadMyTasks().then((value) {
-    //     if (mounted) {
-    //       setState(() {});
-    //     }
-    //   });
-
-    //   notif = 0;
-    //   getNotifications();
-
-    // }
+    // autoStartWorkday(context);
     if (mounted) {
       setState(() {});
     }
@@ -1155,83 +1146,19 @@ class _HomePageState extends State<HomePage> {
                 itemCount: myHolidays!.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
-                  return ListTile(
-                      subtitle: Column(children: [
-                        Row(
-                          children: [
-                            Expanded(
-                                flex: 2,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 10),
-                                      child: Text(
-                                        (holiday.category != null)
-                                            ? holiday.category!.name
-                                            : 'Cargando...',
-                                        style: normalText,
-                                      )),
-                                )),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy')
-                                        .format(holiday.startDate),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy')
-                                        .format(holiday.endDate),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    getWorkingDaysBetween(
-                                            holiday.startDate, holiday.endDate)
-                                        .toString(),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Card(
-                                      color: holidayStatusColors[
-                                          holiday.status.toLowerCase()]!,
-                                      child: Padding(
-                                          padding: const EdgeInsets.all(10),
-                                          child: Text(
-                                            holiday.status,
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                            textAlign: TextAlign.center,
-                                          )))),
-                            ),
-                          ],
-                        )
-                      ]),
-                      onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
-                          ? () {
-                              currentHoliday = holiday;
-                              addHolidayRequestDialog(context);
-                            }
-                          : null);
+                  // return ListTile with info popup
+                  return Row(children: [
+                    Expanded(
+                        flex: 9,
+                        child: buildHolidayListItem(context, holiday,
+                            onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
+                                ? () {
+                                    currentHoliday = holiday;
+                                    addHolidayRequestDialog(context);
+                                  }
+                                : null)),
+                    Expanded(flex: 1, child: Text("")),
+                  ]);
                 })
             : Center(
                 child: Container(),
@@ -1530,47 +1457,58 @@ class _HomePageState extends State<HomePage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     color: Colors.white,
-                    child: const ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(
-                              flex: 2,
-                              child: Text(
-                                "Concepto",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Desde",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Hasta",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Días",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Estado",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ],
-                      ),
-                    )),
+                    child: const Row(children: [
+                      Expanded(
+                          flex: 9,
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      "Concepto",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Desde",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Hasta",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Días",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Estado",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                              ],
+                            ),
+                          )),
+                      Expanded(
+                          flex: 1,
+                          child: Text(
+                            "Docs",
+                            style: subTitleText,
+                            textAlign: TextAlign.center,
+                          ))
+                    ])),
                 Divider(
                   height: 1,
                   color: Colors.grey[300],

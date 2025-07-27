@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/admin_calendar_holidays.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
@@ -19,7 +19,9 @@ import 'package:sic4change/pages/admin_skateholder_page.dart';
 import 'package:sic4change/pages/admin_task_status_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -38,21 +40,39 @@ class AdminPage extends StatefulWidget {
 
 class _AdminPageState extends State<AdminPage> {
   Profile? profile;
+  Organization? currentOrganization;
 
-  void getProfile(user) async {
-    await Profile.getProfile(user.email!).then((value) {
-      profile = value;
-    });
+  void initializeData() async {
+    _mainMenu = mainMenu(context, "/admin");
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    currentOrganization =
+        Provider.of<ProfileProvider>(context, listen: false).organization;
+    if (profile != null && currentOrganization != null) {
+      checkPermissions(
+          context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    }
+    _mainMenu = mainMenu(context, "/admin");
   }
 
   @override
   void initState() {
     super.initState();
 
-    _mainMenu = mainMenu(context, "/projects");
+    Provider.of<ProfileProvider>(context, listen: false).addListener(() {
+      if (!mounted) return;
+      currentOrganization =
+          Provider.of<ProfileProvider>(context, listen: false).organization;
 
-    final user = FirebaseAuth.instance.currentUser!;
-    getProfile(user);
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      _mainMenu = mainMenu(context, "/home");
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
+      }
+
+      if (mounted) setState(() {});
+    });
+
+    _mainMenu = mainMenu(context);
   }
 
   @override

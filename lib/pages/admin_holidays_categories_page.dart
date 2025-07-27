@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -12,7 +13,7 @@ import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const categoryTitle = "Categorías para vacaciones y permisos";
-List categories = [];
+List<HolidaysCategory> categories = [];
 bool loadingCategory = false;
 
 class AdminHolidaysCategoriesPage extends StatefulWidget {
@@ -34,56 +35,74 @@ class _AdminHolidaysCategoriesPageState
   Widget? _mainMenu;
   Widget? _actionsMenu;
 
+  void initializeData() async {
+    _mainMenu = mainMenu(context, "/admin/holidays/categories");
+    final results = await Future.wait([
+      HolidaysCategory.byOrganization(currentOrganization!),
+    ]);
+
+    categories = results[0];
+    if (mounted) {
+      setState(() {
+        checkPermissions(
+            context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+      });
+    }
+  }
+
   @override
   initState() {
     super.initState();
     _mainMenu = mainMenu(context);
     _actionsMenu = Container();
 
-    if (profile == null) {
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
+    Provider.of<ProfileProvider>(context, listen: false).addListener(() {
+      if (!mounted) return;
+      currentOrganization =
+          Provider.of<ProfileProvider>(context, listen: false).organization;
 
-        if (mounted) {
-          checkPermissions(
-              context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-          setState(() {});
-        }
-      });
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
+      }
+
+      if (mounted) setState(() {});
+    });
+
+    currentOrganization =
+        Provider.of<ProfileProvider>(context, listen: false).organization;
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    if ((profile == null) || (currentOrganization == null)) {
+      Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+    } else {
+      initializeData();
     }
-
-    if (currentOrganization == null) {
-      Organization.byDomain(user.email!).then((value) {
-        currentOrganization = value;
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
-
-    _mainMenu = mainMenu(context);
   }
 
-  void listCategories() {
-    if (currentOrganization != null) {
-      HolidaysCategory.byOrganization(currentOrganization!).then((value) {
-        categories = value;
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
+  Widget editionList(BuildContext context, List<HolidaysCategory> categories) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        HolidaysCategory category = categories[index];
+        return ListTile(
+          title: Text("${category.name} [${category.autoCode()}]"),
+          subtitle: Text(
+              "Días: ${category.days}, Requiere documento: ${(category.docRequired > 0) ? 'Sí' : 'No'} (${category.docRequired}), Retroactivo: ${category.retroactive ? 'Sí' : 'No'}"),
+          // trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          //   editBtn(context, editCategory, {'category': category}),
+          // ]),
+          onTap: () {
+            editCategory(context, {'category': category});
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (profile != null && currentOrganization != null) {
-      HolidaysCategory.byOrganization(currentOrganization!).then((value) {
-        categories = value;
-        if (mounted) {
-          setState(() {});
-        }
-      });
       _actionsMenu = Container(
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -109,23 +128,12 @@ class _AdminHolidaysCategoriesPageState
       categories.isEmpty
           ? content = const Text("No hay categorías disponibles",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
-          : content = ListView.builder(
-              shrinkWrap: true,
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                HolidaysCategory category = categories[index];
-                return ListTile(
-                  title: Text(category.name),
-                  subtitle: Text(
-                      "Días: ${category.days}, Requiere documento: ${category.docRequired ? 'Sí' : 'No'}, Retroactivo: ${category.retroactive ? 'Sí' : 'No'}"),
-                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                    editBtn(context, editCategory, {'category': category}),
-                  ]),
-                  onTap: () {
-                    editCategory(context, {'category': category});
-                  },
-                );
-              },
+          : content = Card(
+              margin: const EdgeInsets.all(10),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: editionList(context, categories),
+              ),
             );
     }
 
@@ -142,10 +150,12 @@ class _AdminHolidaysCategoriesPageState
 
   Widget editionForm(BuildContext context, HolidaysCategory category) {
     return SingleChildScrollView(
+        child: SizedBox(
+      width: MediaQuery.of(context).size.width * 0.75,
       child: HolidaysCategoryForm(
         category: category,
       ),
-    );
+    ));
   }
 
   Future<void> editCategory(context, Map<String, dynamic> args) async {
@@ -155,8 +165,10 @@ class _AdminHolidaysCategoriesPageState
         builder: (context) {
           return AlertDialog(
             titlePadding: const EdgeInsets.all(0),
-            title: s4cTitleBar(
-                category.id.isEmpty ? "Nueva categoría" : "Editar categoría"),
+            title: (category.id.isEmpty)
+                ? s4cTitleBar(
+                    "Nueva categoría", context, Icons.add_circle_outline)
+                : s4cTitleBar("Editar categoría", context, Icons.edit),
             content: editionForm(context, category),
           );
         }).then(

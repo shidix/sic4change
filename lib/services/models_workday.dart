@@ -6,7 +6,7 @@ import 'package:sic4change/services/utils.dart';
 
 class Workday {
   String id;
-  String uuid;
+  // String uuid;
   String userId;
   bool open;
   DateTime startDate;
@@ -16,7 +16,7 @@ class Workday {
 
   Workday({
     required this.id,
-    required this.uuid,
+    // required this.uuid,
     required this.userId,
     required this.open,
     required this.startDate,
@@ -26,7 +26,7 @@ class Workday {
   factory Workday.fromJson(Map data) {
     return Workday(
       id: data['id'],
-      uuid: data['uuid'],
+      // uuid: data['uuid'],
       userId: data['userId'],
       open: data["open"],
       startDate: data['startDate'].toDate(),
@@ -42,7 +42,7 @@ class Workday {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'uuid': uuid,
+        // 'uuid': uuid,
         'userId': userId,
         'open': open,
         'startDate': startDate,
@@ -51,7 +51,7 @@ class Workday {
 
   @override
   String toString() {
-    return 'Workday $uuid $userId $startDate $endDate $open';
+    return 'Workday $id $userId $startDate $endDate $open';
   }
 
   Future<Workday> save() async {
@@ -68,11 +68,11 @@ class Workday {
           .collection(Workday.tbName)
           .add(toJson())
           .then((value) {
-        uuid = value.id;
+        id = value.id;
         FirebaseFirestore.instance
             .collection(Workday.tbName)
-            .doc(uuid)
-            .update({'uuid': uuid});
+            .doc(id)
+            .update({'id': id});
       });
     } else {
       await FirebaseFirestore.instance
@@ -96,12 +96,7 @@ class Workday {
   static Workday getEmpty({String email = '', bool open = true}) {
     DateTime today = DateTime.now();
     return Workday(
-        id: '',
-        uuid: '',
-        userId: email,
-        open: open,
-        startDate: truncDate(today).subtract(const Duration(hours: 16)),
-        endDate: truncDate(today).subtract(const Duration(hours: 6)));
+        id: '', userId: email, open: open, startDate: today, endDate: today);
   }
 
   static Future<Workday?> currentByUser(String email) async {

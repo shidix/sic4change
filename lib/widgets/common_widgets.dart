@@ -2467,29 +2467,70 @@ class CheckboxFormField extends FormField<bool> {
           validator: validator,
           autovalidateMode: autovalidateMode,
           builder: (FormFieldState<bool> state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CheckboxListTile(
-                  value: state.value,
-                  title: title,
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  onChanged: enabled
-                      ? (bool? value) {
-                          state.didChange(value ?? false);
-                        }
-                      : null,
-                ),
-                if (state.hasError)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      state.errorText ?? '',
-                      style: TextStyle(color: Colors.red),
-                    ),
+            return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: state.hasError ? Colors.red : Colors.grey,
+                    width: 1.0,
                   ),
-              ],
-            );
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CheckboxListTile(
+                      value: state.value,
+                      title: title,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      onChanged: enabled
+                          ? (bool? value) {
+                              state.didChange(value ?? false);
+                            }
+                          : null,
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          state.errorText ?? '',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
+                ));
           },
         );
+}
+
+Widget infoDialog(BuildContext context, Icon icon, String title, String content,
+    {List<Widget>? actions}) {
+  return AlertDialog(
+    titlePadding: const EdgeInsets.all(0),
+    title: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        s4cTitleBar(
+          title,
+          context,
+          icon.icon,
+        ),
+      ],
+    ),
+    content: Text(
+      content,
+      style: TextStyle(color: mainColor, fontSize: 20),
+      textAlign: TextAlign.center,
+    ),
+    actions: actions ??
+        [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cerrar'),
+          ),
+        ],
+  );
 }

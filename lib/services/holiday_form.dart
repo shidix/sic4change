@@ -681,6 +681,7 @@ class HolidaysCategoryForm extends StatefulWidget {
 class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidaysCategory category;
+  late final HolidaysCategory? originalCategory;
   bool isNewItem = false;
 
   @override
@@ -688,6 +689,7 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
     super.initState();
     isNewItem = (widget.category!.id == "");
     category = widget.category!;
+    originalCategory = HolidaysCategory.fromJson(widget.category!.toJson());
   }
 
   void saveItem(List args) {
@@ -742,33 +744,98 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         child: SingleChildScrollView(
           child: Column(children: [
-            TextFormField(
-              initialValue: category.name,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-              onSaved: (val) => setState(() => category.name = val!),
+            //Row with name and code
+            Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: TextFormField(
+                    initialValue: category.name,
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    onSaved: (val) => setState(() => category.name = val!),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    initialValue: category.code,
+                    decoration: const InputDecoration(labelText: 'Código'),
+                    onSaved: (val) => setState(() => category.code = val!),
+                  ),
+                ),
+              ],
             ),
             space(),
-            TextFormField(
-              initialValue: category.days.toString(),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Número de días'),
-              onSaved: (val) => setState(() {
-                category.days = int.parse(val!);
-              }),
-            ),
-            space(),
-            CheckboxFormField(
-              title: const Text('¿Requiere documento?'),
-              initialValue: category.docRequired,
-              onSaved: (val) => setState(() => category.docRequired = val!),
+            // Row with days, obligation, and retroactive
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: category.days.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration:
+                        const InputDecoration(labelText: 'Número de días'),
+                    onSaved: (val) => setState(() {
+                      category.days = int.parse(val!);
+                    }),
+                  ),
+                ),
+                space(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: CheckboxFormField(
+                      title: const Text('Obligatorios'),
+                      initialValue: category.obligation,
+                      onSaved: (val) => setState(() {
+                            category.obligation = val!;
+                          })),
+                ),
+                space(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: CheckboxFormField(
+                      title: const Text('Retroactivo'),
+                      initialValue: category.retroactive,
+                      onSaved: (val) => setState(() {
+                            category.retroactive = val!;
+                          })),
+                ),
+              ],
             ),
             space(height: 16),
-            CheckboxFormField(
-              title: const Text('¿Retroactivo?'),
-              initialValue: category.retroactive,
-              onSaved: (val) => setState(() => category.retroactive = val!),
+            // Row with document requirements
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: category.docRequired.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration:
+                        const InputDecoration(labelText: 'Número Documentos'),
+                    onSaved: (val) =>
+                        setState(() => category.docRequired = int.parse(val!)),
+                  ),
+                ),
+                space(width: 16),
+                Expanded(
+                  flex: 4,
+                  child: TextFormField(
+                    initialValue: category.docMessage.isNotEmpty
+                        ? category.docMessage
+                        : " ",
+                    decoration: const InputDecoration(
+                        labelText: 'Descripción de los documentos requeridos'),
+                    onSaved: (val) =>
+                        setState(() => category.docMessage = val!),
+                  ),
+                ),
+              ],
             ),
             space(height: 16),
+
             Row(
                 children: [
                       Expanded(

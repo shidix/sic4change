@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -157,6 +158,8 @@ class HolidayRequest {
   DateTime approvalDate;
   String status;
   String approvedBy;
+  String documentsMessage = "";
+  List<String> documents = [];
 
   static const String tbName = "s4c_holidays";
 
@@ -171,9 +174,13 @@ class HolidayRequest {
     required this.approvalDate,
     required this.status,
     required this.approvedBy,
+    this.documents = const [],
   });
 
   factory HolidayRequest.fromJson(Map data) {
+    if (!data.containsKey('documents')) {
+      data['documents'] = [];
+    }
     HolidayRequest item = HolidayRequest(
       id: data['id'],
       // uuid: data['uuid'],
@@ -185,6 +192,7 @@ class HolidayRequest {
       approvalDate: data['approvalDate'].toDate(),
       status: data['status'],
       approvedBy: data['approvedBy'],
+      documents: List<String>.from(data['documents'] ?? []),
     );
 
     String catUuid = data['category'];
@@ -213,6 +221,7 @@ class HolidayRequest {
         'approvalDate': approvalDate,
         'status': status,
         'approvedBy': approvedBy,
+        'documents': documents,
       };
 
   @override
@@ -264,6 +273,7 @@ class HolidayRequest {
       approvalDate: DateTime(2099, 1, 1),
       status: 'Pendiente',
       approvedBy: '',
+      documents: [],
     );
   }
 
@@ -421,8 +431,11 @@ class HolidaysCategory {
   static const tbName = "s4c_holidays_category";
   String id;
   String name;
-  bool docRequired = false;
+  String code;
+  int docRequired = 0;
+  String docMessage = "";
   bool retroactive = false;
+  bool obligation = false;
   Organization? organization;
   int days;
 
@@ -430,19 +443,25 @@ class HolidaysCategory {
     required this.id,
     required this.name,
     required this.organization,
-    this.docRequired = false,
+    this.code = '',
+    this.docRequired = 0,
     this.retroactive = false,
     this.days = 0,
+    this.docMessage = "",
+    this.obligation = false,
   });
 
   factory HolidaysCategory.fromJson(Map data) {
     HolidaysCategory item = HolidaysCategory(
       id: data['id'],
+      code: data['code'] ?? '',
       name: data['name'] ?? '',
       organization: null,
-      docRequired: data['docRequired'] ?? false,
+      docRequired: int.tryParse(data['docRequired'].toString()) ?? 0,
       retroactive: data['retroactive'] ?? false,
+      docMessage: data['docMessage'] ?? "",
       days: data['days'] ?? 0,
+      obligation: data['obligation'] ?? false,
     );
 
     String orgUuid = data['organization'];
@@ -456,15 +475,30 @@ class HolidaysCategory {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'code': autoCode(),
         'organization': organization?.uuid ?? '',
         'docRequired': docRequired,
         'retroactive': retroactive,
+        'docMessage': docMessage,
+        'obligation': obligation,
         'days': days,
       };
 
   @override
   String toString() {
-    return 'HolidaysCategory{id: $id, name: $name, organization: ${organization?.name}, days: $days}';
+    return 'HolidaysCategory{id: $id, name: $name, organization: ${organization?.name}, days: $days, code: $code}';
+  }
+
+  String autoCode() {
+    if (code.isEmpty) {
+      List<String> parts = name.split(' ');
+      if (parts.length < 3) {
+        code = name.substring(0, 3).toUpperCase();
+      } else {
+        code = parts.map((part) => part.substring(0, 1).toUpperCase()).join('');
+      }
+    }
+    return code;
   }
 
   void save() {
@@ -527,5 +561,61 @@ class HolidaysCategory {
     } else {
       return [];
     }
+  }
+}
+
+class DocHolidays extends ARBaseModel {
+  String id = "";
+  String description = "";
+  String fileUrl = "";
+  String organizationId = "";
+
+  static const String tbName = "s4c_holidays_docs";
+
+  @override
+  String getId() {
+    return id;
+  }
+
+  @override
+  void setId(String id) {
+    this.id = id;
+  }
+
+  DocHolidays({
+    required this.id,
+    required this.description,
+    required this.fileUrl,
+    required this.organizationId,
+  });
+
+  factory DocHolidays.fromJson(Map data) {
+    return DocHolidays(
+      id: data['id'],
+      description: data['description'] ?? '',
+      fileUrl: data['fileUrl'] ?? '',
+      organizationId: data['organizationId'] ?? '',
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'description': description,
+        'fileUrl': fileUrl,
+        'organizationId': organizationId,
+      };
+
+  @override
+  Future<void> reload() async {
+    // Implement reload logic if needed
+  }
+
+  @override
+  void fromJson(Map<String, dynamic> json) {
+    id = json['id'] ?? '';
+    description = json['description'] ?? '';
+    fileUrl = json['fileUrl'] ?? '';
+    organizationId = json['organizationId'] ?? '';
   }
 }

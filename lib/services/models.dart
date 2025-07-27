@@ -17,6 +17,8 @@ import 'package:sic4change/services/project_folders.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
+// Generate a abstract class for common methods with id, tbName, toJson, fromJson, reload, save, delete, static byId
+
 //--------------------------------------------------------------
 //                           PROJECTS
 //--------------------------------------------------------------
@@ -474,19 +476,6 @@ class SProject {
     } else {
       return partnersObj;
     }
-    // List<Contact> parList = [];
-    // for (String par in partners) {
-    //   try {
-    //     QuerySnapshot query =
-    //         await dbContacts.where("uuid", isEqualTo: par).get();
-    //     final doc = query.docs.first;
-    //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    //     data["id"] = doc.id;
-    //     Contact contact = Contact.fromJson(data);
-    //     parList.add(contact);
-    //   } catch (e) {}
-    // }
-    // return parList;
   }
 
   static Future<SProject> getByUuid(String uuid) async {
