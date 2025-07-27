@@ -363,13 +363,13 @@ Future<FullMetadata?> getMetadataFileUrl(String? path) async {
   }
 }
 
-Future<bool> openFileUrl(context, String path) async {
+Future<Map<String, dynamic>> openFileUrl(context, String path) async {
   final ref = FirebaseStorage.instance.ref().child(path);
   // check if the file exists
   try {
     Uint8List? data = await ref.getData();
     if (data == null) {
-      return false;
+      return {'success': false, 'message': 'File not found'};
     }
 
     String path_ext = path.split('.').last.toLowerCase();
@@ -410,9 +410,33 @@ Future<bool> openFileUrl(context, String path) async {
       ..setAttribute('target', '_blank')
       ..click();
 
-    return true;
+    return {
+      'success': true,
+      'message': 'File opened successfully',
+      'url': url,
+      'mime': mime,
+    };
   } catch (e) {
-    return false;
+    return {
+      'success': false,
+      'message': 'Error opening file: ${e.toString()}',
+      'url': null,
+      'mime': null,
+    };
+  }
+}
+
+Future<Map<String, dynamic>> fileExistsInStorage(String? path) async {
+  if (path == null) {
+    return {'exists': false, 'message': 'File path is null'};
+  }
+  final ref = FirebaseStorage.instance.ref().child(path);
+  // check if the file exists
+  try {
+    await ref.getMetadata();
+    return {'exists': true, 'message': 'File exists'};
+  } catch (e) {
+    return {'exists': false, 'message': 'File does not exist. $e'};
   }
 }
 

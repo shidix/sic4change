@@ -1,11 +1,13 @@
 // ignore_for_file: unused_import, prefer_const_constructors
 
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:googleapis/transcoder/v1.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/utils.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/material.dart';
@@ -569,41 +571,12 @@ class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
     holidaysConfig = widget.holidaysConfig!;
   }
 
-  // void saveItem(List args) {
-  //   BuildContext context = args[0];
-  //   HolidaysConfig holidaysConfig = args[1];
-  //   GlobalKey<FormState> formKey = args[2];
-  //   if (formKey.currentState!.validate()) {
-  //     formKey.currentState!.save();
-  //     holidaysConfig.save();
-  //     if (widget.afterSave != null) {
-  //       widget.afterSave!();
-  //     }
-  //     Navigator.of(context).pop(holidaysConfig);
-  //   }
-  // }
-
-  // void removeItem(List args) {
-  //   BuildContext context = args[0];
-  //   HolidaysConfig holidaysConfig = args[1];
-  //   GlobalKey<FormState> formKey = args[2];
-  //   if (formKey.currentState!.validate()) {
-  //     formKey.currentState!.save();
-  //     holidaysConfig.save();
-  //     if (widget.afterDelete != null) {
-  //       widget.afterDelete!();
-  //     }
-  //     Navigator.of(context).pop();
-  //   }
-  // }
-
   void cancelItem(BuildContext context) {
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    // My form is a list or buttons with the user names; if the user is already in the list, the button has background color green, if not, it has background color red. Press button to add or remove user from the list.
     List<Widget> userButtons = [];
 
     userButtons = employees.map((employee) {
@@ -853,6 +826,175 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                               Icons.cancel, context))
                     ] +
                     deleteButton),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class HolidayDocumentsForm extends StatefulWidget {
+  final HolidayRequest? holidayRequest;
+  final Function? afterSave;
+
+  const HolidayDocumentsForm({Key? key, this.holidayRequest, this.afterSave})
+      : super(key: key);
+
+  @override
+  createState() => _HolidayDocumentsFormState();
+}
+
+class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
+  final _formKey = GlobalKey<FormState>();
+  late HolidayRequest holidayRequest;
+  // List<PlatformFile?> uploadedFiles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    holidayRequest = widget.holidayRequest!;
+
+    for (int i = 0; i < holidayRequest.documents.length; i++) {
+      if (holidayRequest.documents[i].isNotEmpty) {
+        fileExistsInStorage(holidayRequest.documents[i]).then((result) {
+          if (!result['exists']) {
+            holidayRequest.documents[i] = '';
+          }
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
+    }
+  }
+
+  void uploadFile(PlatformFile? file, int index) {
+    if (file != null) {
+      String extention = file!.name.split('.').last;
+      uploadFileToStorage(file!,
+              rootPath:
+                  'files/holidays/${holidayRequest.userId}/${holidayRequest.id}/documents/${holidayRequest.category!.name.replaceAll(" ", "_")}/',
+              fileName:
+                  '${DateFormat('yyyyMMdd').format(DateTime.now())}_${holidayRequest.category!.autoCode()}_$index.$extention')
+          .then((fname) {
+        if (holidayRequest.documents.length <= index) {
+          holidayRequest.documents.add(fname);
+        } else {
+          String fremove = holidayRequest.documents[index];
+          if ((fremove.isNotEmpty) && fremove != fname) {
+            removeFileFromStorage(fremove);
+          }
+          holidayRequest.documents[index] = fname;
+        }
+        holidayRequest.save();
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        child: SingleChildScrollView(
+          child: Column(children: [
+            // Add your document fields here
+            // For example, a TextFormField for document name
+            Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  for (int i = 0; i < holidayRequest.category!.docRequired; i++)
+                    Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: UploadFileField(
+                              textToShow: (holidayRequest.documents.length >
+                                          i &&
+                                      holidayRequest.documents[i].isNotEmpty)
+                                  ? "Documento ${i + 1} ya cargado"
+                                  : "Subir documento ${i + 1}",
+                              onSelectedFile: (file) {
+                                // Handle file selection
+                                if (file != null) {
+                                  uploadFile(file, i);
+                                }
+                              },
+                            )))
+                ]),
+            Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  for (int i = 0; i < holidayRequest.category!.docRequired; i++)
+                    Expanded(
+                        flex: 1,
+                        child: (holidayRequest.documents[i].isNotEmpty)
+                            ? Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: actionButtonVertical(
+                                          context, "Abrir", (context) {
+                                        openFileUrl(context,
+                                                holidayRequest.documents[i])
+                                            .then((value) {});
+                                      }, Icons.open_in_browser, context)),
+                                  Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: actionButtonVertical(
+                                          context, "Eliminar", (context) {
+                                        if (holidayRequest.documents.length >
+                                            i) {
+                                          String fremove =
+                                              holidayRequest.documents[i];
+                                          if (fremove.isNotEmpty) {
+                                            removeFileFromStorage(fremove)
+                                                .then((value) {
+                                              if (value) {
+                                                holidayRequest.documents[i] =
+                                                    '';
+                                                holidayRequest.save();
+
+                                                if (mounted) {
+                                                  setState(() {});
+                                                }
+                                              }
+                                            });
+                                          }
+                                        }
+                                      }, Icons.delete, context)),
+                                ],
+                              )
+                            : Container())
+                ]),
+            space(height: 16),
+            Row(children: [
+              // Expanded(
+              //     flex: 5,
+              //     child: actionButton(
+              //         context,
+              //         "Enviar",
+              //         saveItem,
+              //         Icons.save_outlined,
+              //         [context, holidayRequest, _formKey])),
+              // Expanded(flex: 1, child: Container()),
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                  flex: 1,
+                  child: actionButton(context, "Cerrar", (context) {
+                    Navigator.of(context).pop(null);
+                  }, Icons.cancel, context)),
+              Expanded(flex: 1, child: Container()),
+            ]),
           ]),
         ),
       ),

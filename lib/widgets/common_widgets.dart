@@ -21,6 +21,16 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+// ignore: constant_identifier_names
+const Map<String, double> SCALES = {
+  "xs": 0.5,
+  "sm": 0.8,
+  "md": 1.0,
+  "lg": 1.2,
+  "xl": 1.5,
+  "xxl": 2.0,
+};
+
 Widget customTitle(context, _text) {
   return Container(
       width: MediaQuery.of(context).size.width,
@@ -576,6 +586,9 @@ Widget actionButton(
     double size = 30,
     double hPadding = 20.0,
     double vPadding = 20.0,
+    double hMargin = 0.0,
+    double vMargin = 0.0,
+    String scale = "md",
     FocusNode? listener}) {
   icon ??= Icons.settings;
   Widget? row;
@@ -584,46 +597,51 @@ Widget actionButton(
     children.add(Icon(
       icon,
       color: iconColor,
-      size: size,
+      size: size * SCALES[scale]!,
     ));
 
     children.add(space(width: 10));
     children.add(Text(
       text,
-      style: TextStyle(color: textColor, fontSize: 14),
+      style: TextStyle(color: textColor, fontSize: 14 * SCALES[scale]!),
     ));
     row = Row(children: children);
   } else {
     row = Icon(
       icon,
       color: iconColor,
-      size: size,
+      size: size * SCALES[scale]!,
     );
   }
 
-  return ElevatedButton(
-    onPressed: () {
-      if (args == null) {
-        action();
-      } else {
-        action(args);
-      }
-    },
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          side: const BorderSide(color: Color(0xff8fbc8f))),
-      backgroundColor: bgColor,
-    ),
-    child: row,
-    focusNode: listener,
-  );
+  return Container(
+      margin: EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
+      child: ElevatedButton(
+        onPressed: () {
+          if (args == null) {
+            action();
+          } else {
+            action(args);
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          padding:
+              EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              side: const BorderSide(color: Color(0xff8fbc8f))),
+          backgroundColor: bgColor,
+        ),
+        focusNode: listener,
+        child: row,
+      ));
 }
 
 Widget actionButtonVertical(
     context, dynamic text, Function action, IconData? icon, dynamic args,
-    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
+    {Color textColor = Colors.black54,
+    Color iconColor = Colors.black54,
+    bool fullWidth = false}) {
   icon ??= Icons.settings;
   Widget textWidget;
   if (text is String) {
@@ -642,15 +660,30 @@ Widget actionButtonVertical(
       }
     },
     style: btnStyle,
-    child: Column(
-      children: [
-        space(height: 5),
-        Icon(icon, color: subTitleColor),
-        space(height: 5),
-        textWidget,
-        space(height: 5),
-      ],
-    ),
+    child: fullWidth
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  space(height: 5),
+                  Icon(icon, color: subTitleColor),
+                  space(height: 5),
+                  textWidget,
+                ],
+              ),
+            ],
+          )
+        : Column(
+            children: [
+              space(height: 5),
+              Icon(icon, color: subTitleColor),
+              space(height: 5),
+              textWidget,
+              space(height: 5),
+            ],
+          ),
   );
 }
 
@@ -1833,6 +1866,7 @@ class UploadFileField extends StatelessWidget {
     required this.onSelectedFile,
     this.pickedFile,
     this.padding = const EdgeInsets.only(top: 8),
+    bool fullWidth = false,
   });
 
   Future<PlatformFile?> chooseFile(context) async {
@@ -1857,7 +1891,8 @@ class UploadFileField extends StatelessWidget {
               (pickedFile == null) ? textToShow : pickedFile!.name,
               chooseFile,
               Icons.upload_file,
-              context))
+              context,
+              fullWidth: true)),
     ]);
   }
 }

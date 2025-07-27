@@ -198,14 +198,8 @@ Widget mainMenuOperator(context, {url, Profile? profile, key}) {
 
 Widget mainMenu(context, [url]) {
   final user = FirebaseAuth.instance.currentUser!;
-  String email = user.email!;
   Profile? profile =
       Provider.of<ProfileProvider>(context, listen: false).profile;
-  // if (profile == null) {
-  //   // Load profile if not already loaded
-  //   Provider.of<ProfileProvider>(context, listen: false).loadProfile();
-  //   profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-  // }
 
   return Builder(
     builder: (context) {

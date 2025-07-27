@@ -187,15 +187,16 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
-
-    if (currentWorkday!.open) {
-      workdayButton = actionButton(
-          context, null, workdayAction, Icons.stop_circle_outlined, context,
-          iconColor: dangerColor);
-    } else {
-      workdayButton = actionButton(context, null, workdayAction,
-          Icons.play_circle_outline_sharp, context,
-          iconColor: successColor);
+    if (mounted) {
+      if (currentWorkday!.open) {
+        workdayButton = actionButton(
+            context, null, workdayAction, Icons.stop_circle_outlined, context,
+            iconColor: dangerColor);
+      } else {
+        workdayButton = actionButton(context, null, workdayAction,
+            Icons.play_circle_outline_sharp, context,
+            iconColor: successColor);
+      }
     }
   }
 
@@ -1135,6 +1136,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget btnDocuments(context, HolidayRequest holiday) {
+    // Open a dialog with HolidayDocumentForm
+    // return actionButton(
+    //     context, holiday.category?.docRequired.toString() ?? "0", () {
+    //   Navigator.pushNamed(context, "/documents");
+    // }, Icons.document_scanner, null, scale: "sm");
+    Widget btn = actionButton(
+      context,
+      null,
+      () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              titlePadding: const EdgeInsets.all(0),
+              title: s4cTitleBar('Documentos de vacaciones', context),
+              content: HolidayDocumentsForm(
+                  holidayRequest: holiday,
+                  afterSave: () {
+                    if (mounted) {
+                      setState(() {
+                        myHolidays = myHolidays;
+                      });
+                    }
+                  }),
+            );
+          },
+        );
+      },
+      Icons.document_scanner,
+      null,
+      scale: "sm",
+    );
+
+    return Container(
+      alignment: Alignment.center,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Tooltip(
+        message:
+            "Se requieren ${holiday.category?.docRequired ?? 0} documentos",
+        child: (holiday.category?.docRequired ?? 0) > 0
+            ? btn
+            : Text("NO REQUIERE"),
+      ),
+    );
+  }
+
   Widget holidayRows() {
     return Container(
         height: 150,
@@ -1149,7 +1197,7 @@ class _HomePageState extends State<HomePage> {
                   // return ListTile with info popup
                   return Row(children: [
                     Expanded(
-                        flex: 9,
+                        flex: 8,
                         child: buildHolidayListItem(context, holiday,
                             onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
                                 ? () {
@@ -1157,7 +1205,7 @@ class _HomePageState extends State<HomePage> {
                                     addHolidayRequestDialog(context);
                                   }
                                 : null)),
-                    Expanded(flex: 1, child: Text("")),
+                    Expanded(flex: 2, child: btnDocuments(context, holiday)),
                   ]);
                 })
             : Center(
@@ -1459,7 +1507,7 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white,
                     child: const Row(children: [
                       Expanded(
-                          flex: 9,
+                          flex: 8,
                           child: ListTile(
                             title: Row(
                               children: [
@@ -1502,7 +1550,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           )),
                       Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Text(
                             "Docs",
                             style: subTitleText,
@@ -1731,12 +1779,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget notifyPanelContent() {
-/*    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(children: [*/
-    //Container(
-    //  color: Colors.white,
-    //child: SizedBox(
     return SizedBox(
         width: double.infinity,
         //height: 100,
@@ -1770,9 +1812,8 @@ class _HomePageState extends State<HomePage> {
                       setState(() {});
                     },
                     color: (notify.readed)
-                        ? MaterialStateColor.resolveWith(
-                            (states) => Colors.white)
-                        : MaterialStateColor.resolveWith((states) => greyColor),
+                        ? WidgetStateColor.resolveWith((states) => Colors.white)
+                        : WidgetStateColor.resolveWith((states) => greyColor),
                     cells: [
                       DataCell(Text(notify.msg)),
                       DataCell(Text(notify.sender)),

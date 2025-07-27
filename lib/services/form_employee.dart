@@ -121,7 +121,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
         Profile.getProfile(employee.email).then((profile) {
           if (profile.email == '') {
             // Create profile
-            Profile newProfile = Profile(id: '',
+            Profile newProfile = Profile(
+                id: '',
                 email: employee.email,
                 holidaySupervisor: [],
                 mainRole: 'Usuario');
@@ -1019,7 +1020,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                       if (e['path'] != null) {
                                         openFileUrl(context, e['path'])
                                             .then((value) {
-                                          if (value) {
+                                          if (value['success']) {
                                             //Use toast to show a message
 
                                             ScaffoldMessenger.of(context)
