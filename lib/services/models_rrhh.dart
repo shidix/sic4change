@@ -640,15 +640,17 @@ class Employee {
       required this.email,
       required this.phone,
       required this.organization,
-      // required this.position,
-      // required this.category,
       this.bankAccount = '',
       this.altas = const [],
-      // this.bajas = const [],
       this.extraDocs = const {},
       this.photoPath,
       this.sex = 'O',
       this.bornDate});
+
+  @override
+  String toString() {
+    return '$firstName $lastName1 $lastName2 ($code), $email';
+  }
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
@@ -962,6 +964,50 @@ class Employee {
     return await ref.getDownloadURL();
   }
 
+  Future<List<Employee>> getSubordinates() async {
+    id ??= '';
+    if (id!.isEmpty) return [];
+    List<Employee> items = [];
+    List<Department> departments =
+        await Department.getDepartmentsByManager(id!);
+    if (departments.isEmpty) return [];
+    List<Department> parentDepartments = [];
+    for (Department department in departments) {
+      String? curentParentId = department.parent;
+      while (curentParentId != null && curentParentId.isNotEmpty) {
+        Department? parentDepartment = await Department.byId(curentParentId);
+        if (parentDepartment.id == null || parentDepartment.id!.isEmpty) {
+          break;
+        }
+        parentDepartments.add(parentDepartment);
+        curentParentId = parentDepartment.parent;
+      }
+    }
+    departments.addAll(parentDepartments);
+    return items;
+
+    List<String> employeeIds = [];
+    for (Department department in departments) {
+      if (department.employees.isEmpty) continue;
+      employeeIds.addAll(department.employees);
+    }
+
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where(FieldPath.documentId, whereIn: employeeIds)
+        .get()
+        .then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Employee item = Employee.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+    print("Subordinates count: ${items.length}");
+    return items;
+  }
+
   int compareTo(Employee other) {
     // sort by lastName1, lastName2, firstName ignoring case
 
@@ -1245,5 +1291,27 @@ class Department {
     });
 
     return item;
+  }
+
+  static Future<List<Department>> getDepartmentsByManager(
+      String manager) async {
+    // get from database
+    List<Department> items = [];
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('manager', isEqualTo: manager)
+        .get()
+        .then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Department item = Department.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
   }
 }

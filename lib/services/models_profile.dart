@@ -138,11 +138,22 @@ class Profile {
         (snap) => snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
   }
 
-  static Future<Profile> getProfile(String email) async {
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection(Profile.tbName)
-        .where("email", isEqualTo: email)
-        .get();
+  static Future<Profile> getProfile(dynamic email) async {
+    QuerySnapshot query;
+
+    if (email is String) {
+      query = await FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .where("email", isEqualTo: email)
+          .get();
+    } else if (email is List<String>) {
+      query = await FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .where("email", whereIn: email)
+          .get();
+    } else {
+      throw ArgumentError("Email must be a String or List<String>");
+    }
 
     if (query.docs.isEmpty) {
       return Profile.getEmpty(email: email, mainRole: Profile.USER);
@@ -154,7 +165,7 @@ class Profile {
     return Profile.fromJson(data);
   }
 
-  static Future<Profile> byEmail(String email) async {
+  static Future<Profile> byEmail(dynamic email) async {
     return await getProfile(email);
   }
 

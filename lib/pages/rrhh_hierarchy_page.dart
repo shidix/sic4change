@@ -283,6 +283,9 @@ class _HierarchyPageState extends State<HierarchyPage> {
       }
     });
 
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    currentOrganization =
+        Provider.of<ProfileProvider>(context, listen: false).organization;
     mainMenuPanel = mainMenu(context, "/rrhh");
     secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
     contentPanel = const Text('Cargando perfil...',
@@ -290,6 +293,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
     if (profile == null || currentOrganization == null) {
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+    } else {
+      initializeData(context);
     }
   }
 

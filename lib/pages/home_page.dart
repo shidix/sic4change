@@ -208,7 +208,11 @@ class _HomePageState extends State<HomePage> {
       STask.getByAssigned(user.email!, lazy: true),
       HolidayRequest.byUser(user.email!),
       Workday.byUser(user.email!),
-      Profile.getProfiles(),
+      // Profile.getProfiles(),
+      (currentEmployee != null)
+          ? currentEmployee!.getSubordinates()
+          : Future.value(mypeople),
+      // Future.value(mypeople),
       getNotificationList(user.email)
     ]);
 
@@ -237,21 +241,16 @@ class _HomePageState extends State<HomePage> {
 
     contentWorkPanel = workTimePanel();
 
-    List<Profile> myPeople = results[4] as List<Profile>;
+    List<Employee> myPeople = results[4] as List<Employee>;
+    print(myPeople);
 
-    for (Profile element in myPeople) {
-      if (element.holidaySupervisor.contains(user.email)) {
-        Employee.byEmail(element.email).then((value) {
-          mypeople.add(value);
-        });
-
-        HolidayRequest.byUser(element.email).then((value) {
-          myPeopleHolidays.addAll(value);
-          if (mounted) {
-            setState(() {});
-          }
-        });
-      }
+    for (Employee element in myPeople) {
+      HolidayRequest.byUser(element.email).then((value) {
+        myPeopleHolidays.addAll(value);
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
     NotificationValues nVal = results[5] as NotificationValues;
     notificationList = nVal.nList;
@@ -383,6 +382,7 @@ class _HomePageState extends State<HomePage> {
     } else {
       initializeData();
     }
+    // initializeData();
   }
 
   @override
@@ -413,6 +413,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     } else if (_currentPage == "yourpeople") {
+      (currentEmployee != null)
+          ? currentEmployee!.getSubordinates()
+          : print("currentEmployee is null");
       contents = [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1344,6 +1347,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget holidayPeoplePanel(BuildContext contextt) {
+    print(mypeople);
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1397,7 +1401,7 @@ class _HomePageState extends State<HomePage> {
                                   ])),
                         ),
                         Expanded(
-                            flex: 2,
+                            flex: 4,
                             child: actionButton(context, "Añadir solicitud",
                                 addHolidayRequestDialog, Icons.add, context)),
                       ],
