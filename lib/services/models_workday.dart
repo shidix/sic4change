@@ -134,14 +134,18 @@ class Workday {
     }
   }
 
-  static Future<List<Workday>> byUser(String email,
+  static Future<List<Workday>> byUser(dynamic email,
       [DateTime? fromDate]) async {
     List<Workday> items = [];
     fromDate ??= DateTime.now().subtract(const Duration(days: 40));
 
+    if (email is String) {
+      email = [email];
+    }
+
     final query = await FirebaseFirestore.instance
         .collection(Workday.tbName)
-        .where("userId", isEqualTo: email)
+        .where("userId", whereIn: email)
         .where("startDate",
             isGreaterThanOrEqualTo:
                 DateTime(fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))

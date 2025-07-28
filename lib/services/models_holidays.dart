@@ -287,15 +287,32 @@ class HolidayRequest {
     }
   }
 
-  static Future<List<HolidayRequest>> byUser(String uuid) async {
+  static Future<List<HolidayRequest>> byUser(dynamic email,
+      [DateTime? startDate, DateTime? endDate]) async {
     List<HolidayRequest> items = [];
-    final query = await FirebaseFirestore.instance
-        .collection(tbName)
-        .where("userId", isEqualTo: uuid)
-        .get();
-    for (var result in query.docs) {
-      items.add(HolidayRequest.fromFirestore(result));
+    startDate ??= DateTime(DateTime.now().year, 1, 1);
+    endDate ??= DateTime(DateTime.now().year + 1, 1, 1);
+
+    if (email is String) {
+      email = [email];
     }
+    final query1 = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("userId", whereIn: email)
+        .get();
+    for (var result in query1.docs) {
+      Map<String, dynamic> data = result.data();
+      data['id'] = result.id;
+      items.add(HolidayRequest.fromJson(data));
+    }
+
+    // Filiter intems in the date range
+    items = items.where((item) {
+      return item.startDate.isAfter(startDate!) &&
+              item.startDate.isBefore(endDate!) ||
+          item.endDate.isAfter(startDate!) && item.endDate.isBefore(endDate!);
+    }).toList();
+
     return items;
   }
 }

@@ -65,6 +65,7 @@ class _HomePageState extends State<HomePage> {
   Widget mainMenuWidget = Container();
   List<Employee> mypeople = [];
   List<HolidayRequest> myPeopleHolidays = [];
+  List<Workday> myPeopleWorkdays = [];
 
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
@@ -99,15 +100,6 @@ class _HomePageState extends State<HomePage> {
     "aprobado": successColor,
     "rechazado": dangerColor,
   };
-
-  // Future<void> loadMyTasks() async {
-  //   STask.getByAssigned(user.email!, lazy: false).then((value) {
-  //     mytasks = value;
-  //     contentTasksPanel = tasksPanel();
-  //     contentProjectsPanel = projectsPanel();
-  //     setState(() {});
-  //   });
-  // }
 
   Future<void> loadMyHolidays() async {
     if (contact == null) {
@@ -266,13 +258,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  /*void getLogs() async {
-    SLogs.getLogs().then((val) {
-      logList = val;
-      setState(() {});
-    });
-  }*/
-
   Future<int> updateHolidayDays() async {
     double factor = 1.0;
     currentEmployee ??= await Employee.byEmail(user.email!);
@@ -348,6 +333,21 @@ class _HomePageState extends State<HomePage> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  Future<Widget> peopleCalendar() async {
+    List<HolidayRequest> peopleHolidays = [];
+    List<String> peopleEmails = [];
+    peopleEmails = mypeople.map((e) => e.email).toList();
+    // workdays in current year
+    peopleHolidays = await HolidayRequest.byUser(peopleEmails);
+    if (mypeople.isEmpty) {
+      return Center(
+        child: Text("No hay personas asignadas"),
+      );
+    }
+
+    return Container();
   }
 
   @override
@@ -507,7 +507,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel() {
-    
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
@@ -521,15 +520,14 @@ class _HomePageState extends State<HomePage> {
           item.open = false;
           item.save();
           myWorkdays![index] = item;
-        }
-        else {
+        } else {
           if (index != 0) {
             myWorkdays![0].open = true;
             myWorkdays![0].startDate = item.startDate;
             idsToRemove.add(item.id);
           }
         }
-      }      
+      }
     }
     for (String id in idsToRemove) {
       Workday item = myWorkdays!.firstWhere((item) => item.id == id);
@@ -542,8 +540,6 @@ class _HomePageState extends State<HomePage> {
       currentWorkday!.save();
       myWorkdays!.insert(0, currentWorkday!);
     }
-
-
 
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
