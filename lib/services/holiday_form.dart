@@ -905,6 +905,29 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
             // Add your document fields here
             // For example, a TextFormField for document name
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                      'Documentos requeridos para ${holidayRequest.category!.name}:',
+                      style: subTitleText,
+                      textAlign: TextAlign.center),
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(holidayRequest.category!.docMessage,
+                      style: subTitleText, textAlign: TextAlign.center),
+                )
+              ],
+            ),
+            space(height: 16),
+            Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -938,7 +961,7 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                             ? Row(
                                 mainAxisSize: MainAxisSize.max,
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Padding(
                                       padding: const EdgeInsets.all(8.0),

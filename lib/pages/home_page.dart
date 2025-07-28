@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   Timer? _timer;
 
   Organization? currentOrganization;
+  Employee? currentEmployee;
 
   late String _currentPage;
 
@@ -275,7 +276,27 @@ class _HomePageState extends State<HomePage> {
     });
   }*/
 
-  int updateHolidayDays() {
+  Future<int> updateHolidayDays() async {
+    double factor = 1.0;
+    currentEmployee ??= await Employee.byEmail(user.email!);
+    DateTime altaDate = currentEmployee!.getAltaDate();
+    DateTime bajaDate = currentEmployee!.getBajaDate();
+    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+      factor =
+          1; // If the employee's start date is before the current year, return 0
+    } else {
+      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+        bajaDate = DateTime(DateTime.now().year + 1, 1,
+            1); // Calculate until the end of the year
+      }
+      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+          .difference(DateTime(DateTime.now().year, 1, 1))
+          .inDays;
+      int daysWorked = bajaDate.difference(altaDate).inDays;
+      factor = daysWorked /
+          daysInYear; // Calculate the factor based on the days worked
+    }
     int counter = 0;
     if (holCat == null) return 0;
     for (HolidaysCategory cat in holCat!) {
@@ -289,7 +310,10 @@ class _HomePageState extends State<HomePage> {
         counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
       }
     }
-    return counter;
+
+    //
+    int result = max(0, min((counter * factor).truncate() + 1, counter));
+    return result;
   }
 
   void initializeData() async {
@@ -305,6 +329,8 @@ class _HomePageState extends State<HomePage> {
         holidayDays += cat.days;
       }
     }
+    updateHolidayDays().then((value) => holidayDays = value);
+
     final tasksStatusList = results[1] as List<TasksStatus>;
     if (tasksStatusList.isNotEmpty) {
       for (var item in tasksStatusList) {
@@ -1102,7 +1128,7 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           myHolidays = myHolidays;
-          holidayDays = updateHolidayDays();
+          updateHolidayDays().then((value) => holidayDays = value);
         });
       }
     });
@@ -1137,11 +1163,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget btnDocuments(context, HolidayRequest holiday) {
-    // Open a dialog with HolidayDocumentForm
-    // return actionButton(
-    //     context, holiday.category?.docRequired.toString() ?? "0", () {
-    //   Navigator.pushNamed(context, "/documents");
-    // }, Icons.document_scanner, null, scale: "sm");
     Widget btn = actionButton(
       context,
       null,
@@ -1151,7 +1172,9 @@ class _HomePageState extends State<HomePage> {
           builder: (BuildContext context) {
             return AlertDialog(
               titlePadding: const EdgeInsets.all(0),
-              title: s4cTitleBar('Documentos de vacaciones', context),
+              title: s4cTitleBar(
+                  'Probatorios requeridos: ${holiday.category!.docRequired}',
+                  context),
               content: HolidayDocumentsForm(
                   holidayRequest: holiday,
                   afterSave: () {
