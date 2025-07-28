@@ -208,8 +208,7 @@ class _HomePageState extends State<HomePage> {
       STask.getByAssigned(user.email!, lazy: true),
       HolidayRequest.byUser(user.email!),
       Workday.byUser(user.email!),
-      // Profile.getProfiles(),
-      (currentEmployee != null)
+      ((currentEmployee != null) && (mypeople.isEmpty))
           ? currentEmployee!.getSubordinates()
           : Future.value(mypeople),
       // Future.value(mypeople),
@@ -241,10 +240,9 @@ class _HomePageState extends State<HomePage> {
 
     contentWorkPanel = workTimePanel();
 
-    List<Employee> myPeople = results[4] as List<Employee>;
-    print(myPeople);
+    mypeople = results[4] as List<Employee>;
 
-    for (Employee element in myPeople) {
+    for (Employee element in mypeople) {
       HolidayRequest.byUser(element.email).then((value) {
         myPeopleHolidays.addAll(value);
         if (mounted) {
@@ -344,6 +342,7 @@ class _HomePageState extends State<HomePage> {
         hashProjects[item.uuid] = item;
       }
     }
+    topButtonsPanel = topButtons(context);
     await loadMyData();
     // autoStartWorkday(context);
     if (mounted) {
@@ -413,9 +412,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     } else if (_currentPage == "yourpeople") {
-      (currentEmployee != null)
-          ? currentEmployee!.getSubordinates()
-          : print("currentEmployee is null");
       contents = [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,7 +448,7 @@ class _HomePageState extends State<HomePage> {
           bgColor:
               (_currentPage == "home") ? Colors.green.shade50 : Colors.white),
       space(width: 10),
-      actionButton(context, "Personal a cargo", () {
+      actionButton(context, "Personal a cargo [${mypeople.length}]", () {
         setState(() {
           _currentPage = "yourpeople";
         });
@@ -472,36 +468,6 @@ class _HomePageState extends State<HomePage> {
   void printSummary(context) {
     setState(() {});
     dev.log("printSummary");
-  }
-
-/////////// WORKTIME ///////////
-
-  void autoStartWorkday(context) async {
-    Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-      // if ((currentWorkday == null) || (!currentWorkday!.open)) {
-      //   currentWorkday = Workday.getEmpty();
-      //   currentWorkday!.userId = user.email!;
-      //   currentWorkday!.open = true;
-      //   currentWorkday!.save();
-      // }
-      if (mounted) {
-        setState(() {
-          currentWorkday = currentWorkday;
-        });
-      }
-    });
-  }
-
-  void autoStopWorkday(context) async {
-    Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-      if (currentWorkday!.open) {
-        currentWorkday!.endDate = DateTime.now();
-        currentWorkday!.open = false;
-        currentWorkday!.save();
-      }
-    });
   }
 
   void workdayAction(context) {
@@ -541,23 +507,43 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget workTimePanel() {
-    if (myWorkdays!.isNotEmpty) {
-      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      currentWorkday = myWorkdays!.first;
+    
+    myWorkdays ??= [];
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+
+    List<String> idsToRemove = [];
+    for (int index = 0; index < myWorkdays!.length; index++) {
+      Workday item = myWorkdays!.elementAt(index);
+      if (item.open) {
+        if (truncDate(item.startDate) != truncDate(DateTime.now())) {
+          item.endDate = truncDate(item.startDate)
+              .add(Duration(hours: 23, minutes: 59, seconds: 59));
+          item.open = false;
+          item.save();
+          myWorkdays![index] = item;
+        }
+        else {
+          if (index != 0) {
+            myWorkdays![0].open = true;
+            myWorkdays![0].startDate = item.startDate;
+            idsToRemove.add(item.id);
+          }
+        }
+      }      
+    }
+    for (String id in idsToRemove) {
+      Workday item = myWorkdays!.firstWhere((item) => item.id == id);
+      item.delete();
+    }
+    myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
+    currentWorkday = myWorkdays!.first;
+    if (!currentWorkday!.open) {
+      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+      currentWorkday!.save();
+      myWorkdays!.insert(0, currentWorkday!);
     }
 
-    // Set workday.open to false for all workdays except the first one
-    for (var workday in myWorkdays!) {
-      if (workday != currentWorkday) {
-        if (workday.open) {
-          workday.open = false;
-          // Set the endDate to 23.59:59 of the same day
-          workday.endDate = DateTime(workday.startDate.year,
-              workday.startDate.month, workday.startDate.day, 23, 59, 59);
-          workday.save();
-        }
-      }
-    }
+
 
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
@@ -720,11 +706,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget worktimeRows() {
     myWorkdays ??= [];
-    // Filter workdays to only include those for the last 30 days
-    // DateTime thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    // myWorkdays = myWorkdays!
-    //     .where((workday) => workday.startDate.isAfter(thirtyDaysAgo))
-    //     .toList();
+
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -1347,7 +1329,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget holidayPeoplePanel(BuildContext contextt) {
-    print(mypeople);
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(

@@ -1,3 +1,6 @@
+import 'dart:collection';
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
@@ -614,7 +617,7 @@ class BajaReason {
 class Employee {
   static const String tbName = "s4c_employees";
 
-  String? id;
+  String? id = '';
   String code;
   String firstName;
   String lastName1;
@@ -653,7 +656,7 @@ class Employee {
   }
 
   factory Employee.fromJson(Map<String, dynamic> json) {
-    return Employee(
+    Employee item = Employee(
       code: json['code'],
       firstName: json['firstName'],
       lastName1: json['lastName1'],
@@ -686,9 +689,13 @@ class Employee {
           ? {}
           : json['extraDocs'],
     );
+    item.id = json.containsKey('id') ? json['id'] : null;
+    return item;
+
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'code': code,
         'firstName': firstName,
         'lastName1': lastName1,
@@ -943,20 +950,50 @@ class Employee {
     return items;
   }
 
-  static Future<Employee> byId(String id) async {
+  static Future<dynamic> byId(dynamic id) async {
+    QuerySnapshot<Map<String, dynamic>>? snapshot;
     // get from database
-    Employee item = Employee.getEmpty();
-    await FirebaseFirestore.instance
-        .collection(tbName)
-        .doc(id)
-        .get()
-        .then((value) {
-      if (!value.exists) return Employee.getEmpty();
-      item = Employee.fromJson(value.data()!);
-      item.id = value.id;
-    });
+    if (id is String) {
+      snapshot = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where(FieldPath.documentId, isEqualTo: id)
+          .get();
+    } else if (id is List<String>) {
+      snapshot = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where(FieldPath.documentId, whereIn: id)
+          .get();
+    } else {
+      return Employee.getEmpty();
+    }
 
-    return item;
+
+    // Employee item = Employee.getEmpty();
+    // await FirebaseFirestore.instance
+    //     .collection(tbName)
+    //     .doc(id)
+    //     .get()
+    //     .then((value) {
+    //   if (!value.exists) return Employee.getEmpty();
+    //   item = Employee.fromJson(value.data()!);
+    //   item.id = value.id;
+    // });
+    if (snapshot.docs.isEmpty) {
+      return Employee.getEmpty();
+    }
+    else if (id is String) {
+      Employee item = Employee.fromJson(snapshot.docs.first.data());
+      item.id = snapshot.docs.first.id;
+      return item;
+    }
+    else if (id is List<String>) {
+      List<Employee> items = snapshot.docs.map((e) {
+        Employee item = Employee.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+      return items;
+    }
   }
 
   Future<String> photoFileUrl() async {
@@ -964,48 +1001,30 @@ class Employee {
     return await ref.getDownloadURL();
   }
 
-  Future<List<Employee>> getSubordinates() async {
+  Future<List<Employee>> getSubordinates({Organization? organization}) async {
     id ??= '';
     if (id!.isEmpty) return [];
-    List<Employee> items = [];
-    List<Department> departments =
-        await Department.getDepartmentsByManager(id!);
+    List<dynamic> items = [];
+
+
+    List<Department> departments = await Department.getDepartments(organization: organization);
     if (departments.isEmpty) return [];
-    List<Department> parentDepartments = [];
-    for (Department department in departments) {
-      String? curentParentId = department.parent;
-      while (curentParentId != null && curentParentId.isNotEmpty) {
-        Department? parentDepartment = await Department.byId(curentParentId);
-        if (parentDepartment.id == null || parentDepartment.id!.isEmpty) {
-          break;
-        }
-        parentDepartments.add(parentDepartment);
-        curentParentId = parentDepartment.parent;
-      }
-    }
-    departments.addAll(parentDepartments);
-    return items;
+    Queue<Department> queue = Queue<Department>();
+    queue.addAll(departments.where((element) => element.manager == id));
 
-    List<String> employeeIds = [];
-    for (Department department in departments) {
-      if (department.employees.isEmpty) continue;
-      employeeIds.addAll(department.employees);
+    while (queue.isNotEmpty) {
+      Department department = queue.removeFirst();
+      items.addAll(department.employees);
+      items.add(department.manager!);
+      queue.addAll(departments.where((element) => element.parent == department.id));
     }
 
-    await FirebaseFirestore.instance
-        .collection(tbName)
-        .where(FieldPath.documentId, whereIn: employeeIds)
-        .get()
-        .then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Employee item = Employee.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
-    print("Subordinates count: ${items.length}");
-    return items;
+    items = items.where((element) => (element != id) && (element != null) && (element != '')).toList();
+    if (items.isEmpty) return [];
+
+
+    return await Employee.byId(items.map((e) => e.toString()).toList().toSet().toList());
+    
   }
 
   int compareTo(Employee other) {
@@ -1091,6 +1110,11 @@ class Department {
       this.manager,
       required this.employees,
       required this.organization});
+
+  @override
+  String toString() {
+    return 'Department: $name, parent: $parent, manager: $manager, employees: ${employees.length}, organization: $organization';
+  }
 
   static Department fromJson(Map<String, dynamic> json) {
     if (json.containsKey('manager')) {
