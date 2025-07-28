@@ -162,6 +162,7 @@ class HolidayRequest {
   List<String> documents = [];
 
   static const String tbName = "s4c_holidays";
+  static const List<String> statuses = ['Pendiente', 'Aprobado', 'Rechazado'];
 
   HolidayRequest({
     required this.id,
@@ -259,6 +260,11 @@ class HolidayRequest {
     if (id != "") {
       FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
+  }
+
+  bool isRejected() {
+    return status.toLowerCase() == 'rechazado' ||
+        status.toLowerCase() == 'rejected';
   }
 
   static HolidayRequest getEmpty() {

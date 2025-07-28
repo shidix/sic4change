@@ -133,8 +133,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
     List<Department> otherDepartments =
         allDepartments.where((d) => d.id != department.id).toList();
 
-    print('Other Departments: ${otherDepartments.length}');
-
     List<Employee> employeesInOtherDepartments = [];
     for (Department d in otherDepartments) {
       employeesInOtherDepartments.addAll(d.employees.map((e) =>

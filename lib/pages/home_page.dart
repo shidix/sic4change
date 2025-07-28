@@ -22,6 +22,7 @@ import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/services/workday_form.dart';
+import 'package:sic4change/widgets/calendar_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -330,24 +331,90 @@ class _HomePageState extends State<HomePage> {
     topButtonsPanel = topButtons(context);
     await loadMyData();
     // autoStartWorkday(context);
+
     if (mounted) {
       setState(() {});
     }
   }
 
-  Future<Widget> peopleCalendar() async {
-    List<HolidayRequest> peopleHolidays = [];
-    List<String> peopleEmails = [];
-    peopleEmails = mypeople.map((e) => e.email).toList();
-    // workdays in current year
-    peopleHolidays = await HolidayRequest.byUser(peopleEmails);
-    if (mypeople.isEmpty) {
-      return Center(
-        child: Text("No hay personas asignadas"),
-      );
-    }
-
-    return Container();
+  Widget peopleCalendar() {
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withAlpha(128),
+                    spreadRadius: 0,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(2),
+            child: Column(
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.grey[100],
+                    child: Row(
+                      children: [
+                        const Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Card(
+                                  child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 5),
+                                child:
+                                    Icon(Icons.beach_access, color: mainColor),
+                              )),
+                            )),
+                        Expanded(
+                            flex: 4,
+                            child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: const [
+                                      Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            "Solicitud de vacaciones",
+                                            style: cardHeaderText,
+                                          )),
+                                      Row(
+                                        children: [
+                                          Text(
+                                              "Calendario del personal a cargo ",
+                                              style: subTitleText),
+                                        ],
+                                      )
+                                    ]))),
+                        Expanded(
+                            flex: 3,
+                            child: actionButton(
+                                context,
+                                "Solicitar días",
+                                addHolidayRequestDialog,
+                                Icons.play_circle_outline_sharp,
+                                context)),
+                      ],
+                    )),
+                CalendarWidget(
+                  holidays: myPeopleHolidays,
+                  onDateSelected: (date) {
+                    print(date);
+                    // Handle date selection
+                  },
+                  employees: mypeople,
+                  height: 400,
+                )
+              ],
+            )));
   }
 
   @override
@@ -417,7 +484,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 1, child: contentWorkPanel),
-            Expanded(flex: 1, child: holidayPeoplePanel(context)),
+            Expanded(flex: 1, child: peopleCalendar()),
           ],
         ),
       ];
@@ -1325,6 +1392,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget holidayPeoplePanel(BuildContext contextt) {
+    Widget calendar = Container(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            "Calendario de Vacaciones",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          SizedBox(height: 10),
+
+          // Aquí puedes agregar el widget del calendario
+        ],
+      ),
+    );
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(

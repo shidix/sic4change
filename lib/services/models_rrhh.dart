@@ -655,6 +655,14 @@ class Employee {
     return '$firstName $lastName1 $lastName2 ($code), $email';
   }
 
+  String aka() {
+    if (email != '') {
+      return email.split('@')[0];
+    }
+    // return intials
+    return '${firstName[0]}${lastName1[0]}${lastName2[0]}_${bornDate!.year}';
+  }
+
   factory Employee.fromJson(Map<String, dynamic> json) {
     Employee item = Employee(
       code: json['code'],
