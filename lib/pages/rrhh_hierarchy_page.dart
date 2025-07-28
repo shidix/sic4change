@@ -120,47 +120,37 @@ class _HierarchyPageState extends State<HierarchyPage> {
     treeView = fullTree;
   }
 
-  // void dialogDeleteDepartment(BuildContext contextt) {
-  //   Department department = currentDepartment!;
-  //   parentDepartment = department.parent;
-  //   showDialog(
-  //       context: context,
-  //       builder: (context) {
-  //         return CustomPopupDialog(
-  //           context: context,
-  //           title: 'Eliminar Departamento',
-  //           icon: Icons.delete,
-  //           content: Text(
-  //               '¿Está seguro de que desea eliminar el departamento ${department.name}?'),
-  //           actionBtns: [
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.of(context).pop(null);
-  //               },
-  //               child: const Text('Cancelar'),
-  //             ),
-  //             TextButton(
-  //               onPressed: () async {
-  //                 allDepartments.removeWhere((d) => d.id == department.id);
-  //                 departmentsHash.remove(department.id);
-  //                 await department.delete();
-  //                 if (mounted) {
-  //                   setState(() {
-  //                     contentPanel = departmentPanel();
-  //                   });
-  //                 }
-  //                 Navigator.of(context).pop();
-  //               },
-  //               child: const Text('Eliminar'),
-  //             ),
-  //           ],
-  //         );
-  //       });
-  // }
-
   Department dialogEditDepartment(BuildContext contextt) {
+    List<Employee> allowedEmployees = [];
     Department department = currentDepartment!;
     parentDepartment = department.parent;
+
+    // Copy employees in allowedEmployees
+    for (Employee emp in employees) {
+      allowedEmployees.add(emp);
+    }
+
+    List<Department> otherDepartments =
+        allDepartments.where((d) => d.id != department.id).toList();
+
+    print('Other Departments: ${otherDepartments.length}');
+
+    List<Employee> employeesInOtherDepartments = [];
+    for (Department d in otherDepartments) {
+      employeesInOtherDepartments.addAll(d.employees.map((e) =>
+          employees.firstWhere((emp) => emp.id == e,
+              orElse: () => Employee.getEmpty())));
+    }
+
+    employeesInOtherDepartments
+        .removeWhere((testEmp) => (testEmp.id == '' || testEmp.id == null));
+
+    for (Employee emp in employeesInOtherDepartments) {
+      if (!department.employees.contains(emp.id)) {
+        allowedEmployees.removeWhere((testEmp) => testEmp.id == emp.id);
+      }
+    }
+
     showDialog(
         context: context,
         builder: (context) {
@@ -171,7 +161,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
             content: DepartmentForm(
                 profile: profile!,
                 department: department,
-                employees: [...employees],
+                employees: [...allowedEmployees],
                 allDepartments: [...allDepartments],
                 onSaved: () {
                   if (mounted) {

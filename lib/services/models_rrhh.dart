@@ -691,7 +691,6 @@ class Employee {
     );
     item.id = json.containsKey('id') ? json['id'] : null;
     return item;
-
   }
 
   Map<String, dynamic> toJson() => {
@@ -950,6 +949,13 @@ class Employee {
     return items;
   }
 
+  bool inDepartment(dynamic departments) {
+    if (departments is Department) {
+      departments = [departments];
+    }
+    return departments.any((element) => element.employees.contains(id));
+  }
+
   static Future<dynamic> byId(dynamic id) async {
     QuerySnapshot<Map<String, dynamic>>? snapshot;
     // get from database
@@ -967,26 +973,13 @@ class Employee {
       return Employee.getEmpty();
     }
 
-
-    // Employee item = Employee.getEmpty();
-    // await FirebaseFirestore.instance
-    //     .collection(tbName)
-    //     .doc(id)
-    //     .get()
-    //     .then((value) {
-    //   if (!value.exists) return Employee.getEmpty();
-    //   item = Employee.fromJson(value.data()!);
-    //   item.id = value.id;
-    // });
     if (snapshot.docs.isEmpty) {
       return Employee.getEmpty();
-    }
-    else if (id is String) {
+    } else if (id is String) {
       Employee item = Employee.fromJson(snapshot.docs.first.data());
       item.id = snapshot.docs.first.id;
       return item;
-    }
-    else if (id is List<String>) {
+    } else if (id is List<String>) {
       List<Employee> items = snapshot.docs.map((e) {
         Employee item = Employee.fromJson(e.data());
         item.id = e.id;
@@ -1006,8 +999,8 @@ class Employee {
     if (id!.isEmpty) return [];
     List<dynamic> items = [];
 
-
-    List<Department> departments = await Department.getDepartments(organization: organization);
+    List<Department> departments =
+        await Department.getDepartments(organization: organization);
     if (departments.isEmpty) return [];
     Queue<Department> queue = Queue<Department>();
     queue.addAll(departments.where((element) => element.manager == id));
@@ -1016,15 +1009,18 @@ class Employee {
       Department department = queue.removeFirst();
       items.addAll(department.employees);
       items.add(department.manager!);
-      queue.addAll(departments.where((element) => element.parent == department.id));
+      queue.addAll(
+          departments.where((element) => element.parent == department.id));
     }
 
-    items = items.where((element) => (element != id) && (element != null) && (element != '')).toList();
+    items = items
+        .where((element) =>
+            (element != id) && (element != null) && (element != ''))
+        .toList();
     if (items.isEmpty) return [];
 
-
-    return await Employee.byId(items.map((e) => e.toString()).toList().toSet().toList());
-    
+    return await Employee.byId(
+        items.map((e) => e.toString()).toList().toSet().toList());
   }
 
   int compareTo(Employee other) {
