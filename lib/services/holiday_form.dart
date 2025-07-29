@@ -167,13 +167,15 @@ class HolidayRequestForm extends StatefulWidget {
   final User? user;
   final List<HolidaysCategory> categories;
   final List<HolidayRequest> granted;
+  final Map<String, int> remainingHolidays;
 
   const HolidayRequestForm(
       {Key? key,
       this.currentRequest,
       this.user,
       required this.categories,
-      required this.granted})
+      required this.granted,
+      required this.remainingHolidays})
       : super(key: key);
 
   @override
@@ -185,6 +187,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late HolidayRequest holidayRequest;
   late List<HolidayRequest> granted;
   late List<HolidaysCategory> categories;
+  late Map<String, int> remainingHolidays;
   late User user;
   bool isNewItem = false;
   late Profile? profile;
@@ -195,6 +198,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     user = widget.user!;
     categories = widget.categories;
     granted = widget.granted;
+    remainingHolidays = widget.remainingHolidays;
 
     // profile =
     //     Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
@@ -294,21 +298,10 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       if (category.id == '') {
         continue; // Skip empty categories
       }
-      int daysGranted = 0;
-      // Sum the days granted for this category
-      for (HolidayRequest grantedRequest in granted) {
-        if (grantedRequest.category!.id == category.id &&
-            grantedRequest.status == 'Aprobado') {
-          daysGranted += grantedRequest.endDate
-                  .difference(grantedRequest.startDate)
-                  .inDays +
-              1;
-        }
-      }
       categoryList.add(DropdownMenuItem(
           value: category.id,
           child: Text(
-              "${category.name.toUpperCase()} (${category.days - daysGranted})")));
+              "${category.name.toUpperCase()} (${category.days - (remainingHolidays[category.autoCode()] ?? 0)})}")));
     }
 
     // Check if holidayRequest.category is in the list, if not, add it

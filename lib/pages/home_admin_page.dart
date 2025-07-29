@@ -869,6 +869,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
           content: HolidayRequestForm(
             key: null,
             currentRequest: currentHoliday,
+            remainingHolidays: const {},
             user: user,
             categories: holCat!,
             granted: myHolidays!
