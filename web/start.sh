@@ -7,10 +7,12 @@ do
     cd /var/www/flutter/sic4change
     flutter pub get
     flutter build web --release --web-renderer html
+    sleep 5
     #flutter build web
     flutter gen-l10n
     cd /var/www/flutter/sic4change/web
     systemctl restart apache2
     #flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8989
     flutter run --release -d web-server --web-hostname 0.0.0.0 --web-port 8989 --web-renderer html
+    sleep 5
 done
