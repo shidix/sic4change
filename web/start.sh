@@ -13,6 +13,7 @@ do
     cd /var/www/flutter/sic4change/web
     systemctl restart apache2
     #flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8989
+    echo "Starte at $(date)"
     flutter run --release -d web-server --web-hostname 0.0.0.0 --web-port 8989 --web-renderer html
     sleep 5
 done
