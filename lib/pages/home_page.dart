@@ -52,7 +52,6 @@ class _HomePageState extends State<HomePage> {
   Employee? currentEmployee;
 
   late String _currentPage;
-
   User user = FirebaseAuth.instance.currentUser!;
   Profile? profile;
   List<STask>? mytasks = [];
@@ -504,62 +503,68 @@ class _HomePageState extends State<HomePage> {
           ],
         ));
 
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        child: Container(
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withAlpha(128),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 3), // changes position of shadow
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(10)),
-            padding: const EdgeInsets.all(2),
-            child: Column(
-              children: [
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    color: Colors.grey[100],
-                    child: Row(
+    return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: SingleChildScrollView(
+            child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withAlpha(128),
+                            spreadRadius: 0,
+                            blurRadius: 10,
+                            offset: const Offset(
+                                0, 3), // changes position of shadow
+                          ),
+                        ],
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.all(2),
+                    child: Column(
                       children: [
-                        const Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Card(
-                                  child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 15, horizontal: 5),
-                                child: Icon(Icons.access_time,
-                                    color: Colors.black),
-                              )),
+                        Container(
+                            padding: const EdgeInsets.all(10),
+                            color: Colors.grey[100],
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(10),
+                                      child: Card(
+                                          child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 15, horizontal: 5),
+                                        child: Icon(Icons.access_time,
+                                            color: Colors.black),
+                                      )),
+                                    )),
+                                Expanded(
+                                    flex: 8,
+                                    child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Padding(
+                                                  padding: EdgeInsets.only(
+                                                      bottom: 10),
+                                                  child: Text(
+                                                    "Registro de jornada",
+                                                    style: cardHeaderText,
+                                                  )),
+                                              Text(dateToES(DateTime.now()),
+                                                  style: subTitleText),
+                                            ]))),
+                              ],
                             )),
-                        Expanded(
-                            flex: 8,
-                            child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                          padding: EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            "Registro de jornada",
-                                            style: cardHeaderText,
-                                          )),
-                                      Text(dateToES(DateTime.now()),
-                                          style: subTitleText),
-                                    ]))),
+                        listSummary,
                       ],
-                    )),
-                listSummary,
-              ],
-            )));
+                    )))));
   }
 
   void initializeData() async {
@@ -593,7 +598,7 @@ class _HomePageState extends State<HomePage> {
         hashProjects[item.uuid] = item;
       }
     }
-    topButtonsPanel = topButtons(context);
+    topButtonsPanel = topButtons(null);
     await loadMyData();
 
     myPeopleWorkdays = results[3] as List<Workday>;
@@ -804,6 +809,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void printSummary(context) {
+    if (!mounted) return;
     setState(() {});
     dev.log("printSummary");
   }
@@ -1935,7 +1941,9 @@ class _HomePageState extends State<HomePage> {
                         notify.save();
                         notif += -1;
                       }
-                      setState(() {});
+                      if (mounted) {
+                        setState(() {});
+                      }
                     },
                     color: (notify.readed)
                         ? WidgetStateColor.resolveWith((states) => Colors.white)
@@ -1949,9 +1957,11 @@ class _HomePageState extends State<HomePage> {
                       DataCell(Row(children: [
                         removeConfirmBtn(context, () {
                           notify.delete();
-                          setState(() {
-                            notificationList.remove(notify);
-                          });
+                          if (mounted) {
+                            setState(() {
+                              notificationList.remove(notify);
+                            });
+                          }
                         }, null),
                       ]))
                     ]),

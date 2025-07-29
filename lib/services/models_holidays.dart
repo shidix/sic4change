@@ -316,7 +316,7 @@ class HolidayRequest {
     items = items.where((item) {
       return item.startDate.isAfter(startDate!) &&
               item.startDate.isBefore(endDate!) ||
-          item.endDate.isAfter(startDate!) && item.endDate.isBefore(endDate!);
+          item.endDate.isAfter(startDate) && item.endDate.isBefore(endDate!);
     }).toList();
 
     return items;

@@ -33,7 +33,7 @@ class TreeNode extends StatefulWidget {
       Function? onMainSelected,
       Function? onEdit,
       Function? onDelete,
-      dynamic? mylabel}) {
+      dynamic mylabel}) {
     //Typecaste the item to the expected type
 
     TreeNode node = TreeNode(

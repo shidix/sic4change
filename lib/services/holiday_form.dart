@@ -870,8 +870,8 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
 
   void uploadFile(PlatformFile? file, int index) {
     if (file != null) {
-      String extention = file!.name.split('.').last;
-      uploadFileToStorage(file!,
+      String extention = file.name.split('.').last;
+      uploadFileToStorage(file,
               rootPath:
                   'files/holidays/${holidayRequest.userId}/${holidayRequest.id}/documents/${holidayRequest.category!.name.replaceAll(" ", "_")}/',
               fileName:

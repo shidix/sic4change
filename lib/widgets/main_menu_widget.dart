@@ -205,14 +205,14 @@ Widget mainMenu(context, [url]) {
     builder: (context) {
       if (profile == null) {
         return mainMenuEmpty(context, url);
-      } else if (profile!.mainRole == "Admin") {
+      } else if (profile.mainRole == "Admin") {
         return Stack(
           children: [
             mainMenuAdmin(context, user, url),
             notificationBadge(context, user),
           ],
         );
-      } else if (profile!.mainRole == "Administrativo") {
+      } else if (profile.mainRole == "Administrativo") {
         return Stack(
           children: [
             mainMenuOperator(context, url: url, profile: profile),

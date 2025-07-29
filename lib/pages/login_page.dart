@@ -9,7 +9,6 @@ import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 
@@ -76,11 +75,10 @@ class _LoginPageState extends State<LoginPage> {
     profileProvider.addListener(listener);
     //final user = FirebaseAuth.instance.currentUser!;
     //getProfile(user);
-    setState(() {
-      loadProf = true;
-    });
+
     try {
       final user = FirebaseAuth.instance.currentUser!;
+
       Profile.getProfile(user.email!).then((value) {
         profile = value;
         setState(() {
@@ -264,7 +262,6 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.symmetric(horizontal: 95),
       child: ElevatedButton(
         onPressed: () {
-          //Navigator.pushReplacementNamed(context, "/home");
           signIn(context, emailController, passwdController);
         },
         style: ElevatedButton.styleFrom(
@@ -301,10 +298,8 @@ class _LoginPageState extends State<LoginPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         profile = null;
-        // profile = await Profile.getCurrentProfile();
-        // await Provider.of<ProfileProvider>(context, listen: false)
-        //     .setProfile(profile!);
-        Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+        profileProvider.loadProfile();
+        Navigator.pushReplacementNamed(context, "/home");
       } else {
         Navigator.pop(context);
         return;
