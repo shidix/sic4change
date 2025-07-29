@@ -1,14 +1,12 @@
 import 'dart:collection';
 
 // import 'package:excel/excel.dart' as excelPackage;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/form_department.dart';
-import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -160,6 +158,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 profile: profile!,
                 department: department,
                 employees: [...allowedEmployees],
+                supervisors: employees,
                 allDepartments: [...allDepartments],
                 onSaved: () {
                   if (mounted) {
@@ -307,6 +306,28 @@ class _HierarchyPageState extends State<HierarchyPage> {
   }
 
   Widget departmentPanel() {
+    List<Employee> allowedEmployees = [];
+
+    // Copy employees in allowedEmployees
+    for (Employee emp in employees) {
+      allowedEmployees.add(emp);
+    }
+
+    List<Department> otherDepartments = [];
+    for (Department d in allDepartments) {
+      otherDepartments.add(d);
+    }
+
+    List<Employee> employeesInOtherDepartments = [];
+    for (Department d in otherDepartments) {
+      employeesInOtherDepartments.addAll(d.employees.map((e) =>
+          employees.firstWhere((emp) => emp.id == e,
+              orElse: () => Employee.getEmpty())));
+    }
+
+    employeesInOtherDepartments
+        .removeWhere((testEmp) => (testEmp.id == '' || testEmp.id == null));
+
     Widget titleBar = s4cTitleBar(const Padding(
         padding: EdgeInsets.all(5),
         child: Text('Departamentos',
@@ -335,7 +356,8 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 content: DepartmentForm(
                     profile: profile!,
                     department: currentDepartment!,
-                    employees: [...employees],
+                    supervisors: [...employees],
+                    employees: [...allowedEmployees],
                     allDepartments: [...allDepartments],
                     onSaved: () {
                       if (mounted) {

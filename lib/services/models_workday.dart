@@ -143,6 +143,10 @@ class Workday {
       email = [email];
     }
 
+    if (email.isEmpty) {
+      return items; // Return empty list if no email provided
+    }
+
     final query = await FirebaseFirestore.instance
         .collection(Workday.tbName)
         .where("userId", whereIn: email)

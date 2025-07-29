@@ -21,7 +21,7 @@ class CalendarWidget extends StatefulWidget {
   double width = 400;
 
   CalendarWidget({
-    Key? key,
+    super.key,
     required this.holidays,
     required this.onDateSelected,
     required this.employees,
@@ -30,7 +30,7 @@ class CalendarWidget extends StatefulWidget {
     DateTime? endDate,
     this.height = double.infinity,
     this.width = 400,
-  }) : super(key: key) {
+  }) {
     if (selectedDate != null) {
       this.selectedDate = selectedDate;
     }
@@ -98,15 +98,15 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   Widget dayCell(DateTime date) {
     bool isHoliday = widget.holidays.any((holiday) =>
-        date.isAfter(holiday.startDate.subtract(Duration(days: 1))) &&
-        date.isBefore(holiday.endDate.add(Duration(days: 1))) &&
+        date.isAfter(holiday.startDate.subtract(const Duration(days: 1))) &&
+        date.isBefore(holiday.endDate.add(const Duration(days: 1))) &&
         !holiday.isRejected());
 
     // Extract holidays in this date
     List<HolidayRequest> holidaysInDate = widget.holidays
         .where((holiday) =>
-            date.isAfter(holiday.startDate.subtract(Duration(days: 1))) &&
-            date.isBefore(holiday.endDate.add(Duration(days: 1))) &&
+            date.isAfter(holiday.startDate.subtract(const Duration(days: 1))) &&
+            date.isBefore(holiday.endDate.add(const Duration(days: 1))) &&
             !holiday.isRejected())
         .toList();
 
@@ -149,7 +149,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             padding: const EdgeInsets.all(4.0),
                             child: Text(
                               holiday.userId.split('@')[0],
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -192,12 +192,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         child: Column(
           children: [
             for (var week in weeks)
-              Container(
-                child: Row(
-                  children: [
-                    for (var day in week) dayCell(day),
-                  ],
-                ),
+              Row(
+                children: [
+                  for (var day in week) dayCell(day),
+                ],
               )
           ],
         ),

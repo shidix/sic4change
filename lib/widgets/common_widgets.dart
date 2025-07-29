@@ -304,7 +304,9 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
 Widget customRowPopBtn(context, btnName, btnIcon) {
   return ElevatedButton(
     onPressed: () {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),

@@ -7,12 +7,14 @@ import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/services/log_lib.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 
 Profile? profile;
+Organization? currentOrganization;
 bool loadProf = false;
 
 class LoginPage extends StatefulWidget {
@@ -23,6 +25,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  late final ProfileProvider profileProvider;
+  late final VoidCallback listener;
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
   late String message;
@@ -31,14 +35,44 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     emailController.dispose();
     passwdController.dispose();
+    profileProvider.removeListener(listener);
 
     super.dispose();
+  }
+
+  void initializeData() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      Navigator.pop(context);
+      return;
+    } else {
+      // Navigator.pop(context);
+      if (profile?.mainRole == "Admin") {
+        Navigator.pushReplacementNamed(context, "/home");
+      } else if (profile?.mainRole == "Administrativo") {
+        Navigator.pushReplacementNamed(context, "/hierarchy");
+      } else {
+        Navigator.push(context,
+            MaterialPageRoute(builder: ((context) => const HomePage())));
+      }
+    }
   }
 
   @override
   initState() {
     message = "";
     super.initState();
+    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    listener = () {
+      if (!mounted) return;
+      currentOrganization = profileProvider.organization;
+      profile = profileProvider.profile;
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
+      }
+
+      if (mounted) setState(() {});
+    };
+    profileProvider.addListener(listener);
     //final user = FirebaseAuth.instance.currentUser!;
     //getProfile(user);
     setState(() {
@@ -265,6 +299,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        profile = null;
         // profile = await Profile.getCurrentProfile();
         // await Provider.of<ProfileProvider>(context, listen: false)
         //     .setProfile(profile!);
@@ -283,24 +318,23 @@ class _LoginPageState extends State<LoginPage> {
         message = message;
       });
     }
-    //navigatorKey.currentState!.popUntil((route) => route.isFirst);
 
-    if (FirebaseAuth.instance.currentUser == null) {
-      Navigator.pop(context);
-      return;
-    } else {
-      Navigator.pop(context);
-      if (profile?.mainRole == "Admin") {
-        Navigator.pushReplacementNamed(context, "/home");
-        // Navigator.push(
-        //     context,
-        //     MaterialPageRoute(builder: ((context) => const HomePage())));
-      } else if (profile?.mainRole == "Administrativo") {
-        Navigator.pushReplacementNamed(context, "/hierarchy");
-      } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: ((context) => const HomePage())));
-      }
-    }
+    // if (FirebaseAuth.instance.currentUser == null) {
+    //   Navigator.pop(context);
+    //   return;
+    // } else {
+    //   Navigator.pop(context);
+    //   if (profile?.mainRole == "Admin") {
+    //     Navigator.pushReplacementNamed(context, "/home");
+    //     // Navigator.push(
+    //     //     context,
+    //     //     MaterialPageRoute(builder: ((context) => const HomePage())));
+    //   } else if (profile?.mainRole == "Administrativo") {
+    //     Navigator.pushReplacementNamed(context, "/hierarchy");
+    //   } else {
+    //     Navigator.push(context,
+    //         MaterialPageRoute(builder: ((context) => const HomePage())));
+    //   }
+    // }
   }
 }

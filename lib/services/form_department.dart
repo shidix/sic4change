@@ -14,6 +14,7 @@ class DepartmentForm extends StatefulWidget {
   final Function onDelete;
   final List<Department> allDepartments;
   final List<Employee> employees;
+  final List<Employee> supervisors;
 
   @override
   _DepartmentFormState createState() => _DepartmentFormState();
@@ -24,6 +25,7 @@ class DepartmentForm extends StatefulWidget {
       required this.department,
       required this.allDepartments,
       required this.employees,
+      required this.supervisors,
       required this.onSaved,
       required this.onDelete});
 }
@@ -34,7 +36,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
   Profile? profile;
   late Department department;
   late List<Employee> employees = [];
-  List<KeyValue> supervisors = [];
+  late List<Employee> supervisors = [];
+  List<KeyValue> supervisorsOptions = [];
   List<Employee> currentEmployees = [];
   List<Department> allDepartments = [];
   List<KeyValue> optionsDepartment = [];
@@ -57,20 +60,27 @@ class _DepartmentFormState extends State<DepartmentForm> {
     profile = widget.profile;
     name = department.name;
     employees = widget.employees;
+    supervisors = widget.supervisors;
 
     parent = widget.allDepartments.firstWhere((d) => d.id == department.parent,
         orElse: () => Department.getEmpty());
 
     for (String e in department.employees) {
-      currentEmployees.add(employees.firstWhere(
-        (emp) => emp.id == e,
-        orElse: () => Employee.getEmpty(name: ''),
-      ));
+      // Check if employee exists in the list, if not, add an empty employee
+      if (employees.any((emp) => emp.id == e)) {
+        currentEmployees.add(employees.firstWhere((emp) => emp.id == e));
+      }
     }
-    supervisors =
-        employees.map((e) => KeyValue(e.id!, e.getFullName())).toList();
-    manager = employees.firstWhere((e) => e.id == department.manager,
-        orElse: () => Employee.getEmpty());
+
+    supervisorsOptions =
+        supervisors.map((e) => KeyValue(e.id!, e.getFullName())).toList();
+
+    if (supervisors.any((e) => e.id == department.manager)) {
+      manager = supervisors.firstWhere((e) => e.id == department.manager);
+    } else {
+      // If the manager is not in the list, set it to empty
+      manager = Employee.getEmpty();
+    }
 
     List<Department> value = widget.allDepartments;
 
@@ -228,7 +238,7 @@ class _DepartmentFormState extends State<DepartmentForm> {
                 CustomSelectFormField(
                   labelText: "Supervisor",
                   initial: department.manager ?? '',
-                  options: supervisors,
+                  options: supervisorsOptions,
                   onSelectedOpt: (value) {
                     manager = employees.firstWhere((e) => e.id == value,
                         orElse: () => Employee.getEmpty());
