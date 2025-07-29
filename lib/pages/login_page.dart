@@ -65,6 +65,7 @@ class _LoginPageState extends State<LoginPage> {
     listener = () {
       if (!mounted) return;
       currentOrganization = profileProvider.organization;
+
       profile = profileProvider.profile;
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
@@ -285,12 +286,12 @@ class _LoginPageState extends State<LoginPage> {
       "too-many-requests": "Demasiados intentos. Inténtelo más tarde",
       "unknown": "Error desconocido"
     };
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-              child: CircularProgressIndicator(),
-            ));
+    // showDialog(
+    //     context: context,
+    //     barrierDismissible: false,
+    //     builder: (context) => const Center(
+    //           child: CircularProgressIndicator(),
+    //         ));
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(

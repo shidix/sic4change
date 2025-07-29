@@ -966,6 +966,7 @@ class Employee {
 
   static Future<dynamic> byId(dynamic id) async {
     QuerySnapshot<Map<String, dynamic>>? snapshot;
+    List<Employee> items = [];
     // get from database
     if (id is String) {
       snapshot = await FirebaseFirestore.instance
@@ -988,7 +989,7 @@ class Employee {
       item.id = snapshot.docs.first.id;
       return item;
     } else if (id is List<String>) {
-      List<Employee> items = snapshot.docs.map((e) {
+      items = snapshot.docs.map((e) {
         Employee item = Employee.fromJson(e.data());
         item.id = e.id;
         return item;

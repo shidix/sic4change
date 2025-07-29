@@ -165,7 +165,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
           value.save();
         }
       });
-      Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+      // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
       FirebaseAuth.instance.signOut();
       Navigator.pushReplacementNamed(context, '/');
     },
