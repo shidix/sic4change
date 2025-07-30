@@ -1549,6 +1549,7 @@ class _HomePageState extends State<HomePage> {
               key: null,
               currentRequest: currentHoliday,
               user: user,
+              profile: profile!,
               categories: holCat!,
               remainingHolidays: remainingHolidays,
               granted: myHolidays!

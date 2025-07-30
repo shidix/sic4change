@@ -12,6 +12,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
@@ -868,6 +869,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
           title: s4cTitleBar('Solicitud de días libres', context),
           content: HolidayRequestForm(
             key: null,
+            profile: Profile.getEmpty(),
             currentRequest: currentHoliday,
             remainingHolidays: const {},
             user: user,

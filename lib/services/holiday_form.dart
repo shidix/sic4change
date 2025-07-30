@@ -166,6 +166,7 @@ class _EventFormState extends State<EventForm> {
 class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
   final User? user;
+  final Profile profile;
   final List<HolidaysCategory> categories;
   final List<HolidayRequest> granted;
   final Map<String, int> remainingHolidays;
@@ -174,6 +175,7 @@ class HolidayRequestForm extends StatefulWidget {
       {Key? key,
       this.currentRequest,
       this.user,
+      required this.profile,
       required this.categories,
       required this.granted,
       required this.remainingHolidays})
@@ -191,7 +193,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late Map<String, int> remainingHolidays;
   late User user;
   bool isNewItem = false;
-  late Profile? profile;
+  late Profile profile;
 
   @override
   void initState() {
@@ -200,19 +202,9 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     categories = widget.categories;
     granted = widget.granted;
     remainingHolidays = widget.remainingHolidays;
+    profile = widget.profile;
 
-    // profile =
-    //     Profile(id: '', email: '', holidaySupervisor: [], mainRole: 'Usuario');
-    // Profile.getCurrentProfile().then((value) {
-    //   if (mounted) {
-    //     setState(() {
-    //       profile = value;
-    //     });
-    //   } else {
-    //     profile = value;
-    //   }
-    // });
-    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    // profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     isNewItem = (widget.currentRequest!.id == "");
     holidayRequest = widget.currentRequest!;
     if (isNewItem) {
@@ -278,10 +270,21 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       ]);
     } else {
       List<DropdownMenuItem<String>>? statusList = [];
+      List<String> statuses = ['Pendiente', 'Aprobado', 'Rechazado'];
 
-      for (String status in ['Pendiente', 'Aprobado', 'Rechazado']) {
+      if (!statuses.contains(holidayRequest.status)) {
+        statusList.add(DropdownMenuItem(
+            value: holidayRequest.status,
+            child: Text(holidayRequest.status + ' (actual)')));
+      }
+
+      for (String status in statuses) {
         statusList.add(
             DropdownMenuItem(value: status, child: Text(status.toUpperCase())));
+      }
+
+      for (var item in statusList) {
+        print(item.value);
       }
 
       statusField = DropdownButtonFormField(
@@ -313,10 +316,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               1;
         }
       }
-      categoryList.add(DropdownMenuItem(
-          value: category.id,
-          child: Text(
-              "${category.name.toUpperCase()} (${category.days - (remainingHolidays[category.autoCode()] ?? 0)})}")));
+      if (category.id != '') {
+        categoryList.add(DropdownMenuItem(
+            value: category.id,
+            child: Text(
+                "${category.name.toUpperCase()} (${category.days - (remainingHolidays[category.autoCode()] ?? 0)})}")));
+      }
     }
 
     // Check if holidayRequest.category is in the list, if not, add it
@@ -325,15 +330,15 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     //       value: holidayRequest.category!.id,
     //       child: Text(holidayRequest.category!.name.toUpperCase())));
     // }
-    if (holidayRequest.category == null) {
-      // If category is null, set it to the first category in the list
-      if (categoryList.isNotEmpty) {
-        holidayRequest.category = categories.first.id;
-      } else {
-        holidayRequest.category = '';
-        // holidayRequest.category!.name = 'Sin categoría';
-      }
-    }
+    // if (holidayRequest.category == null) {
+    //   // If category is null, set it to the first category in the list
+    //   if (categoryList.isNotEmpty) {
+    //     holidayRequest.category = categories.first.id;
+    //   } else {
+    //     holidayRequest.category = '';
+    //     // holidayRequest.category!.name = 'Sin categoría';
+    //   }
+    // }
     categorySelectField = DropdownButtonFormField(
         value: holidayRequest.category,
         decoration: const InputDecoration(labelText: 'Categoría'),
