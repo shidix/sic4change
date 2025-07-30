@@ -481,16 +481,23 @@ class SProject {
   static Future<SProject> getByUuid(String uuid) async {
     //SProject item = SProject("", "", "", "", "", "", "", "", "", false, false);
     SProject item = SProject("");
-    await FirebaseFirestore.instance
+    QuerySnapshot query = await FirebaseFirestore.instance
         .collection("s4c_projects")
         .where("uuid", isEqualTo: uuid)
-        .get()
-        .then((value) {
-      final _doc = value.docs.first;
-      final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-      data["id"] = _doc.id;
-      item = SProject.fromJson(data);
-    });
+        .get();
+    if (query.docs.isEmpty) {
+      query = await FirebaseFirestore.instance
+          .collection("s4c_projects")
+          .where("id", isEqualTo: uuid)
+          .get(); // No project found with this UUID
+    }
+    if (query.docs.isEmpty) {
+      return item;
+    }
+    final _doc = query.docs.first;
+    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+    data["id"] = _doc.id;
+    item = SProject.fromJson(data);
     return item;
   }
 

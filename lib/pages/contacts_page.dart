@@ -39,7 +39,6 @@ class _ContactsPageState extends State<ContactsPage> {
       setState(() {
         orgsLoading = false;
       });
-
     } else {
       orgs = allOrgs;
       orgsLoading = false;
@@ -50,7 +49,6 @@ class _ContactsPageState extends State<ContactsPage> {
       }
     }
   }
-
 
   void findOrganizations(value) async {
     setState(() {
@@ -119,7 +117,11 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   void initState() {
+    super.initState();
+
     _mainMenu = mainMenu(context, "/contacts");
+    orgs = [];
+    allOrgs = [];
     if (allContacts.isEmpty) {
       Contact.getAll().then((val) {
         allContacts = val;
@@ -141,7 +143,6 @@ class _ContactsPageState extends State<ContactsPage> {
     loadOrgs();
 
     // loadContacts("-1");
-    super.initState();
   }
 
   @override
@@ -329,16 +330,32 @@ class _ContactsPageState extends State<ContactsPage> {
     org.save();
     loadOrgs();
 
-    Navigator.pop(context);
+    Navigator.of(context).pop(org);
   }
 
   void callEditOrgDialog(context, Map<String, dynamic> args) async {
     Organization org = args["org"];
-    orgEditDialog(context, org);
+    Organization? orgNew = await orgEditDialog(context, org);
+    int index = orgs.indexWhere((element) => element.uuid == orgNew!.uuid);
+    if (index != -1) {
+      orgs[index] = orgNew;
+    } else {
+      orgs.add(orgNew);
+    }
+    index = allOrgs.indexWhere((element) => element.uuid == orgNew!.uuid);
+    if (index != -1) {
+      allOrgs[index] = orgNew;
+    } else {
+      allOrgs.add(orgNew);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  Future<void> orgEditDialog(context, org) {
-    return showDialog<void>(
+  Future<Organization?> orgEditDialog(context, org) {
+    return showDialog<Organization?>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -398,14 +415,24 @@ class _ContactsPageState extends State<ContactsPage> {
     );
   }
 
-  void removeOrganizationDialog(context, args) {
+  void removeOrganizationDialog(context, args) async {
     //customRemoveDialog(context, args["org"], loadOrgs, null);
-    customRemoveDialog(context, null, removeOrganization, args["org"]);
+    String uuid2remove = args["org"].uuid;
+    Organization? org2remove = await customRemoveDialog(
+        context, null, removeOrganization, args["org"]);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void removeOrganization(args) {
+    String uuid2remove = args.uuid;
+
     Organization org = args;
     org.delete();
+
+    allOrgs.removeWhere((element) => element.uuid == uuid2remove);
+    orgs.removeWhere((element) => element.uuid == uuid2remove);
     loadOrgs();
     //print(org.name);
   }

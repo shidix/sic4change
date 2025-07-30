@@ -1722,8 +1722,8 @@ Widget customCollapse2(context, title, action, obj,
 //--------------------------------------------------------------------------
 //                           DIALOGS
 //--------------------------------------------------------------------------
-Future<void> customRemoveDialog(context, obj, action, [args]) async {
-  return showDialog<void>(
+Future<Organization?> customRemoveDialog(context, obj, action, [args]) async {
+  return showDialog<Organization?>(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
@@ -1745,7 +1745,7 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
                     } else {
                       action(args);
                     }
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(obj);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
