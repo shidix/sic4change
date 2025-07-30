@@ -52,7 +52,7 @@ class Organization {
         partner = json["partner"],
         public = (json.containsKey("public")) ? json["public"] : false,
         country = (json.containsKey("country")) ? json["country"] : "España",
-        // domain = (json.containsKey("domain")) ? json["domain"] : "",
+        domain = (json.containsKey("domain")) ? json["domain"] : "",
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
