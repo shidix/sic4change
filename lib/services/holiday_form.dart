@@ -339,6 +339,28 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     //     // holidayRequest.category!.name = 'Sin categoría';
     //   }
     // }
+
+    if ((holidayRequest.category == '') || (!categoryList.any((item) => item.value == holidayRequest.category))) {
+      // If category is empty, set it to the first category in the list
+      if (categoryList.isNotEmpty) {
+        holidayRequest.category = categoryList.first.value!;
+      } else {
+        HolidaysCategory emptyCategory = HolidaysCategory.getEmpty();
+        emptyCategory.name = 'Sin categoría';
+        emptyCategory.id = '--empty--';
+        categories.add(emptyCategory);
+        categoryList.add(DropdownMenuItem(
+            value: '--empty--',
+            child: Text('Sin categoría')));
+        // If no categories are available, set category to empty
+
+        holidayRequest.category = '--empty--';
+
+      }
+    }
+
+
+
     categorySelectField = DropdownButtonFormField(
         value: holidayRequest.category,
         decoration: const InputDecoration(labelText: 'Categoría'),
@@ -346,6 +368,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         onChanged: (value) {
           holidayRequest.category = value ?? '';
         });
+
     return Form(
       key: _formKey,
       child: Padding(
