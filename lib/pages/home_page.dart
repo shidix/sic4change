@@ -59,6 +59,7 @@ class _HomePageState extends State<HomePage> {
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
   List<HolidaysCategory>? holCat = [];
+  Map<String, int> remainingHolidays = {};
   int holidayDays = 0;
 
   Workday? currentWorkday;
@@ -209,12 +210,57 @@ class _HomePageState extends State<HomePage> {
     contentTasksPanel = tasksPanel();
     contentProjectsPanel = projectsPanel();
     myHolidays = results[2] as List<HolidayRequest>;
+    double factor = 1.0;
+    currentEmployee ??= await Employee.byEmail(user.email!);
+    DateTime altaDate = currentEmployee!.getAltaDate();
+    DateTime bajaDate = currentEmployee!.getBajaDate();
+    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+      factor =
+          1; // If the employee's start date is before the current year, return 0
+    } else {
+      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+        bajaDate = DateTime(DateTime.now().year + 1, 1,
+            1); // Calculate until the end of the year
+      }
+      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+          .difference(DateTime(DateTime.now().year, 1, 1))
+          .inDays;
+      int daysWorked = bajaDate.difference(altaDate).inDays;
+      factor = daysWorked /
+          daysInYear; // Calculate the factor based on the days worked
+    }
+    for (HolidaysCategory cat in holCat!) {
+      if (cat.retroactive) {
+        remainingHolidays[cat.autoCode()] = cat.days;
+      } else {
+        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+      }
+    }
+    print(
+        "DBG factor: $factor, holidayDays: $holidayDays, remainingHolidays: $remainingHolidays");
+
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.status != "Rechazado") {
         holidayDays -=
             getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        if (remainingHolidays
+            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        } else {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              (holiday.getCategory(holCat ?? []).retroactive)
+                  ? (holiday.getCategory(holCat ?? []).days * factor).round()
+                  : holiday.getCategory(holCat ?? []).days;
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
       }
     }
+
     myWorkdays = results[3] as List<Workday>;
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     if ((myWorkdays!.first.open) &&
@@ -289,6 +335,7 @@ class _HomePageState extends State<HomePage> {
       factor = daysWorked /
           daysInYear; // Calculate the factor based on the days worked
     }
+
     int counter = 0;
     if (holCat == null) return 0;
     for (HolidaysCategory cat in holCat!) {
@@ -300,9 +347,25 @@ class _HomePageState extends State<HomePage> {
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.status != "Rechazado") {
         counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        if (remainingHolidays
+            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        } else {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              holiday.getCategory(holCat ?? []).days -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
       }
     }
-
+    for (String key in remainingHolidays.keys) {
+      if (remainingHolidays[key]! < 0) {
+        remainingHolidays[key] = 0;
+      } else if (remainingHolidays[key]! > 0) {
+        remainingHolidays[key] = (remainingHolidays[key]! * factor).truncate();
+      }
+    }
     //
     int result = max(0, min((counter * factor).truncate() + 1, counter));
     return result;
@@ -1487,6 +1550,7 @@ class _HomePageState extends State<HomePage> {
               currentRequest: currentHoliday,
               user: user,
               categories: holCat!,
+              remainingHolidays: remainingHolidays,
               granted: myHolidays!
                   .where((element) =>
                       (element.status.toLowerCase() == "aprobado" ||
@@ -1577,6 +1641,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget holidayPanel(BuildContext context) {
+    String remainingHolidaysMsg = "";
+
+    if (remainingHolidays.isNotEmpty) {
+      remainingHolidaysMsg = "Días restantes: ";
+      remainingHolidays.forEach((key, value) {
+        if (value > 0) {
+          remainingHolidaysMsg += "$key: $value días, ";
+        }
+      });
+      if (remainingHolidaysMsg.endsWith(", ")) {
+        remainingHolidaysMsg =
+            remainingHolidaysMsg.substring(0, remainingHolidaysMsg.length - 2);
+      }
+    } else {
+      remainingHolidaysMsg = "No hay días restantes";
+    }
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1625,16 +1705,6 @@ class _HomePageState extends State<HomePage> {
                                             "Solicitud de vacaciones",
                                             style: cardHeaderText,
                                           )),
-                                      Row(
-                                        children: [
-                                          const Text("Me quedan ",
-                                              style: subTitleText),
-                                          Text(holidayDays.toString(),
-                                              style: mainText),
-                                          const Text(" días libres",
-                                              style: subTitleText),
-                                        ],
-                                      )
                                     ]))),
                         Expanded(
                             flex: 3,
@@ -1645,6 +1715,14 @@ class _HomePageState extends State<HomePage> {
                                 Icons.play_circle_outline_sharp,
                                 context)),
                       ],
+                    )),
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.grey[100],
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(remainingHolidaysMsg,
+                          style: subTitleText, textAlign: TextAlign.center),
                     )),
                 Container(
                     padding:
