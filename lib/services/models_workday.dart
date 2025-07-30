@@ -118,7 +118,7 @@ class Workday {
         }
       }
       if (items.isNotEmpty) {
-        items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+        items.sort((a, b) => ((b.startDate.compareTo(a.startDate))));
         return items.first;
       } else {
         Workday empty = Workday.getEmpty();
