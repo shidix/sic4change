@@ -3,6 +3,7 @@
 // import 'dart:js_interop_unsafe';
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/keep/v1.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
@@ -28,6 +29,7 @@ class NominasPage extends StatefulWidget {
 }
 
 class _NominasPageState extends State<NominasPage> {
+  final user = FirebaseAuth.instance.currentUser;
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
@@ -789,7 +791,7 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
+              mainMenuOperator(context, url: "/rrhh", user: user),
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,

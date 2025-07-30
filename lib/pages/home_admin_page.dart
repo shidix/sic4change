@@ -909,9 +909,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        (holiday.category == null)
-                                            ? "Sin categoría"
-                                            : category.name,
+                                        category.name,
                                         style: normalText,
                                       )),
                                 )),

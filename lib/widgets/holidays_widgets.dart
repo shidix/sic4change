@@ -27,9 +27,7 @@ Widget buildHolidayListItem(
                   child: Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
-                        (holiday.category != null)
-                            ? holiday.getCategory(categories).name
-                            : 'Cargando...',
+                        holiday.getCategory(categories).name,
                         style: normalText,
                       )),
                 )),
@@ -90,7 +88,7 @@ Widget buildHolidayListItem(
                     return infoDialog(
                       context,
                       Icon(Icons.info),
-                      "Solicitud de ${holiday.getCategory(categories).name ?? 'días libres'}",
+                      "Solicitud de ${holiday.getCategory(categories).name}",
                       "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
                     );
                   });

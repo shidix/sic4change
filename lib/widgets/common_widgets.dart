@@ -166,7 +166,8 @@ Widget logoutBtn(context, btnName, btnIcon) {
         }
       });
       // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
-      FirebaseAuth.instance.signOut();
+      //FirebaseAuth.instance.signOut();
+      signOut(context);
       Navigator.pushReplacementNamed(context, '/');
     },
     style: ElevatedButton.styleFrom(
@@ -1745,7 +1746,7 @@ Future<Organization?> customRemoveDialog(context, obj, action, [args]) async {
                     } else {
                       action(args);
                     }
-                    Navigator.of(context).pop(obj);
+                    return obj;
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(

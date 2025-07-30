@@ -304,13 +304,14 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         continue; // Skip empty categories
       }
 
-        categoryList.add(DropdownMenuItem(
-            value: category.id,
-            child: Text(
-                "${category.name.toUpperCase()} (${remainingHolidays[category.autoCode()] ?? 0})")));
+      categoryList.add(DropdownMenuItem(
+          value: category.id,
+          child: Text(
+              "${category.name.toUpperCase()} (${remainingHolidays[category.autoCode()] ?? 0})")));
     }
 
-    if ((holidayRequest.category == '') || (!categoryList.any((item) => item.value == holidayRequest.category))) {
+    if ((holidayRequest.category == '') ||
+        (!categoryList.any((item) => item.value == holidayRequest.category))) {
       // If category is empty, set it to the first category in the list
       if (categoryList.isNotEmpty) {
         holidayRequest.category = categoryList.first.value!;
@@ -319,17 +320,13 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         emptyCategory.name = 'Sin categoría';
         emptyCategory.id = '--empty--';
         categories.add(emptyCategory);
-        categoryList.add(DropdownMenuItem(
-            value: '--empty--',
-            child: Text('Sin categoría')));
+        categoryList.add(
+            DropdownMenuItem(value: '--empty--', child: Text('Sin categoría')));
         // If no categories are available, set category to empty
 
         holidayRequest.category = '--empty--';
-
       }
     }
-
-
 
     categorySelectField = DropdownButtonFormField(
         value: holidayRequest.category,
@@ -338,8 +335,6 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         onChanged: (value) {
           holidayRequest.category = value ?? '';
         });
-
-    
 
     return Form(
       key: _formKey,
@@ -369,23 +364,25 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                     end: holidayRequest.endDate),
                 onSelectedDate: (DateTimeRange date) {
                   setState(() {
-                    int workingDays = getWorkingDaysBetween(date.start, date.end);
-                    if (workingDays > remainingHolidays[holidayRequest.getCategory(categories).autoCode()]!) {
+                    int workingDays =
+                        getWorkingDaysBetween(date.start, date.end);
+                    if (workingDays >
+                        remainingHolidays[holidayRequest
+                            .getCategory(categories)
+                            .autoCode()]!) {
                       errorMessage = "No hay suficientes días disponibles";
-                      
                     } else {
                       holidayRequest.startDate = date.start;
                       holidayRequest.endDate = date.end;
                     }
                   });
                 },
-                
               ),
               space(),
               statusField,
               space(),
               ReadOnlyTextField(
-                  label: "Aprobado por ${profile?.holidaySupervisor}",
+                  label: "Aprobado por ${profile.holidaySupervisor}",
                   textToShow: (holidayRequest.approvedBy != '')
                       ? holidayRequest.approvedBy
                       : 'Pendiente de aprobación'),

@@ -417,9 +417,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void removeOrganizationDialog(context, args) async {
     //customRemoveDialog(context, args["org"], loadOrgs, null);
-    String uuid2remove = args["org"].uuid;
-    Organization? org2remove = await customRemoveDialog(
-        context, null, removeOrganization, args["org"]);
+    await customRemoveDialog(context, null, removeOrganization, args["org"]);
     if (mounted) {
       setState(() {});
     }

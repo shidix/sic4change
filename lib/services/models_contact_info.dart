@@ -304,6 +304,10 @@ class ContactInfo {
   }
 
   static Future<ContactInfo> byUuid(String uuid) async {
+    if (uuid.isEmpty) {
+      return ContactInfo("");
+    }
+
     ContactInfo contactInfo = ContactInfo(uuid);
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection("s4c_contact_info")

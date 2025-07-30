@@ -138,6 +138,7 @@ class SProject {
   }
 
   Future<SProject> reload() async {
+    if (id.isEmpty) return this; // No ID provided
     DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection("s4c_projects")
         .doc(id)
@@ -481,6 +482,7 @@ class SProject {
   static Future<SProject> getByUuid(String uuid) async {
     //SProject item = SProject("", "", "", "", "", "", "", "", "", false, false);
     SProject item = SProject("");
+    if (uuid.isEmpty) return item; // No UUID provided
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection("s4c_projects")
         .where("uuid", isEqualTo: uuid)

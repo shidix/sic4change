@@ -279,6 +279,9 @@ class HolidayRequest {
   }
 
   HolidaysCategory getCategory(List<HolidaysCategory> categories) {
+    if (categories.isEmpty) {
+      return HolidaysCategory.getEmpty();
+    }
     if (categories.any((cat) => cat.id == category)) {
       return categories.firstWhere((cat) => cat.id == category);
     } else if (category.isEmpty) {

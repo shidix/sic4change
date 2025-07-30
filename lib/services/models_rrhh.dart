@@ -894,6 +894,7 @@ class Employee {
 
   static Future<Employee> byEmail(String email) async {
     // get from database
+    if (email.isEmpty) return Employee.getEmpty();
     Employee item = Employee.getEmpty();
     item.email = email;
     item.firstName = email;

@@ -198,6 +198,7 @@ class Profile {
 class ProfileProvider with ChangeNotifier {
   Profile? _profile;
   Organization? _organization;
+  User? user = FirebaseAuth.instance.currentUser;
   bool _loading = false;
   Organization? get organization => _organization;
   set organization(Organization? value) {
@@ -210,20 +211,17 @@ class ProfileProvider with ChangeNotifier {
   Profile? get profile => _profile;
 
   void loadProfile() async {
-    if (_profile != null || _loading) {
+    if ((_profile != null || _loading) &&
+        (user != null) &&
+        (user?.email == _profile?.email)) {
       return; // Profile already loaded
     }
     _loading = true;
-    Profile.getCurrentProfile().then((value) {
-      _profile = value;
-
-      Organization.byDomain(_profile?.email ?? "none@sic4change.org")
-          .then((value) {
-        _organization = value;
-        _loading = false;
-        notifyListeners();
-      });
-    });
+    _profile = await Profile.getCurrentProfile();
+    String email = _profile?.email ?? user?.email ?? "none@none.com";
+    _organization = await Organization.byDomain(email);
+    _loading = false;
+    notifyListeners();
   }
 
   Future<void> setProfile(Profile profile) async {

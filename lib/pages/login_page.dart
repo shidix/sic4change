@@ -41,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void initializeData() async {
     if (FirebaseAuth.instance.currentUser == null) {
-      Navigator.pop(context);
       return;
     } else {
       // Navigator.pop(context);

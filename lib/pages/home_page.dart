@@ -212,53 +212,6 @@ class _HomePageState extends State<HomePage> {
     myHolidays = results[2] as List<HolidayRequest>;
     currentEmployee ??= await Employee.byEmail(user.email!);
     updateRemainingHolidays();
-    // double factor = 1.0;
-    // currentEmployee ??= await Employee.byEmail(user.email!);
-    // DateTime altaDate = currentEmployee!.getAltaDate();
-    // DateTime bajaDate = currentEmployee!.getBajaDate();
-    // if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
-    //     (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
-    //   factor =
-    //       1; // If the employee's start date is before the current year, return 0
-    // } else {
-    //   if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
-    //     bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
-    //   }
-    //   int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
-    //       .difference(DateTime(DateTime.now().year, 1, 1))
-    //       .inDays;
-    //   int daysWorked = bajaDate.difference(altaDate).inDays;
-    //   factor = daysWorked /
-    //       daysInYear; // Calculate the factor based on the days worked
-    // }
-    // for (HolidaysCategory cat in holCat!) {
-    //   if (cat.retroactive) {
-    //     remainingHolidays[cat.autoCode()] = cat.days;
-    //   } else {
-    //     remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
-    //   }
-    // }
-
-    // for (HolidayRequest holiday in myHolidays!) {
-    //   if (holiday.status != "Rechazado") {
-    //     holidayDays -=
-    //         getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-    //     if (remainingHolidays
-    //         .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
-    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-    //           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-    //               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-    //     } else {
-    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-    //           (holiday.getCategory(holCat ?? []).retroactive)
-    //               ? (holiday.getCategory(holCat ?? []).days * factor).round()
-    //               : holiday.getCategory(holCat ?? []).days;
-    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-    //           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-    //               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-    //     }
-    //   }
-    // }
 
     myWorkdays = results[3] as List<Workday>;
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
@@ -661,7 +614,7 @@ class _HomePageState extends State<HomePage> {
     }
     topButtonsPanel = topButtons(null);
     await loadMyData();
-    contentHolidaysPanel = holidayPanel(context);
+    contentHolidaysPanel = holidayPanel();
 
     myPeopleWorkdays = results[3] as List<Workday>;
 
@@ -1706,7 +1659,7 @@ class _HomePageState extends State<HomePage> {
               ));
   }
 
-  Widget holidayPanel(BuildContext context) {
+  Widget holidayPanel() {
     String remainingHolidaysMsg = "";
 
     if (remainingHolidays.isNotEmpty) {
@@ -1783,12 +1736,14 @@ class _HomePageState extends State<HomePage> {
                                     ]))),
                         Expanded(
                             flex: 3,
-                            child: actionButton(
-                                context,
-                                "Solicitar días",
-                                addHolidayRequestDialog,
-                                Icons.play_circle_outline_sharp,
-                                context)),
+                            child: (mounted)
+                                ? actionButton(
+                                    context,
+                                    "Solicitar días",
+                                    addHolidayRequestDialog,
+                                    Icons.play_circle_outline_sharp,
+                                    context)
+                                : Container()),
                       ],
                     )),
                 Container(

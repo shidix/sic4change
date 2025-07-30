@@ -861,7 +861,13 @@ class SNotification {
   }
 
   static Future<List> getNotificationsByReceiver(user) async {
+    if (user == null || user.isEmpty) {
+      return []; // Return empty list if user is not provided
+    }
     List<SNotification> items = [];
+    if (user.isEmpty) {
+      return items; // Return empty list if user is not provided
+    }
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection("s4c_notifications")
         .where("receiver", isEqualTo: user)

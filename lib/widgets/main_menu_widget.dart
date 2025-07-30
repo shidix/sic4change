@@ -152,7 +152,7 @@ Widget mainMenuAdmin(context, [user, url]) {
   );
 }
 
-Widget mainMenuOperator(context, {url, Profile? profile, key}) {
+Widget mainMenuOperator(context, {url, User? user, key}) {
   key ??= const Key('mainMenuOperator');
 
   return Container(
@@ -162,7 +162,7 @@ Widget mainMenuOperator(context, {url, Profile? profile, key}) {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        logo(profile: profile),
+        logo(),
         (url == "/home")
             ? menuBtnSelected(
                 context,
@@ -191,13 +191,23 @@ Widget mainMenuOperator(context, {url, Profile? profile, key}) {
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
+        if (user != null)
+          menuBtn(context, user.email, Icons.supervised_user_circle_outlined,
+              "/profile",
+              color: (url == "/profile")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
       ],
     ),
   );
 }
 
 Widget mainMenu(context, [url]) {
-  final user = FirebaseAuth.instance.currentUser!;
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    return mainMenuEmpty(context, url);
+  }
+
   Profile? profile =
       Provider.of<ProfileProvider>(context, listen: false).profile;
 
@@ -215,7 +225,7 @@ Widget mainMenu(context, [url]) {
       } else if (profile.mainRole == "Administrativo") {
         return Stack(
           children: [
-            mainMenuOperator(context, url: url, profile: profile),
+            mainMenuOperator(context, url: url, user: user),
             notificationBadge(context, user),
           ],
         );

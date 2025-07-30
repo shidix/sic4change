@@ -81,7 +81,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
           events.add(Event(
             subject:
-                '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode() ?? 'N/A'}',
+                '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode()}',
             startTime: holiday.startDate,
             endTime: holiday.endDate,
             notes: '',
