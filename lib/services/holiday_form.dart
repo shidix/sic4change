@@ -370,15 +370,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                 onSelectedDate: (DateTimeRange date) {
                   setState(() {
                     int workingDays = getWorkingDaysBetween(date.start, date.end);
-                    print (workingDays);
                     if (workingDays > remainingHolidays[holidayRequest.getCategory(categories).autoCode()]!) {
-                      print(1);
                       errorMessage = "No hay suficientes días disponibles";
                       
                     } else {
-                    
-                    holidayRequest.startDate = date.start;
-                    holidayRequest.endDate = date.end;
+                      holidayRequest.startDate = date.start;
+                      holidayRequest.endDate = date.end;
                     }
                   });
                 },
