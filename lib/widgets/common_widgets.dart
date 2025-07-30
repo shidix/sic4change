@@ -964,7 +964,7 @@ Widget customText(_text, _size,
     bold = FontWeight.normal,
     align = TextAlign.start}) {
   return Text(
-    _text,
+    _text ?? '',
     textAlign: align,
     style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
@@ -1951,34 +1951,32 @@ class DateTimeRangePicker extends StatelessWidget {
           labelText: labelText,
           border: (errorMessage != null)
               ? OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red.shade700, width: 1.0),
+                  borderSide:
+                      BorderSide(color: Colors.red.shade700, width: 1.0),
                   borderRadius: BorderRadius.all(Radius.circular(4.0)),
                 )
               : null,
-
         ),
-        child: Column(children:[
-        
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
-            ),
-            const Icon(Icons.calendar_today),
-          ],
-        ),
-        errorMessage != null
-            ? Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  errorMessage!,
-                  style: TextStyle(color: Colors.red.shade700, fontSize: 12),
-                ),
-              )
-            : const SizedBox.shrink(),
+        child: Column(children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
+              ),
+              const Icon(Icons.calendar_today),
+            ],
+          ),
+          errorMessage != null
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    errorMessage!,
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ]),
-        
       ),
     );
   }

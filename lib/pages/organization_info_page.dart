@@ -23,10 +23,14 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   Organization? org;
   OrganizationBilling? orgBilling;
   Widget? orgInfoDetailsPanel;
+  List<Country> countries = [];
 
   @override
   void initState() {
     super.initState();
+    Country.getAll().then((val) {
+      countries = val;
+    });
     org = widget.org;
     orgInfoDetailsPanel = orgInfoDetails(context);
     //getOrganizationBilling(org);
@@ -152,6 +156,15 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   }
 
   Widget orgInfo(context) {
+    if (countries.any((element) => element.uuid == org!.country)) {
+      org!.countryObj =
+          countries.firstWhere((element) => element.uuid == org!.country);
+    } else {
+      org!.country = countries.first.uuid;
+      org!.countryObj = countries.first;
+      org!.save();
+    }
+
     return Table(
         //defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
@@ -275,11 +288,23 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
     Organization org = args["org"];
     OrganizationBilling billing = args["billing"];
     List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
+    List<Country> countriesList = await Country.getAll();
     List<KeyValue> countries = await Country.getCountriesHash();
+    if (countriesList.any((element) => element.uuid == org.country)) {
+      org.countryObj =
+          countriesList.firstWhere((element) => element.uuid == org.country);
+    } else {
+      org.country = countriesList.first.uuid;
+      org.countryObj = countriesList.first;
+      org.save();
+    }
+
     orgEditDialog(context, org, billing, types, countries);
   }
 
   Future<void> orgEditDialog(context, org, billing, types, countries) {
+    // Check if country in countries
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -360,6 +385,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                 )
               ]),
             ]),
+            space(height: 10),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomDropdown(
@@ -386,7 +412,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                   },
                 ),
               ]),*/
-
+            space(height: 10),
             Row(children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CustomTextField(
