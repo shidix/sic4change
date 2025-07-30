@@ -1518,38 +1518,34 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void addHolidayRequestDialog(context) {
-    _addHolidayRequestDialog(context).then((value) {
-      if (value == null) {
-        currentHoliday = null;
-        return;
-      }
-      if (value.id == "") {
-        // Remove currentHoliday from myHolidays
-        myHolidays!.removeWhere((holiday) => holiday.id == currentHoliday!.id);
-        currentHoliday = null;
-      } else {
-        // Check if the new holiday request is already in myHolidays
-        int index = myHolidays!.indexWhere((holiday) => holiday.id == value.id);
-        if (index >= 0) {
-          // Update existing holiday request
-          myHolidays![index] = value;
-        } else {
-          // Add new holiday request
-          myHolidays!.add(value);
-        }
-      }
-      if (mounted) {
-        setState(() {
-          myHolidays = myHolidays;
-          updateRemainingHolidays();
-          // updateHolidayDays().then((value) => holidayDays = value);
-        });
-      }
-    });
+  void addHolidayRequestDialog(context) async {
+    currentHoliday = await _addHolidayRequestDialog(context);
+    if (currentHoliday == null) {
+      return;
+    }
+
+    // Check if the new holiday request is already in myHolidays
+    int index =
+        myHolidays!.indexWhere((holiday) => holiday.id == currentHoliday!.id);
+    if (index >= 0) {
+      // Update existing holiday request
+      myHolidays![index] = currentHoliday!;
+    } else {
+      // Add new holiday request
+      myHolidays!.add(currentHoliday!);
+    }
+    // updateRemainingHolidays();
+
+    if (mounted) {
+      setState(() {
+        myHolidays = myHolidays;
+        updateRemainingHolidays();
+        // updateHolidayDays().then((value) => holidayDays = value);
+      });
+    }
   }
 
-  Future<HolidayRequest?> _addHolidayRequestDialog(context) {
+  Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
     if (currentHoliday == null) {
       currentHoliday = HolidayRequest.getEmpty();
       currentHoliday!.userId = user.email!;
@@ -1647,10 +1643,16 @@ class _HomePageState extends State<HomePage> {
                             onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
                                 ? () {
                                     currentHoliday = holiday;
-                                    //addHolidayRequestDialog(context);
+                                    // (mounted)
+                                    //     ? addHolidayRequestDialog(context)
+                                    //     : null;
                                   }
                                 : null)),
-                    Expanded(flex: 2, child: btnDocuments(context, holiday)),
+                    Expanded(
+                        flex: 2,
+                        child: (mounted)
+                            ? btnDocuments(context, holiday)
+                            : Container()),
                   ]);
                 })
             : Center(

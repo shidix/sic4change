@@ -7,7 +7,7 @@ class TreeNode extends StatefulWidget {
   int level;
   bool expanded = true;
   bool visible = true;
-  ValueChanged<TreeNode> onSelected;
+  final ValueChanged<TreeNode> onSelected;
   // ValueChanged<TreeNode> onMainSelected;
   // ValueChanged<TreeNode> onEdit;
   // ValueChanged<TreeNode>? onDelete;

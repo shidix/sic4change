@@ -24,17 +24,26 @@ class _AppVersionWidgetState extends State<AppVersionWidget> {
   }
 
   Future<void> _loadVersionInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      version = info.version; // From pubspec.yaml
-      buildNumber = info.buildNumber;
-    });
+    try {
+      if (version.isNotEmpty && buildNumber.isNotEmpty) {
+        return; // Already loaded
+      }
+      final info = await PackageInfo.fromPlatform();
+      setState(() {
+        version = info.version; // From pubspec.yaml
+        buildNumber = info.buildNumber;
+      });
+    } catch (e) {
+      version = 'unknown';
+      buildNumber = 'unknown';
+      // Handle error
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      "v$version ($buildNumber) • $gitCommit • $buildDate",
+      "v$version (${buildNumber}) $gitCommit • $buildDate",
       style: const TextStyle(fontSize: 12, color: Colors.grey),
     );
   }
@@ -137,6 +146,6 @@ Widget footer(BuildContext context) {
               ],
             ),
             space(height: 10),
-            AppVersionWidget()
+            const AppVersionWidget()
           ]));
 }
