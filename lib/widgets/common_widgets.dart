@@ -22,7 +22,6 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sic4change/build_info.dart';
 
 // ignore: constant_identifier_names
 const Map<String, double> SCALES = {
@@ -2593,40 +2592,4 @@ Widget infoDialog(BuildContext context, Icon icon, String title, String content,
           ),
         ],
   );
-}
-
-// generated file
-
-class AppVersionWidget extends StatefulWidget {
-  const AppVersionWidget({Key? key}) : super(key: key);
-
-  @override
-  State<AppVersionWidget> createState() => _AppVersionWidgetState();
-}
-
-class _AppVersionWidgetState extends State<AppVersionWidget> {
-  String version = '';
-  String buildNumber = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadVersionInfo();
-  }
-
-  Future<void> _loadVersionInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      version = info.version; // From pubspec.yaml
-      buildNumber = info.buildNumber;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      "v$version ($buildNumber) • $gitCommit • $buildDate",
-      style: const TextStyle(fontSize: 12, color: Colors.grey),
-    );
-  }
 }

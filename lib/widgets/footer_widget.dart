@@ -1,6 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:sic4change/build_info.dart';
+
+// generated file
+
+class AppVersionWidget extends StatefulWidget {
+  const AppVersionWidget({Key? key}) : super(key: key);
+
+  @override
+  State<AppVersionWidget> createState() => _AppVersionWidgetState();
+}
+
+class _AppVersionWidgetState extends State<AppVersionWidget> {
+  String version = '';
+  String buildNumber = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      version = info.version; // From pubspec.yaml
+      buildNumber = info.buildNumber;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "v$version ($buildNumber) • $gitCommit • $buildDate",
+      style: const TextStyle(fontSize: 12, color: Colors.grey),
+    );
+  }
+}
 
 Widget footer(BuildContext context) {
   return Container(
@@ -98,5 +136,7 @@ Widget footer(BuildContext context) {
                             style: sloganText))),
               ],
             ),
+            space(height: 10),
+            AppVersionWidget()
           ]));
 }
