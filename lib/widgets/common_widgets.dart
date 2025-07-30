@@ -1906,10 +1906,12 @@ class DateTimeRangePicker extends StatelessWidget {
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
+    this.errorMessage,
   }) : super(key: key);
 
   final DateTimeRange calendarRangeDate;
   final String labelText;
+  final String? errorMessage;
   final DateTimeRange selectedDate;
   final ValueChanged<DateTimeRange> onSelectedDate;
 
@@ -1947,8 +1949,17 @@ class DateTimeRangePicker extends StatelessWidget {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: labelText,
+          border: (errorMessage != null)
+              ? OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red.shade700, width: 1.0),
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                )
+              : null,
+
         ),
-        child: Row(
+        child: Column(children:[
+        
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
@@ -1957,6 +1968,17 @@ class DateTimeRangePicker extends StatelessWidget {
             const Icon(Icons.calendar_today),
           ],
         ),
+        errorMessage != null
+            ? Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  errorMessage!,
+                  style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                ),
+              )
+            : const SizedBox.shrink(),
+        ]),
+        
       ),
     );
   }

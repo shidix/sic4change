@@ -210,56 +210,56 @@ class _HomePageState extends State<HomePage> {
     contentTasksPanel = tasksPanel();
     contentProjectsPanel = projectsPanel();
     myHolidays = results[2] as List<HolidayRequest>;
-    double factor = 1.0;
     currentEmployee ??= await Employee.byEmail(user.email!);
-    DateTime altaDate = currentEmployee!.getAltaDate();
-    DateTime bajaDate = currentEmployee!.getBajaDate();
-    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
-        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
-      factor =
-          1; // If the employee's start date is before the current year, return 0
-    } else {
-      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
-        bajaDate = DateTime(DateTime.now().year + 1, 1,
-            1); // Calculate until the end of the year
-      }
-      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
-          .difference(DateTime(DateTime.now().year, 1, 1))
-          .inDays;
-      int daysWorked = bajaDate.difference(altaDate).inDays;
-      factor = daysWorked /
-          daysInYear; // Calculate the factor based on the days worked
-    }
-    for (HolidaysCategory cat in holCat!) {
-      if (cat.retroactive) {
-        remainingHolidays[cat.autoCode()] = cat.days;
-      } else {
-        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
-      }
-    }
-    print(
-        "DBG factor: $factor, holidayDays: $holidayDays, remainingHolidays: $remainingHolidays");
+    updateRemainingHolidays();
+    // double factor = 1.0;
+    // currentEmployee ??= await Employee.byEmail(user.email!);
+    // DateTime altaDate = currentEmployee!.getAltaDate();
+    // DateTime bajaDate = currentEmployee!.getBajaDate();
+    // if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+    //     (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+    //   factor =
+    //       1; // If the employee's start date is before the current year, return 0
+    // } else {
+    //   if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+    //     bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
+    //   }
+    //   int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+    //       .difference(DateTime(DateTime.now().year, 1, 1))
+    //       .inDays;
+    //   int daysWorked = bajaDate.difference(altaDate).inDays;
+    //   factor = daysWorked /
+    //       daysInYear; // Calculate the factor based on the days worked
+    // }
+    // for (HolidaysCategory cat in holCat!) {
+    //   if (cat.retroactive) {
+    //     remainingHolidays[cat.autoCode()] = cat.days;
+    //   } else {
+    //     remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+    //   }
+    // }
 
-    for (HolidayRequest holiday in myHolidays!) {
-      if (holiday.status != "Rechazado") {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        if (remainingHolidays
-            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
-          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        } else {
-          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-              (holiday.getCategory(holCat ?? []).retroactive)
-                  ? (holiday.getCategory(holCat ?? []).days * factor).round()
-                  : holiday.getCategory(holCat ?? []).days;
-          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        }
-      }
-    }
+    // for (HolidayRequest holiday in myHolidays!) {
+    //   if (holiday.status != "Rechazado") {
+    //     holidayDays -=
+    //         getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+    //     if (remainingHolidays
+    //         .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+    //           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+    //               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+    //     } else {
+    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+    //           (holiday.getCategory(holCat ?? []).retroactive)
+    //               ? (holiday.getCategory(holCat ?? []).days * factor).round()
+    //               : holiday.getCategory(holCat ?? []).days;
+    //       remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+    //           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+    //               getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+    //     }
+    //   }
+    // }
+
 
     myWorkdays = results[3] as List<Workday>;
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
@@ -314,62 +314,62 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  Future<int> updateHolidayDays() async {
-    double factor = 1.0;
-    currentEmployee ??= await Employee.byEmail(user.email!);
-    DateTime altaDate = currentEmployee!.getAltaDate();
-    DateTime bajaDate = currentEmployee!.getBajaDate();
-    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
-        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
-      factor =
-          1; // If the employee's start date is before the current year, return 0
-    } else {
-      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
-        bajaDate = DateTime(DateTime.now().year + 1, 1,
-            1); // Calculate until the end of the year
-      }
-      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
-          .difference(DateTime(DateTime.now().year, 1, 1))
-          .inDays;
-      int daysWorked = bajaDate.difference(altaDate).inDays;
-      factor = daysWorked /
-          daysInYear; // Calculate the factor based on the days worked
-    }
+  // Future<int> updateHolidayDays() async {
+  //   double factor = 1.0;
+  //   currentEmployee ??= await Employee.byEmail(user.email!);
+  //   DateTime altaDate = currentEmployee!.getAltaDate();
+  //   DateTime bajaDate = currentEmployee!.getBajaDate();
+  //   if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+  //       (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+  //     factor =
+  //         1; // If the employee's start date is before the current year, return 0
+  //   } else {
+  //     if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+  //       bajaDate = DateTime(DateTime.now().year + 1, 1,
+  //           1); // Calculate until the end of the year
+  //     }
+  //     int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+  //         .difference(DateTime(DateTime.now().year, 1, 1))
+  //         .inDays;
+  //     int daysWorked = bajaDate.difference(altaDate).inDays;
+  //     factor = daysWorked /
+  //         daysInYear; // Calculate the factor based on the days worked
+  //   }
 
-    int counter = 0;
-    if (holCat == null) return 0;
-    for (HolidaysCategory cat in holCat!) {
-      if (!cat.retroactive) {
-        counter += cat.days;
-      }
-    }
-    if (myHolidays == null) return counter;
-    for (HolidayRequest holiday in myHolidays!) {
-      if (holiday.status != "Rechazado") {
-        counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        if (remainingHolidays
-            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
-          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        } else {
-          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-              holiday.getCategory(holCat ?? []).days -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        }
-      }
-    }
-    for (String key in remainingHolidays.keys) {
-      if (remainingHolidays[key]! < 0) {
-        remainingHolidays[key] = 0;
-      } else if (remainingHolidays[key]! > 0) {
-        remainingHolidays[key] = (remainingHolidays[key]! * factor).truncate();
-      }
-    }
-    //
-    int result = max(0, min((counter * factor).truncate() + 1, counter));
-    return result;
-  }
+  //   int counter = 0;
+  //   if (holCat == null) return 0;
+  //   for (HolidaysCategory cat in holCat!) {
+  //     if (!cat.retroactive) {
+  //       counter += cat.days;
+  //     }
+  //   }
+  //   if (myHolidays == null) return counter;
+  //   for (HolidayRequest holiday in myHolidays!) {
+  //     if (holiday.status != "Rechazado") {
+  //       counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+  //       if (remainingHolidays
+  //           .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+  //         remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+  //             remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+  //                 getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+  //       } else {
+  //         remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+  //             holiday.getCategory(holCat ?? []).days -
+  //                 getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+  //       }
+  //     }
+  //   }
+  //   for (String key in remainingHolidays.keys) {
+  //     if (remainingHolidays[key]! < 0) {
+  //       remainingHolidays[key] = 0;
+  //     } else if (remainingHolidays[key]! > 0) {
+  //       remainingHolidays[key] = (remainingHolidays[key]! * factor).truncate();
+  //     }
+  //   }
+  //   //
+  //   int result = max(0, min((counter * factor).truncate() + 1, counter));
+  //   return result;
+  // }
 
   Widget loadMyPeopleWorkdaysWidget() {
     if (myPeopleWorkdays.isEmpty) {
@@ -644,10 +644,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    holidayDays = await updateHolidayDays();
-
     // await loadMyHolidays();
-    contentHolidaysPanel = holidayPanel(context);
 
     final tasksStatusList = results[1] as List<TasksStatus>;
     if (tasksStatusList.isNotEmpty) {
@@ -665,6 +662,8 @@ class _HomePageState extends State<HomePage> {
     }
     topButtonsPanel = topButtons(null);
     await loadMyData();
+    contentHolidaysPanel = holidayPanel(context);
+
 
     myPeopleWorkdays = results[3] as List<Workday>;
 
@@ -1502,6 +1501,74 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// HOLIDAYS ///////////
+  void updateRemainingHolidays ()
+  {
+    remainingHolidays = {};
+    holidayDays = 0;
+    if (currentEmployee == null || holCat == null || myHolidays == null) {
+      return;
+    }
+    double factor = 1.0;
+    DateTime altaDate = currentEmployee!.getAltaDate();
+    DateTime bajaDate = currentEmployee!.getBajaDate();
+
+    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+          (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+        factor =
+            1; // If the employee's start date is before the current year, return 0
+      } else {
+        if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+          bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
+        }
+        int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+            .difference(DateTime(DateTime.now().year, 1, 1))
+            .inDays;
+        int daysWorked = bajaDate.difference(altaDate).inDays;
+        factor = daysWorked /
+            daysInYear; // Calculate the factor based on the days worked
+      }
+      for (HolidaysCategory cat in holCat!) {
+        if (cat.retroactive) {
+          remainingHolidays[cat.autoCode()] = cat.days;
+          
+        } else {
+          remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+        }
+        if (cat.obligation) {
+          holidayDays = (holidayDays + (cat.days * factor)).round();
+        }
+      }
+    
+    for (HolidaysCategory cat in holCat!) {
+      if (cat.retroactive) {
+        remainingHolidays[cat.autoCode()] = cat.days;
+      } else {
+        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+      }
+    }
+
+    for (HolidayRequest holiday in myHolidays!) {
+      if (holiday.status != "Rechazado") {
+        holidayDays -=
+            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        if (remainingHolidays
+            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        } else {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              (holiday.getCategory(holCat ?? []).retroactive)
+                  ? (holiday.getCategory(holCat ?? []).days * factor).round()
+                  : holiday.getCategory(holCat ?? []).days;
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        }
+      }
+    }
+  }
+  
   void addHolidayRequestDialog(context) {
     _addHolidayRequestDialog(context).then((value) {
       if (value == null) {
@@ -1526,7 +1593,8 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           myHolidays = myHolidays;
-          updateHolidayDays().then((value) => holidayDays = value);
+          updateRemainingHolidays();
+          // updateHolidayDays().then((value) => holidayDays = value);
         });
       }
     });
@@ -1542,6 +1610,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
+        updateRemainingHolidays();
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Solicitud de días libres', context),

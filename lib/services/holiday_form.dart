@@ -194,6 +194,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late User user;
   bool isNewItem = false;
   late Profile profile;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -302,43 +303,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       if (category.id == '') {
         continue; // Skip empty categories
       }
-      int daysGranted = 0;
-      // Sum the days granted for this category
-      for (HolidayRequest grantedRequest in granted) {
-        HolidaysCategory categoryReq = categories.firstWhere(
-            (cat) => cat.id == grantedRequest.category,
-            orElse: () => HolidaysCategory.getEmpty());
-        if (categoryReq.id == category.id &&
-            grantedRequest.status == 'Aprobado') {
-          daysGranted += grantedRequest.endDate
-                  .difference(grantedRequest.startDate)
-                  .inDays +
-              1;
-        }
-      }
-      if (category.id != '') {
+
         categoryList.add(DropdownMenuItem(
             value: category.id,
             child: Text(
-                "${category.name.toUpperCase()} (${category.days - (remainingHolidays[category.autoCode()] ?? 0)})}")));
-      }
+                "${category.name.toUpperCase()} (${remainingHolidays[category.autoCode()] ?? 0})")));
     }
-
-    // Check if holidayRequest.category is in the list, if not, add it
-    // if (!categoryList.any((item) => item.value == holidayRequest.category!.id)) {
-    //   categoryList.add(DropdownMenuItem(
-    //       value: holidayRequest.category!.id,
-    //       child: Text(holidayRequest.category!.name.toUpperCase())));
-    // }
-    // if (holidayRequest.category == null) {
-    //   // If category is null, set it to the first category in the list
-    //   if (categoryList.isNotEmpty) {
-    //     holidayRequest.category = categories.first.id;
-    //   } else {
-    //     holidayRequest.category = '';
-    //     // holidayRequest.category!.name = 'Sin categoría';
-    //   }
-    // }
 
     if ((holidayRequest.category == '') || (!categoryList.any((item) => item.value == holidayRequest.category))) {
       // If category is empty, set it to the first category in the list
@@ -369,6 +339,8 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
           holidayRequest.category = value ?? '';
         });
 
+    
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -388,6 +360,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               space(),
               DateTimeRangePicker(
                 labelText: 'Período',
+                errorMessage: errorMessage,
                 calendarRangeDate: DateTimeRange(
                     start: DateTime.now(),
                     end: DateTime.now().add(Duration(days: 365))),
@@ -396,10 +369,20 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                     end: holidayRequest.endDate),
                 onSelectedDate: (DateTimeRange date) {
                   setState(() {
+                    int workingDays = getWorkingDaysBetween(date.start, date.end);
+                    print (workingDays);
+                    if (workingDays > remainingHolidays[holidayRequest.getCategory(categories).autoCode()]!) {
+                      print(1);
+                      errorMessage = "No hay suficientes días disponibles";
+                      
+                    } else {
+                    
                     holidayRequest.startDate = date.start;
                     holidayRequest.endDate = date.end;
+                    }
                   });
                 },
+                
               ),
               space(),
               statusField,
