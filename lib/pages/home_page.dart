@@ -260,7 +260,6 @@ class _HomePageState extends State<HomePage> {
     //   }
     // }
 
-
     myWorkdays = results[3] as List<Workday>;
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     if ((myWorkdays!.first.open) &&
@@ -663,7 +662,6 @@ class _HomePageState extends State<HomePage> {
     topButtonsPanel = topButtons(null);
     await loadMyData();
     contentHolidaysPanel = holidayPanel(context);
-
 
     myPeopleWorkdays = results[3] as List<Workday>;
 
@@ -1501,8 +1499,7 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// HOLIDAYS ///////////
-  void updateRemainingHolidays ()
-  {
+  void updateRemainingHolidays() {
     remainingHolidays = {};
     holidayDays = 0;
     if (currentEmployee == null || holCat == null || myHolidays == null) {
@@ -1513,32 +1510,31 @@ class _HomePageState extends State<HomePage> {
     DateTime bajaDate = currentEmployee!.getBajaDate();
 
     if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
-          (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
-        factor =
-            1; // If the employee's start date is before the current year, return 0
+        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+      factor =
+          1; // If the employee's start date is before the current year, return 0
+    } else {
+      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+        bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
+      }
+      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+          .difference(DateTime(DateTime.now().year, 1, 1))
+          .inDays;
+      int daysWorked = bajaDate.difference(altaDate).inDays;
+      factor = daysWorked /
+          daysInYear; // Calculate the factor based on the days worked
+    }
+    for (HolidaysCategory cat in holCat!) {
+      if (cat.retroactive) {
+        remainingHolidays[cat.autoCode()] = cat.days;
       } else {
-        if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
-          bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
-        }
-        int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
-            .difference(DateTime(DateTime.now().year, 1, 1))
-            .inDays;
-        int daysWorked = bajaDate.difference(altaDate).inDays;
-        factor = daysWorked /
-            daysInYear; // Calculate the factor based on the days worked
+        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
       }
-      for (HolidaysCategory cat in holCat!) {
-        if (cat.retroactive) {
-          remainingHolidays[cat.autoCode()] = cat.days;
-          
-        } else {
-          remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
-        }
-        if (cat.obligation) {
-          holidayDays = (holidayDays + (cat.days * factor)).round();
-        }
+      if (cat.obligation) {
+        holidayDays = (holidayDays + (cat.days * factor)).round();
       }
-    
+    }
+
     for (HolidaysCategory cat in holCat!) {
       if (cat.retroactive) {
         remainingHolidays[cat.autoCode()] = cat.days;
@@ -1568,7 +1564,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-  
+
   void addHolidayRequestDialog(context) {
     _addHolidayRequestDialog(context).then((value) {
       if (value == null) {
@@ -1714,7 +1710,7 @@ class _HomePageState extends State<HomePage> {
     String remainingHolidaysMsg = "";
 
     if (remainingHolidays.isNotEmpty) {
-      remainingHolidaysMsg = "Días restantes: ";
+      remainingHolidaysMsg = "";
       remainingHolidays.forEach((key, value) {
         if (value > 0) {
           remainingHolidaysMsg += "$key: $value días, ";
@@ -1775,6 +1771,15 @@ class _HomePageState extends State<HomePage> {
                                             "Solicitud de vacaciones",
                                             style: cardHeaderText,
                                           )),
+                                      Container(
+                                          padding: const EdgeInsets.all(10),
+                                          color: Colors.grey[100],
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(remainingHolidaysMsg,
+                                                style: subTitleText,
+                                                textAlign: TextAlign.left),
+                                          )),
                                     ]))),
                         Expanded(
                             flex: 3,
@@ -1785,14 +1790,6 @@ class _HomePageState extends State<HomePage> {
                                 Icons.play_circle_outline_sharp,
                                 context)),
                       ],
-                    )),
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    color: Colors.grey[100],
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(remainingHolidaysMsg,
-                          style: subTitleText, textAlign: TextAlign.center),
                     )),
                 Container(
                     padding:

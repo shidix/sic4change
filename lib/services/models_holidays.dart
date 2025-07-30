@@ -279,8 +279,14 @@ class HolidayRequest {
   }
 
   HolidaysCategory getCategory(List<HolidaysCategory> categories) {
-    return categories.firstWhere((cat) => cat.id == category,
-        orElse: () => HolidaysCategory.getEmpty(name: 'Sin Categoría'));
+    if (categories.any((cat) => cat.id == category)) {
+      return categories.firstWhere((cat) => cat.id == category);
+    } else if (category.isEmpty) {
+      return HolidaysCategory.getEmpty();
+    }
+    category = categories.first.id;
+    save();
+    return categories.first;
   }
 
   static Future<HolidayRequest> byId(String id) async {
