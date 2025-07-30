@@ -12,6 +12,7 @@ class CalendarFormat {
 
 class CalendarWidget extends StatefulWidget {
   final List<HolidayRequest> holidays;
+  final List<HolidaysCategory> categories;
   final Function(DateTime) onDateSelected;
   final List<Employee> employees;
   DateTime selectedDate = DateTime.now();
@@ -23,6 +24,7 @@ class CalendarWidget extends StatefulWidget {
   CalendarWidget({
     super.key,
     required this.holidays,
+    required this.categories,
     required this.onDateSelected,
     required this.employees,
     DateTime? selectedDate,
@@ -79,7 +81,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
           events.add(Event(
             subject:
-                '${employee.aka()} - ${holiday.category?.autoCode() ?? 'N/A'}',
+                '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode() ?? 'N/A'}',
             startTime: holiday.startDate,
             endTime: holiday.endDate,
             notes: '',

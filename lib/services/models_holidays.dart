@@ -151,7 +151,7 @@ class HolidayRequest {
   String id;
   // String uuid;
   String userId;
-  HolidaysCategory? category;
+  String category;
   DateTime startDate;
   DateTime endDate;
   DateTime requestDate;
@@ -186,7 +186,7 @@ class HolidayRequest {
       id: data['id'],
       // uuid: data['uuid'],
       userId: data['userId'],
-      category: null,
+      category: data['category'] ?? '',
       startDate: data['startDate'].toDate(),
       endDate: data['endDate'].toDate(),
       requestDate: data['requestDate'].toDate(),
@@ -195,12 +195,6 @@ class HolidayRequest {
       approvedBy: data['approvedBy'],
       documents: List<String>.from(data['documents'] ?? []),
     );
-
-    String catUuid = data['category'];
-
-    HolidaysCategory.byId(catUuid).then((cat) {
-      item.category = cat;
-    }).catchError((error) {});
 
     return item;
   }
@@ -215,7 +209,7 @@ class HolidayRequest {
         'id': id,
         // 'uuid': uuid,
         'userId': userId,
-        'category': category?.id ?? '',
+        'category': category,
         'startDate': startDate,
         'endDate': endDate,
         'requestDate': requestDate,
@@ -249,6 +243,7 @@ class HolidayRequest {
       DocumentReference docRef =
           await FirebaseFirestore.instance.collection(tbName).add(data);
       id = docRef.id;
+      save();
     } else {
       Map<String, dynamic> data = toJson();
       await FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
@@ -272,7 +267,7 @@ class HolidayRequest {
       id: '',
       // uuid: Uuid().v4(),
       userId: '',
-      category: null,
+      category: '',
       startDate: DateTime.now(),
       endDate: DateTime.now(),
       requestDate: DateTime.now(),
@@ -281,6 +276,11 @@ class HolidayRequest {
       approvedBy: '',
       documents: [],
     );
+  }
+
+  HolidaysCategory getCategory(List<HolidaysCategory> categories) {
+    return categories.firstWhere((cat) => cat.id == category,
+        orElse: () => HolidaysCategory.getEmpty(name: 'Sin Categoría'));
   }
 
   static Future<HolidayRequest> byId(String id) async {
@@ -546,7 +546,7 @@ class HolidaysCategory {
 
   static HolidaysCategory getEmpty(
       {String id = '',
-      String name = '',
+      String name = 'Sin Categoría',
       Organization? organization,
       int days = 0}) {
     return HolidaysCategory(

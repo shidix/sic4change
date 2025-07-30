@@ -891,6 +891,9 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
                 itemCount: myHolidays!.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
+                  HolidaysCategory category = holCat!.firstWhere(
+                      (cat) => cat.id == holiday.category,
+                      orElse: () => HolidaysCategory.getEmpty());
                   return ListTile(
                       subtitle: Column(children: [
                         Row(
@@ -905,7 +908,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
                                       child: Text(
                                         (holiday.category == null)
                                             ? "Sin categoría"
-                                            : holiday.category!.name,
+                                            : category.name,
                                         style: normalText,
                                       )),
                                 )),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-Widget footer(context) {
+Widget footer(BuildContext context) {
   return Container(
       padding: const EdgeInsets.all(3),
       child: Column(
@@ -48,7 +48,7 @@ Widget footer(context) {
                                     height: 100,
                                   )
                                 ])))),
-                                // logo_RTR
+                // logo_RTR
                 Expanded(
                     flex: 2,
                     child: Padding(
@@ -66,7 +66,7 @@ Widget footer(context) {
                                     height: 100,
                                   )
                                 ])))),
-                                // logo_NGEU
+                // logo_NGEU
                 Expanded(
                     flex: 2,
                     child: Padding(

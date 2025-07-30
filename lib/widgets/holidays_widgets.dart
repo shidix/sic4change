@@ -6,6 +6,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 
 Widget buildHolidayListItem(
   BuildContext context,
+  List<HolidaysCategory> categories,
   HolidayRequest holiday, {
   required Function? onTap,
 }) {
@@ -27,7 +28,7 @@ Widget buildHolidayListItem(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
                         (holiday.category != null)
-                            ? holiday.category!.code
+                            ? holiday.getCategory(categories).name
                             : 'Cargando...',
                         style: normalText,
                       )),
@@ -89,7 +90,7 @@ Widget buildHolidayListItem(
                     return infoDialog(
                       context,
                       Icon(Icons.info),
-                      "Solicitud de ${holiday.category?.name ?? 'días libres'}",
+                      "Solicitud de ${holiday.getCategory(categories).name ?? 'días libres'}",
                       "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
                     );
                   });

@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> {
   List<HolidayRequest> myPeopleHolidays = [];
   List<Workday> myPeopleWorkdays = [];
 
+  Widget contentHolidaysPanel = Container();
   Widget contentWorkPanel = Container();
   Widget contentTasksPanel = Container();
   Widget contentProjectsPanel = Container();
@@ -103,34 +104,28 @@ class _HomePageState extends State<HomePage> {
     "rechazado": dangerColor,
   };
 
-  Future<void> loadMyHolidays() async {
-    if (contact == null) {
-      await Contact.byEmail(user.email!).then((value) {
-        contact = value;
-      });
-    }
-    if (holCat == null) {
-      await HolidaysCategory.byOrganization(currentOrganization!).then((value) {
-        holCat = value;
-      });
-    }
-    holidayDays = 0;
-    for (HolidaysCategory cat in holCat!) {
-      if (!cat.retroactive) {
-        holidayDays += cat.days;
-      }
-    }
-    myHolidays ??= [];
-    if (myHolidays!.isNotEmpty) {
-      myHolidays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      for (HolidayRequest holiday in myHolidays!) {
-        if (holiday.status != "Rechazado") {
-          holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        }
-      }
-    }
-  }
+  // Future<List<HolidayRequest>?> loadMyHolidays() async {
+  //   contact ??= await Contact.byEmail(user.email!);
+  //   holCat ??= await HolidaysCategory.byOrganization(currentOrganization!);
+
+  //   holidayDays = 0;
+  //   for (HolidaysCategory cat in holCat!) {
+  //     if (!cat.retroactive) {
+  //       holidayDays += cat.days;
+  //     }
+  //   }
+  //   myHolidays ??= [];
+  //   if (myHolidays!.isNotEmpty) {
+  //     myHolidays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+  //     for (HolidayRequest holiday in myHolidays!) {
+  //       if (holiday.status != "Rechazado") {
+  //         holidayDays -=
+  //             getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+  //       }
+  //     }
+  //   }
+  //   return myHolidays;
+  // }
 
   Future<void> loadMyProjects() async {
     await Contact.byEmail(user.email!).then((value) {
@@ -504,7 +499,7 @@ class _HomePageState extends State<HomePage> {
         ));
 
     return SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
+        height: 600,
         child: SingleChildScrollView(
             child: Padding(
                 padding:
@@ -574,7 +569,10 @@ class _HomePageState extends State<HomePage> {
       TasksStatus.all(),
       SProject.all(),
       loadMyPeopleWorkdays(),
+      HolidayRequest.byUser(user.email!),
     ]);
+
+    myHolidays = results[4] as List<HolidayRequest>;
 
     holCat = results[0] as List<HolidaysCategory>;
     for (HolidaysCategory cat in holCat!) {
@@ -582,7 +580,11 @@ class _HomePageState extends State<HomePage> {
         holidayDays += cat.days;
       }
     }
-    updateHolidayDays().then((value) => holidayDays = value);
+
+    holidayDays = await updateHolidayDays();
+
+    // await loadMyHolidays();
+    contentHolidaysPanel = holidayPanel(context);
 
     final tasksStatusList = results[1] as List<TasksStatus>;
     if (tasksStatusList.isNotEmpty) {
@@ -679,12 +681,13 @@ class _HomePageState extends State<HomePage> {
                     )),
                 CalendarWidget(
                   holidays: myPeopleHolidays,
+                  categories: holCat ?? [],
                   onDateSelected: (date) {
                     print(date);
                     // Handle date selection
                   },
                   employees: mypeople,
-                  height: MediaQuery.of(context).size.height * 0.6,
+                  height: 600,
                 )
               ],
             )));
@@ -728,6 +731,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    mainMenuWidget = mainMenu(context, "/home");
     List<Widget> contents = [];
     if (_currentPage == "home") {
       contents = [
@@ -735,7 +739,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 1, child: contentWorkPanel),
-            Expanded(flex: 1, child: holidayPanel(context)),
+            Expanded(flex: 1, child: contentHolidaysPanel),
           ],
         ),
         Row(
@@ -1447,7 +1451,12 @@ class _HomePageState extends State<HomePage> {
         currentHoliday = null;
       } else {
         // Check if the new holiday request is already in myHolidays
-        if (!myHolidays!.contains(value)) {
+        int index = myHolidays!.indexWhere((holiday) => holiday.id == value.id);
+        if (index >= 0) {
+          // Update existing holiday request
+          myHolidays![index] = value;
+        } else {
+          // Add new holiday request
           myHolidays!.add(value);
         }
       }
@@ -1493,14 +1502,16 @@ class _HomePageState extends State<HomePage> {
       context,
       null,
       () {
+        HolidaysCategory? category = holCat!.firstWhere(
+            (cat) => cat.id == holiday.category,
+            orElse: () => HolidaysCategory.getEmpty());
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               titlePadding: const EdgeInsets.all(0),
               title: s4cTitleBar(
-                  'Probatorios requeridos: ${holiday.category!.docRequired}',
-                  context),
+                  'Probatorios requeridos: ${category.docRequired}', context),
               content: HolidayDocumentsForm(
                   holidayRequest: holiday,
                   afterSave: () {
@@ -1519,15 +1530,16 @@ class _HomePageState extends State<HomePage> {
       scale: "sm",
     );
 
+    HolidaysCategory? category = holCat!.firstWhere(
+        (cat) => cat.id == holiday.category,
+        orElse: () => HolidaysCategory.getEmpty());
+
     return Container(
       alignment: Alignment.center,
       margin: const EdgeInsets.only(bottom: 10),
       child: Tooltip(
-        message:
-            "Se requieren ${holiday.category?.docRequired ?? 0} documentos",
-        child: (holiday.category?.docRequired ?? 0) > 0
-            ? btn
-            : Text("NO REQUIERE"),
+        message: "Se requieren ${category.docRequired} documentos",
+        child: (category.docRequired) > 0 ? btn : Text("NO REQUIERE"),
       ),
     );
   }
@@ -1537,7 +1549,7 @@ class _HomePageState extends State<HomePage> {
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: contact != null
+        child: profile != null
             ? ListView.builder(
                 shrinkWrap: true,
                 itemCount: myHolidays!.length,
@@ -1547,11 +1559,12 @@ class _HomePageState extends State<HomePage> {
                   return Row(children: [
                     Expanded(
                         flex: 8,
-                        child: buildHolidayListItem(context, holiday,
+                        child: buildHolidayListItem(
+                            context, holCat ?? [], holiday,
                             onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
                                 ? () {
                                     currentHoliday = holiday;
-                                    addHolidayRequestDialog(context);
+                                    //addHolidayRequestDialog(context);
                                   }
                                 : null)),
                     Expanded(flex: 2, child: btnDocuments(context, holiday)),

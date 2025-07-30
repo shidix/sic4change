@@ -30,6 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Profile? profile;
   Contact? contact;
   List<HolidayRequest>? myHolidays = [];
+  List<HolidaysCategory> holCat = [];
   int holidayDays = 0;
 
   @override
@@ -201,6 +202,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 itemCount: myHolidays!.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
+                  HolidaysCategory category = holCat.firstWhere(
+                      (cat) => cat.id == holiday.category,
+                      orElse: () => HolidaysCategory.getEmpty());
                   return ListTile(
                       subtitle: Column(children: [
                         Row(
@@ -215,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       child: Text(
                                         (holiday.category == null)
                                             ? "Sin categoría"
-                                            : holiday.category!.name,
+                                            : category.name,
                                         style: normalText,
                                       )),
                                 )),

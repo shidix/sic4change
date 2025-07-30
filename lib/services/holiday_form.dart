@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:googleapis/transcoder/v1.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/pages/admin_holidays_categories_page.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -297,7 +298,10 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       int daysGranted = 0;
       // Sum the days granted for this category
       for (HolidayRequest grantedRequest in granted) {
-        if (grantedRequest.category!.id == category.id &&
+        HolidaysCategory categoryReq = categories.firstWhere(
+            (cat) => cat.id == grantedRequest.category,
+            orElse: () => HolidaysCategory.getEmpty());
+        if (categoryReq.id == category.id &&
             grantedRequest.status == 'Aprobado') {
           daysGranted += grantedRequest.endDate
                   .difference(grantedRequest.startDate)
@@ -320,19 +324,18 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     if (holidayRequest.category == null) {
       // If category is null, set it to the first category in the list
       if (categoryList.isNotEmpty) {
-        holidayRequest.category = categories.first;
+        holidayRequest.category = categories.first.id;
       } else {
-        holidayRequest.category = HolidaysCategory.getEmpty();
-        holidayRequest.category!.name = 'Sin categoría';
+        holidayRequest.category = '';
+        // holidayRequest.category!.name = 'Sin categoría';
       }
     }
     categorySelectField = DropdownButtonFormField(
-        value: holidayRequest.category!.id,
+        value: holidayRequest.category,
         decoration: const InputDecoration(labelText: 'Categoría'),
         items: categoryList,
         onChanged: (value) {
-          holidayRequest.category =
-              categories.firstWhere((cat) => cat.id == value);
+          holidayRequest.category = value ?? '';
         });
     return Form(
       key: _formKey,
@@ -871,11 +874,17 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
   void uploadFile(PlatformFile? file, int index) {
     if (file != null) {
       String extention = file.name.split('.').last;
+      HolidaysCategory catReq = categories.firstWhere(
+          (cat) => cat.id == holidayRequest.category,
+          orElse: () => HolidaysCategory.getEmpty());
+      if (catReq.id == '') {
+        catReq.name = 'NOCAT';
+      }
       uploadFileToStorage(file,
               rootPath:
-                  'files/holidays/${holidayRequest.userId}/${holidayRequest.id}/documents/${holidayRequest.category!.name.replaceAll(" ", "_")}/',
+                  'files/holidays/${holidayRequest.userId}/${holidayRequest.id}/documents/${catReq.name.replaceAll(" ", "_")}/',
               fileName:
-                  '${DateFormat('yyyyMMdd').format(DateTime.now())}_${holidayRequest.category!.autoCode()}_$index.$extention')
+                  '${DateFormat('yyyyMMdd').format(DateTime.now())}_${catReq.autoCode()}_$index.$extention')
           .then((fname) {
         if (holidayRequest.documents.length <= index) {
           holidayRequest.documents.add(fname);
@@ -910,7 +919,7 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                 Expanded(
                   flex: 1,
                   child: Text(
-                      'Documentos requeridos para ${holidayRequest.category!.name}:',
+                      'Documentos requeridos para ${holidayRequest.getCategory(categories).name}:',
                       style: subTitleText,
                       textAlign: TextAlign.center),
                 )
@@ -921,7 +930,7 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text(holidayRequest.category!.docMessage,
+                  child: Text(holidayRequest.getCategory(categories).docMessage,
                       style: subTitleText, textAlign: TextAlign.center),
                 )
               ],
@@ -931,7 +940,9 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  for (int i = 0; i < holidayRequest.category!.docRequired; i++)
+                  for (int i = 0;
+                      i < holidayRequest.getCategory(categories).docRequired;
+                      i++)
                     Expanded(
                         flex: 1,
                         child: Padding(
@@ -954,7 +965,9 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  for (int i = 0; i < holidayRequest.category!.docRequired; i++)
+                  for (int i = 0;
+                      i < holidayRequest.getCategory(categories).docRequired;
+                      i++)
                     Expanded(
                         flex: 1,
                         child: (holidayRequest.documents[i].isNotEmpty)
