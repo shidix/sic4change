@@ -23,13 +23,13 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   Organization? org;
   OrganizationBilling? orgBilling;
   Widget? orgInfoDetailsPanel;
-  List<Country> countries = [];
+  List<Country> countriesList = [];
 
   @override
   void initState() {
     super.initState();
     Country.getAll().then((val) {
-      countries = val;
+      countriesList = val;
     });
     org = widget.org;
     orgInfoDetailsPanel = orgInfoDetails(context);
@@ -156,12 +156,12 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   }
 
   Widget orgInfo(context) {
-    if (countries.any((element) => element.uuid == org!.country)) {
+    if (countriesList.any((element) => element.uuid == org!.country)) {
       org!.countryObj =
-          countries.firstWhere((element) => element.uuid == org!.country);
+          countriesList.firstWhere((element) => element.uuid == org!.country);
     } else {
-      org!.country = countries.first.uuid;
-      org!.countryObj = countries.first;
+      org!.country = countriesList.first.uuid;
+      org!.countryObj = countriesList.first;
       org!.save();
     }
 
@@ -288,7 +288,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
     Organization org = args["org"];
     OrganizationBilling billing = args["billing"];
     List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
-    List<Country> countriesList = await Country.getAll();
+    // List<Country> countriesList = await Country.getAll();
     List<KeyValue> countries = await Country.getCountriesHash();
     if (countriesList.any((element) => element.uuid == org.country)) {
       org.countryObj =
