@@ -1667,19 +1667,20 @@ class _HomePageState extends State<HomePage> {
                         flex: 8,
                         child: buildHolidayListItem(
                             context, holCat ?? [], holiday,
-                            onTap: ((holiday.status.toUpperCase() ==
-                                        'PENDIENTE') &&
-                                    (mounted))
-                                ? () {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      if (!mounted) return;
-
-                                      _editHolidayRequestDialog(holiday);
-                                      // addHolidayRequestDialog(context);
-                                    });
-                                  }
-                                : null)),
+                            onTap:
+                                ((holiday.status.toUpperCase() == 'PENDIENTE'))
+                                    ? () {
+                                        _editHolidayRequestDialog(holiday)
+                                            .then((value) => setState(() {
+                                                  if (value != null) {
+                                                    myHolidays![index] = value;
+                                                  }
+                                                  updateRemainingHolidays();
+                                                  contentHolidaysPanel =
+                                                      holidayPanel();
+                                                }));
+                                      }
+                                    : null)),
                     Expanded(
                         flex: 2,
                         child: (mounted)

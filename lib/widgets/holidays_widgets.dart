@@ -17,71 +17,74 @@ Widget buildHolidayListItem(
     "rechazado": dangerColor,
   };
   return ListTile(
-      subtitle: Column(children: [
-        Row(
-          children: [
-            Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        holiday.getCategory(categories).name,
-                        style: normalText,
-                      )),
+    subtitle: Column(children: [
+      Row(
+        children: [
+          Expanded(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      holiday.getCategory(categories).name,
+                      style: normalText,
+                    )),
+              )),
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  DateFormat('dd-MM-yyyy').format(holiday.startDate),
+                  style: normalText,
+                  textAlign: TextAlign.center,
                 )),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    DateFormat('dd-MM-yyyy').format(holiday.startDate),
-                    style: normalText,
-                    textAlign: TextAlign.center,
-                  )),
-            ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    DateFormat('dd-MM-yyyy').format(holiday.endDate),
-                    style: normalText,
-                    textAlign: TextAlign.center,
-                  )),
-            ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    getWorkingDaysBetween(holiday.startDate, holiday.endDate)
-                        .toString(),
-                    style: normalText,
-                    textAlign: TextAlign.center,
-                  )),
-            ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Card(
-                      color: holidayStatusColors[holiday.status.toLowerCase()]!,
-                      child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Text(
-                            holiday.status.substring(0, 3).toUpperCase(),
-                            style: TextStyle(color: Colors.white),
-                            textAlign: TextAlign.center,
-                          )))),
-            ),
-          ],
-        )
-      ]),
-      onTap: (onTap != null)
-          ? onTap()
-          : (() {
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  DateFormat('dd-MM-yyyy').format(holiday.endDate),
+                  style: normalText,
+                  textAlign: TextAlign.center,
+                )),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  getWorkingDaysBetween(holiday.startDate, holiday.endDate)
+                      .toString(),
+                  style: normalText,
+                  textAlign: TextAlign.center,
+                )),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Card(
+                    color: holidayStatusColors[holiday.status.toLowerCase()]!,
+                    child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          holiday.status.substring(0, 3).toUpperCase(),
+                          style: TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        )))),
+          ),
+        ],
+      )
+    ]),
+    onTap: WidgetsBinding.instance.hasScheduledFrame
+        ? null
+        : () {
+            if (holiday.status.toLowerCase() == 'pendiente') {
+              onTap?.call();
+            } else {
               showDialog(
                   context: context,
                   builder: (BuildContext context) {
@@ -92,5 +95,21 @@ Widget buildHolidayListItem(
                       "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
                     );
                   });
-            }));
+            }
+          },
+    // (onTap != null)
+    //     ? onTap()
+    //     : (() {
+    //         showDialog(
+    //             context: context,
+    //             builder: (BuildContext context) {
+    //               return infoDialog(
+    //                 context,
+    //                 Icon(Icons.info),
+    //                 "Solicitud de ${holiday.getCategory(categories).name}",
+    //                 "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
+    //               );
+    //             });
+    //       }
+  );
 }
