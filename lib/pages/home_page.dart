@@ -26,7 +26,7 @@ import 'package:sic4change/widgets/calendar_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
-import 'package:sic4change/widgets/holidays_widgets.dart';
+// import 'package:sic4change/widgets/holidays_widgets.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 // import 'package:sic4change/pages/contacts_page.dart';
@@ -1665,22 +1665,110 @@ class _HomePageState extends State<HomePage> {
                   return Row(children: [
                     Expanded(
                         flex: 8,
-                        child: buildHolidayListItem(
-                            context, holCat ?? [], holiday,
-                            onTap:
-                                ((holiday.status.toUpperCase() == 'PENDIENTE'))
-                                    ? () {
-                                        _editHolidayRequestDialog(index)
-                                            .then((value) => setState(() {
-                                                  if (value != null) {
-                                                    myHolidays![index] = value;
-                                                  }
-                                                  updateRemainingHolidays();
-                                                  contentHolidaysPanel =
-                                                      holidayPanel();
-                                                }));
-                                      }
-                                    : null)),
+                        child: ListTile(
+                          subtitle: Column(children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                    flex: 2,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            holiday.getCategory(holCat!).name,
+                                            style: normalText,
+                                          )),
+                                    )),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(holiday.startDate),
+                                        style: normalText,
+                                        textAlign: TextAlign.center,
+                                      )),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(holiday.endDate),
+                                        style: normalText,
+                                        textAlign: TextAlign.center,
+                                      )),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        getWorkingDaysBetween(holiday.startDate,
+                                                holiday.endDate)
+                                            .toString(),
+                                        style: normalText,
+                                        textAlign: TextAlign.center,
+                                      )),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Card(
+                                          color: holidayStatusColors[
+                                              holiday.status.toLowerCase()]!,
+                                          child: Padding(
+                                              padding: const EdgeInsets.all(10),
+                                              child: Text(
+                                                holiday.status
+                                                    .substring(0, 3)
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                                textAlign: TextAlign.center,
+                                              )))),
+                                ),
+                              ],
+                            )
+                          ]),
+                          onTap: () {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (holiday.status.toLowerCase() == 'pendiente') {
+                                _editHolidayRequestDialog(index).then((value) {
+                                  if (value != null) {
+                                    myHolidays![index] = value;
+                                    updateRemainingHolidays();
+                                    if (mounted) {
+                                      setState(() {
+                                        contentHolidaysPanel = holidayPanel();
+                                      });
+                                    }
+                                  }
+                                });
+                              } else {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return infoDialog(
+                                        context,
+                                        Icon(Icons.info),
+                                        "Solicitud de ${holiday.getCategory(holCat!).name}",
+                                        "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
+                                      );
+                                    });
+                              }
+                            });
+                          },
+                        )),
                     Expanded(
                         flex: 2,
                         child: (mounted)
