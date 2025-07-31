@@ -1576,12 +1576,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<HolidayRequest?> _editHolidayRequestDialog(
-      HolidayRequest holiday) async {
+  Future<HolidayRequest?> _editHolidayRequestDialog(int index) async {
     return showDialog<HolidayRequest>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
+        HolidayRequest holiday = myHolidays!.elementAt(index);
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Editar solicitud de días libres', context),
@@ -1670,7 +1670,7 @@ class _HomePageState extends State<HomePage> {
                             onTap:
                                 ((holiday.status.toUpperCase() == 'PENDIENTE'))
                                     ? () {
-                                        _editHolidayRequestDialog(holiday)
+                                        _editHolidayRequestDialog(index)
                                             .then((value) => setState(() {
                                                   if (value != null) {
                                                     myHolidays![index] = value;
