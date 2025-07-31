@@ -1576,6 +1576,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<HolidayRequest?> _editHolidayRequestDialog(
+      HolidayRequest holiday) async {
+    return showDialog<HolidayRequest>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Editar solicitud de días libres', context),
+          content: HolidayRequestForm(
+              key: null,
+              currentRequest: holiday,
+              user: user,
+              profile: profile!,
+              categories: holCat!,
+              remainingHolidays: remainingHolidays,
+              granted: myHolidays!
+                  .where((element) =>
+                      (element.status.toLowerCase() == "aprobado" ||
+                          element.status.toLowerCase() == "concedido"))
+                  .toList()),
+        );
+      },
+    );
+  }
+
   Widget btnDocuments(context, HolidayRequest holiday) {
     Widget btn = actionButton(
       context,
@@ -1623,7 +1649,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget holidayRows() {
+  Widget holidayRows(context) {
     return Container(
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -1635,17 +1661,23 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
                   // return ListTile with info popup
+
                   return Row(children: [
                     Expanded(
                         flex: 8,
                         child: buildHolidayListItem(
                             context, holCat ?? [], holiday,
-                            onTap: (holiday.status.toUpperCase() == 'PENDIENTE')
+                            onTap: ((holiday.status.toUpperCase() ==
+                                        'PENDIENTE') &&
+                                    (mounted))
                                 ? () {
-                                    currentHoliday = holiday;
-                                    // (mounted)
-                                    //     ? addHolidayRequestDialog(context)
-                                    //     : null;
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (!mounted) return;
+
+                                      _editHolidayRequestDialog(holiday);
+                                      // addHolidayRequestDialog(context);
+                                    });
                                   }
                                 : null)),
                     Expanded(
@@ -1808,7 +1840,7 @@ class _HomePageState extends State<HomePage> {
                   height: 1,
                   color: Colors.grey[300],
                 ),
-                holidayRows(),
+                mounted ? holidayRows(context) : Container(),
               ],
             )));
   }

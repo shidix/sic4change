@@ -80,7 +80,7 @@ Widget buildHolidayListItem(
         )
       ]),
       onTap: (onTap != null)
-          ? (onTap())
+          ? onTap()
           : (() {
               showDialog(
                   context: context,
