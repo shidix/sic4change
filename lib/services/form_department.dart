@@ -237,11 +237,14 @@ class _DepartmentFormState extends State<DepartmentForm> {
                 ),
                 CustomSelectFormField(
                   labelText: "Supervisor",
-                  initial: department.manager ?? '',
+                  initial: (supervisors.any((e) => e.id == department.manager)
+                      ? department.manager ?? ''
+                      : ''),
                   options: supervisorsOptions,
                   onSelectedOpt: (value) {
-                    manager = employees.firstWhere((e) => e.id == value,
-                        orElse: () => Employee.getEmpty());
+                    if (supervisors.any((e) => e.id == value)) {
+                      manager = supervisors.firstWhere((e) => e.id == value);
+                    }
                   },
                 ),
                 const Text('Empleados', style: mainText),

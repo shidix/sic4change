@@ -233,14 +233,15 @@ class _HierarchyPageState extends State<HierarchyPage> {
           await d.save();
         }
       }
-
-      setState(() {
-        allDepartments = aux;
-        employees = results[1] as List<Employee>;
-        contentPanel = departmentPanel();
-        mainMenuPanel = mainMenu(context, "/rrhh");
-        secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
-      });
+      if (mounted) {
+        setState(() {
+          allDepartments = aux;
+          employees = results[1] as List<Employee>;
+          contentPanel = departmentPanel();
+          mainMenuPanel = mainMenu(context, "/rrhh");
+          secondaryMenuPanel = secondaryMenu(context, HIERARCHY_ITEM);
+        });
+      }
     } catch (e) {
       print('Error initializing data: $e');
       if (mounted) {
@@ -328,6 +329,24 @@ class _HierarchyPageState extends State<HierarchyPage> {
     employeesInOtherDepartments
         .removeWhere((testEmp) => (testEmp.id == '' || testEmp.id == null));
 
+    for (Employee emp in employeesInOtherDepartments) {
+      if (allowedEmployees.any((testEmp) => testEmp.id == emp.id)) {
+        allowedEmployees.removeWhere((testEmp) => testEmp.id == emp.id);
+      }
+    }
+
+    List<Employee> supervisors = [];
+    for (Employee emp in employees) {
+      // Check if the employee has tha same domain as the current organization
+
+      if ((emp.organization == currentOrganization?.id) ||
+          (emp.email.isNotEmpty &&
+              emp.email.contains('@') &&
+              emp.email.endsWith('@${currentOrganization!.domain}'))) {
+        supervisors.add(emp);
+      }
+    }
+
     Widget titleBar = s4cTitleBar(const Padding(
         padding: EdgeInsets.all(5),
         child: Text('Departamentos',
@@ -356,7 +375,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
                 content: DepartmentForm(
                     profile: profile!,
                     department: currentDepartment!,
-                    supervisors: [...employees],
+                    supervisors: [...supervisors],
                     employees: [...allowedEmployees],
                     allDepartments: [...allDepartments],
                     onSaved: () {
@@ -364,6 +383,7 @@ class _HierarchyPageState extends State<HierarchyPage> {
                         allDepartments.add(currentDepartment!);
                         departmentsHash[currentDepartment!.id!] =
                             currentDepartment!;
+
                         setState(() {
                           contentPanel = departmentPanel();
                         });
