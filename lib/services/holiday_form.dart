@@ -337,7 +337,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         items: categoryList,
         onChanged: (value) {
           holidayRequest.category = value ?? '';
+          if (mounted) {
+            setState(() {});
+          }
         });
+
+    bool isRetroactive = holidayRequest.getCategory(categories).retroactive;
 
     return Form(
       key: _formKey,
@@ -360,12 +365,15 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                 labelText: 'Período',
                 errorMessage: errorMessage,
                 calendarRangeDate: DateTimeRange(
-                    start: DateTime.now(),
+                    start: (isRetroactive)
+                        ? DateTime.now().subtract(Duration(days: 365))
+                        : DateTime.now(),
                     end: DateTime.now().add(Duration(days: 365))),
                 selectedDate: DateTimeRange(
                     start: holidayRequest.startDate,
                     end: holidayRequest.endDate),
                 onSelectedDate: (DateTimeRange date) {
+                  errorMessage = null; // Reset error message
                   setState(() {
                     int workingDays =
                         getWorkingDaysBetween(date.start, date.end);
