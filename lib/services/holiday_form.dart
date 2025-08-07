@@ -214,6 +214,15 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       holidayRequest.approvalDate = DateTime(2099, 12, 31);
       holidayRequest.status = "Pendiente";
       holidayRequest.approvedBy = "";
+    } else {
+      // Add the current days to the remaining holidays
+      HolidaysCategory cat = holidayRequest.getCategory(categories);
+      if (cat.id != '') {
+        remainingHolidays[cat.autoCode()] =
+            (remainingHolidays[cat.autoCode()] ?? 0) +
+                getWorkingDaysBetween(
+                    holidayRequest.startDate, holidayRequest.endDate);
+      }
     }
   }
 
