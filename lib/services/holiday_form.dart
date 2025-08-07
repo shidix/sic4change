@@ -225,6 +225,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       formKey.currentState!.save();
       holidayRequest.save().then((value) {
         if (mounted) {
+          print("HolidayRequest saved: ${holidayRequest.id}");
           Navigator.of(context).pop(value);
         }
       });
@@ -238,7 +239,9 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
       holidayRequest.delete();
-      Navigator.of(context).pop(HolidayRequest.getEmpty());
+      HolidayRequest item = HolidayRequest.getEmpty();
+      item.id = "--remove--";
+      Navigator.of(context).pop(item);
     }
   }
 

@@ -1546,12 +1546,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
+    String currentHolidayId = '';
     if (currentHoliday == null) {
       currentHoliday = HolidayRequest.getEmpty();
       currentHoliday!.userId = user.email!;
+    } else {
+      currentHolidayId = currentHoliday!.id;
     }
 
-    return showDialog<HolidayRequest>(
+    HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
@@ -1574,10 +1577,35 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+
+    if (item != null) {
+      // Check if the new holiday request is already in myHolidays
+      if (item.id == "--remove--") {
+        myHolidays!.removeWhere((holiday) => holiday.id == currentHolidayId);
+        currentHoliday = null;
+      } else {
+        int index = myHolidays!.indexWhere((holiday) => holiday.id == item.id);
+        if (index != -1) {
+          myHolidays![index] = item; // Update existing request
+        } else {
+          myHolidays!.add(item); // Add new request
+        }
+      }
+      updateRemainingHolidays();
+      if (mounted) {
+        setState(() {
+          myHolidays = myHolidays;
+          contentHolidaysPanel = holidayPanel();
+        });
+      }
+    }
+    return item;
   }
 
   Future<HolidayRequest?> _editHolidayRequestDialog(int index) async {
-    return showDialog<HolidayRequest>(
+    currentHoliday = myHolidays!.elementAt(index);
+    String currentHolidayId = currentHoliday!.id;
+    HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
@@ -1600,6 +1628,24 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+    if (item != null) {
+      if (item.id == "--remove--") {
+        myHolidays!.removeWhere((test) => test.id == currentHolidayId);
+        currentHoliday = null;
+      } else {
+        // If the item is the same as the current holiday, update it
+        myHolidays![index] = item;
+      }
+      if (mounted) {
+        updateRemainingHolidays();
+
+        setState(() {
+          myHolidays = myHolidays;
+          contentHolidaysPanel = holidayPanel();
+        });
+      }
+    }
+    return item;
   }
 
   Widget btnDocuments(context, HolidayRequest holiday) {
@@ -1743,17 +1789,7 @@ class _HomePageState extends State<HomePage> {
                           onTap: () {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (holiday.status.toLowerCase() == 'pendiente') {
-                                _editHolidayRequestDialog(index).then((value) {
-                                  if (value != null) {
-                                    myHolidays![index] = value;
-                                    updateRemainingHolidays();
-                                    if (mounted) {
-                                      setState(() {
-                                        contentHolidaysPanel = holidayPanel();
-                                      });
-                                    }
-                                  }
-                                });
+                                _editHolidayRequestDialog(index);
                               } else {
                                 showDialog(
                                     context: context,
