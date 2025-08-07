@@ -779,15 +779,18 @@ class _HomePageState extends State<HomePage> {
           children: [
             Expanded(
                 flex: 1,
-                child:
-                    // Strint with full name of everyone in mypeople
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          "Personal a cargo: ${mypeople.map((e) => e.getFullName()).join(', ')}",
-                          style: subTitleText,
-                          textAlign: TextAlign.center,
-                        ))),
+                child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Card(
+                        color: Colors.white,
+                        elevation: 2,
+                        child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              "Personal a cargo: ${mypeople.map((e) => '${e.getFullName()} [${e.aka()}]').join(', ')}",
+                              style: subTitleText,
+                              textAlign: TextAlign.center,
+                            ))))),
           ],
         ),
         Row(

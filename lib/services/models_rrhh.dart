@@ -658,6 +658,13 @@ class Employee {
     String fullName = getFullName().toUpperCase();
     List<String> parts = fullName.split(' ');
     // return firts character of each part => 'Daniel Jacobo Diaz Gonzalez' => 'DJDG'
+    try {
+      return parts.map((part) => part[0]).join('');
+    } catch (e) {
+      print('Error getting aka: $e');
+      // If there is an error, return the first three letters of the first name
+      return email.split('@')[0];
+    }
     String initials = parts.map((part) => part[0]).join('');
     return initials;
 
@@ -1102,6 +1109,14 @@ class Employee {
   }
 
   String getFullName() {
+    // Remove any leading or trailing spaces from firstName, lastName1, and lastName2
+    firstName = firstName.trim();
+    lastName1 = lastName1.trim();
+    lastName2 = lastName2.trim();
+    // Remove any extra spaces between names
+    firstName = firstName.replaceAll(RegExp(r'\s+'), ' ');
+    lastName1 = lastName1.replaceAll(RegExp(r'\s+'), ' ');
+    lastName2 = lastName2.replaceAll(RegExp(r'\s+'), ' ');
     return '$firstName $lastName1 $lastName2';
   }
 }
