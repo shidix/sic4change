@@ -193,6 +193,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadMyData() async {
     contact ??= await Contact.byEmail(user.email!);
+    currentEmployee ??= await Employee.byEmail(user.email!);
     final results = await Future.wait([
       contact!.getProjects(),
       STask.getByAssigned(user.email!, lazy: true),
@@ -210,7 +211,6 @@ class _HomePageState extends State<HomePage> {
     contentTasksPanel = tasksPanel();
     contentProjectsPanel = projectsPanel();
     myHolidays = results[2] as List<HolidayRequest>;
-    currentEmployee ??= await Employee.byEmail(user.email!);
     updateRemainingHolidays();
 
     myWorkdays = results[3] as List<Workday>;
@@ -744,6 +744,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Remove duplicate from mypeople
+    // mypeople = mypeople.toSet().toList();
     mainMenuWidget = mainMenu(context, "/home");
     List<Widget> contents = [];
     if (_currentPage == "home") {
@@ -772,6 +774,22 @@ class _HomePageState extends State<HomePage> {
       ];
     } else if (_currentPage == "yourpeople") {
       contents = [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                flex: 1,
+                child:
+                    // Strint with full name of everyone in mypeople
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          "Personal a cargo: ${mypeople.map((e) => e.getFullName()).join(', ')}",
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        ))),
+          ],
+        ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -100,17 +100,56 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   Widget dayCell(DateTime date) {
     bool isHoliday = widget.holidays.any((holiday) =>
-        date.isAfter(holiday.startDate.subtract(const Duration(days: 1))) &&
-        date.isBefore(holiday.endDate.add(const Duration(days: 1))) &&
+        date.isAfter(truncDate(holiday.startDate)
+            .subtract(const Duration(seconds: 1))) &&
+        date.isBefore(
+            truncDate(holiday.endDate).add(const Duration(days: 1))) &&
         !holiday.isRejected());
 
     // Extract holidays in this date
     List<HolidayRequest> holidaysInDate = widget.holidays
         .where((holiday) =>
-            date.isAfter(holiday.startDate.subtract(const Duration(days: 1))) &&
-            date.isBefore(holiday.endDate.add(const Duration(days: 1))) &&
+            date.isAfter(truncDate(holiday.startDate)
+                .subtract(const Duration(seconds: 1))) &&
+            date.isBefore(
+                truncDate(holiday.endDate).add(const Duration(days: 1))) &&
             !holiday.isRejected())
         .toList();
+
+    String textCell = '';
+    String textPending = '';
+    //Get the aka from employees where email is in holidaysInDate
+    if (holidaysInDate.isNotEmpty) {
+      List<HolidayRequest> holidaysInDateAproved =
+          holidaysInDate.where((holiday) => holiday.isAproved()).toList();
+      List<HolidayRequest> holidaysInDatePending =
+          holidaysInDate.where((holiday) => holiday.isPending()).toList();
+
+      textCell = holidaysInDateAproved.map((holiday) {
+        if ((widget.employees
+                    .indexWhere((test) => test.email == holiday.userId) !=
+                -1) &&
+            (holiday!.isAproved())) {
+          Employee employee =
+              widget.employees.firstWhere((emp) => emp.email == holiday.userId);
+          return employee.aka();
+        } else {
+          return '';
+        }
+      }).join(', ');
+      textPending = holidaysInDatePending.map((holiday) {
+        if ((widget.employees
+                    .indexWhere((test) => test.email == holiday.userId) !=
+                -1) &&
+            (holiday!.isPending())) {
+          Employee employee =
+              widget.employees.firstWhere((emp) => emp.email == holiday.userId);
+          return employee.aka();
+        } else {
+          return '';
+        }
+      }).join(', ');
+    }
 
     return Expanded(
         flex: 1,
@@ -147,16 +186,40 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       ),
                     ),
                     if (isHoliday)
-                      ...holidaysInDate.map((holiday) => Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Text(
-                              holiday.userId.split('@')[0],
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          textCell,
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    if (textPending.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          textPending,
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    // if (isHoliday)
+                    //   ...holidaysInDate.map((holiday) => Padding(
+                    //         padding: const EdgeInsets.all(4.0),
+                    //         child: Text(
+                    //           holiday.userId.split('@')[0],
+                    //           style: const TextStyle(
+                    //             color: Colors.red,
+                    //             fontWeight: FontWeight.bold,
+                    //           ),
+                    //         ),
+                    //       )),
                   ],
                 ),
               )),

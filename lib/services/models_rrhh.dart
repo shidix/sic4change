@@ -655,6 +655,12 @@ class Employee {
   }
 
   String aka() {
+    String fullName = getFullName().toUpperCase();
+    List<String> parts = fullName.split(' ');
+    // return firts character of each part => 'Daniel Jacobo Diaz Gonzalez' => 'DJDG'
+    String initials = parts.map((part) => part[0]).join('');
+    return initials;
+
     if (email != '') {
       return email.split('@')[0];
     }
@@ -1026,6 +1032,7 @@ class Employee {
         .where((element) =>
             (element != id) && (element != null) && (element != ''))
         .toList();
+
     if (items.isEmpty) return [];
 
     return await Employee.byId(

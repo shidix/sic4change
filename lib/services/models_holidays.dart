@@ -262,6 +262,16 @@ class HolidayRequest {
         status.toLowerCase() == 'rejected';
   }
 
+  bool isAproved() {
+    return status.toLowerCase() == 'aprobado' ||
+        status.toLowerCase() == 'approved';
+  }
+
+  bool isPending() {
+    return status.toLowerCase() == 'pendiente' ||
+        status.toLowerCase() == 'pending';
+  }
+
   static HolidayRequest getEmpty() {
     return HolidayRequest(
       id: '',
