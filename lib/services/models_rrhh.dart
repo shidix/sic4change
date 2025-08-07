@@ -747,21 +747,34 @@ class Employee {
     return bornDate ?? DateTime(1924, 1, 1);
   }
 
-  Future<Employee> save() async {
+  // Future<Employee> save() async {
+  //   altas.sort((a, b) => a.date.compareTo(b.date));
+  //   // bajas.sort((a, b) => a.date.compareTo(b.date));
+  //   if (id == null) {
+  //     await FirebaseFirestore.instance
+  //         .collection(tbName)
+  //         .add(toJson())
+  //         .then((value) => id = value.id);
+  //     FirebaseFirestore.instance.collection(tbName).doc(id).set(toJson());
+  //   } else {
+  //     await FirebaseFirestore.instance
+  //         .collection(tbName)
+  //         .doc(id)
+  //         .update(toJson());
+  //   }
+  //   return this;
+  // }
+  void save() {
     altas.sort((a, b) => a.date.compareTo(b.date));
     // bajas.sort((a, b) => a.date.compareTo(b.date));
-    if (id == null) {
-      await FirebaseFirestore.instance
-          .collection(tbName)
-          .add(toJson())
-          .then((value) => id = value.id);
+    if (id == null || id!.isEmpty) {
+      FirebaseFirestore.instance.collection(tbName).add(toJson()).then((value) {
+        id = value.id;
+        save();
+      });
     } else {
-      await FirebaseFirestore.instance
-          .collection(tbName)
-          .doc(id)
-          .update(toJson());
+      FirebaseFirestore.instance.collection(tbName).doc(id).update(toJson());
     }
-    return this;
   }
 
   Future<void> delete() async {
