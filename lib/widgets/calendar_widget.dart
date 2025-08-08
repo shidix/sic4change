@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_calendar_holidays.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 
 class CalendarFormat {
   static const month = 'month';
@@ -49,11 +52,13 @@ class CalendarWidget extends StatefulWidget {
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
+  final user = FirebaseAuth.instance.currentUser!;
   List<Event> events = [];
   late DateTime selectedDate;
   late DateTime startDate;
   late DateTime endDate;
   final ScrollController _scrollController = ScrollController();
+  late List<HolidayRequest> listHolidays = [];
 
   bool isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
@@ -65,15 +70,147 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return EventTile(event: event);
   }
 
+  // Dialog to show the list of holidays for the selected date
+  Future<void> showHolidaysDialog(DateTime date) async {
+    List<HolidayRequest> holidaysInDate = listHolidays
+        .where((holiday) =>
+            date.isAfter(truncDate(holiday.startDate)
+                .subtract(const Duration(seconds: 1))) &&
+            date.isBefore(
+                truncDate(holiday.endDate).add(const Duration(days: 1))))
+        .toList();
+    if (holidaysInDate.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay solicitudes de vacaciones para este día.'),
+        ),
+      );
+      return;
+    }
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+              'Solicitudes de vacaciones para ${date.day} ${MONTHS[date.month - 1]}'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: holidaysInDate.map((holiday) {
+                Employee employee = widget.employees.firstWhere(
+                    (emp) => emp.email == holiday.userId,
+                    orElse: () => Employee.getEmpty(name: 'Desconocido'));
+                return Row(children: [
+                  Expanded(
+                      flex: 4,
+                      child: ListTile(
+                        title: Text(
+                            '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: holiday.isAproved()
+                                    ? Colors.green
+                                    : (holiday.isPending()
+                                        ? Colors.orange
+                                        : Colors.red))),
+                        subtitle: Text(
+                            '${holiday.startDate.day} ${MONTHS[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MONTHS[holiday.endDate.month - 1]}'),
+                      )),
+                  if (!holiday.isAproved())
+                    Expanded(
+                        flex: 1,
+                        child: actionButton(context, "Aprobar", (args) {
+                          HolidayRequest holiday = args[0];
+                          // Approve the holiday request
+                          holiday.status = 'Aprobado';
+                          holiday.approvalDate = DateTime.now();
+                          holiday.approvedBy = user.email!;
+                          holiday.save();
+                          // Search holiday in the holidays list and update it
+                          int index = listHolidays
+                              .indexWhere((h) => h.id == holiday.id);
+                          if (index != -1) {
+                            listHolidays[index] = holiday;
+                          }
+                          if (mounted) {
+                            setState(() {});
+                            // Update this dialog
+                            Navigator.of(context).pop();
+                            showHolidaysDialog(date);
+                          }
+                        }, Icons.check, [holiday, null])),
+                  if (!holiday.isRejected())
+                    Expanded(
+                        flex: 1,
+                        child: actionButton(context, "Rechazar", (args) {
+                          HolidayRequest holiday = args[0];
+                          // Reject the holiday request
+                          holiday.status = 'Rechazado';
+                          holiday.approvalDate = DateTime.now();
+                          holiday.approvedBy = user.email!;
+                          holiday.save();
+                          // Search holiday in the holidays list and update it
+                          int index = listHolidays
+                              .indexWhere((h) => h.id == holiday.id);
+                          if (index != -1) {
+                            listHolidays[index] = holiday;
+                          }
+                          if (mounted) {
+                            // Update this dialog
+                            setState(() {});
+                            Navigator.of(context).pop();
+                            showHolidaysDialog(date);
+                          }
+                        }, Icons.close, [holiday, null])),
+                  if (!holiday.isPending())
+                    Expanded(
+                        flex: 1,
+                        child: actionButton(context, "Pendiente", (args) {
+                          HolidayRequest holiday = args[0];
+                          // Reject the holiday request
+                          holiday.status = 'Pendiente';
+                          holiday.approvalDate = DateTime.now();
+                          holiday.approvedBy = user.email!;
+                          holiday.save();
+                          // Search holiday in the holidays list and update it
+                          int index = listHolidays
+                              .indexWhere((h) => h.id == holiday.id);
+                          if (index != -1) {
+                            listHolidays[index] = holiday;
+                          }
+                          if (mounted) {
+                            setState(() {});
+                            // Update this dialog
+                            Navigator.of(context).pop();
+                            showHolidaysDialog(date);
+                          }
+                        }, Icons.close, [holiday, null])),
+                ]);
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
 
+    listHolidays = widget.holidays;
     selectedDate = widget.selectedDate;
     startDate = widget.startDate;
     endDate = widget.endDate;
-    for (HolidayRequest holiday in widget.holidays) {
-      if (!holiday.isRejected()) {
+    for (HolidayRequest holiday in listHolidays) {
+      if (true) {
         //Check if idUser is in the list of employees
         if (widget.employees.any((emp) => emp.email == holiday.userId)) {
           Employee employee =
@@ -99,7 +236,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   }
 
   Widget dayCell(DateTime date) {
-    bool isHoliday = widget.holidays.any((holiday) =>
+    bool isHoliday = listHolidays.any((holiday) =>
         date.isAfter(truncDate(holiday.startDate)
             .subtract(const Duration(seconds: 1))) &&
         date.isBefore(
@@ -107,29 +244,30 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         !holiday.isRejected());
 
     // Extract holidays in this date
-    List<HolidayRequest> holidaysInDate = widget.holidays
+    List<HolidayRequest> holidaysInDate = listHolidays
         .where((holiday) =>
             date.isAfter(truncDate(holiday.startDate)
                 .subtract(const Duration(seconds: 1))) &&
             date.isBefore(
-                truncDate(holiday.endDate).add(const Duration(days: 1))) &&
-            !holiday.isRejected())
+                truncDate(holiday.endDate).add(const Duration(days: 1))))
         .toList();
 
     String textCell = '';
     String textPending = '';
+    String textRejected = '';
     //Get the aka from employees where email is in holidaysInDate
     if (holidaysInDate.isNotEmpty) {
       List<HolidayRequest> holidaysInDateAproved =
           holidaysInDate.where((holiday) => holiday.isAproved()).toList();
       List<HolidayRequest> holidaysInDatePending =
           holidaysInDate.where((holiday) => holiday.isPending()).toList();
+      List<HolidayRequest> holidaysInDateRejected =
+          holidaysInDate.where((holiday) => holiday.isRejected()).toList();
 
       textCell = holidaysInDateAproved.map((holiday) {
-        if ((widget.employees
-                    .indexWhere((test) => test.email == holiday.userId) !=
-                -1) &&
-            (holiday!.isAproved())) {
+        if (widget.employees
+                .indexWhere((test) => test.email == holiday.userId) !=
+            -1) {
           Employee employee =
               widget.employees.firstWhere((emp) => emp.email == holiday.userId);
           return employee.aka();
@@ -138,10 +276,20 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         }
       }).join(', ');
       textPending = holidaysInDatePending.map((holiday) {
-        if ((widget.employees
-                    .indexWhere((test) => test.email == holiday.userId) !=
-                -1) &&
-            (holiday!.isPending())) {
+        if (widget.employees
+                .indexWhere((test) => test.email == holiday.userId) !=
+            -1) {
+          Employee employee =
+              widget.employees.firstWhere((emp) => emp.email == holiday.userId);
+          return employee.aka();
+        } else {
+          return '';
+        }
+      }).join(', ');
+      textRejected = holidaysInDateRejected.map((holiday) {
+        if (widget.employees
+                .indexWhere((test) => test.email == holiday.userId) !=
+            -1) {
           Employee employee =
               widget.employees.firstWhere((emp) => emp.email == holiday.userId);
           return employee.aka();
@@ -154,10 +302,20 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return Expanded(
         flex: 1,
         child: GestureDetector(
+          onDoubleTap: () {
+            showHolidaysDialog(date).then((_) {
+              // Scrool to the week of the selected date
+              int weekForSelectedDate =
+                  ((date.difference(startDate).inDays) / 7).floor();
+              _scrollController.jumpTo(weekForSelectedDate * 100.0);
+              setState(() {
+                selectedDate = date;
+              });
+            });
+          },
           onTap: () {
             setState(() {
               selectedDate = date;
-              print(date);
             });
           },
           child: Container(
@@ -179,7 +337,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       child: Text(
                         '${date.day} ${MONTHS[date.month - 1].substring(0, 3)}',
                         style: TextStyle(
-                          color: isHoliday ? Colors.red : Colors.black,
+                          color: isHoliday ? Colors.black : Colors.grey,
                           fontWeight:
                               isHoliday ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -204,6 +362,18 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                           textPending,
                           style: const TextStyle(
                             color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    if (textRejected.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          textRejected,
+                          style: const TextStyle(
+                            color: Colors.red,
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),

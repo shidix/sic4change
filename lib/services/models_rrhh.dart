@@ -665,14 +665,6 @@ class Employee {
       // If there is an error, return the first three letters of the first name
       return email.split('@')[0];
     }
-    String initials = parts.map((part) => part[0]).join('');
-    return initials;
-
-    if (email != '') {
-      return email.split('@')[0];
-    }
-    // return intials
-    return '${firstName[0]}${lastName1[0]}${lastName2[0]}_${bornDate!.year}';
   }
 
   factory Employee.fromJson(Map<String, dynamic> json) {
