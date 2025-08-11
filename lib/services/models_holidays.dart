@@ -10,7 +10,7 @@ class HolidaysConfig {
   String name = "";
   int year;
   int totalDays;
-  Organization organization;
+  String organization;
   List<Event> gralHolidays;
   List<Employee> employees = [];
 
@@ -31,7 +31,7 @@ class HolidaysConfig {
       name: data['name'] ?? '',
       year: data['year'],
       totalDays: data['totalDays'],
-      organization: Organization.fromJson(data['organization']),
+      organization: data['organization'] ?? '',
       gralHolidays: (data['gralHolidays'] as List)
           .map<Event>((e) => Event.fromJson(e))
           .toList(),
@@ -64,7 +64,7 @@ class HolidaysConfig {
         'name': name,
         'year': year,
         'totalDays': totalDays,
-        'organization': organization.toJson(),
+        'organization': organization,
         'gralHolidays': gralHolidays.map((e) => e.toJson()).toList(),
         'employees': employees.map((e) => e.id).toList(),
       };
@@ -80,7 +80,7 @@ class HolidaysConfig {
       name: '',
       year: DateTime.now().year,
       totalDays: 0,
-      organization: Organization.getEmpty(),
+      organization: '',
       gralHolidays: [],
     );
   }
@@ -119,6 +119,7 @@ class HolidaysConfig {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
+        save(); // Save again to update the id
       });
     } else {
       Map<String, dynamic> data = toJson();

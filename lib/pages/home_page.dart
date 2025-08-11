@@ -671,7 +671,7 @@ class _HomePageState extends State<HomePage> {
                                       Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Solicitud de vacaciones",
+                                            "Solicitud de permisos",
                                             style: cardHeaderText,
                                           )),
                                       Row(
@@ -1901,7 +1901,7 @@ class _HomePageState extends State<HomePage> {
                                       const Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Solicitud de vacaciones",
+                                            "Solicitud de permisos",
                                             style: cardHeaderText,
                                           )),
                                       Container(

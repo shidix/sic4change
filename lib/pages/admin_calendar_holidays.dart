@@ -148,6 +148,9 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   HolidaysConfig? holidaysConfig;
   Widget content = const Center(child: CircularProgressIndicator());
   Widget? listDatesView;
+  late ProfileProvider _profileProvider;
+  late VoidCallback _listener;
+
   // List<Employee>? employees;
 
   Widget holidayHeader(context) {
@@ -171,134 +174,251 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     ]);
   }
 
+  void initializeData() async {
+    if (!(mounted)) return;
+
+    if (currentOrganization == null) {
+      content = const Center(
+          child: Text("No hay organización asignada a este usuario"));
+      return;
+    }
+    if (profile == null) {
+      content = const Center(child: Text("No hay perfil de usuario"));
+      return;
+    }
+    // Check if the user has permissions
+    checkPermissions(
+        context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    // If the user has permissions, load the holidays configuration
+
+    // Load holidays configuration for the current organization
+    final results = await Future.wait([
+      HolidaysConfig.byOrganization(currentOrganization!.id),
+    ]);
+
+    holidaysList = results[0];
+    // Filter holidays for the current year
+    holidaysList = holidaysList!
+        .where((element) => element.year == DateTime.now().year)
+        .toList();
+    if (holidaysList!.isNotEmpty) {
+      holidaysConfig = holidaysList!.last;
+    } else {
+      holidaysConfig = HolidaysConfig.getEmpty();
+      holidaysConfig!.year = DateTime.now().year;
+      holidaysConfig!.totalDays = 30;
+      holidaysConfig!.gralHolidays = [
+        Event(
+            subject: "Año Nuevo",
+            startTime: DateTime(holidaysConfig!.year, 1, 1),
+            endTime: DateTime(holidaysConfig!.year, 1, 1),
+            notes: "",
+            isAllDay: true),
+        Event(
+            subject: "Navidad",
+            startTime: DateTime(holidaysConfig!.year, 12, 25),
+            endTime: DateTime(holidaysConfig!.year, 12, 25),
+            notes: "",
+            isAllDay: true),
+      ];
+      holidaysConfig!.organization = currentOrganization!.id;
+      // holidaysConfig!.save();
+    } // Initialize the content with the holidays configuration
+    fillContent();
+    if (mounted) {
+      setState(() {});
+    }
+
+    // HolidaysConfig.byOrganization(currentOrganization!.uuid).then((value) {
+    //   holidaysList = value
+    //       .where((element) => element.year == DateTime.now().year)
+    //       .toList();
+    //   if (holidaysList!.isNotEmpty) {
+    //     holidaysConfig = holidaysList!.last;
+    //   } else {
+    //     holidaysConfig = value.last;
+    //     holidaysConfig!.year = DateTime.now().year;
+    //     holidaysConfig!.id = "";
+    //     holidaysConfig!.gralHolidays = [
+    //       Event(
+    //           subject: "Año Nuevo",
+    //           startTime: DateTime(holidaysConfig!.year, 1, 1),
+    //           endTime: DateTime(holidaysConfig!.year, 1, 1),
+    //           notes: "",
+    //           isAllDay: true),
+    //       Event(
+    //           subject: "Navidad",
+    //           startTime: DateTime(holidaysConfig!.year, 12, 25),
+    //           endTime: DateTime(holidaysConfig!.year, 12, 25),
+    //           notes: "",
+    //           isAllDay: true),
+    //     ];
+    //     holidaysConfig!.save();
+    //   }
+    //   fillContent();
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+    // });
+  }
+
   @override
   initState() {
     super.initState();
-    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-    checkPermissions(
-        context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-    _mainMenu = mainMenu(context, profile);
 
-    if (profile == null) {
-      final user = FirebaseAuth.instance.currentUser!;
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
+    _mainMenu = mainMenu(context, "/home");
+    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
 
-        if (mounted) {
-          checkPermissions(
-              context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-          setState(() {});
-        }
-      });
+    _listener = () {
+      if (!mounted) return;
+      currentOrganization = _profileProvider.organization;
 
-      Contact.byEmail(user.email!).then((value) {
-        contact = value;
+      profile = _profileProvider.profile;
+      _mainMenu = mainMenu(context, "/home");
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
+      } else {
+        // If profile or organization is null, load profile again
+        _profileProvider.loadProfile();
+      }
 
-        if (contact!.organization != "") {
-          HolidaysConfig.byOrganization(contact!.organization).then((value) {
-            Organization.byUuid(contact!.organization).then((value) {
-              currentOrganization = value;
-            });
+      if (mounted) setState(() {});
+    };
+    _profileProvider.addListener(_listener);
 
-            if (value.isNotEmpty) {
-              holidaysList = value
-                  .where((element) => element.year == DateTime.now().year)
-                  .toList();
-              if (holidaysList!.isNotEmpty) {
-                holidaysConfig = holidaysList!.last;
-              } else {
-                holidaysConfig = value.last;
-                holidaysConfig!.year = DateTime.now().year;
-                holidaysConfig!.id = "";
-                holidaysConfig!.gralHolidays = [
-                  Event(
-                      subject: "Año Nuevo",
-                      startTime: DateTime(holidaysConfig!.year, 1, 1),
-                      endTime: DateTime(holidaysConfig!.year, 1, 1),
-                      notes: "",
-                      isAllDay: true),
-                  Event(
-                      subject: "Navidad",
-                      startTime: DateTime(holidaysConfig!.year, 12, 25),
-                      endTime: DateTime(holidaysConfig!.year, 12, 25),
-                      notes: "",
-                      isAllDay: true),
-                ];
-                holidaysConfig!.save();
-              }
-              fillContent();
-              if (mounted) {
-                setState(() {});
-              }
-            } else {
-              holidaysConfig = HolidaysConfig.getEmpty();
-              holidaysConfig!.year = DateTime.now().year;
-              holidaysConfig!.totalDays = 30;
-              holidaysConfig!.gralHolidays = [
-                Event(
-                    subject: "Año Nuevo",
-                    startTime: DateTime(holidaysConfig!.year, 1, 1),
-                    endTime: DateTime(holidaysConfig!.year, 1, 1),
-                    notes: "",
-                    isAllDay: true),
-                Event(
-                    subject: "Navidad",
-                    startTime: DateTime(holidaysConfig!.year, 12, 25),
-                    endTime: DateTime(holidaysConfig!.year, 12, 25),
-                    notes: "",
-                    isAllDay: true),
-              ];
-              Organization.byUuid(contact!.organization).then((value) {
-                currentOrganization = value;
-                holidaysConfig!.organization = value;
-                holidaysConfig!.save();
-                fillContent();
-              });
-            }
-          });
-        } else {
-          Organization.byDomain(user.email!).then((value) {
-            currentOrganization = value;
-            HolidaysConfig.byOrganization(currentOrganization!.uuid)
-                .then((value) {
-              holidaysList = value
-                  .where((element) => element.year == DateTime.now().year)
-                  .toList();
-              if (holidaysList!.isNotEmpty) {
-                holidaysConfig = holidaysList!.last;
-              } else {
-                holidaysConfig = value.last;
-                holidaysConfig!.year = DateTime.now().year;
-                holidaysConfig!.id = "";
-                holidaysConfig!.gralHolidays = [
-                  Event(
-                      subject: "Año Nuevo",
-                      startTime: DateTime(holidaysConfig!.year, 1, 1),
-                      endTime: DateTime(holidaysConfig!.year, 1, 1),
-                      notes: "",
-                      isAllDay: true),
-                  Event(
-                      subject: "Navidad",
-                      startTime: DateTime(holidaysConfig!.year, 12, 25),
-                      endTime: DateTime(holidaysConfig!.year, 12, 25),
-                      notes: "",
-                      isAllDay: true),
-                ];
-                holidaysConfig!.save();
-              }
-              fillContent();
-            });
-            fillContent();
-          });
-        }
-        // if (mounted) {
-        //   setState(() {});
-        // }
-      });
+    currentOrganization = _profileProvider.organization;
+    profile = _profileProvider.profile;
+    if ((profile == null) || (currentOrganization == null)) {
+      _profileProvider.loadProfile();
     } else {
-      checkPermissions(
-          context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+      initializeData();
     }
+
+    // profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+    // checkPermissions(
+    //     context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    // _mainMenu = mainMenu(context, profile);
+
+    // if (profile == null) {
+    //   final user = FirebaseAuth.instance.currentUser!;
+    //   Profile.getProfile(user.email!).then((value) {
+    //     profile = value;
+
+    //     if (mounted) {
+    //       checkPermissions(
+    //           context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    //       setState(() {});
+    //     }
+    //   });
+
+    //   Contact.byEmail(user.email!).then((value) {
+    //     contact = value;
+
+    //     if (contact!.organization != "") {
+    //       HolidaysConfig.byOrganization(contact!.organization).then((value) {
+    //         Organization.byUuid(contact!.organization).then((value) {
+    //           currentOrganization = value;
+    //         });
+
+    //         if (value.isNotEmpty) {
+    //           holidaysList = value
+    //               .where((element) => element.year == DateTime.now().year)
+    //               .toList();
+    //           if (holidaysList!.isNotEmpty) {
+    //             holidaysConfig = holidaysList!.last;
+    //           } else {
+    //             holidaysConfig = value.last;
+    //             holidaysConfig!.year = DateTime.now().year;
+    //             holidaysConfig!.id = "";
+    //             holidaysConfig!.gralHolidays = [
+    //               Event(
+    //                   subject: "Año Nuevo",
+    //                   startTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                   endTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                   notes: "",
+    //                   isAllDay: true),
+    //               Event(
+    //                   subject: "Navidad",
+    //                   startTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                   endTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                   notes: "",
+    //                   isAllDay: true),
+    //             ];
+    //             holidaysConfig!.save();
+    //           }
+    //           fillContent();
+    //           if (mounted) {
+    //             setState(() {});
+    //           }
+    //         } else {
+    //           holidaysConfig = HolidaysConfig.getEmpty();
+    //           holidaysConfig!.year = DateTime.now().year;
+    //           holidaysConfig!.totalDays = 30;
+    //           holidaysConfig!.gralHolidays = [
+    //             Event(
+    //                 subject: "Año Nuevo",
+    //                 startTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                 endTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                 notes: "",
+    //                 isAllDay: true),
+    //             Event(
+    //                 subject: "Navidad",
+    //                 startTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                 endTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                 notes: "",
+    //                 isAllDay: true),
+    //           ];
+    //           Organization.byUuid(contact!.organization).then((value) {
+    //             currentOrganization = value;
+    //             holidaysConfig!.organization = value;
+    //             holidaysConfig!.save();
+    //             fillContent();
+    //           });
+    //         }
+    //       });
+    //     } else {
+    //       Organization.byDomain(user.email!).then((value) {
+    //         currentOrganization = value;
+    //         HolidaysConfig.byOrganization(currentOrganization!.uuid)
+    //             .then((value) {
+    //           holidaysList = value
+    //               .where((element) => element.year == DateTime.now().year)
+    //               .toList();
+    //           if (holidaysList!.isNotEmpty) {
+    //             holidaysConfig = holidaysList!.last;
+    //           } else {
+    //             holidaysConfig = value.last;
+    //             holidaysConfig!.year = DateTime.now().year;
+    //             holidaysConfig!.id = "";
+    //             holidaysConfig!.gralHolidays = [
+    //               Event(
+    //                   subject: "Año Nuevo",
+    //                   startTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                   endTime: DateTime(holidaysConfig!.year, 1, 1),
+    //                   notes: "",
+    //                   isAllDay: true),
+    //               Event(
+    //                   subject: "Navidad",
+    //                   startTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                   endTime: DateTime(holidaysConfig!.year, 12, 25),
+    //                   notes: "",
+    //                   isAllDay: true),
+    //             ];
+    //             holidaysConfig!.save();
+    //           }
+    //           fillContent();
+    //         });
+    //         fillContent();
+    //       });
+    //     }
+    //     // if (mounted) {
+    //     //   setState(() {});
+    //     // }
+    //   });
+    // } else {
+    //   checkPermissions(
+    //       context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
+    // }
   }
 
   @override
@@ -390,7 +510,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
         builder: (context) {
           HolidaysConfig newItem = HolidaysConfig.getEmpty();
           if (currentOrganization != null) {
-            newItem.organization = currentOrganization!;
+            newItem.organization = currentOrganization!.id;
             return CustomPopupDialog(
                 context: context,
                 title: "Nuevo calendario",
@@ -426,6 +546,16 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
   void drawCalendar() {
     List<Event> meetings = holidaysConfig!.gralHolidays;
+
+    // Check it every day is in this year
+    for (var event in meetings) {
+      if (event.startTime.year != holidaysConfig!.year) {
+        event.startTime = DateTime(
+            holidaysConfig!.year, event.startTime.month, event.startTime.day);
+        event.endTime = DateTime(
+            holidaysConfig!.year, event.endTime.month, event.endTime.day);
+      }
+    }
 
     meetings.sort((a, b) => a.startTime.compareTo(b.endTime));
 

@@ -1021,7 +1021,7 @@ class _HomeAdminPageState extends State<HomeAdminPage> {
                                       const Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Solicitud de vacaciones",
+                                            "Solicitud de permisos",
                                             style: cardHeaderText,
                                           )),
                                       Row(
