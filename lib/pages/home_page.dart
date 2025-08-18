@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
 import "dart:developer" as dev;
@@ -148,6 +149,8 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+
+
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     currentWorkday = myWorkdays!.first;
     if (!currentWorkday!.open) {
@@ -178,6 +181,43 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
+
+    // Remove duplicate workdays (check userId, startDate, endDate)
+    for (Workday element in myWorkdays!) {
+      element.startDate = DateTime(element.startDate.year,
+          element.startDate.month, element.startDate.day, element.startDate.hour, element.startDate.minute);
+      element.endDate = DateTime(element.endDate.year,
+          element.endDate.month, element.endDate.day, element.endDate.hour, element.endDate.minute);
+    }
+
+
+    Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
+
+
+    List<Workday> uniques = [];
+    while (workdayQueue.isNotEmpty) {
+      Workday current = workdayQueue.removeFirst();
+      uniques.add(current);
+      workdayQueue.removeWhere((element) =>
+          element.userId == current.userId &&
+          element.startDate == current.startDate &&
+          element.endDate == current.endDate &&
+          element.id != current.id);
+    }
+
+
+    //Get elements from myWorkdays that are not in uniques using id to compare
+    List<Workday> toRemove = [];
+    for (Workday element in myWorkdays!) {
+      if (!uniques.any((e) => e.id == element.id)) {
+        toRemove.add(element);
+      }
+    }
+    for (Workday element in toRemove) {
+      element.delete();
+    }
+    myWorkdays = uniques;
+
     if (mounted) {
       if (currentWorkday!.open) {
         workdayButton = actionButton(
@@ -218,12 +258,47 @@ class _HomePageState extends State<HomePage> {
     if ((myWorkdays!.first.open) &&
         (truncDate(myWorkdays!.first.startDate) == truncDate(DateTime.now()))) {
       currentWorkday = myWorkdays!.first;
-    } else {
-      currentWorkday = Workday.getEmpty();
-      currentWorkday!.userId = user.email!;
-      currentWorkday!.open = true;
-      currentWorkday!.save();
     }
+
+    //Remove dulplicate workdays checking userId, startDate, endDate
+    //Create a Queue with myWorkdays
+    // Remove milliseconds from startDate and endDate in the myWorkdays
+    for (Workday element in myWorkdays!) {
+      element.startDate = DateTime(element.startDate.year,
+          element.startDate.month, element.startDate.day, element.startDate.hour, element.startDate.minute);
+      element.endDate = DateTime(element.endDate.year,
+          element.endDate.month, element.endDate.day, element.endDate.hour, element.endDate.minute);
+    }
+
+
+    Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
+
+
+    List<Workday> uniques = [];
+    while (workdayQueue.isNotEmpty) {
+      Workday current = workdayQueue.removeFirst();
+      uniques.add(current);
+      workdayQueue.removeWhere((element) =>
+          element.userId == current.userId &&
+          element.startDate == current.startDate &&
+          element.endDate == current.endDate &&
+          element.id != current.id);
+    }
+
+
+    //Get elements from myWorkdays that are not in uniques using id to compare
+    List<Workday> toRemove = [];
+    for (Workday element in myWorkdays!) {
+      if (!uniques.any((e) => e.id == element.id)) {
+        toRemove.add(element);
+      }
+    }
+    for (Workday element in toRemove) {
+      element.delete();
+    }
+    myWorkdays = uniques;
+
+    
 
     contentWorkPanel = workTimePanel();
 
@@ -907,6 +982,7 @@ class _HomePageState extends State<HomePage> {
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
+
     List<String> idsToRemove = [];
     for (int index = 0; index < myWorkdays!.length; index++) {
       Workday item = myWorkdays!.elementAt(index);
@@ -1102,6 +1178,7 @@ class _HomePageState extends State<HomePage> {
     myWorkdays ??= [];
 
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
