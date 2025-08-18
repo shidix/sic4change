@@ -6,3 +6,4 @@ Agregar en las altas las horas semanales por las que está contratada
 Imprimir los registros mensuales
 Modificar los registros solo los del mes en curso o hasta el día 10 del mes siguiente. Despues de subir los registros firmados no se aceptan modificaciones.
 Solicitud de vacaciones => Solicitud de permiesos
+Activar el boton de parar/reiniciar jornada

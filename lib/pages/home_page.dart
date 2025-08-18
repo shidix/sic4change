@@ -852,37 +852,52 @@ class _HomePageState extends State<HomePage> {
     dev.log("printSummary");
   }
 
-  void workdayAction(context) {
+  void workdayAction(dynamic context) {
     _workdayAction(context);
   }
 
-  void _workdayAction(context) async {
-    if (currentWorkday!.open) {
-      currentWorkday!.endDate = DateTime.now();
-      currentWorkday!.open = false;
-      currentWorkday!.save().then((value) {
-        myWorkdays![0] = value;
-        if (mounted) {
-          setState(() {
-            myWorkdays = myWorkdays;
-            contentWorkPanel = workTimePanel();
-          });
-        }
-      });
+  void _workdayAction(dynamic context) async {
+    // Sort myWorkdays by startDate in descending order
+    if (myWorkdays == null || myWorkdays!.isEmpty) {
+      await loadMyWorkdays();
+    }
+    if (myWorkdays == null || myWorkdays!.isEmpty) {
+      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+      currentWorkday!.save();
+      myWorkdays = [currentWorkday!];
     } else {
-      currentWorkday = Workday.getEmpty();
-      currentWorkday!.userId = user.email!;
-      currentWorkday!.startDate = DateTime.now();
-      currentWorkday!.open = true;
-      currentWorkday!.save().then((value) {
-        myWorkdays!.insert(0, value);
-        if (mounted) {
-          setState(() {
-            myWorkdays = myWorkdays;
-            contentWorkPanel = workTimePanel();
-          });
-        }
-      });
+      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      currentWorkday = myWorkdays!.first;
+    
+
+      if (currentWorkday!.open) {
+        currentWorkday!.endDate = DateTime.now();
+        currentWorkday!.open = false;
+        currentWorkday!.save().then((value) {
+          myWorkdays![0] = value;
+          if (mounted) {
+            setState(() {
+              myWorkdays = myWorkdays;
+              contentWorkPanel = workTimePanel();
+            });
+          }
+        });
+      } else {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = user.email!;
+        currentWorkday!.startDate = DateTime.now();
+        currentWorkday!.open = true;
+
+        currentWorkday!.save().then((value) {
+          myWorkdays!.insert(0, value);
+          if (mounted) {
+            setState(() {
+              myWorkdays = myWorkdays;
+              contentWorkPanel = workTimePanel();
+            });
+          }
+        });
+      }
     }
 
     //loadMyWorkdays();
@@ -917,19 +932,19 @@ class _HomePageState extends State<HomePage> {
     }
     myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
     currentWorkday = myWorkdays!.first;
-    if (!currentWorkday!.open) {
-      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
-      currentWorkday!.save();
-      myWorkdays!.insert(0, currentWorkday!);
-    }
+    // if (!currentWorkday!.open) {
+    //   currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+    //   currentWorkday!.save();
+    //   myWorkdays!.insert(0, currentWorkday!);
+    // }
 
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
-          null, null, workdayAction, Icons.stop_circle_outlined, null,
+          null, null, workdayAction, Icons.stop_circle_outlined, [],
           iconColor: dangerColor);
     } else {
       workdayButton = actionButton(
-          null, null, workdayAction, Icons.play_circle_outline_sharp, null,
+          null, null, workdayAction, Icons.play_circle_outline_sharp, [],
           iconColor: successColor);
     }
     Widget addWorkdayButton = actionButton(null, null, () {
