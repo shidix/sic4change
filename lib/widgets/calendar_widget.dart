@@ -82,7 +82,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     if (holidaysInDate.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No hay solicitudes de vacaciones para este día.'),
+          content: Text('No hay solicitudes de permisos para este día.'),
         ),
       );
       return;
@@ -92,7 +92,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       builder: (context) {
         return AlertDialog(
           title: Text(
-              'Solicitudes de vacaciones para ${date.day} ${MONTHS[date.month - 1]}'),
+              'Solicitudes de permisos para ${date.day} ${MONTHS[date.month - 1]}'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,6 +223,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             endTime: holiday.endDate,
             notes: '',
             isAllDay: true,
+            id: holiday.id,
           ));
         }
       }

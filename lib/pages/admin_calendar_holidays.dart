@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/monitoring/v3.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +12,7 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:uuid/uuid.dart';
 // import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class EventTile extends StatelessWidget {
@@ -213,11 +213,13 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
             startTime: DateTime(holidaysConfig!.year, 1, 1),
             endTime: DateTime(holidaysConfig!.year, 1, 1),
             notes: "",
+            id: "",
             isAllDay: true),
         Event(
             subject: "Navidad",
             startTime: DateTime(holidaysConfig!.year, 12, 25),
             endTime: DateTime(holidaysConfig!.year, 12, 25),
+            id: "",
             notes: "",
             isAllDay: true),
       ];
@@ -632,6 +634,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                         .then((value) {
                       if (value != null) {
                         Event newEvent = Event(
+                            id: Uuid().v4().toString(),
                             subject: "Día festivo",
                             startTime: value,
                             endTime: value,

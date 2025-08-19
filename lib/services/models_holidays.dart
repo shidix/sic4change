@@ -106,6 +106,7 @@ class HolidaysConfig {
         endTime: DateTime(year, 1, 1),
         notes: 'Año Nuevo',
         isAllDay: true,
+        id: '',
       ));
       gralHolidays.add(Event(
         subject: 'Navidad',
@@ -113,6 +114,7 @@ class HolidaysConfig {
         endTime: DateTime(year, 12, 25),
         notes: 'Navidad',
         isAllDay: true,
+        id: '',
       ));
     }
     if (id == "") {
@@ -349,6 +351,7 @@ class Event {
   DateTime endTime;
   String? notes;
   bool isAllDay;
+  String id;
 
   Event({
     required this.subject,
@@ -356,6 +359,7 @@ class Event {
     required this.endTime,
     required this.notes,
     required this.isAllDay,
+    required this.id,
   });
 
   factory Event.fromJson(Map data) {
@@ -365,6 +369,7 @@ class Event {
       endTime: getDate(data['endTime']),
       notes: data['notes'],
       isAllDay: data['isAllDay'],
+      id: data['id'] ?? '',
     );
   }
 

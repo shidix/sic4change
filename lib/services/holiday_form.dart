@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:uuid/uuid.dart';
 
 // class Event extends Appointment {
 //   final int index;
@@ -63,6 +64,7 @@ class _EventFormState extends State<EventForm> {
     holidaysConfig = widget.holidaysConfig!;
     if (isNewItem) {
       event = Event(
+          id: Uuid().v4().toString(),
           subject: "",
           startTime: DateTime.now(),
           endTime: DateTime.now().add(Duration(hours: 1)),
@@ -234,7 +236,6 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       formKey.currentState!.save();
       holidayRequest.save().then((value) {
         if (mounted) {
-          print("HolidayRequest saved: ${holidayRequest.id}");
           Navigator.of(context).pop(value);
         }
       });
@@ -294,10 +295,6 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       for (String status in statuses) {
         statusList.add(
             DropdownMenuItem(value: status, child: Text(status.toUpperCase())));
-      }
-
-      for (var item in statusList) {
-        print(item.value);
       }
 
       statusField = DropdownButtonFormField(
@@ -868,8 +865,10 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
 class HolidayDocumentsForm extends StatefulWidget {
   final HolidayRequest? holidayRequest;
   final Function? afterSave;
+  final List<HolidaysCategory> categories;
 
-  const HolidayDocumentsForm({Key? key, this.holidayRequest, this.afterSave})
+  const HolidayDocumentsForm(
+      {Key? key, this.holidayRequest, this.afterSave, required this.categories})
       : super(key: key);
 
   @override
@@ -879,12 +878,14 @@ class HolidayDocumentsForm extends StatefulWidget {
 class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidayRequest holidayRequest;
+  late List<HolidaysCategory> categories;
   // List<PlatformFile?> uploadedFiles = [];
 
   @override
   void initState() {
     super.initState();
     holidayRequest = widget.holidayRequest!;
+    categories = widget.categories;
 
     for (int i = 0; i < holidayRequest.documents.length; i++) {
       if (holidayRequest.documents[i].isNotEmpty) {
@@ -934,6 +935,9 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
 
   @override
   Widget build(BuildContext context) {
+    HolidaysCategory catReq = categories.firstWhere(
+        (cat) => cat.id == holidayRequest.category,
+        orElse: () => HolidaysCategory.getEmpty());
     return Form(
       key: _formKey,
       child: Padding(
@@ -947,10 +951,8 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text(
-                      'Documentos requeridos para ${holidayRequest.getCategory(categories).name}:',
-                      style: subTitleText,
-                      textAlign: TextAlign.center),
+                  child: Text('Documentos requeridos para ${catReq.name}:',
+                      style: subTitleText, textAlign: TextAlign.center),
                 )
               ],
             ),
@@ -959,7 +961,7 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text(holidayRequest.getCategory(categories).docMessage,
+                  child: Text(catReq.docMessage,
                       style: subTitleText, textAlign: TextAlign.center),
                 )
               ],
@@ -969,9 +971,7 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  for (int i = 0;
-                      i < holidayRequest.getCategory(categories).docRequired;
-                      i++)
+                  for (int i = 0; i < catReq.docRequired; i++)
                     Expanded(
                         flex: 1,
                         child: Padding(
@@ -980,8 +980,8 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                               textToShow: (holidayRequest.documents.length >
                                           i &&
                                       holidayRequest.documents[i].isNotEmpty)
-                                  ? "Documento ${i + 1} ya cargado"
-                                  : "Subir documento ${i + 1}",
+                                  ? "Documento ya cargado"
+                                  : "Subir documento",
                               onSelectedFile: (file) {
                                 // Handle file selection
                                 if (file != null) {
@@ -999,7 +999,8 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
                       i++)
                     Expanded(
                         flex: 1,
-                        child: (holidayRequest.documents[i].isNotEmpty)
+                        child: ((i < holidayRequest.documents.length) &&
+                                (holidayRequest.documents[i].isNotEmpty))
                             ? Row(
                                 mainAxisSize: MainAxisSize.max,
                                 mainAxisAlignment:

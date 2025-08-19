@@ -1767,6 +1767,7 @@ class _HomePageState extends State<HomePage> {
         HolidaysCategory? category = holCat!.firstWhere(
             (cat) => cat.id == holiday.category,
             orElse: () => HolidaysCategory.getEmpty());
+
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -1776,6 +1777,7 @@ class _HomePageState extends State<HomePage> {
                   'Probatorios requeridos: ${category.docRequired}', context),
               content: HolidayDocumentsForm(
                   holidayRequest: holiday,
+                  categories: holCat!,
                   afterSave: () {
                     if (mounted) {
                       setState(() {

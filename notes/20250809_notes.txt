@@ -1,9 +1,9 @@
 Activar el boton de parar/reiniciar jornada => DONE
-Refresh para las vacaciones => Se queda editando el actual
-Documentos no se puede subir
+Refresh para las vacaciones => Se queda editando el actual => DONE
+Documentos no se puede subir => DONE
 Ver los documentos en el popup del calendario.
 En las horas no poner el % sino el +- horas
 Agregar en las altas las horas semanales por las que está contratada
 Imprimir los registros mensuales
 Modificar los registros solo los del mes en curso o hasta el día 10 del mes siguiente. Despues de subir los registros firmados no se aceptan modificaciones.
-Solicitud de vacaciones => Solicitud de permiesos
+Solicitud de vacaciones => Solicitud de permiesos => DONE

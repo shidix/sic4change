@@ -13,7 +13,7 @@ import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
 const categoryTitle = "Categorías para vacaciones y permisos";
-List<HolidaysCategory> categories = [];
+// List<HolidaysCategory> categories = [];
 bool loadingCategory = false;
 
 class AdminHolidaysCategoriesPage extends StatefulWidget {
@@ -27,6 +27,7 @@ class AdminHolidaysCategoriesPage extends StatefulWidget {
 class _AdminHolidaysCategoriesPageState
     extends State<AdminHolidaysCategoriesPage> {
   final user = FirebaseAuth.instance.currentUser!;
+  List<HolidaysCategory> categories = [];
   Profile? profile;
   Organization? currentOrganization;
   Widget content = const Center(
