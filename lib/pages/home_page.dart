@@ -149,8 +149,6 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-
-
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     currentWorkday = myWorkdays!.first;
     if (!currentWorkday!.open) {
@@ -184,15 +182,17 @@ class _HomePageState extends State<HomePage> {
 
     // Remove duplicate workdays (check userId, startDate, endDate)
     for (Workday element in myWorkdays!) {
-      element.startDate = DateTime(element.startDate.year,
-          element.startDate.month, element.startDate.day, element.startDate.hour, element.startDate.minute);
-      element.endDate = DateTime(element.endDate.year,
-          element.endDate.month, element.endDate.day, element.endDate.hour, element.endDate.minute);
+      element.startDate = DateTime(
+          element.startDate.year,
+          element.startDate.month,
+          element.startDate.day,
+          element.startDate.hour,
+          element.startDate.minute);
+      element.endDate = DateTime(element.endDate.year, element.endDate.month,
+          element.endDate.day, element.endDate.hour, element.endDate.minute);
     }
 
-
     Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
-
 
     List<Workday> uniques = [];
     while (workdayQueue.isNotEmpty) {
@@ -204,7 +204,6 @@ class _HomePageState extends State<HomePage> {
           element.endDate == current.endDate &&
           element.id != current.id);
     }
-
 
     //Get elements from myWorkdays that are not in uniques using id to compare
     List<Workday> toRemove = [];
@@ -264,15 +263,17 @@ class _HomePageState extends State<HomePage> {
     //Create a Queue with myWorkdays
     // Remove milliseconds from startDate and endDate in the myWorkdays
     for (Workday element in myWorkdays!) {
-      element.startDate = DateTime(element.startDate.year,
-          element.startDate.month, element.startDate.day, element.startDate.hour, element.startDate.minute);
-      element.endDate = DateTime(element.endDate.year,
-          element.endDate.month, element.endDate.day, element.endDate.hour, element.endDate.minute);
+      element.startDate = DateTime(
+          element.startDate.year,
+          element.startDate.month,
+          element.startDate.day,
+          element.startDate.hour,
+          element.startDate.minute);
+      element.endDate = DateTime(element.endDate.year, element.endDate.month,
+          element.endDate.day, element.endDate.hour, element.endDate.minute);
     }
 
-
     Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
-
 
     List<Workday> uniques = [];
     while (workdayQueue.isNotEmpty) {
@@ -285,7 +286,6 @@ class _HomePageState extends State<HomePage> {
           element.id != current.id);
     }
 
-
     //Get elements from myWorkdays that are not in uniques using id to compare
     List<Workday> toRemove = [];
     for (Workday element in myWorkdays!) {
@@ -297,8 +297,6 @@ class _HomePageState extends State<HomePage> {
       element.delete();
     }
     myWorkdays = uniques;
-
-    
 
     contentWorkPanel = workTimePanel();
 
@@ -943,7 +941,6 @@ class _HomePageState extends State<HomePage> {
     } else {
       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
       currentWorkday = myWorkdays!.first;
-    
 
       if (currentWorkday!.open) {
         currentWorkday!.endDate = DateTime.now();
@@ -981,7 +978,6 @@ class _HomePageState extends State<HomePage> {
   Widget workTimePanel() {
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-
 
     List<String> idsToRemove = [];
     for (int index = 0; index < myWorkdays!.length; index++) {
@@ -1178,7 +1174,7 @@ class _HomePageState extends State<HomePage> {
     myWorkdays ??= [];
 
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-    
+
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
@@ -1660,12 +1656,14 @@ class _HomePageState extends State<HomePage> {
 
   Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
     String currentHolidayId = '';
-    if (currentHoliday == null) {
-      currentHoliday = HolidayRequest.getEmpty();
-      currentHoliday!.userId = user.email!;
-    } else {
-      currentHolidayId = currentHoliday!.id;
-    }
+    // if (currentHoliday == null) {
+    //   currentHoliday = HolidayRequest.getEmpty();
+    //   currentHoliday!.userId = user.email!;
+    // } else {
+    //   currentHolidayId = currentHoliday!.id;
+    // }
+    currentHoliday = HolidayRequest.getEmpty();
+    currentHoliday!.userId = user.email!;
 
     HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
