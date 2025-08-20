@@ -46,8 +46,6 @@ class _LoginPageState extends State<LoginPage> {
       // Navigator.pop(context);
       if (profile?.mainRole == "Admin") {
         Navigator.pushReplacementNamed(context, "/home");
-      } else if (profile?.mainRole == "Administrativo") {
-        Navigator.pushReplacementNamed(context, "/hierarchy");
       } else {
         Navigator.push(context,
             MaterialPageRoute(builder: ((context) => const HomePage())));

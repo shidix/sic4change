@@ -310,7 +310,8 @@ class _HomePageState extends State<HomePage> {
 
     for (Employee element in mypeople) {
       HolidayRequest.byUser(element.email).then((value) {
-        myPeopleHolidays.addAll(value);
+        // Check if value is not in myPeopleHolidays using id to compare
+        myPeopleHolidays.addAll(value.where((holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
       });
     }
     NotificationValues nVal = results[5] as NotificationValues;
@@ -338,63 +339,6 @@ class _HomePageState extends State<HomePage> {
     notif = nVal.unread;
     setState(() {});
   }
-
-  // Future<int> updateHolidayDays() async {
-  //   double factor = 1.0;
-  //   currentEmployee ??= await Employee.byEmail(user.email!);
-  //   DateTime altaDate = currentEmployee!.getAltaDate();
-  //   DateTime bajaDate = currentEmployee!.getBajaDate();
-  //   if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
-  //       (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
-  //     factor =
-  //         1; // If the employee's start date is before the current year, return 0
-  //   } else {
-  //     if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
-  //       bajaDate = DateTime(DateTime.now().year + 1, 1,
-  //           1); // Calculate until the end of the year
-  //     }
-  //     int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
-  //         .difference(DateTime(DateTime.now().year, 1, 1))
-  //         .inDays;
-  //     int daysWorked = bajaDate.difference(altaDate).inDays;
-  //     factor = daysWorked /
-  //         daysInYear; // Calculate the factor based on the days worked
-  //   }
-
-  //   int counter = 0;
-  //   if (holCat == null) return 0;
-  //   for (HolidaysCategory cat in holCat!) {
-  //     if (!cat.retroactive) {
-  //       counter += cat.days;
-  //     }
-  //   }
-  //   if (myHolidays == null) return counter;
-  //   for (HolidayRequest holiday in myHolidays!) {
-  //     if (holiday.status != "Rechazado") {
-  //       counter -= getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-  //       if (remainingHolidays
-  //           .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
-  //         remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-  //             remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-  //                 getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-  //       } else {
-  //         remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
-  //             holiday.getCategory(holCat ?? []).days -
-  //                 getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-  //       }
-  //     }
-  //   }
-  //   for (String key in remainingHolidays.keys) {
-  //     if (remainingHolidays[key]! < 0) {
-  //       remainingHolidays[key] = 0;
-  //     } else if (remainingHolidays[key]! > 0) {
-  //       remainingHolidays[key] = (remainingHolidays[key]! * factor).truncate();
-  //     }
-  //   }
-  //   //
-  //   int result = max(0, min((counter * factor).truncate() + 1, counter));
-  //   return result;
-  // }
 
   Widget loadMyPeopleWorkdaysWidget() {
     if (myPeopleWorkdays.isEmpty) {

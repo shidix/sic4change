@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -205,29 +207,36 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   void initState() {
     super.initState();
 
-    listHolidays = widget.holidays;
+    listHolidays =[];
     selectedDate = widget.selectedDate;
     startDate = widget.startDate;
     endDate = widget.endDate;
-    for (HolidayRequest holiday in listHolidays) {
-      if (true) {
-        //Check if idUser is in the list of employees
-        if (widget.employees.any((emp) => emp.email == holiday.userId)) {
-          Employee employee =
-              widget.employees.firstWhere((emp) => emp.email == holiday.userId);
+    //Remove holydays duplicates in listHolidays 
 
-          events.add(Event(
-            subject:
-                '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode()}',
-            startTime: holiday.startDate,
-            endTime: holiday.endDate,
-            notes: '',
-            isAllDay: true,
-            id: holiday.id,
-          ));
-        }
+    for (HolidayRequest holiday in widget.holidays) {
+      if (listHolidays.indexWhere((h) => h.id == holiday.id) == -1) {
+        listHolidays.add(holiday);
       }
     }
+    // for (HolidayRequest holiday in listHolidays) {
+    //   if (true) {
+    //     //Check if idUser is in the list of employees
+    //     if (widget.employees.any((emp) => emp.email == holiday.userId)) {
+    //       Employee employee =
+    //           widget.employees.firstWhere((emp) => emp.email == holiday.userId);
+
+    //       events.add(Event(
+    //         subject:
+    //             '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode()}',
+    //         startTime: holiday.startDate,
+    //         endTime: holiday.endDate,
+    //         notes: '',
+    //         isAllDay: true,
+    //         id: holiday.id,
+    //       ));
+    //     }
+    //   }
+    // }
 
     int weekForSelectedDate =
         ((selectedDate.difference(startDate).inDays) / 7).floor();
@@ -235,6 +244,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       _scrollController.jumpTo(weekForSelectedDate * 100.0);
     });
   }
+
+
 
   Widget dayCell(DateTime date) {
     bool isHoliday = listHolidays.any((holiday) =>
@@ -252,6 +263,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             date.isBefore(
                 truncDate(holiday.endDate).add(const Duration(days: 1))))
         .toList();
+    holidaysInDate = holidaysInDate.toSet().toList(); // Remove duplicates
 
     String textCell = '';
     String textPending = '';

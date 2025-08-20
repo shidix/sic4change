@@ -231,37 +231,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       setState(() {});
     }
 
-    // HolidaysConfig.byOrganization(currentOrganization!.uuid).then((value) {
-    //   holidaysList = value
-    //       .where((element) => element.year == DateTime.now().year)
-    //       .toList();
-    //   if (holidaysList!.isNotEmpty) {
-    //     holidaysConfig = holidaysList!.last;
-    //   } else {
-    //     holidaysConfig = value.last;
-    //     holidaysConfig!.year = DateTime.now().year;
-    //     holidaysConfig!.id = "";
-    //     holidaysConfig!.gralHolidays = [
-    //       Event(
-    //           subject: "Año Nuevo",
-    //           startTime: DateTime(holidaysConfig!.year, 1, 1),
-    //           endTime: DateTime(holidaysConfig!.year, 1, 1),
-    //           notes: "",
-    //           isAllDay: true),
-    //       Event(
-    //           subject: "Navidad",
-    //           startTime: DateTime(holidaysConfig!.year, 12, 25),
-    //           endTime: DateTime(holidaysConfig!.year, 12, 25),
-    //           notes: "",
-    //           isAllDay: true),
-    //     ];
-    //     holidaysConfig!.save();
-    //   }
-    //   fillContent();
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    // });
+
   }
 
   @override
@@ -296,131 +266,6 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       initializeData();
     }
 
-    // profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-    // checkPermissions(
-    //     context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-    // _mainMenu = mainMenu(context, profile);
-
-    // if (profile == null) {
-    //   final user = FirebaseAuth.instance.currentUser!;
-    //   Profile.getProfile(user.email!).then((value) {
-    //     profile = value;
-
-    //     if (mounted) {
-    //       checkPermissions(
-    //           context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-    //       setState(() {});
-    //     }
-    //   });
-
-    //   Contact.byEmail(user.email!).then((value) {
-    //     contact = value;
-
-    //     if (contact!.organization != "") {
-    //       HolidaysConfig.byOrganization(contact!.organization).then((value) {
-    //         Organization.byUuid(contact!.organization).then((value) {
-    //           currentOrganization = value;
-    //         });
-
-    //         if (value.isNotEmpty) {
-    //           holidaysList = value
-    //               .where((element) => element.year == DateTime.now().year)
-    //               .toList();
-    //           if (holidaysList!.isNotEmpty) {
-    //             holidaysConfig = holidaysList!.last;
-    //           } else {
-    //             holidaysConfig = value.last;
-    //             holidaysConfig!.year = DateTime.now().year;
-    //             holidaysConfig!.id = "";
-    //             holidaysConfig!.gralHolidays = [
-    //               Event(
-    //                   subject: "Año Nuevo",
-    //                   startTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                   endTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                   notes: "",
-    //                   isAllDay: true),
-    //               Event(
-    //                   subject: "Navidad",
-    //                   startTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                   endTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                   notes: "",
-    //                   isAllDay: true),
-    //             ];
-    //             holidaysConfig!.save();
-    //           }
-    //           fillContent();
-    //           if (mounted) {
-    //             setState(() {});
-    //           }
-    //         } else {
-    //           holidaysConfig = HolidaysConfig.getEmpty();
-    //           holidaysConfig!.year = DateTime.now().year;
-    //           holidaysConfig!.totalDays = 30;
-    //           holidaysConfig!.gralHolidays = [
-    //             Event(
-    //                 subject: "Año Nuevo",
-    //                 startTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                 endTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                 notes: "",
-    //                 isAllDay: true),
-    //             Event(
-    //                 subject: "Navidad",
-    //                 startTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                 endTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                 notes: "",
-    //                 isAllDay: true),
-    //           ];
-    //           Organization.byUuid(contact!.organization).then((value) {
-    //             currentOrganization = value;
-    //             holidaysConfig!.organization = value;
-    //             holidaysConfig!.save();
-    //             fillContent();
-    //           });
-    //         }
-    //       });
-    //     } else {
-    //       Organization.byDomain(user.email!).then((value) {
-    //         currentOrganization = value;
-    //         HolidaysConfig.byOrganization(currentOrganization!.uuid)
-    //             .then((value) {
-    //           holidaysList = value
-    //               .where((element) => element.year == DateTime.now().year)
-    //               .toList();
-    //           if (holidaysList!.isNotEmpty) {
-    //             holidaysConfig = holidaysList!.last;
-    //           } else {
-    //             holidaysConfig = value.last;
-    //             holidaysConfig!.year = DateTime.now().year;
-    //             holidaysConfig!.id = "";
-    //             holidaysConfig!.gralHolidays = [
-    //               Event(
-    //                   subject: "Año Nuevo",
-    //                   startTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                   endTime: DateTime(holidaysConfig!.year, 1, 1),
-    //                   notes: "",
-    //                   isAllDay: true),
-    //               Event(
-    //                   subject: "Navidad",
-    //                   startTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                   endTime: DateTime(holidaysConfig!.year, 12, 25),
-    //                   notes: "",
-    //                   isAllDay: true),
-    //             ];
-    //             holidaysConfig!.save();
-    //           }
-    //           fillContent();
-    //         });
-    //         fillContent();
-    //       });
-    //     }
-    //     // if (mounted) {
-    //     //   setState(() {});
-    //     // }
-    //   });
-    // } else {
-    //   checkPermissions(
-    //       context, profile!, [Profile.ADMINISTRATIVE, Profile.ADMIN]);
-    // }
   }
 
   @override
@@ -444,10 +289,6 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
     List<List<HolidaysConfig>> calendarList = resize(holidaysList!, 5);
 
-    // if (calendarList.last.length < 5) {
-    //   calendarList.last.addAll(List.generate(
-    //       5 - calendarList.last.length, (index) => HolidaysConfig.getEmpty()));
-    // }
 
     content = Column(
       children: calendarList.map((row) {
