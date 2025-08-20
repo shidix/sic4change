@@ -102,9 +102,15 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 Employee employee = widget.employees.firstWhere(
                     (emp) => emp.email == holiday.userId,
                     orElse: () => Employee.getEmpty(name: 'Desconocido'));
-                return Row(children: [
+                return 
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  child:  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child:
+                Row(children: [
                   Expanded(
-                      flex: 4,
+                      flex: 7,
                       child: ListTile(
                         title: Text(
                             '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()}',
@@ -119,10 +125,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                         subtitle: Text(
                             '${holiday.startDate.day} ${MONTHS[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MONTHS[holiday.endDate.month - 1]}'),
                       )),
-                  if (!holiday.isAproved())
-                    Expanded(
-                        flex: 1,
-                        child: actionButton(context, "Aprobar", (args) {
+                  
+                  if ((!holiday.isAproved()) && (holiday.userId != user.email!) && (holiday.startDate.isAfter(DateTime.now()) || (holiday.getCategory(widget.categories).retroactive)))
+                    actionButton(context, "", (args) {
                           HolidayRequest holiday = args[0];
                           // Approve the holiday request
                           holiday.status = 'Aprobado';
@@ -141,11 +146,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             Navigator.of(context).pop();
                             showHolidaysDialog(date);
                           }
-                        }, Icons.check, [holiday, null])),
-                  if (!holiday.isRejected())
-                    Expanded(
-                        flex: 1,
-                        child: actionButton(context, "Rechazar", (args) {
+                        }, Icons.check, [holiday, null], iconColor: Colors.green, tooltip: 'Aprobar solicitud'),
+                  space(width: 10),
+                  if (!holiday.isRejected() && holiday.userId != user.email! )
+                      actionButton(context, "", (args) {
                           HolidayRequest holiday = args[0];
                           // Reject the holiday request
                           holiday.status = 'Rechazado';
@@ -164,11 +168,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             Navigator.of(context).pop();
                             showHolidaysDialog(date);
                           }
-                        }, Icons.close, [holiday, null])),
-                  if (!holiday.isPending())
-                    Expanded(
-                        flex: 1,
-                        child: actionButton(context, "Pendiente", (args) {
+                        }, Icons.close, [holiday, null], iconColor: Colors.red, tooltip: 'Rechazar solicitud'),
+                  space(width: 10),
+                  if (!holiday.isPending() && holiday.userId != user.email! && (holiday.startDate.isAfter(DateTime.now()) || (holiday.getCategory(widget.categories).retroactive)))
+                      actionButton(context, "", (args) {
                           HolidayRequest holiday = args[0];
                           // Reject the holiday request
                           holiday.status = 'Pendiente';
@@ -187,8 +190,12 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             Navigator.of(context).pop();
                             showHolidaysDialog(date);
                           }
-                        }, Icons.close, [holiday, null])),
-                ]);
+                        }, Icons.question_mark, [holiday, null], iconColor: Colors.orange, tooltip: 'Cambiar solicitud a pendiente'),
+                ])
+              
+                ),
+                  );
+
               }).toList(),
             ),
           ),
@@ -218,25 +225,6 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         listHolidays.add(holiday);
       }
     }
-    // for (HolidayRequest holiday in listHolidays) {
-    //   if (true) {
-    //     //Check if idUser is in the list of employees
-    //     if (widget.employees.any((emp) => emp.email == holiday.userId)) {
-    //       Employee employee =
-    //           widget.employees.firstWhere((emp) => emp.email == holiday.userId);
-
-    //       events.add(Event(
-    //         subject:
-    //             '${employee.aka()} - ${holiday.getCategory(widget.categories).autoCode()}',
-    //         startTime: holiday.startDate,
-    //         endTime: holiday.endDate,
-    //         notes: '',
-    //         isAllDay: true,
-    //         id: holiday.id,
-    //       ));
-    //     }
-    //   }
-    // }
 
     int weekForSelectedDate =
         ((selectedDate.difference(startDate).inDays) / 7).floor();

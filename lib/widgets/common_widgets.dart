@@ -592,10 +592,11 @@ Widget actionButton(
     double hMargin = 0.0,
     double vMargin = 0.0,
     String scale = "md",
+    String? tooltip,
     FocusNode? listener}) {
   icon ??= Icons.settings;
   Widget? row;
-  if (text != null) {
+  if ((text != null) && (text.isNotEmpty)) {
     List<Widget> children = [];
     children.add(Icon(
       icon,
@@ -619,10 +620,13 @@ Widget actionButton(
 
   return Container(
       margin: EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
-      child: ElevatedButton(
-        onPressed: () {
-          if (args == null) {
-            action();
+      child: // Add a hover text
+      Tooltip(
+        message: tooltip ?? text ?? '',
+        child: ElevatedButton(
+          onPressed: () {
+            if (args == null) {
+              action();
           } else {
             action(args);
           }
@@ -637,7 +641,7 @@ Widget actionButton(
         ),
         focusNode: listener,
         child: row,
-      ));
+      )));
 }
 
 Widget actionButtonVertical(

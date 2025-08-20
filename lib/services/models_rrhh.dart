@@ -1021,6 +1021,37 @@ class Employee {
     return await ref.getDownloadURL();
   }
 
+  Future<List<Employee>> getManagers( {Organization? organization} ) async {
+    id ??= '';
+    if (id!.isEmpty) return [];
+    List<dynamic> items = [];
+
+    List<Department> departments =
+        await Department.getDepartments(organization: organization);
+    if (departments.isEmpty) return [];
+    Queue<Department> queue = Queue<Department>();
+    queue.addAll(departments.where((element) => element.employees.contains(id)));
+
+    while (queue.isNotEmpty) {
+      Department department = queue.removeFirst();
+      items.add(department.manager!);
+      if (department.parent != null) {
+        queue.addAll(
+            departments.where((element) => element.id == department.parent));
+      }
+    }
+
+    items = items
+        .where((element) =>
+            (element != id) && (element != null) && (element != ''))
+        .toList();
+
+    if (items.isEmpty) return [];
+
+    return await Employee.byId(
+        items.map((e) => e.toString()).toList().toSet().toList());
+  }
+
   Future<List<Employee>> getSubordinates({Organization? organization}) async {
     id ??= '';
     if (id!.isEmpty) return [];
