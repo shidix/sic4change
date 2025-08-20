@@ -68,6 +68,7 @@ class _HomePageState extends State<HomePage> {
   List<Workday>? myWorkdays = [];
   Widget mainMenuWidget = Container();
   List<Employee> mypeople = [];
+  List<Employee> myManagers = [];
   List<HolidayRequest> myPeopleHolidays = [];
   List<Workday> myPeopleWorkdays = [];
 
