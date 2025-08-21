@@ -937,11 +937,6 @@ class _HomePageState extends State<HomePage> {
     }
     myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
     currentWorkday = myWorkdays!.first;
-    // if (!currentWorkday!.open) {
-    //   currentWorkday = Workday.getEmpty(email: user.email!, open: true);
-    //   currentWorkday!.save();
-    //   myWorkdays!.insert(0, currentWorkday!);
-    // }
 
     if (currentWorkday?.open == true) {
       workdayButton = actionButton(
@@ -1306,6 +1301,10 @@ class _HomePageState extends State<HomePage> {
     Map<String, DateTime> outDict = {};
     double normalHoursTotal = 0.0;
     double extraHoursTotal = 0.0;
+    Map<DateTime, double> hoursByDay = {};
+    Map<DateTime, double> extraHoursByDay = {};
+
+    List<List<String>> fullRows = [];
 
     for (Workday workday in workdays) {
       if (workday.startDate.month == month.month &&
@@ -1330,6 +1329,30 @@ class _HomePageState extends State<HomePage> {
         } else {
           outDict[key] = workday.endDate;
         }
+
+        DateTime keyDate = truncDate(workday.startDate);
+
+        double normalHours = workday.hours();
+        double extraHours = 0.0;
+
+        if (hoursByDay.containsKey(keyDate)) {
+          normalHours = min(workday.hours(),
+              hoursInWeekEmployee[keyDate.weekday - 1] - hoursByDay[keyDate]!);
+        } else {
+          hoursByDay[keyDate] = 0.0;
+          normalHours =
+              min(workday.hours(), hoursInWeekEmployee[keyDate.weekday - 1]);
+        }
+        hoursByDay[keyDate] = hoursByDay[keyDate]! + normalHours;
+        extraHours = workday.hours() - normalHours;
+
+        fullRows.add([
+          DateFormat('dd-MM-yyyy').format(workday.startDate),
+          DateFormat('HH:mm').format(workday.startDate),
+          DateFormat('HH:mm').format(workday.endDate),
+          toDuration(normalHours, format: 'hm'),
+          toDuration(extraHours, format: 'hm'),
+        ]);
       }
     }
 
@@ -1365,19 +1388,33 @@ class _HomePageState extends State<HomePage> {
       normalHoursTotal += normalHours;
       extraHoursTotal += extraHours;
 
-      rows.add(reportPDF.getRow(
-        [
-          DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
-          DateFormat('HH:mm').format(inDict[keyDate]!),
-          DateFormat('HH:mm').format(outDict[keyDate]!),
-          toDuration(normalHours, format: 'hm'),
-          toDuration(extraHours, format: 'hm'),
-        ],
-        styles: [normalPdf],
-        padding: const pw.EdgeInsets.all(5),
-        height: 20,
-        aligns: [pw.TextAlign.center],
-      ));
+      // rows.add(reportPDF.getRow(
+      //   [
+      //     DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
+      //     DateFormat('HH:mm').format(inDict[keyDate]!),
+      //     DateFormat('HH:mm').format(outDict[keyDate]!),
+      //     toDuration(normalHours, format: 'hm'),
+      //     toDuration(extraHours, format: 'hm'),
+      //   ],
+      //   styles: [normalPdf],
+      //   padding: const pw.EdgeInsets.all(5),
+      //   height: 20,
+      //   aligns: [pw.TextAlign.center],
+      // ));
+    }
+
+    for (var row in fullRows) {
+      rows.add(reportPDF.getRow(row,
+          styles: [normalPdf],
+          padding: const pw.EdgeInsets.all(5),
+          height: 20,
+          aligns: [
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center
+          ]));
     }
 
     currentOrganization ??= _profileProvider.organization;
@@ -1451,6 +1488,8 @@ class _HomePageState extends State<HomePage> {
                       pw.TextAlign.center,
                       pw.TextAlign.center,
                       pw.TextAlign.center
+                    ], styles: [
+                      headerPdf
                     ], height: 30),
                     ...rows,
                   ],
