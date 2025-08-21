@@ -644,7 +644,6 @@ class Employee {
       required this.phone,
       required this.organization,
       this.affiliation = '',
-      
       this.bankAccount = '',
       this.altas = const [],
       this.extraDocs = const {},
@@ -703,6 +702,9 @@ class Employee {
       extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
           ? {}
           : json['extraDocs'],
+      affiliation: (json.containsKey('affiliation'))
+          ? json['affiliation']
+          : '', // Aseguradora o mutua
     );
     item.id = json.containsKey('id') ? json['id'] : null;
     return item;
@@ -724,6 +726,7 @@ class Employee {
         'altas': altas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
         'bankAccount': bankAccount,
+        'affiliation': affiliation, // Aseguradora o mutua
       };
 
   Future<String> getPhotoUrl() async {
@@ -793,7 +796,7 @@ class Employee {
 
   String getCategory() {
     if (altas.isEmpty) {
-      return '';
+      return '0';
     }
     altas.sort((a, b) => a.date.compareTo(b.date));
     return altas.last.category;
@@ -1024,7 +1027,7 @@ class Employee {
     return await ref.getDownloadURL();
   }
 
-  Future<List<Employee>> getManagers( {Organization? organization} ) async {
+  Future<List<Employee>> getManagers({Organization? organization}) async {
     id ??= '';
     if (id!.isEmpty) return [];
     List<dynamic> items = [];
@@ -1033,7 +1036,8 @@ class Employee {
         await Department.getDepartments(organization: organization);
     if (departments.isEmpty) return [];
     Queue<Department> queue = Queue<Department>();
-    queue.addAll(departments.where((element) => element.employees.contains(id)));
+    queue
+        .addAll(departments.where((element) => element.employees.contains(id)));
 
     while (queue.isNotEmpty) {
       Department department = queue.removeFirst();

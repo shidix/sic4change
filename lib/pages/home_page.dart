@@ -1302,7 +1302,6 @@ class _HomePageState extends State<HomePage> {
     double normalHoursTotal = 0.0;
     double extraHoursTotal = 0.0;
     Map<DateTime, double> hoursByDay = {};
-    Map<DateTime, double> extraHoursByDay = {};
 
     List<List<String>> fullRows = [];
 
@@ -1345,6 +1344,8 @@ class _HomePageState extends State<HomePage> {
         }
         hoursByDay[keyDate] = hoursByDay[keyDate]! + normalHours;
         extraHours = workday.hours() - normalHours;
+        normalHoursTotal += normalHours;
+        extraHoursTotal += extraHours;
 
         fullRows.add([
           DateFormat('dd-MM-yyyy').format(workday.startDate),
@@ -1373,35 +1374,35 @@ class _HomePageState extends State<HomePage> {
     final pdf = pw.Document();
     const pdfFormat = PdfPageFormat.a4;
 
-    int dayOfWeek = 0;
-    for (var keyDate in keysSorted) {
-      // Extract 0=Mon, 1=Tue, ..., 6=Sun from the keyDate
-      DateTime date = inDict[keyDate]!;
-      dayOfWeek = date.weekday - 1; // 0=Mon, 1=Tue, ..., 6=Sun
-      if (dayOfWeek < 0 || dayOfWeek > 6) {
-        continue; // Skip invalid days
-      }
-      double normalHours =
-          min(hoursDict[keyDate]!, hoursInWeekEmployee[dayOfWeek]);
-      double extraHours =
-          max(hoursDict[keyDate]! - hoursInWeekEmployee[dayOfWeek], 0);
-      normalHoursTotal += normalHours;
-      extraHoursTotal += extraHours;
+    // int dayOfWeek = 0;
+    // for (var keyDate in keysSorted) {
+    //   // Extract 0=Mon, 1=Tue, ..., 6=Sun from the keyDate
+    //   DateTime date = inDict[keyDate]!;
+    //   dayOfWeek = date.weekday - 1; // 0=Mon, 1=Tue, ..., 6=Sun
+    //   if (dayOfWeek < 0 || dayOfWeek > 6) {
+    //     continue; // Skip invalid days
+    //   }
+    //   double normalHours =
+    //       min(hoursDict[keyDate]!, hoursInWeekEmployee[dayOfWeek]);
+    //   double extraHours =
+    //       max(hoursDict[keyDate]! - hoursInWeekEmployee[dayOfWeek], 0);
+    //   normalHoursTotal += normalHours;
+    //   extraHoursTotal += extraHours;
 
-      // rows.add(reportPDF.getRow(
-      //   [
-      //     DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
-      //     DateFormat('HH:mm').format(inDict[keyDate]!),
-      //     DateFormat('HH:mm').format(outDict[keyDate]!),
-      //     toDuration(normalHours, format: 'hm'),
-      //     toDuration(extraHours, format: 'hm'),
-      //   ],
-      //   styles: [normalPdf],
-      //   padding: const pw.EdgeInsets.all(5),
-      //   height: 20,
-      //   aligns: [pw.TextAlign.center],
-      // ));
-    }
+    //   // rows.add(reportPDF.getRow(
+    //   //   [
+    //   //     DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
+    //   //     DateFormat('HH:mm').format(inDict[keyDate]!),
+    //   //     DateFormat('HH:mm').format(outDict[keyDate]!),
+    //   //     toDuration(normalHours, format: 'hm'),
+    //   //     toDuration(extraHours, format: 'hm'),
+    //   //   ],
+    //   //   styles: [normalPdf],
+    //   //   padding: const pw.EdgeInsets.all(5),
+    //   //   height: 20,
+    //   //   aligns: [pw.TextAlign.center],
+    //   // ));
+    // }
 
     for (var row in fullRows) {
       rows.add(reportPDF.getRow(row,

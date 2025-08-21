@@ -190,35 +190,52 @@ class _EmployeeFormState extends State<EmployeeForm> {
               Row(children: [
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.code,
-                      decoration:
-                          const InputDecoration(labelText: 'NIF/NIE/ID'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El campo no puede estar vacío';
-                        }
-                        return null;
-                      },
-                      onSaved: (String? value) {
-                        employee.code = value!;
-                      },
-                    )),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 0),
+                        child: TextFormField(
+                          initialValue: employee.code,
+                          decoration:
+                              const InputDecoration(labelText: 'NIF/NIE/ID'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El campo no puede estar vacío';
+                            }
+                            return null;
+                          },
+                          onSaved: (String? value) {
+                            employee.code = value!;
+                          },
+                        ))),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.firstName,
-                      decoration: const InputDecoration(labelText: 'Nombre(s)'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El campo no puede estar vacío';
-                        }
-                        return null;
-                      },
-                      onSaved: (String? value) {
-                        employee.firstName = value!;
-                      },
-                    ))
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.affiliation,
+                          decoration:
+                              const InputDecoration(labelText: 'Número SS'),
+                          onSaved: (String? value) {
+                            employee.affiliation = value!;
+                          },
+                        ))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.firstName,
+                          decoration:
+                              const InputDecoration(labelText: 'Nombre(s)'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El campo no puede estar vacío';
+                            }
+                            return null;
+                          },
+                          onSaved: (String? value) {
+                            employee.firstName = value!;
+                          },
+                        )))
               ]),
               Row(children: [
                 Expanded(
@@ -239,14 +256,16 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.lastName2,
-                      decoration:
-                          const InputDecoration(labelText: 'Segundo Apellido'),
-                      onSaved: (String? value) {
-                        employee.lastName2 = value!;
-                      },
-                    ))
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.lastName2,
+                          decoration: const InputDecoration(
+                              labelText: 'Segundo Apellido'),
+                          onSaved: (String? value) {
+                            employee.lastName2 = value!;
+                          },
+                        )))
               ]),
               Row(children: [
                 Expanded(
@@ -266,40 +285,51 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     )),
                 Expanded(
                     flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.phone,
+                          decoration:
+                              const InputDecoration(labelText: 'Teléfono'),
+                          onSaved: (String? value) {
+                            employee.phone = value!;
+                          },
+                        ))),
+              ]),
+              Row(children: [
+                Expanded(
+                    flex: 2,
                     child: TextFormField(
-                      initialValue: employee.phone,
-                      decoration: const InputDecoration(labelText: 'Teléfono'),
+                      initialValue: employee.getPosition(),
+                      decoration: const InputDecoration(labelText: 'Puesto'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
                       onSaved: (String? value) {
-                        employee.phone = value!;
+                        employee.setPosition(value!);
                       },
                     )),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: CustomSelectFormField(
+                            labelText: 'Categoría',
+                            initial: employee.getCategory(),
+                            options: [
+                              KeyValue('0', '0'),
+                              KeyValue('1', '1'),
+                              KeyValue('2', '2'),
+                              KeyValue('3', '3'),
+                              KeyValue('4', '4')
+                            ],
+                            onSelectedOpt: (value) {
+                              employee.setCategory(value);
+                            })))
               ]),
-              TextFormField(
-                initialValue: employee.getPosition(),
-                decoration: const InputDecoration(labelText: 'Puesto'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.setPosition(value!);
-                },
-              ),
-              TextFormField(
-                initialValue: employee.getCategory(),
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                onSaved: (String? value) {
-                  employee.setCategory(value!);
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-              ),
               TextFormField(
                 initialValue: employee.bankAccount,
                 decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
