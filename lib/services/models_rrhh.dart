@@ -627,6 +627,7 @@ class Employee {
   // String category;
   String sex = 'O';
   String bankAccount = '';
+  String affiliation = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
   String? organization;
   List altas = [];
@@ -642,6 +643,8 @@ class Employee {
       required this.email,
       required this.phone,
       required this.organization,
+      this.affiliation = '',
+      
       this.bankAccount = '',
       this.altas = const [],
       this.extraDocs = const {},

@@ -93,6 +93,22 @@ class Workday {
     return endDate.difference(startDate).inMinutes / 60;
   }
 
+  bool isValid() {
+    if (startDate.isAfter(endDate)) {
+      return false;
+    }
+    if (startDate.isBefore(DateTime(2000))) {
+      return false;
+    }
+    if (endDate.isBefore(DateTime(2000))) {
+      return false;
+    }
+    if (endDate.difference(startDate).inMinutes < 1 && !open) {
+      return false; // If the duration is less than 1 minute and not open
+    }
+    return true;
+  }
+
   static Workday getEmpty({String email = '', bool open = true}) {
     DateTime today = DateTime.now();
     return Workday(
