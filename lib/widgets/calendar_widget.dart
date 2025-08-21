@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_calendar_holidays.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -102,100 +99,111 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 Employee employee = widget.employees.firstWhere(
                     (emp) => emp.email == holiday.userId,
                     orElse: () => Employee.getEmpty(name: 'Desconocido'));
-                return 
-                Card(
+                return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4.0),
-                  child:  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child:
-                Row(children: [
-                  Expanded(
-                      flex: 7,
-                      child: ListTile(
-                        title: Text(
-                            '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()}',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: holiday.isAproved()
-                                    ? Colors.green
-                                    : (holiday.isPending()
-                                        ? Colors.orange
-                                        : Colors.red))),
-                        subtitle: Text(
-                            '${holiday.startDate.day} ${MONTHS[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MONTHS[holiday.endDate.month - 1]}'),
-                      )),
-                  
-                  if ((!holiday.isAproved()) && (holiday.userId != user.email!) && (holiday.startDate.isAfter(DateTime.now()) || (holiday.getCategory(widget.categories).retroactive)))
-                    actionButton(context, "", (args) {
-                          HolidayRequest holiday = args[0];
-                          // Approve the holiday request
-                          holiday.status = 'Aprobado';
-                          holiday.approvalDate = DateTime.now();
-                          holiday.approvedBy = user.email!;
-                          holiday.save();
-                          // Search holiday in the holidays list and update it
-                          int index = listHolidays
-                              .indexWhere((h) => h.id == holiday.id);
-                          if (index != -1) {
-                            listHolidays[index] = holiday;
-                          }
-                          if (mounted) {
-                            setState(() {});
-                            // Update this dialog
-                            Navigator.of(context).pop();
-                            showHolidaysDialog(date);
-                          }
-                        }, Icons.check, [holiday, null], iconColor: Colors.green, tooltip: 'Aprobar solicitud'),
-                  space(width: 10),
-                  if (!holiday.isRejected() && holiday.userId != user.email! )
-                      actionButton(context, "", (args) {
-                          HolidayRequest holiday = args[0];
-                          // Reject the holiday request
-                          holiday.status = 'Rechazado';
-                          holiday.approvalDate = DateTime.now();
-                          holiday.approvedBy = user.email!;
-                          holiday.save();
-                          // Search holiday in the holidays list and update it
-                          int index = listHolidays
-                              .indexWhere((h) => h.id == holiday.id);
-                          if (index != -1) {
-                            listHolidays[index] = holiday;
-                          }
-                          if (mounted) {
-                            // Update this dialog
-                            setState(() {});
-                            Navigator.of(context).pop();
-                            showHolidaysDialog(date);
-                          }
-                        }, Icons.close, [holiday, null], iconColor: Colors.red, tooltip: 'Rechazar solicitud'),
-                  space(width: 10),
-                  if (!holiday.isPending() && holiday.userId != user.email! && (holiday.startDate.isAfter(DateTime.now()) || (holiday.getCategory(widget.categories).retroactive)))
-                      actionButton(context, "", (args) {
-                          HolidayRequest holiday = args[0];
-                          // Reject the holiday request
-                          holiday.status = 'Pendiente';
-                          holiday.approvalDate = DateTime.now();
-                          holiday.approvedBy = user.email!;
-                          holiday.save();
-                          // Search holiday in the holidays list and update it
-                          int index = listHolidays
-                              .indexWhere((h) => h.id == holiday.id);
-                          if (index != -1) {
-                            listHolidays[index] = holiday;
-                          }
-                          if (mounted) {
-                            setState(() {});
-                            // Update this dialog
-                            Navigator.of(context).pop();
-                            showHolidaysDialog(date);
-                          }
-                        }, Icons.question_mark, [holiday, null], iconColor: Colors.orange, tooltip: 'Cambiar solicitud a pendiente'),
-                ])
-              
-                ),
-                  );
-
+                  child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(children: [
+                        Expanded(
+                            flex: 7,
+                            child: ListTile(
+                              title: Text(
+                                  '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()}',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: holiday.isAproved()
+                                          ? Colors.green
+                                          : (holiday.isPending()
+                                              ? Colors.orange
+                                              : Colors.red))),
+                              subtitle: Text(
+                                  '${holiday.startDate.day} ${MONTHS[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MONTHS[holiday.endDate.month - 1]}'),
+                            )),
+                        if ((!holiday.isAproved()) &&
+                            (holiday.userId != user.email!) &&
+                            (holiday.startDate.isAfter(DateTime.now()) ||
+                                (holiday
+                                    .getCategory(widget.categories)
+                                    .retroactive)))
+                          actionButton(context, "", (args) {
+                            HolidayRequest holiday = args[0];
+                            // Approve the holiday request
+                            holiday.status = 'Aprobado';
+                            holiday.approvalDate = DateTime.now();
+                            holiday.approvedBy = user.email!;
+                            holiday.save();
+                            // Search holiday in the holidays list and update it
+                            int index = listHolidays
+                                .indexWhere((h) => h.id == holiday.id);
+                            if (index != -1) {
+                              listHolidays[index] = holiday;
+                            }
+                            if (mounted) {
+                              setState(() {});
+                              // Update this dialog
+                              Navigator.of(context).pop();
+                              showHolidaysDialog(date);
+                            }
+                          }, Icons.check, [holiday, null],
+                              iconColor: Colors.green,
+                              tooltip: 'Aprobar solicitud'),
+                        space(width: 10),
+                        if (!holiday.isRejected() &&
+                            holiday.userId != user.email!)
+                          actionButton(context, "", (args) {
+                            HolidayRequest holiday = args[0];
+                            // Reject the holiday request
+                            holiday.status = 'Rechazado';
+                            holiday.approvalDate = DateTime.now();
+                            holiday.approvedBy = user.email!;
+                            holiday.save();
+                            // Search holiday in the holidays list and update it
+                            int index = listHolidays
+                                .indexWhere((h) => h.id == holiday.id);
+                            if (index != -1) {
+                              listHolidays[index] = holiday;
+                            }
+                            if (mounted) {
+                              // Update this dialog
+                              setState(() {});
+                              Navigator.of(context).pop();
+                              showHolidaysDialog(date);
+                            }
+                          }, Icons.close, [holiday, null],
+                              iconColor: Colors.red,
+                              tooltip: 'Rechazar solicitud'),
+                        space(width: 10),
+                        if (!holiday.isPending() &&
+                            holiday.userId != user.email! &&
+                            (holiday.startDate.isAfter(DateTime.now()) ||
+                                (holiday
+                                    .getCategory(widget.categories)
+                                    .retroactive)))
+                          actionButton(context, "", (args) {
+                            HolidayRequest holiday = args[0];
+                            // Reject the holiday request
+                            holiday.status = 'Pendiente';
+                            holiday.approvalDate = DateTime.now();
+                            holiday.approvedBy = user.email!;
+                            holiday.save();
+                            // Search holiday in the holidays list and update it
+                            int index = listHolidays
+                                .indexWhere((h) => h.id == holiday.id);
+                            if (index != -1) {
+                              listHolidays[index] = holiday;
+                            }
+                            if (mounted) {
+                              setState(() {});
+                              // Update this dialog
+                              Navigator.of(context).pop();
+                              showHolidaysDialog(date);
+                            }
+                          }, Icons.question_mark, [holiday, null],
+                              iconColor: Colors.orange,
+                              tooltip: 'Cambiar solicitud a pendiente'),
+                      ])),
+                );
               }).toList(),
             ),
           ),
@@ -214,11 +222,11 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   void initState() {
     super.initState();
 
-    listHolidays =[];
+    listHolidays = [];
     selectedDate = widget.selectedDate;
     startDate = widget.startDate;
     endDate = widget.endDate;
-    //Remove holydays duplicates in listHolidays 
+    //Remove holydays duplicates in listHolidays
 
     for (HolidayRequest holiday in widget.holidays) {
       if (listHolidays.indexWhere((h) => h.id == holiday.id) == -1) {
@@ -232,8 +240,6 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       _scrollController.jumpTo(weekForSelectedDate * 100.0);
     });
   }
-
-
 
   Widget dayCell(DateTime date) {
     bool isHoliday = listHolidays.any((holiday) =>

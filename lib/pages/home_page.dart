@@ -22,6 +22,7 @@ import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:sic4change/services/reports_utils.dart';
 import 'package:sic4change/services/workday_form.dart';
 import 'package:sic4change/widgets/calendar_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -1272,79 +1273,9 @@ class _HomePageState extends State<HomePage> {
     _printWorkday(args);
   }
 
-  pw.Widget _tableCell(
-    String text, {
-    pw.TextStyle style =
-        const pw.TextStyle(fontSize: 8, color: PdfColors.black),
-    pw.EdgeInsets padding = const pw.EdgeInsets.all(5),
-    pw.TextAlign align = pw.TextAlign.left,
-    double height = 20.0,
-  }) {
-    return pw.SizedBox(
-        width: double.infinity, // Full width for the cell
-        height: height, // Fixed height for the cell
-        child: pw.Container(
-          width: double.infinity, // Full width for the cell
-          decoration: style.background != null
-              ? pw.BoxDecoration(color: style.background!.color)
-              : null,
-          alignment: align == pw.TextAlign.left
-              ? pw.Alignment.centerLeft
-              : align == pw.TextAlign.right
-                  ? pw.Alignment.centerRight
-                  : pw.Alignment.center,
-          padding: padding,
-          child: pw.Text(
-            text,
-            style: style,
-            textAlign: align,
-          ),
-        ));
-  }
-
-  pw.TableRow _tableRow(List<String> texts,
-      {List<pw.TextStyle?> styles = const [],
-      List<pw.TextAlign?> aligns = const [],
-      pw.EdgeInsets padding = const pw.EdgeInsets.all(5),
-      double height = 20.0}) {
-    if (styles.isEmpty) {
-      styles = List.generate(texts.length,
-          (index) => const pw.TextStyle(fontSize: 10, color: PdfColors.black));
-    }
-    if (aligns.isEmpty) {
-      aligns = List.generate(texts.length, (index) => pw.TextAlign.left);
-    }
-    if (styles.length < texts.length) {
-      styles.addAll(List.generate(
-          texts.length - styles.length,
-          (index) =>
-              styles[styles.length - 1] ??
-              const pw.TextStyle(fontSize: 10, color: PdfColors.black)));
-    }
-    if (aligns.length < texts.length) {
-      aligns.addAll(List.generate(texts.length - aligns.length,
-          (index) => aligns[aligns.length - 1] ?? pw.TextAlign.left));
-    }
-
-    return pw.TableRow(
-      verticalAlignment: pw.TableCellVerticalAlignment.middle,
-      children: texts.map((text) {
-        int index = texts.indexOf(text);
-        pw.TextStyle style = styles.isNotEmpty && styles.length > index
-            ? styles[index]!
-            : const pw.TextStyle(fontSize: 10, color: PdfColors.black);
-        return _tableCell(text,
-            style: style,
-            padding: padding,
-            height: height,
-            align: aligns.isNotEmpty && aligns.length > index
-                ? aligns[index]!
-                : pw.TextAlign.left);
-      }).toList(),
-    );
-  }
-
   Future<void> _printWorkday(Map<String, dynamic> args) async {
+    ReportPDF reportPDF = ReportPDF();
+
     DateTime month = DateTime(DateTime.now().year, DateTime.now().month, 1);
     try {
       month = args['month'];
@@ -1418,8 +1349,6 @@ class _HomePageState extends State<HomePage> {
 
     final pdf = pw.Document();
     const pdfFormat = PdfPageFormat.a4;
-    double contentWidth =
-        pdfFormat.width - pdfFormat.marginLeft - pdfFormat.marginRight;
 
     int dayOfWeek = 0;
     for (var keyDate in keysSorted) {
@@ -1436,7 +1365,7 @@ class _HomePageState extends State<HomePage> {
       normalHoursTotal += normalHours;
       extraHoursTotal += extraHours;
 
-      rows.add(_tableRow(
+      rows.add(reportPDF.getRow(
         [
           DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
           DateFormat('HH:mm').format(inDict[keyDate]!),
@@ -1476,23 +1405,23 @@ class _HomePageState extends State<HomePage> {
                     1: pw.FlexColumnWidth(0.5),
                   },
                   children: [
-                    _tableRow([
+                    reportPDF.getRow([
                       'Empresa :  ${currentOrganization!.name}',
-                      'Trabajador : ${currentEmployee!.getFullName()}'
+                      'Trabajador : ${currentEmployee.getFullName()}'
                     ], styles: [
                       normalPdf
                     ], height: 20),
-                    _tableRow(
+                    reportPDF.getRow(
                         ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
                         styles: [normalPdf], height: 20),
-                    _tableRow([
+                    reportPDF.getRow([
                       'Centro de Trabajo :  --',
                       'Nº Afiliación :  ${currentEmployee.affiliation}'
                     ], styles: [
                       normalPdf
                     ], height: 20),
                     // C.C.C., Mes y Año
-                    _tableRow([
+                    reportPDF.getRow([
                       'C.C.C.:  ${currentEmployee.bankAccount}',
                       'Mes y año:  ${MONTHS[month.month - 1]} / ${month.year}'
                     ], styles: [
@@ -1511,28 +1440,18 @@ class _HomePageState extends State<HomePage> {
                     4: pw.FlexColumnWidth(0.3),
                   },
                   children: [
-                    pw.TableRow(children: [
-                      _tableCell("FECHA",
-                          style: headerPdf,
-                          align: pw.TextAlign.center,
-                          height: 30),
-                      _tableCell("ENTRADA",
-                          style: headerPdf,
-                          align: pw.TextAlign.center,
-                          height: 30),
-                      _tableCell("SALIDA",
-                          style: headerPdf,
-                          align: pw.TextAlign.center,
-                          height: 30),
-                      _tableCell("HORAS ORDINARIAS",
-                          style: headerPdf,
-                          align: pw.TextAlign.center,
-                          height: 30),
-                      _tableCell("HORAS EXTRA\nCOMPLEMENTARIAS",
-                          style: headerPdf,
-                          align: pw.TextAlign.center,
-                          height: 30),
-                    ]),
+                    reportPDF.getRow([
+                      "FECHA",
+                      "ENTRADA",
+                      "SALIDA",
+                      "HORAS ORDINARIAS",
+                      "HORAS EXTRA\nCOMPLEMENTARIAS"
+                    ], aligns: [
+                      pw.TextAlign.center,
+                      pw.TextAlign.center,
+                      pw.TextAlign.center,
+                      pw.TextAlign.center
+                    ], height: 30),
                     ...rows,
                   ],
                 ),
@@ -1549,13 +1468,13 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       pw.TableRow(
                           children: [
-                            _tableCell("TOTAL HORAS",
+                            reportPDF.getCell("TOTAL HORAS",
                                 style: headerPdf, align: pw.TextAlign.center),
-                            _tableCell(
+                            reportPDF.getCell(
                                 toDuration(normalHoursTotal, format: 'hm'),
                                 style: normalPdf,
                                 align: pw.TextAlign.center),
-                            _tableCell(
+                            reportPDF.getCell(
                                 toDuration(extraHoursTotal, format: 'hm'),
                                 style: normalPdf,
                                 align: pw.TextAlign.center),
@@ -1573,14 +1492,14 @@ class _HomePageState extends State<HomePage> {
                     border: null,
                     children: [
                       pw.TableRow(children: [
-                        _tableCell(
+                        reportPDF.getCell(
                           "Firma de la empresa",
                           style: headerPdf.copyWith(
                               background:
                                   pw.BoxDecoration(color: PdfColors.white)),
                           align: pw.TextAlign.center,
                         ),
-                        _tableCell(
+                        reportPDF.getCell(
                           "Firma del trabajador",
                           style: headerPdf.copyWith(
                               background:
@@ -1588,7 +1507,7 @@ class _HomePageState extends State<HomePage> {
                           align: pw.TextAlign.center,
                         ),
                       ]),
-                      _tableRow(
+                      reportPDF.getRow(
                         [
                           "________________________________",
                           "________________________________"
