@@ -107,7 +107,6 @@ class _HomePageState extends State<HomePage> {
     "rechazado": dangerColor,
   };
 
-
   Future<void> loadMyProjects() async {
     await Contact.byEmail(user.email!).then((value) {
       contact = value;
@@ -303,7 +302,8 @@ class _HomePageState extends State<HomePage> {
     for (Employee element in mypeople) {
       HolidayRequest.byUser(element.email).then((value) {
         // Check if value is not in myPeopleHolidays using id to compare
-        myPeopleHolidays.addAll(value.where((holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
+        myPeopleHolidays.addAll(value.where(
+            (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
       });
     }
     NotificationValues nVal = results[5] as NotificationValues;
@@ -312,7 +312,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<Workday>> loadMyPeopleWorkdays() async {
-
     List<String> emails = mypeople.map((e) => e.email).toList();
     if (!emails.contains(user.email!)) {
       emails.add(user.email!);
@@ -1273,65 +1272,76 @@ class _HomePageState extends State<HomePage> {
     _printWorkday(args);
   }
 
-  pw.TableRow _tableRow(List<String> texts, {List<double>? widths = const [], List<pw.TextStyle?> styles = const [], 
-    PdfPageFormat pdfFormat = PdfPageFormat.a4, List<pw.TextAlign>? aligns = const [], double vPadding = 5.0, double hPadding = 5.0, double height = 20.0}) {
-    styles = styles.isEmpty ? List.generate(texts.length, (index) => pw.TextStyle(fontSize: 10, color: PdfColors.black)) : styles;
-    // Check the lengths; if styles is shorter, fill with default style
-    if (styles.length < texts.length) {
-      styles.addAll(List.generate(texts.length - styles.length, (index) => const pw.TextStyle(fontSize: 10, color: PdfColors.black)));
-    }
+  pw.Widget _tableCell(
+    String text, {
+    pw.TextStyle style =
+        const pw.TextStyle(fontSize: 8, color: PdfColors.black),
+    pw.EdgeInsets padding = const pw.EdgeInsets.all(5),
+    pw.TextAlign align = pw.TextAlign.left,
+    double height = 20.0,
+  }) {
+    return pw.SizedBox(
+        width: double.infinity, // Full width for the cell
+        height: height, // Fixed height for the cell
+        child: pw.Container(
+          width: double.infinity, // Full width for the cell
+          decoration: style.background != null
+              ? pw.BoxDecoration(color: style.background!.color)
+              : null,
+          alignment: align == pw.TextAlign.left
+              ? pw.Alignment.centerLeft
+              : align == pw.TextAlign.right
+                  ? pw.Alignment.centerRight
+                  : pw.Alignment.center,
+          padding: padding,
+          child: pw.Text(
+            text,
+            style: style,
+            textAlign: align,
+          ),
+        ));
+  }
 
-    if (widths == null || widths.isEmpty) {
-      double contentWidth = pdfFormat.width - pdfFormat.marginLeft - pdfFormat.marginRight;
-      widths = List.generate(texts.length, (index) => contentWidth / texts.length);
+  pw.TableRow _tableRow(List<String> texts,
+      {List<pw.TextStyle?> styles = const [],
+      List<pw.TextAlign?> aligns = const [],
+      pw.EdgeInsets padding = const pw.EdgeInsets.all(5),
+      double height = 20.0}) {
+    if (styles.isEmpty) {
+      styles = List.generate(texts.length,
+          (index) => const pw.TextStyle(fontSize: 10, color: PdfColors.black));
     }
-
-    // Check the lengths; if widths is shorter, fill with default width
-    if (widths.length < texts.length) {
-      double contentWidth = pdfFormat.width - pdfFormat.marginLeft - pdfFormat.marginRight;
-      // Get the filled widths and fill the rest with a default width
-      double filledWidth = widths.fold(0.0, (sum, width) => sum + width);
-      double remainingWidth = contentWidth - filledWidth;
-      double defaultWidth = remainingWidth / (texts.length - widths.length);
-      widths.addAll(List.generate(texts.length - widths.length, (index) => defaultWidth));
-    }
-
-    // Check the lengths; if aligns is shorter, fill with default alignment
-    if (aligns == null || aligns.isEmpty) {
+    if (aligns.isEmpty) {
       aligns = List.generate(texts.length, (index) => pw.TextAlign.left);
     }
-
-    // Create sizedBoxes for each text with the corresponding width
-    List<pw.Widget> children = [];
-    for (int i = 0; i < texts.length; i++) {
-      children.add(
-        pw.Container(
-          width: widths[i],
-          height: height, // Fixed height for each cell
-          decoration: styles[i]?.background != null ? styles[i]!.background : null,
-          child: pw.Padding(
-        padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-        child: 
-        pw.Align(
-          alignment: pw.Alignment.center,
-          child:
-  
-            pw.Text(
-              texts[i],
-              style: styles[i],
-              textAlign: aligns[i],
-            )),
-          ),
-        
-      ));
+    if (styles.length < texts.length) {
+      styles.addAll(List.generate(
+          texts.length - styles.length,
+          (index) =>
+              styles[styles.length - 1] ??
+              const pw.TextStyle(fontSize: 10, color: PdfColors.black)));
     }
-    
+    if (aligns.length < texts.length) {
+      aligns.addAll(List.generate(texts.length - aligns.length,
+          (index) => aligns[aligns.length - 1] ?? pw.TextAlign.left));
+    }
 
-    return pw.TableRow(children: children, verticalAlignment: pw.TableCellVerticalAlignment.middle);
-
-
-
-
+    return pw.TableRow(
+      verticalAlignment: pw.TableCellVerticalAlignment.middle,
+      children: texts.map((text) {
+        int index = texts.indexOf(text);
+        pw.TextStyle style = styles.isNotEmpty && styles.length > index
+            ? styles[index]!
+            : const pw.TextStyle(fontSize: 10, color: PdfColors.black);
+        return _tableCell(text,
+            style: style,
+            padding: padding,
+            height: height,
+            align: aligns.isNotEmpty && aligns.length > index
+                ? aligns[index]!
+                : pw.TextAlign.left);
+      }).toList(),
+    );
   }
 
   Future<void> _printWorkday(Map<String, dynamic> args) async {
@@ -1343,15 +1353,28 @@ class _HomePageState extends State<HomePage> {
     }
 
     List<Workday> workdays = [];
-    await Workday.byUser(user.email!, month).then((value) {
-      workdays = value;
+    workdays = await Workday.byUser(user.email!, month).catchError((e) {
+      dev.log("Error loading workdays: $e");
+      return [] as List<Workday>;
     });
+
+    List<double> hoursInWeekEmployee = [
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      7.5,
+      0.0,
+      0.0
+    ]; // FIXME ... subst by employee hours
 
     workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
     Map<String, double> hoursDict = {};
     Map<String, DateTime> inDict = {};
     Map<String, DateTime> outDict = {};
+    double normalHoursTotal = 0.0;
+    double extraHoursTotal = 0.0;
 
     for (Workday workday in workdays) {
       if (workday.startDate.month == month.month &&
@@ -1381,10 +1404,12 @@ class _HomePageState extends State<HomePage> {
 
     // Crea un nuevo documento PDF
     pw.TextStyle headerPdf = pw.TextStyle(
-        fontSize: 10, color: PdfColors.black, fontWeight: pw.FontWeight.bold, background: 
-        pw.BoxDecoration(color: PdfColors.grey300));
+        fontSize: 8,
+        color: PdfColors.black,
+        fontWeight: pw.FontWeight.bold,
+        background: pw.BoxDecoration(color: PdfColors.grey300));
     pw.TextStyle normalPdf =
-        const pw.TextStyle(fontSize: 10, color: PdfColors.black);
+        const pw.TextStyle(fontSize: 8, color: PdfColors.black);
 
     List<pw.TableRow> rows = [];
 
@@ -1392,63 +1417,38 @@ class _HomePageState extends State<HomePage> {
     keysSorted.sort((a, b) => a.compareTo(b));
 
     final pdf = pw.Document();
-    final pdfFormat = PdfPageFormat.a4;
-    double contentWidth = pdfFormat.width - pdfFormat.marginLeft - pdfFormat.marginRight;
+    const pdfFormat = PdfPageFormat.a4;
+    double contentWidth =
+        pdfFormat.width - pdfFormat.marginLeft - pdfFormat.marginRight;
 
-
-
-
-
-    
-    List<double> withRow = [
-      contentWidth * 0.15, // Date
-      contentWidth * 0.15,  // In
-      contentWidth * 0.15,  // Out
-      contentWidth * 0.275, // Normal Hours
-      contentWidth * 0.275, // Extra Hours
-    ];
+    int dayOfWeek = 0;
     for (var keyDate in keysSorted) {
-      double normalHours = min(hoursDict[keyDate]!, 8);
-      double extraHours = max(hoursDict[keyDate]! - 8, 0);
-      rows.add(pw.TableRow(children: [
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: 
-                pw.SizedBox( width: withRow[0],
-                    child: pw.Text(
-                      DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
-                      style: normalPdf,
-                      textAlign: pw.TextAlign.center))),),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(DateFormat('HH:mm').format(inDict[keyDate]!),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(DateFormat('HH:mm').format(outDict[keyDate]!),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(normalHours.toStringAsFixed(2),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(extraHours.toStringAsFixed(2),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        // pw.Padding(
-        //   padding: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        //   child: pw.SizedBox(width: 60, height: 5, child: pw.Container()), )
-      ]));
+      // Extract 0=Mon, 1=Tue, ..., 6=Sun from the keyDate
+      DateTime date = inDict[keyDate]!;
+      dayOfWeek = date.weekday - 1; // 0=Mon, 1=Tue, ..., 6=Sun
+      if (dayOfWeek < 0 || dayOfWeek > 6) {
+        continue; // Skip invalid days
+      }
+      double normalHours =
+          min(hoursDict[keyDate]!, hoursInWeekEmployee[dayOfWeek]);
+      double extraHours =
+          max(hoursDict[keyDate]! - hoursInWeekEmployee[dayOfWeek], 0);
+      normalHoursTotal += normalHours;
+      extraHoursTotal += extraHours;
+
+      rows.add(_tableRow(
+        [
+          DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
+          DateFormat('HH:mm').format(inDict[keyDate]!),
+          DateFormat('HH:mm').format(outDict[keyDate]!),
+          toDuration(normalHours, format: 'hm'),
+          toDuration(extraHours, format: 'hm'),
+        ],
+        styles: [normalPdf],
+        padding: const pw.EdgeInsets.all(5),
+        height: 20,
+        aligns: [pw.TextAlign.center],
+      ));
     }
 
     currentOrganization ??= _profileProvider.organization;
@@ -1461,51 +1461,142 @@ class _HomePageState extends State<HomePage> {
         build: (pw.Context context) {
           return pw.Container(
             child: pw.Column(
-
               children: [
                 pw.Text(
                   "Listado Resumen mensual del registro de jornada (detalle horario)",
-                  style: headerPdf.copyWith(background: pw.BoxDecoration(color: PdfColors.white)),
+                  style: headerPdf.copyWith(
+                      background: pw.BoxDecoration(color: PdfColors.white)),
                   textAlign: pw.TextAlign.center,
                 ),
                 pw.SizedBox(height: 5),
                 pw.Table(
                   border: pw.TableBorder.all(),
+                  columnWidths: {
+                    0: pw.FlexColumnWidth(0.5),
+                    1: pw.FlexColumnWidth(0.5),
+                  },
                   children: [
+                    _tableRow([
+                      'Empresa :  ${currentOrganization!.name}',
+                      'Trabajador : ${currentEmployee!.getFullName()}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
                     _tableRow(
-                      ['Empresa :  ${currentOrganization!.name}', 'Trabajador : ${currentEmployee!.getFullName()}'],
-                      widths: [contentWidth * 0.5, contentWidth * 0.5], vPadding: 2
-                    ),
-                    _tableRow(
-                      ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
-                      widths: [contentWidth * 0.5, contentWidth * 0.5], vPadding: 2
-                    ),
-                    _tableRow(
-                      ['Centro de Trabajo :  --', 'Nº Afiliación :  ${currentEmployee.affiliation}'],
-                      widths: [contentWidth * 0.5, contentWidth * 0.5], vPadding: 2
-                    ),
+                        ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
+                        styles: [normalPdf], height: 20),
+                    _tableRow([
+                      'Centro de Trabajo :  --',
+                      'Nº Afiliación :  ${currentEmployee.affiliation}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
                     // C.C.C., Mes y Año
-                    _tableRow(
-                      ['C.C.C.:  ${currentEmployee.bankAccount}', 'Mes y año:  ${MONTHS[month.month - 1]} / ${month.year}'],
-                      widths: [contentWidth * 0.5, contentWidth * 0.5], vPadding: 2
-                    ),
+                    _tableRow([
+                      'C.C.C.:  ${currentEmployee.bankAccount}',
+                      'Mes y año:  ${MONTHS[month.month - 1]} / ${month.year}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
                   ],
                 ),
                 pw.SizedBox(height: 5),
                 pw.Table(
                   border: pw.TableBorder.all(),
+                  columnWidths: {
+                    0: pw.FlexColumnWidth(0.16),
+                    1: pw.FlexColumnWidth(0.13),
+                    2: pw.FlexColumnWidth(0.11),
+                    3: pw.FlexColumnWidth(0.3),
+                    4: pw.FlexColumnWidth(0.3),
+                  },
                   children: [
-                        _tableRow(['FECHA', 'ENTRADA', 'SALIDA', 'HORAS ORDINARIAS', 'HORAS EXTRA\nCOMPLEMENTARIAS'],
-                            widths: [contentWidth * 0.16, contentWidth * 0.13, contentWidth * 0.11, contentWidth * 0.3, contentWidth * 0.3],
-
-                            styles: [headerPdf, headerPdf, headerPdf, headerPdf, headerPdf],
-                            aligns: [pw.TextAlign.center, pw.TextAlign.center, pw.TextAlign.center, pw.TextAlign.center, pw.TextAlign.center], height: 30,), 
-                           
-                        // pw.Text('Firma',
-                        //     style: headerPdf, textAlign: pw.TextAlign.center),
+                    pw.TableRow(children: [
+                      _tableCell("FECHA",
+                          style: headerPdf,
+                          align: pw.TextAlign.center,
+                          height: 30),
+                      _tableCell("ENTRADA",
+                          style: headerPdf,
+                          align: pw.TextAlign.center,
+                          height: 30),
+                      _tableCell("SALIDA",
+                          style: headerPdf,
+                          align: pw.TextAlign.center,
+                          height: 30),
+                      _tableCell("HORAS ORDINARIAS",
+                          style: headerPdf,
+                          align: pw.TextAlign.center,
+                          height: 30),
+                      _tableCell("HORAS EXTRA\nCOMPLEMENTARIAS",
+                          style: headerPdf,
+                          align: pw.TextAlign.center,
+                          height: 30),
+                    ]),
                     ...rows,
                   ],
                 ),
+                pw.SizedBox(height: 5),
+                pw.Table(
+                    border: pw.TableBorder.all(),
+                    columnWidths: {
+                      0: pw.FlexColumnWidth(0.4),
+                      1: pw.FlexColumnWidth(0.3),
+                      2: pw.FlexColumnWidth(0.3),
+                    },
+                    defaultVerticalAlignment:
+                        pw.TableCellVerticalAlignment.middle,
+                    children: [
+                      pw.TableRow(
+                          children: [
+                            _tableCell("TOTAL HORAS",
+                                style: headerPdf, align: pw.TextAlign.center),
+                            _tableCell(
+                                toDuration(normalHoursTotal, format: 'hm'),
+                                style: normalPdf,
+                                align: pw.TextAlign.center),
+                            _tableCell(
+                                toDuration(extraHoursTotal, format: 'hm'),
+                                style: normalPdf,
+                                align: pw.TextAlign.center),
+                          ],
+                          decoration: pw.BoxDecoration(
+                            color: PdfColors.grey300,
+                          )),
+                    ]),
+                pw.SizedBox(height: 5),
+                pw.Table(
+                    columnWidths: {
+                      0: pw.FlexColumnWidth(0.5),
+                      1: pw.FlexColumnWidth(0.5),
+                    },
+                    border: null,
+                    children: [
+                      pw.TableRow(children: [
+                        _tableCell(
+                          "Firma de la empresa",
+                          style: headerPdf.copyWith(
+                              background:
+                                  pw.BoxDecoration(color: PdfColors.white)),
+                          align: pw.TextAlign.center,
+                        ),
+                        _tableCell(
+                          "Firma del trabajador",
+                          style: headerPdf.copyWith(
+                              background:
+                                  pw.BoxDecoration(color: PdfColors.white)),
+                          align: pw.TextAlign.center,
+                        ),
+                      ]),
+                      _tableRow(
+                        [
+                          "________________________________",
+                          "________________________________"
+                        ],
+                        aligns: [pw.TextAlign.center, pw.TextAlign.center],
+                        height: 90.0,
+                      ),
+                    ]),
               ],
             ),
           );
@@ -1631,12 +1722,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
     String currentHolidayId = '';
-    // if (currentHoliday == null) {
-    //   currentHoliday = HolidayRequest.getEmpty();
-    //   currentHoliday!.userId = user.email!;
-    // } else {
-    //   currentHolidayId = currentHoliday!.id;
-    // }
+
     currentHoliday = HolidayRequest.getEmpty();
     currentHoliday!.userId = user.email!;
 

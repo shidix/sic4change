@@ -544,3 +544,31 @@ void signOut(BuildContext context) {
     );
   });
 }
+
+String toDuration(double hours, {String format = 'dhm'}) {
+  if (hours.isNaN || hours.isInfinite || hours <= 0) {
+    return '0';
+  }
+  int totalSeconds = (hours * 3600).round();
+  int daysPart = 0;
+
+  if (format.contains('d')) {
+    daysPart = totalSeconds ~/ 86400; // 86400 seconds in a day
+    totalSeconds %= 86400; // Remaining seconds after extracting days
+  }
+
+  int hoursPart = totalSeconds ~/ 3600;
+  int minutesPart = (totalSeconds % 3600) ~/ 60;
+  int secondsPart = totalSeconds % 60;
+
+  String daysStr = daysPart > 0 ? '$daysPart d ' : '';
+  String hoursStr = hoursPart > 0 ? '$hoursPart h ' : '';
+  String minutesStr = minutesPart > 0 ? '$minutesPart m ' : '';
+
+  String secondsStr = '';
+  if (format.contains('s')) {
+    secondsStr = secondsPart > 0 ? '$secondsPart s' : '';
+  }
+
+  return '$daysStr$hoursStr$minutesStr$secondsStr'.trim();
+}
