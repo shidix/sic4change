@@ -42,6 +42,16 @@ const List<String> MONTHS = [
   "Diciembre "
 ];
 
+const List<String> DAYS = [
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+  "Domingo"
+];
+
 final currencyFormat = NumberFormat("#,##0.00", "es_ES");
 
 Map<String, KeyValue> CURRENCIES = {

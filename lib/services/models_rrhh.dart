@@ -613,6 +613,33 @@ class BajaReason {
   }
 }
 
+class Shift {
+  DateTime date;
+  List<double> hours;
+
+  Shift({required this.date, required this.hours});
+
+  factory Shift.fromJson(Map<String, dynamic> json) {
+    return Shift(
+        date: getDate(json['date'] ?? DateTime.now()),
+        hours: (json['hours'] as List<dynamic>?)
+                ?.map((e) => (e as num).toDouble())
+                .toList() ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'hours': hours,
+      };
+
+  factory Shift.getEmpty({DateTime? date}) {
+    return Shift(
+        date: truncDate(date ?? DateTime.now()),
+        hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]);
+  }
+}
+
 class Employee {
   static const String tbName = "s4c_employees";
 
@@ -631,6 +658,7 @@ class Employee {
   DateTime? bornDate = DateTime(2000, 1, 1);
   String? organization;
   List altas = [];
+  List shift = [];
   // List bajas = [];
   Map<String, dynamic> extraDocs = {};
   String? photoPath;
@@ -645,6 +673,7 @@ class Employee {
       required this.organization,
       this.affiliation = '',
       this.bankAccount = '',
+      this.shift = const [],
       this.altas = const [],
       this.extraDocs = const {},
       this.photoPath,
@@ -705,6 +734,17 @@ class Employee {
       affiliation: (json.containsKey('affiliation'))
           ? json['affiliation']
           : '', // Aseguradora o mutua
+      shift: (!json.containsKey('shift')) ||
+              (json['shift'] == null) ||
+              (json['shift'].isEmpty)
+          ? []
+          : json['shift'].map((e) {
+              try {
+                return Shift.fromJson(e as Map<String, dynamic>);
+              } catch (exception) {
+                return Shift(date: truncDate(DateTime.now()), hours: []);
+              }
+            }).toList(),
     );
     item.id = json.containsKey('id') ? json['id'] : null;
     return item;
@@ -727,6 +767,7 @@ class Employee {
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
         'bankAccount': bankAccount,
         'affiliation': affiliation, // Aseguradora o mutua
+        'shift': shift.map((e) => e.toJson()).toList(),
       };
 
   Future<String> getPhotoUrl() async {
@@ -743,6 +784,40 @@ class Employee {
 
   DateTime getBornDate() {
     return bornDate ?? DateTime(1924, 1, 1);
+  }
+
+  Shift? getShift({DateTime? date}) {
+    if (shift.isEmpty) {
+      shift.add(Shift(
+          date: truncDate(DateTime.now()),
+          hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]));
+      save();
+      return shift.first;
+    }
+    date ??= DateTime.now();
+    shift.sort((a, b) => b.date.compareTo(a.date)); // latest first
+    try {
+      return shift.firstWhere((element) => element.date.isBefore(date!));
+    } catch (e) {
+      return Shift.getEmpty(date: date);
+    }
+  }
+
+  void setShift(Shift newShift) {
+    try {
+      Shift existingShift = shift.firstWhere(
+          (element) => truncDate(element.date) == truncDate(newShift.date));
+      existingShift.hours = newShift.hours;
+    } catch (e) {
+      shift.add(newShift);
+    }
+    shift.sort((a, b) => b.date.compareTo(a.date)); // latest first
+    save();
+  }
+
+  void removeShift(DateTime date) {
+    shift.removeWhere((element) => truncDate(element.date) == truncDate(date));
+    save();
   }
 
   // Future<Employee> save() async {

@@ -475,6 +475,15 @@ class _EmployeesPageState extends State<EmployeesPage> {
                           },
                         )
                       : Container(),
+                  e.isActive()
+                      ? IconButton(
+                          icon: const Icon(Icons.access_time_outlined),
+                          tooltip: 'Modificar jornada laboral',
+                          onPressed: () {
+                            dialogModifyShift(context, employees.indexOf(e));
+                          },
+                        )
+                      : Container(),
                   (e.isActive() || (!e.isActive()))
                       ? IconButton(
                           icon: const Icon(Icons.edit),
@@ -566,6 +575,39 @@ class _EmployeesPageState extends State<EmployeesPage> {
           return AlertDialog(
             title: s4cTitleBar('Modificar salario', context, Icons.euro_symbol),
             content: EmployeeSalaryForm(
+              selectedItem: employee,
+            ),
+          );
+        }).then(
+      (value) {
+        if (value != null) {
+          employees[index] = value;
+          setState(() {
+            contentPanel = content(context);
+          });
+        }
+      },
+    );
+  }
+
+  void dialogModifyShift(BuildContext context, int index) {
+    showDialog<Employee>(
+        context: context,
+        builder: (BuildContext context) {
+          Employee? employee;
+          if (index >= employees.length) {
+            //show error message
+            return AlertDialog(
+              title: s4cTitleBar('Error', context, Icons.error),
+              content: const Text('No se puede modificar la jornada laboral'),
+            );
+          } else {
+            employee = employees[index];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Modificar jornada', context,
+                Icons.access_time_filled_outlined),
+            content: EmployeeShiftForm(
               selectedItem: employee,
             ),
           );

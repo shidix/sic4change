@@ -1269,6 +1269,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _printWorkday(Map<String, dynamic> args) async {
+    currentOrganization ??= _profileProvider.organization;
+    Employee? currentEmployee = await Employee.byEmail(user.email!);
     ReportPDF reportPDF = ReportPDF();
 
     DateTime month = DateTime(DateTime.now().year, DateTime.now().month, 1);
@@ -1284,15 +1286,7 @@ class _HomePageState extends State<HomePage> {
       return [] as List<Workday>;
     });
 
-    List<double> hoursInWeekEmployee = [
-      7.5,
-      7.5,
-      7.5,
-      7.5,
-      7.5,
-      0.0,
-      0.0
-    ]; // FIXME ... subst by employee hours
+    List<double> hoursInWeekEmployee = [];
 
     workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
@@ -1306,6 +1300,14 @@ class _HomePageState extends State<HomePage> {
     List<List<String>> fullRows = [];
 
     for (Workday workday in workdays) {
+      try {
+        Shift currentShift = currentEmployee.getShift(date: workday.startDate)!;
+        hoursInWeekEmployee = currentShift.hours;
+      } catch (e) {
+        hoursInWeekEmployee = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
+        dev.log("Error loading shift: $e");
+      }
+
       if (workday.startDate.month == month.month &&
           workday.startDate.year == month.year) {
         String key = DateFormat('yyyy-MM-dd').format(workday.startDate);
@@ -1418,9 +1420,6 @@ class _HomePageState extends State<HomePage> {
           ]));
     }
 
-    currentOrganization ??= _profileProvider.organization;
-    Employee? currentEmployee = await Employee.byEmail(user.email!);
-
     // Añade una cabecera al documento
     pdf.addPage(pw.Page(
         pageFormat: pdfFormat,
@@ -1453,7 +1452,7 @@ class _HomePageState extends State<HomePage> {
                         ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
                         styles: [normalPdf], height: 20),
                     reportPDF.getRow([
-                      'Centro de Trabajo :  --',
+                      'Centro de Trabajo :  Home Office',
                       'Nº Afiliación :  ${currentEmployee.affiliation}'
                     ], styles: [
                       normalPdf

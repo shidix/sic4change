@@ -8,6 +8,7 @@ import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import "dart:developer" as dev;
 
 class EmployeeForm extends StatefulWidget {
   final Employee selectedItem;
@@ -1169,6 +1170,122 @@ class _EmployeeSalaryFormState extends State<EmployeeSalaryForm> {
                       }
                     },
                   )),
+              Expanded(flex: 1, child: Container()),
+            ]),
+          ],
+        )));
+  }
+}
+
+class EmployeeShiftForm extends StatefulWidget {
+  final Employee selectedItem;
+  const EmployeeShiftForm({Key? key, required this.selectedItem})
+      : super(key: key);
+
+  @override
+  _EmployeeShiftFormState createState() => _EmployeeShiftFormState();
+}
+
+class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late Employee employee;
+  late Shift? shift;
+
+  void removeShift(List args) {
+    DateTime date = args[0] as DateTime;
+    employee.removeShift(date);
+    Shift currentShift = employee.getShift()!;
+    shift = Shift(
+        date: currentShift.date, hours: List<double>.from(currentShift.hours));
+    setState(() {
+      _formKey = GlobalKey<FormState>();
+      shift = shift;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    employee = widget.selectedItem;
+    Shift currentShift = employee.getShift()!;
+    shift = Shift(
+        date: currentShift.date, hours: List<double>.from(currentShift.hours));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+        key: _formKey,
+        child: SizedBox(
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            // Add date time picker for shift start date
+            DateTimePicker(
+              labelText: 'Fecha de Inicio',
+              selectedDate: shift!.date,
+              onSelectedDate: (DateTime? date) {
+                if (date != null) {
+                  shift!.date = date;
+                }
+                setState(() {});
+              },
+            ),
+            for (int i = 0; i < 7; i++)
+              TextFormField(
+                initialValue: shift!.hours[i].toStringAsFixed(2),
+                onChanged: (value) {
+                  try {
+                    shift!.hours[i] = double.parse(value.replaceAll(',', '.'));
+                  } catch (e) {
+                    value = '0';
+                  }
+                },
+                onSaved: (String? value) {
+                  try {
+                    shift!.hours[i] = double.parse(value!.replaceAll(',', '.'));
+                  } catch (e) {
+                    value = '0';
+                  }
+                },
+                decoration: InputDecoration(labelText: DAYS[i]),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (String? value) {
+                  try {
+                    double val = double.parse(value!.replaceAll(',', '.'));
+                    if (val < 0 || val > 24) {
+                      return 'Debe estar entre 0 y 24';
+                    }
+                  } catch (e) {
+                    return 'Debe ser un número válido';
+                  }
+                  return null;
+                },
+              ),
+
+            space(height: 30),
+            Row(children: [
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                  flex: 2,
+                  child: saveBtnForm(
+                    context,
+                    () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        employee.setShift(shift!);
+                        Navigator.of(context).pop(employee);
+                      } else {
+                        setState(() {});
+                      }
+                    },
+                  )),
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                  flex: 2,
+                  child: removeBtnForm(context, removeShift, [shift!.date])),
               Expanded(flex: 1, child: Container()),
             ]),
           ],
