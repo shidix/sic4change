@@ -6,9 +6,7 @@ do
     echo $(date) "Restarting app in port 8989... "
     cd /var/www/flutter/sic4change
     flutter pub get
-    flutter build web --release --web-renderer html
-    sleep 5
-    #flutter build web
+    flutter build web --release 
     flutter gen-l10n
     cd /var/www/flutter/sic4change/web
     systemctl restart apache2
