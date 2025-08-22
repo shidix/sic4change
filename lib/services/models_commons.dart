@@ -200,20 +200,24 @@ class Organization {
   static Future<Organization> byDomain(String email) async {
     Organization item = Organization("None");
     String domain = email.split("@").last;
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_organizations")
-        .where("domain", isEqualTo: domain)
-        .get();
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_organizations")
+          .where("domain", isEqualTo: domain)
+          .get();
 
-    if (query.docs.isNotEmpty) {
-      try {
-        Map<String, dynamic> data =
-            query.docs.first.data() as Map<String, dynamic>;
-        data["id"] = query.docs.first.id;
-        item = Organization.fromJson(data);
-      } catch (e) {
-        print("ERROR : $e");
+      if (query.docs.isNotEmpty) {
+        try {
+          Map<String, dynamic> data =
+              query.docs.first.data() as Map<String, dynamic>;
+          data["id"] = query.docs.first.id;
+          item = Organization.fromJson(data);
+        } catch (e) {
+          print("ERROR : $e");
+        }
       }
+    } catch (e) {
+      print("ERROR : $e");
     }
     return item;
   }
