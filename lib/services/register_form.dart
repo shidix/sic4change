@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
@@ -19,6 +20,8 @@ class _RegisterFormState extends State<RegisterForm> {
   String password = '';
   final _formKey = GlobalKey<FormState>();
   bool userExists = false;
+  bool isNewUser = false;
+  UserCredential? userCredential;
 
   void initState() {
     super.initState();
@@ -29,83 +32,103 @@ class _RegisterFormState extends State<RegisterForm> {
 
   Future<void> _checkUser() async {
     try {
-      // Check if user exists
-      //final user = await _auth.fetchSignInMethodsForEmail(widget.email);
-      // UserCredential userCredential =
-      //     await _auth.createUserWithEmailAndPassword(
-      //   email: widget.email,
-      //   //password with random string
-      //   password: Uuid().v4(),
-      // );
-      await _auth.createUserWithEmailAndPassword(
-          email: widget.email, password: const Uuid().v4());
-      await _auth.sendPasswordResetEmail(email: widget.email);
-      setState(() {
-        userExists = true;
-        _errorMessage =
-            "Usuario registrado. Se le ha enviado un email al usuario para que genere su password. Puedes cerrar el formulario.";
-      });
+      FirebaseApp app = await Firebase.initializeApp(
+          name: 'Register User', options: Firebase.app().options);
+      try {
+        userCredential = await FirebaseAuth.instanceFor(app: app)
+            .createUserWithEmailAndPassword(
+          email: widget.email,
+          password: const Uuid().v4(),
+        );
+
+        // Register userCredential in this app
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          setState(() {
+            userExists = true;
+          });
+          return;
+        }
+      } finally {
+        await app.delete();
+        if (userCredential == null) {
+          setState(() {
+            _errorMessage = "Error desconocido";
+          });
+        } else {
+          await Future.sync(() => userCredential);
+          userExists = true;
+          isNewUser = true;
+          setState(() {
+            _errorMessage =
+                "Usuario registrado. Se le ha enviado un email al usuario para que genere su password.";
+          });
+        }
+      }
+
+      return;
     } on FirebaseAuthException catch (e) {
+      print(e.code);
       if (e.code == 'email-already-in-use') {
         setState(() {
           userExists = true;
         });
       } else {
         setState(() {
-          _errorMessage = e.message ?? "Error desconocido";
+          // _errorMessage = e.message ?? "Error desconocido";
         });
       }
     }
   }
 
-  Future<void> _register() async {
-    try {
-      //Check if email has email format
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
-        setState(() {
-          _errorMessage = "El email no tiene un formato válido";
-        });
-        return;
-      }
+  // Future<void> _register() async {
+  //   try {
+  //     //Check if email has email format
+  //     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
+  //       setState(() {
+  //         _errorMessage = "El email no tiene un formato válido";
+  //       });
+  //       return;
+  //     }
 
-      // Check if user exists
-      final user = await _auth.fetchSignInMethodsForEmail(widget.email);
-      if (user.isNotEmpty) {
-        setState(() {
-          userExists = true;
-          // Send email with the password
-          _errorMessage = "El usuario ya existe";
-        });
-        return;
-      }
-      // UserCredential userCredential =
-      //     await _auth.createUserWithEmailAndPassword(
-      //   email: widget.email,
-      //   //password with random string
-      //   password: Uuid().v4(),
-      // );
+  //     // Check if user exists
+  //     final user = await _auth.fetchSignInMethodsForEmail(widget.email);
+  //     if (user.isNotEmpty) {
+  //       setState(() {
+  //         userExists = true;
+  //         // Send email with the password
+  //         _errorMessage = "El usuario ya existe";
+  //       });
+  //       return;
+  //     }
+  //     // UserCredential userCredential =
+  //     //     await _auth.createUserWithEmailAndPassword(
+  //     //   email: widget.email,
+  //     //   //password with random string
+  //     //   password: Uuid().v4(),
+  //     // );
 
-      await _auth.createUserWithEmailAndPassword(
-        email: widget.email,
-        password: const Uuid().v4(),
-      );
-      // Send email with the password
-      // await userCredential.user?.sendEmailVerification();
-      await _auth.sendPasswordResetEmail(email: widget.email);
-      setState(() {
-        userExists = true;
-        _errorMessage =
-            "Usuario registrado. Se le ha enviado un email al usuario para que genere su password. Puedes cerrar el formulario.";
-      });
+  //     await _auth.createUserWithEmailAndPassword(
+  //       email: widget.email,
+  //       password: const Uuid().v4(),
+  //     );
+  //     // Send email with the password
+  //     // await userCredential.user?.sendEmailVerification();
+  //     await _auth.sendPasswordResetEmail(email: widget.email);
+  //     setState(() {
+  //       userExists = true;
+  //       _errorMessage =
+  //           "Usuario registrado. Se le ha enviado un email al usuario para que genere su password. Puedes cerrar el formulario.";
+  //     });
 
-      // Send email for password recovery
-      //close the form
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message ?? "Error desconocido";
-      });
-    }
-  }
+  //     // Send email for password recovery
+  //     //close the form
+  //   } on FirebaseAuthException catch (e) {
+  //     setState(() {
+  //       _errorMessage = e.message ?? "Error desconocido";
+  //     });
+  //   }
+  // }
 
   Future<void> _sendEmail() async {
     try {
@@ -126,6 +149,15 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     if (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
+      if ((isNewUser) && userCredential != null) {
+        // Send a verification email
+        // userCredential!.user?.sendEmailVerification();
+        // Send email with the password
+        _auth.sendPasswordResetEmail(email: widget.email);
+        _errorMessage =
+            "Se han creado las credenciales del usuario. Se le ha enviado un email al usuario para que genere su password.";
+        isNewUser = false;
+      }
       return Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -153,8 +185,12 @@ class _RegisterFormState extends State<RegisterForm> {
                   // ),
                   SizedBox(height: 20),
                   !userExists
-                      ? actionButton(context, 'Crear cuenta de usuario',
-                          _register, Icons.key, null)
+                      ? Container(
+                          child: Text(
+                          "Creando cuenta de usuario. Este proceso puede tardar unos minutos.",
+                          style: TextStyle(
+                              fontSize: 16, fontStyle: FontStyle.italic),
+                        ))
                       : actionButton(context, 'Solicitar cambio de password',
                           _sendEmail, Icons.key, null),
                   if (_errorMessage.isNotEmpty)
