@@ -106,6 +106,9 @@ class Workday {
     if (endDate.difference(startDate).inMinutes < 1 && !open) {
       return false; // If the duration is less than 1 minute and not open
     }
+    if (endDate.isAfter(DateTime.now()) && !open) {
+      return false; // If the end date is in the future and not open
+    }
     return true;
   }
 
@@ -176,7 +179,7 @@ class Workday {
     if (items.isEmpty) {
       Workday empty = Workday.getEmpty();
       empty.userId = email;
-      empty.open = false;
+      empty.open = true;
       items.add(empty);
     }
 

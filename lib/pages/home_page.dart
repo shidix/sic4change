@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> loadMyWorkdays() async {
+  Future<List<Workday>> loadMyWorkdays() async {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
       myWorkdays = await Workday.byUser(user.email!);
       if (myWorkdays!.isEmpty) {
@@ -130,15 +130,14 @@ class _HomePageState extends State<HomePage> {
 
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     currentWorkday = myWorkdays!.first;
-    if (!currentWorkday!.open) {
-      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
-      currentWorkday!.save();
-      myWorkdays!.insert(0, currentWorkday!);
-    } else {
+    if (currentWorkday!.open) {
       // Check if the current workday is from today; if not, close it and create a new one
-      if (truncDate(currentWorkday!.startDate) != truncDate(DateTime.now())) {
-        currentWorkday!.endDate = truncDate(currentWorkday!.startDate)
-            .add(Duration(hours: 23, minutes: 59, seconds: 59));
+      bool beClosed =
+          truncDate(currentWorkday!.startDate) != truncDate(DateTime.now()) &&
+              DateTime.now().difference(currentWorkday!.startDate).inHours > 12;
+      if (beClosed) {
+        currentWorkday!.endDate = currentWorkday!.startDate.add(
+            Duration(hours: 11, minutes: 59, seconds: 59)); // Maximo 12 horas
         currentWorkday!.open = false;
         currentWorkday!.save();
         currentWorkday = Workday.getEmpty(email: user.email!, open: true);
@@ -151,9 +150,8 @@ class _HomePageState extends State<HomePage> {
       if (workday != currentWorkday) {
         if (workday.open) {
           workday.open = false;
-          // Set the endDate to 23.59:59 of the same day
-          workday.endDate = DateTime(workday.startDate.year,
-              workday.startDate.month, workday.startDate.day, 23, 59, 59);
+          workday.endDate = workday.startDate.add(
+              Duration(hours: 11, minutes: 59, seconds: 59)); // Maximo 12 horas
           workday.save();
         }
       }
@@ -213,6 +211,7 @@ class _HomePageState extends State<HomePage> {
             iconColor: successColor);
       }
     }
+    return myWorkdays!;
   }
 
   Future<void> loadMyData() async {
@@ -222,7 +221,8 @@ class _HomePageState extends State<HomePage> {
       contact!.getProjects(),
       STask.getByAssigned(user.email!, lazy: true),
       HolidayRequest.byUser(user.email!),
-      Workday.byUser(user.email!),
+      //Workday.byUser(user.email!),
+      loadMyWorkdays(),
       ((currentEmployee != null) && (mypeople.isEmpty))
           ? currentEmployee!.getSubordinates()
           : Future.value(mypeople),
@@ -237,58 +237,58 @@ class _HomePageState extends State<HomePage> {
     myHolidays = results[2] as List<HolidayRequest>;
     updateRemainingHolidays();
 
-    myWorkdays = results[3] as List<Workday>;
-    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-    if ((myWorkdays!.first.open) &&
-        (truncDate(myWorkdays!.first.startDate) == truncDate(DateTime.now()))) {
-      currentWorkday = myWorkdays!.first;
-    }
+    // myWorkdays = results[3] as List<Workday>;
+    // myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    // if ((myWorkdays!.first.open) &&
+    //     (truncDate(myWorkdays!.first.startDate) == truncDate(DateTime.now()))) {
+    //   currentWorkday = myWorkdays!.first;
+    // }
 
-    //Remove dulplicate workdays checking userId, startDate, endDate
-    //Create a Queue with myWorkdays
-    // Remove milliseconds from startDate and endDate in the myWorkdays
-    for (Workday element in myWorkdays!) {
-      element.startDate = DateTime(
-          element.startDate.year,
-          element.startDate.month,
-          element.startDate.day,
-          element.startDate.hour,
-          element.startDate.minute);
-      element.endDate = DateTime(element.endDate.year, element.endDate.month,
-          element.endDate.day, element.endDate.hour, element.endDate.minute);
-      // Check if the duration is less than 1 minute
-      if (!element.isValid()) {
-        String idsToRemove = element.id;
-        element.delete();
-        myWorkdays!.removeWhere((e) => e.id == idsToRemove);
-        // If so, set the endDate to the startDate
-      }
-    }
+    // //Remove dulplicate workdays checking userId, startDate, endDate
+    // //Create a Queue with myWorkdays
+    // // Remove milliseconds from startDate and endDate in the myWorkdays
+    // for (Workday element in myWorkdays!) {
+    //   element.startDate = DateTime(
+    //       element.startDate.year,
+    //       element.startDate.month,
+    //       element.startDate.day,
+    //       element.startDate.hour,
+    //       element.startDate.minute);
+    //   element.endDate = DateTime(element.endDate.year, element.endDate.month,
+    //       element.endDate.day, element.endDate.hour, element.endDate.minute);
+    //   // Check if the duration is less than 1 minute
+    //   if (!element.isValid()) {
+    //     String idsToRemove = element.id;
+    //     element.delete();
+    //     myWorkdays!.removeWhere((e) => e.id == idsToRemove);
+    //     // If so, set the endDate to the startDate
+    //   }
+    // }
 
-    Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
+    // Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
 
-    List<Workday> uniques = [];
-    while (workdayQueue.isNotEmpty) {
-      Workday current = workdayQueue.removeFirst();
-      uniques.add(current);
-      workdayQueue.removeWhere((element) =>
-          element.userId == current.userId &&
-          element.startDate == current.startDate &&
-          element.endDate == current.endDate &&
-          element.id != current.id);
-    }
+    // List<Workday> uniques = [];
+    // while (workdayQueue.isNotEmpty) {
+    //   Workday current = workdayQueue.removeFirst();
+    //   uniques.add(current);
+    //   workdayQueue.removeWhere((element) =>
+    //       element.userId == current.userId &&
+    //       element.startDate == current.startDate &&
+    //       element.endDate == current.endDate &&
+    //       element.id != current.id);
+    // }
 
-    //Get elements from myWorkdays that are not in uniques using id to compare
-    List<Workday> toRemove = [];
-    for (Workday element in myWorkdays!) {
-      if (!uniques.any((e) => e.id == element.id)) {
-        toRemove.add(element);
-      }
-    }
-    for (Workday element in toRemove) {
-      element.delete();
-    }
-    myWorkdays = uniques;
+    // //Get elements from myWorkdays that are not in uniques using id to compare
+    // List<Workday> toRemove = [];
+    // for (Workday element in myWorkdays!) {
+    //   if (!uniques.any((e) => e.id == element.id)) {
+    //     toRemove.add(element);
+    //   }
+    // }
+    // for (Workday element in toRemove) {
+    //   element.delete();
+    // }
+    // myWorkdays = uniques;
 
     contentWorkPanel = workTimePanel();
 
@@ -912,30 +912,30 @@ class _HomePageState extends State<HomePage> {
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
-    List<String> idsToRemove = [];
-    for (int index = 0; index < myWorkdays!.length; index++) {
-      Workday item = myWorkdays!.elementAt(index);
-      if (item.open) {
-        if (truncDate(item.startDate) != truncDate(DateTime.now())) {
-          item.endDate = truncDate(item.startDate)
-              .add(Duration(hours: 23, minutes: 59, seconds: 59));
-          item.open = false;
-          item.save();
-          myWorkdays![index] = item;
-        } else {
-          if (index != 0) {
-            myWorkdays![0].open = true;
-            myWorkdays![0].startDate = item.startDate;
-            idsToRemove.add(item.id);
-          }
-        }
-      }
-    }
-    for (String id in idsToRemove) {
-      Workday item = myWorkdays!.firstWhere((item) => item.id == id);
-      item.delete();
-    }
-    myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
+    // List<String> idsToRemove = [];
+    // for (int index = 0; index < myWorkdays!.length; index++) {
+    //   Workday item = myWorkdays!.elementAt(index);
+    //   if (item.open) {
+    //     if (truncDate(item.startDate) != truncDate(DateTime.now())) {
+    //       item.endDate = truncDate(item.startDate)
+    //           .add(Duration(hours: 23, minutes: 59, seconds: 59));
+    //       item.open = false;
+    //       item.save();
+    //       myWorkdays![index] = item;
+    //     } else {
+    //       if (index != 0) {
+    //         myWorkdays![0].open = true;
+    //         myWorkdays![0].startDate = item.startDate;
+    //         idsToRemove.add(item.id);
+    //       }
+    //     }
+    //   }
+    // }
+    // for (String id in idsToRemove) {
+    //   Workday item = myWorkdays!.firstWhere((item) => item.id == id);
+    //   item.delete();
+    // }
+    // myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
     currentWorkday = myWorkdays!.first;
 
     if (currentWorkday?.open == true) {

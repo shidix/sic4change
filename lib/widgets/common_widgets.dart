@@ -158,13 +158,13 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () async {
-      User user = FirebaseAuth.instance.currentUser!;
-      Workday? currentWorkday = await Workday.currentByUser(user.email!);
-      if ((currentWorkday != null) && (currentWorkday.open)) {
-        currentWorkday.endDate = DateTime.now();
-        currentWorkday.open = false;
-        await currentWorkday.save();
-      }
+      // User user = FirebaseAuth.instance.currentUser!;
+      // // Workday? currentWorkday = await Workday.currentByUser(user.email!);
+      // // if ((currentWorkday != null) && (currentWorkday.open)) {
+      // //   currentWorkday.endDate = DateTime.now();
+      // //   currentWorkday.open = false;
+      // //   await currentWorkday.save();
+      // // }
       // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
       //FirebaseAuth.instance.signOut();
       signOut(context);
@@ -621,27 +621,27 @@ Widget actionButton(
   return Container(
       margin: EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
       child: // Add a hover text
-      Tooltip(
-        message: tooltip ?? text ?? '',
-        child: ElevatedButton(
-          onPressed: () {
-            if (args == null) {
-              action();
-          } else {
-            action(args);
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          padding:
-              EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              side: const BorderSide(color: Color(0xff8fbc8f))),
-          backgroundColor: bgColor,
-        ),
-        focusNode: listener,
-        child: row,
-      )));
+          Tooltip(
+              message: tooltip ?? text ?? '',
+              child: ElevatedButton(
+                onPressed: () {
+                  if (args == null) {
+                    action();
+                  } else {
+                    action(args);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: hPadding, vertical: vPadding),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      side: const BorderSide(color: Color(0xff8fbc8f))),
+                  backgroundColor: bgColor,
+                ),
+                focusNode: listener,
+                child: row,
+              )));
 }
 
 Widget actionButtonVertical(
