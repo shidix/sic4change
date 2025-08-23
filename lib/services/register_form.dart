@@ -155,7 +155,7 @@ class _RegisterFormState extends State<RegisterForm> {
         // Send email with the password
         _auth.sendPasswordResetEmail(email: widget.email);
         _errorMessage =
-            "Se han creado las credenciales del usuario.\nSe le ha enviado un email al usuario\n para que genere su password.";
+            "Se han creado las credenciales del usuario.\nSe le ha enviado un email al usuario para que genere su password.";
         isNewUser = false;
       }
       return Form(
