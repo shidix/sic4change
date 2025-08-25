@@ -86,6 +86,15 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       );
       return;
     }
+
+    Map<String, int> availableDays = {};
+
+    for (HolidayRequest holiday in holidaysInDate) {
+      HolidaysCategory category = holiday.getCategory(widget.categories);
+      String key = "${holiday.category}-${holiday.userId}";
+      availableDays[key] = await category.getAvailableDays(holiday.userId);
+    }
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -99,6 +108,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 Employee employee = widget.employees.firstWhere(
                     (emp) => emp.email == holiday.userId,
                     orElse: () => Employee.getEmpty(name: 'Desconocido'));
+
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Padding(
@@ -108,7 +118,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             flex: 7,
                             child: ListTile(
                               title: Text(
-                                  '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()}',
+                                  '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()} (quedan ${availableDays["${holiday.category}-${holiday.userId}"]} días)',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,

@@ -481,6 +481,7 @@ class HolidaysCategory {
   String name;
   String code;
   int docRequired = 0;
+  int year = DateTime.now().year;
   String docMessage = "";
   bool retroactive = false;
   bool obligation = false;
@@ -491,6 +492,7 @@ class HolidaysCategory {
     required this.id,
     required this.name,
     required this.organization,
+    required this.year,
     this.code = '',
     this.docRequired = 0,
     this.retroactive = false,
@@ -500,6 +502,10 @@ class HolidaysCategory {
   });
 
   factory HolidaysCategory.fromJson(Map data) {
+    int year = DateTime.now().year;
+    if (data.containsKey('year')) {
+      year = data['year'];
+    }
     HolidaysCategory item = HolidaysCategory(
       id: data['id'],
       code: data['code'] ?? '',
@@ -510,6 +516,7 @@ class HolidaysCategory {
       docMessage: data['docMessage'] ?? "",
       days: data['days'] ?? 0,
       obligation: data['obligation'] ?? false,
+      year: year,
     );
 
     String orgUuid = data['organization'];
@@ -530,6 +537,7 @@ class HolidaysCategory {
         'docMessage': docMessage,
         'obligation': obligation,
         'days': days,
+        'year': year,
       };
 
   @override
@@ -577,6 +585,7 @@ class HolidaysCategory {
     return HolidaysCategory(
       id: id,
       name: name,
+      year: DateTime.now().year,
       organization: organization ?? Organization.getEmpty(),
       days: days,
     );
@@ -609,6 +618,19 @@ class HolidaysCategory {
     } else {
       return [];
     }
+  }
+
+  Future<int> getAvailableDays(String employeeEmail) async {
+    int usedDays = 0;
+    List<HolidayRequest> requests = await HolidayRequest.byUser(employeeEmail);
+
+    for (var request in requests) {
+      if (request.isAproved() && request.category == id) {
+        usedDays += request.endDate.difference(request.startDate).inDays + 1;
+      }
+    }
+
+    return days - usedDays;
   }
 }
 

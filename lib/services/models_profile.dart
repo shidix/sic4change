@@ -21,6 +21,7 @@ class Profile {
   static const String TECHNICIAN = 'Técnico';
   static const String SUPERVISOR = 'Supervisor';
   static const String ADMINISTRATIVE = 'Administrativo';
+  static const String RRHH = 'Administrativo';
   static const String USER = 'Usuario';
 
   static const List<String> profiles = [

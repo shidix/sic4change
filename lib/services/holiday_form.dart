@@ -766,6 +766,17 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                     onSaved: (val) => setState(() => category.code = val!),
                   ),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: category.year.toString(),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Año'),
+                    onSaved: (val) =>
+                        setState(() => category.year = int.parse(val!)),
+                  ),
+                ),
               ],
             ),
             space(),

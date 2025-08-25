@@ -237,64 +237,19 @@ class _HomePageState extends State<HomePage> {
     myHolidays = results[2] as List<HolidayRequest>;
     updateRemainingHolidays();
 
-    // myWorkdays = results[3] as List<Workday>;
-    // myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-    // if ((myWorkdays!.first.open) &&
-    //     (truncDate(myWorkdays!.first.startDate) == truncDate(DateTime.now()))) {
-    //   currentWorkday = myWorkdays!.first;
-    // }
-
-    // //Remove dulplicate workdays checking userId, startDate, endDate
-    // //Create a Queue with myWorkdays
-    // // Remove milliseconds from startDate and endDate in the myWorkdays
-    // for (Workday element in myWorkdays!) {
-    //   element.startDate = DateTime(
-    //       element.startDate.year,
-    //       element.startDate.month,
-    //       element.startDate.day,
-    //       element.startDate.hour,
-    //       element.startDate.minute);
-    //   element.endDate = DateTime(element.endDate.year, element.endDate.month,
-    //       element.endDate.day, element.endDate.hour, element.endDate.minute);
-    //   // Check if the duration is less than 1 minute
-    //   if (!element.isValid()) {
-    //     String idsToRemove = element.id;
-    //     element.delete();
-    //     myWorkdays!.removeWhere((e) => e.id == idsToRemove);
-    //     // If so, set the endDate to the startDate
-    //   }
-    // }
-
-    // Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
-
-    // List<Workday> uniques = [];
-    // while (workdayQueue.isNotEmpty) {
-    //   Workday current = workdayQueue.removeFirst();
-    //   uniques.add(current);
-    //   workdayQueue.removeWhere((element) =>
-    //       element.userId == current.userId &&
-    //       element.startDate == current.startDate &&
-    //       element.endDate == current.endDate &&
-    //       element.id != current.id);
-    // }
-
-    // //Get elements from myWorkdays that are not in uniques using id to compare
-    // List<Workday> toRemove = [];
-    // for (Workday element in myWorkdays!) {
-    //   if (!uniques.any((e) => e.id == element.id)) {
-    //     toRemove.add(element);
-    //   }
-    // }
-    // for (Workday element in toRemove) {
-    //   element.delete();
-    // }
-    // myWorkdays = uniques;
-
     contentWorkPanel = workTimePanel();
 
     mypeople = results[4] as List<Employee>;
     currentEmployee ??= await Employee.byEmail(user.email!);
     mypeople.add(currentEmployee!);
+
+    if (profile!.mainRole == Profile.RRHH) {
+      // Load all employees
+      Employee.getAll().then((value) {
+        mypeople = value;
+        setState(() {});
+      });
+    }
     loadMyPeopleWorkdays().then((value) {
       myPeopleWorkdays = value;
       myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));

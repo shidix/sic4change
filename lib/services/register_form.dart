@@ -167,7 +167,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 children: [
                   TextFormField(
                     initialValue: widget.email,
-                    decoration: InputDecoration(labelText: "Email"),
+                    decoration: const InputDecoration(labelText: "Email"),
                     readOnly: true,
                   ),
                   // TextFormField(
@@ -183,14 +183,13 @@ class _RegisterFormState extends State<RegisterForm> {
                   //     return null;
                   //   },
                   // ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   !userExists
-                      ? Container(
-                          child: Text(
+                      ? const Text(
                           "Creando cuenta de usuario. Este proceso puede tardar unos minutos.",
                           style: TextStyle(
                               fontSize: 16, fontStyle: FontStyle.italic),
-                        ))
+                        )
                       : actionButton(context, 'Solicitar cambio de password',
                           _sendEmail, Icons.key, null),
                   if (_errorMessage.isNotEmpty)
