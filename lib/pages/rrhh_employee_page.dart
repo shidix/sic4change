@@ -130,28 +130,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
       }
     });
     secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM);
-
-    // if (widget.profile == null) {
-    //   Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-    //       .then((value) {
-    //     profile = value;
-    //     mainMenuPanel = mainMenuOperator(context,
-    //         url: "/rrhh", profile: profile, key: mainMenuKey);
-
-    //     if (mounted) {
-    //       setState(() {});
-    //     }
-    //   });
-    // } else {
-    //   profile = widget.profile;
-    //   mainMenuPanel = mainMenuOperator(context,
-    //       url: "/rrhh", profile: profile, key: mainMenuKey);
-    //   secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
-
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    // }
   }
 
   Widget content(context) {
