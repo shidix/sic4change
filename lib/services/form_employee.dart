@@ -12,7 +12,11 @@ import "dart:developer" as dev;
 
 class EmployeeForm extends StatefulWidget {
   final Employee selectedItem;
-  const EmployeeForm({Key? key, required this.selectedItem}) : super(key: key);
+  final List<Employee> existingEmployees;
+
+  const EmployeeForm(
+      {Key? key, required this.selectedItem, required this.existingEmployees})
+      : super(key: key);
 
   @override
   _EmployeeFormState createState() => _EmployeeFormState();
@@ -32,12 +36,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
   String selectedReason = '';
 
   late int indexReason;
+  late bool isNewEmployee;
 
   @override
   void initState() {
     super.initState();
 
     employee = widget.selectedItem;
+    isNewEmployee = employee.id == '';
     selectedBajaDate = employee.getBajaDate();
     selectedAltaDate = employee.getAltaDate();
 
@@ -197,9 +203,28 @@ class _EmployeeFormState extends State<EmployeeForm> {
                           initialValue: employee.code,
                           decoration:
                               const InputDecoration(labelText: 'NIF/NIE/ID'),
+                          onChanged: (value) {
+                            // Check if code exists in other employee
+                            if (widget.existingEmployees.any((element) =>
+                                element.code == value &&
+                                element.id != employee.id)) {
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Ya existe un empleado con este NIF/NIE/ID'),
+                                ),
+                              );
+                            }
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'El campo no puede estar vacío';
+                            }
+                            if (widget.existingEmployees.any((element) =>
+                                element.code == value &&
+                                element.id != employee.id)) {
+                              return 'Ya existe un empleado con este NIF/NIE/ID';
                             }
                             return null;
                           },
@@ -215,6 +240,34 @@ class _EmployeeFormState extends State<EmployeeForm> {
                           initialValue: employee.affiliation,
                           decoration:
                               const InputDecoration(labelText: 'Número SS'),
+                          onChanged: (value) {
+                            if (value.length < 12) {
+                              return;
+                            }
+                            // Check if affiliation exists in other employee
+                            if (widget.existingEmployees.any((element) =>
+                                element.affiliation == value &&
+                                element.id != employee.id)) {
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Ya existe un empleado con este Número SS'),
+                                ),
+                              );
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El campo no puede estar vacío';
+                            }
+                            if (widget.existingEmployees.any((element) =>
+                                element.affiliation == value &&
+                                element.id != employee.id)) {
+                              return 'Ya existe un empleado con este Número SS';
+                            }
+                            return null;
+                          },
                           onSaved: (String? value) {
                             employee.affiliation = value!;
                           },
@@ -274,9 +327,36 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: TextFormField(
                       initialValue: employee.email,
                       decoration: const InputDecoration(labelText: 'Email'),
+                      onChanged: (value) {
+                        // Check if email exists in other employee
+                        if (widget.existingEmployees.any((element) =>
+                            element.email == value &&
+                            element.id != employee.id)) {
+                          // Show error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Ya existe un empleado con este email'),
+                            ),
+                          );
+                        }
+                        if (value.isNotEmpty) {
+                          employee.email = value;
+                        } else {
+                          employee.email = '';
+                        }
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'El campo no puede estar vacío';
+                        }
+                        if (!isValidEmail(value)) {
+                          return 'El email no es válido';
+                        }
+                        if (widget.existingEmployees.any((element) =>
+                            element.email == value &&
+                            element.id != employee.id)) {
+                          return 'Ya existe un empleado con este email';
                         }
                         return null;
                       },
@@ -1217,78 +1297,134 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
     return Form(
         key: _formKey,
         child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.6,
             child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            // Add date time picker for shift start date
-            DateTimePicker(
-              labelText: 'Fecha de Inicio',
-              selectedDate: shift!.date,
-              onSelectedDate: (DateTime? date) {
-                if (date != null) {
-                  shift!.date = date;
-                }
-                setState(() {});
-              },
-            ),
-            for (int i = 0; i < 7; i++)
-              TextFormField(
-                initialValue: shift!.hours[i].toStringAsFixed(2),
-                onChanged: (value) {
-                  try {
-                    shift!.hours[i] = double.parse(value.replaceAll(',', '.'));
-                  } catch (e) {
-                    value = '0';
-                  }
-                },
-                onSaved: (String? value) {
-                  try {
-                    shift!.hours[i] = double.parse(value!.replaceAll(',', '.'));
-                  } catch (e) {
-                    value = '0';
-                  }
-                },
-                decoration: InputDecoration(labelText: DAYS[i]),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (String? value) {
-                  try {
-                    double val = double.parse(value!.replaceAll(',', '.'));
-                    if (val < 0 || val > 24) {
-                      return 'Debe estar entre 0 y 24';
-                    }
-                  } catch (e) {
-                    return 'Debe ser un número válido';
-                  }
-                  return null;
-                },
-              ),
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                // Add date time picker for shift start date
 
-            space(height: 30),
-            Row(children: [
-              Expanded(flex: 1, child: Container()),
-              Expanded(
-                  flex: 2,
-                  child: saveBtnForm(
-                    context,
-                    () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        employee.setShift(shift!);
-                        Navigator.of(context).pop(employee);
-                      } else {
+                Row(children: [
+                  Expanded(
+                    flex: 3,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de Inicio',
+                      selectedDate: shift!.date,
+                      onSelectedDate: (DateTime? date) {
+                        if (date != null) {
+                          shift!.date = date;
+                        }
                         setState(() {});
-                      }
-                    },
-                  )),
-              Expanded(flex: 1, child: Container()),
-              Expanded(
-                  flex: 2,
-                  child: removeBtnForm(context, removeShift, [shift!.date])),
-              Expanded(flex: 1, child: Container()),
-            ]),
-          ],
-        )));
+                      },
+                    ),
+                  ),
+                  Expanded(flex: 1, child: Container()),
+                  for (int i = 0; i < 7; i++)
+                    Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: TextFormField(
+                              initialValue: shift!.hours[i].toStringAsFixed(2),
+                              onChanged: (value) {
+                                try {
+                                  shift!.hours[i] =
+                                      double.parse(value.replaceAll(',', '.'));
+                                } catch (e) {
+                                  value = '0';
+                                }
+                              },
+                              onSaved: (String? value) {
+                                try {
+                                  shift!.hours[i] =
+                                      double.parse(value!.replaceAll(',', '.'));
+                                } catch (e) {
+                                  value = '0';
+                                }
+                              },
+                              decoration: InputDecoration(
+                                  labelText: DAYS[i].substring(0, 3)),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              validator: (String? value) {
+                                try {
+                                  double val =
+                                      double.parse(value!.replaceAll(',', '.'));
+                                  if (val < 0 || val > 24) {
+                                    return 'Debe estar entre 0 y 24';
+                                  }
+                                } catch (e) {
+                                  return 'Debe ser un número válido';
+                                }
+                                return null;
+                              },
+                            ))),
+                ]),
+                space(height: 10),
+                const Divider(thickness: 1),
+                const Text(
+                  'Histórico de turnos',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                // Show all shifts in employee.shift
+                Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Row(children: [
+                      Expanded(
+                          flex: 3,
+                          child: Text('Fecha',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 1, child: Container()),
+                      for (int i = 0; i < 7; i++)
+                        Expanded(
+                            flex: 1,
+                            child: Text(DAYS[i].substring(0, 3),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold))),
+                    ])),
+
+                for (Shift s in employee.shift)
+                  Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Row(children: [
+                        Expanded(
+                            flex: 3,
+                            child:
+                                Text(DateFormat('dd/MM/yyyy').format(s.date))),
+                        Expanded(flex: 1, child: Container()),
+                        for (double hour in s.hours)
+                          Expanded(
+                              flex: 1, child: Text(hour.toStringAsFixed(2))),
+                      ])),
+
+                space(height: 30),
+                Row(children: [
+                  Expanded(flex: 1, child: Container()),
+                  Expanded(
+                      flex: 2,
+                      child: saveBtnForm(
+                        context,
+                        () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            employee.setShift(shift!);
+                            Navigator.of(context).pop(employee);
+                          } else {
+                            setState(() {});
+                          }
+                        },
+                      )),
+                  Expanded(flex: 1, child: Container()),
+                  Expanded(
+                      flex: 2,
+                      child:
+                          removeBtnForm(context, removeShift, [shift!.date])),
+                  Expanded(flex: 1, child: Container()),
+                ]),
+              ],
+            )));
   }
 }

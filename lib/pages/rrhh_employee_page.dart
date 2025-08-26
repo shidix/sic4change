@@ -634,7 +634,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
               context: context,
               title: 'Empleado',
               icon: Icons.add_outlined,
-              content: EmployeeForm(selectedItem: employee),
+              content: EmployeeForm(
+                  selectedItem: employee, existingEmployees: employees),
               actionBtns: null);
         }).then(
       (value) {

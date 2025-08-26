@@ -152,10 +152,6 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     if (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(widget.email)) {
       if ((isNewUser) && userCredential != null) {
-        print(widget.email);
-        // Send a verification email
-        //userCredential!.user?.sendEmailVerification();
-        // Send email with the password
         FirebaseAuth.instance
             .sendPasswordResetEmail(email: widget.email)
             .then((value) => null);

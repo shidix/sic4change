@@ -85,6 +85,13 @@ Map<String, KeyValue> CURRENCIES = {
   // 'ZAR': 'R',
 };
 
+bool isValidEmail(String email) {
+  // Expresión regular para validar el formato del correo electrónico
+  String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+  RegExp regex = RegExp(pattern);
+  return regex.hasMatch(email);
+}
+
 List reshape(List list, int m, int n) {
   List result = [];
   for (int i = 0; i < m; i++) {
