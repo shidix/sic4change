@@ -284,7 +284,7 @@ class Contact {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Contact.fromJson(data);
     });
@@ -311,7 +311,7 @@ class Contact {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Contact.fromJson(data);
     });
@@ -503,7 +503,7 @@ class Company {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Company.fromJson(data);
     });

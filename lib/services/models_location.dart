@@ -66,7 +66,7 @@ class Country {
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) => (value.docs.isNotEmpty)
-            ? Country.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            ? Country.fromJson(value.docs.first.data())
             : null);
   }
 
@@ -173,7 +173,7 @@ class Province {
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) => (value.docs.isNotEmpty)
-            ? Province.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            ? Province.fromJson(value.docs.first.data())
             : Province(""));
   }
 
@@ -262,7 +262,7 @@ class Region {
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) => (value.docs.isNotEmpty)
-            ? Region.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            ? Region.fromJson(value.docs.first.data())
             : Region(""));
   }
 
@@ -351,7 +351,7 @@ class Town {
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) => (value.docs.isNotEmpty)
-            ? Town.fromJson(value.docs.first.data() as Map<String, dynamic>)
+            ? Town.fromJson(value.docs.first.data())
             : Town(""));
   }
 

@@ -120,7 +120,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
       });
       Programme.getProgrammes().then((value) {
         //List l = value;
-        programmeListCache = value as List<Programme>;
+        programmeListCache = value;
         for (Programme p in programmeListCache) {
           if (p.uuid == task!.programme) task!.programmeObj = p;
         }
@@ -133,7 +133,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         statusListCache = value;
         /*task!.statusObj =
             statusListCache.firstWhere((status) => status.uuid == task!.status);*/
-        statusListCache = value as List<TasksStatus>;
+        statusListCache = value;
         for (TasksStatus st in statusListCache) {
           if (st.uuid == task!.status) {
             task!.statusObj = st;

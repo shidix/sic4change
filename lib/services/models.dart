@@ -799,7 +799,7 @@ class ProjectType {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = ProjectType.fromJson(data);
     });
@@ -814,7 +814,7 @@ class ProjectType {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = ProjectType.fromJson(data);
     });
@@ -912,7 +912,7 @@ class ProjectStatus {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = ProjectStatus.fromJson(data);
     });
@@ -1871,7 +1871,7 @@ class ReformulationType {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = ReformulationType.fromJson(data);
     });
@@ -2095,7 +2095,7 @@ class Programme {
     final dbProgramme = FirebaseFirestore.instance.collection("s4c_programme");
     await dbProgramme.where("uuid", isEqualTo: uuid).get().then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Programme.fromJson(data);
     });

@@ -157,7 +157,7 @@ class Goal {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Goal.fromJson(data);
     });
@@ -495,7 +495,7 @@ class Result {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Result.fromJson(data);
     });
@@ -626,7 +626,7 @@ class ResultIndicator {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = ResultIndicator.fromJson(data);
     });
@@ -800,7 +800,7 @@ class Activity {
         .get()
         .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Activity.fromJson(data);
     });
