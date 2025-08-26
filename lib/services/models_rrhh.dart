@@ -1016,7 +1016,7 @@ class Employee {
   }
 
   static Future<List<Employee>> getEmployees(
-      {Organization? organization}) async {
+      {Organization? organization, bool includeInactive = false}) async {
     // get from database
     List<Employee> items = [];
     if (organization != null) {
@@ -1052,6 +1052,10 @@ class Employee {
                 (element.organization == null)))
             .toList();
       }
+    }
+
+    if (!includeInactive) {
+      items = items.where((element) => element.isActive()).toList();
     }
     return items;
   }
@@ -1160,8 +1164,11 @@ class Employee {
 
     if (items.isEmpty) return [];
 
-    return await Employee.byId(
+    List<Employee> employees = await Employee.byId(
         items.map((e) => e.toString()).toList().toSet().toList());
+    // Remove employees that are not active
+    employees = employees.where((element) => element.isActive()).toList();
+    return employees;
   }
 
   int compareTo(Employee other) {
@@ -1221,9 +1228,13 @@ class Employee {
   }
 
   bool isActive() {
-    return (altas.isNotEmpty &&
-        (getBajaDate().isAfter(DateTime.now()) ||
-            getBajaDate().isAtSameMomentAs(DateTime.now())));
+    try {
+      return (altas.isNotEmpty &&
+          (getBajaDate().isAfter(DateTime.now()) ||
+              getBajaDate().isAtSameMomentAs(DateTime.now())));
+    } catch (e) {
+      return false;
+    }
   }
 
   String getFullName() {

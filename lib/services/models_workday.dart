@@ -155,6 +155,8 @@ class Workday {
 
   static Future<List<Workday>> byUser(dynamic email,
       [DateTime? fromDate]) async {
+    // Check if email are > 30 elements
+
     List<Workday> items = [];
     fromDate ??= DateTime.now().subtract(const Duration(days: 40));
 
@@ -166,24 +168,38 @@ class Workday {
       return items; // Return empty list if no email provided
     }
 
-    final query = await FirebaseFirestore.instance
-        .collection(Workday.tbName)
-        .where("userId", whereIn: email)
-        .where("startDate",
-            isGreaterThanOrEqualTo:
-                DateTime(fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))
-        .get();
-    for (var result in query.docs) {
-      items.add(Workday.fromFirestore(result));
-    }
-    if (items.isEmpty) {
-      Workday empty = Workday.getEmpty();
-      empty.userId = email;
-      empty.open = true;
-      items.add(empty);
-    }
+    // Check if email has more than 30 elements
+    if (email.length > 30) {
+      // Split email in chunks of 30
+      List<Workday> allItems = [];
+      for (var i = 0; i < email.length; i += 30) {
+        var chunk =
+            email.sublist(i, i + 30 > email.length ? email.length : i + 30);
+        var chunkItems = await Workday.byUser(chunk, fromDate);
+        allItems.addAll(chunkItems);
+      }
+      allItems.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+      return allItems;
+    } else {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection(Workday.tbName)
+          .where("userId", whereIn: email)
+          .where("startDate",
+              isGreaterThanOrEqualTo: DateTime(
+                  fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))
+          .get();
+      for (var result in query.docs) {
+        items.add(Workday.fromFirestore(result));
+      }
+      if (items.isEmpty) {
+        Workday empty = Workday.getEmpty();
+        empty.userId = email;
+        empty.open = true;
+        items.add(empty);
+      }
 
-    items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
-    return items;
+      items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
+      return items;
+    }
   }
 }

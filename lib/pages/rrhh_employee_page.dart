@@ -119,7 +119,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     profile = Provider.of<ProfileProvider>(context, listen: false).profile ??
         Profile.getEmpty();
 
-    Employee.getEmployees().then((value) {
+    Employee.getEmployees(includeInactive: true).then((value) {
       employees = value;
       selectedEmployees = List.filled(employees.length, true);
       // contentPanel = content(context);

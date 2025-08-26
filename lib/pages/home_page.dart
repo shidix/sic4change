@@ -247,6 +247,7 @@ class _HomePageState extends State<HomePage> {
       // Load all employees
       Employee.getAll().then((value) {
         mypeople = value;
+        mypeople = mypeople.where((element) => element.isActive()).toList();
         setState(() {});
       });
     }

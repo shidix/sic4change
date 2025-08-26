@@ -52,9 +52,11 @@ class _RegisterFormState extends State<RegisterForm> {
       } finally {
         await app.delete();
         if (userCredential == null) {
-          setState(() {
-            _errorMessage = "Error desconocido";
-          });
+          if (!userExists) {
+            setState(() {
+              _errorMessage = "Error desconocido";
+            });
+          }
         } else {
           await Future.sync(() => userCredential);
           userExists = true;
