@@ -528,6 +528,7 @@ List<List<T>> resize<T>(List<T> list, int ncols) {
     rows.add(
         list.sublist(i, i + ncols > list.length ? list.length : i + ncols));
   }
+
   return rows;
 }
 

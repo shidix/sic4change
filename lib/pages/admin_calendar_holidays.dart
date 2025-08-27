@@ -12,6 +12,7 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 // import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -141,6 +142,7 @@ class CalendarHolidaysPage extends StatefulWidget {
 
 class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Widget? _mainMenu;
+  Widget? _secondaryMenu;
   Profile? profile;
   Contact? contact;
   List<HolidaysConfig>? holidaysList;
@@ -185,6 +187,13 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     if (profile == null) {
       content = const Center(child: Text("No hay perfil de usuario"));
       return;
+    }
+    if (profile!.mainRole == Profile.RRHH) {
+      _mainMenu = mainMenu(context, "/rrhh");
+      _secondaryMenu = secondaryMenu(context, CALENDAR_ITEM);
+    } else {
+      _mainMenu = mainMenu(context, "/home");
+      _secondaryMenu = holidayHeader(context);
     }
     // Check if the user has permissions
     checkPermissions(
@@ -237,8 +246,6 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   @override
   initState() {
     super.initState();
-
-    _mainMenu = mainMenu(context, "/home");
     _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
 
     _listener = () {
@@ -247,6 +254,7 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
       profile = _profileProvider.profile;
       _mainMenu = mainMenu(context, "/home");
+      _secondaryMenu = holidayHeader(context);
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
       } else {
@@ -270,15 +278,90 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
   @override
   Widget build(BuildContext context) {
+    if ((profile != null) && (profile?.mainRole == Profile.RRHH))
+    {
+      _mainMenu = mainMenu(context, "/rrhh", );
+    }
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [
         _mainMenu!,
-        holidayHeader(context),
+        Padding(
+                padding: const EdgeInsets.all(30), child: _secondaryMenu),
         content,
         footer(context),
       ]),
     ));
+  }
+
+  Future<void> duplicateCalendar(HolidaysConfig calendar) async {
+    //Show confirm Dialog
+    bool confirmed = await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Confirmar copia"),
+            content: Text("¿Estás seguro de que deseas duplicar este calendario?"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text("Cancelar"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  HolidaysConfig newCalendar = HolidaysConfig.fromJson(calendar.toJson());
+                  newCalendar.id = "";
+                  newCalendar.name = "${calendar.name} (Copia)";
+                  newCalendar.employees = [];
+                  await newCalendar.save();                  
+                  holidaysList!.add(newCalendar);
+                  fillContent();
+
+                  Navigator.of(context).pop(true);
+                },
+                child: Text("Duplicar"),
+              ),
+            ],
+          );
+        });
+    print (confirmed);
+    if (confirmed == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Calendario duplicado')),
+      );
+      setState(() {holidaysList = holidaysList;});
+    }
+  }
+
+  void deleteCalendar(HolidaysConfig calendar) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Confirmar eliminación"),
+            content: Text("¿Estás seguro de que deseas eliminar este calendario?"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Cancelar"),
+              ),
+              TextButton(
+                onPressed: () {
+                  
+                  holidaysList!.remove(calendar);
+                  calendar.delete();
+                  fillContent();
+                  Navigator.of(context).pop();
+                },
+                child: Text("Eliminar"),
+              ),
+            ],
+          );
+        });
   }
 
   void fillContent() {
@@ -287,38 +370,62 @@ class _CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       return;
     }
 
-    List<List<HolidaysConfig>> calendarList = resize(holidaysList!, 5);
+    // Sort holidaysList by year and then by name
+    holidaysList!.sort((a, b) {
+      int yearComparison = b.year.compareTo(a.year);
+      if (yearComparison != 0) return yearComparison;
+      return a.name.compareTo(b.name);
+    });
 
+    // fill calendarList to 5 columns
+    int nCols = 6;
+    if (MediaQuery.of(context).size.width < 1200) nCols = 4;
+    if (MediaQuery.of(context).size.width < 800) nCols = 2;
+
+    List<List<HolidaysConfig>> calendarList = resize(holidaysList!, nCols);
+
+    // Check last row from calendarList and complete to 8
+    if (calendarList.isNotEmpty) {
+      while (calendarList.last.length < nCols) {
+        calendarList.last.add(HolidaysConfig.getEmpty());
+      }
+    }
 
     content = Column(
       children: calendarList.map((row) {
         return Row(
             children: row.map((cell) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: actionButtonVertical(
+              
+          return Expanded(flex:1, child:Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: (cell.id != '')? Card(child:
+            Padding(padding: const EdgeInsets.symmetric(vertical:8, horizontal: 0),
+            child: Column(children:[
+              Icon(Icons.calendar_month, size: 50, color: mainColor),
+              Text(cell.year.toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+              Text(cell.name, style: TextStyle(fontSize: 16),),
+              space(height: 10),
+              Padding(padding: EdgeInsets.symmetric(horizontal: 8.0), child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children:[
+            actionButton(
                 context,
-                Column(
-                  children: [
-                    Text(
-                      cell.year.toString(),
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      cell.name,
-                      textAlign: TextAlign.center,
-                    )
-                  ],
-                ), (HolidaysConfig calendar) {
+                '', (HolidaysConfig calendar) {
               holidaysConfig = calendar;
               drawCalendar();
-            }, Icons.calendar_month, cell),
-          );
+            }, Icons.calendar_month, cell, scale:'sm', tooltip:'Editar'),
+            actionButton(context, '', (calendar) {duplicateCalendar(calendar);}, Icons.copy, cell, scale:'sm', tooltip: "Duplicar"),
+            actionButton(context, '', (calendar) {deleteCalendar(calendar);}, Icons.delete, cell, scale:'sm', tooltip: "Eliminar")
+          ]))
+
+          ]))):Container()));
         }).toList());
       }).toList(),
     );
 
     if (mounted) {
+      
       setState(() {});
     }
     return;

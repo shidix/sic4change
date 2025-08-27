@@ -87,18 +87,26 @@ class HolidaysConfig {
 
   //byOrganization (uuid)
   static Future<List<HolidaysConfig>> byOrganization(String uuid) async {
+    List<HolidaysConfig> items = [];
     final query = await FirebaseFirestore.instance
         .collection(tbName)
         .where("organization", isEqualTo: uuid)
         .get();
     if (query.docs.isNotEmpty) {
-      return query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
+      items = query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
+      //Sort by year and Name
+      items.sort((a, b) {
+        int yearComparison = b.year.compareTo(a.year);
+        if (yearComparison != 0) return yearComparison;
+        return a.name.compareTo(b.name);
+      });
+      return items;
     } else {
       return [];
     }
   }
 
-  void save() {
+  Future<HolidaysConfig> save() async {
     if (gralHolidays.isEmpty) {
       gralHolidays.add(Event(
         subject: 'Año Nuevo',
@@ -119,14 +127,16 @@ class HolidaysConfig {
     }
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
+      await FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
         id = value.id;
-        save(); // Save again to update the id
+        Map<String, dynamic> data = toJson();
+        FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
       });
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
+    return this;
   }
 
   void delete() {

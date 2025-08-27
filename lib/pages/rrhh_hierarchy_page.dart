@@ -209,19 +209,6 @@ class _HierarchyPageState extends State<HierarchyPage> {
 
   Future<void> initializeData(context) async {
     try {
-      
-      // DateTime startTime = DateTime.now();
-      // while (
-      //     DateTime.now().difference(startTime) < const Duration(seconds: 5) &&
-      //         (Provider.of<ProfileProvider>(context, listen: false).profile ==
-      //                 null ||
-      //             Provider.of<ProfileProvider>(context, listen: false)
-      //                     .organization ==
-      //                 null)) {}
-
-      // profile = Provider.of<ProfileProvider>(context, listen: false).profile;
-      // currentOrganization =
-      //     Provider.of<ProfileProvider>(context, listen: false).organization;
       if (profile == null || currentOrganization == null) {
         print('Profile or organization is null, cannot initialize data.');
         return;
