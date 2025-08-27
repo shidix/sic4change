@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/admin_calendar_holidays.dart';
+import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';

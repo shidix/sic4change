@@ -1495,3 +1495,128 @@ class Department {
     return items;
   }
 }
+
+class Workplace {
+  static const String tbName = 's4c_workplaces';
+
+  String? id;
+  String name;
+  String? organization;
+  String? address;
+  String? city;
+  String? postalCode;
+  String? country;
+  String? phone;
+  String? email;
+
+  Workplace({
+    required this.name,
+    this.organization,
+    this.address,
+    this.city,
+    this.postalCode,
+    this.country,
+    this.phone,
+    this.email,
+  });
+
+  @override
+  String toString() {
+    return 'Working Center: $name, organization: $organization, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone, email: $email';
+  }
+
+  static Workplace fromJson(Map<String, dynamic> json) {
+    Workplace item = Workplace(
+        name: json['name'],
+        organization:
+            (json.containsKey('organization')) ? json['organization'] : null,
+        address: (json.containsKey('address')) ? json['address'] : null,
+        city: (json.containsKey('city')) ? json['city'] : null,
+        postalCode:
+            (json.containsKey('postalCode')) ? json['postalCode'] : null,
+        country: (json.containsKey('country')) ? json['country'] : null,
+        phone: (json.containsKey('phone')) ? json['phone'] : null,
+        email: (json.containsKey('email')) ? json['email'] : null);
+    if (json.containsKey('id')) {
+      item.id = (json['id'] == null) ? '' : json['id'];
+    } else {
+      item.id = '';
+    }
+
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'organization': organization,
+        'address': address,
+        'city': city,
+        'postalCode': postalCode,
+        'country': country,
+        'phone': phone,
+        'email': email,
+      };
+
+  Future<Workplace> save() async {
+    if ((id == null) || (id == '')) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
+        id = value.id;
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(id)
+            .update({'id': id});
+      });
+    } else {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
+  }
+
+  static Workplace getEmpty() {
+    return Workplace(name: '');
+  }
+
+  static List<Workplace> getAll({String? organization}) {
+    // get from database
+    List<Workplace> items = [];
+    if (organization == null) {
+      FirebaseFirestore.instance.collection(tbName).get().then((value) {
+        if (value.docs.isEmpty) return [];
+        items = value.docs.map((e) {
+          Workplace item = Workplace.fromJson(e.data());
+          item.id = e.id;
+          return item;
+        }).toList();
+      });
+      items.sort((a, b) => a.name.compareTo(b.name));
+      return items;
+    }
+    FirebaseFirestore.instance
+        .collection(tbName)
+        .where('organization', isEqualTo: organization)
+        .get()
+        .then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Workplace item = Workplace.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
+  }
+}

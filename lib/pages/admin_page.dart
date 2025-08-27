@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sic4change/pages/admin_calendar_holidays.dart';
+import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
 import 'package:sic4change/pages/admin_companies_page.dart';

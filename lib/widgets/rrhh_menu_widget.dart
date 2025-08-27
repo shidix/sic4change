@@ -2,18 +2,20 @@
 
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/admin_calendar_holidays.dart';
+import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/rrhh_hierarchy_page.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/rrhh_nominas_page.dart';
 // import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/rrhh_employee_page.dart';
+import 'package:sic4change/pages/rrhh_workplace_pages.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 const NOMINA_ITEM = 0;
 const EMPLOYEE_ITEM = 1;
 const HIERARCHY_ITEM = 2;
 const CALENDAR_ITEM = 3;
+const WORKPLACE_ITEM = 4;
 
 Widget secondaryMenu(context, int option) {
   return Row(
@@ -38,7 +40,12 @@ Widget secondaryMenu(context, int option) {
               Icons.calendar_today)
           : goPage(context, 'Calendarios', null, Icons.calendar_today),
       space(width: 10),
-      backButton(context),
+      (option != WORKPLACE_ITEM)
+          ? goPage(
+              context, 'Centros de Trabajo', const WorkplacePage(), Icons.home)
+          : goPage(context, 'Centros de Trabajo', null, Icons.home),
+      // space(width: 10),
+      // backButton(context),
     ],
   );
 }

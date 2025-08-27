@@ -766,7 +766,7 @@ class _NominasPageState extends State<NominasPage> {
   Widget build(BuildContext context) {
     // return to login_page if profile is null
     if (profile == null) {
-      return SelectionArea(
+      return const SelectionArea(
           child: Scaffold(
         body: Center(
           child: Column(
@@ -774,8 +774,8 @@ class _NominasPageState extends State<NominasPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               // mainMenuOperator(context, url: "/rrhh", profile: profile),
-              const CircularProgressIndicator(),
-              const Text(
+              CircularProgressIndicator(),
+              Text(
                 'Loading profile...',
               ),
             ],

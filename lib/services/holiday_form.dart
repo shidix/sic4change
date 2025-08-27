@@ -569,11 +569,16 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
 
 class HolidayConfigUserForm extends StatefulWidget {
   final HolidaysConfig? holidaysConfig;
+  final List<String>? employeesInCalendars;
   final Function? afterSave;
   final Function? afterDelete;
 
   const HolidayConfigUserForm(
-      {Key? key, this.holidaysConfig, this.afterSave, this.afterDelete})
+      {Key? key,
+      this.holidaysConfig,
+      this.employeesInCalendars,
+      this.afterSave,
+      this.afterDelete})
       : super(key: key);
 
   @override
@@ -592,6 +597,12 @@ class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
     // Initialize the list of employees from the organization
     Employee.getAll().then((value) {
       employees = value;
+      // Remove employees that are already in the calendar
+      if (widget.employeesInCalendars != null) {
+        employees.removeWhere(
+            (employee) => widget.employeesInCalendars!.contains(employee.id));
+      }
+
       if (mounted) {
         setState(() {});
       }
