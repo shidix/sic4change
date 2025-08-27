@@ -1371,7 +1371,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
                 Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Row(children: [
-                      Expanded(
+                      const Expanded(
                           flex: 3,
                           child: Text('Fecha',
                               style: TextStyle(
@@ -1381,7 +1381,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
                         Expanded(
                             flex: 1,
                             child: Text(DAYS[i].substring(0, 3),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold))),
                     ])),
