@@ -127,10 +127,10 @@ class _OrgchartState extends State<Orgchart> {
                         Expanded(
                             flex: 1,
                             child: Text(item.mainRole, style: normalText)),
-                        Expanded(
-                            flex: 2,
-                            child: Text(item.holidaySupervisor.join(', '),
-                                style: normalText)),
+                        // Expanded(
+                        //     flex: 2,
+                        //     child: Text(item.holidaySupervisor.join(', '),
+                        //         style: normalText)),
                       ],
                     ),
                   ],
@@ -153,9 +153,9 @@ class _OrgchartState extends State<Orgchart> {
           children: [
             Expanded(flex: 1, child: Text("Usuario", style: headerListStyle)),
             Expanded(flex: 1, child: Text("Rol", style: headerListStyle)),
-            Expanded(
-                flex: 2,
-                child: Text("Supervisores vacaciones", style: headerListStyle)),
+            // Expanded(
+            //     flex: 2,
+            //     child: Text("Supervisores vacaciones", style: headerListStyle)),
           ],
         ),
         Divider(),

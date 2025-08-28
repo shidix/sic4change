@@ -554,12 +554,7 @@ void signOut(BuildContext context) {
     Provider.of<ProfileProvider>(context, listen: false).clearProfile();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }).catchError((e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error al cerrar sesión: $e"),
-        backgroundColor: Colors.red,
-      ),
-    );
+    print("Error signing out: $e");
   });
 }
 

@@ -3,6 +3,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
 //import 'package:sic4change/pages/404_page.dart';
@@ -10,6 +11,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -28,13 +30,32 @@ class ContactInfoPage extends StatefulWidget {
 }
 
 class _ContactInfoPageState extends State<ContactInfoPage> {
+  late ProfileProvider _provider;
   Contact? contact;
   ContactInfo? _contactInfo;
   Widget? contactInfoDetailsPanel;
+  Organization? currentOrg;
+  Profile? currentProfile;
 
   @override
   void initState() {
     super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+
+    _provider.addListener(() {
+      if (!mounted) return;
+      currentOrg = _provider.organization;
+      currentProfile = _provider.profile;
+      if (currentOrg == null || currentProfile == null) {
+        _provider.loadProfile();
+      }
+      setState(() {});
+
+    });
+    if ((currentOrg == null) || (currentProfile == null)) {
+      _provider.loadProfile();
+    }
+
     contact = widget.contact;
     _contactInfo = widget.contactInfo;
     contactInfoDetailsPanel = contactInfoDetails(context);

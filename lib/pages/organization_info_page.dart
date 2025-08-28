@@ -1,9 +1,11 @@
 //import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
@@ -24,10 +26,34 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   OrganizationBilling? orgBilling;
   Widget? orgInfoDetailsPanel;
   List<Country> countriesList = [];
+  ProfileProvider? _provider;
+  Organization? _currentOrg;
+  Profile? _currentProfile;
 
   @override
   void initState() {
     super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+    _provider?.addListener(() {
+      if (!mounted) return;
+      _currentOrg = _provider?.organization;
+      _currentProfile =_provider?.profile;
+      if (_currentOrg == null || _currentProfile == null) {
+        _provider?.loadProfile();
+      }
+      setState(() {
+        _currentOrg = _provider?.organization;
+        _currentProfile = _provider?.profile;
+      });
+
+    });
+
+    _currentOrg = _provider?.organization;
+    _currentProfile = _provider?.profile;
+    if (_currentOrg == null || _currentProfile == null) {
+      _provider?.loadProfile();
+    }
+
     Country.getAll().then((val) {
       countriesList = val;
     });
@@ -111,6 +137,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                       
                         addBtn(context, callEditOrgDialog,
                             {'org': org, 'billing': orgBilling},
                             text: "Editar", icon: Icons.edit),
@@ -286,20 +313,41 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
 
   void callEditOrgDialog(context, Map<String, dynamic> args) async {
     Organization org = args["org"];
-    OrganizationBilling billing = args["billing"];
-    List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
-    // List<Country> countriesList = await Country.getAll();
-    List<KeyValue> countries = await Country.getCountriesHash();
-    if (countriesList.any((element) => element.uuid == org.country)) {
-      org.countryObj =
-          countriesList.firstWhere((element) => element.uuid == org.country);
-    } else {
-      org.country = countriesList.first.uuid;
-      org.countryObj = countriesList.first;
-      org.save();
-    }
+    if ((_currentOrg?.id != org.id) || ([Profile.ADMIN, Profile.RRHH].contains(_currentProfile?.mainRole))) {
+      OrganizationBilling billing = args["billing"];
+      List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
+      // List<Country> countriesList = await Country.getAll();
+      List<KeyValue> countries = await Country.getCountriesHash();
+      if (countriesList.any((element) => element.uuid == org.country)) {
+        org.countryObj =
+            countriesList.firstWhere((element) => element.uuid == org.country);
+      } else {
+        org.country = countriesList.first.uuid;
+        org.countryObj = countriesList.first;
+        org.save();
+      }
 
-    orgEditDialog(context, org, billing, types, countries);
+      orgEditDialog(context, org, billing, types, countries);
+    }
+    else {
+      // Show alert informing that the user cannot edit this organizarion
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("No tienes permisos para editar esta organización porque es a la que perteneces.\n Si deseas realizar cambios, contacta a un administrador."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Cerrar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> orgEditDialog(context, org, billing, types, countries) {

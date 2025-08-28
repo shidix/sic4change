@@ -62,10 +62,7 @@ Widget mainMenuUser(context, [user, url]) {
             color: (url == "/contacts")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtn(context, "Roles", Icons.group, "/orgchart",
-            color: (url == "/orgchart")
-                ? mainMenuBtnSelectedColor
-                : mainMenuBtnColor),
+
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           Container(
@@ -133,6 +130,10 @@ Widget mainMenuAdmin(context, [user, url]) {
             color: (url == "/contacts")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
+        menuBtn(context, "Roles", Icons.group, "/orgchart",
+            color: (url == "/orgchart")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         menuBtn(context, "Admin", Icons.settings, "/admin",
             color: (url == "/admin")
                 ? mainMenuBtnSelectedColor
@@ -188,6 +189,10 @@ Widget mainMenuOperator(context, {url, User? user, key}) {
                 : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             color: (url == "/contacts")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
+        menuBtn(context, "Roles", Icons.group, "/orgchart",
+            color: (url == "/orgchart")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/widgets/common_widgets.dart';
 
 class WorkplaceForm extends StatefulWidget {
   final Workplace selectedItem;
@@ -101,19 +102,28 @@ class WorkplaceFormState extends State<WorkplaceForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            TextButton(
-              child: const Text("Cancelar"),
-              onPressed: () {
+            saveBtnForm(context, () {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                newItem.save();
+                widget.onSaved(newItem);
                 Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-                child: const Text("Guardar"),
-                onPressed: () {
-                  // Save logic here
-                  saveForm();
-                  Navigator.of(context).pop();
-                }),
+              }
+            }),
+            cancelBtnForm(context),
+            // TextButton(
+            //   child: const Text("Cancelar"),
+            //   onPressed: () {
+            //     Navigator.of(context).pop();
+            //   },
+            // ),
+            // TextButton(
+            //     child: const Text("Guardar"),
+            //     onPressed: () {
+            //       // Save logic here
+            //       saveForm();
+            //       Navigator.of(context).pop();
+            //     }),
           ],
         )
       ]),

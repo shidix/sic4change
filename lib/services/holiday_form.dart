@@ -397,12 +397,12 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
               ),
               space(),
               statusField,
-              space(),
-              ReadOnlyTextField(
-                  label: "Aprobado por ${profile.holidaySupervisor}",
-                  textToShow: (holidayRequest.approvedBy != '')
-                      ? holidayRequest.approvedBy
-                      : 'Pendiente de aprobación'),
+              // space(),
+              // ReadOnlyTextField(
+              //     label: "Aprobado por ",
+              //     textToShow: (holidayRequest.approvedBy != '')
+              //         ? holidayRequest.approvedBy
+              //         : 'Pendiente de aprobación'),
               // TextFormField(
               //   initialValue: holidayRequest.approvedBy,
               //   decoration: const InputDecoration(labelText: 'Aprobado por'),

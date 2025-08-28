@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/pages/organization_info_page.dart';
 import 'package:sic4change/pages/organization_invoices_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -27,6 +29,9 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
+  ProfileProvider? _provider;
+  Organization? _currentOrg;
+  Profile? _currentProfile;
 
   void loadOrgs() async {
     setState(() {
@@ -118,6 +123,22 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+    _provider?.addListener(() {
+      _currentOrg = _provider?.organization;
+      _currentProfile = _provider?.profile;
+      if (_currentOrg == null || _currentProfile == null) {
+        _provider?.loadProfile();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _currentOrg = _provider?.organization;
+    _currentProfile = _provider?.profile;
+    if (_currentOrg == null || _currentProfile == null) {
+      _provider?.loadProfile();
+    }
 
     _mainMenu = mainMenu(context, "/contacts");
     orgs = [];
