@@ -1380,9 +1380,12 @@ class _HomePageState extends State<HomePage> {
                     ], styles: [
                       normalPdf
                     ], height: 20),
-                    reportPDF.getRow(
-                        ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
-                        styles: [normalPdf], height: 20),
+                    reportPDF.getRow([
+                      'C.I.F.:   ${currentOrganization?.code}',
+                      'N.I.F.:  ${currentEmployee.code}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
                     reportPDF.getRow([
                       'Centro de Trabajo : ${currentEmployee.workplace.name}',
                       'Mes y año : ${MONTHS[month.month - 1]} / ${month.year}'
