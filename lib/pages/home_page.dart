@@ -248,7 +248,7 @@ class _HomePageState extends State<HomePage> {
       Employee.getAll().then((value) {
         mypeople = value;
         mypeople = mypeople.where((element) => element.isActive()).toList();
-        setState(() {});
+        if (mounted) setState(() {});
       });
     }
     loadMyPeopleWorkdays().then((value) {

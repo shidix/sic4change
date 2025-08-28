@@ -64,16 +64,11 @@ class Workday {
     //   database.doc(id).set(data);
     // }
     if (id == "") {
-      await FirebaseFirestore.instance
+      var item = await FirebaseFirestore.instance
           .collection(Workday.tbName)
-          .add(toJson())
-          .then((value) {
-        id = value.id;
-        FirebaseFirestore.instance
-            .collection(Workday.tbName)
-            .doc(id)
-            .update({'id': id});
-      });
+          .add(toJson());
+      id = item.id;
+      await item.update({'id': id});
     } else {
       await FirebaseFirestore.instance
           .collection(Workday.tbName)

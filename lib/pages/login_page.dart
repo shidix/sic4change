@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 
@@ -39,17 +41,63 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void initializeData() async {
+  void initializeData() {
     if (FirebaseAuth.instance.currentUser == null) {
       return;
     } else {
-      // Navigator.pop(context);
-      if (profile?.mainRole == "Admin") {
-        Navigator.pushReplacementNamed(context, "/home");
-      } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: ((context) => const HomePage())));
+      // if (!mounted) {
+      //   initializeData();
+      //   return;
+      // }
+
+      // // Navigator.pop(context);
+      profile = profileProvider.profile;
+
+      if (profile == null) {
+        profileProvider.loadProfile();
+        return;
       }
+      currentOrganization = profileProvider.organization;
+      Navigator.pushReplacementNamed(context, "/home");
+
+      // Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
+      //     .then((userWorkdays) async {
+      //   // Check if there is any open workday
+      //   if (userWorkdays.isNotEmpty) {
+      //     userWorkdays
+      //         .sort((a, b) => b.startDate.compareTo(a.startDate)); // Descending
+      //     Workday currentWorkday = userWorkdays.first;
+      //     print(currentWorkday.toJson());
+      //     if (!currentWorkday.open) {
+      //       Workday newWorkday = Workday(
+      //           id: "",
+      //           userId: FirebaseAuth.instance.currentUser!.email!,
+      //           startDate: DateTime.now(),
+      //           endDate: DateTime.now(),
+      //           open: true);
+      //       await newWorkday.save();
+      //       sendAnalyticsEvent(
+      //           "Apertura de jornada", "Usuario: ${profile?.name}");
+      //     }
+      //   } else {
+      //     Workday newWorkday = Workday(
+      //         id: "",
+      //         userId: FirebaseAuth.instance.currentUser!.email!,
+      //         startDate: DateTime.now(),
+      //         endDate: DateTime.now(),
+      //         open: true);
+      //     await newWorkday.save();
+      //     sendAnalyticsEvent(
+      //         "Apertura de jornada", "Usuario: ${profile?.name}");
+      //   }
+      //   if (profile?.mainRole == "Admin") {
+      //     Navigator.pushReplacementNamed(context, "/home");
+      //   } else {
+      //     Navigator.pushReplacementNamed(context, "/home");
+      //     // Navigator.push(context,
+      //     //     MaterialPageRoute(builder: ((context) => const HomePage())));
+      //   }
+      // });
     }
   }
 
@@ -65,28 +113,35 @@ class _LoginPageState extends State<LoginPage> {
       profile = profileProvider.profile;
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
+      } else {
+        // If profile or organization is null, load profile again
+        profileProvider.loadProfile();
       }
 
       if (mounted) setState(() {});
     };
     profileProvider.addListener(listener);
-    //final user = FirebaseAuth.instance.currentUser!;
+    final user = FirebaseAuth.instance.currentUser;
     //getProfile(user);
 
-    try {
-      final user = FirebaseAuth.instance.currentUser!;
+    // try {
+    //   final user = FirebaseAuth.instance.currentUser!;
 
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
-        setState(() {
-          loadProf = false;
-        });
-      });
-    } catch (e) {
-      setState(() {
-        loadProf = false;
-      });
-    }
+    //   Profile.getProfile(user.email!).then((value) {
+    //     profile = value;
+    //     if (mounted) {
+    //       setState(() {
+    //         loadProf = false;
+    //       });
+    //     }
+    //   });
+    // } catch (e) {
+    //   if (mounted) {
+    //     setState(() {
+    //       loadProf = false;
+    //     });
+    //   }
+    // }
   }
 
   void sendResetEmail(context, emailController) async {
@@ -296,6 +351,38 @@ class _LoginPageState extends State<LoginPage> {
       if (user != null) {
         profile = null;
         profileProvider.loadProfile();
+
+        Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
+            .then((userWorkdays) async {
+          // Check if there is any open workday
+          if (userWorkdays.isNotEmpty) {
+            userWorkdays.sort(
+                (a, b) => b.startDate.compareTo(a.startDate)); // Descending
+            Workday currentWorkday = userWorkdays.first;
+            if (!currentWorkday.open) {
+              Workday newWorkday = Workday(
+                  id: "",
+                  userId: FirebaseAuth.instance.currentUser!.email!,
+                  startDate: DateTime.now(),
+                  endDate: DateTime.now(),
+                  open: true);
+              await newWorkday.save();
+              sendAnalyticsEvent(
+                  "Apertura de jornada", "Usuario: ${profile?.name}");
+            }
+          } else {
+            Workday newWorkday = Workday(
+                id: "",
+                userId: FirebaseAuth.instance.currentUser!.email!,
+                startDate: DateTime.now(),
+                endDate: DateTime.now(),
+                open: true);
+            await newWorkday.save();
+            sendAnalyticsEvent(
+                "Apertura de jornada", "Usuario: ${profile?.name}");
+          }
+        });
+
         Navigator.pushReplacementNamed(context, "/home");
       } else {
         Navigator.pop(context);
