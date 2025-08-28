@@ -1384,15 +1384,8 @@ class _HomePageState extends State<HomePage> {
                         ['C.I.F.:  ---', 'N.I.F.:  ${currentEmployee.code}'],
                         styles: [normalPdf], height: 20),
                     reportPDF.getRow([
-                      'Centro de Trabajo :  Home Office',
-                      'Nº Afiliación :  ${currentEmployee.affiliation}'
-                    ], styles: [
-                      normalPdf
-                    ], height: 20),
-                    // C.C.C., Mes y Año
-                    reportPDF.getRow([
-                      'C.C.C.:  ${currentEmployee.bankAccount}',
-                      'Mes y año:  ${MONTHS[month.month - 1]} / ${month.year}'
+                      'Centro de Trabajo : ${currentEmployee.workplace.name}',
+                      'Mes y año : ${MONTHS[month.month - 1]} / ${month.year}'
                     ], styles: [
                       normalPdf
                     ], height: 20),
@@ -1463,13 +1456,13 @@ class _HomePageState extends State<HomePage> {
                     border: null,
                     children: [
                       pw.TableRow(children: [
-                        reportPDF.getCell(
-                          "Firma de la empresa",
-                          style: headerPdf.copyWith(
-                              background:
-                                  pw.BoxDecoration(color: PdfColors.white)),
-                          align: pw.TextAlign.center,
-                        ),
+                        // reportPDF.getCell(
+                        //   "Firma de la empresa",
+                        //   style: headerPdf.copyWith(
+                        //       background:
+                        //           pw.BoxDecoration(color: PdfColors.white)),
+                        //   align: pw.TextAlign.center,
+                        // ),
                         reportPDF.getCell(
                           "Firma del trabajador",
                           style: headerPdf.copyWith(
@@ -1480,10 +1473,10 @@ class _HomePageState extends State<HomePage> {
                       ]),
                       reportPDF.getRow(
                         [
-                          "________________________________",
+                          // "________________________________",
                           "________________________________"
                         ],
-                        aligns: [pw.TextAlign.center, pw.TextAlign.center],
+                        aligns: [pw.TextAlign.center],
                         height: 90.0,
                       ),
                     ]),

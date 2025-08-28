@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -657,6 +658,7 @@ class Employee {
   String affiliation = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
   String? organization;
+  Workplace workplace = Workplace.getEmpty();
   List altas = [];
   List shift = [];
   // List bajas = [];
@@ -698,7 +700,7 @@ class Employee {
     }
   }
 
-  factory Employee.fromJson(Map<String, dynamic> json) {
+  static Future<Employee> fromJson(Map<String, dynamic> json) async {
     Employee item = Employee(
       code: json['code'],
       firstName: json['firstName'],
@@ -747,6 +749,9 @@ class Employee {
             }).toList(),
     );
     item.id = json.containsKey('id') ? json['id'] : null;
+    item.workplace = (json.containsKey('workplace'))
+        ? await Workplace.byId(json['workplace'])
+        : Workplace.getEmpty();
     return item;
   }
 
@@ -768,6 +773,7 @@ class Employee {
         'bankAccount': bankAccount,
         'affiliation': affiliation, // Aseguradora o mutua
         'shift': shift.map((e) => e.toJson()).toList(),
+        'workplace': (workplace != null) ? workplace!.id : null,
       };
 
   Future<String> getPhotoUrl() async {
@@ -837,16 +843,22 @@ class Employee {
   //   }
   //   return this;
   // }
-  void save() {
+  void save() async {
     altas.sort((a, b) => a.date.compareTo(b.date));
     // bajas.sort((a, b) => a.date.compareTo(b.date));
     if (id == null || id!.isEmpty) {
-      FirebaseFirestore.instance.collection(tbName).add(toJson()).then((value) {
-        id = value.id;
-        save();
-      });
+      var item = await FirebaseFirestore.instance.collection(tbName).add(toJson());
+      id = item.id;
+      item.update({'id': id});
+      // FirebaseFirestore.instance.collection(tbName).add(toJson()).then((value) {
+      //   id = value.id;
+      //   FirebaseFirestore.instance
+      //       .collection(tbName)
+      //       .doc(id)
+      //       .update({'id': id});
+      // });
     } else {
-      FirebaseFirestore.instance.collection(tbName).doc(id).update(toJson());
+      await FirebaseFirestore.instance.collection(tbName).doc(id).update(toJson());
     }
   }
 
@@ -978,15 +990,24 @@ class Employee {
   static Future<Employee> byCode(String code) async {
     // get from database
     Employee item = Employee.getEmpty();
-    await FirebaseFirestore.instance
+    final data = await FirebaseFirestore.instance
         .collection(tbName)
         .where('code', isEqualTo: code)
-        .get()
-        .then((value) {
-      if (value.docs.isEmpty) return Employee.getEmpty();
-      item = Employee.fromJson(value.docs.first.data());
-      item.id = value.docs.first.id;
-    });
+        .get();
+
+    if (data.docs.isNotEmpty) {
+      item = await Employee.fromJson(data.docs.first.data());
+    }
+
+    // await FirebaseFirestore.instance
+    //     .collection(tbName)
+    //     .where('code', isEqualTo: code)
+    //     .get()
+    //     .then((value) {
+    //   if (value.docs.isEmpty) return Employee.getEmpty();
+    //   item = Employee.fromJson(value.docs.first.data());
+    //   item.id = value.docs.first.id;
+    // });
 
     return item;
   }
@@ -995,20 +1016,21 @@ class Employee {
     // get from database
     if (email.isEmpty) return Employee.getEmpty();
     Employee item = Employee.getEmpty();
-    item.email = email;
-    item.firstName = email;
-    await FirebaseFirestore.instance
+    final data = await FirebaseFirestore.instance
         .collection(tbName)
         .where('email', isEqualTo: email)
-        .get()
-        .then((value) {
-      if (value.docs.isEmpty) return Employee.getEmpty();
-      item = Employee.fromJson(value.docs.first.data());
-      item.id = value.docs.first.id;
-    });
+        .get();
+
+    if (data.docs.isNotEmpty) {
+      item = await Employee.fromJson(data.docs.first.data());
+    }
+    else {
+      item.email = email;
+    }
 
     return item;
   }
+
 
   static Future<List<Employee>> getAll() async {
     // get from database
@@ -1019,33 +1041,58 @@ class Employee {
       {Organization? organization, bool includeInactive = false}) async {
     // get from database
     List<Employee> items = [];
+    QuerySnapshot<Map<String, dynamic>>? data;
     if (organization != null) {
-      await FirebaseFirestore.instance
+      data = await FirebaseFirestore.instance
           .collection(tbName)
           .where('organization', isEqualTo: organization.id)
-          .get()
-          .then((value) {
-        if (value.docs.isEmpty) return [];
-        items = value.docs.map((e) {
-          Employee item = Employee.fromJson(e.data());
-          item.id = e.id;
-          return item;
-        }).toList();
-      });
+          .get();
+      if (data.docs.isEmpty) {
+        data = await FirebaseFirestore.instance.collection(tbName).get();
+        
+      }
+    }
+    else {
+      data = await FirebaseFirestore.instance.collection(tbName).get();
     }
 
-    if (items.isEmpty) {
-      await FirebaseFirestore.instance.collection(tbName).get().then((value) {
-        if (value.docs.isEmpty) return [];
-        items = value.docs.map((e) {
-          Employee item = Employee.fromJson(e.data());
-          if (!e.data().containsKey('organization')) {
-            item.organization = null;
-          }
-          item.id = e.id;
-          return item;
-        }).toList();
-      });
+    if (data.docs.isNotEmpty) {
+      for (var doc in data.docs) {
+        Employee item = await Employee.fromJson(doc.data());
+
+        if (!doc.data().containsKey('organization')) {
+          item.organization = organization?.id;
+        }
+        item.id = doc.id;
+      
+        items.add(item);
+      }
+      // await FirebaseFirestore.instance
+      //     .collection(tbName)
+      //     .where('organization', isEqualTo: organization.id)
+      //     .get()
+      //     .then((value) {
+      //   if (value.docs.isEmpty) return [];
+      //   items = value.docs.map((e) {
+      //     Employee item = Employee.fromJson(e.data());
+      //     item.id = e.id;
+      //     return item;
+      //   }).toList();
+      // });
+    
+
+    // if (items.isEmpty) {
+    //   await FirebaseFirestore.instance.collection(tbName).get().then((value) {
+    //     if (value.docs.isEmpty) return [];
+    //     items = value.docs.map((e) {
+    //       Employee item = Employee.fromJson(e.data());
+    //       if (!e.data().containsKey('organization')) {
+    //         item.organization = null;
+    //       }
+    //       item.id = e.id;
+    //       return item;
+    //     }).toList();
+    //   });
       if (organization != null) {
         items = items
             .where((element) => ((element.organization == organization.id) ||
@@ -1088,15 +1135,20 @@ class Employee {
     if (snapshot.docs.isEmpty) {
       return Employee.getEmpty();
     } else if (id is String) {
-      Employee item = Employee.fromJson(snapshot.docs.first.data());
+      Employee item = await Employee.fromJson(snapshot.docs.first.data());
       item.id = snapshot.docs.first.id;
       return item;
     } else if (id is List<String>) {
-      items = snapshot.docs.map((e) {
-        Employee item = Employee.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
+      // items = snapshot.docs.map((e) {
+      //   Employee item = Employee.fromJson(e.data());
+      //   item.id = e.id;
+      //   return item;
+      // }).toList();
+      for (var doc in snapshot.docs) {
+        Employee item = await Employee.fromJson(doc.data());
+        item.id = doc.id;
+        items.add(item);
+      }
       return items;
     }
   }
@@ -1499,7 +1551,7 @@ class Department {
 class Workplace {
   static const String tbName = 's4c_workplaces';
 
-  String? id;
+  String id;
   String name;
   Organization? organization;
   String? address;
@@ -1510,6 +1562,7 @@ class Workplace {
 
   Workplace({
     required this.name,
+    this.id = '',
     this.organization,
     this.address,
     this.city,
@@ -1610,5 +1663,14 @@ class Workplace {
     items.sort((a, b) => a.name.compareTo(b.name));
 
     return items;
+  }
+
+  static Future<Workplace> byId(String? id) async {
+    if (id == null) return getEmpty();
+    final doc = await FirebaseFirestore.instance.collection(tbName).doc(id).get();
+    if (doc.exists) {
+      return await Workplace.fromJson(doc.data()!);
+    }
+    return getEmpty();
   }
 }

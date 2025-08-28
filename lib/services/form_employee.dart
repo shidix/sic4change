@@ -34,6 +34,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
   List<KeyValue> reasonsOptions = [];
   Map<String, BajaReason> reasons = {};
   String selectedReason = '';
+  List<KeyValue> workplaceOptions = [];
 
   late int indexReason;
   late bool isNewEmployee;
@@ -97,6 +98,28 @@ class _EmployeeFormState extends State<EmployeeForm> {
         setState(() {});
       }
     });
+
+    Workplace.getAll().then((value) {
+      value.sort((a, b) => a.name.compareTo(b.name));
+      //Filter by organization
+      if (employee.organization != null) {
+        value = value
+            .where((element) => element.organization?.id == employee.organization)
+            .toList();
+      }
+
+      workplaceOptions = value.map((e) => KeyValue(e.id, e.name)).toList();
+      if (employee.workplace.id.isNotEmpty) {
+        if (workplaceOptions
+                .indexWhere((element) => element.key == employee.workplace.id) ==
+            -1) {
+          employee.workplace = Workplace.getEmpty();
+        }
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -139,6 +162,21 @@ class _EmployeeFormState extends State<EmployeeForm> {
         Navigator.of(context).pop(employee);
       }
     }
+
+    Widget worplaceField = CustomSelectFormField(
+        key: UniqueKey(),
+        labelText: 'Centro de Trabajo',
+        padding: const EdgeInsets.only(top: 8, left: 5),
+        initial: employee.workplace.id,
+        options: workplaceOptions,
+        required: false,
+        onSelectedOpt: (value) {
+          Workplace.byId(value).then((workplace) {
+            employee.workplace = workplace;
+            setState(() {});
+          });
+        });
+
 
     Widget bajaReason = CustomSelectFormField(
         key: UniqueKey(),
@@ -260,6 +298,9 @@ class _EmployeeFormState extends State<EmployeeForm> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'El campo no puede estar vacío';
+                            }
+                            if (value.length < 12) {
+                              return null;
                             }
                             if (widget.existingEmployees.any((element) =>
                                 element.affiliation == value &&
@@ -411,6 +452,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
                               employee.setCategory(value);
                             })))
               ]),
+              Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: worplaceField),
+
               TextFormField(
                 initialValue: employee.bankAccount,
                 decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
