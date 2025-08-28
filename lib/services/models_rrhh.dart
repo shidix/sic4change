@@ -1501,13 +1501,12 @@ class Workplace {
 
   String? id;
   String name;
-  String? organization;
+  Organization? organization;
   String? address;
   String? city;
   String? postalCode;
   String? country;
   String? phone;
-  String? email;
 
   Workplace({
     required this.name,
@@ -1517,26 +1516,25 @@ class Workplace {
     this.postalCode,
     this.country,
     this.phone,
-    this.email,
   });
 
   @override
   String toString() {
-    return 'Working Center: $name, organization: $organization, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone, email: $email';
+    return 'Working Center: $name, organization: ${organization?.id}, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone';
   }
 
-  static Workplace fromJson(Map<String, dynamic> json) {
+  static Future<Workplace> fromJson(Map<String, dynamic> json) async {
     Workplace item = Workplace(
         name: json['name'],
-        organization:
-            (json.containsKey('organization')) ? json['organization'] : null,
+        organization: (json.containsKey('organization'))
+            ? await Organization.byId(json['organization'])
+            : null,
         address: (json.containsKey('address')) ? json['address'] : null,
         city: (json.containsKey('city')) ? json['city'] : null,
         postalCode:
             (json.containsKey('postalCode')) ? json['postalCode'] : null,
         country: (json.containsKey('country')) ? json['country'] : null,
-        phone: (json.containsKey('phone')) ? json['phone'] : null,
-        email: (json.containsKey('email')) ? json['email'] : null);
+        phone: (json.containsKey('phone')) ? json['phone'] : null);
     if (json.containsKey('id')) {
       item.id = (json['id'] == null) ? '' : json['id'];
     } else {
@@ -1549,13 +1547,12 @@ class Workplace {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        'organization': organization,
+        'organization': organization?.id,
         'address': address,
         'city': city,
         'postalCode': postalCode,
         'country': country,
         'phone': phone,
-        'email': email,
       };
 
   Future<Workplace> save() async {
@@ -1587,33 +1584,28 @@ class Workplace {
     return Workplace(name: '');
   }
 
-  static List<Workplace> getAll({String? organization}) {
+  static Future<List<Workplace>> getAll({Organization? organization}) async {
     // get from database
     List<Workplace> items = [];
     if (organization == null) {
-      FirebaseFirestore.instance.collection(tbName).get().then((value) {
-        if (value.docs.isEmpty) return [];
-        items = value.docs.map((e) {
-          Workplace item = Workplace.fromJson(e.data());
-          item.id = e.id;
-          return item;
-        }).toList();
-      });
+      final value = await FirebaseFirestore.instance.collection(tbName).get();
+      if (value.docs.isEmpty) return [];
+      items = await Future.wait(value.docs.map((e) async {
+        Workplace item = await Workplace.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }));
       items.sort((a, b) => a.name.compareTo(b.name));
       return items;
     }
-    FirebaseFirestore.instance
+    final value = await FirebaseFirestore.instance
         .collection(tbName)
-        .where('organization', isEqualTo: organization)
-        .get()
-        .then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Workplace item = Workplace.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
+        .where('organization', isEqualTo: organization.id)
+        .get();
+    if (value.docs.isEmpty) return [];
+    for (var doc in value.docs) {
+      items.add(await Workplace.fromJson(doc.data()));
+    }
 
     items.sort((a, b) => a.name.compareTo(b.name));
 

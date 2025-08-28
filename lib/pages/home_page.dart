@@ -868,30 +868,6 @@ class _HomePageState extends State<HomePage> {
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
-    // List<String> idsToRemove = [];
-    // for (int index = 0; index < myWorkdays!.length; index++) {
-    //   Workday item = myWorkdays!.elementAt(index);
-    //   if (item.open) {
-    //     if (truncDate(item.startDate) != truncDate(DateTime.now())) {
-    //       item.endDate = truncDate(item.startDate)
-    //           .add(Duration(hours: 23, minutes: 59, seconds: 59));
-    //       item.open = false;
-    //       item.save();
-    //       myWorkdays![index] = item;
-    //     } else {
-    //       if (index != 0) {
-    //         myWorkdays![0].open = true;
-    //         myWorkdays![0].startDate = item.startDate;
-    //         idsToRemove.add(item.id);
-    //       }
-    //     }
-    //   }
-    // }
-    // for (String id in idsToRemove) {
-    //   Workday item = myWorkdays!.firstWhere((item) => item.id == id);
-    //   item.delete();
-    // }
-    // myWorkdays!.removeWhere((item) => idsToRemove.contains(item.id));
     currentWorkday = myWorkdays!.first;
 
     if (currentWorkday?.open == true) {

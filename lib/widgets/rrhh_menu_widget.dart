@@ -41,9 +41,9 @@ Widget secondaryMenu(context, int option) {
           : goPage(context, 'Calendarios', null, Icons.calendar_today),
       space(width: 10),
       (option != WORKPLACE_ITEM)
-          ? goPage(
-              context, 'Centros de Trabajo', const WorkplacePage(), Icons.home)
-          : goPage(context, 'Centros de Trabajo', null, Icons.home),
+          ? goPage(context, 'Centros de Trabajo', const WorkplacePage(),
+              Icons.business_rounded)
+          : goPage(context, 'Centros de Trabajo', null, Icons.business_rounded),
       // space(width: 10),
       // backButton(context),
     ],
