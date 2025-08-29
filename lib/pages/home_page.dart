@@ -1456,7 +1456,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   children: [
                     reportPDF.getRow([
-                      'Empresa :  ${currentOrganization!.name}',
+                      'Empresa : ${(currentOrganization!.billingName.isNotEmpty) ? currentOrganization!.billingName : currentOrganization!.name}',
                       'Trabajador : ${currentEmployee!.getFullName()}'
                     ], styles: [
                       normalPdf
