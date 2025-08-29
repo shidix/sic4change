@@ -104,14 +104,15 @@ class _EmployeeFormState extends State<EmployeeForm> {
       //Filter by organization
       if (employee.organization != null) {
         value = value
-            .where((element) => element.organization?.id == employee.organization)
+            .where(
+                (element) => element.organization?.id == employee.organization)
             .toList();
       }
 
       workplaceOptions = value.map((e) => KeyValue(e.id, e.name)).toList();
       if (employee.workplace.id.isNotEmpty) {
-        if (workplaceOptions
-                .indexWhere((element) => element.key == employee.workplace.id) ==
+        if (workplaceOptions.indexWhere(
+                (element) => element.key == employee.workplace.id) ==
             -1) {
           employee.workplace = Workplace.getEmpty();
         }
@@ -176,7 +177,6 @@ class _EmployeeFormState extends State<EmployeeForm> {
             setState(() {});
           });
         });
-
 
     Widget bajaReason = CustomSelectFormField(
         key: UniqueKey(),
@@ -297,7 +297,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'El campo no puede estar vacío';
+                              return null;
                             }
                             if (value.length < 12) {
                               return null;
@@ -453,9 +453,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                             })))
               ]),
               Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: worplaceField),
-
+                  padding: const EdgeInsets.only(top: 8), child: worplaceField),
               TextFormField(
                 initialValue: employee.bankAccount,
                 decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
