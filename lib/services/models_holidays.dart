@@ -3,6 +3,7 @@ import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
+// import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
 class HolidaysConfig {
@@ -74,15 +75,47 @@ class HolidaysConfig {
     return 'HolidaysConfig{name: $name, year: $year, totalDays: $totalDays, organization: $organization, gralHolidays: $gralHolidays}';
   }
 
-  static HolidaysConfig getEmpty() {
+  static HolidaysConfig getEmpty({String name = 'Default0', int year = 0}) {
     return HolidaysConfig(
       id: '',
-      name: '',
-      year: DateTime.now().year,
+      name: name,
+      year: year == 0 ? DateTime.now().year : year,
       totalDays: 0,
       organization: '',
       gralHolidays: [],
     );
+  }
+
+  static Future<HolidaysConfig> byEmployee(Employee employee,
+      {int year = 0}) async {
+    if (year == 0) {
+      year = DateTime.now().year;
+    }
+    if (employee.id!.isEmpty) {
+      return getEmpty(year: year);
+    }
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("employees", arrayContains: employee.id)
+        .get();
+
+    List<HolidaysConfig> items = [];
+    for (var result in query.docs) {
+      Map<String, dynamic> data = result.data();
+      data['id'] = result.id;
+      items.add(HolidaysConfig.fromJson(data));
+    }
+
+    // Filter by organization and year
+    items = items
+        .where((item) =>
+            item.organization == employee.organization && item.year == year)
+        .toList();
+
+    // Sort by year (Descending)
+    return items.isNotEmpty
+        ? items.first
+        : getEmpty(name: 'Default', year: year);
   }
 
   //byOrganization (uuid)
@@ -127,7 +160,10 @@ class HolidaysConfig {
     }
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      await FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) {
         id = value.id;
         Map<String, dynamic> data = toJson();
         FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
@@ -157,6 +193,16 @@ class HolidaysConfig {
     employees.removeWhere((e) => e.id == employee.id);
     save();
     return this;
+  }
+
+  bool isHoliday(DateTime date) {
+    for (var event in gralHolidays) {
+      if (truncDate(event.startTime).isAtSameMomentAs(truncDate(date)) &&
+          event.isAllDay) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

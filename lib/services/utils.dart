@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_holidays.dart';
 import 'dart:math' as math;
 
 import 'package:sic4change/services/models_profile.dart';
@@ -145,14 +146,24 @@ String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
   return dateFormatted;
 }
 
-int getWorkingDaysBetween(DateTime date1, DateTime date2) {
+int getWorkingDaysBetween(
+    DateTime date1, DateTime date2, HolidaysConfig? calendar) {
   int workingDays = 0;
   DateTime currentDate = date1;
   while (currentDate.isBefore(date2.add(const Duration(days: 1)))) {
-    if (currentDate.weekday != DateTime.saturday &&
-        currentDate.weekday != DateTime.sunday) {
-      workingDays++;
+    if (currentDate.weekday == DateTime.saturday ||
+        currentDate.weekday == DateTime.sunday) {
+      currentDate = currentDate.add(const Duration(days: 1));
+      continue;
     }
+    if (calendar != null) {
+      if (calendar.isHoliday(currentDate)) {
+        currentDate = currentDate.add(const Duration(days: 1));
+        continue;
+      }
+    }
+
+    workingDays++;
     currentDate = currentDate.add(const Duration(days: 1));
   }
   return workingDays;

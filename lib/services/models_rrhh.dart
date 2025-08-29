@@ -1665,6 +1665,7 @@ class Workplace {
 
   static Future<Workplace> byId(String? id) async {
     if (id == null) return getEmpty();
+    if (id.isEmpty) return getEmpty();
     final doc =
         await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     if (doc.exists) {

@@ -169,6 +169,7 @@ class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
   final User? user;
   final Profile profile;
+  final HolidaysConfig calendar;
   final List<HolidaysCategory> categories;
   final List<HolidayRequest> granted;
   final Map<String, int> remainingHolidays;
@@ -180,6 +181,7 @@ class HolidayRequestForm extends StatefulWidget {
       required this.profile,
       required this.categories,
       required this.granted,
+      required this.calendar,
       required this.remainingHolidays})
       : super(key: key);
 
@@ -222,8 +224,8 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       if (cat.id != '') {
         remainingHolidays[cat.autoCode()] =
             (remainingHolidays[cat.autoCode()] ?? 0) +
-                getWorkingDaysBetween(
-                    holidayRequest.startDate, holidayRequest.endDate);
+                getWorkingDaysBetween(holidayRequest.startDate,
+                    holidayRequest.endDate, widget.calendar);
       }
     }
   }
@@ -381,8 +383,8 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                 onSelectedDate: (DateTimeRange date) {
                   errorMessage = null; // Reset error message
                   setState(() {
-                    int workingDays =
-                        getWorkingDaysBetween(date.start, date.end);
+                    int workingDays = getWorkingDaysBetween(
+                        date.start, date.end, widget.calendar);
                     if (workingDays >
                         remainingHolidays[holidayRequest
                             .getCategory(categories)

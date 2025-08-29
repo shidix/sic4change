@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
-import "dart:developer" as dev;
+// import "dart:developer" as dev;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +63,7 @@ class _HomePageState extends State<HomePage> {
   List<HolidaysCategory>? holCat = [];
   Map<String, int> remainingHolidays = {};
   int holidayDays = 0;
+  HolidaysConfig? myCalendar;
 
   Workday? currentWorkday;
   Widget workdayButton = Container();
@@ -217,6 +218,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadMyData() async {
     contact ??= await Contact.byEmail(user.email!);
     currentEmployee ??= await Employee.byEmail(user.email!);
+    if (currentEmployee!.organization == null) {
+      currentEmployee!.organization = currentOrganization!.id;
+      currentEmployee!.save();
+    }
+    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!);
     final results = await Future.wait([
       contact!.getProjects(),
       STask.getByAssigned(user.email!, lazy: true),
@@ -811,7 +817,6 @@ class _HomePageState extends State<HomePage> {
   void printSummary(context) {
     if (!mounted) return;
     setState(() {});
-    dev.log("printSummary");
   }
 
   void workdayAction(dynamic context) {
@@ -1206,19 +1211,20 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _printWorkday(Map<String, dynamic> args) async {
     currentOrganization ??= _profileProvider.organization;
-    Employee? currentEmployee = await Employee.byEmail(user.email!);
+    currentEmployee ??= await Employee.byEmail(user.email!);
+
     ReportPDF reportPDF = ReportPDF();
 
     DateTime month = DateTime(DateTime.now().year, DateTime.now().month, 1);
     try {
       month = args['month'];
     } catch (e) {
-      dev.log(e.toString());
+      month = month;
     }
 
     List<Workday> workdays = [];
     workdays = await Workday.byUser(user.email!, month).catchError((e) {
-      dev.log("Error loading workdays: $e");
+      // dev.log("Error loading workdays: $e");
       return [] as List<Workday>;
     });
 
@@ -1237,11 +1243,12 @@ class _HomePageState extends State<HomePage> {
 
     for (Workday workday in workdays) {
       try {
-        Shift currentShift = currentEmployee.getShift(date: workday.startDate)!;
+        Shift currentShift =
+            currentEmployee!.getShift(date: workday.startDate)!;
         hoursInWeekEmployee = currentShift.hours;
       } catch (e) {
         hoursInWeekEmployee = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
-        dev.log("Error loading shift: $e");
+        // dev.log("Error loading shift: $e");
       }
 
       if (workday.startDate.month == month.month &&
@@ -1380,18 +1387,18 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     reportPDF.getRow([
                       'Empresa :  ${currentOrganization!.name}',
-                      'Trabajador : ${currentEmployee.getFullName()}'
+                      'Trabajador : ${currentEmployee!.getFullName()}'
                     ], styles: [
                       normalPdf
                     ], height: 20),
                     reportPDF.getRow([
                       'C.I.F.:   ${currentOrganization?.code}',
-                      'N.I.F.:  ${currentEmployee.code}'
+                      'N.I.F.:  ${currentEmployee!.code}'
                     ], styles: [
                       normalPdf
                     ], height: 20),
                     reportPDF.getRow([
-                      'Centro de Trabajo : ${currentEmployee.workplace.name}',
+                      'Centro de Trabajo : ${currentEmployee!.workplace.name}',
                       'Mes y año : ${MONTHS[month.month - 1]} / ${month.year}'
                     ], styles: [
                       normalPdf
@@ -1523,6 +1530,7 @@ class _HomePageState extends State<HomePage> {
     if (currentEmployee == null || holCat == null || myHolidays == null) {
       return;
     }
+
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();
     DateTime bajaDate = currentEmployee!.getBajaDate();
@@ -1563,13 +1571,14 @@ class _HomePageState extends State<HomePage> {
 
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.status != "Rechazado") {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+        holidayDays -= getWorkingDaysBetween(
+            holiday.startDate, holiday.endDate, myCalendar);
         if (remainingHolidays
             .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+                  getWorkingDaysBetween(
+                      holiday.startDate, holiday.endDate, myCalendar);
         } else {
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               (holiday.getCategory(holCat ?? []).retroactive)
@@ -1577,7 +1586,8 @@ class _HomePageState extends State<HomePage> {
                   : holiday.getCategory(holCat ?? []).days;
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+                  getWorkingDaysBetween(
+                      holiday.startDate, holiday.endDate, myCalendar);
         }
       }
     }
@@ -1630,6 +1640,7 @@ class _HomePageState extends State<HomePage> {
               user: user,
               profile: profile!,
               categories: holCat!,
+              calendar: myCalendar!,
               remainingHolidays: remainingHolidays,
               granted: myHolidays!
                   .where((element) =>
@@ -1682,6 +1693,7 @@ class _HomePageState extends State<HomePage> {
               profile: profile!,
               categories: holCat!,
               remainingHolidays: remainingHolidays,
+              calendar: myCalendar!,
               granted: myHolidays!
                   .where((element) =>
                       (element.status.toLowerCase() == "aprobado" ||
@@ -1822,7 +1834,7 @@ class _HomePageState extends State<HomePage> {
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
                                         getWorkingDaysBetween(holiday.startDate,
-                                                holiday.endDate)
+                                                holiday.endDate, myCalendar)
                                             .toString(),
                                         style: normalText,
                                         textAlign: TextAlign.center,
