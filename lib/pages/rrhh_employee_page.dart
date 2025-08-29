@@ -188,25 +188,25 @@ class _EmployeesPageState extends State<EmployeesPage> {
               context: context, builder: (context) => const FileNameDialog());
           if (filename != null && filename.isNotEmpty) exportToCVS(filename);
         }, null, text: 'Exportar', icon: Icons.download),
-        gralBtnRow(context, (context) async {
-          // Show message in status bar
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Actualizando empleados...'),
-            duration: Duration(seconds: 2),
-          ));
-          List<Employee> fullEmployees =
-              await Employee.getEmployees(includeInactive: true);
-          for (Employee e in fullEmployees) {
-            if (e.organization == null || e.organization == '') {
-              e.organization = currentOrganization!.id;
-              e.save();
-            }
-          }
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Empleados actualizados'),
-            duration: Duration(seconds: 2),
-          ));
-        }, null, text: 'Actualizar', icon: Icons.refresh),
+        // gralBtnRow(context, (context) async {
+        //   // Show message in status bar
+        //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //     content: Text('Actualizando empleados...'),
+        //     duration: Duration(seconds: 2),
+        //   ));
+        //   List<Employee> fullEmployees =
+        //       await Employee.getEmployees(includeInactive: true);
+        //   for (Employee e in fullEmployees) {
+        //     if (e.organization == null || e.organization == '') {
+        //       e.organization = currentOrganization!.id;
+        //       e.save();
+        //     }
+        //   }
+        //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //     content: Text('Empleados actualizados'),
+        //     duration: Duration(seconds: 2),
+        //   ));
+        // }, null, text: 'Actualizar', icon: Icons.refresh),
       ],
     );
     employees.sort(compareEmployee);
