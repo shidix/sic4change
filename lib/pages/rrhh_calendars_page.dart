@@ -144,6 +144,7 @@ class CalendarHolidaysPage extends StatefulWidget {
 class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Widget? _mainMenu;
   Widget? _secondaryMenu;
+  Widget? _toolsMenu;
   Profile? profile;
   Contact? contact;
   List<HolidaysConfig>? holidaysList;
@@ -193,9 +194,17 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     if (profile!.mainRole == Profile.RRHH) {
       _mainMenu = mainMenu(context, "/rrhh");
       _secondaryMenu = secondaryMenu(context, CALENDAR_ITEM);
+      _toolsMenu = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [addBtn(context, newYearDialog, null)],
+        ),
+      );
     } else {
       _mainMenu = mainMenu(context, "/home");
       _secondaryMenu = holidayHeader(context);
+      _toolsMenu = Container();
     }
     // Check if the user has permissions
     checkPermissions(
@@ -212,7 +221,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     // employeesList = results[1] as List<Employee>;
     // Filter holidays for the current year
     holidaysList = holidaysList!
-        .where((element) => element.year == DateTime.now().year)
+        .where((element) => element.year >= DateTime.now().year)
         .toList();
     if (holidaysList!.isNotEmpty) {
       holidaysConfig = holidaysList!.last;
@@ -397,8 +406,9 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
       }
     }
 
-    content = Column(
-      children: calendarList.map((row) {
+    content = Column(children: [
+      _toolsMenu ?? Container(),
+      ...calendarList.map((row) {
         return Row(
             children: row.map((cell) {
           return Expanded(
@@ -450,7 +460,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                       : Container()));
         }).toList());
       }).toList(),
-    );
+    ]);
 
     if (mounted) {
       setState(() {});
@@ -612,9 +622,9 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                     //open dialog to add new holiday
                     showDatePicker(
                             context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(DateTime.now().year),
-                            lastDate: DateTime(DateTime.now().year + 10))
+                            initialDate: DateTime(holidaysConfig!.year, 1, 1),
+                            firstDate: DateTime(holidaysConfig!.year, 1, 1),
+                            lastDate: DateTime(holidaysConfig!.year, 12, 31))
                         .then((value) {
                       if (value != null) {
                         Event newEvent = Event(
@@ -653,6 +663,16 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                   space(width: 10),
                   actionButtonVertical(context, "Usuarios", (context) {
                     // open dialog to add new employee
+                    employeesInCalendars = [];
+                    for (HolidaysConfig calendar in holidaysList!) {
+                      if (calendar.id == holidaysConfig!.id) continue;
+                      if (calendar.year != holidaysConfig!.year) continue;
+                      for (Employee emp in calendar.employees) {
+                        if (emp.id != null) {
+                          employeesInCalendars.add(emp.id!);
+                        }
+                      }
+                    }
                     showDialog(
                         context: context,
                         builder: (context) {
