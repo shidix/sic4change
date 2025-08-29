@@ -4,8 +4,10 @@ import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/rrhh_nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/register_form.dart';
@@ -23,9 +25,11 @@ class EmployeesPage extends StatefulWidget {
 }
 
 class _EmployeesPageState extends State<EmployeesPage> {
+  late ProfileProvider profileProvider;
   bool altasVisible = true;
   GlobalKey mainMenuKey = GlobalKey();
-  late final Profile profile;
+  Profile? profile;
+  Organization? currentOrganization;
   List<Employee> employees = [];
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
@@ -115,10 +119,23 @@ class _EmployeesPageState extends State<EmployeesPage> {
   void initState() {
     super.initState();
     mainMenuPanel = mainMenu(context, "/rrhh");
+    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    profileProvider.addListener(() {
+      profile = profileProvider.profile;
+      currentOrganization = profileProvider.organization;
+      if (mounted) {
+        setState(() {
+          profile = profileProvider.profile;
+          currentOrganization = profileProvider.organization;
+        });
+      }
+    });
 
-    profile = Provider.of<ProfileProvider>(context, listen: false).profile ??
-        Profile.getEmpty();
-
+    profile = profileProvider.profile;
+    currentOrganization = profileProvider.organization;
+    if (profile == null || currentOrganization == null) {
+      profileProvider.loadProfile();
+    }
     Employee.getEmployees(includeInactive: true).then((value) {
       employees = value;
       selectedEmployees = List.filled(employees.length, true);
@@ -635,7 +652,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
               title: 'Empleado',
               icon: Icons.add_outlined,
               content: EmployeeForm(
-                  selectedItem: employee, existingEmployees: employees),
+                  selectedItem: employee,
+                  existingEmployees: employees,
+                  organization: currentOrganization!),
               actionBtns: null);
         }).then(
       (value) {

@@ -11,12 +11,15 @@ import 'package:sic4change/widgets/common_widgets.dart';
 // import "dart:developer" as dev;
 
 class EmployeeForm extends StatefulWidget {
+  final Organization organization;
   final Employee selectedItem;
   final List<Employee> existingEmployees;
 
   const EmployeeForm(
-      {Key? key, required this.selectedItem, required this.existingEmployees})
-      : super(key: key);
+      {super.key,
+      required this.selectedItem,
+      required this.existingEmployees,
+      required this.organization});
 
   @override
   _EmployeeFormState createState() => _EmployeeFormState();
@@ -146,6 +149,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
               date: selectedAltaDate, employmentPromotion: employmentPromotion);
           alta.setSalary(employeeSalary);
           employee.altas.add(alta);
+        }
+        if ((employee.organization == null || employee.organization == '') &&
+            widget.organization != null) {
+          employee.organization = widget.organization!.id;
         }
         employee.save();
         // Check if exists profile with email
