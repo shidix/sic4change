@@ -1462,7 +1462,7 @@ class _HomePageState extends State<HomePage> {
                       normalPdf
                     ], height: 20),
                     reportPDF.getRow([
-                      'C.I.F.:   ${currentOrganization?.code}',
+                      'C.I.F.:   ${currentOrganization?.cif ?? ''}',
                       'N.I.F.:  ${currentEmployee!.code}'
                     ], styles: [
                       normalPdf

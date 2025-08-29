@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/form_organization.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
@@ -372,7 +373,10 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                   // Handle form submission
                   if (mounted) {
                     setState(() {
-                      org = formData;
+                      if (org.id == currentOrganization?.id) {
+                        // _currentOrg = org;
+                        _provider?.organization = org;
+                      }
                       orgInfoDetailsPanel = orgInfoDetails(context);
                     });
                   }
