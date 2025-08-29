@@ -664,7 +664,6 @@ class _HomePageState extends State<HomePage> {
                   holidays: myPeopleHolidays,
                   categories: holCat ?? [],
                   onDateSelected: (date) {
-                    print(date);
                     // Handle date selection
                   },
                   employees: mypeople,
@@ -1212,6 +1211,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _printWorkday(Map<String, dynamic> args) async {
     currentOrganization ??= _profileProvider.organization;
     currentEmployee ??= await Employee.byEmail(user.email!);
+    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!);
 
     ReportPDF reportPDF = ReportPDF();
 
@@ -1228,7 +1228,27 @@ class _HomePageState extends State<HomePage> {
       return [] as List<Workday>;
     });
 
-    List<double> hoursInWeekEmployee = [];
+    DateTime checkDay = DateTime(month.year, month.month, 1);
+    while (checkDay.month == month.month) {
+      // check if there is any workday in that day
+      if (!(workdays.any((w) => truncDate(w.startDate) == checkDay))) {
+        // if not, add an empty workday
+        workdays.add(Workday(
+            id: '',
+            userId: user.email!,
+            open: false,
+            startDate: DateTime(checkDay.year, checkDay.month, checkDay.day, 9),
+            endDate: DateTime(checkDay.year, checkDay.month, checkDay.day, 9)));
+      }
+      checkDay = checkDay.add(const Duration(days: 1));
+    }
+
+    if (workdays.length > 200) {
+      workdays = workdays.sublist(0, 200);
+    }
+
+    List<double> hoursInWeekEmployeeList = [];
+    double hoursInWeekEmployee = 0.0;
 
     workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
@@ -1240,19 +1260,38 @@ class _HomePageState extends State<HomePage> {
     Map<DateTime, double> hoursByDay = {};
 
     List<List<String>> fullRows = [];
+    double balanceHours = 0.0;
+    DateTime previousDate = truncDate(DateTime(1970, 1, 1));
 
     for (Workday workday in workdays) {
       try {
         Shift currentShift =
             currentEmployee!.getShift(date: workday.startDate)!;
-        hoursInWeekEmployee = currentShift.hours;
+        hoursInWeekEmployeeList = currentShift.hours;
       } catch (e) {
-        hoursInWeekEmployee = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
+        hoursInWeekEmployeeList = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
         // dev.log("Error loading shift: $e");
+      }
+      hoursInWeekEmployee =
+          hoursInWeekEmployeeList[workday.startDate.weekday - 1];
+
+      if (hoursInWeekEmployee != 0) {
+        if ((myCalendar!.isHoliday(truncDate(workday.startDate))) ||
+            (onHolidays(currentEmployee!.email, workday.startDate))) {
+          hoursInWeekEmployee = 0.0;
+          if (onHolidays(currentEmployee!.email, workday.startDate)) {
+            workday.id = 'FREE';
+          }
+        }
       }
 
       if (workday.startDate.month == month.month &&
           workday.startDate.year == month.year) {
+        if (truncDate(workday.startDate) != previousDate) {
+          balanceHours = balanceHours - hoursInWeekEmployee;
+          previousDate = truncDate(workday.startDate);
+        }
+        balanceHours = balanceHours + workday.hours();
         String key = DateFormat('yyyy-MM-dd').format(workday.startDate);
         if (hoursDict.containsKey(key)) {
           hoursDict[key] = hoursDict[key]! + workday.hours();
@@ -1280,25 +1319,41 @@ class _HomePageState extends State<HomePage> {
         double extraHours = 0.0;
 
         if (hoursByDay.containsKey(keyDate)) {
-          normalHours = min(workday.hours(),
-              hoursInWeekEmployee[keyDate.weekday - 1] - hoursByDay[keyDate]!);
+          normalHours =
+              min(workday.hours(), hoursInWeekEmployee - hoursByDay[keyDate]!);
         } else {
           hoursByDay[keyDate] = 0.0;
-          normalHours =
-              min(workday.hours(), hoursInWeekEmployee[keyDate.weekday - 1]);
+          normalHours = min(workday.hours(), hoursInWeekEmployee);
         }
         hoursByDay[keyDate] = hoursByDay[keyDate]! + normalHours;
         extraHours = workday.hours() - normalHours;
         normalHoursTotal += normalHours;
         extraHoursTotal += extraHours;
 
-        fullRows.add([
-          DateFormat('dd-MM-yyyy').format(workday.startDate),
-          DateFormat('HH:mm').format(workday.startDate),
-          DateFormat('HH:mm').format(workday.endDate),
-          toDuration(normalHours, format: 'hm'),
-          toDuration(extraHours, format: 'hm'),
-        ]);
+        if ((normalHours > 0) ||
+            (extraHours > 0) ||
+            (workday.id != '') ||
+            (hoursInWeekEmployee > 0)) {
+          fullRows.add([
+            DateFormat('dd-MM-yyyy').format(workday.startDate),
+            (workday.id != '')
+                ? (workday.id == 'FREE')
+                    ? 'PERMISO'
+                    : DateFormat('HH:mm').format(workday.startDate)
+                : '-',
+            (workday.id != '')
+                ? (workday.id == 'FREE')
+                    ? 'PERMISO'
+                    : DateFormat('HH:mm').format(workday.endDate)
+                : '-',
+            toDuration(normalHours, format: 'hm'),
+            toDuration(extraHours, format: 'hm'),
+            if (balanceHours >= 0)
+              toDuration(balanceHours, format: 'hm')
+            else
+              '-${toDuration(-balanceHours, format: 'hm')}'
+          ]);
+        }
       }
     }
 
@@ -1319,36 +1374,6 @@ class _HomePageState extends State<HomePage> {
     final pdf = pw.Document();
     const pdfFormat = PdfPageFormat.a4;
 
-    // int dayOfWeek = 0;
-    // for (var keyDate in keysSorted) {
-    //   // Extract 0=Mon, 1=Tue, ..., 6=Sun from the keyDate
-    //   DateTime date = inDict[keyDate]!;
-    //   dayOfWeek = date.weekday - 1; // 0=Mon, 1=Tue, ..., 6=Sun
-    //   if (dayOfWeek < 0 || dayOfWeek > 6) {
-    //     continue; // Skip invalid days
-    //   }
-    //   double normalHours =
-    //       min(hoursDict[keyDate]!, hoursInWeekEmployee[dayOfWeek]);
-    //   double extraHours =
-    //       max(hoursDict[keyDate]! - hoursInWeekEmployee[dayOfWeek], 0);
-    //   normalHoursTotal += normalHours;
-    //   extraHoursTotal += extraHours;
-
-    //   // rows.add(reportPDF.getRow(
-    //   //   [
-    //   //     DateFormat('dd-MM-yyyy').format(inDict[keyDate]!),
-    //   //     DateFormat('HH:mm').format(inDict[keyDate]!),
-    //   //     DateFormat('HH:mm').format(outDict[keyDate]!),
-    //   //     toDuration(normalHours, format: 'hm'),
-    //   //     toDuration(extraHours, format: 'hm'),
-    //   //   ],
-    //   //   styles: [normalPdf],
-    //   //   padding: const pw.EdgeInsets.all(5),
-    //   //   height: 20,
-    //   //   aligns: [pw.TextAlign.center],
-    //   // ));
-    // }
-
     for (var row in fullRows) {
       rows.add(reportPDF.getRow(row,
           styles: [normalPdf],
@@ -1363,11 +1388,50 @@ class _HomePageState extends State<HomePage> {
           ]));
     }
 
+    List<pw.Widget> tables = [];
+    int rowsPerPage = 25;
+    int currentPage = 0;
+    for (int i = 0; i < rows.length; i += rowsPerPage) {
+      int end = (i + rowsPerPage < rows.length) ? i + rowsPerPage : rows.length;
+      List<pw.TableRow> pageRows = rows.sublist(i, end);
+      tables.add(pw.Table(
+        border: pw.TableBorder.all(),
+        columnWidths: {
+          0: pw.FlexColumnWidth(0.16),
+          1: pw.FlexColumnWidth(0.13),
+          2: pw.FlexColumnWidth(0.11),
+          3: pw.FlexColumnWidth(0.2),
+          4: pw.FlexColumnWidth(0.2),
+          5: pw.FlexColumnWidth(0.2),
+        },
+        children: [
+          reportPDF.getRow([
+            "FECHA",
+            "ENTRADA",
+            "SALIDA",
+            "HORAS ORDINARIAS",
+            "HORAS EXTRA\nCOMPLEMENTARIAS",
+            "BALANCE DE HORAS"
+          ], aligns: [
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center
+          ], styles: [
+            headerPdf
+          ], height: 30),
+          ...pageRows,
+        ],
+      ));
+      currentPage = currentPage + 1;
+    }
+
     // Añade una cabecera al documento
-    pdf.addPage(pw.Page(
+    pdf.addPage(pw.MultiPage(
         pageFormat: pdfFormat,
         //margin: const pw.EdgeInsets.all(5),
-        build: (pw.Context context) {
+        header: (pw.Context context) {
           return pw.Container(
             child: pw.Column(
               children: [
@@ -1377,6 +1441,7 @@ class _HomePageState extends State<HomePage> {
                       background: pw.BoxDecoration(color: PdfColors.white)),
                   textAlign: pw.TextAlign.center,
                 ),
+                pw.SizedBox(height: 5),
                 pw.SizedBox(height: 5),
                 pw.Table(
                   border: pw.TableBorder.all(),
@@ -1406,97 +1471,75 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 pw.SizedBox(height: 5),
-                pw.Table(
-                  border: pw.TableBorder.all(),
-                  columnWidths: {
-                    0: pw.FlexColumnWidth(0.16),
-                    1: pw.FlexColumnWidth(0.13),
-                    2: pw.FlexColumnWidth(0.11),
-                    3: pw.FlexColumnWidth(0.3),
-                    4: pw.FlexColumnWidth(0.3),
-                  },
-                  children: [
-                    reportPDF.getRow([
-                      "FECHA",
-                      "ENTRADA",
-                      "SALIDA",
-                      "HORAS ORDINARIAS",
-                      "HORAS EXTRA\nCOMPLEMENTARIAS"
-                    ], aligns: [
-                      pw.TextAlign.center,
-                      pw.TextAlign.center,
-                      pw.TextAlign.center,
-                      pw.TextAlign.center
-                    ], styles: [
-                      headerPdf
-                    ], height: 30),
-                    ...rows,
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Table(
-                    border: pw.TableBorder.all(),
-                    columnWidths: {
-                      0: pw.FlexColumnWidth(0.4),
-                      1: pw.FlexColumnWidth(0.3),
-                      2: pw.FlexColumnWidth(0.3),
-                    },
-                    defaultVerticalAlignment:
-                        pw.TableCellVerticalAlignment.middle,
-                    children: [
-                      pw.TableRow(
-                          children: [
-                            reportPDF.getCell("TOTAL HORAS",
-                                style: headerPdf, align: pw.TextAlign.center),
-                            reportPDF.getCell(
-                                toDuration(normalHoursTotal, format: 'hm'),
-                                style: normalPdf,
-                                align: pw.TextAlign.center),
-                            reportPDF.getCell(
-                                toDuration(extraHoursTotal, format: 'hm'),
-                                style: normalPdf,
-                                align: pw.TextAlign.center),
-                          ],
-                          decoration: pw.BoxDecoration(
-                            color: PdfColors.grey300,
-                          )),
-                    ]),
-                pw.SizedBox(height: 5),
-                pw.Table(
-                    columnWidths: {
-                      0: pw.FlexColumnWidth(0.5),
-                      1: pw.FlexColumnWidth(0.5),
-                    },
-                    border: null,
-                    children: [
-                      pw.TableRow(children: [
-                        // reportPDF.getCell(
-                        //   "Firma de la empresa",
-                        //   style: headerPdf.copyWith(
-                        //       background:
-                        //           pw.BoxDecoration(color: PdfColors.white)),
-                        //   align: pw.TextAlign.center,
-                        // ),
-                        reportPDF.getCell(
-                          "Firma del trabajador",
-                          style: headerPdf.copyWith(
-                              background:
-                                  pw.BoxDecoration(color: PdfColors.white)),
-                          align: pw.TextAlign.center,
-                        ),
-                      ]),
-                      reportPDF.getRow(
-                        [
-                          // "________________________________",
-                          "________________________________"
-                        ],
-                        aligns: [pw.TextAlign.center],
-                        height: 90.0,
-                      ),
-                    ]),
               ],
             ),
           );
+        },
+        footer: (context) {
+          return pw.Column(children: [
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text('Firma del trabajador',
+                    style: const pw.TextStyle(fontSize: 9))),
+            pw.SizedBox(height: 40),
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text('________________________________',
+                    style: const pw.TextStyle(fontSize: 9))),
+            pw.SizedBox(height: 10),
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(
+                    'Página ${context.pageNumber} de ${context.pagesCount}',
+                    style: const pw.TextStyle(fontSize: 9))),
+          ]);
+        },
+        build: (pw.Context context) {
+          return [
+            pw.Container(
+              child: pw.Column(
+                children: [
+                  ...tables,
+                  pw.SizedBox(height: 5),
+                  pw.Table(
+                      border: pw.TableBorder.all(),
+                      columnWidths: {
+                        0: pw.FlexColumnWidth(0.4),
+                        1: pw.FlexColumnWidth(0.2),
+                        2: pw.FlexColumnWidth(0.2),
+                        3: pw.FlexColumnWidth(0.2),
+                      },
+                      defaultVerticalAlignment:
+                          pw.TableCellVerticalAlignment.middle,
+                      children: [
+                        pw.TableRow(
+                            children: [
+                              reportPDF.getCell("TOTAL HORAS",
+                                  style: headerPdf, align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  toDuration(normalHoursTotal, format: 'hm'),
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  toDuration(extraHoursTotal, format: 'hm'),
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  (balanceHours >= 0)
+                                      ? toDuration(balanceHours, format: 'hm')
+                                      : '-${toDuration(-balanceHours, format: 'hm')}',
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                            ],
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.grey300,
+                            )),
+                      ]),
+                  pw.SizedBox(height: 5),
+                ],
+              ),
+            )
+          ];
         }));
 
     final List<int> savedFile = await pdf.save();
