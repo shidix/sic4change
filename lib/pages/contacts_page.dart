@@ -131,16 +131,17 @@ class _ContactsPageState extends State<ContactsPage> {
         _provider?.loadProfile();
       }
       if (mounted) {
+        _mainMenu = mainMenu(context, "/contacts");
+
         setState(() {});
       }
     });
     _currentOrg = _provider?.organization;
     _currentProfile = _provider?.profile;
+    _mainMenu = mainMenu(context, "/contacts");
     if (_currentOrg == null || _currentProfile == null) {
       _provider?.loadProfile();
     }
-
-    _mainMenu = mainMenu(context, "/contacts");
     orgs = [];
     allOrgs = [];
     if (allContacts.isEmpty) {
@@ -168,6 +169,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   Widget build(BuildContext context) {
+    _mainMenu ??= mainMenu(context, "/contacts");
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [

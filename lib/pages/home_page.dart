@@ -835,7 +835,9 @@ class _HomePageState extends State<HomePage> {
         currentWorkday!.endDate = DateTime.now();
         currentWorkday!.open = false;
         currentWorkday!.save().then((value) {
-          myWorkdays![0] = value;
+          if (value != null) {
+            myWorkdays![0] = value;
+          }
           if (mounted) {
             setState(() {
               myWorkdays = myWorkdays;
@@ -850,7 +852,9 @@ class _HomePageState extends State<HomePage> {
         currentWorkday!.open = true;
 
         currentWorkday!.save().then((value) {
-          myWorkdays!.insert(0, value);
+          if (value != null) {
+            myWorkdays!.insert(0, value);
+          }
           if (mounted) {
             setState(() {
               myWorkdays = myWorkdays;

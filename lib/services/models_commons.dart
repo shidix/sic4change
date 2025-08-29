@@ -30,6 +30,8 @@ class KeyValue {
 //--------------------------------------------------------------
 
 class Organization {
+  static String tbName = "s4c_organizations";
+
   String id = "";
   String uuid = "";
   String code = "";
@@ -39,6 +41,11 @@ class Organization {
   bool partner = false;
   bool public = false;
   String domain = "";
+  // Billing fields
+  String account = "";
+  String address = "";
+  String cif = "";
+  String billingName = "";
 
   Country? countryObj = Country("");
 
@@ -53,6 +60,11 @@ class Organization {
         public = (json.containsKey("public")) ? json["public"] : false,
         country = (json.containsKey("country")) ? json["country"] : "España",
         domain = (json.containsKey("domain")) ? json["domain"] : "",
+        account = (json.containsKey("account")) ? json["account"] : "",
+        address = (json.containsKey("address")) ? json["address"] : "",
+        cif = (json.containsKey("cif")) ? json["cif"] : "",
+        billingName =
+            (json.containsKey("billingName")) ? json["billingName"] : "",
         name = json['name'];
 
   Map<String, dynamic> toJson() => {
@@ -65,6 +77,10 @@ class Organization {
         'country': country,
         'name': name,
         'domain': domain,
+        'account': account,
+        'address': address,
+        'cif': cif,
+        'billingName': billingName,
         //'type': type,
       };
 
@@ -77,28 +93,25 @@ class Organization {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_organizations").add(data).then(
+      FirebaseFirestore.instance.collection(tbName).add(data).then(
         (value) {
           id = value.id;
           FirebaseFirestore.instance
-              .collection("s4c_organizations")
+              .collection(tbName)
               .doc(id)
               .update({"id": id, "uuid": uuid});
         },
       );
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_organizations")
-          .doc(id)
-          .set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   static Future<Organization?> byId(String id) async {
     Organization? item;
     await FirebaseFirestore.instance
-        .collection("s4c_organizations")
+        .collection(tbName)
         .doc(id)
         .get()
         .then((doc) {
@@ -112,10 +125,7 @@ class Organization {
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance
-        .collection("s4c_organizations")
-        .doc(id)
-        .delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   IconData isFinancier() {
@@ -149,7 +159,7 @@ class Organization {
   static Future<List> getFinanciers() async {
     List<Organization> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_organizations").get();
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       if (data["financier"] == true) {
@@ -181,7 +191,7 @@ class Organization {
   static Organization byUuidNoSync(String uuid) {
     Organization item = Organization("None");
     QuerySnapshot query = FirebaseFirestore.instance
-        .collection("s4c_organizations")
+        .collection(tbName)
         .where("uuid", isEqualTo: uuid)
         .get() as QuerySnapshot;
     if (query.docs.isNotEmpty) {
@@ -202,7 +212,7 @@ class Organization {
     String domain = email.split("@").last;
     try {
       QuerySnapshot query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(tbName)
           .where("domain", isEqualTo: domain)
           .get();
 
@@ -225,7 +235,7 @@ class Organization {
   static Future<Organization> byUuid(String uuid) async {
     Organization item = Organization("None");
     QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_organizations")
+        .collection(tbName)
         .where("uuid", isEqualTo: uuid)
         .get();
 
@@ -242,36 +252,36 @@ class Organization {
     return item;
   }
 
-  Future<OrganizationBilling> getBilling() async {
-    OrganizationBilling item = OrganizationBilling("");
+  // Future<OrganizationBilling> getBilling() async {
+  //   OrganizationBilling item = OrganizationBilling("");
 
-    item = await OrganizationBilling.byOrganization(uuid);
+  //   item = await OrganizationBilling.byOrganization(uuid);
 
-    // QuerySnapshot query =
-    //     await FirebaseFirestore.instance.collection("s4c_organizations")Bill.where("organization", isEqualTo: uuid).get();
+  //   // QuerySnapshot query =
+  //   //     await FirebaseFirestore.instance.collection("s4c_organizations")Bill.where("organization", isEqualTo: uuid).get();
 
-    // if (query.docs.isNotEmpty) {
-    //   try {
-    //     Map<String, dynamic> data =
-    //         query.docs.first.data() as Map<String, dynamic>;
-    //     data["id"] = query.docs.first.id;
-    //     item = OrganizationBilling.fromJson(data);
-    //   } catch (e) {
-    //     print("ERROR : $e");
-    //   }
-    // } else {
-    //   item.organization = uuid;
-    //   item.save();
-    // }
-    return item;
-  }
+  //   // if (query.docs.isNotEmpty) {
+  //   //   try {
+  //   //     Map<String, dynamic> data =
+  //   //         query.docs.first.data() as Map<String, dynamic>;
+  //   //     data["id"] = query.docs.first.id;
+  //   //     item = OrganizationBilling.fromJson(data);
+  //   //   } catch (e) {
+  //   //     print("ERROR : $e");
+  //   //   }
+  //   // } else {
+  //   //   item.organization = uuid;
+  //   //   item.save();
+  //   // }
+  //   return item;
+  // }
 
   static Future<List<Organization>> getOrganizations(
       {List<String>? uuids, List<String>? ids}) async {
     List<Organization> items = [];
     if (uuids != null) {
       QuerySnapshot query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(Organization.tbName)
           .where("uuid", whereIn: uuids)
           .get();
       for (var doc in query.docs) {
@@ -281,7 +291,7 @@ class Organization {
       }
     } else if (ids != null) {
       QuerySnapshot query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(Organization.tbName)
           .where("id", whereIn: ids)
           .get();
       for (var doc in query.docs) {
@@ -291,7 +301,7 @@ class Organization {
       }
     } else {
       QuerySnapshot query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(Organization.tbName)
           .get();
       for (var doc in query.docs) {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -309,7 +319,7 @@ class Organization {
   static Future<List<KeyValue>> getOrganizationsHash() async {
     List<KeyValue> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_organizations").get();
+        await FirebaseFirestore.instance.collection(Organization.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -322,7 +332,7 @@ class Organization {
   static Future<List<KeyValue>> getFinanciersHash() async {
     List<KeyValue> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_organizations").get();
+        await FirebaseFirestore.instance.collection(Organization.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -337,7 +347,7 @@ class Organization {
   static Future<List<KeyValue>> getPartnersHash() async {
     List<KeyValue> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_organizations").get();
+        await FirebaseFirestore.instance.collection(Organization.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -355,12 +365,12 @@ class Organization {
 
     if (name != "") {
       query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(Organization.tbName)
           .where("name", isEqualTo: name)
           .get();
     } else {
       query = await FirebaseFirestore.instance
-          .collection("s4c_organizations")
+          .collection(Organization.tbName)
           .get();
     }
     for (var doc in query.docs) {
@@ -377,98 +387,85 @@ class Organization {
 //                       ORGANIZATION BILLING
 //--------------------------------------------------------------
 
-class OrganizationBilling {
-  String id = "";
-  String uuid = "";
-  String name;
-  String account = "";
-  String address = "";
-  String cif = "";
-  String organization = "";
-  Organization org = Organization("");
+// class OrganizationBilling {
+//   String id = "";
+//   String uuid = "";
+//   String name;
+//   String account = "";
+//   String address = "";
+//   String cif = "";
+//   String organization = "";
+//   Organization org = Organization("");
 
-  OrganizationBilling(this.name);
+//   OrganizationBilling(this.name);
 
-  OrganizationBilling.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        account = json['account'],
-        address = json['address'],
-        cif = json['cif'],
-        organization = json['organization'];
+//   OrganizationBilling.fromJson(Map<String, dynamic> json)
+//       : id = json["id"],
+//         uuid = json["uuid"],
+//         name = json['name'],
+//         account = json['account'],
+//         address = json['address'],
+//         cif = json['cif'],
+//         organization = json['organization'];
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'uuid': uuid,
-        'name': name,
-        'account': account,
-        'address': address,
-        'cif': cif,
-        'organization': organization,
-      };
+//   Map<String, dynamic> toJson() => {
+//         'id': id,
+//         'uuid': uuid,
+//         'name': name,
+//         'account': account,
+//         'address': address,
+//         'cif': cif,
+//         'organization': organization,
+//       };
 
-  KeyValue toKeyValue() {
-    return KeyValue(uuid, name);
-  }
+//   KeyValue toKeyValue() {
+//     return KeyValue(uuid, name);
+//   }
 
-  Future<void> save() async {
-    if (id == "") {
-      var newUuid = const Uuid();
-      uuid = newUuid.v4();
-      Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_organizations_billing")
-          .add(data);
-    } else {
-      Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_organizations_billing")
-          .doc(id)
-          .set(data);
-    }
-  }
+//   Future<void> save() async {
+//     if (id == "") {
+//       var newUuid = const Uuid();
+//       uuid = newUuid.v4();
+//       Map<String, dynamic> data = toJson();
+//       FirebaseFirestore.instance
+//           .collection("s4c_organizations_billing")
+//           .add(data);
+//     } else {
+//       Map<String, dynamic> data = toJson();
+//       FirebaseFirestore.instance
+//           .collection("s4c_organizations_billing")
+//           .doc(id)
+//           .set(data);
+//     }
+//   }
 
-  Future<void> delete() async {
-    await FirebaseFirestore.instance
-        .collection("s4c_organizations_billing")
-        .doc(id)
-        .delete();
-  }
+//   Future<void> delete() async {
+//     await FirebaseFirestore.instance
+//         .collection("s4c_organizations_billing")
+//         .doc(id)
+//         .delete();
+//   }
 
-  // Future<void> getOrganization() async {
-  //   try {
-  //     QuerySnapshot query =
-  //         await dbOrg.where("uuid", isEqualTo: organization).get();
-  //     final doc = query.docs.first;
-  //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  //     data["id"] = doc.id;
-  //     org = Organization.fromJson(data);
-  //   } catch (e) {
-  //     //return Company("");
-  //   }
-  // }
+//   static Future<OrganizationBilling> byOrganization(String uuid) async {
+//     OrganizationBilling item = OrganizationBilling("None");
+//     QuerySnapshot query = await FirebaseFirestore.instance
+//         .collection("s4c_organizations_billing")
+//         .where("organization", isEqualTo: uuid)
+//         .get();
 
-  static Future<OrganizationBilling> byOrganization(String uuid) async {
-    OrganizationBilling item = OrganizationBilling("None");
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_organizations_billing")
-        .where("organization", isEqualTo: uuid)
-        .get();
-
-    if (query.docs.isNotEmpty) {
-      try {
-        Map<String, dynamic> data =
-            query.docs.first.data() as Map<String, dynamic>;
-        data["id"] = query.docs.first.id;
-        item = OrganizationBilling.fromJson(data);
-      } catch (e) {
-        print("ERROR : $e");
-      }
-    }
-    return item;
-  }
-}
+//     if (query.docs.isNotEmpty) {
+//       try {
+//         Map<String, dynamic> data =
+//             query.docs.first.data() as Map<String, dynamic>;
+//         data["id"] = query.docs.first.id;
+//         item = OrganizationBilling.fromJson(data);
+//       } catch (e) {
+//         print("ERROR : $e");
+//       }
+//     }
+//     return item;
+//   }
+// }
 
 //--------------------------------------------------------------
 //                   ORGANIZATIONS TYPES

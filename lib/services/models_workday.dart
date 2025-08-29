@@ -54,7 +54,7 @@ class Workday {
     return 'Workday $id $userId $startDate $endDate $open';
   }
 
-  Future<Workday> save() async {
+  Future<Workday?> save() async {
     // if (id == "") {
     //   id = uuid;
     //   Map<String, dynamic> data = toJson();
@@ -66,7 +66,8 @@ class Workday {
     if (id == "") {
       var item = await FirebaseFirestore.instance
           .collection(Workday.tbName)
-          .add(toJson()).then((value) {
+          .add(toJson())
+          .then((value) {
         id = value.id;
         value.update({'id': id});
       });
@@ -75,7 +76,8 @@ class Workday {
       await FirebaseFirestore.instance
           .collection(Workday.tbName)
           .doc(id)
-          .update(toJson()).catchError((e) {
+          .update(toJson())
+          .catchError((e) {
         print("Error updating Workday: $e");
       });
     }

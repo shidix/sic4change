@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -121,27 +120,8 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) setState(() {});
     };
     profileProvider.addListener(listener);
+    // ignore: unused_local_variable
     final user = FirebaseAuth.instance.currentUser;
-    //getProfile(user);
-
-    // try {
-    //   final user = FirebaseAuth.instance.currentUser!;
-
-    //   Profile.getProfile(user.email!).then((value) {
-    //     profile = value;
-    //     if (mounted) {
-    //       setState(() {
-    //         loadProf = false;
-    //       });
-    //     }
-    //   });
-    // } catch (e) {
-    //   if (mounted) {
-    //     setState(() {
-    //       loadProf = false;
-    //     });
-    //   }
-    // }
   }
 
   void sendResetEmail(context, emailController) async {
@@ -326,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future signIn(context, emailController, passwdController) async {
-    Map<String, String> messages_i18n = {
+    Map<String, String> messagesI18n = {
       "invalid-email": "Las credenciales son incorrectas o han expirado",
       "invalid-credential": "Las credenciales son incorrectas o han expirado",
       "user-not-found": "Usuario no encontrado",
@@ -389,8 +369,8 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
     } on FirebaseException catch (e) {
-      if (messages_i18n.containsKey(e.code)) {
-        message = messages_i18n[e.code]!;
+      if (messagesI18n.containsKey(e.code)) {
+        message = messagesI18n[e.code]!;
       } else {
         message = "Se ha producido un error. Contacte con el administrador";
       }

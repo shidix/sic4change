@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -773,7 +772,7 @@ class Employee {
         'bankAccount': bankAccount,
         'affiliation': affiliation, // Aseguradora o mutua
         'shift': shift.map((e) => e.toJson()).toList(),
-        'workplace': (workplace != null) ? workplace!.id : null,
+        'workplace': workplace.id,
       };
 
   Future<String> getPhotoUrl() async {
@@ -847,7 +846,8 @@ class Employee {
     altas.sort((a, b) => a.date.compareTo(b.date));
     // bajas.sort((a, b) => a.date.compareTo(b.date));
     if (id == null || id!.isEmpty) {
-      var item = await FirebaseFirestore.instance.collection(tbName).add(toJson());
+      var item =
+          await FirebaseFirestore.instance.collection(tbName).add(toJson());
       id = item.id;
       item.update({'id': id});
       // FirebaseFirestore.instance.collection(tbName).add(toJson()).then((value) {
@@ -858,7 +858,10 @@ class Employee {
       //       .update({'id': id});
       // });
     } else {
-      await FirebaseFirestore.instance.collection(tbName).doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
   }
 
@@ -1023,14 +1026,12 @@ class Employee {
 
     if (data.docs.isNotEmpty) {
       item = await Employee.fromJson(data.docs.first.data());
-    }
-    else {
+    } else {
       item.email = email;
     }
 
     return item;
   }
-
 
   static Future<List<Employee>> getAll() async {
     // get from database
@@ -1049,10 +1050,8 @@ class Employee {
           .get();
       if (data.docs.isEmpty) {
         data = await FirebaseFirestore.instance.collection(tbName).get();
-        
       }
-    }
-    else {
+    } else {
       data = await FirebaseFirestore.instance.collection(tbName).get();
     }
 
@@ -1064,7 +1063,7 @@ class Employee {
           item.organization = organization?.id;
         }
         item.id = doc.id;
-      
+
         items.add(item);
       }
       // await FirebaseFirestore.instance
@@ -1079,20 +1078,19 @@ class Employee {
       //     return item;
       //   }).toList();
       // });
-    
 
-    // if (items.isEmpty) {
-    //   await FirebaseFirestore.instance.collection(tbName).get().then((value) {
-    //     if (value.docs.isEmpty) return [];
-    //     items = value.docs.map((e) {
-    //       Employee item = Employee.fromJson(e.data());
-    //       if (!e.data().containsKey('organization')) {
-    //         item.organization = null;
-    //       }
-    //       item.id = e.id;
-    //       return item;
-    //     }).toList();
-    //   });
+      // if (items.isEmpty) {
+      //   await FirebaseFirestore.instance.collection(tbName).get().then((value) {
+      //     if (value.docs.isEmpty) return [];
+      //     items = value.docs.map((e) {
+      //       Employee item = Employee.fromJson(e.data());
+      //       if (!e.data().containsKey('organization')) {
+      //         item.organization = null;
+      //       }
+      //       item.id = e.id;
+      //       return item;
+      //     }).toList();
+      //   });
       if (organization != null) {
         items = items
             .where((element) => ((element.organization == organization.id) ||
@@ -1609,7 +1607,7 @@ class Workplace {
       };
 
   Future<Workplace> save() async {
-    if ((id == null) || (id == '')) {
+    if (id == '') {
       await FirebaseFirestore.instance
           .collection(tbName)
           .add(toJson())
@@ -1667,7 +1665,8 @@ class Workplace {
 
   static Future<Workplace> byId(String? id) async {
     if (id == null) return getEmpty();
-    final doc = await FirebaseFirestore.instance.collection(tbName).doc(id).get();
+    final doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
     if (doc.exists) {
       return await Workplace.fromJson(doc.data()!);
     }
