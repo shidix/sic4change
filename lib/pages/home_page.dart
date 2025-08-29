@@ -85,13 +85,16 @@ class _HomePageState extends State<HomePage> {
   List notificationList = [];
   //List logList = [];
 
-  bool onHolidays(String userEmail, DateTime date) {
+  bool onHolidays(String userEmail, DateTime date,
+      {bool acceptedOnly = false}) {
     if (myHolidays == null) return false;
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.userId == userEmail &&
           date.isAfter(holiday.startDate) &&
-          date.isBefore(holiday.endDate)) {
-        return true;
+          date.isBefore(truncDate(holiday.endDate.add(Duration(days: 1))))) {
+        if ((!acceptedOnly) || (acceptedOnly && (holiday.isAproved()))) {
+          return true;
+        }
       }
     }
     return false;
@@ -1277,9 +1280,11 @@ class _HomePageState extends State<HomePage> {
 
       if (hoursInWeekEmployee != 0) {
         if ((myCalendar!.isHoliday(truncDate(workday.startDate))) ||
-            (onHolidays(currentEmployee!.email, workday.startDate))) {
+            (onHolidays(currentEmployee!.email, workday.startDate,
+                acceptedOnly: true))) {
           hoursInWeekEmployee = 0.0;
-          if (onHolidays(currentEmployee!.email, workday.startDate)) {
+          if (onHolidays(currentEmployee!.email, workday.startDate,
+              acceptedOnly: true)) {
             workday.id = 'FREE';
           }
         }
