@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
         profileProvider.loadProfile();
       }
 
-      if (mounted) setState(() {});
+      // if (mounted) setState(() {});
     };
     profileProvider.addListener(listener);
     // ignore: unused_local_variable
