@@ -58,45 +58,6 @@ class _LoginPageState extends State<LoginPage> {
       }
       currentOrganization = profileProvider.organization;
       Navigator.pushReplacementNamed(context, "/home");
-
-      // Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
-      //     .then((userWorkdays) async {
-      //   // Check if there is any open workday
-      //   if (userWorkdays.isNotEmpty) {
-      //     userWorkdays
-      //         .sort((a, b) => b.startDate.compareTo(a.startDate)); // Descending
-      //     Workday currentWorkday = userWorkdays.first;
-      //     print(currentWorkday.toJson());
-      //     if (!currentWorkday.open) {
-      //       Workday newWorkday = Workday(
-      //           id: "",
-      //           userId: FirebaseAuth.instance.currentUser!.email!,
-      //           startDate: DateTime.now(),
-      //           endDate: DateTime.now(),
-      //           open: true);
-      //       await newWorkday.save();
-      //       sendAnalyticsEvent(
-      //           "Apertura de jornada", "Usuario: ${profile?.name}");
-      //     }
-      //   } else {
-      //     Workday newWorkday = Workday(
-      //         id: "",
-      //         userId: FirebaseAuth.instance.currentUser!.email!,
-      //         startDate: DateTime.now(),
-      //         endDate: DateTime.now(),
-      //         open: true);
-      //     await newWorkday.save();
-      //     sendAnalyticsEvent(
-      //         "Apertura de jornada", "Usuario: ${profile?.name}");
-      //   }
-      //   if (profile?.mainRole == "Admin") {
-      //     Navigator.pushReplacementNamed(context, "/home");
-      //   } else {
-      //     Navigator.pushReplacementNamed(context, "/home");
-      //     // Navigator.push(context,
-      //     //     MaterialPageRoute(builder: ((context) => const HomePage())));
-      //   }
-      // });
     }
   }
 
@@ -315,12 +276,6 @@ class _LoginPageState extends State<LoginPage> {
       "too-many-requests": "Demasiados intentos. Inténtelo más tarde",
       "unknown": "Error desconocido"
     };
-    // showDialog(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (context) => const Center(
-    //           child: CircularProgressIndicator(),
-    //         ));
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -332,7 +287,7 @@ class _LoginPageState extends State<LoginPage> {
         profile = null;
         profileProvider.loadProfile();
 
-        Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
+        await Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
             .then((userWorkdays) async {
           // Check if there is any open workday
           if (userWorkdays.isNotEmpty) {

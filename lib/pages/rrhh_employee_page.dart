@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:sic4change/pages/rrhh_nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/register_form.dart';
@@ -36,7 +37,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
   Widget secondaryMenuPanel = const Row(children: []);
   int sortColumnIndex = 1;
   int orderDirection = 1;
-
   String employeeFilter = '';
   double minSalaryFilter = 0.0;
   double maxSalaryFilter = 1e6;
@@ -900,6 +900,7 @@ class InfoField extends StatelessWidget {
 
 class EmployeeInfoCard extends StatefulWidget {
   final Employee employee;
+
   const EmployeeInfoCard({super.key, required this.employee});
 
   @override
@@ -910,6 +911,33 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
   @override
   Widget build(BuildContext context) {
     List<Row> contracts = [];
+    // HolidayRequest.byUser(widget.employee.email).then((holidays) {
+    //   HolidaysCategory.byOrganization(widget.employee.organization!)
+    //       .then((holCat) {
+    //     Map<String, double> daysRemaining = {};
+    //     for (var cat in holCat) {
+    //       daysRemaining[cat.id] = cat.days.toDouble();
+    //     }
+
+    //     for (HolidayRequest hr in holidays) {
+    //       HolidaysCategory category = holCat.firstWhere(
+    //           (element) => element.id == hr.category,
+    //           orElse: () => HolidaysCategory.getEmpty());
+    //       if (category.id != '') {
+    //         HolidaysConfig calendar = HolidaysConfig.byEmployeewidget.employee);
+    //         daysRemaining[category.name] ??= category.days.toDouble();
+    //         if (hr.status == 'Aprobada') {
+    //           daysRemaining[category.name] =
+    //               daysRemaining[category.name]! - hr.days();
+    //         }
+    //       }
+    //     }
+
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+    // });
 
     for (Alta alta in widget.employee.altas) {
       contracts.add(Row(children: [

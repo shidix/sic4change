@@ -670,8 +670,13 @@ class HolidaysCategory {
   }
 
   static Future<List<HolidaysCategory>> byOrganization(
-      Organization organization) async {
-    String uuid = organization.uuid;
+      dynamic organization) async {
+    String uuid = "";
+    if (organization is String) {
+      uuid = organization;
+    } else if (organization is Organization) {
+      uuid = organization.uuid;
+    }
     if (uuid.isEmpty) {
       return [];
     }
@@ -709,6 +714,10 @@ class HolidaysCategory {
   Future<int> getAvailableDays(String employeeEmail) async {
     int usedDays = 0;
     List<HolidayRequest> requests = await HolidayRequest.byUser(employeeEmail);
+
+    Employee employee = await Employee.byEmail(employeeEmail);
+    HolidaysConfig calendar =
+        await HolidaysConfig.byEmployee(employee, year: year);
 
     for (var request in requests) {
       if (request.isAproved() && request.category == id) {

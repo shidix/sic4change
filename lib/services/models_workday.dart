@@ -63,6 +63,13 @@ class Workday {
     //   Map<String, dynamic> data = toJson();
     //   database.doc(id).set(data);
     // }
+    if (userId is List) {
+      userId = (userId as List).first;
+    }
+    if (!isEmail(userId)) {
+      return null;
+    }
+
     if (id == "") {
       var item = await FirebaseFirestore.instance
           .collection(Workday.tbName)

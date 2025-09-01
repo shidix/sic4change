@@ -6,7 +6,6 @@ import 'package:sic4change/services/holiday_form.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
-import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -36,10 +35,11 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
     if ((currentOrganization == null) || (profile == null)) return;
     holidaysCategories =
         await HolidaysCategory.getAll(organization: currentOrganization);
-    if (mounted)
+    if (mounted) {
       setState(() {
         contentPanel = content(context);
       });
+    }
   }
 
   @override
@@ -196,9 +196,7 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
             } else if (e == 'Código') {
               holidaysCategories.sort((a, b) =>
                   orderDirection *
-                  (a.code ?? "")
-                      .toLowerCase()
-                      .compareTo((b.code ?? "").toLowerCase()));
+                  (a.code).toLowerCase().compareTo((b.code).toLowerCase()));
             } else if (e == 'Válido hasta') {
               holidaysCategories.sort((a, b) =>
                   orderDirection * a.validUntil.compareTo(b.validUntil));
@@ -225,7 +223,7 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
         return DataRow(cells: [
           DataCell(Text(e.year.toString())),
           DataCell(Text(e.name)),
-          DataCell(Text(e.code ?? "")),
+          DataCell(Text(e.code)),
           DataCell(Text(e.docRequired.toString())),
           DataCell(Text(e.days.toString())),
           DataCell(Text(
@@ -249,9 +247,9 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
                       return AlertDialog(
                         title: s4cTitleBar(
                             "Eliminar Permiso", context, Icons.delete_rounded),
-                        content: Row(children: [
+                        content: const Row(children: [
                           Expanded(
-                              child: const Text(
+                              child: Text(
                                   "¿Está seguro que desea eliminar este tipo de permiso?",
                                   textAlign: TextAlign.center)),
                         ]),

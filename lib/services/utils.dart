@@ -606,3 +606,9 @@ bool dateInRange(DateTime date, DateTime start, DateTime end) {
       date.isAtSameMomentAs(end) ||
       (date.isAfter(start) && date.isBefore(end)));
 }
+
+bool isEmail(String value) {
+  String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+  RegExp regex = RegExp(pattern);
+  return regex.hasMatch(value);
+}
