@@ -925,10 +925,10 @@ class SLogs {
       var ipAddress = IpAddress();
       ip = await ipAddress.getIpAddress();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection('s4c_logs')
-          .add(data)
-          .then((value) => id = value.id);
+      var item =
+          await FirebaseFirestore.instance.collection('s4c_logs').add(data);
+      id = item.id;
+      await item.update({'id': item.id});
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection('s4c_logs').doc(id).set(data);
