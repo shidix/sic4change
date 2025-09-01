@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/rrhh_hierarchy_page.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/rrhh_holiday_category_page.dart';
 import 'package:sic4change/pages/rrhh_nominas_page.dart';
 // import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/pages/rrhh_employee_page.dart';
@@ -16,6 +17,7 @@ const EMPLOYEE_ITEM = 1;
 const HIERARCHY_ITEM = 2;
 const CALENDAR_ITEM = 3;
 const WORKPLACE_ITEM = 4;
+const HOLIDAYS_ITEM = 5;
 
 Widget secondaryMenu(context, int option) {
   return Row(
@@ -44,6 +46,11 @@ Widget secondaryMenu(context, int option) {
           ? goPage(context, 'Centros de Trabajo', const WorkplacePage(),
               Icons.business_rounded)
           : goPage(context, 'Centros de Trabajo', null, Icons.business_rounded),
+      space(width: 10),
+      (option != HOLIDAYS_ITEM)
+          ? goPage(context, 'Permisos', const HolidayCategoryPage(),
+              Icons.beach_access)
+          : goPage(context, 'Permisos', null, Icons.beach_access),
       // space(width: 10),
       // backButton(context),
     ],

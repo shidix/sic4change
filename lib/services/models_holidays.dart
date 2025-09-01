@@ -542,6 +542,7 @@ class HolidaysCategory {
   String code;
   int docRequired = 0;
   int year = DateTime.now().year;
+  DateTime validUntil = DateTime(DateTime.now().year + 1, 1, 1);
   String docMessage = "";
   bool retroactive = false;
   bool obligation = false;
@@ -579,6 +580,12 @@ class HolidaysCategory {
       year: year,
     );
 
+    if (data.containsKey('validUntil')) {
+      item.validUntil = getDate(data['validUntil']);
+    } else {
+      item.validUntil = DateTime(year + 1, 1, 1);
+    }
+
     String orgUuid = data['organization'];
 
     Organization.byUuid(orgUuid).then((org) {
@@ -598,6 +605,7 @@ class HolidaysCategory {
         'obligation': obligation,
         'days': days,
         'year': year,
+        'validUntil': validUntil,
       };
 
   @override
@@ -677,6 +685,24 @@ class HolidaysCategory {
           .toList();
     } else {
       return [];
+    }
+  }
+
+  static Future<List<HolidaysCategory>> getAll(
+      {Organization? organization}) async {
+    if (organization != null && organization.uuid.isNotEmpty) {
+      return await HolidaysCategory.byOrganization(organization);
+    } else {
+      QuerySnapshot query =
+          await FirebaseFirestore.instance.collection(tbName).get();
+      if (query.docs.isNotEmpty) {
+        return query.docs
+            .map((e) =>
+                HolidaysCategory.fromJson(e.data() as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
     }
   }
 

@@ -715,9 +715,12 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
       formKey.currentState!.save();
       category.save();
       if (widget.afterSave != null) {
-        widget.afterSave!();
+        widget.afterSave!(category);
       }
-      Navigator.of(context).pop(category);
+      try {
+        if (!mounted) return;
+        Navigator.of(context).pop(category);
+      } catch (e) {}
     }
   }
 
@@ -789,6 +792,18 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                     onSaved: (val) =>
                         setState(() => category.year = int.parse(val!)),
                   ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 1,
+                  child: DateTimePicker(
+                      labelText: 'Válido hasta',
+                      selectedDate: getDate(category.validUntil),
+                      onSelectedDate: (date) {
+                        setState(() {
+                          category.validUntil = date;
+                        });
+                      }),
                 ),
               ],
             ),
