@@ -1393,7 +1393,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
                                 }
                               },
                               decoration: InputDecoration(
-                                  labelText: DAYS[i].substring(0, 3)),
+                                  labelText: DaysNamesES[i].substring(0, 3)),
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                       decimal: true),
@@ -1430,7 +1430,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
                       for (int i = 0; i < 7; i++)
                         Expanded(
                             flex: 1,
-                            child: Text(DAYS[i].substring(0, 3),
+                            child: Text(DaysNamesES[i].substring(0, 3),
                                 style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold))),

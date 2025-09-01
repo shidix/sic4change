@@ -791,7 +791,7 @@ class Employee {
     return bornDate ?? DateTime(1924, 1, 1);
   }
 
-  Shift? getShift({DateTime? date}) {
+  Shift getShift({DateTime? date}) {
     if (shift.isEmpty) {
       shift.add(Shift(
           date: truncDate(DateTime.now()),

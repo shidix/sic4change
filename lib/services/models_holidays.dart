@@ -204,6 +204,10 @@ class HolidaysConfig {
     }
     return false;
   }
+
+  bool isWorkingDay(DateTime date) {
+    return (!isHoliday(date));
+  }
 }
 
 class HolidayRequest {

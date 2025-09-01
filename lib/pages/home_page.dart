@@ -73,6 +73,7 @@ class _HomePageState extends State<HomePage> {
   List<Employee> myManagers = [];
   List<HolidayRequest> myPeopleHolidays = [];
   List<Workday> myPeopleWorkdays = [];
+  Map<String, HolidaysConfig> myPeopleCalendars = {};
 
   Widget contentHolidaysPanel = Container();
   Widget contentWorkPanel = Container();
@@ -88,10 +89,14 @@ class _HomePageState extends State<HomePage> {
   bool onHolidays(String userEmail, DateTime date,
       {bool acceptedOnly = false}) {
     if (myHolidays == null) return false;
+
     for (HolidayRequest holiday in myHolidays!) {
-      if (holiday.userId == userEmail &&
-          date.isAfter(holiday.startDate) &&
-          date.isBefore(truncDate(holiday.endDate.add(Duration(days: 1))))) {
+      bool inRange = (date.isAfter(holiday.startDate) &&
+              date.isBefore(
+                  truncDate(holiday.endDate.add(Duration(days: 1))))) ||
+          (holiday.startDate.isAtSameMomentAs(date) ||
+              holiday.endDate.isAtSameMomentAs(date));
+      if (holiday.userId == userEmail && inRange) {
         if ((!acceptedOnly) || (acceptedOnly && (holiday.isAproved()))) {
           return true;
         }
@@ -249,8 +254,13 @@ class _HomePageState extends State<HomePage> {
     contentWorkPanel = workTimePanel();
 
     mypeople = results[4] as List<Employee>;
+
     currentEmployee ??= await Employee.byEmail(user.email!);
     mypeople.add(currentEmployee!);
+
+    for (Employee emp in mypeople) {
+      myPeopleCalendars[emp.email!] = await HolidaysConfig.byEmployee(emp);
+    }
 
     if (profile!.mainRole == Profile.RRHH) {
       // Load all employees
@@ -308,16 +318,60 @@ class _HomePageState extends State<HomePage> {
         DateTime(DateTime.now().year, DateTime.now().month - 1, 1);
     DateTime nextMonthStart = currentMonthStart.add(Duration(days: 35));
     nextMonthStart = DateTime(nextMonthStart.year, nextMonthStart.month, 1);
-    DateTime currentWeekStart =
-        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
-    DateTime lastWeekStart = currentWeekStart.subtract(Duration(days: 7));
-    double currentYearHours = 0;
-    double currentMonthHours = 0;
-    double lastMonthHours = 0;
-    double currentWeekHours = 0;
-    double lastWeekHours = 0;
+    DateTime currentWeekStart = truncDate(
+        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
+    DateTime lastWeekStart =
+        truncDate(currentWeekStart.subtract(Duration(days: 7)));
+
     for (Employee employee in mypeople) {
+      double currentYearHours = 0;
+      double currentMonthHours = 0;
+      double lastMonthHours = 0;
+      double currentWeekHours = 0;
+      double lastWeekHours = 0;
       // Calcular horas en el año actual, en el mes pasado, en el mes actual, en la semana pasada y en la semana actual
+      double balanceYearsHours = 0;
+      double balanceLastMonthHours = 0;
+      double balanceCurrentMonthHours = 0;
+      double balanceLastWeekHours = 0;
+      double balanceCurrentWeekHours = 0;
+
+      HolidaysConfig employeeCalendar =
+          myPeopleCalendars[employee.email] ?? HolidaysConfig.getEmpty();
+      DateTime currentDate = DateTime(DateTime.now().year, 1, 1);
+
+      while (currentDate.isBefore(DateTime.now())) {
+        Shift currentShift = employee.getShift(date: currentDate);
+        if ((!onHolidays(employee.email, currentDate, acceptedOnly: true)) &&
+            (employeeCalendar.isWorkingDay(currentDate)) &&
+            (currentDate.isAfter(truncDate(employee.getAltaDate())))) {
+          balanceYearsHours += currentShift.hours[currentDate.weekday - 1];
+          if (currentDate.month == DateTime.now().month - 1) {
+            balanceLastMonthHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+          if (currentDate.month == DateTime.now().month) {
+            balanceCurrentMonthHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+          if (dateInRange(currentDate, lastWeekStart,
+              currentWeekStart.subtract(Duration(seconds: 1)))) {
+            balanceLastWeekHours += currentShift.hours[currentDate.weekday - 1];
+          }
+
+          if (dateInRange(
+              currentDate,
+              currentWeekStart,
+              currentWeekStart
+                  .add(Duration(days: 7))
+                  .subtract(Duration(seconds: 1)))) {
+            balanceCurrentWeekHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+        }
+        currentDate = currentDate.add(Duration(days: 1));
+      }
+
       List<Workday> employeeWorkdays =
           myPeopleWorkdays.where((wd) => wd.userId == employee.email).toList();
 
@@ -325,12 +379,12 @@ class _HomePageState extends State<HomePage> {
         if (workday.startDate.year == DateTime.now().year) {
           currentYearHours += workday.hours();
         }
-        if ((workday.startDate.isAfter(currentMonthStart)) &&
-            (workday.startDate.isBefore(nextMonthStart))) {
+        if (workday.startDate.year == DateTime.now().year &&
+            workday.startDate.month == DateTime.now().month) {
           currentMonthHours += workday.hours();
         }
-        if ((workday.startDate.isAfter(lastMonthStart)) &&
-            (workday.startDate.isBefore(currentMonthStart))) {
+        if (workday.startDate.year == lastMonthStart.year &&
+            workday.startDate.month == lastMonthStart.month) {
           lastMonthHours += workday.hours();
         }
         if (workday.startDate.isAfter(currentWeekStart)) {
@@ -343,11 +397,17 @@ class _HomePageState extends State<HomePage> {
       }
 
       // Calculate percentage of hours worked, assuming 40 hours per week
-      currentYearHours = (currentYearHours / (40 * 52)) * 100.0;
-      currentMonthHours = (currentMonthHours / (40 * 4)) * 100.0;
-      lastMonthHours = (lastMonthHours / (40 * 4)) * 100.0;
-      currentWeekHours = (currentWeekHours / (40)) * 100.0;
-      lastWeekHours = (lastWeekHours / (40)) * 100.0;
+      // currentYearHours = (currentYearHours / (40 * 52)) * 100.0;
+      // currentMonthHours = (currentMonthHours / (40 * 4)) * 100.0;
+      // lastMonthHours = (lastMonthHours / (40 * 4)) * 100.0;
+      // currentWeekHours = (currentWeekHours / (40)) * 100.0;
+      // lastWeekHours = (lastWeekHours / (40)) * 100.0;
+
+      currentYearHours = currentYearHours - balanceYearsHours;
+      currentMonthHours = currentMonthHours - balanceCurrentMonthHours;
+      lastMonthHours = lastMonthHours - balanceLastMonthHours;
+      currentWeekHours = currentWeekHours - balanceCurrentWeekHours;
+      lastWeekHours = lastWeekHours - balanceLastWeekHours;
 
       workdayHours[employee.email] = {
         "currentYear": currentYearHours,
@@ -367,58 +427,6 @@ class _HomePageState extends State<HomePage> {
         color: Colors.white,
         child: Column(
           children: [
-            ListTile(
-              title: Row(
-                children: const [
-                  Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Nombre",
-                        style: subTitleText,
-                        textAlign: TextAlign.left,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Año actual",
-                        style: subTitleText,
-                        textAlign: TextAlign.right,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Mes pasado",
-                        style: subTitleText,
-                        textAlign: TextAlign.right,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Mes actual",
-                        style: subTitleText,
-                        textAlign: TextAlign.right,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Semana pasada",
-                        style: subTitleText,
-                        textAlign: TextAlign.right,
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Semana actual",
-                        style: subTitleText,
-                        textAlign: TextAlign.right,
-                      )),
-                ],
-              ),
-            ),
-            Divider(
-              height: 1,
-              color: Colors.grey[300],
-            ),
             for (var item in workdayHours.entries)
               ListTile(
                 // title: Text(mypeople
@@ -437,41 +445,49 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                       flex: 1,
                       child: Text(
-                        "${item.value['currentYear']?.toStringAsFixed(2) ?? '0.00'} %",
+                        (item.value['currentYear']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentYear']!,
+                                format: 'hm'),
                         style: normalText,
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     Expanded(
                       flex: 1,
                       child: Text(
-                        "${item.value['lastMonth']?.toStringAsFixed(2) ?? '0.00'} %",
+                        (item.value['lastMonth']! < 0 ? '-' : '') +
+                            toDuration(item.value['lastMonth']!, format: 'hm'),
                         style: normalText,
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     Expanded(
                       flex: 1,
                       child: Text(
-                        "${item.value['currentMonth']?.toStringAsFixed(2) ?? '0.00'} %",
+                        (item.value['currentMonth']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentMonth']!,
+                                format: 'hm'),
                         style: normalText,
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                       ),
                     ),
+                    // Expanded(
+                    //   flex: 1,
+                    //   child: Text(
+                    //     (item.value['lastWeek']! < 0 ? '-' : '') +
+                    //         toDuration(item.value['lastWeek']!, format: 'hm'),
+                    //     style: normalText,
+                    //     textAlign: TextAlign.right,
+                    //   ),
+                    // ),
                     Expanded(
                       flex: 1,
                       child: Text(
-                        "${item.value['lastWeek']?.toStringAsFixed(2) ?? '0.00'} %",
+                        (item.value['currentWeek']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentWeek']!,
+                                format: 'hm'),
                         style: normalText,
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        "${item.value['currentWeek']?.toStringAsFixed(2) ?? '0.00'} %",
-                        style: normalText,
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
@@ -484,68 +500,126 @@ class _HomePageState extends State<HomePage> {
           ],
         ));
 
-    return SizedBox(
-        height: 600,
-        child: SingleChildScrollView(
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withAlpha(128),
-                            spreadRadius: 0,
-                            blurRadius: 10,
-                            offset: const Offset(
-                                0, 3), // changes position of shadow
-                          ),
-                        ],
-                        borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.all(2),
-                    child: Column(
-                      children: [
-                        Container(
-                            padding: const EdgeInsets.all(10),
-                            color: Colors.grey[100],
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                    flex: 1,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: Card(
-                                          child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 15, horizontal: 5),
-                                        child: Icon(Icons.access_time,
-                                            color: Colors.black),
-                                      )),
-                                    )),
-                                Expanded(
-                                    flex: 8,
-                                    child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Padding(
-                                                  padding: EdgeInsets.only(
-                                                      bottom: 10),
-                                                  child: Text(
-                                                    "Registro de jornada",
-                                                    style: cardHeaderText,
-                                                  )),
-                                              Text(dateToES(DateTime.now()),
-                                                  style: subTitleText),
-                                            ]))),
-                              ],
+    return Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.white,
+                    spreadRadius: 0,
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(0),
+            child: Column(children: [
+              Container(
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.grey[100],
+                  child: Row(
+                    children: [
+                      const Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Card(
+                                child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 5),
+                              child:
+                                  Icon(Icons.access_time, color: Colors.black),
                             )),
-                        listSummary,
-                      ],
-                    )))));
+                          )),
+                      Expanded(
+                          flex: 8,
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "Registro de jornada",
+                                          style: cardHeaderText,
+                                        )),
+                                    Text(dateToES(DateTime.now()),
+                                        style: subTitleText),
+                                  ]))),
+                    ],
+                  )),
+              ListTile(
+                title: Row(
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Nombre",
+                          style: subTitleText,
+                          textAlign: TextAlign.left,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          DateTime.now().year.toString(),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          MonthsNamesES[DateTime.now().month - 2]
+                              .substring(0, 3),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          MonthsNamesES[DateTime.now().month - 1]
+                              .substring(0, 3),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    // Expanded(
+                    //     flex: 1,
+                    //     child: Text(
+                    //       "Semana previa",
+                    //       style: subTitleText,
+                    //       textAlign: TextAlign.right,
+                    //     )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          "Semana actual",
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: Colors.grey[300],
+              ),
+              SizedBox(
+                  height: 600,
+                  child: SingleChildScrollView(
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 0),
+                          child: Container(
+                              color: Colors.white,
+                              padding: const EdgeInsets.all(2),
+                              child: Column(
+                                children: [
+                                  listSummary,
+                                ],
+                              )))))
+            ])));
   }
 
   void initializeData() async {
@@ -1192,7 +1266,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(10),
                 child: actionButton(
                   context,
-                  "${MONTHS[date.month - 1]} ${date.year}",
+                  "${MonthsNamesES[date.month - 1]} ${date.year}",
                   printWorkday,
                   Icons.print,
                   {'month': date},
@@ -1469,7 +1543,7 @@ class _HomePageState extends State<HomePage> {
                     ], height: 20),
                     reportPDF.getRow([
                       'Centro de Trabajo : ${currentEmployee!.workplace.name}',
-                      'Mes y año : ${MONTHS[month.month - 1]} / ${month.year}'
+                      'Mes y año : ${MonthsNamesES[month.month - 1]} / ${month.year}'
                     ], styles: [
                       normalPdf
                     ], height: 20),

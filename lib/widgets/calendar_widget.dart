@@ -100,7 +100,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       builder: (context) {
         return AlertDialog(
           title: Text(
-              'Solicitudes de permisos para ${date.day} ${MONTHS[date.month - 1]}'),
+              'Solicitudes de permisos para ${date.day} ${MonthsNamesES[date.month - 1]}'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                                               ? Colors.orange
                                               : Colors.red))),
                               subtitle: Text(
-                                  '${holiday.startDate.day} ${MONTHS[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MONTHS[holiday.endDate.month - 1]}'),
+                                  '${holiday.startDate.day} ${MonthsNamesES[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MonthsNamesES[holiday.endDate.month - 1]}'),
                             )),
                         if ((!holiday.isAproved()) &&
                             (holiday.userId != user.email!) &&
@@ -352,7 +352,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                     Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: Text(
-                        '${date.day} ${MONTHS[date.month - 1].substring(0, 3)}',
+                        '${date.day} ${MonthsNamesES[date.month - 1].substring(0, 3)}',
                         style: TextStyle(
                           color: isHoliday ? Colors.black : Colors.grey,
                           fontWeight:

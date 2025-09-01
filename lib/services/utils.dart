@@ -28,7 +28,7 @@ const String statusJustification = "8"; //En evaluación de justificación
 const String statusClose = "9"; //Cerrado
 const String statusDelivery = "10"; //En seguimiento
 
-const List<String> MONTHS = [
+const List<String> MonthsNamesES = [
   "Enero",
   "Febrero",
   "Marzo",
@@ -43,7 +43,7 @@ const List<String> MONTHS = [
   "Diciembre "
 ];
 
-const List<String> DAYS = [
+const List<String> DaysNamesES = [
   "Lunes",
   "Martes",
   "Miércoles",
@@ -136,7 +136,7 @@ String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
     "Sabado",
     "Domingo",
   ];
-  List months = MONTHS;
+  List months = MonthsNamesES;
 
   final dateFormatted =
       "${days[date.weekday - 1]}, ${date.day} de ${months[date.month - 1]} de ${date.year}";
@@ -570,9 +570,13 @@ void signOut(BuildContext context) {
 }
 
 String toDuration(double hours, {String format = 'dhm'}) {
-  if (hours.isNaN || hours.isInfinite || hours <= 0) {
-    return '0';
+  if (hours.isNaN || hours.isInfinite) {
+    hours = 0.0;
   }
+  if (hours == 0.0) {
+    return '0 h';
+  }
+  hours = hours.abs();
   int totalSeconds = (hours * 3600).round();
   int daysPart = 0;
 
@@ -595,4 +599,10 @@ String toDuration(double hours, {String format = 'dhm'}) {
   }
 
   return '$daysStr$hoursStr$minutesStr$secondsStr'.trim();
+}
+
+bool dateInRange(DateTime date, DateTime start, DateTime end) {
+  return (date.isAtSameMomentAs(start) ||
+      date.isAtSameMomentAs(end) ||
+      (date.isAfter(start) && date.isBefore(end)));
 }
