@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'dart:math' as math;
@@ -559,14 +560,12 @@ void checkPermissions(
   }
 }
 
-void signOut(BuildContext context) {
-  print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
-  FirebaseAuth.instance.signOut().then((value) {
-    Provider.of<ProfileProvider>(context, listen: false).clearProfile();
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-  }).catchError((e) {
-    print("Error signing out: $e");
-  });
+void signOut(BuildContext context) async {
+  // print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
+  createLog('User signed out: ${FirebaseAuth.instance.currentUser?.email}');
+  await FirebaseAuth.instance.signOut();
+  Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
 }
 
 String toDuration(double hours, {String format = 'dhm'}) {

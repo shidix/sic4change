@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
 import 'package:sic4change/services/log_lib.dart';
+import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_workday.dart';
@@ -118,12 +119,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     try {
       // final user = FirebaseAuth.instance.currentUser!;
-      FirebaseAuth.instance.currentUser!;
+      final user = FirebaseAuth.instance.currentUser!;
 
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
       } else {
-        sendAnalyticsEvent("Nuevo acceso", "Usuario: ${profile?.name}");
+        sendAnalyticsEvent("Nuevo acceso", "Usuario: ${user.email}");
+
         // if (profile?.mainRole == "Admin") {
         //   return const HomeAdminPage();
         // } else {
@@ -286,6 +288,7 @@ class _LoginPageState extends State<LoginPage> {
       if (user != null) {
         profile = null;
         profileProvider.loadProfile();
+        createLog('User sign in: ${user.email}');
 
         await Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
             .then((userWorkdays) async {

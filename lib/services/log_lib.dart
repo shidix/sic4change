@@ -16,5 +16,4 @@ Future<void> sendAnalyticsEvent(name, details) async {
       'bool': true.toString(),*/
     },
   );
-  createLog('Analytics event: $name, details: $details');
 }
