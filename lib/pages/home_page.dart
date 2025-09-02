@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:html' as html;
 // import "dart:developer" as dev;
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
@@ -155,16 +156,25 @@ class _HomePageState extends State<HomePage> {
       }
     }
     // Set workday.open to false for all workdays except the first one
+    List<Workday> toUpdate = [];
     for (var workday in myWorkdays!) {
       if (workday != currentWorkday) {
         if (workday.open) {
           workday.open = false;
           workday.endDate = workday.startDate.add(
               Duration(hours: 11, minutes: 59, seconds: 59)); // Maximo 12 horas
-          workday.save();
+          final update = await workday.save();
+          if (update != null) {
+            toUpdate.add(update);
+          }
+        } else {
+          toUpdate.add(workday);
         }
+      } else {
+        toUpdate.add(workday);
       }
     }
+    myWorkdays = toUpdate;
 
     // Remove duplicate workdays (check userId, startDate, endDate)
     for (Workday element in myWorkdays!) {
@@ -1062,6 +1072,21 @@ class _HomePageState extends State<HomePage> {
                                       Icons.print,
                                       [],
                                     )))),
+                        Expanded(
+                            flex: 1,
+                            child: Tooltip(
+                                message: "Subir registro firmado",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 0),
+                                  child: actionButton(
+                                    null,
+                                    null,
+                                    dialogUploadWorkday,
+                                    Icons.upload,
+                                    [],
+                                  ),
+                                ))),
                       ],
                     )),
                 Container(
@@ -1242,6 +1267,122 @@ class _HomePageState extends State<HomePage> {
 
   void dialogPrintWorkday(context) {
     _dialogPrintWorkday(context);
+  }
+
+  Future<void> _dialogUploadWorkday(List<dynamic>? args) async {
+    List<DateTime> dates = [];
+    DateTime currentMonth =
+        DateTime(DateTime.now().year, DateTime.now().month, 1);
+    for (int i = 0; i < 12; i++) {
+      dates.add(DateTime(currentMonth.year, currentMonth.month - i, 1));
+    }
+    dates = dates.reversed.toList();
+    List<dynamic> matrix = reshape(dates, 3, 4);
+
+    List<WorkdayUpload> uploads =
+        await WorkdayUpload.byEmployee(currentEmployee!);
+
+    List<Widget> buttonsMonth = [];
+    for (var row in matrix) {
+      List<Widget> buttonsRow = [];
+      for (var date in row) {
+        // Widget actionBtn = actionButton(
+        //   context,
+        //   "${MonthsNamesES[date.month - 1]} ${date.year}",
+        //   printWorkday,
+        //   Icons.upload,
+        //   {'month': date},
+        // );
+
+        Widget actionBtn = UploadFileField(
+          textToShow: "${MonthsNamesES[date.month - 1]} ${date.year}",
+          onSelectedFile: (file) {
+            String filePath =
+                "files/workreports_signed/${currentEmployee!.id}/";
+            String extension = file!.name.split('.').last;
+            String fname =
+                "workreport_${currentEmployee!.id}_${date.year}_${date.month.toString().padLeft(2, '0')}.$extension";
+
+            // Check if there is already a file for that month and employee
+
+            uploadFileToStorage(
+              file,
+              rootPath: filePath.replaceAll(" ", "_"),
+              fileName: fname,
+            ).then((fname) async {
+              if (fname != null) {
+                WorkdayUpload workdayUpload = uploads.firstWhere(
+                    (u) =>
+                        truncDate(u.date) == DateTime(date.year, date.month, 1),
+                    orElse: () => WorkdayUpload.getEmpty());
+                workdayUpload.employee = currentEmployee!.id!;
+                workdayUpload.date = DateTime(date.year, date.month, 1);
+                workdayUpload.path = fname;
+                workdayUpload.updatedAt = DateTime.now();
+                workdayUpload.save();
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Archivo subido correctamente: ${fname}'),
+                  backgroundColor: successColor,
+                ));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: const Text('Error subiendo el archivo.'),
+                  backgroundColor: dangerColor,
+                ));
+              }
+            });
+
+            // Handle file selection
+          },
+        );
+        Widget textExists;
+        if (uploads.any(
+            (u) => truncDate(u.date) == DateTime(date.year, date.month, 1))) {
+          textExists = Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text("(Subido)",
+                  style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12)));
+        } else {
+          textExists = Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text("(No subido)",
+                  style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12)));
+        }
+        buttonsRow.add(Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(children: [actionBtn, textExists]))));
+      }
+      buttonsMonth.add(Row(
+        children: buttonsRow,
+      ));
+      buttonsMonth.add(space(height: 5));
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Subir registro horario firmado', context),
+          content:
+              Column(mainAxisSize: MainAxisSize.min, children: buttonsMonth),
+        );
+      },
+    );
+  }
+
+  void dialogUploadWorkday(context) {
+    _dialogUploadWorkday(context);
   }
 
   Widget printWorkdaysButtons(context) {

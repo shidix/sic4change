@@ -1,6 +1,8 @@
 // import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:googleapis/photoslibrary/v1.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:uuid/uuid.dart';
 
@@ -55,14 +57,6 @@ class Workday {
   }
 
   Future<Workday?> save() async {
-    // if (id == "") {
-    //   id = uuid;
-    //   Map<String, dynamic> data = toJson();
-    //   database.add(data).then(data)
-    // } else {
-    //   Map<String, dynamic> data = toJson();
-    //   database.doc(id).set(data);
-    // }
     if (userId is List) {
       userId = (userId as List).first;
     }
@@ -84,7 +78,9 @@ class Workday {
           .update(toJson())
           .catchError((e) {
         print("Error updating Workday: $e");
+        return null;
       });
+      return this;
     }
     return this;
   }
@@ -207,5 +203,148 @@ class Workday {
       items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
       return items;
     }
+  }
+}
+
+class WorkdayUpload {
+  static const String tbName = "s4c_workday_uploads";
+  String id = "";
+  String employee;
+  DateTime date;
+  DateTime updatedAt = DateTime.now();
+  String path;
+
+  WorkdayUpload(
+      {required this.employee,
+      required this.date,
+      required this.path,
+      DateTime? updatedAt}) {
+    if (updatedAt != null) {
+      this.updatedAt = updatedAt;
+    }
+  }
+
+  factory WorkdayUpload.fromJson(Map data) {
+    WorkdayUpload item = WorkdayUpload(
+      employee: data['employee'],
+      date: getDate(data['date']),
+      path: data['path'],
+      updatedAt: getDate(data['updatedAt']),
+    );
+    item.id = data['id'] ?? "";
+    return item;
+  }
+
+  factory WorkdayUpload.getEmpty() {
+    return WorkdayUpload(
+      employee: "",
+      date: DateTime(DateTime.now().year, DateTime.now().month, 1),
+      path: "",
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'employee': employee,
+        'date': date,
+        'path': path,
+        'updatedAt': updatedAt,
+      };
+
+  Future<WorkdayUpload?> save() async {
+    if (employee is List) {
+      employee = (employee as List).first;
+    }
+
+    if (id != "") {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson())
+          .catchError((e) {
+        print("Error updating WorkdayUpload: $e");
+      });
+      return this;
+    } else {
+      var item =
+          await FirebaseFirestore.instance.collection(tbName).add(toJson());
+      id = item.id;
+      await item.update({'id': item.id});
+      return this;
+    }
+  }
+
+  void delete() {
+    if (id != "") {
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .delete()
+          .catchError((e) {
+        print("Error deleting WorkdayUpload: $e");
+      });
+    }
+  }
+
+  static Future<WorkdayUpload?> byId(String id) async {
+    try {
+      var doc = await FirebaseFirestore.instance
+          .collection(WorkdayUpload.tbName)
+          .doc(id)
+          .get();
+      if (doc.exists) {
+        return WorkdayUpload.fromJson(doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<WorkdayUpload?> byEmployeeDate(
+      dynamic employee, DateTime date) async {
+    if (employee is Employee) {
+      employee = employee.id;
+    }
+    try {
+      var query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("employee", isEqualTo: employee)
+          .where("date", isEqualTo: DateTime(date.year, date.month, 1))
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        return WorkdayUpload.fromJson(
+            query.docs.first.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<List<WorkdayUpload>> byEmployee(dynamic employee) async {
+    if (employee is Employee) {
+      employee = employee.id;
+    }
+    List<WorkdayUpload> items = [];
+    try {
+      var query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("employee", isEqualTo: employee)
+          .get();
+      for (var doc in query.docs) {
+        items.add(WorkdayUpload.fromJson(doc.data() as Map<String, dynamic>));
+      }
+      return items;
+    } catch (e) {
+      return items;
+    }
+  }
+
+  @override
+  String toString() {
+    return 'WorkdayUpload $employee $date $path';
   }
 }

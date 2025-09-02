@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:googleapis/driveactivity/v2.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,8 +12,7 @@ class WorkdayForm extends StatefulWidget {
   final Workday? currentWorkday;
   final User? user;
 
-  const WorkdayForm({Key? key, this.currentWorkday, this.user})
-      : super(key: key);
+  const WorkdayForm({super.key, this.currentWorkday, this.user});
 
   @override
   createState() => WorkdayFormState();
@@ -190,8 +191,8 @@ class WorkdayFormState extends State<WorkdayForm> {
                                   .inMinutes
                                   .toDouble();
 
-                              newStartDate =
-                                  newStartDate.subtract(Duration(hours: 24));
+                              newStartDate = newStartDate
+                                  .subtract(const Duration(hours: 24));
                               workday.startDate = newStartDate;
                               workday.endDate = newStartDate
                                   .add(Duration(minutes: elapsedTime.toInt()));
@@ -304,5 +305,32 @@ class WorkdayFormState extends State<WorkdayForm> {
             ],
           ),
         ));
+  }
+}
+
+class WorkdayUploadForm extends StatefulWidget {
+  final WorkdayUpload? currentWorkdayUpload;
+  final Employee? employee;
+
+  const WorkdayUploadForm(
+      {super.key, this.currentWorkdayUpload, this.employee});
+
+  @override
+  createState() => WorkdayUploadFormState();
+}
+
+class WorkdayUploadFormState extends State<WorkdayUploadForm> {
+  late WorkdayUpload workdayUpload;
+
+  @override
+  void initState() {
+    super.initState();
+    workdayUpload = widget.currentWorkdayUpload ?? WorkdayUpload.getEmpty();
+  }
+
+  // Form with Card with DatePicker and UploadFormFile for workdayUpload
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
