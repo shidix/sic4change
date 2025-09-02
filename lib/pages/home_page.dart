@@ -8,6 +8,7 @@ import 'dart:html' as html;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
@@ -1341,19 +1342,22 @@ class _HomePageState extends State<HomePage> {
             (u) => truncDate(u.date) == DateTime(date.year, date.month, 1))) {
           textExists = Padding(
               padding: const EdgeInsets.only(top: 5),
-              child: Text("(Subido)",
-                  style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12)));
+              child: iconBtn(context, (() {
+                WorkdayUpload upload = uploads.firstWhere((u) =>
+                    truncDate(u.date) == DateTime(date.year, date.month, 1));
+                String fullPath = upload.path;
+                openFileUrl(context, fullPath);
+              }), null,
+                  icon: Icons.open_in_browser_outlined,
+                  text: "Abrir archivo",
+                  color: Colors.green.shade700));
         } else {
           textExists = Padding(
               padding: const EdgeInsets.only(top: 5),
-              child: Text("(No subido)",
-                  style: TextStyle(
-                      color: Colors.red.shade700,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12)));
+              child: iconBtn(context, (() {}), null,
+                  icon: Icons.warning_amber_outlined,
+                  text: "No subido",
+                  color: Colors.red.shade700));
         }
         buttonsRow.add(Expanded(
             flex: 1,
