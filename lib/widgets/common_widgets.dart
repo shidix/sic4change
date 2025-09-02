@@ -1048,7 +1048,9 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
 
   Widget iconWidget = const SizedBox(width: 0);
   if (icon != null) {
-    iconWidget = Icon(icon, color: Colors.white);
+    iconWidget = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Icon(icon, color: Colors.white));
   }
   return SizedBox(
       width: double.infinity,
@@ -1063,8 +1065,9 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
-                Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
-                Expanded(flex: 9, child: titleWidget),
+                // Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
+                Expanded(
+                    flex: 9, child: Row(children: [iconWidget, titleWidget])),
                 Expanded(flex: 1, child: closeButton)
               ]))));
 }
@@ -2072,7 +2075,20 @@ class _CustomPopupDialogState extends State<CustomPopupDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: s4cTitleBar(widget.title, widget.context, widget.icon),
-      content: Padding(padding: const EdgeInsets.all(0), child: widget.content),
+      titlePadding: const EdgeInsets.all(8),
+      contentPadding:
+          const EdgeInsets.only(top: 2, left: 10, right: 10, bottom: 2),
+      content: Container(
+        child: Padding(padding: const EdgeInsets.all(0), child: widget.content),
+        decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color(0xffdfdfdf),
+              width: 2,
+            ),
+            borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(15),
+                bottomRight: Radius.circular(15))),
+      ),
       actions: widget.actionBtns,
     );
   }

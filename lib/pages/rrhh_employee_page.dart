@@ -844,7 +844,9 @@ class InfoField extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(icon),
+                          Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Icon(icon)),
                           Text(value,
                               textAlign: textAlign,
                               style: const TextStyle(
@@ -880,7 +882,9 @@ class InfoField extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(icon),
+                      Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Icon(icon)),
                       Text(value,
                           textAlign: textAlign,
                           style: const TextStyle(
@@ -908,36 +912,62 @@ class EmployeeInfoCard extends StatefulWidget {
 }
 
 class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
+  List<Row> holidaysInfo = [];
+
+  void initializeData() async {
+    holidaysInfo = [];
+    Organization? organization =
+        await Organization.byId(widget.employee.organization!) ??
+            Organization.getEmpty();
+    HolidaysCategory.byOrganization(organization.uuid).then((value) async {
+      value.sort((a, b) => b.year.compareTo(a.year) != 0 // Descending by year
+          ? b.year.compareTo(a.year)
+          : a.name.compareTo(b.name)); // Ascending by name
+      for (HolidaysCategory cat in value) {
+        int availableDays = await cat.getAvailableDays(widget.employee.email);
+        holidaysInfo.add(Row(children: [
+          InfoField(
+              icon: Icons.beach_access,
+              label: 'Categoría',
+              value: "${cat.year} ${cat.name}",
+              flex: 2),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días asignados',
+              value: cat.days.toString(),
+              textAlign: TextAlign.right),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días disfrutados',
+              value: (cat.days - availableDays).toString(),
+              textAlign: TextAlign.right),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días restantes',
+              value: (availableDays).toString(),
+              textAlign: TextAlign.right),
+        ]));
+      }
+      if (mounted) {
+        setState(() {
+          holidaysInfo = holidaysInfo;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    holidaysInfo = [
+      Row(children: [Text('Revisando histórico de vacaciones...')])
+    ];
+    initializeData();
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Row> contracts = [];
-    // HolidayRequest.byUser(widget.employee.email).then((holidays) {
-    //   HolidaysCategory.byOrganization(widget.employee.organization!)
-    //       .then((holCat) {
-    //     Map<String, double> daysRemaining = {};
-    //     for (var cat in holCat) {
-    //       daysRemaining[cat.id] = cat.days.toDouble();
-    //     }
-
-    //     for (HolidayRequest hr in holidays) {
-    //       HolidaysCategory category = holCat.firstWhere(
-    //           (element) => element.id == hr.category,
-    //           orElse: () => HolidaysCategory.getEmpty());
-    //       if (category.id != '') {
-    //         HolidaysConfig calendar = HolidaysConfig.byEmployeewidget.employee);
-    //         daysRemaining[category.name] ??= category.days.toDouble();
-    //         if (hr.status == 'Aprobada') {
-    //           daysRemaining[category.name] =
-    //               daysRemaining[category.name]! - hr.days();
-    //         }
-    //       }
-    //     }
-
-    //     if (mounted) {
-    //       setState(() {});
-    //     }
-    //   });
-    // });
 
     for (Alta alta in widget.employee.altas) {
       contracts.add(Row(children: [
@@ -1008,6 +1038,7 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         ),
       ]));
     }
+
     return CustomPopupDialog(
         context: context,
         actionBtns: const [],
@@ -1015,6 +1046,9 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         icon: Icons.badge_outlined,
         content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
+            height: (holidaysInfo.length + contracts.length < 5)
+                ? null
+                : MediaQuery.of(context).size.height * 0.5,
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -1049,6 +1083,8 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
                             const Divider(),
 
                             ...contracts,
+                            const Divider(),
+                            ...holidaysInfo,
                             // InfoField(icon: Icons.calendar_today,
                             //     label: 'Fecha de alta',
                             //     value: DateFormat('dd/MM/yyyy')
