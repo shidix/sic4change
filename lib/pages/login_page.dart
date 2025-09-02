@@ -31,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
   late String message;
+  bool redirect = true;
 
   @override
   void dispose() {
@@ -58,7 +59,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
       currentOrganization = profileProvider.organization;
-      Navigator.pushReplacementNamed(context, "/home");
+      if (redirect) {
+        redirect = false;
+        Navigator.pushReplacementNamed(context, "/home");
+      }
     }
   }
 
@@ -320,8 +324,10 @@ class _LoginPageState extends State<LoginPage> {
                 "Apertura de jornada", "Usuario: ${profile?.name}");
           }
         });
-
-        Navigator.pushReplacementNamed(context, "/home");
+        if (redirect) {
+          redirect = false;
+          Navigator.pushReplacementNamed(context, "/home");
+        }
       } else {
         Navigator.pop(context);
         return;
