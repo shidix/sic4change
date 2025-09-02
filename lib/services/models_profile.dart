@@ -238,7 +238,7 @@ class ProfileProvider with ChangeNotifier {
     _loading = true;
     _profile = await Profile.getCurrentProfile();
     if (_profile!.organization != null && _profile!.organization!.isNotEmpty) {
-      _organization = await _profile!.getOrganization();
+      _organization = await Organization.byId(_profile!.organization!);
       _loading = false;
     } else {
       // Load organization by email domain
