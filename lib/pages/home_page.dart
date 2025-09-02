@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, non_constant_identifier_names
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_web_libraries_in_flutter
 
 import 'dart:async';
 import 'dart:collection';
@@ -6,9 +6,9 @@ import 'dart:math';
 import 'dart:html' as html;
 // import "dart:developer" as dev;
 import 'dart:convert';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
@@ -270,7 +270,7 @@ class _HomePageState extends State<HomePage> {
     mypeople.add(currentEmployee!);
 
     for (Employee emp in mypeople) {
-      myPeopleCalendars[emp.email!] = await HolidaysConfig.byEmployee(emp);
+      myPeopleCalendars[emp.email] = await HolidaysConfig.byEmployee(emp);
     }
 
     if (profile!.mainRole == Profile.RRHH) {
@@ -278,7 +278,14 @@ class _HomePageState extends State<HomePage> {
       Employee.getAll().then((value) {
         mypeople = value;
         mypeople = mypeople.where((element) => element.isActive()).toList();
-        if (mounted) setState(() {});
+        for (Employee element in mypeople) {
+          HolidayRequest.byUser(element.email).then((value) {
+            // Check if value is not in myPeopleHolidays using id to compare
+            myPeopleHolidays.addAll(value.where(
+                (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
+            if (mounted) setState(() {});
+          });
+        }
       });
     }
     loadMyPeopleWorkdays().then((value) {
@@ -750,6 +757,7 @@ class _HomePageState extends State<HomePage> {
                     )),
                 CalendarWidget(
                   holidays: myPeopleHolidays,
+                  currentProfile: profile ?? Profile.getEmpty(),
                   categories: holCat ?? [],
                   onDateSelected: (date) {
                     // Handle date selection
@@ -1311,7 +1319,7 @@ class _HomePageState extends State<HomePage> {
               rootPath: filePath.replaceAll(" ", "_"),
               fileName: fname,
             ).then((fname) async {
-              if (fname != null) {
+              if (fname != '') {
                 WorkdayUpload workdayUpload = uploads.firstWhere(
                     (u) =>
                         truncDate(u.date) == DateTime(date.year, date.month, 1),
@@ -1323,7 +1331,7 @@ class _HomePageState extends State<HomePage> {
                 workdayUpload.save();
 
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Archivo subido correctamente: ${fname}'),
+                  content: Text('Archivo subido correctamente: $fname'),
                   backgroundColor: successColor,
                 ));
               } else {
@@ -1487,8 +1495,7 @@ class _HomePageState extends State<HomePage> {
 
     for (Workday workday in workdays) {
       try {
-        Shift currentShift =
-            currentEmployee!.getShift(date: workday.startDate)!;
+        Shift currentShift = currentEmployee!.getShift(date: workday.startDate);
         hoursInWeekEmployeeList = currentShift.hours;
       } catch (e) {
         hoursInWeekEmployeeList = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];

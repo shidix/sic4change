@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/services/models_holidays.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -17,6 +18,7 @@ class CalendarWidget extends StatefulWidget {
   final List<HolidaysCategory> categories;
   final Function(DateTime) onDateSelected;
   final List<Employee> employees;
+  final Profile currentProfile;
   DateTime selectedDate = DateTime.now();
   DateTime startDate = DateTime(DateTime.now().year, 1, 1);
   DateTime endDate = DateTime(DateTime.now().year, 12, 31);
@@ -29,6 +31,7 @@ class CalendarWidget extends StatefulWidget {
     required this.categories,
     required this.onDateSelected,
     required this.employees,
+    required this.currentProfile,
     DateTime? selectedDate,
     DateTime? startDate,
     DateTime? endDate,
@@ -109,6 +112,13 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                     (emp) => emp.email == holiday.userId,
                     orElse: () => Employee.getEmpty(name: 'Desconocido'));
 
+                bool canModify = (holiday.startDate.isAfter(DateTime.now()) ||
+                        (holiday.getCategory(widget.categories).retroactive)) &&
+                    (holiday.userId != user.email!) &&
+                    (!holiday.getCategory(widget.categories).onlyRRHH ||
+                        ([Profile.RRHH]
+                            .contains(widget.currentProfile.mainRole)));
+
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Padding(
@@ -135,7 +145,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             (holiday.startDate.isAfter(DateTime.now()) ||
                                 (holiday
                                     .getCategory(widget.categories)
-                                    .retroactive)))
+                                    .retroactive)) &&
+                            canModify)
                           actionButton(context, "", (args) {
                             HolidayRequest holiday = args[0];
                             // Approve the holiday request
@@ -160,7 +171,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                               tooltip: 'Aprobar solicitud'),
                         space(width: 10),
                         if (!holiday.isRejected() &&
-                            holiday.userId != user.email!)
+                            holiday.userId != user.email! &&
+                            canModify)
                           actionButton(context, "", (args) {
                             HolidayRequest holiday = args[0];
                             // Reject the holiday request
@@ -189,7 +201,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                             (holiday.startDate.isAfter(DateTime.now()) ||
                                 (holiday
                                     .getCategory(widget.categories)
-                                    .retroactive)))
+                                    .retroactive)) &&
+                            canModify)
                           actionButton(context, "", (args) {
                             HolidayRequest holiday = args[0];
                             // Reject the holiday request

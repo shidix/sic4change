@@ -343,7 +343,9 @@ Future<String> uploadFileToStorage(PlatformFile file,
   try {
     uploadTask = ref.putData(pickedFileBytes!);
     await uploadTask.whenComplete(() => null);
-  } catch (e) {}
+  } catch (e) {
+    return '';
+  }
   return path;
 }
 

@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/utils.dart';
+import 'dart:developer' as dev;
 // import 'package:flutter/material.dart';
 
 // import 'package:uuid/uuid.dart';
@@ -693,7 +694,7 @@ class Employee {
     try {
       return parts.map((part) => part[0]).join('');
     } catch (e) {
-      print('Error getting aka: $e');
+      dev.log('Error getting aka: $e');
       // If there is an error, return the first three letters of the first name
       return email.split('@')[0];
     }

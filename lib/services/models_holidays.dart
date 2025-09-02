@@ -546,6 +546,7 @@ class HolidaysCategory {
   String docMessage = "";
   bool retroactive = false;
   bool obligation = false;
+  bool onlyRRHH = false;
   Organization? organization;
   int days;
 
@@ -560,12 +561,16 @@ class HolidaysCategory {
     this.days = 0,
     this.docMessage = "",
     this.obligation = false,
+    this.onlyRRHH = false,
   });
 
   factory HolidaysCategory.fromJson(Map data) {
     int year = DateTime.now().year;
     if (data.containsKey('year')) {
       year = data['year'];
+    }
+    if (!data.containsKey('onlyRRHH')) {
+      data['onlyRRHH'] = false;
     }
     HolidaysCategory item = HolidaysCategory(
       id: data['id'],
@@ -577,6 +582,7 @@ class HolidaysCategory {
       docMessage: data['docMessage'] ?? "",
       days: data['days'] ?? 0,
       obligation: data['obligation'] ?? false,
+      onlyRRHH: data['onlyRRHH'] ?? false,
       year: year,
     );
 
@@ -606,6 +612,7 @@ class HolidaysCategory {
         'days': days,
         'year': year,
         'validUntil': validUntil,
+        'onlyRRHH': onlyRRHH,
       };
 
   @override
@@ -720,7 +727,9 @@ class HolidaysCategory {
         await HolidaysConfig.byEmployee(employee, year: year);
 
     for (var request in requests) {
-      if (request.isAproved() && request.category == id) {
+      if (request.isAproved() &&
+          request.category == id &&
+          !calendar.isHoliday(request.startDate)) {
         usedDays += request.endDate.difference(request.startDate).inDays + 1;
       }
     }

@@ -1,9 +1,11 @@
 // import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:googleapis/photoslibrary/v1.dart';
+import 'package:sic4change/services/logs_lib.dart';
+// import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
+import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
 class Workday {
@@ -77,12 +79,12 @@ class Workday {
           .doc(id)
           .update(toJson())
           .catchError((e) {
-        print("Error updating Workday: $e");
+        dev.log("Error updating Workday: $e");
         return null;
       });
       return this;
     }
-    return this;
+    // return this;
   }
 
   void delete() {
@@ -195,7 +197,7 @@ class Workday {
       }
       if (items.isEmpty) {
         Workday empty = Workday.getEmpty();
-        empty.userId = email;
+        empty.userId = email.first;
         empty.open = true;
         items.add(empty);
       }
@@ -263,7 +265,7 @@ class WorkdayUpload {
           .doc(id)
           .update(toJson())
           .catchError((e) {
-        print("Error updating WorkdayUpload: $e");
+        dev.log("Error updating WorkdayUpload: $e");
       });
       return this;
     } else {
@@ -282,7 +284,8 @@ class WorkdayUpload {
           .doc(id)
           .delete()
           .catchError((e) {
-        print("Error deleting WorkdayUpload: $e");
+        dev.log("Error deleting WorkdayUpload: $e");
+        createLog("Error deleting WorkdayUpload: $e");
       });
     }
   }
@@ -315,8 +318,7 @@ class WorkdayUpload {
           .get();
 
       if (query.docs.isNotEmpty) {
-        return WorkdayUpload.fromJson(
-            query.docs.first.data() as Map<String, dynamic>);
+        return WorkdayUpload.fromJson(query.docs.first.data());
       }
       return null;
     } catch (e) {
@@ -335,7 +337,7 @@ class WorkdayUpload {
           .where("employee", isEqualTo: employee)
           .get();
       for (var doc in query.docs) {
-        items.add(WorkdayUpload.fromJson(doc.data() as Map<String, dynamic>));
+        items.add(WorkdayUpload.fromJson(doc.data()));
       }
       return items;
     } catch (e) {

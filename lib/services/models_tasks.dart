@@ -8,6 +8,7 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:developer' as dev;
 
 //--------------------------------------------------------------
 //                           TASKS
@@ -298,7 +299,9 @@ class STask {
         // Profile prof = Profile.fromJson(data);
         Profile prof = await Profile.byEmail(item);
         listAssigned.add(prof);
-      } catch (e) {}
+      } catch (e) {
+        dev.log(e.toString());
+      }
     }
     assignedObj = listAssigned;
   }
@@ -402,7 +405,9 @@ class STask {
         // Contact contact = Contact.fromJson(data);
         Contact contact = await Contact.byUuid(item);
         listReceivers.add(contact);
-      } catch (e) {}
+      } catch (e) {
+        dev.log(e.toString());
+      }
     }
     receiversObj = listReceivers;
   }
@@ -418,7 +423,9 @@ class STask {
         // Organization org = Organization.fromJson(data);
         Organization org = await Organization.byUuid(item);
         listReceivers.add(org);
-      } catch (e) {}
+      } catch (e) {
+        dev.log(e.toString());
+      }
     }
     receiversOrgObj = listReceivers;
   }
@@ -481,7 +488,9 @@ class STask {
         'week': getOccupationCell(weekVal),
         'month': getOccupationCell(monthVal)
       };
-    } catch (e) {}
+    } catch (e) {
+      dev.log(e.toString());
+    }
     return row;
   }
 
@@ -536,7 +545,9 @@ class STask {
         //await task.getProgrammes();
         items.add(task);
       }
-    } catch (e) {}
+    } catch (e) {
+      dev.log(e.toString());
+    }
     return items;
   }
 
@@ -642,8 +653,8 @@ class TasksStatus {
 
   Future<void> save() async {
     if (id == "") {
-      var _uuid = const Uuid();
-      uuid = _uuid.v4();
+      var libuuid = const Uuid();
+      uuid = libuuid.v4();
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
@@ -817,7 +828,9 @@ class TasksComments {
         await tc.getUser();
         items.add(tc);
       }
-    } catch (e) {}
+    } catch (e) {
+      dev.log(e.toString());
+    }
     return items;
   }
 }

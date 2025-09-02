@@ -843,6 +843,16 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                             category.retroactive = val!;
                           })),
                 ),
+                space(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: CheckboxFormField(
+                      title: const Text('Solo RRHH'),
+                      initialValue: category.onlyRRHH,
+                      onSaved: (val) => setState(() {
+                            category.onlyRRHH = val!;
+                          })),
+                ),
               ],
             ),
             space(height: 16),
