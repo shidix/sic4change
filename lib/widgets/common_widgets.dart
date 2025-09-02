@@ -2076,19 +2076,8 @@ class _CustomPopupDialogState extends State<CustomPopupDialog> {
     return AlertDialog(
       title: s4cTitleBar(widget.title, widget.context, widget.icon),
       titlePadding: const EdgeInsets.all(8),
-      contentPadding:
-          const EdgeInsets.only(top: 2, left: 10, right: 10, bottom: 2),
-      content: Container(
-        child: Padding(padding: const EdgeInsets.all(0), child: widget.content),
-        decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color(0xffdfdfdf),
-              width: 2,
-            ),
-            borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15))),
-      ),
+      contentPadding: const EdgeInsets.all(10),
+      content: Padding(padding: const EdgeInsets.all(0), child: widget.content),
       actions: widget.actionBtns,
     );
   }

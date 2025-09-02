@@ -93,20 +93,21 @@ class Profile {
     );
   }
 
-  void save() {
+  Future<Profile> save() async {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection(Profile.tbName)
-          .add(data)
-          .then((value) => id = value.id);
+      DocumentReference docRef =
+          await FirebaseFirestore.instance.collection(Profile.tbName).add(data);
+      id = docRef.id;
+      docRef.update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection(Profile.tbName)
           .doc(id)
           .update(data);
     }
+    return this;
   }
 
   void delete() {
@@ -194,6 +195,23 @@ class Profile {
           email: "none@none.com", mainRole: Profile.ADMINISTRATIVE);
     }
   }
+
+  static Future<List<Profile>> byOrganization({dynamic organization}) async {
+    if (organization == null) {
+      return [];
+    }
+    if (organization is Organization) {
+      organization = organization.id;
+    }
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(Profile.tbName)
+        .where("organization", isEqualTo: organization)
+        .get();
+
+    return query.docs
+        .map((doc) => Profile.fromJson(doc.data() as Map<String, dynamic>))
+        .toList(growable: false);
+  }
 }
 
 class ProfileProvider with ChangeNotifier {
@@ -219,8 +237,19 @@ class ProfileProvider with ChangeNotifier {
     }
     _loading = true;
     _profile = await Profile.getCurrentProfile();
-    String email = _profile?.email ?? user?.email ?? "none@none.com";
-    _organization = await Organization.byDomain(email);
+    if (_profile!.organization != null && _profile!.organization!.isNotEmpty) {
+      _organization = await _profile!.getOrganization();
+      _loading = false;
+    } else {
+      // Load organization by email domain
+      String email = _profile?.email ?? user?.email ?? "none@none.com";
+      _organization = await Organization.byDomain(email);
+      if (_organization != null) {
+        _profile!.organization = _organization!.id;
+        await _profile!.save();
+      }
+    }
+
     _loading = false;
     notifyListeners();
   }

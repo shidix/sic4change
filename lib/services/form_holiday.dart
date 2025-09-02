@@ -8,6 +8,7 @@ import 'package:sic4change/pages/admin_holidays_categories_page.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -169,21 +170,22 @@ class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
   final User? user;
   final Profile profile;
+  final List<Employee> superiors;
   final HolidaysConfig calendar;
   final List<HolidaysCategory> categories;
   final List<HolidayRequest> granted;
   final Map<String, int> remainingHolidays;
 
   const HolidayRequestForm(
-      {Key? key,
+      {super.key,
       this.currentRequest,
       this.user,
+      required this.superiors,
       required this.profile,
       required this.categories,
       required this.granted,
       required this.calendar,
-      required this.remainingHolidays})
-      : super(key: key);
+      required this.remainingHolidays});
 
   @override
   createState() => _HolidayRequestFormState();
@@ -198,6 +200,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
   late User user;
   bool isNewItem = false;
   late Profile profile;
+  late List<Employee> superiors;
   String? errorMessage;
 
   @override
@@ -208,6 +211,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     granted = widget.granted;
     remainingHolidays = widget.remainingHolidays;
     profile = widget.profile;
+    superiors = widget.superiors;
 
     // profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     isNewItem = (widget.currentRequest!.id == "");
@@ -235,6 +239,15 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     HolidayRequest holidayRequest = args[1];
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
+      List<String> superiorsEmails =
+          superiors.map((e) => e.email).toList().cast<String>();
+      print("Superiores: $superiorsEmails");
+      if (superiorsEmails.isNotEmpty) {
+        createNotification(user.email!, superiorsEmails,
+            "Solicitud de permiso: Del ${DateFormat('dd-MM-yyyy').format(holidayRequest.startDate)} al ${DateFormat('dd-MM-yyyy').format(holidayRequest.endDate)}, categoría: ${holidayRequest.getCategory(categories).name}, Estado: ${holidayRequest.status}",
+            objId: holidayRequest.id,
+            objType: HolidayRequest.tbName.toUpperCase());
+      }
       formKey.currentState!.save();
       holidayRequest.save().then((value) {
         if (mounted) {

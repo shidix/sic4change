@@ -565,7 +565,7 @@ void checkPermissions(
 void signOut(BuildContext context) async {
   // print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
   createLog('User signed out: ${FirebaseAuth.instance.currentUser?.email}');
-  await FirebaseAuth.instance.signOut();
+  FirebaseAuth.instance.signOut();
   Provider.of<ProfileProvider>(context, listen: false).clearProfile();
   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
 }

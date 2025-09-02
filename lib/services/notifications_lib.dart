@@ -25,11 +25,14 @@ Future<NotificationValues> getNotificationList(user) async {
   return NotificationValues(nList, count);
 }
 
-void createNotification(String sender, List receivers, String msg) {
+void createNotification(String sender, List receivers, String msg,
+    {String objId = "", String objType = ""}) {
   for (String r in receivers) {
     SNotification n = SNotification(sender);
     n.receiver = r;
     n.msg = msg;
+    n.objId = objId;
+    n.objType = objType;
     n.save();
   }
 }

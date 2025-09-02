@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:sic4change/services/holiday_form.dart';
+import 'package:sic4change/services/form_holiday.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -1899,6 +1899,7 @@ class _HomePageState extends State<HomePage> {
 
     currentHoliday = HolidayRequest.getEmpty();
     currentHoliday!.userId = user.email!;
+    List<Employee> superiors = await currentEmployee!.getSuperiors();
 
     HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
@@ -1913,6 +1914,7 @@ class _HomePageState extends State<HomePage> {
               currentRequest: currentHoliday,
               user: user,
               profile: profile!,
+              superiors: superiors,
               categories: holCat!,
               calendar: myCalendar!,
               remainingHolidays: remainingHolidays,
@@ -1951,6 +1953,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<HolidayRequest?> _editHolidayRequestDialog(int index) async {
     currentHoliday = myHolidays!.elementAt(index);
+    List<Employee> superiors =
+        await currentEmployee!.getSuperiors(org: currentOrganization);
     String currentHolidayId = currentHoliday!.id;
     HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
@@ -1964,6 +1968,7 @@ class _HomePageState extends State<HomePage> {
               key: null,
               currentRequest: holiday,
               user: user,
+              superiors: superiors,
               profile: profile!,
               categories: holCat!,
               remainingHolidays: remainingHolidays,

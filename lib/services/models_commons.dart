@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:uuid/uuid.dart';
 import 'package:get_ip_address/get_ip_address.dart';
+import 'dart:developer' as dev;
 
 //--------------------------------------------------------------
 //                       KEY VALUE
@@ -789,6 +790,8 @@ class SNotification {
   String sender;
   String receiver = "";
   String msg = "";
+  String objId = "";
+  String objType = "";
   bool readed = false;
   DateTime date = DateTime.now();
   DateTime readDate = DateTime(2100, 12, 31);
@@ -803,7 +806,9 @@ class SNotification {
         readed = json['readed'],
         date = json['date'].toDate(),
         readDate = json['readDate'].toDate(),
-        msg = json['msg'];
+        msg = json['msg'],
+        objId = (json.containsKey('objId')) ? json['objId'] : "",
+        objType = (json.containsKey('objType')) ? json['objType'] : "";
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -814,6 +819,8 @@ class SNotification {
         'date': date,
         'readDate': readDate,
         'msg': msg,
+        'objId': objId,
+        'objType': objType,
       };
 
   KeyValue toKeyValue() {
@@ -825,10 +832,13 @@ class SNotification {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
+      var item = await FirebaseFirestore.instance
           .collection("s4c_notifications")
-          .add(data)
-          .then((value) => id = value.id);
+          .add(data);
+      id = item.id;
+      await item.update({'id': item.id}).catchError((onError) {
+        dev.log("Error updating document: $onError");
+      });
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance
