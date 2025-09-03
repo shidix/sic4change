@@ -237,16 +237,19 @@ class ProfileProvider with ChangeNotifier {
     }
     _loading = true;
     _profile = await Profile.getCurrentProfile();
-    if (_profile!.organization != null && _profile!.organization!.isNotEmpty) {
-      _organization = await Organization.byId(_profile!.organization!);
-      _loading = false;
-    } else {
-      // Load organization by email domain
-      String email = _profile?.email ?? user?.email ?? "none@none.com";
-      _organization = await Organization.byDomain(email);
-      if (_organization != null) {
-        _profile!.organization = _organization!.id;
-        await _profile!.save();
+    if (profile != null) {
+      if (_profile!.organization != null &&
+          _profile!.organization!.isNotEmpty) {
+        _organization = await Organization.byId(_profile!.organization!);
+        _loading = false;
+      } else {
+        // Load organization by email domain
+        String email = _profile?.email ?? user?.email ?? "none@none.com";
+        _organization = await Organization.byDomain(email);
+        if (_organization != null) {
+          _profile!.organization = _organization!.id;
+          _profile!.save();
+        }
       }
     }
 

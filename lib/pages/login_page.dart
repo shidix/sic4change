@@ -298,7 +298,6 @@ class _LoginPageState extends State<LoginPage> {
         List<Workday> userWorkdays =
             await Workday.byUser(FirebaseAuth.instance.currentUser!.email!);
         // Check if there is any open workday
-        print(userWorkdays.length);
         if (userWorkdays.isNotEmpty) {
           userWorkdays
               .sort((a, b) => b.startDate.compareTo(a.startDate)); // Descending

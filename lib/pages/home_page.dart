@@ -781,6 +781,9 @@ class _HomePageState extends State<HomePage> {
     hashProjects = {};
     topButtonsPanel = topButtons(context);
     mainMenuWidget = mainMenu(context, "/home");
+    contentWorkPanel = workTimePanel();
+    contentHolidaysPanel = holidayPanel();
+    contentTasksPanel = tasksPanel();
     // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     _profileProvider = context.read<ProfileProvider>();
     _listener = () {
@@ -793,7 +796,7 @@ class _HomePageState extends State<HomePage> {
         initializeData();
       } else {
         // If profile or organization is null, load profile again
-        _profileProvider.loadProfile();
+        if (mounted) _profileProvider.loadProfile();
       }
 
       if (mounted) setState(() {});
@@ -976,32 +979,54 @@ class _HomePageState extends State<HomePage> {
   Widget workTimePanel() {
     myWorkdays ??= [];
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    Widget addWorkdayButton;
 
-    currentWorkday = myWorkdays!.first;
+    if (myWorkdays!.isNotEmpty) {
+      currentWorkday = myWorkdays!.first;
 
-    if (currentWorkday?.open == true) {
-      workdayButton = actionButton(
-          null, null, workdayAction, Icons.stop_circle_outlined, [],
-          iconColor: dangerColor);
-    } else {
-      workdayButton = actionButton(
-          null, null, workdayAction, Icons.play_circle_outline_sharp, [],
-          iconColor: successColor);
-    }
-    Widget addWorkdayButton = actionButton(null, null, () {
-      _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
-          .then((value) {
-        if ((value != null) && (!myWorkdays!.contains(value))) {
-          myWorkdays!.add(value);
-          if (mounted) {
-            setState(() {
-              myWorkdays = myWorkdays;
-              myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-            });
+      if (currentWorkday?.open == true) {
+        workdayButton = actionButton(
+            null, null, workdayAction, Icons.stop_circle_outlined, [],
+            iconColor: dangerColor);
+      } else {
+        workdayButton = actionButton(
+            null, null, workdayAction, Icons.play_circle_outline_sharp, [],
+            iconColor: successColor);
+      }
+      addWorkdayButton = actionButton(null, null, () {
+        _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+            .then((value) {
+          if ((value != null) && (!myWorkdays!.contains(value))) {
+            myWorkdays!.add(value);
+            if (mounted) {
+              setState(() {
+                myWorkdays = myWorkdays;
+                myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+              });
+            }
           }
-        }
-      });
-    }, Icons.add, null);
+        });
+      }, Icons.add, null);
+    } else {
+      currentWorkday = null;
+      workdayButton = actionButton(
+          null, null, () {}, Icons.question_mark_rounded, [],
+          iconColor: Colors.orange);
+      addWorkdayButton = actionButton(null, null, () {
+        _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+            .then((value) {
+          if ((value != null) && (!myWorkdays!.contains(value))) {
+            myWorkdays!.add(value);
+            if (mounted) {
+              setState(() {
+                myWorkdays = myWorkdays;
+                myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+              });
+            }
+          }
+        });
+      }, Icons.add_rounded, null);
+    }
 
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
