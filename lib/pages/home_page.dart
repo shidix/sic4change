@@ -1838,7 +1838,6 @@ class _HomePageState extends State<HomePage> {
       }
       if (cat.obligation && cat.docRequired == 0) {
         holidayDays = (holidayDays + (cat.days * factor)).round();
-        print("${cat.name} is obligatory with ${cat.days} days");
         obligatoryHolidays = (obligatoryHolidays + (cat.days * factor)).round();
       }
     }
