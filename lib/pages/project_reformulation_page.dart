@@ -34,7 +34,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
         refLoading = false;
       });
       for (Reformulation item in refList) {
-        item.loadObjs();
+        // item.loadObjs();
       }
     });
   }
@@ -334,8 +334,10 @@ class _ReformulationPageState extends State<ReformulationPage> {
     for (Organization fin in finList) {
       financierList.add(fin.toKeyValue());
     }
-    List<KeyValue> typeList = await ReformulationType.getReformulationTypesHash();
-    List<KeyValue> statusList = await ReformulationStatus.getReformulationStatusHash();
+    List<KeyValue> typeList =
+        await ReformulationType.getReformulationTypesHash();
+    List<KeyValue> statusList =
+        await ReformulationStatus.getReformulationStatusHash();
     _editDialog(context, ref, financierList, typeList, statusList);
   }
 

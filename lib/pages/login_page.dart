@@ -71,6 +71,7 @@ class _LoginPageState extends State<LoginPage> {
     message = "";
     super.initState();
     profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+
     listener = () {
       if (!mounted) return;
       currentOrganization = profileProvider.organization;
@@ -294,25 +295,15 @@ class _LoginPageState extends State<LoginPage> {
         profileProvider.loadProfile();
         createLog('User sign in: ${user.email}');
 
-        await Workday.byUser(FirebaseAuth.instance.currentUser!.email!)
-            .then((userWorkdays) async {
-          // Check if there is any open workday
-          if (userWorkdays.isNotEmpty) {
-            userWorkdays.sort(
-                (a, b) => b.startDate.compareTo(a.startDate)); // Descending
-            Workday currentWorkday = userWorkdays.first;
-            if (!currentWorkday.open) {
-              Workday newWorkday = Workday(
-                  id: "",
-                  userId: FirebaseAuth.instance.currentUser!.email!,
-                  startDate: DateTime.now(),
-                  endDate: DateTime.now(),
-                  open: true);
-              await newWorkday.save();
-              sendAnalyticsEvent(
-                  "Apertura de jornada", "Usuario: ${profile?.name}");
-            }
-          } else {
+        List<Workday> userWorkdays =
+            await Workday.byUser(FirebaseAuth.instance.currentUser!.email!);
+        // Check if there is any open workday
+        print(userWorkdays.length);
+        if (userWorkdays.isNotEmpty) {
+          userWorkdays
+              .sort((a, b) => b.startDate.compareTo(a.startDate)); // Descending
+          Workday currentWorkday = userWorkdays.first;
+          if (!currentWorkday.open) {
             Workday newWorkday = Workday(
                 id: "",
                 userId: FirebaseAuth.instance.currentUser!.email!,
@@ -323,7 +314,18 @@ class _LoginPageState extends State<LoginPage> {
             sendAnalyticsEvent(
                 "Apertura de jornada", "Usuario: ${profile?.name}");
           }
-        });
+        } else {
+          Workday newWorkday = Workday(
+              id: "",
+              userId: FirebaseAuth.instance.currentUser!.email!,
+              startDate: DateTime.now(),
+              endDate: DateTime.now(),
+              open: true);
+          await newWorkday.save();
+          sendAnalyticsEvent(
+              "Apertura de jornada", "Usuario: ${profile?.name}");
+        }
+
         if (redirect) {
           redirect = false;
           Navigator.pushReplacementNamed(context, "/home");

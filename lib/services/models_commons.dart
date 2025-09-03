@@ -680,7 +680,7 @@ class Ambit {
     return item;
   }
 
-  static Future<List> getAmbits() async {
+  static Future<List<Ambit>> getAmbits() async {
     List<Ambit> items = [];
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection("s4c_ambits").get();

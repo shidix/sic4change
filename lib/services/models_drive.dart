@@ -105,8 +105,8 @@ class Folder {
     }
   }
 
-  static Future<List> getFolders(String parentUuid) async {
-    List folders = [];
+  static Future<List<Folder>> getFolders(String parentUuid) async {
+    List<Folder> folders = [];
     QuerySnapshot? queryFolders;
 
     try {

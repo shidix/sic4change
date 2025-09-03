@@ -43,7 +43,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
   }
 
   void loadProgrammes() async {
-    
     programList = await Programme.getProgrammes();
     setState(() {});
   }
@@ -76,13 +75,13 @@ class _ProjectListPageState extends State<ProjectListPage> {
           prList = val;
         });
         stopLoading();
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
+        // for (SProject item in prList) {
+        //   item.loadObjs().then((value) {
+        //     if (mounted) {
+        //       setState(() {});
+        //     }
+        //   });
+        // }
       }
     });
   }

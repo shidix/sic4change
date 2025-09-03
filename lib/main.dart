@@ -15,6 +15,7 @@ import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/models_profile.dart';
 
 import 'firebase_options.dart';
@@ -32,16 +33,17 @@ void main() async {
   );
 
   initializeDateFormatting('es_ES', '').then((_) => runApp(
-        // MultiProvider(
-        //   providers: [
-        //     ChangeNotifierProvider(create: (_) => ProfileProvider()),
-        //   ],
-        //   child: MyApp(),
-        // ),
-        ChangeNotifierProvider(
-          create: (_) => ProfileProvider(),
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ProfileProvider()),
+            ChangeNotifierProvider(create: (_) => ProjectsProvider()),
+          ],
           child: MyApp(),
         ),
+        // ChangeNotifierProvider(
+        //   create: (_) => ProfileProvider(),
+        //   child: MyApp(),
+        // ),
       ));
   // runApp(MyApp());
 }

@@ -1104,34 +1104,74 @@ class Employee {
           .collection(tbName)
           .where(FieldPath.documentId, isEqualTo: id)
           .get();
-    } else if (id is List<String>) {
-      snapshot = await FirebaseFirestore.instance
-          .collection(tbName)
-          .where(FieldPath.documentId, whereIn: id)
-          .get();
-    } else {
-      return Employee.getEmpty();
-    }
-
-    if (snapshot.docs.isEmpty) {
-      return Employee.getEmpty();
-    } else if (id is String) {
+      if (snapshot.docs.isEmpty) {
+        return Employee.getEmpty();
+      }
       Employee item = await Employee.fromJson(snapshot.docs.first.data());
       item.id = snapshot.docs.first.id;
       return item;
     } else if (id is List<String>) {
-      // items = snapshot.docs.map((e) {
-      //   Employee item = Employee.fromJson(e.data());
-      //   item.id = e.id;
-      //   return item;
-      // }).toList();
-      for (var doc in snapshot.docs) {
-        Employee item = await Employee.fromJson(doc.data());
-        item.id = doc.id;
-        items.add(item);
+      // If list is longer than 25, split in chunks of 25
+      int itemsByChunk = 25;
+
+      if (id.length > itemsByChunk) {
+        List<List<String>> chunks = [];
+        for (var i = 0; i < id.length; i += itemsByChunk) {
+          int end =
+              (i + itemsByChunk < id.length) ? i + itemsByChunk : id.length;
+          chunks.add(id.sublist(i, end));
+        }
+        for (var chunk in chunks) {
+          var chunkSnapshot = await FirebaseFirestore.instance
+              .collection(tbName)
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+          if (chunkSnapshot.docs.isNotEmpty) {
+            for (var doc in chunkSnapshot.docs) {
+              Employee item = await Employee.fromJson(doc.data());
+              item.id = doc.id;
+              items.add(item);
+            }
+          }
+        }
+        return items;
+      } else {
+        snapshot = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where(FieldPath.documentId, whereIn: id)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          for (var doc in snapshot.docs) {
+            Employee item = await Employee.fromJson(doc.data());
+            item.id = doc.id;
+            items.add(item);
+          }
+        }
+        return items;
       }
-      return items;
+    } else {
+      return Employee.getEmpty();
     }
+
+    // if (snapshot.docs.isEmpty) {
+    //   return Employee.getEmpty();
+    // } else if (id is String) {
+    //   Employee item = await Employee.fromJson(snapshot.docs.first.data());
+    //   item.id = snapshot.docs.first.id;
+    //   return item;
+    // } else if (id is List<String>) {
+    //   // items = snapshot.docs.map((e) {
+    //   //   Employee item = Employee.fromJson(e.data());
+    //   //   item.id = e.id;
+    //   //   return item;
+    //   // }).toList();
+    //   for (var doc in snapshot.docs) {
+    //     Employee item = await Employee.fromJson(doc.data());
+    //     item.id = doc.id;
+    //     items.add(item);
+    //   }
+    //   return items;
+    // }
   }
 
   Future<String> photoFileUrl() async {
@@ -1210,13 +1250,10 @@ class Employee {
         .where((element) =>
             (element != id) && (element != null) && (element != ''))
         .toList();
-    print("DBG1: items after departments: $items");
 
     // Recovery profiles with mainRole = RRHH
-    print("DBG1.0: organization: ${organizationId}");
     List<Profile> allProfiles =
         await Profile.byOrganization(organization: organizationId);
-    print("DBG1.1: allProfiles: ${allProfiles.map((e) => e.email).toList()}");
     List<String> emailsProfiles = allProfiles
         .where((element) => element.mainRole == Profile.RRHH)
         .map((e) => e.email)
@@ -1228,9 +1265,7 @@ class Employee {
         .where((element) => emailsProfiles.contains(element.email))
         .toList();
     List<String> rrhhIds = rrhhEmployees.map((e) => e.id!).toList();
-    print("DBG2: RRHH employees: $rrhhIds");
     items.addAll(rrhhIds);
-    print("DBG3: items after adding RRHH: $items");
     items = items.toSet().toList();
     if (items.isEmpty) return [];
 

@@ -65,6 +65,7 @@ class _HomePageState extends State<HomePage> {
   List<HolidaysCategory>? holCat = [];
   Map<String, int> remainingHolidays = {};
   int holidayDays = 0;
+  int obligatoryHolidays = 0;
   HolidaysConfig? myCalendar;
 
   Workday? currentWorkday;
@@ -109,7 +110,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _profileProvider.removeListener(_listener);
+    if (mounted) {
+      _profileProvider.removeListener(_listener);
+    }
+
     super.dispose();
   }
 
@@ -777,7 +781,8 @@ class _HomePageState extends State<HomePage> {
     hashProjects = {};
     topButtonsPanel = topButtons(context);
     mainMenuWidget = mainMenu(context, "/home");
-    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _profileProvider = context.read<ProfileProvider>();
     _listener = () {
       if (!mounted) return;
       currentOrganization = _profileProvider.organization;
@@ -1808,6 +1813,7 @@ class _HomePageState extends State<HomePage> {
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();
     DateTime bajaDate = currentEmployee!.getBajaDate();
+    obligatoryHolidays = 0;
 
     if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
         (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
@@ -1830,29 +1836,32 @@ class _HomePageState extends State<HomePage> {
       } else {
         remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
       }
-      if (cat.obligation) {
+      if (cat.obligation && cat.docRequired == 0) {
         holidayDays = (holidayDays + (cat.days * factor)).round();
+        print("${cat.name} is obligatory with ${cat.days} days");
+        obligatoryHolidays = (obligatoryHolidays + (cat.days * factor)).round();
       }
     }
 
-    for (HolidaysCategory cat in holCat!) {
-      if (cat.retroactive) {
-        remainingHolidays[cat.autoCode()] = cat.days;
-      } else {
-        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
-      }
-    }
+    // for (HolidaysCategory cat in holCat!) {
+    //   if (cat.retroactive) {
+    //     remainingHolidays[cat.autoCode()] = cat.days;
+    //   } else {
+    //     remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+    //   }
+    // }
 
     for (HolidayRequest holiday in myHolidays!) {
       if (holiday.status != "Rechazado") {
-        holidayDays -= getWorkingDaysBetween(
+        HolidaysCategory? checkingCat = holiday.getCategory(holCat ?? []);
+        int laborDays = getWorkingDaysBetween(
             holiday.startDate, holiday.endDate, myCalendar);
+        holidayDays -= laborDays;
         if (remainingHolidays
             .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(
-                      holiday.startDate, holiday.endDate, myCalendar);
+                  laborDays;
         } else {
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               (holiday.getCategory(holCat ?? []).retroactive)
@@ -1860,8 +1869,10 @@ class _HomePageState extends State<HomePage> {
                   : holiday.getCategory(holCat ?? []).days;
           remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
               remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
-                  getWorkingDaysBetween(
-                      holiday.startDate, holiday.endDate, myCalendar);
+                  laborDays;
+        }
+        if (checkingCat.obligation) {
+          obligatoryHolidays -= laborDays;
         }
       }
     }
@@ -2173,6 +2184,15 @@ class _HomePageState extends State<HomePage> {
               ));
   }
 
+  void showHolidayInfo(String info) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return infoDialog(
+              context, Icon(Icons.info), "Días libres restantes", info);
+        });
+  }
+
   Widget holidayPanel() {
     String remainingHolidaysMsg = "";
 
@@ -2180,7 +2200,7 @@ class _HomePageState extends State<HomePage> {
       remainingHolidaysMsg = "";
       remainingHolidays.forEach((key, value) {
         if (value > 0) {
-          remainingHolidaysMsg += "$key: $value días, ";
+          remainingHolidaysMsg += "$key: $value días \n ";
         }
       });
       if (remainingHolidaysMsg.endsWith(", ")) {
@@ -2232,22 +2252,41 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Padding(
+                                      Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             "Solicitud de permisos",
                                             style: cardHeaderText,
                                           )),
                                       Container(
-                                          padding: const EdgeInsets.all(10),
+                                          padding: const EdgeInsets.all(0),
                                           color: Colors.grey[100],
                                           child: Align(
                                             alignment: Alignment.centerLeft,
-                                            child: Text(remainingHolidaysMsg,
+                                            child: Text(
+                                                "Te quedan $obligatoryHolidays días de permiso de libre disposición.",
                                                 style: subTitleText,
                                                 textAlign: TextAlign.left),
                                           )),
                                     ]))),
+                        Expanded(
+                            flex: 1,
+                            child: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: (mounted)
+                                    ? actionButton(context, null, (args) {
+                                        showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return infoDialog(
+                                                  context,
+                                                  Icon(Icons.info),
+                                                  "Días libres restantes",
+                                                  remainingHolidaysMsg);
+                                            });
+                                      }, Icons.question_mark_outlined, [],
+                                        tooltip: "Días libres restantes")
+                                    : Container())),
                         Expanded(
                             flex: 3,
                             child: (mounted)

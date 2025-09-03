@@ -1,10 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+// import 'package:googleapis/cloudresourcemanager/v3.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -33,7 +36,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
   List prList = [];
   List programList = [];
   Profile? profile;
+  Organization? currentOrg;
   String deleteMsg = "";
+  late ProfileProvider _profileProvider;
+  late ProjectsProvider _projectsProvider;
+  late VoidCallback _listener;
   final user = FirebaseAuth.instance.currentUser!;
 
   void setLoading() {
@@ -55,30 +62,68 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void loadProjects() async {
     setLoading();
-    await SProject.getProjects().then((val) {
-      if (mounted) {
-        setState(() {
-          prList = val;
-        });
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
-      }
-      //prList = val;
-    });
+    prList = _projectsProvider.projects;
+    for (SProject item in prList) {
+      print("${item.name} ${item.type} ${item.typeObj.name}");
+    }
+    // if (prList.isEmpty) {
+    //   prList = await SProject.getProjects();
+    // }
+    // await SProject.getProjects().then((val) {
+    //   if (mounted) {
+    //     setState(() {
+    //       prList = val;
+    //     });
+    //     for (SProject item in prList) {
+    //       item.loadObjs().then((value) {
+    //         if (mounted) {
+    //           setState(() {});
+    //         }
+    //       });
+    //     }
+    //   }
+    //   //prList = val;
+    // });
     setState(() {});
     stopLoading();
   }
 
   void getProfile(user) async {
-    await Profile.getProfile(user.email!).then((value) {
-      profile = value;
-      //print(profile?.mainRole);
+    profile = _profileProvider.profile;
+    currentOrg = _profileProvider.organization;
+    // await Profile.getProfile(user.email!).then((value) {
+    //   profile = value;
+    //   //print(profile?.mainRole);
+    // });
+  }
+
+  void initializeData() async {
+    // loadProjects();
+    _projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
+    // _projectsProvider.profile = profile;
+    // _projectsProvider.organization = currentOrg;
+    if (prList.isEmpty) {
+      loadProjects();
+    }
+    _projectsProvider.addListener(() {
+      // prList = _projectsProvider.projects;
+      loadProjects();
+      if (!mounted) return;
+      setState(() {});
     });
+    if (_projectsProvider.projects.isEmpty) {
+      _projectsProvider.initialize();
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _projectsProvider.removeListener(_listener);
+    _projectsProvider.dispose();
+    super.dispose();
   }
 
   @override
@@ -86,7 +131,26 @@ class _ProjectsPageState extends State<ProjectsPage> {
     super.initState();
 
     _mainMenu = mainMenu(context, "/projects");
-    loadProjects();
+
+    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _listener = () {
+      if (!mounted) return;
+      getProfile(user);
+      _mainMenu = mainMenu(context, "/projects");
+      if (!((profile != null) && (currentOrg != null))) {
+        _profileProvider.loadProfile();
+      }
+      if (mounted) setState(() {});
+    };
+    _profileProvider.addListener(_listener);
+
+    if ((profile == null) || (currentOrg == null)) {
+      _profileProvider.loadProfile();
+    }
+    initializeData();
+
+    // _mainMenu = mainMenu(context, "/projects");
+    // loadProjects();
     /*getProjects().then((val) {
       if (mounted) {
         setState(() {
@@ -101,8 +165,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
         }
       }
     });*/
-
-    getProfile(user);
   }
 
   @override

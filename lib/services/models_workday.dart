@@ -193,16 +193,15 @@ class Workday {
                   fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))
           .get();
       for (var result in query.docs) {
-        items.add(Workday.fromFirestore(result));
+        items.add(Workday.fromJson(result.data() as Map<String, dynamic>));
       }
-      if (items.isEmpty) {
-        Workday empty = Workday.getEmpty();
-        empty.userId = email.first;
-        empty.open = true;
-        items.add(empty);
+      if (items.isNotEmpty) {
+        // Workday empty = Workday.getEmpty();
+        // empty.userId = email.first;
+        // empty.open = true;
+        // items.add(empty);
+        items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
       }
-
-      items.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
       return items;
     }
   }

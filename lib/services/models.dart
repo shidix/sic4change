@@ -24,6 +24,8 @@ import 'package:uuid/uuid.dart';
 //--------------------------------------------------------------
 
 class SProject {
+  static const String tbName = "s4c_projects";
+
   String id = "";
   String uuid = "";
   String name = "";
@@ -120,18 +122,18 @@ class SProject {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_projects").add(data);
+      FirebaseFirestore.instance.collection(SProject.tbName).add(data);
       createLog("Creada la iniciativa: $name");
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_projects").doc(id).set(data);
+      FirebaseFirestore.instance.collection(SProject.tbName).doc(id).set(data);
       createLog("Modificada la iniciativa: $name");
     }
   }
 
   Future<void> delete() async {
     await FirebaseFirestore.instance
-        .collection("s4c_projects")
+        .collection(SProject.tbName)
         .doc(id)
         .delete();
     createLog("Borrada la iniciativa: $name");
@@ -140,7 +142,7 @@ class SProject {
   Future<SProject> reload() async {
     if (id.isEmpty) return this; // No ID provided
     DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection("s4c_projects")
+        .collection(SProject.tbName)
         .doc(id)
         .get();
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -162,7 +164,7 @@ class SProject {
   static Future<List<SProject>> all() async {
     List<SProject> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_projects").get();
+        await FirebaseFirestore.instance.collection(SProject.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -177,11 +179,12 @@ class SProject {
     QuerySnapshot query;
     if (uuids != null) {
       query = await FirebaseFirestore.instance
-          .collection("s4c_projects")
+          .collection(SProject.tbName)
           .where("uuid", whereIn: uuids)
           .get();
     } else {
-      query = await FirebaseFirestore.instance.collection("s4c_projects").get();
+      query =
+          await FirebaseFirestore.instance.collection(SProject.tbName).get();
     }
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -196,7 +199,7 @@ class SProject {
     List<SProject> items = [];
     if (ptList.isEmpty) return items;
     QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_projects")
+        .collection(SProject.tbName)
         .where("type", whereIn: ptList.map((e) => e.uuid).toList())
         .get();
     for (var doc in query.docs) {
@@ -210,14 +213,14 @@ class SProject {
 
   Future<void> updateProjectFinanciers() async {
     await FirebaseFirestore.instance
-        .collection("s4c_projects")
+        .collection(SProject.tbName)
         .doc(id)
         .update({"financiers": financiers});
   }
 
   Future<void> updateProjectPartners() async {
     await FirebaseFirestore.instance
-        .collection("s4c_projects")
+        .collection(SProject.tbName)
         .doc(id)
         .update({"partners": partners});
   }
@@ -507,7 +510,7 @@ class SProject {
     return await getByUuid(uuid);
   }
 
-  Future<void> loadObjs() async {
+  Future<void> loadObjs2() async {
     ambitObj = await getAmbit();
     typeObj = await getProjectType();
     statusObj = await getProjectStatus();
@@ -821,8 +824,8 @@ class ProjectType {
     return item;
   }
 
-  static Future<List> getProjectTypes() async {
-    List items = [];
+  static Future<List<ProjectType>> getProjectTypes() async {
+    List<ProjectType> items = <ProjectType>[];
     QuerySnapshot queryProjectType =
         await FirebaseFirestore.instance.collection("s4c_project_type").get();
 
@@ -919,8 +922,8 @@ class ProjectStatus {
     return item;
   }
 
-  static Future<List> getProjectStatus() async {
-    List items = [];
+  static Future<List<ProjectStatus>> getProjectStatus() async {
+    List<ProjectStatus> items = [];
     QuerySnapshot queryProjectStatus =
         await FirebaseFirestore.instance.collection("s4c_project_status").get();
 
@@ -1129,8 +1132,8 @@ class ProjectDates {
         : DateFormat("dd-MM-yyyy").format(refuse);
   }
 
-  static Future<List> getProjectDates() async {
-    List items = [];
+  static Future<List<ProjectDates>> getProjectDates() async {
+    List<ProjectDates> items = [];
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection("s4c_project_dates").get();
 
@@ -1545,9 +1548,9 @@ class ProjectLocation {
     return Town("");
   }
 
-  static Future<List> getProjectLocation() async {
+  static Future<List<ProjectLocation>> getProjectLocation() async {
     // CollectionReference dbLocation = db.collection("s4c_project_location");
-    List items = [];
+    List<ProjectLocation> items = [];
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection("s4c_project_location")
         .get();
@@ -1675,7 +1678,7 @@ class Reformulation {
         .delete();
   }
 
-  Future<void> loadObjs() async {
+  Future<void> loadObjs2() async {
     projectObj = await getProject();
     financierObj = await getFinancier();
     typeObj = await getType();
@@ -2007,6 +2010,8 @@ class ReformulationStatus {
 //--------------------------------------------------------------
 
 class Programme {
+  static const tbName = "s4c_programme";
+
   String id = "";
   String uuid = "";
   String name = "";
@@ -2043,7 +2048,7 @@ class Programme {
 
   Future<void> save() async {
     CollectionReference dbProgramme =
-        FirebaseFirestore.instance.collection("s4c_programme");
+        FirebaseFirestore.instance.collection(tbName);
     if (id == "") {
       var newUuid = Uuid();
       uuid = newUuid.v4();
@@ -2059,7 +2064,7 @@ class Programme {
 
   Future<void> delete() async {
     CollectionReference dbProgramme =
-        FirebaseFirestore.instance.collection("s4c_programme");
+        FirebaseFirestore.instance.collection(tbName);
     await dbProgramme.doc(id).delete();
     createLog("Borrado el programa: $name");
   }
@@ -2092,7 +2097,7 @@ class Programme {
 
   static Future<Programme> byUuid(uuid) async {
     Programme item = Programme("");
-    final dbProgramme = FirebaseFirestore.instance.collection("s4c_programme");
+    final dbProgramme = FirebaseFirestore.instance.collection(Programme.tbName);
     await dbProgramme.where("uuid", isEqualTo: uuid).get().then((value) {
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data();
@@ -2104,7 +2109,7 @@ class Programme {
 
   static Future<List<Programme>> getProgrammes() async {
     CollectionReference dbProgramme =
-        FirebaseFirestore.instance.collection("s4c_programme");
+        FirebaseFirestore.instance.collection(Programme.tbName);
     List<Programme> items = [];
     QuerySnapshot queryProgramme = await dbProgramme.get();
 
@@ -2120,7 +2125,7 @@ class Programme {
 
   static Future<List<KeyValue>> getProgrammesHash() async {
     CollectionReference dbProgramme =
-        FirebaseFirestore.instance.collection("s4c_programme");
+        FirebaseFirestore.instance.collection(Programme.tbName);
     List<KeyValue> items = [];
     QuerySnapshot queryProgramme = await dbProgramme.get();
 
