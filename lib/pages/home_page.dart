@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/form_holiday.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -48,6 +49,7 @@ class _HomePageState extends State<HomePage> {
   //bool _main = false;
   late final VoidCallback _listener;
   late final ProfileProvider _profileProvider;
+  late final RRHHProvider _rrhhProvider;
 
   late Map<String, TasksStatus> hashStatus;
   late Map<String, SProject> hashProjects;
@@ -135,7 +137,16 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<Workday>> loadMyWorkdays() async {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
-      myWorkdays = await Workday.byUser(user.email!);
+      List<Workday> fullworkdays = _rrhhProvider.workdays;
+      if (fullworkdays.isNotEmpty) {
+        print("From cache");
+        myWorkdays = fullworkdays
+            .where((wd) => wd.userId == user.email)
+            .toList(growable: false);
+      } else {
+        print("From database");
+        myWorkdays = await Workday.byUser(user.email!);
+      }
       if (myWorkdays!.isEmpty) {
         currentWorkday = Workday.getEmpty(email: user.email!, open: true);
         currentWorkday!.save();
@@ -253,7 +264,8 @@ class _HomePageState extends State<HomePage> {
       //Workday.byUser(user.email!),
       loadMyWorkdays(),
       ((currentEmployee != null) && (mypeople.isEmpty))
-          ? currentEmployee!.getSubordinates()
+          ? currentEmployee!
+              .getSubordinates(departments: _rrhhProvider.departments)
           : Future.value(mypeople),
       // Future.value(mypeople),
       getNotificationList(user.email)
@@ -314,7 +326,16 @@ class _HomePageState extends State<HomePage> {
     if (!emails.contains(user.email!)) {
       emails.add(user.email!);
     }
-    myPeopleWorkdays = await Workday.byUser(emails);
+    myPeopleWorkdays = _rrhhProvider.workdays
+        .where((wd) => emails.contains(wd.userId))
+        .toList(growable: false);
+    if (myPeopleWorkdays.isNotEmpty) {
+      print("From cache");
+    } else {
+      print("From database");
+      myPeopleWorkdays = await Workday.byUser(emails);
+    }
+    // myPeopleWorkdays = await Workday.byUser(emails);
     myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     return myPeopleWorkdays;
   }
@@ -644,7 +665,45 @@ class _HomePageState extends State<HomePage> {
             ])));
   }
 
+  void loadFromCache() async {
+    print("loading from cache...");
+    if (!mounted) return;
+    myWorkdays = _rrhhProvider.workdays
+        .where((wd) => wd.userId == user.email)
+        .toList(growable: false);
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    if (_rrhhProvider.employee != null) {
+      currentEmployee = _rrhhProvider.employee;
+      mypeople = await currentEmployee!
+          .getSubordinates(departments: _rrhhProvider.departments);
+    }
+    myHolidays = _rrhhProvider.holidaysRequests
+        .where((hr) => hr.userId == user.email)
+        .toList(growable: false);
+    holCat = _rrhhProvider.holidaysCategories;
+    myCalendar = _rrhhProvider.calendars.firstWhere(
+        (hc) => hc.employees.contains(currentEmployee!),
+        orElse: () => HolidaysConfig.getEmpty());
+
+    setState(() {
+      mainMenuWidget = mainMenu(context, "/home", profile);
+      contentWorkPanel = workTimePanel();
+      contentHolidaysPanel = holidayPanel();
+      topButtonsPanel = topButtons(null);
+    });
+  }
+
   void initializeData() async {
+    if (!mounted) return;
+    profile = _profileProvider.profile;
+    currentOrganization = _profileProvider.organization;
+    mainMenuWidget = mainMenu(context, "/home", profile);
+    setState(() {});
+
+    return;
+  }
+
+  void initializeData2() async {
     if (!mounted) return;
     final results = await Future.wait([
       HolidaysCategory.byOrganization(currentOrganization!),
@@ -779,11 +838,7 @@ class _HomePageState extends State<HomePage> {
     _currentPage = "home";
     hashStatus = {};
     hashProjects = {};
-    topButtonsPanel = topButtons(context);
-    mainMenuWidget = mainMenu(context, "/home");
-    contentWorkPanel = workTimePanel();
-    contentHolidaysPanel = holidayPanel();
-    contentTasksPanel = tasksPanel();
+
     // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     _profileProvider = context.read<ProfileProvider>();
     _listener = () {
@@ -791,7 +846,7 @@ class _HomePageState extends State<HomePage> {
       currentOrganization = _profileProvider.organization;
 
       profile = _profileProvider.profile;
-      mainMenuWidget = mainMenu(context, "/home");
+      mainMenuWidget = mainMenu(context, "/home", profile);
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
       } else {
@@ -803,6 +858,16 @@ class _HomePageState extends State<HomePage> {
     };
     _profileProvider.addListener(_listener);
 
+    _rrhhProvider = context.read<RRHHProvider>();
+    _rrhhProvider.addListener(() {
+      // myWorkdays = _rrhhProvider.workdays
+      //     .where((wd) => wd.userId == user.email)
+      //     .toList(growable: false);
+      loadFromCache();
+    });
+    //loadFromCache();
+    _rrhhProvider.initialize();
+
     currentOrganization = _profileProvider.organization;
     profile = _profileProvider.profile;
     if ((profile == null) || (currentOrganization == null)) {
@@ -810,6 +875,16 @@ class _HomePageState extends State<HomePage> {
     } else {
       initializeData();
     }
+
+    topButtonsPanel = topButtons(context);
+
+    mainMenuWidget = mainMenu(context, "/home", profile);
+    contentWorkPanel = workTimePanel();
+    contentHolidaysPanel = holidayPanel();
+    contentTasksPanel = tasksPanel();
+
+    // _rrhhProvider.initialize();
+
     // initializeData();
   }
 
@@ -817,7 +892,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // Remove duplicate from mypeople
     // mypeople = mypeople.toSet().toList();
-    mainMenuWidget = mainMenu(context, "/home");
+    mainMenuWidget = mainMenu(context, "/home", profile);
     List<Widget> contents = [];
     if (_currentPage == "home") {
       contents = [
@@ -880,7 +955,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           mainMenuWidget,
           space(height: 10),
-          topButtons(context),
+          topButtonsPanel,
           space(height: 10),
           ...contents,
           footer(context),
@@ -1181,14 +1256,13 @@ class _HomePageState extends State<HomePage> {
 
   Widget worktimeRows() {
     myWorkdays ??= [];
-
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
         color: Colors.white,
-        child: contact != null
+        child: (true)
             ? ListView.builder(
                 shrinkWrap: true,
                 itemCount: myWorkdays!.length,
@@ -1482,11 +1556,18 @@ class _HomePageState extends State<HomePage> {
       month = month;
     }
 
-    List<Workday> workdays = [];
-    workdays = await Workday.byUser(user.email!, month).catchError((e) {
-      // dev.log("Error loading workdays: $e");
-      return [] as List<Workday>;
-    });
+    List<Workday> workdays = _rrhhProvider.workdays
+        .where((wd) =>
+            (wd.userId == user.email) &&
+            (wd.startDate.year == month.year) &&
+            (wd.startDate.month == month.month))
+        .toList(growable: true);
+    if (workdays.isEmpty) {
+      workdays = await Workday.byUser(user.email!, month).catchError((e) {
+        // dev.log("Error loading workdays: $e");
+        return [] as List<Workday>;
+      });
+    }
 
     DateTime checkDay = DateTime(month.year, month.month, 1);
     while (checkDay.month == month.month) {

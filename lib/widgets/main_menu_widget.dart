@@ -62,7 +62,6 @@ Widget mainMenuUser(context, [user, url]) {
             color: (url == "/contacts")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-
         logoutBtn(context, "Salir", Icons.arrow_back),
         if (user != null)
           Container(
@@ -207,14 +206,13 @@ Widget mainMenuOperator(context, {url, User? user, key}) {
   );
 }
 
-Widget mainMenu(context, [url]) {
+Widget mainMenu(context, [url, Profile? profile]) {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
     return mainMenuEmpty(context, url);
   }
 
-  Profile? profile =
-      Provider.of<ProfileProvider>(context, listen: false).profile;
+  profile ??= Provider.of<ProfileProvider>(context, listen: false).profile;
 
   return Builder(
     builder: (context) {

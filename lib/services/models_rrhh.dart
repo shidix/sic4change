@@ -1220,7 +1220,6 @@ class Employee {
   }
 
   Future<List<Employee>> getSuperiors({dynamic org}) async {
-    print("DBG0: getSuperiors for $id");
     id ??= '';
     if (id!.isEmpty) return [];
     org ??= this.organization;
@@ -1233,7 +1232,6 @@ class Employee {
     List<dynamic> items = [];
     List<Department> departments =
         await Department.getDepartments(organization: organizationId);
-    print("DBG0.1: departments: ${departments.map((e) => e.name).toList()}");
     if (departments.isEmpty) return [];
     Queue<Department> queue = Queue<Department>();
     queue
@@ -1285,13 +1283,14 @@ class Employee {
     return employees;
   }
 
-  Future<List<Employee>> getSubordinates({Organization? organization}) async {
+  Future<List<Employee>> getSubordinates(
+      {Organization? organization, List<Department>? departments}) async {
     id ??= '';
     if (id!.isEmpty) return [];
     List<dynamic> items = [];
 
-    List<Department> departments =
-        await Department.getDepartments(organization: organization);
+    departments ??= await Department.getDepartments(organization: organization);
+    // await Department.getDepartments(organization: organization);
     if (departments.isEmpty) return [];
     Queue<Department> queue = Queue<Department>();
     queue.addAll(departments.where((element) => element.manager == id));
@@ -1524,6 +1523,10 @@ class Department {
   static Department getEmpty() {
     return Department(
         name: '', employees: [], parent: null, organization: null);
+  }
+
+  static Future<List<Department>> byOrganization(dynamic organization) async {
+    return await getDepartments(organization: organization);
   }
 
   static Future<List<Department>> getDepartments({dynamic organization}) async {

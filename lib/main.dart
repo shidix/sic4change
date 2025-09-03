@@ -16,6 +16,7 @@ import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/services/cache_projects.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 
 import 'firebase_options.dart';
@@ -37,6 +38,7 @@ void main() async {
           providers: [
             ChangeNotifierProvider(create: (_) => ProfileProvider()),
             ChangeNotifierProvider(create: (_) => ProjectsProvider()),
+            ChangeNotifierProvider(create: (_) => RRHHProvider()),
           ],
           child: MyApp(),
         ),

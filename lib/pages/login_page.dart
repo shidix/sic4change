@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -87,6 +88,7 @@ class _LoginPageState extends State<LoginPage> {
       // if (mounted) setState(() {});
     };
     profileProvider.addListener(listener);
+
     // ignore: unused_local_variable
     final user = FirebaseAuth.instance.currentUser;
   }
@@ -293,6 +295,9 @@ class _LoginPageState extends State<LoginPage> {
       if (user != null) {
         profile = null;
         profileProvider.loadProfile();
+        RRHHProvider rrhhProvider =
+            Provider.of<RRHHProvider>(context, listen: false);
+        rrhhProvider.initialize();
         createLog('User sign in: ${user.email}');
 
         List<Workday> userWorkdays =

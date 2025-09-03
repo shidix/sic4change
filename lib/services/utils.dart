@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -567,6 +568,7 @@ void signOut(BuildContext context) async {
   createLog('User signed out: ${FirebaseAuth.instance.currentUser?.email}');
   FirebaseAuth.instance.signOut();
   Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+  Provider.of<RRHHProvider>(context, listen: false).clear();
   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
 }
 
