@@ -768,6 +768,7 @@ class Employee {
       item.docRef!.snapshots().listen((snapshot) {
         if (snapshot.exists) {
           var data = snapshot.data() as Map<String, dynamic>;
+          var json = data;
           // Update fields
           item.code = data['code'];
           item.firstName = data['firstName'];
@@ -780,7 +781,19 @@ class Employee {
           item.sex = data['sex'];
           item.bornDate = getDate(data['bornDate']);
           item.bankAccount = data['bankAccount'];
-          item.altas = data['altas'];
+          item.altas = (json['altas'] == null) || (json['altas'].isEmpty)
+            ? []
+            : json['altas'].map((e) {
+                try {
+                  return Alta.fromJson(e as Map<String, dynamic>);
+                } catch (exception) {
+                  Alta alta = Alta(
+                    date: getDate(e),
+                  );
+                  alta.baja = Baja.getEmpty();
+                  return alta;
+                }
+              }).toList();
           item.extraDocs = data['extraDocs'];
           item.affiliation = data['affiliation'];
 
@@ -1407,6 +1420,7 @@ class Employee {
       altas.add(Alta(date: truncDate(DateTime.now())));
     }
     altas.sort((a, b) => a.date.compareTo(b.date));
+    print (altas.last);
     return altas.last.date;
   }
 

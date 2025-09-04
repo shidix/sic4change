@@ -713,6 +713,8 @@ class _HomePageState extends State<HomePage> {
 
       mypeople = await currentEmployee!
           .getSubordinates(departments: _rrhhProvider.departments);
+      updateRemainingHolidays();
+
     }
     myHolidays = _rrhhProvider.holidaysRequests
         .where((hr) => hr.userId == user.email)
@@ -721,8 +723,8 @@ class _HomePageState extends State<HomePage> {
     myCalendar = _rrhhProvider.calendars.firstWhere(
         (hc) => hc.employees.contains(currentEmployee!),
         orElse: () => HolidaysConfig.getEmpty());
+      
 
-    updateRemainingHolidays();
 
     setState(() {
       mainMenuWidget = mainMenu(context, "/home", profile);
@@ -1949,6 +1951,7 @@ class _HomePageState extends State<HomePage> {
     if (currentEmployee == null || holCat == null || myHolidays == null) {
       return;
     }
+    print(currentEmployee!.getFullName());
 
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();
