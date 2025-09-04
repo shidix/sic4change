@@ -563,13 +563,28 @@ void checkPermissions(
   }
 }
 
-void signOut(BuildContext context) async {
+void signOut(BuildContext context) {
   // print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
-  createLog('User signed out: ${FirebaseAuth.instance.currentUser?.email}');
-  FirebaseAuth.instance.signOut();
-  Provider.of<ProfileProvider>(context, listen: false).clearProfile();
-  Provider.of<RRHHProvider>(context, listen: false).clear();
-  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+  // await createLog(
+  //     'User signed out: ${FirebaseAuth.instance.currentUser?.email}');
+  // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
+  // Provider.of<RRHHProvider>(context, listen: false).clear();
+  RRHHProvider? rrhhProvider = context.read<RRHHProvider?>();
+  rrhhProvider?.clear();
+  ProfileProvider? profileProvider = context.read<ProfileProvider?>();
+  profileProvider?.clearProfile();
+  print("Profile and RRHH providers cleared.");
+  if (FirebaseAuth.instance.currentUser != null &&
+      FirebaseAuth.instance.currentUser!.email != null) {
+    FirebaseAuth.instance.signOut().then((value) {
+      // Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }).catchError((e) {
+      print('Error signing out: $e');
+      // Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+
+      // createLog('Error signing out: $e');
+    });
+  }
 }
 
 String toDuration(double hours, {String format = 'dhm'}) {

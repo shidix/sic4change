@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 //import 'package:pdf/widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/main.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
@@ -167,8 +168,12 @@ Widget logoutBtn(context, btnName, btnIcon) {
       // // }
       // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
       //FirebaseAuth.instance.signOut();
-      signOut(context);
-      Navigator.pushReplacementNamed(context, '/');
+
+      // Navigator.pushReplacementNamed(context, '/');
+      await FirebaseAuth.instance.signOut();
+      RestartApp.restart(context);
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),

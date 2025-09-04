@@ -298,7 +298,6 @@ class _LoginPageState extends State<LoginPage> {
         RRHHProvider rrhhProvider =
             Provider.of<RRHHProvider>(context, listen: false);
         rrhhProvider.initialize();
-        createLog('User sign in: ${user.email}');
 
         List<Workday> userWorkdays =
             await Workday.byUser(FirebaseAuth.instance.currentUser!.email!);

@@ -395,7 +395,7 @@ class RRHHProvider with ChangeNotifier {
     _departments = [];
     initialized = false;
     isLoading.clear();
-    sendNotify();
+    // sendNotify();
   }
 
   void sendNotify() {
@@ -420,11 +420,8 @@ class RRHHProvider with ChangeNotifier {
   void initialize() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null && !initialized && isLoading.isEmpty) {
-      isLoading.add(true);
       Employee.byEmail(user.email!).then((value) {
         _employee = value;
-        isLoading.removeFirst();
-        sendNotify();
       });
       Profile.getProfile(user.email!).then((profile) {
         if (profile.id.isNotEmpty) {

@@ -698,7 +698,6 @@ class Employee {
     try {
       return parts.map((part) => part[0]).join('');
     } catch (e) {
-      dev.log('Error getting aka: $e');
       // If there is an error, return the first three letters of the first name
       return email.split('@')[0];
     }

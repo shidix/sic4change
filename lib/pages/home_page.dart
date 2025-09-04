@@ -698,6 +698,7 @@ class _HomePageState extends State<HomePage> {
         .where((wd) => wd.userId == user.email)
         .toList(growable: false);
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+
     await loadCurrentWorkday();
     if (_rrhhProvider.employee != null) {
       currentEmployee = _rrhhProvider.employee;
@@ -708,8 +709,15 @@ class _HomePageState extends State<HomePage> {
         };
       }
 
-      mypeople = await currentEmployee!
-          .getSubordinates(departments: _rrhhProvider.departments);
+      if (profile!.isRRHH()) {
+        mypeople = _rrhhProvider.employees
+            .where((e) => e.isActive())
+            .toList(growable: false);
+      } else {
+        mypeople = await currentEmployee!
+            .getSubordinates(departments: _rrhhProvider.departments);
+      }
+
       updateRemainingHolidays();
 
       myPeopleWorkdays = _rrhhProvider.workdays

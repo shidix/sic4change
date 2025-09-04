@@ -74,6 +74,14 @@ class Workday {
       await item.update({'id': item.id});
       return this;
     } else {
+      // Check if the document exists
+      var doc = await FirebaseFirestore.instance
+          .collection(Workday.tbName)
+          .doc(id)
+          .get();
+      if (!doc.exists) {
+        return null;
+      }
       await FirebaseFirestore.instance
           .collection(Workday.tbName)
           .doc(id)
@@ -293,7 +301,7 @@ class WorkdayUpload {
           .delete()
           .catchError((e) {
         dev.log("Error deleting WorkdayUpload: $e");
-        createLog("Error deleting WorkdayUpload: $e");
+        // createLog("Error deleting WorkdayUpload: $e");
       });
     }
   }

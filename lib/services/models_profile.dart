@@ -126,6 +126,14 @@ class Profile {
     return result;
   }
 
+  bool isAdmin() {
+    return mainRole == ADMIN;
+  }
+
+  bool isRRHH() {
+    return mainRole == RRHH || mainRole == ADMINISTRATIVE;
+  }
+
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
     if ((emails != null) && (emails.isNotEmpty)) {
       return FirebaseFirestore.instance
