@@ -1382,7 +1382,7 @@ class Employee {
     if (items.isEmpty) return [];
 
     List<Employee> employees = await Employee.byId(
-        items.map((e) => e.toString()).toList().toSet().toList());
+        items.map((e) => e.toString()).toList().toSet().toList()) as List<Employee>;
     // Remove employees that are not active
     employees = employees.where((element) => element.isActive()).toList();
     return employees;

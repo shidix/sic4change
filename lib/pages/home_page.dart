@@ -666,18 +666,45 @@ class _HomePageState extends State<HomePage> {
             ])));
   }
 
-  void loadFromCache() async {
+  Future<void> loadCurrentWorkday() async {
+    print("loading current workday...");
+    if (!mounted) return;
+
+    Workday? previous;
+    for (Workday wd in myWorkdays!) {
+      if (!wd.isValid()) {
+        wd.delete();
+        continue;
+      }
+      if (wd.isSame(previous)) {
+        wd.delete();
+        continue;
+      }
+      if (wd.open && (DateTime.now().difference(wd.startDate) > Duration(hours: 11, minutes: 59))) {
+        wd.endDate = wd.startDate.add(Duration(hours: 12));
+        wd.open = false;
+        wd.save();
+      }
+      previous = wd;
+    }
+    if (currentWorkday != null) {
+      print("Current workday found: ${currentWorkday!.id}");
+    } else {
+      print("No current workday found");
+    }
+  }
+
+  Future<void> loadFromCache() async {
     print("loading from cache...");
     if (!mounted) return;
     myWorkdays = _rrhhProvider.workdays
         .where((wd) => wd.userId == user.email)
         .toList(growable: false);
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    await loadCurrentWorkday();
     if (_rrhhProvider.employee != null) {
       currentEmployee = _rrhhProvider.employee;
-      print("DBG");
       currentEmployee!.onChanged = () {
-        print("Employee changed, reloading data...");
         debugPanel = Text(
             "Employee changed: ${DateTime.now().toIso8601String()}, ${currentEmployee!.affiliation}",
             style: TextStyle(color: Colors.red));
@@ -694,6 +721,8 @@ class _HomePageState extends State<HomePage> {
     myCalendar = _rrhhProvider.calendars.firstWhere(
         (hc) => hc.employees.contains(currentEmployee!),
         orElse: () => HolidaysConfig.getEmpty());
+
+    updateRemainingHolidays();
 
     setState(() {
       mainMenuWidget = mainMenu(context, "/home", profile);
@@ -1020,7 +1049,7 @@ class _HomePageState extends State<HomePage> {
     if (myWorkdays == null || myWorkdays!.isEmpty) {
       currentWorkday = Workday.getEmpty(email: user.email!, open: true);
       currentWorkday!.save();
-      myWorkdays = [currentWorkday!];
+      _rrhhProvider.addWorkday(currentWorkday!);
     } else {
       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
       currentWorkday = myWorkdays!.first;
@@ -1047,13 +1076,7 @@ class _HomePageState extends State<HomePage> {
 
         currentWorkday!.save().then((value) {
           if (value != null) {
-            myWorkdays!.insert(0, value);
-          }
-          if (mounted) {
-            setState(() {
-              myWorkdays = myWorkdays;
-              contentWorkPanel = workTimePanel();
-            });
+            _rrhhProvider.addWorkday(value);
           }
         });
       }

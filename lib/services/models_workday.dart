@@ -116,6 +116,15 @@ class Workday {
     return true;
   }
 
+  bool isSame(Workday? other) {
+    if (other == null) return false;
+    return id != other.id &&
+        userId == other.userId &&
+        startDate == other.startDate &&
+        endDate == other.endDate &&
+        open == other.open;
+  }
+
   static Workday getEmpty({String email = '', bool open = true}) {
     DateTime today = DateTime.now();
     return Workday(

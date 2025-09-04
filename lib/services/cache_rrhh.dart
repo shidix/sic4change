@@ -111,6 +111,7 @@ class RRHHProvider with ChangeNotifier {
     } else {
       _holidaysRequests.add(request);
     }
+    _holidaysRequests.sort((a, b) => b.startDate.compareTo(a.startDate));
 
     sendNotify();
   }
@@ -129,6 +130,7 @@ class RRHHProvider with ChangeNotifier {
     } else {
       _workdays.add(workday);
     }
+    _workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
 
     sendNotify();
   }
@@ -248,6 +250,15 @@ class RRHHProvider with ChangeNotifier {
       isLoading.add(true);
       _holidaysCategories =
           await HolidaysCategory.byOrganization(_organization!.uuid);
+      // Sort by year, then by name
+      _holidaysCategories.sort((a, b) {
+        int yearCompare = b.year.compareTo(a.year);
+        if (yearCompare != 0) {
+          return yearCompare;
+        } else {
+          return a.name.compareTo(b.name);
+        }
+      });
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         sendNotify();
@@ -263,6 +274,8 @@ class RRHHProvider with ChangeNotifier {
           _employees.map((e) => e.email).toList(growable: false);
       _holidaysRequests =
           await HolidayRequest.byUser(emailsEmployees, startDate, endDate);
+      _holidaysRequests
+          .sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         notifyListeners();
@@ -287,6 +300,7 @@ class RRHHProvider with ChangeNotifier {
       List<String> emailsEmployees =
           _employees.map((e) => e.email).toList(growable: false);
       _workdays = await Workday.byUser(emailsEmployees, fromDate);
+      _workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         sendNotify();
