@@ -85,6 +85,7 @@ class _HomePageState extends State<HomePage> {
   Widget contentTasksPanel = Container();
   Widget contentProjectsPanel = Container();
   Widget topButtonsPanel = Container();
+  Widget debugPanel = Container();
 
   List<SProject>? myProjects;
 
@@ -674,6 +675,15 @@ class _HomePageState extends State<HomePage> {
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     if (_rrhhProvider.employee != null) {
       currentEmployee = _rrhhProvider.employee;
+      print("DBG");
+      currentEmployee!.onChanged = () {
+        print("Employee changed, reloading data...");
+        debugPanel = Text(
+            "Employee changed: ${DateTime.now().toIso8601String()}, ${currentEmployee!.affiliation}",
+            style: TextStyle(color: Colors.red));
+        if (mounted) setState(() {});
+      };
+
       mypeople = await currentEmployee!
           .getSubordinates(departments: _rrhhProvider.departments);
     }
@@ -958,6 +968,7 @@ class _HomePageState extends State<HomePage> {
           topButtonsPanel,
           space(height: 10),
           ...contents,
+          debugPanel,
           footer(context),
         ],
       ),
