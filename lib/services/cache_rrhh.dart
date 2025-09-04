@@ -22,6 +22,7 @@ class RRHHProvider with ChangeNotifier {
   List<HolidaysConfig> _calendars = [];
   List<Workday> _workdays = [];
   List<Department> _departments = [];
+  List<SNotification> _notifications = [];
 
   Profile? get profile => _profile;
   Organization? get organization => _organization;
@@ -274,8 +275,7 @@ class RRHHProvider with ChangeNotifier {
           _employees.map((e) => e.email).toList(growable: false);
       _holidaysRequests =
           await HolidayRequest.byUser(emailsEmployees, startDate, endDate);
-      _holidaysRequests
-          .sort((a, b) => b.startDate.compareTo(a.startDate));
+      _holidaysRequests.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         notifyListeners();
@@ -305,6 +305,42 @@ class RRHHProvider with ChangeNotifier {
       if (notify && isLoading.isEmpty) {
         sendNotify();
       }
+    }
+  }
+
+  List<SNotification> get notifications => _notifications;
+  set notifications(List<SNotification> value) {
+    _notifications = value;
+    sendNotify();
+  }
+
+  Future<void> addNotifications(SNotification? item) async {
+    if (item == null) return;
+    int index = _notifications.indexWhere((e) => e.id == item.id);
+    if (index != -1) {
+      _notifications[index] = item;
+    } else {
+      _notifications.add(item);
+    }
+    sendNotify();
+  }
+
+  Future<void> removeNotifications(SNotification? item) async {
+    if (item == null) return;
+    if (!_notifications.any((e) => e.id == item.id)) return;
+    _notifications.removeWhere((e) => e.id == item.id);
+    sendNotify();
+  }
+
+  Future<void> loadNotifications({bool notify = true}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    isLoading.add(true);
+    _notifications = await SNotification.getNotificationsByReceiver(user.email)
+        as List<SNotification>;
+    isLoading.removeFirst();
+    if (notify && isLoading.isEmpty) {
+      sendNotify();
     }
   }
 
@@ -346,7 +382,6 @@ class RRHHProvider with ChangeNotifier {
   void initialize() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null && !initialized && isLoading.isEmpty) {
-      print("Initializing RRHHProvider for user: ${user.email}");
       isLoading.add(true);
       Employee.byEmail(user.email!).then((value) {
         _employee = value;
@@ -360,8 +395,6 @@ class RRHHProvider with ChangeNotifier {
               profile.organization!.isNotEmpty) {
             Organization.byId(profile.organization!).then((organization) {
               _organization = organization;
-              print(
-                  "Organization loaded: ${organization?.name}, profile: ${profile.email}");
               loadOrganizations(notify: true);
               loadEmployees(notify: true).then((value) {
                 loadHolidaysRequests(
@@ -377,6 +410,7 @@ class RRHHProvider with ChangeNotifier {
               loadHolidaysCategories(notify: true);
               loadCalendars(notify: true);
               loadDepartments(notify: true);
+              loadNotifications(notify: true);
               initialized = true;
               sendNotify();
             });

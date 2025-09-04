@@ -38,8 +38,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Profile? profile;
   Organization? currentOrg;
   String deleteMsg = "";
-  late ProfileProvider _profileProvider;
-  late ProjectsProvider _projectsProvider;
+  late ProfileProvider? _profileProvider;
+  late ProjectsProvider? _projectsProvider;
   late VoidCallback _listener;
   final user = FirebaseAuth.instance.currentUser!;
 
@@ -62,10 +62,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void loadProjects() async {
     setLoading();
-    prList = _projectsProvider.projects;
-    for (SProject item in prList) {
-      print("${item.name} ${item.type} ${item.typeObj.name}");
-    }
+    prList = _projectsProvider!.projects;
+
     // if (prList.isEmpty) {
     //   prList = await SProject.getProjects();
     // }
@@ -89,8 +87,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void getProfile(user) async {
-    profile = _profileProvider.profile;
-    currentOrg = _profileProvider.organization;
+    profile = _profileProvider!.profile;
+    currentOrg = _profileProvider!.organization;
     // await Profile.getProfile(user.email!).then((value) {
     //   profile = value;
     //   //print(profile?.mainRole);
@@ -100,19 +98,21 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void initializeData() async {
     // loadProjects();
     _projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
+    _projectsProvider = context.read<ProjectsProvider?>();
+    _projectsProvider ??= ProjectsProvider();
     // _projectsProvider.profile = profile;
     // _projectsProvider.organization = currentOrg;
     if (prList.isEmpty) {
       loadProjects();
     }
-    _projectsProvider.addListener(() {
+    _projectsProvider!.addListener(() {
       // prList = _projectsProvider.projects;
       loadProjects();
       if (!mounted) return;
       setState(() {});
     });
-    if (_projectsProvider.projects.isEmpty) {
-      _projectsProvider.initialize();
+    if (_projectsProvider!.projects.isEmpty) {
+      _projectsProvider!.initialize();
     }
     if (mounted) {
       setState(() {});
@@ -121,8 +121,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   void dispose() {
-    _projectsProvider.removeListener(_listener);
-    _projectsProvider.dispose();
+    // _projectsProvider!.removeListener(_listener);
+    // _projectsProvider!.dispose();
     super.dispose();
   }
 
@@ -132,20 +132,22 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     _mainMenu = mainMenu(context, "/projects");
 
-    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _profileProvider = context.read<ProfileProvider?>();
+    _profileProvider ??= ProfileProvider();
     _listener = () {
       if (!mounted) return;
       getProfile(user);
       _mainMenu = mainMenu(context, "/projects");
       if (!((profile != null) && (currentOrg != null))) {
-        _profileProvider.loadProfile();
+        _profileProvider!.loadProfile();
       }
       if (mounted) setState(() {});
     };
-    _profileProvider.addListener(_listener);
+    _profileProvider!.addListener(_listener);
 
     if ((profile == null) || (currentOrg == null)) {
-      _profileProvider.loadProfile();
+      _profileProvider!.loadProfile();
     }
     initializeData();
 

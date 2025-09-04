@@ -782,18 +782,18 @@ class Employee {
           item.bornDate = getDate(data['bornDate']);
           item.bankAccount = data['bankAccount'];
           item.altas = (json['altas'] == null) || (json['altas'].isEmpty)
-            ? []
-            : json['altas'].map((e) {
-                try {
-                  return Alta.fromJson(e as Map<String, dynamic>);
-                } catch (exception) {
-                  Alta alta = Alta(
-                    date: getDate(e),
-                  );
-                  alta.baja = Baja.getEmpty();
-                  return alta;
-                }
-              }).toList();
+              ? []
+              : json['altas'].map((e) {
+                  try {
+                    return Alta.fromJson(e as Map<String, dynamic>);
+                  } catch (exception) {
+                    Alta alta = Alta(
+                      date: getDate(e),
+                    );
+                    alta.baja = Baja.getEmpty();
+                    return alta;
+                  }
+                }).toList();
           item.extraDocs = data['extraDocs'];
           item.affiliation = data['affiliation'];
 
@@ -1395,7 +1395,8 @@ class Employee {
     if (items.isEmpty) return [];
 
     List<Employee> employees = await Employee.byId(
-        items.map((e) => e.toString()).toList().toSet().toList()) as List<Employee>;
+            items.map((e) => e.toString()).toList().toSet().toList())
+        as List<Employee>;
     // Remove employees that are not active
     employees = employees.where((element) => element.isActive()).toList();
     return employees;
@@ -1420,7 +1421,6 @@ class Employee {
       altas.add(Alta(date: truncDate(DateTime.now())));
     }
     altas.sort((a, b) => a.date.compareTo(b.date));
-    print (altas.last);
     return altas.last.date;
   }
 

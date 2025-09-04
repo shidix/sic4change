@@ -86,6 +86,7 @@ class _HomePageState extends State<HomePage> {
   Widget contentProjectsPanel = Container();
   Widget topButtonsPanel = Container();
   Widget debugPanel = Container();
+  Widget contentNotifyPanel = Container();
 
   List<SProject>? myProjects;
 
@@ -140,12 +141,10 @@ class _HomePageState extends State<HomePage> {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
       List<Workday> fullworkdays = _rrhhProvider.workdays;
       if (fullworkdays.isNotEmpty) {
-        print("From cache");
         myWorkdays = fullworkdays
             .where((wd) => wd.userId == user.email)
             .toList(growable: false);
       } else {
-        print("From database");
         myWorkdays = await Workday.byUser(user.email!);
       }
       if (myWorkdays!.isEmpty) {
@@ -330,19 +329,17 @@ class _HomePageState extends State<HomePage> {
     myPeopleWorkdays = _rrhhProvider.workdays
         .where((wd) => emails.contains(wd.userId))
         .toList(growable: false);
-    if (myPeopleWorkdays.isNotEmpty) {
-      print("From cache");
-    } else {
-      print("From database");
-      myPeopleWorkdays = await Workday.byUser(emails);
-    }
-    // myPeopleWorkdays = await Workday.byUser(emails);
+    // if (myPeopleWorkdays.isEmpty) {
+    //     myPeopleWorkdays = await Workday.byUser(emails);
+    // }
+    // // myPeopleWorkdays = await Workday.byUser(emails);
     myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     return myPeopleWorkdays;
   }
 
   void getNotifications() async {
-    NotificationValues nVal = await getNotificationList(user.email);
+    NotificationValues nVal =
+        await getNotificationList(user.email, _rrhhProvider.notifications);
     notificationList = nVal.nList;
     notif = nVal.unread;
     setState(() {});
@@ -545,13 +542,14 @@ class _HomePageState extends State<HomePage> {
         ));
 
     return Padding(
-        padding: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
             decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!),
-                boxShadow: const [
+                color: Colors.white,
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.white,
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: Offset(0, 3),
@@ -650,7 +648,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.grey[300],
               ),
               SizedBox(
-                  height: 600,
+                  height: 560,
                   child: SingleChildScrollView(
                       child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -667,36 +665,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadCurrentWorkday() async {
-    print("loading current workday...");
     if (!mounted) return;
 
     Workday? previous;
     for (Workday wd in myWorkdays!) {
       if (!wd.isValid()) {
+        _rrhhProvider.removeWorkday(wd);
         wd.delete();
         continue;
       }
       if (wd.isSame(previous)) {
+        _rrhhProvider.removeWorkday(wd);
         wd.delete();
         continue;
       }
-      if (wd.open && (DateTime.now().difference(wd.startDate) > Duration(hours: 11, minutes: 59))) {
+      if (wd.open &&
+          (DateTime.now().difference(wd.startDate) >
+              Duration(hours: 11, minutes: 59))) {
         wd.endDate = wd.startDate.add(Duration(hours: 12));
         wd.open = false;
         wd.save();
+        _rrhhProvider.addWorkday(wd);
       }
       previous = wd;
-    }
-    if (currentWorkday != null) {
-      print("Current workday found: ${currentWorkday!.id}");
-    } else {
-      print("No current workday found");
     }
   }
 
   Future<void> loadFromCache() async {
-    print("loading from cache...");
     if (!mounted) return;
+    // My data
     myWorkdays = _rrhhProvider.workdays
         .where((wd) => wd.userId == user.email)
         .toList(growable: false);
@@ -704,17 +701,24 @@ class _HomePageState extends State<HomePage> {
     await loadCurrentWorkday();
     if (_rrhhProvider.employee != null) {
       currentEmployee = _rrhhProvider.employee;
-      currentEmployee!.onChanged = () {
-        debugPanel = Text(
-            "Employee changed: ${DateTime.now().toIso8601String()}, ${currentEmployee!.affiliation}",
-            style: TextStyle(color: Colors.red));
-        if (mounted) setState(() {});
-      };
+      for (Employee emp in _rrhhProvider.employees) {
+        emp.onChanged ??= () {
+          _rrhhProvider.addEmployee(emp);
+          if (mounted) setState(() {});
+        };
+      }
 
       mypeople = await currentEmployee!
           .getSubordinates(departments: _rrhhProvider.departments);
       updateRemainingHolidays();
 
+      myPeopleWorkdays = _rrhhProvider.workdays
+          .where((wd) => mypeople.map((e) => e.email).contains(wd.userId))
+          .toList(growable: false);
+
+      myPeopleHolidays = _rrhhProvider.holidaysRequests
+          .where((hr) => mypeople.map((e) => e.email).contains(hr.userId))
+          .toList(growable: false);
     }
     myHolidays = _rrhhProvider.holidaysRequests
         .where((hr) => hr.userId == user.email)
@@ -723,14 +727,14 @@ class _HomePageState extends State<HomePage> {
     myCalendar = _rrhhProvider.calendars.firstWhere(
         (hc) => hc.employees.contains(currentEmployee!),
         orElse: () => HolidaysConfig.getEmpty());
-      
 
-
+    getNotifications();
     setState(() {
       mainMenuWidget = mainMenu(context, "/home", profile);
       contentWorkPanel = workTimePanel();
       contentHolidaysPanel = holidayPanel();
       topButtonsPanel = topButtons(null);
+      contentNotifyPanel = notifyPanel();
     });
   }
 
@@ -859,16 +863,20 @@ class _HomePageState extends State<HomePage> {
                                 context)),
                       ],
                     )),
-                CalendarWidget(
-                  holidays: myPeopleHolidays,
-                  currentProfile: profile ?? Profile.getEmpty(),
-                  categories: holCat ?? [],
-                  onDateSelected: (date) {
-                    // Handle date selection
-                  },
-                  employees: mypeople,
-                  height: 600,
-                )
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: CalendarWidget(
+                      holidays: myPeopleHolidays,
+                      currentProfile: profile ?? Profile.getEmpty(),
+                      categories: holCat ?? [],
+                      onDateSelected: (date) {
+                        // Handle date selection
+                      },
+                      employees: mypeople,
+                      height: 600,
+                    ))
               ],
             )));
   }
@@ -901,13 +909,10 @@ class _HomePageState extends State<HomePage> {
 
     _rrhhProvider = context.read<RRHHProvider>();
     _rrhhProvider.addListener(() {
-      // myWorkdays = _rrhhProvider.workdays
-      //     .where((wd) => wd.userId == user.email)
-      //     .toList(growable: false);
       loadFromCache();
     });
-    //loadFromCache();
     _rrhhProvider.initialize();
+    loadFromCache();
 
     currentOrganization = _profileProvider.organization;
     profile = _profileProvider.profile;
@@ -948,7 +953,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 1, child: contentTasksPanel),
-            Expanded(flex: 1, child: notifyPanel(context)),
+            Expanded(flex: 1, child: contentNotifyPanel),
           ],
         ),
         Row(
@@ -961,25 +966,25 @@ class _HomePageState extends State<HomePage> {
       ];
     } else if (_currentPage == "yourpeople") {
       contents = [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-                flex: 1,
-                child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Card(
-                        color: Colors.white,
-                        elevation: 2,
-                        child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Text(
-                              "Personal a cargo: ${mypeople.map((e) => '${e.getFullName()} [${e.aka()}]').join(', ')}",
-                              style: subTitleText,
-                              textAlign: TextAlign.center,
-                            ))))),
-          ],
-        ),
+        // Row(
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: [
+        //     Expanded(
+        //         flex: 1,
+        //         child: Padding(
+        //             padding: const EdgeInsets.all(10),
+        //             child: Card(
+        //                 color: Colors.white,
+        //                 elevation: 2,
+        //                 child: Padding(
+        //                     padding: const EdgeInsets.all(10),
+        //                     child: Text(
+        //                       "Personal a cargo: ${mypeople.map((e) => '${e.getFullName()} [${e.aka()}]').join(', ')}",
+        //                       style: subTitleText,
+        //                       textAlign: TextAlign.center,
+        //                     ))))),
+        //   ],
+        // ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1012,6 +1017,7 @@ class _HomePageState extends State<HomePage> {
       actionButton(context, "Dashboard", () {
         setState(() {
           _currentPage = "home";
+          topButtonsPanel = topButtons(null);
         });
       }, Icons.dashboard, null,
           bgColor:
@@ -1020,6 +1026,7 @@ class _HomePageState extends State<HomePage> {
       actionButton(context, "Personal a cargo [${mypeople.length}]", () {
         setState(() {
           _currentPage = "yourpeople";
+          topButtonsPanel = topButtons(null);
         });
       }, Icons.people, null,
           bgColor: (_currentPage == "yourpeople")
@@ -1298,86 +1305,80 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
         color: Colors.white,
-        child: (true)
-            ? ListView.builder(
-                shrinkWrap: true,
-                itemCount: myWorkdays!.length,
-                scrollDirection: Axis.vertical,
-                itemBuilder: (BuildContext context, int index) {
-                  Workday item = myWorkdays!.elementAt(index);
-                  // item.open = (index == 0);
-                  return ListTile(
-                      subtitle: Column(children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            flex: 4,
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy').format(
-                                        myWorkdays!.elementAt(index).startDate),
-                                    style:
-                                        (item.open) ? successText : normalText,
-                                  )),
-                            )),
-                        Expanded(
-                          flex: 2,
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: myWorkdays!.length,
+            scrollDirection: Axis.vertical,
+            itemBuilder: (BuildContext context, int index) {
+              Workday item = myWorkdays!.elementAt(index);
+              // item.open = (index == 0);
+              return ListTile(
+                  subtitle: Column(children: [
+                Row(
+                  children: [
+                    Expanded(
+                        flex: 4,
+                        child: Align(
+                          alignment: Alignment.center,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('HH:mm').format(item.startDate),
+                                DateFormat('dd-MM-yyyy').format(
+                                    myWorkdays!.elementAt(index).startDate),
                                 style: (item.open) ? successText : normalText,
-                                textAlign: TextAlign.center,
                               )),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                DateFormat('HH:mm').format(item.open
-                                    ? DateTime.now()
-                                    : myWorkdays!.elementAt(index).endDate),
-                                style: (item.open) ? successText : normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                item.open
-                                    ? "En curso"
-                                    : (myWorkdays!.elementAt(index).hours())
-                                        .toStringAsFixed(2),
-                                style: (item.open)
-                                    ? successText
-                                    : (myWorkdays!.elementAt(index).hours() <
-                                            10)
-                                        ? normalText
-                                        : warningText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: IconButton(
-                              icon: Icon(Icons.edit, size: 15),
-                              onPressed: () {
-                                _editWorkdayDialog(item);
-                              },
-                            )),
-                      ],
-                    )
-                  ]));
-                })
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+                        )),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            DateFormat('HH:mm').format(item.startDate),
+                            style: (item.open) ? successText : normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            DateFormat('HH:mm').format(item.open
+                                ? DateTime.now()
+                                : myWorkdays!.elementAt(index).endDate),
+                            style: (item.open) ? successText : normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            item.open
+                                ? "En curso"
+                                : (myWorkdays!.elementAt(index).hours())
+                                    .toStringAsFixed(2),
+                            style: (item.open)
+                                ? successText
+                                : (myWorkdays!.elementAt(index).hours() < 10)
+                                    ? normalText
+                                    : warningText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                        flex: 1,
+                        child: IconButton(
+                          icon: Icon(Icons.edit, size: 15),
+                          onPressed: () {
+                            _editWorkdayDialog(item);
+                          },
+                        )),
+                  ],
+                )
+              ]));
+            }));
 
     return result;
   }
@@ -1951,7 +1952,6 @@ class _HomePageState extends State<HomePage> {
     if (currentEmployee == null || holCat == null || myHolidays == null) {
       return;
     }
-    print(currentEmployee!.getFullName());
 
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();
@@ -2025,26 +2025,7 @@ class _HomePageState extends State<HomePage> {
     if (currentHoliday == null) {
       return;
     }
-
-    // Check if the new holiday request is already in myHolidays
-    int index =
-        myHolidays!.indexWhere((holiday) => holiday.id == currentHoliday!.id);
-    if (index >= 0) {
-      // Update existing holiday request
-      myHolidays![index] = currentHoliday!;
-    } else {
-      // Add new holiday request
-      myHolidays!.add(currentHoliday!);
-    }
-    // updateRemainingHolidays();
-
-    if (mounted) {
-      setState(() {
-        myHolidays = myHolidays;
-        updateRemainingHolidays();
-        // updateHolidayDays().then((value) => holidayDays = value);
-      });
-    }
+    _rrhhProvider.addHolidaysRequest(currentHoliday!);
   }
 
   Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
@@ -2081,24 +2062,12 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (item != null) {
-      // Check if the new holiday request is already in myHolidays
       if (item.id == "--remove--") {
-        myHolidays!.removeWhere((holiday) => holiday.id == currentHolidayId);
+        item.id = currentHolidayId;
+        _rrhhProvider.removeHolidaysRequest(item);
         currentHoliday = null;
       } else {
-        int index = myHolidays!.indexWhere((holiday) => holiday.id == item.id);
-        if (index != -1) {
-          myHolidays![index] = item; // Update existing request
-        } else {
-          myHolidays!.add(item); // Add new request
-        }
-      }
-      updateRemainingHolidays();
-      if (mounted) {
-        setState(() {
-          myHolidays = myHolidays;
-          contentHolidaysPanel = holidayPanel();
-        });
+        _rrhhProvider.addHolidaysRequest(item);
       }
     }
     return item;
@@ -2136,19 +2105,11 @@ class _HomePageState extends State<HomePage> {
     );
     if (item != null) {
       if (item.id == "--remove--") {
-        myHolidays!.removeWhere((test) => test.id == currentHolidayId);
+        item.id = currentHolidayId;
+        _rrhhProvider.removeHolidaysRequest(item);
         currentHoliday = null;
       } else {
-        // If the item is the same as the current holiday, update it
-        myHolidays![index] = item;
-      }
-      if (mounted) {
-        updateRemainingHolidays();
-
-        setState(() {
-          myHolidays = myHolidays;
-          contentHolidaysPanel = holidayPanel();
-        });
+        _rrhhProvider.addHolidaysRequest(item);
       }
     }
     return item;
@@ -2512,7 +2473,7 @@ class _HomePageState extends State<HomePage> {
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: contact != null
+        child: profile != null
             ? ListView.builder(
                 shrinkWrap: true,
                 itemCount: mytasks!.length,
@@ -2721,80 +2682,79 @@ class _HomePageState extends State<HomePage> {
   Widget notifyPanelContent() {
     return SizedBox(
         width: double.infinity,
-        //height: 100,
-        child: DataTable(
-          showCheckboxColumn: false,
-          columns: [
-            DataColumn(
-                label: customText("Notificación", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Usuario", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Fecha", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(label: Container()),
-          ],
-          rows: notificationList
-              .map(
-                (notify) => DataRow(
-                    onSelectChanged: (bool? selected) {
-                      if (notify.readed) {
-                        notify.readed = false;
-                        notify.save();
-                        notif += 1;
-                      } else {
-                        notify.readed = true;
-                        notify.save();
-                        notif += -1;
-                      }
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    },
-                    color: (notify.readed)
-                        ? WidgetStateColor.resolveWith((states) => Colors.white)
-                        : WidgetStateColor.resolveWith((states) => greyColor),
-                    cells: [
-                      DataCell(Text(notify.msg)),
-                      DataCell(Text(notify.sender)),
-                      DataCell(
-                        Text(DateFormat('yyyy-MM-dd').format(notify.date)),
-                      ),
-                      DataCell(Row(children: [
-                        removeConfirmBtn(context, () {
-                          notify.delete();
-                          if (mounted) {
-                            setState(() {
-                              notificationList.remove(notify);
-                            });
+        height: 200,
+        child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: DataTable(
+              // Hide header
+              headingRowHeight: 30,
+              showCheckboxColumn: false,
+              // Set width of the columns
+
+              columns: [
+                DataColumn(
+                    label: customText("Notificación", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(
+                    label: customText("Usuario", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(
+                    label: customText("Fecha", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(label: Container()),
+              ],
+              rows: notificationList
+                  .map(
+                    (notify) => DataRow(
+                        onSelectChanged: (bool? selected) {
+                          if (notify.readed) {
+                            notify.readed = false;
+                            notify.save();
+                            notif += 1;
+                          } else {
+                            notify.readed = true;
+                            notify.save();
+                            notif += -1;
                           }
-                        }, null),
-                      ]))
-                    ]),
-              )
-              .toList(),
-        )); //)
-    //]));
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                        color: (notify.readed)
+                            ? WidgetStateColor.resolveWith(
+                                (states) => Colors.white)
+                            : WidgetStateColor.resolveWith(
+                                (states) => greyColor),
+                        cells: [
+                          DataCell(Text(notify.msg)),
+                          DataCell(Text(notify.sender)),
+                          DataCell(
+                            Text(DateFormat('yyyy-MM-dd').format(notify.date)),
+                          ),
+                          DataCell(Row(children: [
+                            removeConfirmBtn(context, () {
+                              notify.delete();
+                              if (mounted) {
+                                setState(() {
+                                  notificationList.remove(notify);
+                                });
+                              }
+                            }, null),
+                          ]))
+                        ]),
+                  )
+                  .toList(),
+            )));
   }
 
-  Widget notifyPanel(BuildContext context) {
+  Widget notifyPanel() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Card(
-            /*decoration: tabDecoration,
-            padding: const EdgeInsets.all(2),*/
             child: Column(
           children: [
             notifyPanelHead(),
             notifyPanelContent(),
-            /*notifyPanelSubHead(),
-                Divider(
-                  height: 1,
-                  color: Colors.grey[300],
-                ),
-                notifyPanelContentOld(),*/
           ],
         )));
 
