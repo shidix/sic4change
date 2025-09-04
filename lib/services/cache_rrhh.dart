@@ -8,6 +8,7 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 
 class RRHHProvider with ChangeNotifier {
@@ -23,6 +24,7 @@ class RRHHProvider with ChangeNotifier {
   List<Workday> _workdays = [];
   List<Department> _departments = [];
   List<SNotification> _notifications = [];
+  List<STask> _tasks = [];
 
   Profile? get profile => _profile;
   Organization? get organization => _organization;
@@ -34,6 +36,7 @@ class RRHHProvider with ChangeNotifier {
   List<HolidaysConfig> get calendars => _calendars;
   List<Workday> get workdays => _workdays;
   List<Department> get departments => _departments;
+  List<STask> get tasks => _tasks;
 
   Queue<bool> isLoading = Queue();
 
@@ -84,6 +87,11 @@ class RRHHProvider with ChangeNotifier {
 
   set departments(List<Department> value) {
     _departments = value;
+    sendNotify();
+  }
+
+  set tasks(List<STask> value) {
+    _tasks = value;
     sendNotify();
   }
 
@@ -211,6 +219,25 @@ class RRHHProvider with ChangeNotifier {
     }
   }
 
+  void addTask(STask? task) {
+    if (task == null) return;
+
+    int index = _tasks.indexWhere((e) => e.id == task.id);
+    if (index != -1) {
+      _tasks[index] = task;
+    } else {
+      _tasks.add(task);
+    }
+    sendNotify();
+  }
+
+  void removeTask(STask? task) {
+    if (task == null) return;
+    if (!_tasks.any((e) => e.id == task.id)) return;
+    _tasks.removeWhere((e) => e.id == task.id);
+    sendNotify();
+  }
+
   Future<void> loadDepartments({bool notify = true}) async {
     if (_organization != null) {
       isLoading.add(true);
@@ -305,6 +332,17 @@ class RRHHProvider with ChangeNotifier {
       if (notify && isLoading.isEmpty) {
         sendNotify();
       }
+    }
+  }
+
+  Future<void> loadTasks({bool notify = true}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    isLoading.add(true);
+    _tasks = await STask.getByAssigned(user.email, lazy: true);
+    isLoading.removeFirst();
+    if (notify && isLoading.isEmpty) {
+      sendNotify();
     }
   }
 

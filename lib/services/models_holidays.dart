@@ -384,15 +384,32 @@ class HolidayRequest {
     if (email is String) {
       email = [email];
     }
-    final query1 = await FirebaseFirestore.instance
-        .collection(tbName)
-        .where("userId", whereIn: email)
-        .get();
-    for (var result in query1.docs) {
-      Map<String, dynamic> data = result.data();
-      data['id'] = result.id;
-      items.add(HolidayRequest.fromJson(data));
+
+    // Chuncks of 25
+    int chunkSize = 25;
+    for (var i = 0; i < email.length; i += chunkSize) {
+      var chunk = email.sublist(
+          i, i + chunkSize > email.length ? email.length : i + chunkSize);
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("userId", whereIn: chunk)
+          .get();
+      for (var result in query.docs) {
+        Map<String, dynamic> data = result.data();
+        data['id'] = result.id;
+        items.add(HolidayRequest.fromJson(data));
+      }
     }
+
+    // final query1 = await FirebaseFirestore.instance
+    //     .collection(tbName)
+    //     .where("userId", whereIn: email)
+    //     .get();
+    // for (var result in query1.docs) {
+    //   Map<String, dynamic> data = result.data();
+    //   data['id'] = result.id;
+    //   items.add(HolidayRequest.fromJson(data));
+    // }
 
     // Filiter intems in the date range
     items = items.where((item) {

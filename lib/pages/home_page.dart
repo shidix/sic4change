@@ -2476,9 +2476,9 @@ class _HomePageState extends State<HomePage> {
         child: profile != null
             ? ListView.builder(
                 shrinkWrap: true,
-                itemCount: mytasks!.length,
+                itemCount: _rrhhProvider.tasks.length,
                 itemBuilder: (BuildContext context, int index) {
-                  STask task = mytasks!.elementAt(index);
+                  STask task = _rrhhProvider.tasks.elementAt(index);
                   return ListTile(
                       subtitle: Column(children: [
                     Row(
@@ -2580,7 +2580,7 @@ class _HomePageState extends State<HomePage> {
                                       Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Mis tareas (${mytasks!.length})",
+                                            "Mis tareas (${_rrhhProvider.tasks.length})",
                                             style: cardHeaderText,
                                           )),
                                       Text(dateToES(DateTime.now()),
@@ -2788,7 +2788,7 @@ class _HomePageState extends State<HomePage> {
 /////////// PROJECTS ///////////
   Widget projectsPanel() {
     myProjects = [];
-    for (STask task in mytasks!) {
+    for (STask task in _rrhhProvider.tasks) {
       if (hashProjects.containsKey(task.project)) {
         SProject project = hashProjects[task.project]!;
         if (!myProjects!.contains(project)) {
