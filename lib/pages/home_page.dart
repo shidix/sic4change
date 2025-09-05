@@ -2599,6 +2599,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget tasksPanel() {
+    mytasks = _projectsProvider?.tasks
+        .where((task) => task.assigned.contains(user.email))
+        .toList();
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -2644,7 +2647,7 @@ class _HomePageState extends State<HomePage> {
                                       Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Mis tareas (${_projectsProvider!.tasks.length})",
+                                            "Mis tareas (${mytasks?.length})",
                                             style: cardHeaderText,
                                           )),
                                       Text(dateToES(DateTime.now()),
