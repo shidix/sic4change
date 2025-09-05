@@ -773,54 +773,6 @@ class _HomePageState extends State<HomePage> {
     return;
   }
 
-  void initializeData2() async {
-    if (!mounted) return;
-    final results = await Future.wait([
-      HolidaysCategory.byOrganization(currentOrganization!),
-      TasksStatus.all(),
-      SProject.all(),
-      loadMyPeopleWorkdays(),
-      HolidayRequest.byUser(user.email!),
-    ]);
-
-    myHolidays = results[4] as List<HolidayRequest>;
-
-    holCat = results[0] as List<HolidaysCategory>;
-    for (HolidaysCategory cat in holCat!) {
-      if (!cat.retroactive) {
-        holidayDays += cat.days;
-      }
-    }
-
-    // await loadMyHolidays();
-
-    final tasksStatusList = results[1] as List<TasksStatus>;
-    if (tasksStatusList.isNotEmpty) {
-      for (var item in tasksStatusList) {
-        hashStatus[item.id] = item;
-        hashStatus[item.uuid] = item;
-      }
-    }
-    final projectsList = results[2] as List<SProject>;
-    if (projectsList.isNotEmpty) {
-      for (var item in projectsList) {
-        hashProjects[item.id] = item;
-        hashProjects[item.uuid] = item;
-      }
-    }
-    topButtonsPanel = topButtons(null);
-    await loadMyData();
-    contentHolidaysPanel = holidayPanel();
-
-    myPeopleWorkdays = results[3] as List<Workday>;
-
-    // autoStartWorkday(context);
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   Widget peopleCalendar() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -956,9 +908,6 @@ class _HomePageState extends State<HomePage> {
       loadFromProjectsCache();
     });
 
-    loadFromCache();
-    loadFromProjectsCache();
-
     topButtonsPanel = topButtons(context);
 
     mainMenuWidget = mainMenu(context, "/home", profile);
@@ -967,6 +916,8 @@ class _HomePageState extends State<HomePage> {
     contentTasksPanel = tasksPanel();
     contentProjectsPanel = projectsPanel();
     contentNotifyPanel = notifyPanel();
+    loadFromCache();
+    loadFromProjectsCache();
     // _rrhhProvider.initialize();
 
     // initializeData();
@@ -2008,9 +1959,15 @@ class _HomePageState extends State<HomePage> {
   void updateRemainingHolidays() {
     remainingHolidays = {};
     holidayDays = 0;
+    myHolidays = _rrhhProvider?.holidaysRequests
+        .where((hr) => hr.userId == user.email && !hr.isRejected())
+        .toList(growable: true);
     if (currentEmployee == null || holCat == null || myHolidays == null) {
       return;
     }
+    holCat = _rrhhProvider?.holidaysCategories
+        .where((cat) => cat.isActive())
+        .toList(growable: false);
 
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();
@@ -2038,7 +1995,7 @@ class _HomePageState extends State<HomePage> {
       } else {
         remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
       }
-      if (cat.obligation) {
+      if (cat.obligation && cat.docRequired == 0) {
         holidayDays = (holidayDays + (cat.days * factor)).round();
         obligatoryHolidays = (obligatoryHolidays + (cat.days * factor)).round();
       }

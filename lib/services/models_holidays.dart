@@ -669,6 +669,12 @@ class HolidaysCategory {
     }
   }
 
+  bool isActive() {
+    if (year > DateTime.now().year) return false;
+    if (validUntil.isBefore(DateTime.now())) return false;
+    return true;
+  }
+
   static HolidaysCategory getEmpty(
       {String id = '',
       String name = 'Sin Categoría',
