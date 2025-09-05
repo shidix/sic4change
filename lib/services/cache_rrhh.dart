@@ -1,20 +1,20 @@
 import 'dart:collection';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
-import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 
 class RRHHProvider with ChangeNotifier {
+  late final Key key;
   bool initialized = false;
   Profile? _profile;
   Organization? _organization;
+  Contact? _contact;
   Employee? _employee;
   List<Employee> _employees = [];
   List<Organization> _organizations = [];
@@ -24,11 +24,12 @@ class RRHHProvider with ChangeNotifier {
   List<Workday> _workdays = [];
   List<Department> _departments = [];
   List<SNotification> _notifications = [];
-  List<STask> _tasks = [];
+  // List<STask> _tasks = [];
 
   Profile? get profile => _profile;
   Organization? get organization => _organization;
   Employee? get employee => _employee;
+  Contact? get contact => _contact;
   List<Employee> get employees => _employees;
   List<Organization> get organizations => _organizations;
   List<HolidaysCategory> get holidaysCategories => _holidaysCategories;
@@ -36,7 +37,7 @@ class RRHHProvider with ChangeNotifier {
   List<HolidaysConfig> get calendars => _calendars;
   List<Workday> get workdays => _workdays;
   List<Department> get departments => _departments;
-  List<STask> get tasks => _tasks;
+  // List<STask> get tasks => _tasks;
 
   Queue<bool> isLoading = Queue();
 
@@ -90,10 +91,15 @@ class RRHHProvider with ChangeNotifier {
     sendNotify();
   }
 
-  set tasks(List<STask> value) {
-    _tasks = value;
+  set contact(Contact? value) {
+    _contact = value;
     sendNotify();
   }
+
+  // set tasks(List<STask> value) {
+  //   _tasks = value;
+  //   sendNotify();
+  // }
 
   void addEmployee(Employee employee) {
     int index = _employees.indexWhere((e) => e.id == employee.id);
@@ -219,24 +225,24 @@ class RRHHProvider with ChangeNotifier {
     }
   }
 
-  void addTask(STask? task) {
-    if (task == null) return;
+  // void addTask(STask? task) {
+  //   if (task == null) return;
 
-    int index = _tasks.indexWhere((e) => e.id == task.id);
-    if (index != -1) {
-      _tasks[index] = task;
-    } else {
-      _tasks.add(task);
-    }
-    sendNotify();
-  }
+  //   int index = _tasks.indexWhere((e) => e.id == task.id);
+  //   if (index != -1) {
+  //     _tasks[index] = task;
+  //   } else {
+  //     _tasks.add(task);
+  //   }
+  //   sendNotify();
+  // }
 
-  void removeTask(STask? task) {
-    if (task == null) return;
-    if (!_tasks.any((e) => e.id == task.id)) return;
-    _tasks.removeWhere((e) => e.id == task.id);
-    sendNotify();
-  }
+  // void removeTask(STask? task) {
+  //   if (task == null) return;
+  //   if (!_tasks.any((e) => e.id == task.id)) return;
+  //   _tasks.removeWhere((e) => e.id == task.id);
+  //   sendNotify();
+  // }
 
   Future<void> loadDepartments({bool notify = true}) async {
     if (_organization != null) {
@@ -335,16 +341,16 @@ class RRHHProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadTasks({bool notify = true}) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    isLoading.add(true);
-    _tasks = await STask.getByAssigned(user.email, lazy: true);
-    isLoading.removeFirst();
-    if (notify && isLoading.isEmpty) {
-      sendNotify();
-    }
-  }
+  // Future<void> loadTasks({bool notify = true}) async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) return;
+  //   isLoading.add(true);
+  //   _tasks = await STask.getByAssigned(user.email, lazy: true);
+  //   isLoading.removeFirst();
+  //   if (notify && isLoading.isEmpty) {
+  //     sendNotify();
+  //   }
+  // }
 
   List<SNotification> get notifications => _notifications;
   set notifications(List<SNotification> value) {
@@ -393,6 +399,8 @@ class RRHHProvider with ChangeNotifier {
     _calendars = [];
     _workdays = [];
     _departments = [];
+    _notifications = [];
+    // _tasks = [];
     initialized = false;
     isLoading.clear();
     // sendNotify();
@@ -423,6 +431,9 @@ class RRHHProvider with ChangeNotifier {
       Employee.byEmail(user.email!).then((value) {
         _employee = value;
       });
+      Contact.byEmail(user.email!).then((value) {
+        _contact = value;
+      });
       Profile.getProfile(user.email!).then((profile) {
         if (profile.id.isNotEmpty) {
           _profile = profile;
@@ -446,6 +457,7 @@ class RRHHProvider with ChangeNotifier {
               loadCalendars(notify: true);
               loadDepartments(notify: true);
               loadNotifications(notify: true);
+              // loadTasks(notify: true);
               initialized = true;
               sendNotify();
             });
@@ -453,5 +465,10 @@ class RRHHProvider with ChangeNotifier {
         }
       });
     }
+  }
+
+  RRHHProvider() {
+    key = UniqueKey();
+    initialize();
   }
 }

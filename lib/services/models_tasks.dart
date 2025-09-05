@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:pdf/widgets.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -24,6 +25,9 @@ Map<String, dynamic> getOccupationCell(val) {
 
 class STask {
   static const String tbName = "s4c_tasks";
+  DocumentReference? docRef;
+  Function? onChanged;
+
   String id = "";
   String uuid = "";
   String name;
@@ -64,9 +68,55 @@ class STask {
 
   STask(this.name);
 
-  static STask fromJson(Map<String, dynamic> json) {
+  STask update(Map<String, dynamic> json) {
+    if (json['id'] != id) return this;
+
+    uuid = json["uuid"];
+    name = json['name'] ?? "";
+    description = json['description'] ?? "";
+    comments = json['comments'] ?? "";
+    status = json['status'] ?? "";
+    priority = json['priority'] ?? "";
+    duration = json['duration'] ?? 0;
+    durationMin = json['durationMin'] ?? 0;
+    dealDate = (json['dealDate'] != null)
+        ? (json['dealDate'] as Timestamp).toDate()
+        : DateTime.now();
+    deadLineDate = (json['deadLineDate'] != null)
+        ? (json['deadLineDate'] as Timestamp).toDate()
+        : DateTime.now();
+    newDeadLineDate = (json['newDeadLineDate'] != null)
+        ? (json['newDeadLineDate'] as Timestamp).toDate()
+        : DateTime.now();
+    sender = json['sender'] ?? "";
+    project = json['project'] ?? "";
+    programme = json['programme'] ?? "";
+    folder = json['folder'] ?? "";
+    assigned =
+        (json['assigned'] as List).map((item) => item as String).toList();
+    receivers =
+        (json['receivers'] as List).map((item) => item as String).toList();
+    receiversOrg =
+        (json['receiversOrg'] as List).map((item) => item as String).toList();
+    // programmes = (json['programmes'] as List).map((item) => item as String).toList();
+    public = json['public'] ?? false;
+    revision = json['revision'] ?? false;
+
+    return this;
+  }
+
+  // static STask fromJson(Map<String, dynamic> json) {
+  static STask fromJson(DocumentSnapshot doc) {
+    Map<String, dynamic> json = doc.data() as Map<String, dynamic>;
+
     STask task = STask(json['name']);
-    task.id = json["id"];
+    task.docRef = doc.reference;
+    // task.id = json["id"];
+    if (doc.id != json["id"]) {
+      doc.reference.update({"id": doc.id});
+    }
+
+    task.id = doc.id;
     task.uuid = json["uuid"];
     task.description = json['description'] ?? "";
     task.comments = json['comments'] ?? "";
@@ -96,6 +146,11 @@ class STask {
     // task.programmes = (json['programmes'] as List).map((item) => item as String).toList();
     task.public = json['public'] ?? false;
     task.revision = json['revision'] ?? false;
+    task.docRef!.snapshots().listen((event) async {
+      task.docRef = event.reference;
+      task.update(event.data() as Map<String, dynamic>);
+      if (task.onChanged != null) task.onChanged!();
+    });
 
     // id = json["id"],
     //   uuid = json["uuid"],
@@ -165,6 +220,7 @@ class STask {
           .collection(tbName)
           .add(data)
           .then((value) => id = value.id);
+      FirebaseFirestore.instance.collection(tbName).doc(id).update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
@@ -189,9 +245,10 @@ class STask {
   Future<STask> reload() async {
     DocumentSnapshot doc =
         await FirebaseFirestore.instance.collection(tbName).doc(id).get();
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    STask.fromJson(data);
+    // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // data["id"] = doc.id;
+    STask.fromJson(doc);
+
     await getProject();
     await getStatus();
     await getSender();
@@ -369,16 +426,20 @@ class STask {
     rel = relations;
   }
 
-  static Future<List<STask>> getByAssigned(uuid, {lazy = false}) async {
+  static Future<List<STask>> getByAssigned(uuid,
+      {List<STask>? tasks, lazy = false}) async {
     List<STask> items = [];
+    if (tasks != null) {
+      return tasks.where((t) => t.assigned.contains(uuid)).toList();
+    }
     final query = await FirebaseFirestore.instance
         .collection(tbName)
         .where("assigned", arrayContains: uuid)
         .get();
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data();
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
+      // final Map<String, dynamic> data = doc.data();
+      // // data["id"] = doc.id;
+      STask task = STask.fromJson(doc);
       if (!lazy) {
         await task.getProject();
         await task.getStatus();
@@ -448,24 +509,32 @@ class STask {
     ];
   }
 
-  static Future<Map<String, dynamic>> getOccupation(user) async {
+  static Future<Map<String, dynamic>> getOccupation(user,
+      [List<STask>? tasks]) async {
     DateTime now = DateTime.now();
     //DateTime tomorrow = DateTime(now.year, now.month, now.day + 1);
     Map<String, dynamic> row = {};
+    double todayVal = 0;
+    double tomorrowVal = 0;
+    double weekVal = 0;
+    double monthVal = 0;
     try {
-      final query = await FirebaseFirestore.instance
-          .collection(tbName)
-          .where("assigned", arrayContains: user.toString())
-          .where("dealDate", isLessThanOrEqualTo: now)
-          .get();
-      double todayVal = 0;
-      double tomorrowVal = 0;
-      double weekVal = 0;
-      double monthVal = 0;
-      for (var doc in query.docs) {
-        final Map<String, dynamic> data = doc.data();
-        data["id"] = doc.id;
-        STask task = STask.fromJson(data);
+      if (tasks == null) {
+        tasks = [];
+        final query = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where("assigned", arrayContains: user.toString())
+            .where("dealDate", isLessThanOrEqualTo: now)
+            .get();
+
+        for (var doc in query.docs) {
+          // final Map<String, dynamic> data = doc.data();
+          // data["id"] = doc.id;
+          tasks.add(STask.fromJson(doc));
+        }
+      }
+      for (STask task in tasks) {
+        // STask task = STask.fromJson(data);
         if (task.dealDate.isBefore(now) && task.deadLineDate.isAfter(now)) {
           //Número de días
           double days =
@@ -533,9 +602,10 @@ class STask {
           await FirebaseFirestore.instance.collection(tbName).get();
 
       for (var doc in query.docs) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        STask task = STask.fromJson(data);
+        // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // data["id"] = doc.id;
+        STask task = STask.fromJson(doc);
+        // task.id = doc.id;
         /*await task.getProject();
         await task.getStatus();
         await task.getSender();
@@ -551,21 +621,25 @@ class STask {
     return items;
   }
 
-  static Future<List<KeyValue>> getTasksHash() async {
-    List<KeyValue> items = [];
-    QuerySnapshot query =
-        await FirebaseFirestore.instance.collection(tbName).get();
+  // static Future<List<KeyValue>> getTasksHash() async {
+  //   List<KeyValue> items = [];
+  //   QuerySnapshot query =
+  //       await FirebaseFirestore.instance.collection(tbName).get();
 
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
-      items.add(task.toKeyValue());
+  //   for (var doc in query.docs) {
+  //     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //     data["id"] = doc.id;
+  //     STask task = STask.fromJson(data);
+  //     items.add(task.toKeyValue());
+  //   }
+  //   return items;
+  // }
+
+  static Future<List> getTasksBySender(sender,
+      [List<STask>? tasks, lazy = false]) async {
+    if (tasks != null) {
+      return tasks.where((t) => t.sender == sender).toList();
     }
-    return items;
-  }
-
-  static Future<List> getTasksBySender(sender) async {
     List<STask> items = [];
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection(tbName)
@@ -573,23 +647,31 @@ class STask {
         .get();
 
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      STask task = STask.fromJson(data);
-      await task.getProject();
-      await task.getProgramme();
-      await task.getStatus();
-      await task.getSender();
-      await task.getAssigned();
-      await task.getReceivers();
-      await task.getReceiversOrg();
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // STask task = STask.fromJson(data);
+      STask task = STask.fromJson(doc);
+      task.id = doc.id;
+
+      if (!lazy) {
+        await task.getProject();
+        await task.getProgramme();
+        await task.getStatus();
+        await task.getSender();
+        await task.getAssigned();
+        await task.getReceivers();
+        await task.getReceiversOrg();
+      }
       //await task.getProgrammes();
       items.add(task);
     }
     return items;
   }
 
-  static Future<List> searchTasks(name) async {
+  static Future<List> searchTasks(name, [List<STask>? tasks]) async {
+    if (tasks != null) {
+      return tasks.where((t) => t.name == name).toList();
+    }
     List<STask> items = [];
     QuerySnapshot? query;
 
@@ -602,10 +684,10 @@ class STask {
       query = await FirebaseFirestore.instance.collection(tbName).get();
     }
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = STask.fromJson(data);
-      items.add(item);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      // final item = STask.fromJson(data);
+      items.add(STask.fromJson(doc));
     }
     return items;
   }

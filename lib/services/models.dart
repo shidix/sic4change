@@ -25,6 +25,8 @@ import 'package:uuid/uuid.dart';
 
 class SProject {
   static const String tbName = "s4c_projects";
+  DocumentReference? docRef;
+  Function? onChanged;
 
   String id = "";
   String uuid = "";
@@ -61,8 +63,38 @@ class SProject {
     this.name,
   );
 
-  factory SProject.fromJson(Map<String, dynamic> json) {
+  SProject update(Map<String, dynamic> json) {
+    if (json["id"] != id) return this;
+
+    if (json.containsKey("id")) id = json["id"];
+    if (json.containsKey("uuid")) uuid = json["uuid"];
+    if (json.containsKey("name")) name = json['name'];
+    if (json.containsKey("description")) description = json['description'];
+    if (json.containsKey("type")) type = json['type'];
+    if (json.containsKey("status")) status = json['status'];
+    if (json.containsKey("budget")) budget = json['budget'];
+    if (json.containsKey("manager")) manager = json['manager'];
+    if (json.containsKey("programme")) programme = json['programme'];
+    if (json.containsKey("announcement")) announcement = json['announcement'];
+    if (json.containsKey("ambit")) ambit = json['ambit'];
+    if (json.containsKey("audit")) audit = json['audit'];
+    if (json.containsKey("evaluation")) evaluation = json['evaluation'];
+    if (json.containsKey("financiers")) financiers = json['financiers'];
+    if (json.containsKey("partners")) partners = json['partners'];
+    if (json.containsKey("folder")) folder = json['folder'];
+    if (json.containsKey("execBudget")) execBudget = json['execBudget'];
+    if (json.containsKey("assignedBudget")) {
+      assignedBudget = json['assignedBudget'];
+    }
+    return this;
+  }
+
+  factory SProject.fromJson(DocumentSnapshot doc) {
+    final Map<String, dynamic> json = doc.data() as Map<String, dynamic>;
+
     SProject item = SProject(json['name']);
+    item.docRef = doc.reference;
+
     item.id = json["id"];
     item.uuid = json["uuid"];
     item.name = json['name'];
@@ -89,6 +121,13 @@ class SProject {
     } else {
       item.assignedBudget = json['assignedBudget'];
     }
+
+    item.docRef!.snapshots().listen((snapshot) {
+      if (item.onChanged != null) {
+        item.update(snapshot.data() as Map<String, dynamic>);
+        item.onChanged?.call();
+      }
+    });
     return item;
   }
 
@@ -166,9 +205,9 @@ class SProject {
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection(SProject.tbName).get();
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item);
     }
     return items;
@@ -187,9 +226,9 @@ class SProject {
           await FirebaseFirestore.instance.collection(SProject.tbName).get();
     }
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item);
     }
     return items;
@@ -203,9 +242,9 @@ class SProject {
         .where("type", whereIn: ptList.map((e) => e.uuid).toList())
         .get();
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item);
     }
     return items;
@@ -500,9 +539,10 @@ class SProject {
       return item;
     }
     final _doc = query.docs.first;
-    final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
-    data["id"] = _doc.id;
-    item = SProject.fromJson(data);
+
+    // final Map<String, dynamic> data = _doc.data() as Map<String, dynamic>;
+    // data["id"] = _doc.id;
+    item = SProject.fromJson(_doc);
     return item;
   }
 
@@ -617,9 +657,9 @@ class SProject {
         .where("uuid", whereIn: uuids)
         .get();
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item);
     }
     return items;
@@ -632,9 +672,9 @@ class SProject {
         .where("uuid", isEqualTo: uuid)
         .get();
     final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    proj = SProject.fromJson(data);
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    proj = SProject.fromJson(dbP);
     return proj.name;
   }
 
@@ -670,9 +710,9 @@ class SProject {
     QuerySnapshot queryProject =
         await FirebaseFirestore.instance.collection("s4c_projects").get();
     for (var doc in queryProject.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item.toKeyValue());
     }
     return items;
@@ -683,9 +723,9 @@ class SProject {
         .collection("s4c_projects")
         .doc(id)
         .get();
-    final Map<String, dynamic> data = query.data() as Map<String, dynamic>;
-    data["id"] = query.id;
-    return SProject.fromJson(data);
+    // final Map<String, dynamic> data = query.data() as Map<String, dynamic>;
+    // data["id"] = query.id;
+    return SProject.fromJson(query);
   }
 
   static Future<SProject?> getProjectByUuid(String uuid) async {
@@ -695,9 +735,9 @@ class SProject {
         .get();
     if (query.docs.isEmpty) return null;
     final doc = query.docs.first;
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    return SProject.fromJson(data);
+    // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // data["id"] = doc.id;
+    return SProject.fromJson(doc);
   }
 
   static Future<List<SProject>> getProjectsByType(String type) async {
@@ -733,9 +773,9 @@ class SProject {
         .where("programme", isEqualTo: programme)
         .get();
     for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = SProject.fromJson(data);
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = SProject.fromJson(doc);
       items.add(item);
     }
     return items;
@@ -963,6 +1003,10 @@ DateTime maxDate = DateTime(2100, 12, 31);
 DateTime limitDate = DateTime(2100, 12, 30);
 
 class ProjectDates {
+  static String tbName = "s4c_project_dates";
+  DocumentReference? docRef;
+  Function? onChanged;
+
   String id = "";
   String uuid = "";
   /*DateTime? approved;
@@ -991,28 +1035,80 @@ class ProjectDates {
 
   ProjectDates(this.project);
 
-  ProjectDates.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        approved = json["approved"].toDate(),
-        start = json["start"].toDate(),
-        end = json["end"].toDate(),
-        justification = json["justification"].toDate(),
-        delivery = json["delivery"].toDate(),
-        sended = json["sended"].toDate(),
-        reject = json["reject"].toDate(),
-        refuse = json["refuse"].toDate(),
+  ProjectDates update(Map<String, dynamic> data) {
+    if (data.containsKey("approved")) {
+      approved = getDate(data["approved"]);
+    }
+    if (data.containsKey("start")) {
+      start = getDate(data["start"]);
+    }
+    if (data.containsKey("end")) {
+      end = getDate(data["end"]);
+    }
+    if (data.containsKey("justification")) {
+      justification = getDate(data["justification"]);
+    }
+    if (data.containsKey("delivery")) {
+      delivery = getDate(data["delivery"]);
+    }
+    if (data.containsKey("sended")) {
+      sended = getDate(data["sended"]);
+    }
+    if (data.containsKey("reject")) {
+      reject = getDate(data["reject"]);
+    }
+    if (data.containsKey("refuse")) {
+      refuse = getDate(data["refuse"]);
+    }
 
-        /*approved = (json["approved"] != null) ? json["approved"].toDate() : "",
-        start = (json["start"] != null) ? json["start"].toDate() : "",
-        end = (json["end"] != null) ? json["end"].toDate() : "",
-        justification = (json["justification"] != null)
-            ? json["justification"].toDate()
-            : "",
-        delivery = (json["delivery"] != null) ? json["delivery"].toDate() : "",
-        sended = (json["sended"] != null) ? json["sended"].toDate() : "",
-        reject = (json["reject"] != null) ? json["reject"].toDate() : "",*/
-        project = json["project"];
+    return this;
+  }
+
+  static ProjectDates fromJson(DocumentSnapshot doc) {
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    ProjectDates item = ProjectDates(data["project"]);
+    item.docRef = doc.reference;
+    item.id = doc.id;
+    item.uuid = data["uuid"];
+    item.approved = getDate(data["approved"]);
+    item.start = getDate(data["start"]);
+    item.end = getDate(data["end"]);
+    item.justification = getDate(data["justification"]);
+    item.delivery = getDate(data["delivery"]);
+    item.sended = getDate(data["sended"]);
+    item.reject = getDate(data["reject"]);
+    item.refuse = getDate(data["refuse"]);
+    item.docRef?.snapshots().listen((event) {
+      final Map<String, dynamic> data = event.data() as Map<String, dynamic>;
+      item.update(data);
+      item.onChanged?.call();
+    });
+
+    return item;
+  }
+
+  // ProjectDates.fromJson(Map<String, dynamic> json)
+  //     : id = json["id"],
+  //       uuid = json["uuid"],
+  //       approved = json["approved"].toDate(),
+  //       start = json["start"].toDate(),
+  //       end = json["end"].toDate(),
+  //       justification = json["justification"].toDate(),
+  //       delivery = json["delivery"].toDate(),
+  //       sended = json["sended"].toDate(),
+  //       reject = json["reject"].toDate(),
+  //       refuse = json["refuse"].toDate(),
+
+  //       /*approved = (json["approved"] != null) ? json["approved"].toDate() : "",
+  //       start = (json["start"] != null) ? json["start"].toDate() : "",
+  //       end = (json["end"] != null) ? json["end"].toDate() : "",
+  //       justification = (json["justification"] != null)
+  //           ? json["justification"].toDate()
+  //           : "",
+  //       delivery = (json["delivery"] != null) ? json["delivery"].toDate() : "",
+  //       sended = (json["sended"] != null) ? json["sended"].toDate() : "",
+  //       reject = (json["reject"] != null) ? json["reject"].toDate() : "",*/
+  //       project = json["project"];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -1033,21 +1129,25 @@ class ProjectDates {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_project_dates").add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
+        id = value.id;
+        docRef = value;
+        docRef?.update({'id': id});
+        docRef?.snapshots().listen((event) {
+          final Map<String, dynamic> data =
+              event.data() as Map<String, dynamic>;
+          update(data);
+          onChanged?.call();
+        });
+      });
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_project_dates")
-          .doc(id)
-          .set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance
-        .collection("s4c_project_dates")
-        .doc(id)
-        .delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   DateTime getApproved() {
@@ -1135,12 +1235,17 @@ class ProjectDates {
   static Future<List<ProjectDates>> getProjectDates() async {
     List<ProjectDates> items = [];
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_project_dates").get();
+        await FirebaseFirestore.instance.collection(ProjectDates.tbName).get();
 
     for (var doc in query.docs) {
+      // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      // data["id"] = doc.id;
+      final item = ProjectDates.fromJson(doc);
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      final item = ProjectDates.fromJson(data);
+
+      if (data['id'].isEmpty) {
+        doc.reference.update({'id': doc.id});
+      }
       items.add(item);
     }
 
@@ -1149,17 +1254,17 @@ class ProjectDates {
 
   static Future<ProjectDates> getProjectDatesById(String id) async {
     DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection("s4c_project_dates")
+        .collection(ProjectDates.tbName)
         .doc(id)
         .get();
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    return ProjectDates.fromJson(data);
+    // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // data["id"] = doc.id;
+    return ProjectDates.fromJson(doc);
   }
 
   static Future<ProjectDates> getProjectDatesByProject(String project) async {
     QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_project_dates")
+        .collection(ProjectDates.tbName)
         .where("project", isEqualTo: project)
         .get();
     if (query.docs.isEmpty) {
@@ -1168,9 +1273,9 @@ class ProjectDates {
       return dates;
     }
     final dbRes = query.docs.first;
-    final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
-    data["id"] = dbRes.id;
-    return ProjectDates.fromJson(data);
+    // final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+    // data["id"] = dbRes.id;
+    return ProjectDates.fromJson(dbRes);
   }
 }
 

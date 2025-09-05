@@ -159,17 +159,7 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () async {
-      // User user = FirebaseAuth.instance.currentUser!;
-      // // Workday? currentWorkday = await Workday.currentByUser(user.email!);
-      // // if ((currentWorkday != null) && (currentWorkday.open)) {
-      // //   currentWorkday.endDate = DateTime.now();
-      // //   currentWorkday.open = false;
-      // //   await currentWorkday.save();
-      // // }
-      // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
-      //FirebaseAuth.instance.signOut();
-
-      // Navigator.pushReplacementNamed(context, '/');
+      //await signOut(context);
       await FirebaseAuth.instance.signOut();
       RestartApp.restart(context);
       Navigator.of(context)

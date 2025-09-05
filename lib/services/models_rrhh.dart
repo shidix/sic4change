@@ -760,9 +760,7 @@ class Employee {
         ? await Workplace.byId(json['workplace'])
         : Workplace.getEmpty();
 
-    item.docRef = (item.id != null && item.id!.isNotEmpty)
-        ? FirebaseFirestore.instance.collection(Employee.tbName).doc(item.id)
-        : null;
+    item.docRef ??= doc;
     if (item.docRef != null) {
       item.docRef!.snapshots().listen((snapshot) {
         if (snapshot.exists) {
@@ -813,10 +811,8 @@ class Employee {
                   item.workplace = value;
                 })
               : Workplace.getEmpty();
-          if (item.onChanged != null) {
-            item.onChanged!();
-          }
         }
+        item.onChanged?.call();
       });
     }
 

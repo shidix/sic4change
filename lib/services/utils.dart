@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/main.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -563,28 +564,11 @@ void checkPermissions(
   }
 }
 
-void signOut(BuildContext context) {
-  // print("Signing out user: ${FirebaseAuth.instance.currentUser?.email}");
-  // await createLog(
-  //     'User signed out: ${FirebaseAuth.instance.currentUser?.email}');
-  // Provider.of<ProfileProvider>(context, listen: false).clearProfile();
-  // Provider.of<RRHHProvider>(context, listen: false).clear();
-  RRHHProvider? rrhhProvider = context.read<RRHHProvider?>();
-  rrhhProvider?.clear();
-  ProfileProvider? profileProvider = context.read<ProfileProvider?>();
-  profileProvider?.clearProfile();
-  print("Profile and RRHH providers cleared.");
-  if (FirebaseAuth.instance.currentUser != null &&
-      FirebaseAuth.instance.currentUser!.email != null) {
-    FirebaseAuth.instance.signOut().then((value) {
-      // Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-    }).catchError((e) {
-      print('Error signing out: $e');
-      // Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-
-      // createLog('Error signing out: $e');
-    });
-  }
+void signOut(BuildContext context) async {
+  await FirebaseAuth.instance.signOut();
+  RestartApp.restart(context);
+  Navigator.of(context)
+      .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
 }
 
 String toDuration(double hours, {String format = 'dhm'}) {
