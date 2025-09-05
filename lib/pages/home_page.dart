@@ -2038,7 +2038,7 @@ class _HomePageState extends State<HomePage> {
       } else {
         remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
       }
-      if (cat.obligation && cat.docRequired == 0) {
+      if (cat.obligation) {
         holidayDays = (holidayDays + (cat.days * factor)).round();
         obligatoryHolidays = (obligatoryHolidays + (cat.days * factor)).round();
       }
