@@ -2924,7 +2924,7 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                               flex: 4,
                               child: Text(
-                                "Projecto",
+                                "Proyecto",
                                 style: subTitleText,
                                 textAlign: TextAlign.left,
                               )),
