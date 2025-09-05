@@ -964,8 +964,9 @@ class _HomePageState extends State<HomePage> {
     mainMenuWidget = mainMenu(context, "/home", profile);
     contentWorkPanel = workTimePanel();
     contentHolidaysPanel = holidayPanel();
-    contentTasksPanel = Container();
-
+    contentTasksPanel = tasksPanel();
+    contentProjectsPanel = projectsPanel();
+    contentNotifyPanel = notifyPanel();
     // _rrhhProvider.initialize();
 
     // initializeData();
