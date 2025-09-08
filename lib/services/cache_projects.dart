@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/transcoder/v1.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -34,7 +33,7 @@ class ProjectsProvider with ChangeNotifier {
   List<TasksStatus> _taskStatuses = [];
   List<Profile> _profiles = [];
 
-  Queue<bool> _isLoading = Queue();
+  final Queue<bool> _isLoading = Queue();
 
   void sendNotify() {
     notifyListeners();
