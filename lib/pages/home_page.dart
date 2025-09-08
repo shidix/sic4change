@@ -2812,6 +2812,9 @@ class _HomePageState extends State<HomePage> {
 
 /////////// PROJECTS ///////////
   Widget projectsPanel() {
+    contact ??= _rrhhProvider?.contact;
+    contact ??= _projectsProvider?.contacts
+        .firstWhere((c) => c.email == user.email, orElse: () => Contact.getEmpty());
     myProjects = [];
     // for (STask task in _projectsProvider!.tasks) {
     //   if (hashProjects.containsKey(task.project)) {
