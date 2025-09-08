@@ -576,7 +576,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
-        IntrinsicHeight(
+        SizedBox(
+          width: double.infinity,
           child: Row(
             children: [
               Column(
