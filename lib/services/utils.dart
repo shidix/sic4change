@@ -351,6 +351,37 @@ Future<String> uploadFileToStorage(PlatformFile file,
   return path;
 }
 
+Future<String> moveFileInStorage(String currentPath, String newPath) async {
+  final ref = FirebaseStorage.instance.ref().child(currentPath);
+  try {
+    final data = await ref.getData();
+    if (data == null) {
+      return '';
+    }
+    final newRef = FirebaseStorage.instance.ref().child(newPath);
+    await newRef.putData(data);
+    await ref.delete();
+    return newPath;
+  } catch (e) {
+    return '';
+  }
+}
+
+Future<String> copyFileInStorage(String currentPath, String newPath) async {
+  final ref = FirebaseStorage.instance.ref().child(currentPath);
+  try {
+    final data = await ref.getData();
+    if (data == null) {
+      return '';
+    }
+    final newRef = FirebaseStorage.instance.ref().child(newPath);
+    await newRef.putData(data);
+    return newPath;
+  } catch (e) {
+    return '';
+  }
+}
+
 Future<bool> removeFileFromStorage(String? path) async {
   if (path == null) {
     return true;

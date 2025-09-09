@@ -145,6 +145,28 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
+  void addProgramme(Programme? programme) {
+    if (programme == null) return;
+    _isLoading.add(true);
+    int index = _programmes.indexWhere((element) => element.id == programme.id);
+    if (index != -1) {
+      _programmes[index] = programme;
+    } else {
+      _programmes.add(programme);
+    }
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void removeProgramme(Programme? programme) {
+    if (programme == null) return;
+    if (!_programmes.any((element) => element.id == programme.id)) return;
+    _isLoading.add(true);
+    _programmes.remove(programme);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
   Future<void> loadProjects({bool notify = false}) async {
     _isLoading.add(true);
     await Future.wait(

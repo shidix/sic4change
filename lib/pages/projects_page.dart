@@ -16,6 +16,7 @@ import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/models_risks.dart';
+import 'package:sic4change/services/programme_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -73,24 +74,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
     setLoading();
     prList = _projectsProvider!.projects;
 
-    // if (prList.isEmpty) {
-    //   prList = await SProject.getProjects();
-    // }
-    // await SProject.getProjects().then((val) {
-    //   if (mounted) {
-    //     setState(() {
-    //       prList = val;
-    //     });
-    //     for (SProject item in prList) {
-    //       item.loadObjs().then((value) {
-    //         if (mounted) {
-    //           setState(() {});
-    //         }
-    //       });
-    //     }
-    //   }
-    //   //prList = val;
-    // });
     if (mounted) {
       setState(() {});
     }
@@ -107,24 +90,26 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void initializeData() async {
-    // loadProjects();
-    _projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
-    _projectsProvider = context.read<ProjectsProvider?>();
-    _projectsProvider ??= ProjectsProvider();
-    // _projectsProvider.profile = profile;
-    // _projectsProvider.organization = currentOrg;
-    if (prList.isEmpty) {
-      loadProjects();
-    }
-    _projectsProvider!.addListener(() {
-      // prList = _projectsProvider.projects;
-      loadProjects();
-      if (!mounted) return;
-      setState(() {});
-    });
-    if (_projectsProvider!.projects.isEmpty) {
-      _projectsProvider!.initialize();
-    }
+    // // loadProjects();
+    // _projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
+    // _projectsProvider = context.read<ProjectsProvider?>();
+    // _projectsProvider ??= ProjectsProvider();
+    // // _projectsProvider.profile = profile;
+    // // _projectsProvider.organization = currentOrg;
+    // if (prList.isEmpty) {
+    //   loadProjects();
+    // }
+    // _projectsProvider!.addListener(() {
+    //   // prList = _projectsProvider.projects;
+    //   loadProjects();
+    //   if (!mounted) return;
+    //   setState(() {});
+    // });
+    // if (_projectsProvider!.projects.isEmpty) {
+    //   _projectsProvider!.initialize();
+    // }
+    loadProgrammes();
+    loadProjects();
     if (mounted) {
       setState(() {});
     }
@@ -144,12 +129,17 @@ class _ProjectsPageState extends State<ProjectsPage> {
     _mainMenu = mainMenu(context, "/projects");
 
     // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-    _profileProvider = context.read<ProfileProvider?>();
-    _profileProvider ??= ProfileProvider();
+    try {
+      _profileProvider = context.read<ProfileProvider?>();
+    } catch (e) {
+      _profileProvider = ProfileProvider();
+    }
     _listener = () {
       if (!mounted) return;
       getProfile(user);
       _mainMenu = mainMenu(context, "/projects");
+      profile = _profileProvider!.profile;
+      currentOrg = _profileProvider!.organization;
       if (!((profile != null) && (currentOrg != null))) {
         _profileProvider!.loadProfile();
       }
@@ -160,6 +150,24 @@ class _ProjectsPageState extends State<ProjectsPage> {
     if ((profile == null) || (currentOrg == null)) {
       _profileProvider!.loadProfile();
     }
+
+    try {
+      _projectsProvider = context.read<ProjectsProvider?>();
+    } catch (e) {
+      _projectsProvider = ProjectsProvider();
+    }
+
+    _projectsProvider ??= context.read<ProjectsProvider?>();
+    if (prList.isEmpty) {
+      loadProjects();
+    }
+    _projectsProvider!.addListener(() {
+      // prList = _projectsProvider.projects;
+      loadProjects();
+      if (!mounted) return;
+      setState(() {});
+    });
+
     initializeData();
 
     // _mainMenu = mainMenu(context, "/projects");
@@ -217,7 +225,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
               /*goPage(context, "Listado", const ProjectListPage(), Icons.info,
                   style: "bigBtn", extraction: () {}),*/
               space(width: 10),
-              addBtn(context, callDialog, {"programme": null},
+              addBtn(context, callDialog,
+                  {"programme": Programme('Nuevo programa')},
                   text: "Añadir Programa"),
               space(width: 10),
               addBtn(context, callProjectDialog, {"programme": null},
@@ -259,7 +268,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   InkWell(
                       child: Column(children: [
                         customText(programme.name, 16, bold: FontWeight.bold),
-                        Image.network(programme.logo, height: 100),
+                        (programme.logo != '')
+                            ? Image.network(programme.logo, height: 100)
+                            : SizedBox(height: 100, width: 100),
                       ]),
                       onTap: () {
                         Navigator.push(
@@ -377,7 +388,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void saveProgramme(List args) async {
     Programme programme = args[0];
+
+    String tmpPath = "files/programmes/${programme.id}/logoTemp.png";
+    String logoPath = "files/programmes/${programme.id}/logo.png";
+    logoPath = await moveFileInStorage(tmpPath, logoPath);
+    programme.logo = await getDownloadUrl(logoPath);
     programme.save();
+    _projectsProvider!.addProgramme(programme);
     loadProgrammes();
     Navigator.pop(context);
   }
@@ -403,6 +420,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Future<void> programmeEditDialog(context, programme) {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              titlePadding: const EdgeInsets.all(0),
+              title: s4cTitleBar('Modificar programa'),
+              content: ProgrammeForm(
+                currentProgramme: (programme != null) ? programme : null,
+                onSaved: (args) {
+                  saveProgramme(args);
+                },
+              ));
+        });
+  }
+
+  Future<void> programmeEditDialog_old(context, programme) {
     programme ??= Programme("");
 
     return showDialog<void>(
@@ -436,8 +470,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   child: Image.network(programme.logo, height: 40, width: 40)),
               Expanded(
                   flex: 9,
-                  child: UploadFileField(
+                  child: UploadImageField(
                       textToShow: "Logo",
+                      rootPath: "files/programmes/${programme.id}",
+                      fileName: "logo.png",
+                      pathImage: programme.logo,
                       onSelectedFile: (file) async {
                         int index = _projectsProvider!.programmes.indexWhere(
                             (element) => element.id == programme.id);

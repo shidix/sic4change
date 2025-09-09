@@ -1,5 +1,7 @@
 // ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, library_private_types_in_public_api
 
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1899,6 +1901,85 @@ class UploadFileField extends StatelessWidget {
               context,
               fullWidth: true)),
     ]);
+  }
+}
+
+class UploadImageField extends StatefulWidget {
+  final Object textToShow;
+  final ValueChanged<PlatformFile?> onSelectedFile;
+  final String pathImage;
+  final String rootPath;
+  final String fileName;
+  final EdgeInsets padding;
+  final bool fullWidth;
+
+  const UploadImageField({
+    super.key,
+    required this.textToShow,
+    required this.onSelectedFile,
+    required this.pathImage,
+    required this.rootPath,
+    required this.fileName,
+    this.padding = const EdgeInsets.only(top: 8),
+    this.fullWidth = false,
+  });
+
+  @override
+  UploadImageFieldState createState() => UploadImageFieldState();
+}
+
+class UploadImageFieldState extends State<UploadImageField> {
+  PlatformFile? pickedFile;
+  String? imagePath;
+
+  Future<PlatformFile?> chooseFile(context) async {
+    final result =
+        await FilePicker.platform.pickFiles(type: FileType.any, withData: true);
+    if (result == null) {
+      return null;
+    } else {
+      setState(() {
+        pickedFile = result.files.first;
+      });
+      //widget.onSelectedFile(pickedFile);
+      uploadFileToStorage(pickedFile!,
+              rootPath: widget.rootPath, fileName: widget.fileName)
+          .then((value) {
+        getDownloadUrl(value).then((url) {
+          setState(() {
+            imagePath = url;
+            widget.onSelectedFile(pickedFile);
+          });
+        });
+      });
+      return pickedFile;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // pathImage is full name with extension. I need the path, without the name
+    imagePath = widget.pathImage;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+        message: "Haz click para cambiar la imagen",
+        child: Wrap(children: [
+          Padding(
+              padding: widget.padding,
+              child: ElevatedButton(
+                  style: btnStyle.copyWith(
+                      padding: WidgetStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              horizontal: 0.0, vertical: 0.0))),
+                  onPressed: () => chooseFile(context),
+                  child: (imagePath != '')
+                      ? Image.network(imagePath!, height: 80)
+                      : SizedBox(height: 80, width: 80))),
+        ]));
   }
 }
 
