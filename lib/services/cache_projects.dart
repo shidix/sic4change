@@ -378,30 +378,6 @@ class ProjectsProvider with ChangeNotifier {
     _loading = true;
     if (user == null) return;
     profile = await Profile.byEmail(user!.email!);
-    // final cacheData = await Future.wait([
-    //   SProject.getProjects(),
-    //   Ambit.getAmbits(),
-    //   ProjectType.getProjectTypes(),
-    //   Contact.getContacts(),
-    //   Country.getCountries(),
-    //   Programme.getProgrammes(),
-    //   Organization.getOrganizations(),
-    //   ProjectDates.getProjectDates(),
-    //   ProjectStatus.getProjectStatus(),
-    //   ProjectLocation.getProjectLocation(),
-    //   Folder.getFolders(""),
-    // ]);
-    // _projects = cacheData[0] as List<SProject>;
-    // _ambits = cacheData[1] as List<Ambit>;
-    // _projectTypes = cacheData[2] as List<ProjectType>;
-    // _contacts = cacheData[3] as List<Contact>;
-    // _countries = cacheData[4] as List<Country>;
-    // _programmes = cacheData[5] as List<Programme>;
-    // _organizations = cacheData[6] as List<Organization>;
-    // _projectDates = cacheData[7] as List<ProjectDates>;
-    // _projectStatuses = cacheData[8] as List<ProjectStatus>;
-    // _projectLocations = cacheData[9] as List<ProjectLocation>;
-    // _folders = cacheData[10] as List<Folder>;
     await loadProjects();
     await loadTasks();
     sendNotify();
