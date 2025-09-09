@@ -91,6 +91,12 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
+  List<Programme> get programmes => _programmes;
+  set programmes(List<Programme> value) {
+    _programmes = value;
+    sendNotify();
+  }
+
   void addProfile(Profile? profile) {
     if (profile == null) return;
     int index = _profiles.indexWhere((element) => element.id == profile.id);

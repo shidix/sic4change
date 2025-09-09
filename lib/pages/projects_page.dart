@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/cloudresourcemanager/v3.dart';
@@ -44,19 +45,27 @@ class _ProjectsPageState extends State<ProjectsPage> {
   final user = FirebaseAuth.instance.currentUser!;
 
   void setLoading() {
+    loading = true;
+    if (!mounted) return;
     setState(() {
       loading = true;
     });
   }
 
   void stopLoading() {
+    loading = false;
+    if (!mounted) return;
     setState(() {
       loading = false;
     });
   }
 
   void loadProgrammes() async {
-    programList = await Programme.getProgrammes();
+    programList = _projectsProvider!.programmes;
+    if ((programList.isEmpty) || (programList == null)) {
+      programList = await Programme.getProgrammes();
+    }
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -82,7 +91,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
     //   }
     //   //prList = val;
     // });
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
     stopLoading();
   }
 
@@ -229,81 +240,131 @@ class _ProjectsPageState extends State<ProjectsPage> {
 /*-------------------------------------------------------------
                      PROGRAMMES
 -------------------------------------------------------------*/
+
   Widget programmeList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
-        child: FutureBuilder(
-            future: Programme.getProgrammes(),
-            builder: ((context, snapshot) {
-              if (snapshot.hasData) {
-                programList = snapshot.data!;
-                return SizedBox(
-                    height: 150,
-                    child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5,
-                          //crossAxisSpacing: 20,
-                          //mainAxisSpacing: 20,
-                          childAspectRatio: 2,
-                        ),
-                        itemCount: programList.length,
-                        itemBuilder: (_, index) {
-                          Programme programme = programList[index];
-                          if (programme.logo != "") {
-                            return Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  InkWell(
-                                      child: Image.network(
-                                        programme.logo,
-                                      ),
-                                      onTap: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: ((context) =>
-                                                    ProgrammePage(
-                                                        programme:
-                                                            programme))));
-                                      }),
-                                  /*InkWell(
-                                    child: customText(programme.name, 16),
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: ((context) =>
-                                                  ProgrammePage(
-                                                      programme: programme))));
-                                    },
-                                  ),*/
-                                  editBtn(context, callDialog,
-                                      {'programme': programme}),
-                                ]);
-                          } else {
-                            return Column(children: [
-                              Row(
-                                children: [
-                                  customText(programme.name, 15,
-                                      bold: FontWeight.bold),
-                                  customText(
-                                      " ('${programme.projects}' proyectos)",
-                                      15),
-                                  editBtn(context, callDialog,
-                                      {'programme': programme})
-                                ],
-                              )
-                            ]);
-                          }
-                        }));
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            })));
+        child: Builder(builder: ((context) {
+          programList = _projectsProvider!.programmes;
+          int nCols = 5;
+          int nRows = (programList.length / nCols).ceil();
+
+          List<Widget> matrix = List<Widget>.filled(nRows * nCols, Container());
+          for (int i = 0; i < programList.length; i++) {
+            Programme programme = programList[i];
+            matrix[i] = Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(
+                      child: Column(children: [
+                        customText(programme.name, 16, bold: FontWeight.bold),
+                        Image.network(programme.logo, height: 100),
+                      ]),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) =>
+                                    ProgrammePage(programme: programme))));
+                      }),
+                  editBtn(context, callDialog, {'programme': programme}),
+                ]);
+          }
+
+          // List<dynamic> matrixDyn = reshape(matrix, nRows, nCols);
+          List<Widget> rows = [];
+          if (programList != null) {
+            for (var row in reshape(matrix, nRows, nCols)) {
+              rows.add(Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [for (var col in row) Expanded(child: col)]));
+            }
+            //print(row);
+
+            return SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 200,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: rows,
+                  ),
+                ));
+
+            // return SizedBox(
+            //     height: 150,
+            //     child: GridView.builder(
+            //         gridDelegate:
+            //             const SliverGridDelegateWithFixedCrossAxisCount(
+            //           crossAxisCount: 5,
+            //           //crossAxisSpacing: 20,
+            //           //mainAxisSpacing: 20,
+            //           childAspectRatio: 2,
+            //         ),
+            //         itemCount: programList.length,
+            //         itemBuilder: (_, index) {
+            //           Programme programme = programList[index];
+
+            //           if (programme.logo != "") {
+            //             return Column(
+            //                 mainAxisAlignment: MainAxisAlignment.start,
+            //                 crossAxisAlignment: CrossAxisAlignment.center,
+            //                 children: [
+            //                   InkWell(
+            //                       child: Column(children: [
+            //                         customText(programme.name, 16,
+            //                             bold: FontWeight.bold),
+            //                         Image.network(programme.logo, height: 100),
+            //                       ]),
+            //                       onTap: () {
+            //                         Navigator.push(
+            //                             context,
+            //                             MaterialPageRoute(
+            //                                 builder: ((context) =>
+            //                                     ProgrammePage(
+            //                                         programme: programme))));
+            //                       }),
+            //                   /*InkWell(
+            //                         child: customText(programme.name, 16),
+            //                         onTap: () {
+            //                           Navigator.push(
+            //                               context,
+            //                               MaterialPageRoute(
+            //                                   builder: ((context) =>
+            //                                       ProgrammePage(
+            //                                           programme: programme))));
+            //                         },
+            //                       ),*/
+            //                   editBtn(context, callDialog,
+            //                       {'programme': programme}),
+            //                 ]);
+            //           } else {
+            //             return Column(children: [
+            //               Row(
+            //                 children: [
+            //                   customText(programme.name, 15,
+            //                       bold: FontWeight.bold),
+            //                   customText(
+            //                       (programme.projects != 1)
+            //                           ? " (${programme.projects} proyectos)"
+            //                           : " (${programme.projects} proyecto)",
+            //                       15),
+            //                   editBtn(
+            //                       context, callDialog, {'programme': programme})
+            //                 ],
+            //               )
+            //             ]);
+            //           }
+            //         }));
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        })));
   }
 
   void callDialog(context, args) {
@@ -321,6 +382,26 @@ class _ProjectsPageState extends State<ProjectsPage> {
     Navigator.pop(context);
   }
 
+  Future<String> uploadLogoProgramme(PlatformFile? file, int index) async {
+    if (file != null) {
+      String extention = file.name.split('.').last;
+      String idPrograme = _projectsProvider!.programmes[index].id;
+
+      String uploadFile = await uploadFileToStorage(file,
+          rootPath: 'files/programmes/$idPrograme',
+          fileName: 'logo.$extention');
+      // await _projectsProvider!.programmes[index].save();
+      _projectsProvider!.programmes[index].logo =
+          await getDownloadUrl(uploadFile);
+      await _projectsProvider!.programmes[index].save();
+      if (mounted) {
+        setState(() {});
+      }
+      return _projectsProvider!.programmes[index].logo;
+    }
+    return "";
+  }
+
   Future<void> programmeEditDialog(context, programme) {
     programme ??= Programme("");
 
@@ -328,7 +409,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        Key dialogKey = UniqueKey();
         return AlertDialog(
+          key: dialogKey,
           //title: const Text('Modificar programa'),
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Modificar programa'),
@@ -348,19 +431,37 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ]),
             space(height: 20),
             Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                //customText("Logo:", 16, textColor: titleColor),
-                //customTextField(logoController, "Logo", size: 600),
-                SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue: (programme.logo != "") ? programme.logo : "",
-                    decoration: const InputDecoration(labelText: 'Logo'),
-                    onChanged: (val) => setState(() => programme.logo = val),
-                  ),
-                ),
-              ]),
+              Expanded(
+                  flex: 1,
+                  child: Image.network(programme.logo, height: 40, width: 40)),
+              Expanded(
+                  flex: 9,
+                  child: UploadFileField(
+                      textToShow: "Logo",
+                      onSelectedFile: (file) async {
+                        int index = _projectsProvider!.programmes.indexWhere(
+                            (element) => element.id == programme.id);
+                        programme.logo = await uploadLogoProgramme(file, index);
+                        dialogKey = UniqueKey();
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      })),
             ]),
+            // Row(children: [
+            //   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            //     //customText("Logo:", 16, textColor: titleColor),
+            //     //customTextField(logoController, "Logo", size: 600),
+            //     SizedBox(
+            //       width: 600,
+            //       child: TextFormField(
+            //         initialValue: (programme.logo != "") ? programme.logo : "",
+            //         decoration: const InputDecoration(labelText: 'Logo'),
+            //         onChanged: (val) => setState(() => programme.logo = val),
+            //       ),
+            //     ),
+            //   ]),
+            // ]),
           ])),
           actions: <Widget>[
             Row(children: [
