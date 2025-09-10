@@ -1977,7 +1977,14 @@ class UploadImageFieldState extends State<UploadImageField> {
                               horizontal: 0.0, vertical: 0.0))),
                   onPressed: () => chooseFile(context),
                   child: (imagePath != '')
-                      ? Image.network(imagePath!, height: 80)
+                      ? Image.network(imagePath!,
+                          loadingBuilder: (ctx, child, progress) =>
+                              progress == null
+                                  ? child
+                                  : const CircularProgressIndicator(),
+                          errorBuilder: (ctx, err, stack) =>
+                              const Text('No se pudo cargar el logo'),
+                          height: 80)
                       : SizedBox(height: 80, width: 80))),
         ]));
   }

@@ -69,7 +69,8 @@ class _ProgrammePageState extends State<ProgrammePage> {
       totalBudget = totalBudget + fromCurrency(p.budget);
     }
 
-    indicators = await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
+    indicators =
+        await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
     setState(() {});
   }
 
@@ -130,7 +131,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
           //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(programme!.logo),
+            Image.network(programme!.logo, width: 100, height: 100),
             Container(
               padding: const EdgeInsets.only(left: 10),
               width: MediaQuery.of(context).size.width * 0.8,

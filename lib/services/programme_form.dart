@@ -42,11 +42,18 @@ class ProgrammeFormState extends State<ProgrammeForm> {
       programme = Programme('Nuevo programa');
     }
 
+    if (programme.logo.isEmpty) {
+      logoPath = '';
+      return;
+    }
     tmpExtension = programme.logo.split('?').first.split('.').last;
     String auxPath = "files/programmes/${programme.id}/logo.$tmpExtension";
     tmpPath = auxPath.replaceFirst('logo.', 'logoTemp.');
     logoPath = programme.logo;
 
+    if (logoPath.isEmpty) {
+      logoPath = 'assets/images/no-image.png';
+    }
     copyFileInStorage(programme.logo, tmpPath).then((value) {
       getDownloadUrl(tmpPath).then((url) {
         setState(() {
@@ -79,6 +86,7 @@ class ProgrammeFormState extends State<ProgrammeForm> {
                                 String tmpPath =
                                     "files/programmes/${programme.id}/logoTemp.png";
                                 getDownloadUrl(tmpPath).then((url) {
+                                  print("URL: $url");
                                   setState(() {
                                     logoPath = url;
                                   });

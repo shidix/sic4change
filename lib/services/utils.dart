@@ -422,7 +422,7 @@ Future<String> getDownloadUrl(String? path) async {
   // check if the file exists
   try {
     await ref.getMetadata();
-    return await ref.getDownloadURL();
+    return ref.getDownloadURL();
   } catch (e) {
     return '';
   }
