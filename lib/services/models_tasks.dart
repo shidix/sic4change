@@ -825,21 +825,17 @@ class TasksComments {
 
   static Future<List<TasksComments>> getCommentsByTasks(String uuid) async {
     List<TasksComments> items = [];
-    try {
-      QuerySnapshot query;
-      query = await dbTasksComments
-          .where("task", isEqualTo: uuid)
-          .orderBy('date', descending: true)
-          .get();
-      for (var doc in query.docs) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        TasksComments tc = TasksComments.fromJson(data);
-        await tc.getUser();
-        items.add(tc);
-      }
-    } catch (e) {
-      print(e);
+    QuerySnapshot query;
+    query = await dbTasksComments
+        .where("task", isEqualTo: uuid)
+        .orderBy('date', descending: true)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      TasksComments tc = TasksComments.fromJson(data);
+      await tc.getUser();
+      items.add(tc);
     }
     return items;
   }

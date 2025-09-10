@@ -270,8 +270,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
   List<DataColumn> columnList(int table) {
     return [
       customColumn("Tarea", table),
-      customColumn("Inicio", table),
-      customColumn("Fin", table),
+      customColumn("Inicio / Fin", table),
+      //customColumn("Fin", table),
       customColumn("Ejecutores", table),
       customColumn("Estado", table),
       customColumn("Relacionado con", table),
@@ -283,7 +283,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
     return const DataRow(cells: [
       DataCell(Text("No hay tareas asignadas")),
       DataCell(Text("")),
-      DataCell(Text("")),
+      //DataCell(Text("")),
       DataCell(Text("")),
       DataCell(Text("")),
       DataCell(Text("")),
@@ -344,14 +344,23 @@ class _TasksUserPageState extends State<TasksUserPage> {
                           .map(
                             (task) => DataRow(cells: [
                               DataCell(Text(task.name)),
-                              DataCell(
-                                Text(DateFormat('yyyy-MM-dd')
-                                    .format(task.dealDate)),
-                              ),
-                              DataCell(Text(DateFormat('yyyy-MM-dd')
-                                  .format(task.deadLineDate))),
+                              DataCell(SizedBox(
+                                width: 160,
+                                child: Row(children: [
+                                  Text(DateFormat('yyyy-MM-dd')
+                                      .format(task.deadLineDate)),
+                                  Text(" / "),
+                                  Text(DateFormat('yyyy-MM-dd')
+                                      .format(task.dealDate))
+                                ]),
+                              )),
+                              /*DataCell(SizedBox(
+                                  width: 80,
+                                  child: Text(DateFormat('yyyy-MM-dd')
+                                      .format(task.deadLineDate)))),*/
                               //DataCell(Text(task.getAssignedStr())),
-                              DataCell(Text(task.assignedStr)),
+                              DataCell(SizedBox(
+                                  width: 250, child: Text(task.assignedStr))),
                               DataCell(customTextStatus(task.statusObj.name,
                                   size: 14)),
                               DataCell(customText(task.rel, 14)),
