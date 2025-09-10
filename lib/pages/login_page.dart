@@ -46,12 +46,6 @@ class _LoginPageState extends State<LoginPage> {
     if (FirebaseAuth.instance.currentUser == null) {
       return;
     } else {
-      // if (!mounted) {
-      //   initializeData();
-      //   return;
-      // }
-
-      // // Navigator.pop(context);
       profile = profileProvider.profile;
 
       if (profile == null) {
@@ -59,10 +53,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
       currentOrganization = profileProvider.organization;
-      if (redirect) {
-        redirect = false;
-        Navigator.pushReplacementNamed(context, "/home");
-      }
     }
   }
 

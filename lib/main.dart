@@ -222,13 +222,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = MaterialApp(
       title: 'Worket. Mejorando la gestión de las ONGs',
-      initialRoute: '/',
+      // initialRoute: '/',
       routes: _routes,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('es', ''),
       scrollBehavior: MyCustomScrollBehavior(),
       onGenerateRoute: (settings) {
+        final builder = _routes[settings.name];
+        if (builder != null) {
+          return MaterialPageRoute(builder: builder, settings: settings);
+        }
         return MaterialPageRoute(builder: (context) => const Page404());
       },
     );

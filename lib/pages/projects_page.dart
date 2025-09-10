@@ -73,6 +73,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void loadProjects() async {
     setLoading();
     prList = _projectsProvider!.projects;
+    if ((prList.isEmpty) || (prList == null)) {
+      prList = await SProject.getProjects();
+      if (prList.isNotEmpty) {
+        _projectsProvider!.initialize();
+      }
+    }
 
     if (mounted) {
       setState(() {});
@@ -127,8 +133,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
     super.initState();
 
     _mainMenu = mainMenu(context, "/projects");
+    _projectsProvider = context.read<ProjectsProvider?>();
+    _projectsProvider ??= ProjectsProvider();
 
-    // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     try {
       _profileProvider = context.read<ProfileProvider?>();
     } catch (e) {
@@ -169,23 +176,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
     });
 
     initializeData();
-
-    // _mainMenu = mainMenu(context, "/projects");
-    // loadProjects();
-    /*getProjects().then((val) {
-      if (mounted) {
-        setState(() {
-          prList = val;
-        });
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
-      }
-    });*/
   }
 
   @override
@@ -196,7 +186,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //mainMenu(context, "/projects"),
           _mainMenu!,
           projectSearch(),
           Container(
