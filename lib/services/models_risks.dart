@@ -3,13 +3,9 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-CollectionReference dbProject = db.collection("s4c_projects");
-
 //--------------------------------------------------------------
 //                           RISKS
 //--------------------------------------------------------------
-CollectionReference dbRisk = db.collection("s4c_risks");
 
 class Risk {
   String id = "";
@@ -91,6 +87,7 @@ class Risk {
   }
 
   Future<void> save() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
@@ -107,32 +104,36 @@ class Risk {
   }
 
   Future<void> delete() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
     await dbRisk.doc(id).delete();
     createLog(
         "Borrado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
   }
-}
 
-Future<List> getRisks() async {
-  List<Risk> items = [];
+  static Future<List> getRisks() async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
+    List<Risk> items = [];
 
-  QuerySnapshot query = await dbRisk.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Risk.fromJson(data));
+    QuerySnapshot query = await dbRisk.get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Risk.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getRisksByProject(String project) async {
-  List<Risk> items = [];
+  static Future<List> getRisksByProject(String project) async {
+    final dbRisk = FirebaseFirestore.instance.collection("risks");
+    List<Risk> items = [];
 
-  QuerySnapshot query = await dbRisk.where("project", isEqualTo: project).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Risk.fromJson(data));
+    QuerySnapshot query =
+        await dbRisk.where("project", isEqualTo: project).get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(Risk.fromJson(data));
+    }
+    return items;
   }
-  return items;
 }

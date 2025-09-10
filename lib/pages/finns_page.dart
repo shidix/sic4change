@@ -1,7 +1,6 @@
 // ignore_for_file: constant_identifier_names, no_leading_underscores_for_local_identifiers, unnecessary_null_comparison
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sic4change/pages/index.dart';
@@ -19,7 +18,6 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 
 const PAGE_FINN_TITLE = "Gestión Económica";
-FirebaseFirestore db = FirebaseFirestore.instance;
 double executedBudgetProject = 0;
 
 class FinnsPage extends StatefulWidget {
@@ -83,7 +81,7 @@ class _FinnsPageState extends State<FinnsPage> {
     Invoice.newTracker().then((val) {
       tracker = val;
     });
-    getOrganizations().then((val) {
+    Organization.getOrganizations().then((val) {
       for (Organization item in val) {
         if (_project!.financiers.contains(item.uuid)) {
           financiers[item.uuid] = item;
@@ -366,9 +364,6 @@ class _FinnsPageState extends State<FinnsPage> {
       }
     }
 
-    print("--b--");
-    print(totalDistrib);
-    print(totalExecuted);
     if (totalDistrib > 0) {
       percentExecuted = totalExecuted / totalDistrib;
     }
@@ -706,9 +701,9 @@ class _FinnsPageState extends State<FinnsPage> {
                                 {'finn': finn, 'index': -1},
                                 icon: Icons.send_outlined,
                                 text: 'Distribuir a socio')
-                          else
+                          else if (finn.partidas.isNotEmpty)
                             iconBtn(context, (context, args) {}, null,
-                                icon: null, text: 'Con subpartidas'),
+                                icon: Icons.warning, text: 'Con subpartidas'),
                         ])),
               ),
             ])));

@@ -90,7 +90,6 @@ class _RisksTracksFormState extends State<RisksTracksForm> {
                       initialDate: dateTracking,
                       firstDate: DateTime(2015, 8),
                       lastDate: DateTime(2101));
-                  print(1);
 
                   setState(() {
                     tracking["date"] = picked;

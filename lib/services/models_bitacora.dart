@@ -3,10 +3,6 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
-CollectionReference dbBitacora = db.collection("s4c_bitacora");
-
 class Bitacora extends Object {
   String id = "";
   String uuid = "";
@@ -53,6 +49,7 @@ class Bitacora extends Object {
   }
 
   Future<void> save() async {
+    final dbBitacora = FirebaseFirestore.instance.collection("s4c_bitacora");
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
@@ -69,12 +66,14 @@ class Bitacora extends Object {
   }
 
   Future<void> delete() async {
+    final dbBitacora = FirebaseFirestore.instance.collection("s4c_bitacora");
     await dbBitacora.doc(id).delete();
     createLog(
         "Borrada bitácora en la iniciativa '${SProject.getProjectName(projectUuid)}'");
   }
 
   static Future<Bitacora?> byProjectUuid(String uuid) async {
+    final dbBitacora = FirebaseFirestore.instance.collection("s4c_bitacora");
     QuerySnapshot query =
         await dbBitacora.where("projectUuid", isEqualTo: uuid).get();
     if (query.docs.isNotEmpty) {

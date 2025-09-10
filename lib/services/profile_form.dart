@@ -75,16 +75,16 @@ class _ProfileFormState extends State<ProfileForm> {
                 decoration: const InputDecoration(labelText: 'Email'),
                 onSaved: (val) => setState(() => profile.email = val!),
               ),
-              TextFormField(
-                initialValue: (profile.holidaySupervisor.isNotEmpty)
-                    ? profile.holidaySupervisor.join(",")
-                    : "",
-                decoration: const InputDecoration(
-                    labelText:
-                        'Supervisor de vacaciones (emails separados por ",")'),
-                onSaved: (val) =>
-                    setState(() => profile.holidaySupervisor = val!.split(",")),
-              ),
+              // TextFormField(
+              //   initialValue: (profile.holidaySupervisor.isNotEmpty)
+              //       ? profile.holidaySupervisor.join(",")
+              //       : "",
+              //   decoration: const InputDecoration(
+              //       labelText:
+              //           'Supervisor de vacaciones (emails separados por ",")'),
+              //   onSaved: (val) =>
+              //       setState(() => profile.holidaySupervisor = val!.split(",")),
+              // ),
               roleField,
               const SizedBox(height: 16.0),
               Row(

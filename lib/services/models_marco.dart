@@ -6,13 +6,9 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-CollectionReference dbProject = db.collection("s4c_projects");
-
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------
-CollectionReference dbGoal = db.collection("s4c_goals");
 
 class Goal {
   String id = "";
@@ -51,19 +47,22 @@ class Goal {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoal.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_goals")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el objetivo '$name' en la iniciativa '${SProject.getProjectName(project)}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbGoal.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_goals").doc(id).set(data);
       createLog(
           "Modificado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
     }
   }
 
   Future<void> delete() async {
-    await dbGoal.doc(id).delete();
+    await FirebaseFirestore.instance.collection("s4c_goals").doc(id).delete();
     createLog(
         "Borrado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
   }
@@ -80,15 +79,12 @@ class Goal {
   }*/
 
   static Future<double> getIndicatorsPercent(uuid) async {
-    QuerySnapshot query =
-        await dbGoalIndicator.where("goal", isEqualTo: uuid).get();
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      GoalIndicator indicator = GoalIndicator.fromJson(data);
+    List<GoalIndicator> indicators =
+        await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    for (GoalIndicator indicator in indicators) {
       try {
         totalExpected += double.parse(indicator.expected);
         // ignore: empty_catches
@@ -108,7 +104,8 @@ class Goal {
     Goal item;
     Programme prog = await Programme.byUuid(programme);
     try {
-      QuerySnapshot query = await dbGoal
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goals")
           .where("project", isEqualTo: project)
           .where("name", isEqualTo: "OE0")
           .get();
@@ -127,8 +124,10 @@ class Goal {
       item.description = prog.impact;
       item.save();
     }
-    List indicators = await getProgrammesIndicators(programme);
-    List goalIndicators = await getGoalIndicatorsByGoal(item.uuid);
+    List indicators =
+        await ProgrammeIndicators.getProgrammesIndicators(programme);
+    List goalIndicators =
+        await GoalIndicator.getGoalIndicatorsByGoal(item.uuid);
     for (ProgrammeIndicators indicator in indicators) {
       bool exist = false;
       for (GoalIndicator gi in goalIndicators) {
@@ -152,55 +151,58 @@ class Goal {
 
   static Future<Goal> byUuid(uuid) async {
     Goal item = Goal("");
-    await dbGoal.where("uuid", isEqualTo: uuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection("s4c_goals")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
       final doc = value.docs.first;
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
       item = Goal.fromJson(data);
     });
     return item;
   }
-}
 
-Future<List> getGoals() async {
-  List<Goal> items = [];
+  static Future<List> getGoals() async {
+    List<Goal> items = [];
 
-  QuerySnapshot query = await dbGoal.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Goal.fromJson(data));
-  }
-  return items;
-}
-
-Future<List> getGoalsByProject(String project) async {
-  List<Goal> items = [];
-
-  try {
-    QuerySnapshot query = await dbGoal
-        .orderBy("project")
-        .orderBy("main", descending: true)
-        .orderBy("name", descending: false)
-        .where("project", isEqualTo: project)
-        .get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_goals").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      Goal item = Goal.fromJson(data);
-      //await item.getIndicatorsPercent();
-      items.add(item);
+      items.add(Goal.fromJson(data));
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List> getGoalsByProject(String project) async {
+    List<Goal> items = [];
+
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goals")
+          .orderBy("project")
+          .orderBy("main", descending: true)
+          .orderBy("name", descending: false)
+          .where("project", isEqualTo: project)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Goal item = Goal.fromJson(data);
+        //await item.getIndicatorsPercent();
+        items.add(item);
+      }
+    } catch (e) {}
+    return items;
+  }
 }
 
 //--------------------------------------------------------------
 //                     GOALS INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbGoalIndicator = db.collection("s4c_goals_indicators");
 
 class GoalIndicator {
   String id = "";
@@ -253,19 +255,28 @@ class GoalIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbGoalIndicator.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbGoalIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbGoalIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_goal_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Eliminado el indicador '$name' en el objetivo '${getGoalName()}'");
   }
@@ -277,78 +288,80 @@ class GoalIndicator {
   }
 
   Future<String> getGoalName() async {
-    Goal g = Goal("");
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    g = Goal.fromJson(data);
+    // Goal g = Goal("");
+    // QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // g = Goal.fromJson(data);
+    Goal g = await Goal.byUuid(goal);
     return g.name;
   }
-}
 
-Future<List> getGoalIndicators() async {
-  List<GoalIndicator> items = [];
+  static Future<List> getGoalIndicators() async {
+    List<GoalIndicator> items = [];
 
-  QuerySnapshot query = await dbGoalIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    GoalIndicator item = GoalIndicator.fromJson(data);
-    item.getFolder();
-    items.add(item);
-  }
-  return items;
-}
-
-Future<List> getGoalIndicatorsByGoal(String goal) async {
-  List<GoalIndicator> items = [];
-
-  //QuerySnapshot query =
-  //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
-  try {
-    QuerySnapshot query = await dbGoalIndicator
-        .orderBy("goal")
-        .orderBy("order", descending: true)
-        .where("goal", isEqualTo: goal)
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_goal_indicators")
         .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       GoalIndicator item = GoalIndicator.fromJson(data);
-      await item.getFolder();
-      items.add(item);
-      //items.add(GoalIndicator.fromJson(data));
-    }
-  } catch (e) {
-    print(e);
-  }
-  return items;
-}
-
-Future<List> getGoalIndicatorsByCode(String code) async {
-  List<GoalIndicator> items = [];
-
-  try {
-    QuerySnapshot query =
-        await dbGoalIndicator.where("code", isEqualTo: code).get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      GoalIndicator item = GoalIndicator.fromJson(data);
-      await item.getFolder();
+      item.getFolder();
       items.add(item);
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List<GoalIndicator>> getGoalIndicatorsByGoal(
+      String goal) async {
+    List<GoalIndicator> items = [];
+
+    //QuerySnapshot query =
+    //    await dbGoalIndicator.where("goal", isEqualTo: goal).get();
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .orderBy("goal")
+          .orderBy("order", descending: true)
+          .where("goal", isEqualTo: goal)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        GoalIndicator item = GoalIndicator.fromJson(data);
+        await item.getFolder();
+        items.add(item);
+        //items.add(GoalIndicator.fromJson(data));
+      }
+    } catch (e) {}
+    return items;
+  }
+
+  static Future<List> getGoalIndicatorsByCode(String code) async {
+    List<GoalIndicator> items = [];
+
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_goal_indicators")
+          .where("code", isEqualTo: code)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        GoalIndicator item = GoalIndicator.fromJson(data);
+        await item.getFolder();
+        items.add(item);
+      }
+    } catch (e) {}
+    return items;
+  }
 }
 
 //--------------------------------------------------------------
 //                           RESULT
 //--------------------------------------------------------------
-CollectionReference dbResult = db.collection("s4c_results");
 
 class Result {
   String id = "";
@@ -391,19 +404,22 @@ class Result {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResult.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_results")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el resultado '$name' en el objetivo '${getGoalName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbResult.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_results").doc(id).set(data);
       createLog(
           "Modificado el resultado '$name' en el objetivo '${getGoalName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbResult.doc(id).delete();
+    await FirebaseFirestore.instance.collection("s4c_results").doc(id).delete();
     createLog(
         "Eliminado el resultado '$name' en el objetivo '${getGoalName()}'");
   }
@@ -412,28 +428,34 @@ class Result {
     Result result;
     Goal goal;
     SProject project;
-    QuerySnapshot? query;
-    QuerySnapshot? queryG;
-    QuerySnapshot? queryP;
+    // QuerySnapshot? query;
+    // QuerySnapshot? queryG;
+    // QuerySnapshot? queryP;
 
-    query = await dbResult.where("uuid", isEqualTo: uuid).get();
-    final dbRes = query.docs.first;
-    final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
-    data["id"] = dbRes.id;
-    result = Result.fromJson(data);
+    // query = await FirebaseFirestore.instance
+    //     .collection("s4c_results")
+    //     .where("uuid", isEqualTo: uuid)
+    //     .get();
+    // final dbRes = query.docs.first;
+    // final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+    // data["id"] = dbRes.id;
+    // result = Result.fromJson(data);
+    result = await Result.byUuid(uuid);
 
-    queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
-    final dbG = queryG.docs.first;
-    final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
-    dataGoal["id"] = dbG.id;
-    goal = Goal.fromJson(dataGoal);
+    // queryG = await dbGoal.where("uuid", isEqualTo: result.goal).get();
+    // final dbG = queryG.docs.first;
+    // final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+    // dataGoal["id"] = dbG.id;
+    // goal = Goal.fromJson(dataGoal);
+    goal = await Goal.byUuid(result.goal);
 
-    queryP = await dbProject.where("uuid", isEqualTo: goal.project).get();
-    final dbProj = queryP.docs.first;
-    final Map<String, dynamic> dataProject =
-        dbProj.data() as Map<String, dynamic>;
-    dataProject["id"] = dbProj.id;
-    project = SProject.fromJson(dataProject);
+    // queryP = await dbProject.where("uuid", isEqualTo: goal.project).get();
+    // final dbProj = queryP.docs.first;
+    // final Map<String, dynamic> dataProject =
+    //     dbProj.data() as Map<String, dynamic>;
+    // dataProject["id"] = dbProj.id;
+    // project = SProject.fromJson(dataProject);
+    project = await SProject.byUuid(goal.project);
 
     return "${project.name} > ${goal.name} > ${result.name}";
   }
@@ -442,80 +464,80 @@ class Result {
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    try {
-      QuerySnapshot query =
-          await dbResultIndicator.where("result", isEqualTo: uuid).get();
-      for (var doc in query.docs) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data["id"] = doc.id;
-        ResultIndicator indicator = ResultIndicator.fromJson(data);
-        try {
-          totalExpected += double.parse(indicator.expected);
-          // ignore: empty_catches
-        } catch (e) {}
-        try {
-          totalObtained += double.parse(indicator.obtained);
-          // ignore: empty_catches
-        } catch (e) {}
-      }
-    } catch (e) {
-      print(e);
+
+    List<ResultIndicator> indicators =
+        await ResultIndicator.getResultIndicatorsByResult(uuid);
+    for (ResultIndicator indicator in indicators) {
+      try {
+        totalExpected += double.parse(indicator.expected);
+        // ignore: empty_catches
+      } catch (e) {}
+      try {
+        totalObtained += double.parse(indicator.obtained);
+        // ignore: empty_catches
+      } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
     if (total > 1) total = 1;
-    //indicatorsPercent = total;
-    return total;
+    return total * 100;
   }
 
   Future<String> getGoalName() async {
-    Goal g = Goal("");
-    QuerySnapshot query = await dbGoal.where("uuid", isEqualTo: goal).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    g = Goal.fromJson(data);
+    Goal g = await Goal.byUuid(goal);
     return g.name;
   }
-}
 
-Future<List> getResults() async {
-  List<Result> items = [];
-
-  QuerySnapshot query = await dbResult.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(Result.fromJson(data));
+  static Future<Result> byUuid(uuid) async {
+    Result item = Result("");
+    await FirebaseFirestore.instance
+        .collection("s4c_results")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data();
+      data["id"] = doc.id;
+      item = Result.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getResultsByGoal(String goal) async {
-  List<Result> items = [];
+  static Future<List> getResults() async {
+    List<Result> items = [];
 
-  try {
-    QuerySnapshot query = await dbResult
-        //.orderBy("goal")
-        //.orderBy("main", descending: true)
-        .where("goal", isEqualTo: goal)
-        .get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_results").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
-      Result item = Result.fromJson(data);
-      //await item.getIndicatorsPercent();
-      items.add(item);
+      items.add(Result.fromJson(data));
     }
-  } catch (e) {
-    print(e);
+    return items;
   }
-  return items;
+
+  static Future<List<Result>> getResultsByGoal(String goal) async {
+    List<Result> items = [];
+
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection("s4c_results")
+          .where("goal", isEqualTo: goal)
+          .get();
+      for (var doc in query.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        Result item = Result.fromJson(data);
+        //await item.getIndicatorsPercent();
+        items.add(item);
+      }
+    } catch (e) {}
+    return items;
+  }
 }
 
 //--------------------------------------------------------------
 //                     RESULT INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbResultIndicator = db.collection("s4c_result_indicators");
 
 class ResultIndicator {
   String id = "";
@@ -558,64 +580,94 @@ class ResultIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResultIndicator.add(data).then((value) => id = value.id);
+
+      FirebaseFirestore.instance
+          .collection("s4c_result_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbResultIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_result_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbResultIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Borrado el indicador '$name' en el resultado '${getResultName()}'");
   }
 
   Future<String> getResultName() async {
-    Result r = Result("");
-    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    r = Result.fromJson(data);
+    // Result r = Result("");
+    // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // r = Result.fromJson(data);
+    Result r = await Result.byUuid(result);
     return r.name;
   }
-}
 
-Future<List> getResultIndicators() async {
-  List<ResultIndicator> items = [];
-
-  QuerySnapshot query = await dbResultIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = ActivityIndicator.fromJson(data);
-    items.add(ResultIndicator.fromJson(data));
+  static Future<ResultIndicator> byUuid(uuid) async {
+    ResultIndicator item = ResultIndicator("");
+    await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data();
+      data["id"] = doc.id;
+      item = ResultIndicator.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getResultIndicatorsByResult(String result) async {
-  List<ResultIndicator> items = [];
+  static Future<List<ResultIndicator>> getResultIndicators() async {
+    List<ResultIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbResultIndicator.where("result", isEqualTo: result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultIndicator.fromJson(data));
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = ActivityIndicator.fromJson(data);
+      items.add(ResultIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
+  static Future<List<ResultIndicator>> getResultIndicatorsByResult(
+      String result) async {
+    List<ResultIndicator> items = [];
+
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_indicators")
+        .where("result", isEqualTo: result)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultIndicator.fromJson(data));
+    }
+    return items;
+  }
 }
 
 //--------------------------------------------------------------
 //                           ACTIVITY
 //--------------------------------------------------------------
-CollectionReference dbActivity = db.collection("s4c_activities");
 
 class Activity {
   String id = "";
@@ -653,33 +705,63 @@ class Activity {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivity.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_activities")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creada la actividad '$name' en el resultado '${getResultName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbActivity.doc(id).set(data);
+      FirebaseFirestore.instance.collection("s4c_activities").doc(id).set(data);
       createLog(
           "Modificada la actividad '$name' en el resultado '${getResultName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbActivity.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .doc(id)
+        .delete();
     createLog(
         "Borrada la actividad '$name' en el resultado '${getResultName()}'");
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
-    QuerySnapshot query =
-        await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
+    // QuerySnapshot query =
+    //     await dbActivityIndicator.where("activity", isEqualTo: uuid).get();
+    // double totalExpected = 0;
+    // double totalObtained = 0;
+    // double total = 0;
+    // for (var doc in query.docs) {
+    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    //   data["id"] = doc.id;
+    //   ActivityIndicator indicator = ActivityIndicator.fromJson(data);
+    //   try {
+    //     totalExpected += double.parse(indicator.expected);
+    //     // ignore: empty_catches
+    //   } catch (e) {}
+    //   try {
+    //     totalObtained += double.parse(indicator.obtained);
+    //     // ignore: empty_catches
+    //   } catch (e) {}
+    // }
+    // double totalExpected = 0;
+    // double totalObtained = 0;
+    // double total = 0;
+    // List<ActivityIndicator> indicators =
+    //     await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
+    // if (totalExpected > 0) total = totalObtained / totalExpected;
+    // if (total > 1) total = 1;
+    // //indicatorsPercent = total;
+    // return total;
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      ActivityIndicator indicator = ActivityIndicator.fromJson(data);
+    List<ActivityIndicator> indicators =
+        await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
+    for (ActivityIndicator indicator in indicators) {
       try {
         totalExpected += double.parse(indicator.expected);
         // ignore: empty_catches
@@ -687,6 +769,10 @@ class Activity {
       try {
         totalObtained += double.parse(indicator.obtained);
         // ignore: empty_catches
+      } catch (e) {}
+      try {
+        total +=
+            double.parse(indicator.obtained) / double.parse(indicator.expected);
       } catch (e) {}
     }
     if (totalExpected > 0) total = totalObtained / totalExpected;
@@ -696,49 +782,66 @@ class Activity {
   }
 
   Future<String> getResultName() async {
-    Result r = Result("");
-    QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    r = Result.fromJson(data);
+    // Result r = Result("");
+    // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: result).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // r = Result.fromJson(data);
+    Result r = await Result.byUuid(result);
     return r.name;
   }
-}
 
-Future<List> getActivities() async {
-  List<Activity> items = [];
-
-  QuerySnapshot query = await dbActivity.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = Activity.fromJson(data);
-    items.add(Activity.fromJson(data));
+  static Future<Activity> byUuid(uuid) async {
+    Activity item = Activity("");
+    await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((value) {
+      final doc = value.docs.first;
+      final Map<String, dynamic> data = doc.data();
+      data["id"] = doc.id;
+      item = Activity.fromJson(data);
+    });
+    return item;
   }
-  return items;
-}
 
-Future<List> getActivitiesByResult(result) async {
-  List<Activity> items = [];
+  static Future<List> getActivities() async {
+    List<Activity> items = [];
 
-  QuerySnapshot query =
-      await dbActivity.where("result", isEqualTo: result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    Activity item = Activity.fromJson(data);
-    //await item.getIndicatorsPercent();
-    items.add(item);
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_activities").get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = Activity.fromJson(data);
+      items.add(Activity.fromJson(data));
+    }
+    return items;
   }
-  return items;
+
+  static Future<List> getActivitiesByResult(result) async {
+    List<Activity> items = [];
+
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activities")
+        .where("result", isEqualTo: result)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      Activity item = Activity.fromJson(data);
+      //await item.getIndicatorsPercent();
+      items.add(item);
+    }
+    return items;
+  }
 }
 
 //--------------------------------------------------------------
 //                     ACTIVITY INDICATOR
 //--------------------------------------------------------------
-CollectionReference dbActivityIndicator =
-    db.collection("s4c_activity_indicators");
 
 class ActivityIndicator {
   String id = "";
@@ -781,89 +884,109 @@ class ActivityIndicator {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      dbActivityIndicator.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection("s4c_activity_indicators")
+          .add(data)
+          .then((value) => id = value.id);
       createLog(
           "Creado el indicador '$name' en la actividad '${getActivityName()}'");
     } else {
       Map<String, dynamic> data = toJson();
-      dbActivityIndicator.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_activity_indicators")
+          .doc(id)
+          .set(data);
       createLog(
           "Modificado el indicador '$name' en la actividad '${getActivityName()}'");
     }
   }
 
   Future<void> delete() async {
-    await dbActivityIndicator.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .doc(id)
+        .delete();
     createLog(
         "Borrado el indicador '$name' en la actividad '${getActivityName()}'");
   }
 
   Future<String> getActivityName() async {
-    Activity a = Activity("");
-    QuerySnapshot query =
-        await dbActivity.where("uuid", isEqualTo: activity).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    a = Activity.fromJson(data);
+    // Activity a = Activity("");
+    // QuerySnapshot query =
+    //     await dbActivity.where("uuid", isEqualTo: activity).get();
+    // final dbP = query.docs.first;
+    // final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
+    // data["id"] = dbP.id;
+    // a = Activity.fromJson(data);
+    Activity a = await Activity.byUuid(activity);
     return a.name;
   }
-}
 
-Future<List> getActivityIndicators() async {
-  List<ActivityIndicator> items = [];
+  static Future<List> getActivityIndicators() async {
+    List<ActivityIndicator> items = [];
 
-  QuerySnapshot query = await dbActivityIndicator.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    // final _item = ActivityIndicator.fromJson(data);
-    items.add(ActivityIndicator.fromJson(data));
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      // final _item = ActivityIndicator.fromJson(data);
+      items.add(ActivityIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getActivityIndicatorsByActivity(String _activity) async {
-  List<ActivityIndicator> items = [];
+  static Future<List<ActivityIndicator>> getActivityIndicatorsByActivity(
+      String _activity) async {
+    List<ActivityIndicator> items = [];
 
-  QuerySnapshot query =
-      await dbActivityIndicator.where("activity", isEqualTo: _activity).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ActivityIndicator.fromJson(data));
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_activity_indicators")
+        .where("activity", isEqualTo: _activity)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ActivityIndicator.fromJson(data));
+    }
+    return items;
   }
-  return items;
 }
 
 Future<String> getProjectByActivityIndicator(String _uuid) async {
-  QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
-  final dbAct = query.docs.first;
-  final Map<String, dynamic> data = dbAct.data() as Map<String, dynamic>;
-  data["id"] = dbAct.id;
-  Activity activity = Activity.fromJson(data);
+  // QuerySnapshot query = await dbActivity.where("uuid", isEqualTo: _uuid).get();
+  // final dbAct = query.docs.first;
+  // final Map<String, dynamic> data = dbAct.data() as Map<String, dynamic>;
+  // data["id"] = dbAct.id;
+  // Activity activity = Activity.fromJson(data);
+  Activity activity = await Activity.byUuid(_uuid);
 
-  QuerySnapshot queryR =
-      await dbResult.where("uuid", isEqualTo: activity.result).get();
-  final dbRes = queryR.docs.first;
-  final Map<String, dynamic> dataResult = dbRes.data() as Map<String, dynamic>;
-  dataResult["id"] = dbRes.id;
-  Result result = Result.fromJson(dataResult);
+  // QuerySnapshot queryR =
+  //     await dbResult.where("uuid", isEqualTo: activity.result).get();
+  // final dbRes = queryR.docs.first;
+  // final Map<String, dynamic> dataResult = dbRes.data() as Map<String, dynamic>;
+  // dataResult["id"] = dbRes.id;
+  // Result result = Result.fromJson(dataResult);
+  Result result = await Result.byUuid(activity.result);
 
-  QuerySnapshot queryG =
-      await dbGoal.where("uuid", isEqualTo: result.goal).get();
-  final dbG = queryG.docs.first;
-  final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
-  dataGoal["id"] = dbG.id;
-  Goal goal = Goal.fromJson(dataGoal);
+  // QuerySnapshot queryG =
+  //     await dbGoal.where("uuid", isEqualTo: result.goal).get();
+  // final dbG = queryG.docs.first;
+  // final Map<String, dynamic> dataGoal = dbG.data() as Map<String, dynamic>;
+  // dataGoal["id"] = dbG.id;
+  // Goal goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot queryP =
-      await dbProject.where("uuid", isEqualTo: goal.project).get();
-  final dbProj = queryP.docs.first;
-  final Map<String, dynamic> dataProject =
-      dbProj.data() as Map<String, dynamic>;
-  dataProject["id"] = dbProj.id;
-  SProject project = SProject.fromJson(dataProject);
+  Goal goal = await Goal.byUuid(result.goal);
+
+  // QuerySnapshot queryP =
+  //     await dbProject.where("uuid", isEqualTo: goal.project).get();
+  // final dbProj = queryP.docs.first;
+  // final Map<String, dynamic> dataProject =
+  //     dbProj.data() as Map<String, dynamic>;
+  // dataProject["id"] = dbProj.id;
+  // SProject project = SProject.fromJson(dataProject);
+  SProject project = await SProject.byUuid(goal.project);
 
   return "${project.name} > ${goal.name} > ${result.name} > ${activity.name}";
 }
@@ -871,7 +994,6 @@ Future<String> getProjectByActivityIndicator(String _uuid) async {
 //--------------------------------------------------------------
 //                       RESULT TASK
 //--------------------------------------------------------------
-CollectionReference dbResultTask = db.collection("s4c_result_tasks");
 
 class ResultTask {
   String id = "";
@@ -899,65 +1021,78 @@ class ResultTask {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      dbResultTask.add(data);
+      FirebaseFirestore.instance.collection("s4c_result_tasks").add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      dbResultTask.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection("s4c_result_tasks")
+          .doc(id)
+          .set(data);
     }
   }
 
   Future<void> delete() async {
-    await dbResultTask.doc(id).delete();
+    await FirebaseFirestore.instance
+        .collection("s4c_result_tasks")
+        .doc(id)
+        .delete();
   }
-}
 
-Future<List> getResultTasks() async {
-  List<ResultTask> items = [];
+  static Future<List> getResultTasks() async {
+    List<ResultTask> items = [];
 
-  QuerySnapshot query = await dbResultTask.get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultTask.fromJson(data));
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection("s4c_result_tasks").get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultTask.fromJson(data));
+    }
+    return items;
   }
-  return items;
-}
 
-Future<List> getResultTasksByResult(String _result) async {
-  List<ResultTask> items = [];
+  static Future<List> getResultTasksByResult(String _result) async {
+    List<ResultTask> items = [];
 
-  QuerySnapshot query =
-      await dbResultTask.where("result", isEqualTo: _result).get();
-  for (var doc in query.docs) {
-    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data["id"] = doc.id;
-    items.add(ResultTask.fromJson(data));
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection("s4c_result_tasks")
+        .where("result", isEqualTo: _result)
+        .get();
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      items.add(ResultTask.fromJson(data));
+    }
+    return items;
   }
-  return items;
 }
 
 Future<String> getProjectByResultTask(String _uuid) async {
-  QuerySnapshot query = await dbResult.where("uuid", isEqualTo: _uuid).get();
-  final _dbResult = query.docs.first;
-  final Map<String, dynamic> dataResult =
-      _dbResult.data() as Map<String, dynamic>;
-  dataResult["id"] = _dbResult.id;
-  Result _result = Result.fromJson(dataResult);
+  // QuerySnapshot query = await dbResult.where("uuid", isEqualTo: _uuid).get();
+  // final _dbResult = query.docs.first;
+  // final Map<String, dynamic> dataResult =
+  //     _dbResult.data() as Map<String, dynamic>;
+  // dataResult["id"] = _dbResult.id;
+  // Result _result = Result.fromJson(dataResult);
+  Result _result = await Result.byUuid(_uuid);
 
-  QuerySnapshot queryG =
-      await dbGoal.where("uuid", isEqualTo: _result.goal).get();
-  final _dbGoal = queryG.docs.first;
-  final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
-  dataGoal["id"] = _dbGoal.id;
-  Goal _goal = Goal.fromJson(dataGoal);
+  // QuerySnapshot queryG =
+  //     await dbGoal.where("uuid", isEqualTo: _result.goal).get();
+  // final _dbGoal = queryG.docs.first;
+  // final Map<String, dynamic> dataGoal = _dbGoal.data() as Map<String, dynamic>;
+  // dataGoal["id"] = _dbGoal.id;
+  // Goal _goal = Goal.fromJson(dataGoal);
 
-  QuerySnapshot queryP =
-      await dbProject.where("uuid", isEqualTo: _goal.project).get();
-  final _dbProject = queryP.docs.first;
-  final Map<String, dynamic> dataProject =
-      _dbProject.data() as Map<String, dynamic>;
-  dataProject["id"] = _dbProject.id;
-  SProject _project = SProject.fromJson(dataProject);
+  Goal _goal = await Goal.byUuid(_result.goal);
+
+  // QuerySnapshot queryP =
+  //     await dbProject.where("uuid", isEqualTo: _goal.project).get();
+  // final _dbProject = queryP.docs.first;
+  // final Map<String, dynamic> dataProject =
+  //     _dbProject.data() as Map<String, dynamic>;
+  // dataProject["id"] = _dbProject.id;
+  // SProject _project = SProject.fromJson(dataProject);
+  SProject _project = await SProject.byUuid(_goal.project);
 
   return "${_project.name} > ${_goal.name} > ${_result.name}";
 }

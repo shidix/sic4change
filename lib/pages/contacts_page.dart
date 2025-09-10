@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/pages/organization_info_page.dart';
 import 'package:sic4change/pages/organization_invoices_page.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -27,7 +29,9 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
-  //User user = FirebaseAuth.instance.currentUser!;
+  ProfileProvider? _provider;
+  Organization? _currentOrg;
+  Profile? _currentProfile;
 
   void loadOrgs() async {
     setState(() {
@@ -35,13 +39,10 @@ class _ContactsPageState extends State<ContactsPage> {
     });
 
     if (allOrgs.isEmpty) {
-      await getOrganizations().then((val) {
-        allOrgs = val;
-        orgs = val;
-
-        setState(() {
-          orgsLoading = false;
-        });
+      orgs = await Organization.getOrganizations();
+      allOrgs = orgs;
+      setState(() {
+        orgsLoading = false;
       });
     } else {
       orgs = allOrgs;
@@ -53,34 +54,6 @@ class _ContactsPageState extends State<ContactsPage> {
       }
     }
   }
-
-  // void loadContacts(value) async {
-  //   setState(() {
-  //     contactsLoading = true;
-  //   });
-
-  //   if (value != "-1") {
-  //     await getContactsByOrg(value).then((val) {
-  //       contacts = val;
-  //       setState(() {
-  //         contactsLoading = false;
-  //       });
-  //     });
-  //   } else {
-  //     await getContacts().then((val) {
-  //       contacts = val;
-  //       setState(() {
-  //         contactsLoading = false;
-  //       });
-  //     });
-  //   }
-  //   for (Contact c in contacts) {
-  //     await c.loadObjs();
-  //   }
-  //   if (mounted) {
-  //     setState(() {});
-  //   }
-  // }
 
   void findOrganizations(value) async {
     setState(() {
@@ -149,7 +122,28 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   void initState() {
+    super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+    _provider?.addListener(() {
+      _currentOrg = _provider?.organization;
+      _currentProfile = _provider?.profile;
+      if (_currentOrg == null || _currentProfile == null) {
+        _provider?.loadProfile();
+      }
+      if (mounted) {
+        _mainMenu = mainMenu(context, "/contacts");
+
+        setState(() {});
+      }
+    });
+    _currentOrg = _provider?.organization;
+    _currentProfile = _provider?.profile;
     _mainMenu = mainMenu(context, "/contacts");
+    if (_currentOrg == null || _currentProfile == null) {
+      _provider?.loadProfile();
+    }
+    orgs = [];
+    allOrgs = [];
     if (allContacts.isEmpty) {
       Contact.getAll().then((val) {
         allContacts = val;
@@ -171,11 +165,11 @@ class _ContactsPageState extends State<ContactsPage> {
     loadOrgs();
 
     // loadContacts("-1");
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    _mainMenu ??= mainMenu(context, "/contacts");
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(children: [
@@ -226,8 +220,8 @@ class _ContactsPageState extends State<ContactsPage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                      width: 280,
+                  Expanded(
+                      flex: 3,
                       child: SearchBar(
                         onChanged: (value) {
                           findOrganizations(value);
@@ -237,14 +231,22 @@ class _ContactsPageState extends State<ContactsPage> {
                         },
                         leading: const Icon(Icons.search),
                       )),
-                  addBtnRow(context, filterOrganizations, {"filter": "all"},
-                      text: "Ver todas", icon: Icons.search),
-                  addBtnRow(
-                    context,
-                    callEditOrgDialog,
-                    {'org': Organization("")},
-                    text: "",
-                  ),
+                  Expanded(
+                      flex: 1,
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            iconBtn(
+                                context, filterOrganizations, {"filter": "all"},
+                                text: "Vet Todas", icon: Icons.search),
+                            iconBtn(
+                              context,
+                              callEditOrgDialog,
+                              {'org': Organization("")},
+                              text: "Nueva Organización",
+                              icon: Icons.add,
+                            ),
+                          ]))
                 ])),
         Container(
           padding: const EdgeInsets.all(5),
@@ -264,7 +266,7 @@ class _ContactsPageState extends State<ContactsPage> {
     //if (orgs.isNotEmpty) {
     if (orgsLoading == false) {
       return SingleChildScrollView(
-          scrollDirection: Axis.vertical,
+          scrollDirection: Axis.horizontal,
           child: SizedBox(
             //width: double.infinity,
             //width: MediaQuery.of(context).size.width / 3,
@@ -351,16 +353,32 @@ class _ContactsPageState extends State<ContactsPage> {
     org.save();
     loadOrgs();
 
-    Navigator.pop(context);
+    Navigator.of(context).pop(org);
   }
 
   void callEditOrgDialog(context, Map<String, dynamic> args) async {
     Organization org = args["org"];
-    orgEditDialog(context, org);
+    Organization? orgNew = await orgEditDialog(context, org);
+    int index = orgs.indexWhere((element) => element.uuid == orgNew!.uuid);
+    if (index != -1) {
+      orgs[index] = orgNew;
+    } else {
+      orgs.add(orgNew);
+    }
+    index = allOrgs.indexWhere((element) => element.uuid == orgNew!.uuid);
+    if (index != -1) {
+      allOrgs[index] = orgNew;
+    } else {
+      allOrgs.add(orgNew);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  Future<void> orgEditDialog(context, org) {
-    return showDialog<void>(
+  Future<Organization?> orgEditDialog(context, org) {
+    return showDialog<Organization?>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -420,14 +438,22 @@ class _ContactsPageState extends State<ContactsPage> {
     );
   }
 
-  void removeOrganizationDialog(context, args) {
+  void removeOrganizationDialog(context, args) async {
     //customRemoveDialog(context, args["org"], loadOrgs, null);
-    customRemoveDialog(context, null, removeOrganization, args["org"]);
+    await customRemoveDialog(context, null, removeOrganization, args["org"]);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void removeOrganization(args) {
+    String uuid2remove = args.uuid;
+
     Organization org = args;
     org.delete();
+
+    allOrgs.removeWhere((element) => element.uuid == uuid2remove);
+    orgs.removeWhere((element) => element.uuid == uuid2remove);
     loadOrgs();
     //print(org.name);
   }
@@ -474,10 +500,11 @@ class _ContactsPageState extends State<ContactsPage> {
                         leading: const Icon(Icons.search),
                       )),
                   addBtnRow(context, filterContacts, {"filter": "generic"},
-                      text: "Ver genéricos", icon: Icons.search),
+                      text: "Genéricos", icon: Icons.search),
                   addBtnRow(context, filterContacts, {"filter": "all"},
-                      text: "Ver todos", icon: Icons.search),
-                  addBtnRow(context, callEditDialog, {"contact": Contact("")}),
+                      text: "Todos", icon: Icons.search),
+                  addBtnRow(context, callEditDialog, {"contact": Contact("")},
+                      text: ""),
                 ])),
         Container(
             padding: const EdgeInsets.only(top: 20, left: 30),
@@ -531,7 +558,7 @@ class _ContactsPageState extends State<ContactsPage> {
         rows: contacts
             .map(
               (contact) => DataRow(cells: [
-                DataCell(Text(contact.name)),
+                DataCell(Text(contact.name + " " + contact.email)),
                 DataCell(
                   Text(contact.organizationObj.name),
                 ),
@@ -573,9 +600,9 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void callEditDialog(context, Map<String, dynamic> args) async {
     Contact contact = args["contact"];
-    List<KeyValue> organizations = await getOrganizationsHash();
-    List<KeyValue> companies = await getCompaniesHash();
-    List<KeyValue> positions = await getPositionsHash();
+    List<KeyValue> organizations = await Organization.getOrganizationsHash();
+    List<KeyValue> companies = await Company.getCompaniesHash();
+    List<KeyValue> positions = await Position.getPositionsHash();
     _contactEditDialog(context, contact, organizations, companies, positions);
   }
 
@@ -679,6 +706,16 @@ class _ContactsPageState extends State<ContactsPage> {
                 ),
               ]),
             ]),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Si no encuentra la posición o la empresa, contacte con el administrador',
+                  maxLines: 2,
+                  style: smallText,
+                )
+              ],
+            ),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveContact, contact),

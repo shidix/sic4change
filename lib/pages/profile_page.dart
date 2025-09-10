@@ -3,10 +3,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/projects_page.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -27,60 +30,82 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  ProfileProvider? profileProvider;
+  HolidaysConfig? myCalendar;
   Profile? profile;
+  Organization? organization;
   Contact? contact;
+  Employee? employee;
   List<HolidayRequest>? myHolidays = [];
+  List<HolidaysCategory> holCat = [];
   int holidayDays = 0;
-  //SProject? project;
 
-  /*void loadProject() async {
-    setState(() {
-      projLoading = false;
-    });
-
-    await project!.reload().then((val) {
-      /*Navigator.popAndPushNamed(context, "/project_info",
-          arguments: {"project": val});*/
-      setState(() {
-        project = val;
-        projLoading = true;
-      });
-    });
-  }*/
+  void initializeData() async {
+    organization ??= profileProvider!.organization;
+    profile ??= profileProvider!.profile;
+    if (organization != null) {
+      holCat = await HolidaysCategory.byOrganization(organization!);
+      if (holCat.isEmpty) {
+        holCat = await HolidaysCategory.byOrganization(organization!);
+      }
+      employee = await Employee.byEmail(profile!.email);
+      if (employee != null) {
+        myHolidays = await HolidayRequest.byUser(profile!.email);
+        myCalendar = await HolidaysConfig.byEmployee(employee!);
+        for (HolidayRequest holiday in myHolidays!) {
+          if (holiday.status != "Rechazado") {
+            holidayDays -= getWorkingDaysBetween(
+                holiday.startDate, holiday.endDate, myCalendar!);
+          }
+        }
+      }
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   initState() {
     super.initState();
-    //project = widget.project;
-    setState(() {
-      loading = true;
+    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    profileProvider!.addListener(() {
+      profile = profileProvider!.profile;
+      organization = profileProvider!.organization;
+      if ((organization == null) || (profile == null)) {
+        profileProvider!.loadProfile();
+      } else {
+        initializeData();
+      }
     });
-    try {
-      final user = FirebaseAuth.instance.currentUser!;
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
+    //project = widget.project;
+    // try {
+    //   final user = FirebaseAuth.instance.currentUser!;
+    //   Profile.getProfile(user.email!).then((value) {
+    //     profile = value;
 
-        Contact.byEmail(user.email!).then((value) {
-          contact = value;
+    //     Contact.byEmail(user.email!).then((value) {
+    //       contact = value;
 
-          HolidayRequest.byUser(user.email!).then((value) {
-            myHolidays = value;
-            holidayDays = widget.HOLIDAY_DAYS;
-            for (HolidayRequest holiday in myHolidays!) {
-              holidayDays -=
-                  getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-            }
-            setState(() {
-              loading = false;
-            });
-          });
-        });
-      });
-    } catch (e) {
-      setState(() {
-        loading = false;
-      });
-    }
+    //       HolidayRequest.byUser(user.email!).then((value) {
+    //         myHolidays = value;
+    //         holidayDays = widget.HOLIDAY_DAYS;
+
+    //         for (HolidayRequest holiday in myHolidays!) {
+    //           holidayDays -=
+    //               getWorkingDaysBetween(holiday.startDate, holiday.endDate, myCalendar!);
+    //         }
+    //         setState(() {
+    //           loading = false;
+    //         });
+    //       });
+    //     });
+    //   });
+    // } catch (e) {
+    //   setState(() {
+    //     loading = false;
+    //   });
+    // }
   }
 
   @override
@@ -217,6 +242,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 itemCount: myHolidays!.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
+                  HolidaysCategory category = holCat.firstWhere(
+                      (cat) => cat.id == holiday.category,
+                      orElse: () => HolidaysCategory.getEmpty());
                   return ListTile(
                       subtitle: Column(children: [
                         Row(
@@ -229,7 +257,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        holiday.catetory,
+                                        category.name,
                                         style: normalText,
                                       )),
                                 )),
@@ -260,8 +288,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    getWorkingDaysBetween(
-                                            holiday.startDate, holiday.endDate)
+                                    getWorkingDaysBetween(holiday.startDate,
+                                            holiday.endDate, myCalendar!)
                                         .toString(),
                                     style: normalText,
                                     textAlign: TextAlign.center,

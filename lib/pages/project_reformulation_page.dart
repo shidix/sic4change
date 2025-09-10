@@ -28,13 +28,13 @@ class _ReformulationPageState extends State<ReformulationPage> {
     setState(() {
       refLoading = true;
     });
-    await getReformulationsByProject(project!.uuid).then((val) {
+    await Reformulation.getReformulationsByProject(project!.uuid).then((val) {
       refList = val;
       setState(() {
         refLoading = false;
       });
       for (Reformulation item in refList) {
-        item.loadObjs();
+        // item.loadObjs();
       }
     });
   }
@@ -114,7 +114,7 @@ class _ReformulationPageState extends State<ReformulationPage> {
 -------------------------------------------------------------*/
   Widget reformulationList(context, args) {
     return FutureBuilder(
-        future: getReformulationsByProject(project!.uuid),
+        future: Reformulation.getReformulationsByProject(project!.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             refList = snapshot.data!;
@@ -334,8 +334,10 @@ class _ReformulationPageState extends State<ReformulationPage> {
     for (Organization fin in finList) {
       financierList.add(fin.toKeyValue());
     }
-    List<KeyValue> typeList = await getReformulationTypesHash();
-    List<KeyValue> statusList = await getReformulationStatusHash();
+    List<KeyValue> typeList =
+        await ReformulationType.getReformulationTypesHash();
+    List<KeyValue> statusList =
+        await ReformulationStatus.getReformulationStatusHash();
     _editDialog(context, ref, financierList, typeList, statusList);
   }
 

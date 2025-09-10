@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models.dart';
-import 'package:sic4change/services/models_commons.dart';
+// import 'package:sic4change/services/models.dart';
+// import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -36,10 +36,12 @@ class _TownPageState extends State<TownPage>
 
   void loadTowns() async {
     setLoading();
-    await getTowns().then((val) {
-      towns = val;
-      stopLoading();
-    });
+    towns = await Town.getTowns();
+    stopLoading();
+    // await getTowns().then((val) {
+    //   towns = val;
+    //   stopLoading();
+    // });
   }
 
   @override

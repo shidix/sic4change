@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/pages/nominas_page.dart';
+import 'package:provider/provider.dart';
+// import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/rrhh_nominas_page.dart';
 import 'package:sic4change/services/form_employee.dart';
+import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/register_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -15,24 +19,24 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class EmployeesPage extends StatefulWidget {
-  final Profile? profile;
-  const EmployeesPage({super.key, this.profile});
+  const EmployeesPage({super.key});
 
   @override
   State<EmployeesPage> createState() => _EmployeesPageState();
 }
 
 class _EmployeesPageState extends State<EmployeesPage> {
+  late ProfileProvider profileProvider;
   bool altasVisible = true;
   GlobalKey mainMenuKey = GlobalKey();
   Profile? profile;
+  Organization? currentOrganization;
   List<Employee> employees = [];
   Widget contentPanel = const Text('Loading...');
   Widget mainMenuPanel = const Text('');
   Widget secondaryMenuPanel = const Row(children: []);
   int sortColumnIndex = 1;
   int orderDirection = 1;
-
   String employeeFilter = '';
   double minSalaryFilter = 0.0;
   double maxSalaryFilter = 1e6;
@@ -91,49 +95,58 @@ class _EmployeesPageState extends State<EmployeesPage> {
       case 1:
         return a.compareTo(b) * orderDirection;
       case 2:
-        return a.getAltaDate().compareTo(b.getAltaDate()) * orderDirection;
+        return a.bornDate!.compareTo(b.bornDate!) * orderDirection;
       case 3:
-        return a.getBajaDate().compareTo(b.getBajaDate()) * orderDirection;
+        return a.getAltaDate().compareTo(b.getAltaDate()) * orderDirection;
       case 4:
+        return a.getBajaDate().compareTo(b.getBajaDate()) * orderDirection;
+      case 5:
+        return a.getPosition().compareTo(b.getPosition()) * orderDirection;
+      case 6:
+        return a.altaDays().compareTo(b.altaDays()) * orderDirection;
+      case 7:
+        return a.getSalary().compareTo(b.getSalary()) * orderDirection;
+      case 8:
+        return a.email.compareTo(b.email) * orderDirection;
+      case 9:
         return a.email.compareTo(b.email) * orderDirection;
       default:
-        return a.compareTo(b) * orderDirection;
+        return 0;
     }
   }
 
   @override
   void initState() {
     super.initState();
-    Employee.getEmployees().then((value) {
-      employees = value;
-      selectedEmployees = List.filled(employees.length, true);
-      contentPanel = content(context);
+    mainMenuPanel = mainMenu(context, "/rrhh");
+    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    profileProvider.addListener(() {
+      profile = profileProvider.profile;
+      currentOrganization = profileProvider.organization;
       if (mounted) {
-        setState(() {});
+        setState(() {
+          profile = profileProvider.profile;
+          currentOrganization = profileProvider.organization;
+        });
       }
     });
-    secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
-    if (widget.profile == null) {
-      Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-          .then((value) {
-        profile = value;
-        mainMenuPanel = mainMenuOperator(context,
-            url: "/rrhh", profile: profile, key: mainMenuKey);
 
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    } else {
-      profile = widget.profile;
-      mainMenuPanel = mainMenuOperator(context,
-          url: "/rrhh", profile: profile, key: mainMenuKey);
-      secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM, profile);
-
-      if (mounted) {
-        setState(() {});
-      }
+    profile = profileProvider.profile;
+    currentOrganization = profileProvider.organization;
+    if (profile == null || currentOrganization == null) {
+      profileProvider.loadProfile();
     }
+    Employee.getEmployees(includeInactive: true).then((value) {
+      employees = value;
+      selectedEmployees = List.filled(employees.length, true);
+      // contentPanel = content(context);
+      if (mounted) {
+        setState(() {
+          contentPanel = content(context);
+        });
+      }
+    });
+    secondaryMenuPanel = secondaryMenu(context, EMPLOYEE_ITEM);
   }
 
   Widget content(context) {
@@ -175,6 +188,25 @@ class _EmployeesPageState extends State<EmployeesPage> {
               context: context, builder: (context) => const FileNameDialog());
           if (filename != null && filename.isNotEmpty) exportToCVS(filename);
         }, null, text: 'Exportar', icon: Icons.download),
+        // gralBtnRow(context, (context) async {
+        //   // Show message in status bar
+        //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //     content: Text('Actualizando empleados...'),
+        //     duration: Duration(seconds: 2),
+        //   ));
+        //   List<Employee> fullEmployees =
+        //       await Employee.getEmployees(includeInactive: true);
+        //   for (Employee e in fullEmployees) {
+        //     if (e.organization == null || e.organization == '') {
+        //       e.organization = currentOrganization!.id;
+        //       e.save();
+        //     }
+        //   }
+        //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //     content: Text('Empleados actualizados'),
+        //     duration: Duration(seconds: 2),
+        //   ));
+        // }, null, text: 'Actualizar', icon: Icons.refresh),
       ],
     );
     employees.sort(compareEmployee);
@@ -262,38 +294,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
             },
           ),
         ),
-        // Expanded(
-        //   child: FilterDateField(
-        //       labelText: 'Nacidos desde',
-        //       bottom: 17,
-        //       minYear: 1900,
-        //       maxYear: 2100,
-        //       selectedDate: minBornDateFilter,
-        //       onSelectedDate: (value) {
-        //         minBornDateFilter = value;
-        //         if (mounted) {
-        //           setState(() {
-        //             contentPanel = content(context);
-        //           });
-        //         }
-        //       }),
-        // ),
-        // Expanded(
-        //   child: FilterDateField(
-        //       labelText: 'Nacidos hasta',
-        //       bottom: 17,
-        //       minYear: 1900,
-        //       maxYear: 2100,
-        //       selectedDate: maxBornDateFilter,
-        //       onSelectedDate: (value) {
-        //         maxBornDateFilter = value;
-        //         if (mounted) {
-        //           setState(() {
-        //             contentPanel = content(context);
-        //           });
-        //         }
-        //       }),
-        // ),
         Expanded(
           child: FilterDateField(
               labelText: 'Alta desde',
@@ -377,19 +377,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 (positionFilter == '')) &&
             element.getSalary() >= minSalaryFilter &&
             element.getSalary() <= maxSalaryFilter &&
-            element.getBornDate().isAfter(minBornDateFilter) &&
-            element.getBornDate().isBefore(maxBornDateFilter) &&
+            // element.getBornDate().isAfter(minBornDateFilter) &&
+            // element.getBornDate().isBefore(maxBornDateFilter) &&
             element.getAltaDate().isAfter(minAltaDateFilter) &&
             element.getAltaDate().isBefore(maxAltaDateFilter) &&
             element.getBajaDate().isAfter(minBajaDateFilter) &&
             element.getBajaDate().isBefore(maxBajaDateFilter))
         .toList();
-
-    // List<Employee> employeesFiltered = employees
-    //     .where((element) => element.isActive() == altasVisible)
-    //     .toList();
-
-    // Filtros
 
     DataTable dataTable = DataTable(
       headingRowColor:
@@ -401,10 +395,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
       columns: [
         'Código',
         'Apellidos, Nombre',
-        'Fecha Nac.',
+        // 'Fecha Nac.',
         'Alta',
         'Baja',
-        'Cargo',
+        // 'Cargo',
         'Días C.',
         'Salario',
         'Email',
@@ -450,17 +444,19 @@ class _EmployeesPageState extends State<EmployeesPage> {
               Text(e.code),
             ),
             DataCell(Text('${e.lastName1} ${e.lastName2}, ${e.firstName}')),
-            DataCell(Text(DateFormat('dd/MM/yyyy')
-                .format((e.bornDate != null) ? e.bornDate! : DateTime.now()))),
+            // DataCell(Text(DateFormat('dd/MM/yyyy').format((e.bornDate != null) ? e.bornDate! : DateTime.now()))),
             DataCell(Text(DateFormat('dd/MM/yyyy').format(e.getAltaDate()))),
             DataCell(Text((e
                     .getBajaDate()
                     .isAfter(DateTime.now().add(const Duration(days: 3650))))
                 ? ' Indefinido'
                 : ' ${DateFormat('dd/MM/yyyy').format(e.getBajaDate())}')),
-            DataCell(Text(e.getPosition())),
+            // DataCell(Text(e.getPosition())),
             DataCell(Text(e.altaDays().toString())),
-            DataCell(Text(toCurrency(e.getSalary()))),
+            DataCell(Text(toCurrency(e.getSalary()),
+                style: (e.getSalary() <= 0.0)
+                    ? const TextStyle(color: Colors.red)
+                    : null)),
             DataCell(Text(e.email)),
             DataCell(
               Row(
@@ -493,6 +489,15 @@ class _EmployeesPageState extends State<EmployeesPage> {
                           },
                         )
                       : Container(),
+                  e.isActive()
+                      ? IconButton(
+                          icon: const Icon(Icons.access_time_outlined),
+                          tooltip: 'Modificar jornada laboral',
+                          onPressed: () {
+                            dialogModifyShift(context, employees.indexOf(e));
+                          },
+                        )
+                      : Container(),
                   (e.isActive() || (!e.isActive()))
                       ? IconButton(
                           icon: const Icon(Icons.edit),
@@ -500,6 +505,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
                             dialogFormEmployee(context, employees.indexOf(e));
                           })
                       : Container(),
+                  //Button for RegisterForm
+                  IconButton(
+                    icon: const Icon(Icons.lock),
+                    tooltip: 'Credenciales',
+                    onPressed: () {
+                      dialogFormRegister(context, employees.indexOf(e));
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Icons.euro_symbol),
                     tooltip: 'Nóminas del empleado',
@@ -507,8 +520,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => NominasPage(
-                                  profile: profile, codeEmployee: e.code)));
+                              builder: (context) =>
+                                  NominasPage(codeEmployee: e.code)));
                     },
                   ),
                   (e.isActive())
@@ -591,6 +604,39 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
+  void dialogModifyShift(BuildContext context, int index) {
+    showDialog<Employee>(
+        context: context,
+        builder: (BuildContext context) {
+          Employee? employee;
+          if (index >= employees.length) {
+            //show error message
+            return AlertDialog(
+              title: s4cTitleBar('Error', context, Icons.error),
+              content: const Text('No se puede modificar la jornada laboral'),
+            );
+          } else {
+            employee = employees[index];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Modificar jornada', context,
+                Icons.access_time_filled_outlined),
+            content: EmployeeShiftForm(
+              selectedItem: employee,
+            ),
+          );
+        }).then(
+      (value) {
+        if (value != null) {
+          employees[index] = value;
+          setState(() {
+            contentPanel = content(context);
+          });
+        }
+      },
+    );
+  }
+
   void dialogDocuments(BuildContext context, int index) {
     showDialog<void>(
         context: context,
@@ -624,7 +670,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
               context: context,
               title: 'Empleado',
               icon: Icons.add_outlined,
-              content: EmployeeForm(selectedItem: employee),
+              content: EmployeeForm(
+                  selectedItem: employee,
+                  existingEmployees: employees,
+                  organization: currentOrganization!),
               actionBtns: null);
         }).then(
       (value) {
@@ -710,44 +759,48 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
+  void dialogFormRegister(context, int indexOf) {
+    showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          Employee? employee;
+          if (indexOf >= employees.length) {
+            //show error message
+            return AlertDialog(
+              title: s4cTitleBar('Error', context, Icons.error),
+              content: const Text('No se puede registrar el usuario'),
+            );
+          } else {
+            employee = employees[indexOf];
+          }
+          return AlertDialog(
+            title: s4cTitleBar('Credenciales', context, Icons.lock),
+            content: RegisterForm(
+              email: employee.email,
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     // return to login_page if profile is null
-    if (profile == null) {
-      return SelectionArea(
-          child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
-              const CircularProgressIndicator(),
-              const Text(
-                'Loading profile...',
-              ),
-            ],
-          ),
+    return SelectionArea(
+        child: Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            mainMenuPanel,
+            Padding(
+                padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
+            contentPanel,
+            footer(context),
+          ],
         ),
-      ));
-    } else {
-      return SelectionArea(
-          child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              mainMenuPanel,
-              Padding(
-                  padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
-              contentPanel,
-              footer(context),
-            ],
-          ),
-        ),
-      ));
-    }
+      ),
+    ));
   }
 }
 
@@ -791,7 +844,9 @@ class InfoField extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(icon),
+                          Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Icon(icon)),
                           Text(value,
                               textAlign: textAlign,
                               style: const TextStyle(
@@ -827,7 +882,9 @@ class InfoField extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(icon),
+                      Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Icon(icon)),
                       Text(value,
                           textAlign: textAlign,
                           style: const TextStyle(
@@ -847,6 +904,7 @@ class InfoField extends StatelessWidget {
 
 class EmployeeInfoCard extends StatefulWidget {
   final Employee employee;
+
   const EmployeeInfoCard({super.key, required this.employee});
 
   @override
@@ -854,6 +912,59 @@ class EmployeeInfoCard extends StatefulWidget {
 }
 
 class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
+  List<Row> holidaysInfo = [];
+
+  void initializeData() async {
+    holidaysInfo = [];
+    Organization? organization =
+        await Organization.byId(widget.employee.organization!) ??
+            Organization.getEmpty();
+    HolidaysCategory.byOrganization(organization.uuid).then((value) async {
+      value.sort((a, b) => b.year.compareTo(a.year) != 0 // Descending by year
+          ? b.year.compareTo(a.year)
+          : a.name.compareTo(b.name)); // Ascending by name
+      for (HolidaysCategory cat in value) {
+        int availableDays = await cat.getAvailableDays(widget.employee.email);
+        holidaysInfo.add(Row(children: [
+          InfoField(
+              icon: Icons.beach_access,
+              label: 'Categoría',
+              value: "${cat.year} ${cat.name}",
+              flex: 2),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días asignados',
+              value: cat.days.toString(),
+              textAlign: TextAlign.right),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días disfrutados',
+              value: (cat.days - availableDays).toString(),
+              textAlign: TextAlign.right),
+          InfoField(
+              icon: Icons.calendar_today,
+              label: 'Días restantes',
+              value: (availableDays).toString(),
+              textAlign: TextAlign.right),
+        ]));
+      }
+      if (mounted) {
+        setState(() {
+          holidaysInfo = holidaysInfo;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    holidaysInfo = [
+      Row(children: [Text('Revisando histórico de vacaciones...')])
+    ];
+    initializeData();
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Row> contracts = [];
@@ -886,7 +997,9 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         InfoField(
           icon: Icons.euro,
           label: "Salario (${alta.salary.length})",
-          value: toCurrency(alta.salary.last.amount),
+          value: (alta.salary.isNotEmpty)
+              ? toCurrency(alta.salary.last.amount)
+              : toCurrency(0.0),
           onPressed: () {
             showDialog<void>(
                 context: context,
@@ -925,6 +1038,7 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         ),
       ]));
     }
+
     return CustomPopupDialog(
         context: context,
         actionBtns: const [],
@@ -932,6 +1046,9 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
         icon: Icons.badge_outlined,
         content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
+            height: (holidaysInfo.length + contracts.length < 5)
+                ? null
+                : MediaQuery.of(context).size.height * 0.5,
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -966,6 +1083,8 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
                             const Divider(),
 
                             ...contracts,
+                            const Divider(),
+                            ...holidaysInfo,
                             // InfoField(icon: Icons.calendar_today,
                             //     label: 'Fecha de alta',
                             //     value: DateFormat('dd/MM/yyyy')

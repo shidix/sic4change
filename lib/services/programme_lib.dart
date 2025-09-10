@@ -1,4 +1,3 @@
-import 'package:googleapis/mybusinessbusinessinformation/v1.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -21,7 +20,6 @@ Future<Map<String, double>> getProgrammeFinanciers(projects) async {
   }
 
   for (SProject project in projects) {
-    print("DBG: ${project.uuid}");
     finnInfo[project.uuid] = await SFinnInfo.byProject(project.uuid);
   }
 
@@ -150,7 +148,7 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
     List distribItems = await Distribution.byProject(proj.uuid);
     double totalDistrib = 0;
 
-    for (var partner in proj!.partners) {
+    for (var partner in proj.partners) {
       distribTotalByPartner[partner] = 0;
     }
     invoicesSummary = {};
@@ -287,7 +285,7 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
   goalsPercent["total"] = 0;
   int i = 0;
   for (SProject proj in projects) {
-    List goals = await getGoalsByProject(proj.uuid);
+    List goals = await Goal.getGoalsByProject(proj.uuid);
     double totalProj = 0;
     int j = 0;
     for (Goal goal in goals) {

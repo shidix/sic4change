@@ -1,9 +1,15 @@
 //import 'dart:collection';
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
+import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/form_organization.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
@@ -21,14 +27,46 @@ class OrganizationInfoPage extends StatefulWidget {
 
 class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   Organization? org;
-  OrganizationBilling? orgBilling;
+  // OrganizationBilling? orgBilling;
   Widget? orgInfoDetailsPanel;
+  List<Country> countriesList = [];
+  ProfileProvider? _provider;
+  Organization? _currentOrg;
+  Profile? _currentProfile;
+  List<Organization> organizationsList = [];
 
   @override
   void initState() {
     super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+    _provider?.addListener(() {
+      if (!mounted) return;
+      _currentOrg = _provider?.organization;
+      _currentProfile = _provider?.profile;
+      if (_currentOrg == null || _currentProfile == null) {
+        _provider?.loadProfile();
+      }
+      setState(() {
+        _currentOrg = _provider?.organization;
+        _currentProfile = _provider?.profile;
+      });
+    });
+
+    _currentOrg = _provider?.organization;
+    _currentProfile = _provider?.profile;
+    if (_currentOrg == null || _currentProfile == null) {
+      _provider?.loadProfile();
+    }
+
+    Organization.getOrganizations().then((val) {
+      organizationsList = val;
+    });
+
+    Country.getAll().then((val) {
+      countriesList = val;
+    });
     org = widget.org;
-    orgInfoDetailsPanel = orgInfoDetails(context);
+    orgInfoDetailsPanel = Container();
     //getOrganizationBilling(org);
 
     org!.getCountry().then((val) {
@@ -39,13 +77,13 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
       });
     });
 
-    org!.getBilling().then((val) {
-      orgBilling = val;
-      setState(() {
-        isLoading = false;
-        orgInfoDetailsPanel = orgInfoDetails(context);
-      });
-    });
+    // org!.getBilling().then((val) {
+    //   orgBilling = val;
+    //   setState(() {
+    //     isLoading = false;
+    //     orgInfoDetailsPanel = orgInfoDetails(context);
+    //   });
+    // });
   }
 
   @override
@@ -107,8 +145,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        addBtn(context, callEditOrgDialog,
-                            {'org': org, 'billing': orgBilling},
+                        addBtn(context, callEditOrgDialog, {'org': org},
                             text: "Editar", icon: Icons.edit),
                         space(width: 10),
                         goPage(context, "Volver", const ContactsPage(),
@@ -125,7 +162,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
 /*                           ORG INFO CARD                            */
 /*--------------------------------------------------------------------*/
   Widget orgInfoDetails(context) {
-    if (orgBilling == null) {
+    if (org == null) {
       return const Center(
         child: CircularProgressIndicator(),
       );
@@ -152,19 +189,23 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
   }
 
   Widget orgInfo(context) {
+    if (countriesList.any((element) => element.uuid == org!.country)) {
+      org!.countryObj =
+          countriesList.firstWhere((element) => element.uuid == org!.country);
+    } else {
+      org!.country = countriesList.first.uuid;
+      org!.countryObj = countriesList.first;
+      org!.save();
+    }
+
     return Table(
         //defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(children: [
             customText("Código", 14, bold: FontWeight.bold),
             customText("Nombre", 14, bold: FontWeight.bold),
-            /*       customText("Financiador", 14,
-                bold: FontWeight.bold, align: TextAlign.center),
-            customText("Socio", 14,
-                bold: FontWeight.bold, align: TextAlign.center),
-            customText("Público", 14,
-                bold: FontWeight.bold, align: TextAlign.center),*/
             customText("País", 14, bold: FontWeight.bold),
+            customText("Dominio", 14, bold: FontWeight.bold),
           ]),
           TableRow(children: [
             space(height: 10),
@@ -173,6 +214,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             space(height: 10),
             space(height: 10),*/
             space(height: 10),
+            space(height: 10),
           ]),
           TableRow(children: [
             customText(org?.code, 16),
@@ -180,7 +222,8 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
             /*Icon(org?.isFinancier()),
             Icon(org?.isPartner()),
             Icon(org?.isPublic()),*/
-            customText(org?.countryObj.name, 16),
+            customText(org?.countryObj?.name, 16),
+            customText(org?.domain, 16),
           ])
         ]);
   }
@@ -230,9 +273,9 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
           space(height: 10),
         ]),
         TableRow(children: [
-          customText(orgBilling?.cif, 16),
-          customText(orgBilling?.name, 16),
-          customText(orgBilling?.account, 16, align: TextAlign.center),
+          customText(org?.cif, 16),
+          customText(org?.billingName, 16),
+          customText(org?.account, 16, align: TextAlign.center),
           customText("", 16),
         ])
       ]),
@@ -247,7 +290,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
           space(height: 10),
         ]),
         TableRow(children: [
-          customText(orgBilling?.address, 16),
+          customText(org?.address, 16),
         ])
       ])
     ]);
@@ -258,9 +301,9 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
 -------------------------------------------------------------*/
   void saveOrganization(List args) async {
     Organization org = args[0];
-    OrganizationBilling billing = args[1];
+    // OrganizationBilling billing = args[1];
     org.save();
-    billing.save();
+    // billing.save();
     setState(() {
       orgInfoDetailsPanel = orgInfoDetails(context);
     });
@@ -270,162 +313,77 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
 
   void callEditOrgDialog(context, Map<String, dynamic> args) async {
     Organization org = args["org"];
-    OrganizationBilling billing = args["billing"];
-    List<KeyValue> types = await getOrganizationsTypeHash();
-    List<KeyValue> countries = await getCountriesHash();
-    orgEditDialog(context, org, billing, types, countries);
+    if ((_currentOrg?.id != org.id) ||
+        ([Profile.ADMIN, Profile.RRHH].contains(_currentProfile?.mainRole))) {
+      // OrganizationBilling billing = args["billing"];
+      List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
+      // List<Country> countriesList = await Country.getAll();
+      List<KeyValue> countries = await Country.getCountriesHash();
+      if (countriesList.any((element) => element.uuid == org.country)) {
+        org.countryObj =
+            countriesList.firstWhere((element) => element.uuid == org.country);
+      } else {
+        org.country = countriesList.first.uuid;
+        org.countryObj = countriesList.first;
+        org.save();
+      }
+
+      orgEditDialog(context, org, types, countries);
+    } else {
+      // Show alert informing that the user cannot edit this organizarion
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+                "No tienes permisos para editar esta organización porque es a la que perteneces.\n Si deseas realizar cambios, contacta a un administrador."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Cerrar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
-  Future<void> orgEditDialog(context, org, billing, types, countries) {
+  Future<void> orgEditDialog(context, org, types, countries) {
+    // Check if country in countries
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar("Organización"),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre",
-                  initial: org.name,
-                  size: 300,
-                  fieldValue: (String val) {
-                    org.name = val;
-                  },
-                )
-              ]),
-              space(width: 20),
-              Column(children: [
-                customText("Financiador", 12),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: org.financier,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        org.financier = value!;
-                        state.didChange(org.financier);
-                      });
-                    },
-                  );
-                })
-              ]),
-              space(width: 20),
-              Column(children: [
-                customText("Socio", 12),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: org.partner,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        org.partner = value!;
-                        state.didChange(org.partner);
-                      });
-                    },
-                  );
-                })
-              ]),
-              space(width: 20),
-              Column(children: [
-                customText("Público", 12),
-                FormField<bool>(builder: (FormFieldState<bool> state) {
-                  return Checkbox(
-                    value: org.public,
-                    onChanged: (bool? value) {
-                      org.public = value!;
-                      setState(() {
-                        //org.public = value!;
-                        state.didChange(org.public);
-                      });
-                    },
-                  );
-                })
-              ]),
-            ]),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'País',
-                  size: 600,
-                  selected: org.countryObj.toKeyValue(),
-                  options: countries,
-                  onSelectedOpt: (String val) {
-                    org.country = val;
-                    /*setState(() {
-                    });*/
-                  },
-                ),
-              ]),
-            ]),
-            /*Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Tipo',
-                  size: 220,
-                  selected: org.typeObj.toKeyValue(),
-                  options: types,
-                  onSelectedOpt: (String val) {
-                    org.type = val;
-                  },
-                ),
-              ]),*/
-
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Nombre Facturación",
-                  initial: billing!.name,
-                  size: 300,
-                  fieldValue: (String val) {
-                    billing!.name = val;
-                    //setState(() => org.name = val);
-                  },
-                )
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "CIF",
-                  initial: billing.cif,
-                  size: 280,
-                  fieldValue: (String val) {
-                    billing.cif = val;
-                  },
-                )
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Dirección",
-                  initial: billing.address,
-                  size: 600,
-                  fieldValue: (String val) {
-                    billing.address = val;
-                  },
-                )
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomTextField(
-                  labelText: "Número de cuenta",
-                  initial: billing.account,
-                  size: 600,
-                  fieldValue: (String val) {
-                    billing.account = val;
-                  },
-                )
-              ]),
-            ]),
-          ])),
-          actions: <Widget>[
-            dialogsBtns2(context, saveOrganization, [org, billing]),
-          ],
-        );
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar("Organización"),
+            content: SizedBox(
+              width: min(MediaQuery.of(context).size.width * 0.8, 800),
+              child: SingleChildScrollView(
+                  child: OrganizationForm(
+                selectedOrganization: org,
+                otherOrganizations: organizationsList
+                    .where((element) => element.uuid != org.uuid)
+                    .toList(),
+                onSubmit: (formData) {
+                  // Handle form submission
+                  if (mounted) {
+                    setState(() {
+                      if (org.id == currentOrganization?.id) {
+                        // _currentOrg = org;
+                        _provider?.organization = org;
+                      }
+                      orgInfoDetailsPanel = orgInfoDetails(context);
+                    });
+                  }
+                },
+                countries: countriesList,
+              )),
+            ));
       },
     );
   }

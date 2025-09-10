@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/employee_page.dart';
+import 'package:sic4change/pages/rrhh_employee_page.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -61,18 +62,45 @@ Widget mainMenuUser(context, [user, url]) {
             color: (url == "/contacts")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtn(context, "Roles", Icons.group, "/orgchart",
-            color: (url == "/orgchart")
-                ? mainMenuBtnSelectedColor
-                : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
-        //if (user != null) userWidget(context, user, url),
-
         if (user != null)
           Container(
             padding: const EdgeInsets.only(top: 22),
-            child: customText(user.email!, 14, textColor: Colors.white54),
+            child: (MediaQuery.of(context).size.width > 1300)
+                ? customText(user.email!, 14, textColor: Colors.white54)
+                : Container(),
           )
+      ],
+    ),
+  );
+}
+
+Widget mainMenuEmpty(context, [url]) {
+  return Container(
+    padding: const EdgeInsets.all(3),
+    color: bgColor,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(
+            flex: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                logo(),
+                menuBtn(context, "Inicio", Icons.home, "/home",
+                    color: (url == "/home")
+                        ? mainMenuBtnSelectedColor
+                        : mainMenuBtnColor),
+              ],
+            )),
+        Expanded(
+            flex: 2,
+            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              (FirebaseAuth.instance.currentUser != null)
+                  ? logoutBtn(context, "Salir", Icons.arrow_back)
+                  : Container(),
+            ]))
       ],
     ),
   );
@@ -86,10 +114,9 @@ Widget mainMenuAdmin(context, [user, url]) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo(),
-        menuBtn(context, "Inicio", Icons.home, "/home_admin",
-            color: (url == "/home_admin")
-                ? mainMenuBtnSelectedColor
-                : mainMenuBtnColor),
+        menuBtn(context, "Inicio", Icons.home, "/home",
+            color:
+                (url == "/home") ? mainMenuBtnSelectedColor : mainMenuBtnColor),
         menuBtn(context, "Programas", Icons.list_alt, "/project_list",
             color: (url == "/project_list")
                 ? mainMenuBtnSelectedColor
@@ -100,6 +127,10 @@ Widget mainMenuAdmin(context, [user, url]) {
                 : mainMenuBtnColor),
         menuBtn(context, "Contactos", Icons.handshake, "/contacts",
             color: (url == "/contacts")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
+        menuBtn(context, "Roles", Icons.group, "/orgchart",
+            color: (url == "/orgchart")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
         menuBtn(context, "Admin", Icons.settings, "/admin",
@@ -121,8 +152,9 @@ Widget mainMenuAdmin(context, [user, url]) {
   );
 }
 
-Widget mainMenuOperator(context, {url, profile, key}) {
+Widget mainMenuOperator(context, {url, User? user, key}) {
   key ??= const Key('mainMenuOperator');
+
   return Container(
     key: key,
     padding: const EdgeInsets.all(3),
@@ -140,15 +172,15 @@ Widget mainMenuOperator(context, {url, profile, key}) {
             : menuBtnGo(
                 context, 'Inicio', const HomePage(), Icons.home, "/home",
                 currentUrl: url),
-        menuBtnGo(context, "RR.HH.", EmployeesPage(profile: profile),
-            Icons.list_alt, "/rrhh",
+        menuBtnGo(
+            context, "RR.HH.", const EmployeesPage(), Icons.list_alt, "/rrhh",
             currentUrl: url),
         menuBtn(context, "Programas", Icons.list_alt, "/project_list",
             color: (url == "/project_list")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
-        menuBtnGo(
-            context, "Facturas", InvoicePage(), Icons.receipt, "/invoices",
+        menuBtnGo(context, "Facturas", const InvoicePage(), Icons.receipt,
+            "/invoices",
             currentUrl: url),
         menuBtn(context, "Documentos", Icons.folder, "/documents",
             color: (url == "/documents")
@@ -158,61 +190,121 @@ Widget mainMenuOperator(context, {url, profile, key}) {
             color: (url == "/contacts")
                 ? mainMenuBtnSelectedColor
                 : mainMenuBtnColor),
+        menuBtn(context, "Roles", Icons.group, "/orgchart",
+            color: (url == "/orgchart")
+                ? mainMenuBtnSelectedColor
+                : mainMenuBtnColor),
         logoutBtn(context, "Salir", Icons.arrow_back),
+        if (user != null)
+          menuBtn(context, user.email, Icons.supervised_user_circle_outlined,
+              "/profile",
+              color: (url == "/profile")
+                  ? mainMenuBtnSelectedColor
+                  : mainMenuBtnColor),
       ],
     ),
   );
 }
 
-Widget mainMenu(context, [url]) {
-  final user = FirebaseAuth.instance.currentUser!;
-  String email = user.email!;
+Widget mainMenu(context, [url, Profile? profile]) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    return mainMenuEmpty(context, url);
+  }
 
-  return FutureBuilder<Profile>(
-    future:
-        Profile.getProfile(email), // Llama a la función que devuelve el Future
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        // Si el Future está en estado de espera, muestra un indicador de carga
-        return const CircularProgressIndicator();
-      } else if (snapshot.hasError) {
-        // Si ocurre un error al cargar el Future, muestra un mensaje de error
-        return Text('Error: ${snapshot.error}');
+  profile ??= Provider.of<ProfileProvider>(context, listen: false).profile;
+
+  return Builder(
+    builder: (context) {
+      if (profile == null) {
+        return mainMenuEmpty(context, url);
+      } else if (profile.mainRole == "Admin") {
+        return Stack(
+          children: [
+            mainMenuAdmin(context, user, url),
+            notificationBadge(context, user),
+          ],
+        );
+      } else if (profile.mainRole == "Administrativo") {
+        return Stack(
+          children: [
+            mainMenuOperator(context, url: url, user: user),
+            notificationBadge(context, user),
+          ],
+        );
       } else {
-        // Si el Future se completó exitosamente, muestra los datos
-        //return Text('Datos: ${snapshot.data}');
-        Profile profile = snapshot.data!;
-        if (profile.mainRole == "Admin") {
-          //return mainMenuAdmin(context, user, url);
-          return Stack(
-            children: [
-              mainMenuAdmin(context, user, url),
-              notificationBadge(context, user),
-            ],
-          );
-        } else if (profile.mainRole == "Administrativo") {
-          //return mainMenuOperator(context, url: url, profile: profile);
-          return Stack(
-            children: [
-              mainMenuOperator(context, url: url, profile: profile),
-              notificationBadge(context, user),
-            ],
-          );
-        } else {
-          //return mainMenuUser(context, user, url);
-          return Stack(
-            children: [
-              mainMenuUser(context, user, url),
-              notificationBadge(context, user),
-            ],
-          );
-        }
+        return Stack(
+          children: [
+            mainMenuUser(context, user, url),
+            notificationBadge(context, user),
+          ],
+        );
       }
     },
   );
+
+  // return FutureBuilder<Profile>(
+  //   future: (profile != null)
+  //       ? Future.value(profile)
+  //       : Profile.getProfile(
+  //           email), // Llama a la función que devuelve el Future
+  //   builder: (context, snapshot) {
+  //     if (snapshot.connectionState == ConnectionState.waiting) {
+  //       // Si el Future está en estado de espera, muestra un indicador de carga
+  //       return const CircularProgressIndicator();
+  //     } else if (snapshot.hasError) {
+  //       // Si ocurre un error al cargar el Future, muestra un mensaje de error
+  //       return Text('Error: ${snapshot.error}');
+  //     } else {
+  //       // Si el Future se completó exitosamente, muestra los datos
+  //       //return Text('Datos: ${snapshot.data}');
+  //       Profile profile = snapshot.data!;
+  //       if (profile.mainRole == "Admin") {
+  //         //return mainMenuAdmin(context, user, url);
+  //         return Stack(
+  //           children: [
+  //             mainMenuAdmin(context, user, url),
+  //             notificationBadge(context, user),
+  //           ],
+  //         );
+  //       } else if (profile.mainRole == "Administrativo") {
+  //         //return mainMenuOperator(context, url: url, profile: profile);
+  //         return Stack(
+  //           children: [
+  //             mainMenuOperator(context, url: url, profile: profile),
+  //             notificationBadge(context, user),
+  //           ],
+  //         );
+  //       } else {
+  //         //return mainMenuUser(context, user, url);
+  //         return Stack(
+  //           children: [
+  //             mainMenuUser(context, user, url),
+  //             notificationBadge(context, user),
+  //           ],
+  //         );
+  //       }
+  //     }
+  //   },
+  // );
 }
 
-Widget logo() {
+Widget logo({Profile? profile}) {
+  if (profile != null) {
+    // return Image + profile.email
+    return Column(
+      children: [
+        const Image(
+          image: AssetImage('assets/images/logo.jpg'),
+          width: 100,
+        ),
+        space(height: 10),
+        customText(profile.email, 14,
+            textColor: Colors.white54, align: TextAlign.center),
+      ],
+    );
+  }
+
   return const Image(
     image: AssetImage('assets/images/logo.jpg'),
     width: 100,

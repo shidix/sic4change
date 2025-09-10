@@ -118,9 +118,9 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
           setState(() {});
         }
       });
-      getProgrammes().then((value) {
+      Programme.getProgrammes().then((value) {
         //List l = value;
-        programmeListCache = value as List<Programme>;
+        programmeListCache = value;
         for (Programme p in programmeListCache) {
           if (p.uuid == task!.programme) task!.programmeObj = p;
         }
@@ -133,7 +133,7 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         statusListCache = value;
         /*task!.statusObj =
             statusListCache.firstWhere((status) => status.uuid == task!.status);*/
-        statusListCache = value as List<TasksStatus>;
+        statusListCache = value;
         for (TasksStatus st in statusListCache) {
           if (st.uuid == task!.status) {
             task!.statusObj = st;
@@ -577,8 +577,8 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
         programmeListCache.map((e) => e.toKeyValue()).toList();
     //programmeList.add(KeyValue("", ""));*/
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     List<KeyValue> contactList =
         contactListCache.map((e) => e.toKeyValue()).toList();
@@ -603,13 +603,10 @@ class _TaskInfoPageState extends State<TaskInfoPage> {
   }
 
   void saveTask(List args) async {
-    print("--1--");
     STask task = args[0];
     task.save();
     await task.getFolder();
-    print("--2--");
     updateObjects();
-    print("--3--");
 
     Navigator.pop(context);
   }

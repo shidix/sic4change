@@ -3,6 +3,8 @@ import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class LearningInfo extends Object {
+  static const String tbName = "s4c_learnings";
+
   String id = "";
   String uuid;
   String project;
@@ -35,38 +37,57 @@ class LearningInfo extends Object {
       };
 
   void save() async {
-    final db = FirebaseFirestore.instance;
-    final database = db.collection("s4c_learnings");
     if (uuid == "") {
       uuid = const Uuid().v4();
       Map<String, dynamic> data = toJson();
-      await database.add(data).then((value) {
+      await FirebaseFirestore.instance
+          .collection(LearningInfo.tbName)
+          .add(data)
+          .then((value) {
         id = value.id;
-        database.doc(id).update(toJson());
+        FirebaseFirestore.instance
+            .collection(LearningInfo.tbName)
+            .doc(id)
+            .update(toJson());
       });
     } else {
       if (id == "") {
-        await database.where("uuid", isEqualTo: uuid).get().then((value) {
+        await FirebaseFirestore.instance
+            .collection(LearningInfo.tbName)
+            .where("uuid", isEqualTo: uuid)
+            .get()
+            .then((value) {
           if (value.docs.isNotEmpty) {
             id = value.docs.first.id;
           }
         });
       }
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance
+          .collection(LearningInfo.tbName)
+          .doc(id)
+          .set(data);
     }
   }
 
   void delete() async {
-    final db = FirebaseFirestore.instance;
-    final database = db.collection("s4c_learnings");
     if (id != "") {
-      await database.doc(id).delete();
+      await FirebaseFirestore.instance
+          .collection(LearningInfo.tbName)
+          .doc(id)
+          .delete();
     } else {
-      await database.where("uuid", isEqualTo: uuid).get().then((value) {
+      await FirebaseFirestore.instance
+          .collection(LearningInfo.tbName)
+          .where("uuid", isEqualTo: uuid)
+          .get()
+          .then((value) {
         if (value.docs.isNotEmpty) {
           id = value.docs.first.id;
-          database.doc(id).delete();
+          FirebaseFirestore.instance
+              .collection(LearningInfo.tbName)
+              .doc(id)
+              .delete();
         }
       });
     }
@@ -88,10 +109,12 @@ class LearningInfo extends Object {
   }
 
   static Future<LearningInfo?> byProject(String projectUuid) async {
-    final db = FirebaseFirestore.instance;
-    final database = db.collection("s4c_learnings");
     LearningInfo? learningInfo;
-    await database.where("project", isEqualTo: projectUuid).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(LearningInfo.tbName)
+        .where("project", isEqualTo: projectUuid)
+        .get()
+        .then((value) {
       if (value.docs.isNotEmpty) {
         learningInfo = LearningInfo.fromJson(value.docs.first.data());
       } else {

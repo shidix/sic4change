@@ -13,8 +13,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/tasks_menu_widget.dart';
-import 'package:googleapis/calendar/v3.dart' as GoogleAPI;
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 const pageUsersTaskTitle = "Carga de tareas por usuario";
 List users = [];
@@ -56,30 +54,6 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
     });
     //setState(() {});
   }
-
-  /*Future<List<GoogleAPI.Event>> getGoogleEventsData() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-    final GoogleAPIClient httpClient =
-        GoogleAPIClient(await googleUser!.authHeaders);
-
-    final GoogleAPI.CalendarApi calendarApi = GoogleAPI.CalendarApi(httpClient);
-    final GoogleAPI.Events calEvents = await calendarApi.events.list(
-      "primary",
-    );
-    final List<GoogleAPI.Event> appointments = <GoogleAPI.Event>[];
-    if (calEvents.items != null) {
-      for (int i = 0; i < calEvents.items!.length; i++) {
-        final GoogleAPI.Event event = calEvents.items![i];
-        if (event.start == null) {
-          continue;
-        }
-        appointments.add(event);
-      }
-    }
-
-    return appointments;
-  }*/
 
   @override
   void initState() {
@@ -192,7 +166,7 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
                 child: customText("${occupation[us.email][row]['text']} %", 14),
               )));
     } catch (e) {
-      print(e);
+      // Handle error, e.g., log it or show a message
     }
     return SizedBox.expand(
         child: Container(
@@ -246,15 +220,15 @@ class _TasksUsersPageState extends State<TasksUsersPage> {
   }
 
   void callEditDialog(context, HashMap args) async {
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

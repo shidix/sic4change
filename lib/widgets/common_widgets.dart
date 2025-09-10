@@ -1,5 +1,7 @@
 // ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, library_private_types_in_public_api
 
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,12 +14,26 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 //import 'package:pdf/widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:provider/provider.dart';
+import 'package:sic4change/main.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+// ignore: constant_identifier_names
+const Map<String, double> SCALES = {
+  "xs": 0.5,
+  "sm": 0.8,
+  "md": 1.0,
+  "lg": 1.2,
+  "xl": 1.5,
+  "xxl": 2.0,
+};
 
 Widget customTitle(context, _text) {
   return Container(
@@ -144,17 +160,12 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
-    onPressed: () {
-      User user = FirebaseAuth.instance.currentUser!;
-      Workday.currentByUser(user.email!).then((value) {
-        if ((value != null) && (value.open)) {
-          value.endDate = DateTime.now();
-          value.open = false;
-          value.save();
-        }
-      });
-      FirebaseAuth.instance.signOut();
-      Navigator.pushReplacementNamed(context, '/');
+    onPressed: () async {
+      //await signOut(context);
+      await FirebaseAuth.instance.signOut();
+      RestartApp.restart(context);
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
@@ -291,7 +302,9 @@ Widget customRowBtn(context, btnName, btnIcon, btnRoute, args) {
 Widget customRowPopBtn(context, btnName, btnIcon) {
   return ElevatedButton(
     onPressed: () {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -569,57 +582,70 @@ Widget actionButton(
     context, String? text, Function action, IconData? icon, dynamic args,
     {Color textColor = Colors.black54,
     Color iconColor = Colors.black54,
+    Color bgColor = Colors.white,
     double size = 30,
     double hPadding = 20.0,
     double vPadding = 20.0,
+    double hMargin = 0.0,
+    double vMargin = 0.0,
+    String scale = "md",
+    String? tooltip,
     FocusNode? listener}) {
   icon ??= Icons.settings;
   Widget? row;
-  if (text != null) {
+  if ((text != null) && (text.isNotEmpty)) {
     List<Widget> children = [];
     children.add(Icon(
       icon,
       color: iconColor,
-      size: size,
+      size: size * SCALES[scale]!,
     ));
 
     children.add(space(width: 10));
     children.add(Text(
       text,
-      style: TextStyle(color: textColor, fontSize: 14),
+      style: TextStyle(color: textColor, fontSize: 14 * SCALES[scale]!),
     ));
     row = Row(children: children);
   } else {
     row = Icon(
       icon,
       color: iconColor,
-      size: size,
+      size: size * SCALES[scale]!,
     );
   }
 
-  return ElevatedButton(
-    onPressed: () {
-      if (args == null) {
-        action();
-      } else {
-        action(args);
-      }
-    },
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          side: const BorderSide(color: Color(0xff8fbc8f))),
-      backgroundColor: Colors.white,
-    ),
-    child: row,
-    focusNode: listener,
-  );
+  return Container(
+      margin: EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
+      child: // Add a hover text
+          Tooltip(
+              message: tooltip ?? text ?? '',
+              child: ElevatedButton(
+                onPressed: () {
+                  if (args == null) {
+                    action();
+                  } else {
+                    action(args);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: hPadding, vertical: vPadding),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      side: const BorderSide(color: Color(0xff8fbc8f))),
+                  backgroundColor: bgColor,
+                ),
+                focusNode: listener,
+                child: row,
+              )));
 }
 
 Widget actionButtonVertical(
     context, dynamic text, Function action, IconData? icon, dynamic args,
-    {Color textColor = Colors.black54, Color iconColor = Colors.black54}) {
+    {Color textColor = Colors.black54,
+    Color iconColor = Colors.black54,
+    bool fullWidth = false}) {
   icon ??= Icons.settings;
   Widget textWidget;
   if (text is String) {
@@ -638,15 +664,30 @@ Widget actionButtonVertical(
       }
     },
     style: btnStyle,
-    child: Column(
-      children: [
-        space(height: 5),
-        Icon(icon, color: subTitleColor),
-        space(height: 5),
-        textWidget,
-        space(height: 5),
-      ],
-    ),
+    child: fullWidth
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  space(height: 5),
+                  Icon(icon, color: subTitleColor),
+                  space(height: 5),
+                  textWidget,
+                ],
+              ),
+            ],
+          )
+        : Column(
+            children: [
+              space(height: 5),
+              Icon(icon, color: subTitleColor),
+              space(height: 5),
+              textWidget,
+              space(height: 5),
+            ],
+          ),
   );
 }
 
@@ -925,7 +966,7 @@ Widget customText(_text, _size,
     bold = FontWeight.normal,
     align = TextAlign.start}) {
   return Text(
-    _text,
+    _text ?? '',
     textAlign: align,
     style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
@@ -1004,7 +1045,9 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
 
   Widget iconWidget = const SizedBox(width: 0);
   if (icon != null) {
-    iconWidget = Icon(icon, color: Colors.white);
+    iconWidget = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Icon(icon, color: Colors.white));
   }
   return SizedBox(
       width: double.infinity,
@@ -1019,21 +1062,24 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
           child: Padding(
               padding: const EdgeInsets.all(10),
               child: Row(children: [
-                Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
-                Expanded(flex: 9, child: titleWidget),
+                // Expanded(flex: (icon == null) ? 0 : 1, child: iconWidget),
+                Expanded(
+                    flex: 9, child: Row(children: [iconWidget, titleWidget])),
                 Expanded(flex: 1, child: closeButton)
               ]))));
 }
 
 Expanded headerCell(
-    {int flex = 1, String text = '', TextAlign textAlign = TextAlign.start}) {
+    {int flex = 1, dynamic text = '', TextAlign textAlign = TextAlign.start}) {
   return Expanded(
       flex: flex,
-      child: Text(
-        text,
-        style: headerListStyle,
-        textAlign: textAlign,
-      ));
+      child: (text is String)
+          ? Text(
+              text,
+              style: headerListStyle,
+              textAlign: textAlign,
+            )
+          : text);
 }
 
 Expanded listCell(
@@ -1681,8 +1727,8 @@ Widget customCollapse2(context, title, action, obj,
 //--------------------------------------------------------------------------
 //                           DIALOGS
 //--------------------------------------------------------------------------
-Future<void> customRemoveDialog(context, obj, action, [args]) async {
-  return showDialog<void>(
+Future<Organization?> customRemoveDialog(context, obj, action, [args]) async {
+  return showDialog<Organization?>(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
@@ -1704,7 +1750,7 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
                     } else {
                       action(args);
                     }
-                    Navigator.of(context).pop();
+                    return obj;
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -1729,53 +1775,6 @@ Future<void> customRemoveDialog(context, obj, action, [args]) async {
                 child: actionButton(
                     context, "Cancelar", cancelItem, Icons.cancel, context))
           ])
-          /*Expanded(
-              flex: 5,
-              child: ElevatedButton(
-                onPressed: () {
-                  obj.delete();
-                  if (args == null) {
-                    action();
-                  } else {
-                    action(args);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 20.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  backgroundColor: Colors.white,
-                ),
-                child: Row(children: [
-                  const Icon(Icons.remove),
-                  space(width: 10),
-                  customText(removeText, 14)
-                ]),
-              )),*/
-          /*TextButton(
-            child: const Text(removeText),
-            onPressed: () async {
-              obj.delete();
-              if (args == null) {
-                action();
-              } else {
-                action(args);
-              }
-              Navigator.of(context).pop();
-            },
-          ),*/
-          /*space(width: 10),
-          Expanded(
-              flex: 5,
-              child: actionButton(
-                  context, "Cancelar", cancelItem, Icons.cancel, context))*/
-          /*TextButton(
-            child: const Text(cancelText),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),*/
         ],
       );
     },
@@ -1805,13 +1804,13 @@ class ReadOnlyTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgcolor = Colors.grey.shade100;
-    TextStyle? fgstyle = Theme.of(context)
-        .textTheme
-        .titleMedium!
-        .copyWith(backgroundColor: bgcolor);
+    // Color bgcolor = Colors.grey.shade100;
+    // TextStyle? fgstyle = Theme.of(context)
+    //     .textTheme
+    //     .titleMedium!
+    //     .copyWith(backgroundColor: bgcolor);
     return Container(
-        color: bgcolor,
+        // color: bgcolor,
         child: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Column(
@@ -1838,8 +1837,16 @@ class ReadOnlyTextField extends StatelessWidget {
                           child: Text(
                             textToShow,
                             textAlign: textAlign,
-                            style:
-                                fgstyle, // Estilo similar al de un TextFormField
+                            // Estilo similar al de un TextFormField, pero con el texto en cursiva,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.black),
+
+                            // style:
+                            //     fgstyle, // Estilo similar al de un TextFormField
                           )))
                 ]),
                 const SizedBox(
@@ -1866,6 +1873,7 @@ class UploadFileField extends StatelessWidget {
     required this.onSelectedFile,
     this.pickedFile,
     this.padding = const EdgeInsets.only(top: 8),
+    bool fullWidth = false,
   });
 
   Future<PlatformFile?> chooseFile(context) async {
@@ -1890,8 +1898,88 @@ class UploadFileField extends StatelessWidget {
               (pickedFile == null) ? textToShow : pickedFile!.name,
               chooseFile,
               Icons.upload_file,
-              context))
+              context,
+              fullWidth: true)),
     ]);
+  }
+}
+
+class UploadImageField extends StatefulWidget {
+  final Object textToShow;
+  final ValueChanged<PlatformFile?> onSelectedFile;
+  final String pathImage;
+  final String rootPath;
+  final String fileName;
+  final EdgeInsets padding;
+  final bool fullWidth;
+
+  const UploadImageField({
+    super.key,
+    required this.textToShow,
+    required this.onSelectedFile,
+    required this.pathImage,
+    required this.rootPath,
+    required this.fileName,
+    this.padding = const EdgeInsets.only(top: 8),
+    this.fullWidth = false,
+  });
+
+  @override
+  UploadImageFieldState createState() => UploadImageFieldState();
+}
+
+class UploadImageFieldState extends State<UploadImageField> {
+  PlatformFile? pickedFile;
+  String? imagePath;
+
+  Future<PlatformFile?> chooseFile(context) async {
+    final result =
+        await FilePicker.platform.pickFiles(type: FileType.any, withData: true);
+    if (result == null) {
+      return null;
+    } else {
+      setState(() {
+        pickedFile = result.files.first;
+      });
+      //widget.onSelectedFile(pickedFile);
+      uploadFileToStorage(pickedFile!,
+              rootPath: widget.rootPath, fileName: widget.fileName)
+          .then((value) {
+        getDownloadUrl(value).then((url) {
+          setState(() {
+            imagePath = url;
+            widget.onSelectedFile(pickedFile);
+          });
+        });
+      });
+      return pickedFile;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // pathImage is full name with extension. I need the path, without the name
+    imagePath = widget.pathImage;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+        message: "Haz click para cambiar la imagen",
+        child: Wrap(children: [
+          Padding(
+              padding: widget.padding,
+              child: ElevatedButton(
+                  style: btnStyle.copyWith(
+                      padding: WidgetStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              horizontal: 0.0, vertical: 0.0))),
+                  onPressed: () => chooseFile(context),
+                  child: (imagePath != '')
+                      ? Image.network(imagePath!, height: 80)
+                      : SizedBox(height: 80, width: 80))),
+        ]));
   }
 }
 
@@ -1902,10 +1990,12 @@ class DateTimeRangePicker extends StatelessWidget {
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
+    this.errorMessage,
   }) : super(key: key);
 
   final DateTimeRange calendarRangeDate;
   final String labelText;
+  final String? errorMessage;
   final DateTimeRange selectedDate;
   final ValueChanged<DateTimeRange> onSelectedDate;
 
@@ -1943,16 +2033,34 @@ class DateTimeRangePicker extends StatelessWidget {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: labelText,
+          border: (errorMessage != null)
+              ? OutlineInputBorder(
+                  borderSide:
+                      BorderSide(color: Colors.red.shade700, width: 1.0),
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                )
+              : null,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
-            ),
-            const Icon(Icons.calendar_today),
-          ],
-        ),
+        child: Column(children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                "${"${selectedDate.start.toLocal()}".split(' ')[0]} - ${"${selectedDate.end.toLocal()}".split(' ')[0]}",
+              ),
+              const Icon(Icons.calendar_today),
+            ],
+          ),
+          errorMessage != null
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    errorMessage!,
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ]),
       ),
     );
   }
@@ -2043,6 +2151,8 @@ class _CustomPopupDialogState extends State<CustomPopupDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: s4cTitleBar(widget.title, widget.context, widget.icon),
+      titlePadding: const EdgeInsets.all(8),
+      contentPadding: const EdgeInsets.all(10),
       content: Padding(padding: const EdgeInsets.all(0), child: widget.content),
       actions: widget.actionBtns,
     );
@@ -2322,12 +2432,12 @@ class FilterDateField extends StatelessWidget {
           title: (labelText is String)
               ? Text(
                   labelText,
-                  style: TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10),
                   maxLines: 1,
                 )
               : labelText,
           subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate),
-              style: TextStyle(fontSize: 12)),
+              style: const TextStyle(fontSize: 12)),
           onTap: () async {
             final DateTime? picked = await showDatePicker(
                 context: context,
@@ -2367,7 +2477,7 @@ Widget mainHeader(title, List<Widget> buttons) {
     Container(
       padding: (buttons.isNotEmpty)
           ? const EdgeInsets.only(left: 40)
-          : EdgeInsets.all(40),
+          : const EdgeInsets.all(40),
       child: (title is String)
           ? Text(title,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -2392,7 +2502,7 @@ class FileNameDialog extends StatefulWidget {
 }
 
 class _FileNameDialogState extends State<FileNameDialog> {
-  TextEditingController _fileNameController = TextEditingController();
+  final TextEditingController _fileNameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -2402,22 +2512,168 @@ class _FileNameDialogState extends State<FileNameDialog> {
       title: s4cTitleBar('Nombre de archivo'),
       content: TextField(
         controller: _fileNameController,
-        decoration: InputDecoration(hintText: "Nombre de archivo"),
+        decoration: const InputDecoration(hintText: "Nombre de archivo"),
       ),
       actions: [
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(null); // Cancel
           },
-          child: Text('Cancelar'),
+          child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(_fileNameController.text); // Confirm
           },
-          child: Text('OK'),
+          child: const Text('OK'),
         ),
       ],
     );
   }
+}
+
+class DynamicGrid extends StatelessWidget {
+  // Lista de widgets para mostrar en el grid
+  final List<Widget> widgets;
+
+  const DynamicGrid({super.key, required this.widgets});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // Número de columnas
+        crossAxisSpacing: 10, // Espacio horizontal entre celdas
+        mainAxisSpacing: 10, // Espacio vertical entre celdas
+      ),
+      padding: const EdgeInsets.all(10),
+      itemCount: widgets.length, // Número de widgets en la lista
+      itemBuilder: (context, index) {
+        return widgets[index];
+      },
+    );
+  }
+}
+
+class PasswordField extends StatefulWidget {
+  final TextEditingController controller;
+
+  const PasswordField({super.key, required this.controller});
+
+  @override
+  _PasswordFieldState createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  bool _obscureText = true; // Estado para ocultar o mostrar la contraseña
+  late TextEditingController _controller;
+
+  @override
+  Widget build(BuildContext context) {
+    _controller = widget.controller;
+    return TextFormField(
+      controller: _controller,
+      obscureText: _obscureText, // Oculta o muestra la contraseña
+      decoration: InputDecoration(
+        labelText: 'Contraseña',
+        fillColor: Colors.white,
+        filled: true,
+        //border: OutlineInputBorder(), // Añade un borde al campo
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureText ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText; // Cambia el estado
+            });
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class CheckboxFormField extends FormField<bool> {
+  CheckboxFormField({
+    Key? key,
+    required Widget title,
+    bool initialValue = false,
+    FormFieldSetter<bool>? onSaved,
+    FormFieldValidator<bool>? validator,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+    bool enabled = true,
+  }) : super(
+          key: key,
+          initialValue: initialValue,
+          onSaved: onSaved,
+          validator: validator,
+          autovalidateMode: autovalidateMode,
+          builder: (FormFieldState<bool> state) {
+            return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: state.hasError ? Colors.red : Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CheckboxListTile(
+                      value: state.value,
+                      title: title,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      onChanged: enabled
+                          ? (bool? value) {
+                              state.didChange(value ?? false);
+                            }
+                          : null,
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          state.errorText ?? '',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
+                ));
+          },
+        );
+}
+
+Widget infoDialog(BuildContext context, Icon icon, String title, String content,
+    {List<Widget>? actions}) {
+  return AlertDialog(
+    titlePadding: const EdgeInsets.all(0),
+    title: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        s4cTitleBar(
+          title,
+          context,
+          icon.icon,
+        ),
+      ],
+    ),
+    content: Text(
+      content,
+      style: TextStyle(color: mainColor, fontSize: 20),
+      textAlign: TextAlign.center,
+    ),
+    actions: actions ??
+        [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cerrar'),
+          ),
+        ],
+  );
 }

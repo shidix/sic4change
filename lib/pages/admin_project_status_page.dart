@@ -34,10 +34,12 @@ class _ProjectStatusPageState extends State<ProjectStatusPage>
 
   void loadProjectStatus() async {
     setLoading();
-    await getProjectStatus().then((val) {
-      projectStatus = val;
-      stopLoading();
-    });
+    projectStatus = await ProjectStatus.getProjectStatus();
+    stopLoading();
+    // await getProjectStatus().then((val) {
+    //   projectStatus = val;
+    //   stopLoading();
+    // });
   }
 
   @override

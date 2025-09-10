@@ -21,9 +21,10 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
   Result? result;
 
   void loadTasks(value) async {
-    await getResultTasksByResult(value).then((val) {
-      result_task_list = val;
-    });
+    // await getResultTasksByResult(value).then((val) {
+    //   result_task_list = val;
+    // });
+    result_task_list = await ResultTask.getResultTasksByResult(value);
     setState(() {});
   }
 
@@ -133,7 +134,7 @@ class _ResultTasksPageState extends State<ResultTasksPage> {
 
   Widget taskList(context, result) {
     return FutureBuilder(
-        future: getResultTasksByResult(result.uuid),
+        future: ResultTask.getResultTasksByResult(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             result_task_list = snapshot.data!;

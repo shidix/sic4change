@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
 import 'dart:html' as html;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/form_nomina.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -19,15 +20,16 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 
 class NominasPage extends StatefulWidget {
-  final Profile? profile;
+  // final Profile? profile;
   final String? codeEmployee;
-  const NominasPage({super.key, this.profile, this.codeEmployee});
+  const NominasPage({super.key, this.codeEmployee});
 
   @override
   State<NominasPage> createState() => _NominasPageState();
 }
 
 class _NominasPageState extends State<NominasPage> {
+  final user = FirebaseAuth.instance.currentUser;
   GlobalKey<ScaffoldState> mainMenuKey = GlobalKey();
   Profile? profile;
   List<Nomina> nominas = [];
@@ -101,23 +103,38 @@ class _NominasPageState extends State<NominasPage> {
     html.Url.revokeObjectUrl(url);
   }
 
+  Future<void> init(context) async {
+    while (
+        Provider.of<ProfileProvider>(context, listen: false).profile == null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    setState(() {
+      profile = Provider.of<ProfileProvider>(context, listen: false).profile;
+      secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    mainMenuPanel = mainMenu(context, "/rrhh");
+    init(context);
 
-    if (widget.profile == null) {
-      Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
-          .then((value) {
-        profile = value;
-        secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    } else {
-      profile = widget.profile;
-      secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
-    }
+    // if (widget.profile == null) {
+    //   Profile.getProfile(FirebaseAuth.instance.currentUser!.email!)
+    //       .then((value) {
+    //     checkPermissions(context, value, [Profile.ADMINISTRATIVE]);
+    //     profile = value;
+    //     secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
+    //     if (mounted) {
+    //       setState(() {});
+    //     }
+    //   });
+    // } else {
+    //   profile = widget.profile;
+    //   checkPermissions(context, profile!, [Profile.ADMINISTRATIVE]);
+    //   secondaryMenuPanel = secondaryMenu(context, NOMINA_ITEM, profile);
+    // }
 
     Employee.getEmployees().then((value) {
       employees = value;
@@ -183,9 +200,19 @@ class _NominasPageState extends State<NominasPage> {
     );
 
     for (int i = 0; i < nominas.length; i++) {
-      nominas[i].employee = employees
+      // Check if the employee is in the list of employees
+      if (employees
           .where((element) => element.code == nominas[i].employeeCode)
-          .first;
+          .isEmpty) {
+        // If not, set the employee to null
+        nominas[i].employee = Employee.getEmpty();
+      }
+      // If the employee is in the list, set the employee to the employee object
+      else {
+        nominas[i].employee = employees
+            .where((element) => element.code == nominas[i].employeeCode)
+            .first;
+      }
     }
     nominas.sort(compareNomina);
 
@@ -739,16 +766,16 @@ class _NominasPageState extends State<NominasPage> {
   Widget build(BuildContext context) {
     // return to login_page if profile is null
     if (profile == null) {
-      return SelectionArea(
+      return const SelectionArea(
           child: Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
-              const CircularProgressIndicator(),
-              const Text(
+              // mainMenuOperator(context, url: "/rrhh", profile: profile),
+              CircularProgressIndicator(),
+              Text(
                 'Loading profile...',
               ),
             ],
@@ -764,7 +791,7 @@ class _NominasPageState extends State<NominasPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              mainMenuOperator(context, url: "/rrhh", profile: profile),
+              mainMenuOperator(context, url: "/rrhh", user: user),
               Padding(
                   padding: const EdgeInsets.all(30), child: secondaryMenuPanel),
               contentPanel,

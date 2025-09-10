@@ -1,13 +1,18 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
+import 'dart:developer' as dev;
+// import 'package:flutter/material.dart';
+
 // import 'package:uuid/uuid.dart';
 
 class Nomina {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_nominas");
-  static final storage = FirebaseStorage.instance;
+  static const String tbName = "s4c_nominas";
 
   String? id;
   String employeeCode;
@@ -109,15 +114,21 @@ class Nomina {
 
   Future<Nomina> save() async {
     if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => id = value.id);
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Nomina getEmpty() {
@@ -139,7 +150,8 @@ class Nomina {
     beforeAt ??= DateTime.now().add(const Duration(days: 3650));
     atfterAt ??= DateTime.now().subtract(const Duration(days: 3650));
     List<Nomina> items = [];
-    await collection
+    await FirebaseFirestore.instance
+        .collection(tbName)
         .where('date', isGreaterThanOrEqualTo: atfterAt)
         .where('date', isLessThanOrEqualTo: beforeAt)
         .get()
@@ -227,16 +239,17 @@ class Nomina {
 }
 
 class EmploymentPromotion {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_employment_promotions");
+  static const String tbName = "s4c_employment_promotions";
 
   bool active;
+  int order;
   String uuid;
   String name;
   String description;
 
   EmploymentPromotion(
       {required this.uuid,
+      required this.order,
       required this.active,
       required this.name,
       required this.description});
@@ -244,6 +257,7 @@ class EmploymentPromotion {
   factory EmploymentPromotion.fromJson(Map<String, dynamic> json) {
     return EmploymentPromotion(
         uuid: json['uuid'],
+        order: json.containsKey('order') ? json['order'] : 1000,
         active: json['active'],
         name: json['name'],
         description: json['description']);
@@ -252,19 +266,20 @@ class EmploymentPromotion {
   Map<String, dynamic> toJson() => {
         'uuid': uuid,
         'active': active,
+        'order': order,
         'name': name,
         'description': description
       };
 
   static EmploymentPromotion getEmpty() {
     return EmploymentPromotion(
-        uuid: '', active: true, name: '', description: '');
+        uuid: '', active: true, name: '', description: '', order: 1000);
   }
 
   static Future<List<EmploymentPromotion>> getAll() async {
     // get from database
     List<EmploymentPromotion> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
@@ -278,7 +293,11 @@ class EmploymentPromotion {
   static Future<List<EmploymentPromotion>> getActive() async {
     // get from database
     List<EmploymentPromotion> items = [];
-    await collection.where('active', isEqualTo: true).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('active', isEqualTo: true)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         EmploymentPromotion item = EmploymentPromotion.fromJson(e.data());
@@ -291,15 +310,21 @@ class EmploymentPromotion {
 
   Future<EmploymentPromotion> save() async {
     if (uuid.isEmpty) {
-      await collection.add(toJson()).then((value) => uuid = value.id);
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => uuid = value.id);
     } else {
-      await collection.doc(uuid).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(uuid)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(uuid).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(uuid).delete();
   }
 }
 
@@ -345,7 +370,7 @@ class Alta {
     this.pathNIF,
     this.pathLOPD,
     this.pathOthers,
-    this.employmentPromotion = '',
+    this.employmentPromotion = 'Ninguna',
     this.position = '',
     this.category = '',
     this.annualPayments = 12,
@@ -428,8 +453,8 @@ class Alta {
       return 0.0;
     }
     salary.sort((a, b) => a.date.compareTo(b.date));
-    double grossSalary = salary.last.amount;
-    double dailyPayment = grossSalary / 365;
+    //double grossSalary = salary.last.amount;
+    //double dailyPayment = grossSalary / 365;
 
     return 0.0;
   }
@@ -516,8 +541,7 @@ class Baja {
 }
 
 class BajaReason {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_baja_reasons");
+  static const String tbName = "s4c_baja_reasons";
 
   String name;
   String? uuid;
@@ -553,7 +577,7 @@ class BajaReason {
   static Future<List<BajaReason>> getAll() async {
     // get from database
     List<BajaReason> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         BajaReason item = BajaReason.fromJson(e.data());
@@ -567,26 +591,62 @@ class BajaReason {
 
   Future<BajaReason> save() async {
     if (uuid == null) {
-      await collection.add(toJson()).then((value) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
         uuid = value.id;
-        collection.doc(uuid).update({'uuid': uuid});
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(uuid)
+            .update({'uuid': uuid});
       });
     } else {
-      await collection.doc(uuid).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(uuid)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(uuid).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(uuid).delete();
+  }
+}
+
+class Shift {
+  DateTime date;
+  List<double> hours;
+
+  Shift({required this.date, required this.hours});
+
+  factory Shift.fromJson(Map<String, dynamic> json) {
+    return Shift(
+        date: getDate(json['date'] ?? DateTime.now()),
+        hours: (json['hours'] as List<dynamic>?)
+                ?.map((e) => (e as num).toDouble())
+                .toList() ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'hours': hours,
+      };
+
+  factory Shift.getEmpty({DateTime? date}) {
+    return Shift(
+        date: truncDate(date ?? DateTime.now()),
+        hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]);
   }
 }
 
 class Employee {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_employees");
+  static const String tbName = "s4c_employees";
+  DocumentReference? docRef;
 
-  String? id;
+  String? id = '';
   String code;
   String firstName;
   String lastName1;
@@ -597,11 +657,16 @@ class Employee {
   // String category;
   String sex = 'O';
   String bankAccount = '';
+  String affiliation = '';
   DateTime? bornDate = DateTime(2000, 1, 1);
+  String? organization;
+  Workplace workplace = Workplace.getEmpty();
   List altas = [];
+  List shift = [];
   // List bajas = [];
   Map<String, dynamic> extraDocs = {};
   String? photoPath;
+  Function? onChanged;
 
   Employee(
       {required this.code,
@@ -610,18 +675,40 @@ class Employee {
       required this.lastName2,
       required this.email,
       required this.phone,
-      // required this.position,
-      // required this.category,
+      required this.organization,
+      this.affiliation = '',
       this.bankAccount = '',
+      this.shift = const [],
       this.altas = const [],
-      // this.bajas = const [],
       this.extraDocs = const {},
       this.photoPath,
       this.sex = 'O',
-      this.bornDate});
+      this.bornDate,
+      this.onChanged});
 
-  factory Employee.fromJson(Map<String, dynamic> json) {
-    return Employee(
+  @override
+  String toString() {
+    return '$firstName $lastName1 $lastName2 ($code), $email';
+  }
+
+  String aka() {
+    String fullName = getFullName().toUpperCase();
+    List<String> parts = fullName.split(' ');
+    // return firts character of each part => 'Daniel Jacobo Diaz Gonzalez' => 'DJDG'
+    try {
+      return parts.map((part) => part[0]).join('');
+    } catch (e) {
+      // If there is an error, return the first three letters of the first name
+      return email.split('@')[0];
+    }
+  }
+
+  // static Future<Employee> fromJson(Map<String, dynamic> json) async {
+  static Future<Employee> fromJson(DocumentReference doc) async {
+    var query = await doc.get();
+    Map<String, dynamic> json = query.data() as Map<String, dynamic>;
+
+    Employee item = Employee(
       code: json['code'],
       firstName: json['firstName'],
       lastName1: json['lastName1'],
@@ -629,6 +716,8 @@ class Employee {
       email: json['email'],
       phone: json['phone'],
       photoPath: json['photoPath'],
+      organization:
+          (json.containsKey('organization')) ? json['organization'] : null,
       sex: (json.containsKey('sex')) ? json['sex'] : 'O',
       bornDate: (json.containsKey('bornDate'))
           ? getDate(json['bornDate'],
@@ -651,16 +740,94 @@ class Employee {
       extraDocs: (json['extraDocs'] == null) || (json['extraDocs'].isEmpty)
           ? {}
           : json['extraDocs'],
+      affiliation: (json.containsKey('affiliation'))
+          ? json['affiliation']
+          : '', // Aseguradora o mutua
+      shift: (!json.containsKey('shift')) ||
+              (json['shift'] == null) ||
+              (json['shift'].isEmpty)
+          ? []
+          : json['shift'].map((e) {
+              try {
+                return Shift.fromJson(e as Map<String, dynamic>);
+              } catch (exception) {
+                return Shift(date: truncDate(DateTime.now()), hours: []);
+              }
+            }).toList(),
     );
+    item.id = json.containsKey('id') ? json['id'] : null;
+    item.workplace = (json.containsKey('workplace'))
+        ? await Workplace.byId(json['workplace'])
+        : Workplace.getEmpty();
+
+    item.docRef ??= doc;
+    if (item.docRef != null) {
+      item.docRef!.snapshots().listen((snapshot) {
+        if (snapshot.exists) {
+          var data = snapshot.data() as Map<String, dynamic>;
+          var json = data;
+          // Update fields
+          item.code = data['code'];
+          item.firstName = data['firstName'];
+          item.lastName1 = data['lastName1'];
+          item.lastName2 = data['lastName2'];
+          item.email = data['email'];
+          item.phone = data['phone'];
+          item.photoPath = data['photoPath'];
+          item.organization = data['organization'];
+          item.sex = data['sex'];
+          item.bornDate = getDate(data['bornDate']);
+          item.bankAccount = data['bankAccount'];
+          item.altas = (json['altas'] == null) || (json['altas'].isEmpty)
+              ? []
+              : json['altas'].map((e) {
+                  try {
+                    return Alta.fromJson(e as Map<String, dynamic>);
+                  } catch (exception) {
+                    Alta alta = Alta(
+                      date: getDate(e),
+                    );
+                    alta.baja = Baja.getEmpty();
+                    return alta;
+                  }
+                }).toList();
+          item.extraDocs = data['extraDocs'];
+          item.affiliation = data['affiliation'];
+
+          item.shift = (!data.containsKey('shift')) ||
+                  (data['shift'] == null) ||
+                  (data['shift'].isEmpty)
+              ? []
+              : data['shift'].map((e) {
+                  try {
+                    return Shift.fromJson(e as Map<String, dynamic>);
+                  } catch (exception) {
+                    return Shift(date: truncDate(DateTime.now()), hours: []);
+                  }
+                }).toList();
+
+          (json.containsKey('workplace'))
+              ? Workplace.byId(json['workplace']).then((value) {
+                  item.workplace = value;
+                })
+              : Workplace.getEmpty();
+        }
+        item.onChanged?.call();
+      });
+    }
+
+    return item;
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'code': code,
         'firstName': firstName,
         'lastName1': lastName1,
         'lastName2': lastName2,
         'email': email,
         'sex': sex,
+        'organization': organization,
         'phone': phone,
         'photoPath': photoPath,
         'bornDate': getDate(bornDate,
@@ -668,6 +835,9 @@ class Employee {
         'altas': altas.map((e) => e.toJson()).toList(),
         'extraDocs': extraDocs.isEmpty ? {} : extraDocs,
         'bankAccount': bankAccount,
+        'affiliation': affiliation, // Aseguradora o mutua
+        'shift': shift.map((e) => e.toJson()).toList(),
+        'workplace': workplace.id,
       };
 
   Future<String> getPhotoUrl() async {
@@ -686,19 +856,82 @@ class Employee {
     return bornDate ?? DateTime(1924, 1, 1);
   }
 
-  Future<Employee> save() async {
+  Shift getShift({DateTime? date}) {
+    if (shift.isEmpty) {
+      shift.add(Shift(
+          date: truncDate(DateTime.now()),
+          hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]));
+      save();
+      return shift.first;
+    }
+    date ??= DateTime.now();
+    shift.sort((a, b) => b.date.compareTo(a.date)); // latest first
+    try {
+      return shift.firstWhere((element) => element.date.isBefore(date!));
+    } catch (e) {
+      return Shift.getEmpty(date: date);
+    }
+  }
+
+  void setShift(Shift newShift) {
+    try {
+      Shift existingShift = shift.firstWhere(
+          (element) => truncDate(element.date) == truncDate(newShift.date));
+      existingShift.hours = newShift.hours;
+    } catch (e) {
+      shift.add(newShift);
+    }
+    shift.sort((a, b) => b.date.compareTo(a.date)); // latest first
+    save();
+  }
+
+  void removeShift(DateTime date) {
+    shift.removeWhere((element) => truncDate(element.date) == truncDate(date));
+    save();
+  }
+
+  // Future<Employee> save() async {
+  //   altas.sort((a, b) => a.date.compareTo(b.date));
+  //   // bajas.sort((a, b) => a.date.compareTo(b.date));
+  //   if (id == null) {
+  //     await FirebaseFirestore.instance
+  //         .collection(tbName)
+  //         .add(toJson())
+  //         .then((value) => id = value.id);
+  //     FirebaseFirestore.instance.collection(tbName).doc(id).set(toJson());
+  //   } else {
+  //     await FirebaseFirestore.instance
+  //         .collection(tbName)
+  //         .doc(id)
+  //         .update(toJson());
+  //   }
+  //   return this;
+  // }
+  void save() async {
     altas.sort((a, b) => a.date.compareTo(b.date));
     // bajas.sort((a, b) => a.date.compareTo(b.date));
-    if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+    if (id == null || id!.isEmpty) {
+      var item =
+          await FirebaseFirestore.instance.collection(tbName).add(toJson());
+      id = item.id;
+      item.update({'id': id});
+      // FirebaseFirestore.instance.collection(tbName).add(toJson()).then((value) {
+      //   id = value.id;
+      //   FirebaseFirestore.instance
+      //       .collection(tbName)
+      //       .doc(id)
+      //       .update({'id': id});
+      // });
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
-    return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(id).delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   String getPosition() {
@@ -718,7 +951,7 @@ class Employee {
 
   String getCategory() {
     if (altas.isEmpty) {
-      return '';
+      return '0';
     }
     altas.sort((a, b) => a.date.compareTo(b.date));
     return altas.last.category;
@@ -777,18 +1010,17 @@ class Employee {
     }
     date ??= DateTime.now();
     altas.sort((a, b) => b.date.compareTo(a.date));
-    if (verbose) {
-      for (var alta in altas) {
-        print(alta.toJson());
-      }
-    }
+    // if (verbose) {
+    //   for (var alta in altas) {
+    //     print('Alta: ${alta.date}, Salary: ${alta.salary}');
+    //   }
+    // }
     try {
       Alta curentAlta =
           altas.firstWhere((element) => element.date.isBefore(date));
       curentAlta.salary.sort((a, b) => a.date.compareTo(b.date));
       return curentAlta.salary.last.amount;
     } catch (e) {
-      print('Error: $e');
       return 0.0;
     }
   }
@@ -807,7 +1039,7 @@ class Employee {
     return date.difference(truncDate(fromDate)).inDays + 1;
   }
 
-  static Employee getEmpty() {
+  static Employee getEmpty({name = ''}) {
     return Employee(
         code: '',
         firstName: '',
@@ -815,6 +1047,7 @@ class Employee {
         lastName2: '',
         email: '',
         phone: '',
+        organization: null,
         // position: '',
         // category: '',
         altas: [Alta.getEmpty()],
@@ -822,26 +1055,346 @@ class Employee {
         extraDocs: {});
   }
 
-  static Future<List<Employee>> getEmployees() async {
+  static Future<Employee> byCode(String code) async {
     // get from database
+    Employee item = Employee.getEmpty();
+    final data = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('code', isEqualTo: code)
+        .get();
+
+    if (data.docs.isNotEmpty) {
+      item = await Employee.fromJson(data.docs.first.reference);
+    }
+
+    // await FirebaseFirestore.instance
+    //     .collection(tbName)
+    //     .where('code', isEqualTo: code)
+    //     .get()
+    //     .then((value) {
+    //   if (value.docs.isEmpty) return Employee.getEmpty();
+    //   item = Employee.fromJson(value.docs.first.data());
+    //   item.id = value.docs.first.id;
+    // });
+
+    return item;
+  }
+
+  static Future<Employee> byEmail(String email) async {
+    // get from database
+    if (email.isEmpty) return Employee.getEmpty();
+    Employee item = Employee.getEmpty();
+    final data = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (data.docs.isNotEmpty) {
+      item = await Employee.fromJson(data.docs.first.reference);
+    } else {
+      item.email = email;
+    }
+
+    return item;
+  }
+
+  static Future<List<Employee>> getAll() async {
+    // get from database
+    return await getEmployees();
+  }
+
+  static Future<List<Employee>> getEmployees(
+      {dynamic organization, bool includeInactive = false}) async {
+    // get from database
+    String organizationId = '';
+
+    if (organization is Organization) {
+      organizationId = organization.id;
+    }
     List<Employee> items = [];
-    await collection.get().then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Employee item = Employee.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
+    QuerySnapshot<Map<String, dynamic>>? data;
+    if (organizationId.isNotEmpty) {
+      data = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where('organization', isEqualTo: organizationId)
+          .get();
+      if (data.docs.isEmpty) {
+        data = await FirebaseFirestore.instance.collection(tbName).get();
+      }
+    } else {
+      data = await FirebaseFirestore.instance.collection(tbName).get();
+    }
 
-    items.sort((a, b) => a.compareTo(b));
+    if (data.docs.isNotEmpty) {
+      for (var doc in data.docs) {
+        Employee item = await Employee.fromJson(doc.reference);
 
+        if (!doc.data().containsKey('organization')) {
+          item.organization = organizationId;
+        }
+        item.id = doc.id;
+
+        items.add(item);
+      }
+
+      if (organizationId.isNotEmpty) {
+        items = items
+            .where((element) => ((element.organization == organizationId) ||
+                (element.organization == null)))
+            .toList();
+      }
+    }
+
+    if (!includeInactive) {
+      items = items.where((element) => element.isActive()).toList();
+    }
     return items;
+  }
+
+  bool inDepartment(dynamic departments) {
+    if (departments is Department) {
+      departments = [departments];
+    }
+    return departments.any((element) => element.employees.contains(id));
+  }
+
+  static Future<dynamic> byId(dynamic id) async {
+    QuerySnapshot<Map<String, dynamic>>? snapshot;
+    List<Employee> items = [];
+    // get from database
+    if (id is String) {
+      snapshot = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where(FieldPath.documentId, isEqualTo: id)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return Employee.getEmpty();
+      }
+
+      Employee item = await Employee.fromJson(snapshot.docs.first.reference);
+      item.id = snapshot.docs.first.id;
+      // final docRef = FirebaseFirestore.instance.collection(tbName).doc(item.id);
+      // docRef.update({'id': item.id});
+      // docRef.snapshots().listen((event) {
+      //   if (event.exists) {
+      //     // print('Document data: ${event.data()}');
+      //     // Update item with new data
+      //     Employee.fromJson(event.data()!).then((value) {
+      //       item = value;
+      //       item.id = event.id;
+      //     });
+      //   } else {
+      //     // print('Document does not exist on the database');
+      //   }
+      // });
+      return item;
+    } else if (id is List<String>) {
+      // If list is longer than 25, split in chunks of 25
+      int itemsByChunk = 25;
+
+      if (id.length > itemsByChunk) {
+        List<List<String>> chunks = [];
+        for (var i = 0; i < id.length; i += itemsByChunk) {
+          int end =
+              (i + itemsByChunk < id.length) ? i + itemsByChunk : id.length;
+          chunks.add(id.sublist(i, end));
+        }
+        for (var chunk in chunks) {
+          var chunkSnapshot = await FirebaseFirestore.instance
+              .collection(tbName)
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+          if (chunkSnapshot.docs.isNotEmpty) {
+            for (var doc in chunkSnapshot.docs) {
+              Employee item = await Employee.fromJson(doc.reference);
+              item.id = doc.id;
+              items.add(item);
+            }
+          }
+        }
+        return items;
+      } else {
+        snapshot = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where(FieldPath.documentId, whereIn: id)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          for (var doc in snapshot.docs) {
+            Employee item = await Employee.fromJson(doc.reference);
+            item.id = doc.id;
+            items.add(item);
+          }
+        }
+        return items;
+      }
+    } else {
+      return Employee.getEmpty();
+    }
+
+    // if (snapshot.docs.isEmpty) {
+    //   return Employee.getEmpty();
+    // } else if (id is String) {
+    //   Employee item = await Employee.fromJson(snapshot.docs.first.data());
+    //   item.id = snapshot.docs.first.id;
+    //   return item;
+    // } else if (id is List<String>) {
+    //   // items = snapshot.docs.map((e) {
+    //   //   Employee item = Employee.fromJson(e.data());
+    //   //   item.id = e.id;
+    //   //   return item;
+    //   // }).toList();
+    //   for (var doc in snapshot.docs) {
+    //     Employee item = await Employee.fromJson(doc.data());
+    //     item.id = doc.id;
+    //     items.add(item);
+    //   }
+    //   return items;
+    // }
   }
 
   Future<String> photoFileUrl() async {
     final ref = FirebaseStorage.instance.ref().child(photoPath!);
     return await ref.getDownloadURL();
+  }
+
+  Future<List<Employee>> getManagers({Organization? organization}) async {
+    id ??= '';
+    if (id!.isEmpty) return [];
+    List<dynamic> items = [];
+
+    List<Department> departments =
+        await Department.getDepartments(organization: organization);
+    if (departments.isEmpty) return [];
+    Queue<Department> queue = Queue<Department>();
+    queue
+        .addAll(departments.where((element) => element.employees.contains(id)));
+
+    while (queue.isNotEmpty) {
+      Department department = queue.removeFirst();
+      items.add(department.manager!);
+      if (department.parent != null) {
+        queue.addAll(
+            departments.where((element) => element.id == department.parent));
+      }
+    }
+
+    items = items
+        .where((element) =>
+            (element != id) && (element != null) && (element != ''))
+        .toList();
+
+    if (items.isEmpty) return [];
+
+    List<Employee> employees = await Employee.byId(
+        items.map((e) => e.toString()).toList().toSet().toList());
+    // Remove employees that are not active or organization is different
+    employees = employees.where((element) => element.isActive()).toList();
+    if (organization != null) {
+      employees = employees
+          .where((element) => (element.organization == organization.id))
+          .toList();
+    }
+    return employees;
+  }
+
+  Future<List<Employee>> getSuperiors({dynamic org}) async {
+    id ??= '';
+    if (id!.isEmpty) return [];
+    org ??= this.organization;
+
+    String organizationId = '';
+    if (org is Organization) {
+      organizationId = org.id;
+    }
+
+    List<dynamic> items = [];
+    List<Department> departments =
+        await Department.getDepartments(organization: organizationId);
+    if (departments.isEmpty) return [];
+    Queue<Department> queue = Queue<Department>();
+    queue
+        .addAll(departments.where((element) => element.employees.contains(id)));
+    while (queue.isNotEmpty) {
+      Department department = queue.removeFirst();
+      items.add(department.manager!);
+      if (department.parent != null) {
+        queue.addAll(
+            departments.where((element) => element.id == department.parent));
+      }
+    }
+    items = items
+        .where((element) =>
+            (element != id) && (element != null) && (element != ''))
+        .toList();
+
+    // Recovery profiles with mainRole = RRHH
+    List<Profile> allProfiles =
+        await Profile.byOrganization(organization: organizationId);
+    List<String> emailsProfiles = allProfiles
+        .where((element) => element.mainRole == Profile.RRHH)
+        .map((e) => e.email)
+        .toList();
+    List<Employee> allEmployees = await Employee.getEmployees(
+        organization: organization, includeInactive: false);
+    // Filter employees with email in emailsProfiles
+    List<Employee> rrhhEmployees = allEmployees
+        .where((element) => emailsProfiles.contains(element.email))
+        .toList();
+    List<String> rrhhIds = rrhhEmployees.map((e) => e.id!).toList();
+    items.addAll(rrhhIds);
+    items = items.toSet().toList();
+    if (items.isEmpty) return [];
+
+    // Filter allEmployees with id in items
+    List<Employee> employees =
+        allEmployees.where((element) => items.contains(element.id)).toList();
+    // Remove employees that are not active or organization is different
+    employees = employees.where((element) => element.isActive()).toList();
+    if (organizationId.isNotEmpty) {
+      employees = employees
+          .where((element) => (element.organization == organizationId))
+          .toList();
+    }
+    // Remove myself from the list
+    employees = employees.where((element) => element.id != id).toList();
+
+    return employees;
+  }
+
+  Future<List<Employee>> getSubordinates(
+      {Organization? organization, List<Department>? departments}) async {
+    id ??= '';
+    if (id!.isEmpty) return [];
+    List<dynamic> items = [];
+
+    departments ??= await Department.getDepartments(organization: organization);
+    // await Department.getDepartments(organization: organization);
+    if (departments.isEmpty) return [];
+    Queue<Department> queue = Queue<Department>();
+    queue.addAll(departments.where((element) => element.manager == id));
+
+    while (queue.isNotEmpty) {
+      Department department = queue.removeFirst();
+      items.addAll(department.employees);
+      items.add(department.manager!);
+      queue.addAll(
+          departments.where((element) => element.parent == department.id));
+    }
+
+    items = items
+        .where((element) =>
+            (element != id) && (element != null) && (element != ''))
+        .toList();
+
+    if (items.isEmpty) return [];
+
+    List<Employee> employees = await Employee.byId(
+            items.map((e) => e.toString()).toList().toSet().toList())
+        as List<Employee>;
+    // Remove employees that are not active
+    employees = employees.where((element) => element.isActive()).toList();
+    return employees;
   }
 
   int compareTo(Employee other) {
@@ -901,86 +1454,196 @@ class Employee {
   }
 
   bool isActive() {
-    return (altas.isNotEmpty &&
-        (getBajaDate().isAfter(DateTime.now()) ||
-            getBajaDate().isAtSameMomentAs(DateTime.now())));
+    try {
+      return (altas.isNotEmpty &&
+          (getBajaDate().isAfter(DateTime.now()) ||
+              getBajaDate().isAtSameMomentAs(DateTime.now())));
+    } catch (e) {
+      return false;
+    }
   }
 
   String getFullName() {
+    // Remove any leading or trailing spaces from firstName, lastName1, and lastName2
+    firstName = firstName.trim();
+    lastName1 = lastName1.trim();
+    lastName2 = lastName2.trim();
+    // Remove any extra spaces between names
+    firstName = firstName.replaceAll(RegExp(r'\s+'), ' ');
+    lastName1 = lastName1.replaceAll(RegExp(r'\s+'), ' ');
+    lastName2 = lastName2.replaceAll(RegExp(r'\s+'), ' ');
     return '$firstName $lastName1 $lastName2';
   }
 }
 
+///////// DEPARTMENT /////////
 class Department {
-  static final db = FirebaseFirestore.instance;
-  static final collection = db.collection("s4c_departments");
+  static const String tbName = 's4c_departments';
 
   String? id;
   String name;
   String? parent;
-  Employee? manager;
-  List<Employee>? employees = [];
+  String? manager;
+  List<String> employees = [];
+  String? organization;
 
-  Department({required this.name, this.parent, this.manager, this.employees});
+  Department(
+      {required this.name,
+      this.parent,
+      this.manager,
+      required this.employees,
+      required this.organization});
+
+  @override
+  String toString() {
+    return 'Department: $name, parent: $parent, manager: $manager, employees: ${employees.length}, organization: $organization';
+  }
 
   static Department fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('manager')) {
+      if (json['manager'] is String) {
+        if (json['manager'].isEmpty) {
+          json['manager'] = null;
+        }
+      } else if (json['manager'] is Map<String, dynamic>) {
+        if (json['manager'].containsKey('id')) {
+          json['manager'] = json['manager']['id'];
+        } else {
+          json['manager'] = null;
+        }
+      }
+    } else {
+      json['manager'] = null;
+    }
+
     Department item = Department(
         name: json['name'],
-        parent: json['parent'],
-        manager: json.containsKey('manager')
-            ? Employee.fromJson(json['manager'])
-            : null,
-        employees: json.containsKey('employees')
-            ? (json['employees'].map((e) => Employee.fromJson(e)).toList())
-                .cast<Employee>()
-            : null);
+        parent: (json.containsKey('parent')) ? json['parent'] : null,
+        manager: (json.containsKey('manager')) ? json['manager'] : null,
+        employees: (json.containsKey('employees'))
+            ? List<String>.from(json['employees'])
+            : [],
+        organization:
+            (json.containsKey('organization')) ? json['organization'] : null);
+    if (json.containsKey('id')) {
+      item.id = (json['id'] == null) ? '' : json['id'];
+    } else {
+      item.id = '';
+    }
 
-    // if (json.containsKey('employees')) {
-    //   List<dynamic> list =
-    //       json['employees'].map((e) => Employee.fromJson(e)).toList();
-    //   item.employees = list.cast<Employee>();
-    // }
     return item;
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'name': name,
         'parent': parent,
-        'manager': manager?.toJson(),
-        'employees': employees?.map((e) => e.toJson()).toList(),
+        'manager': manager,
+        'employees': employees,
+        'organization': organization
       };
 
   Future<Department> save() async {
-    if (id == null) {
-      await collection.add(toJson()).then((value) => id = value.id);
+    parent ??= null;
+    if ((id == null) || (id == '')) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
+        id = value.id;
+        save();
+      });
     } else {
-      await collection.doc(id).update(toJson());
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
     }
     return this;
   }
 
   Future<void> delete() async {
-    await collection.doc(id).delete();
+    List<Department> childrens = await Department.getDepartmentsByParent(id!);
+    if (childrens.isNotEmpty) {
+      for (var child in childrens) {
+        child.parent = parent;
+        await child.save();
+      }
+    }
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
+  }
+
+  Future<String> getLabel() async {
+    String label = name.toUpperCase();
+    Employee managerObj = await Employee.byId(manager ?? '');
+    if (manager != null) {
+      label +=
+          ', supervisor: ${managerObj.getFullName()}, employees (${employees.length})';
+    }
+    if (employees.isNotEmpty) {
+      label += ', employees (${employees.length}): ';
+      // Print the frist 5 employees names and if more than 5, add the text 'and more'
+      for (int i = 0; i < employees.length && i < 5; i++) {
+        Employee employeeObj = await Employee.byId(employees[i]);
+        label += employeeObj.getFullName();
+        if (i < employees.length - 1) {
+          label += ', ';
+        }
+      }
+      if (employees.length > 5) {
+        label += ' and more';
+      }
+    } else {
+      label += ', no employees';
+    }
+
+    return label;
   }
 
   static Department getEmpty() {
-    return Department(name: '', employees: []);
+    return Department(
+        name: '', employees: [], parent: null, organization: null);
   }
 
-  static Future<List<Department>> getDepartments() async {
+  static Future<List<Department>> byOrganization(dynamic organization) async {
+    return await getDepartments(organization: organization);
+  }
+
+  static Future<List<Department>> getDepartments({dynamic organization}) async {
     // get from database
+    String organizationId = '';
     List<Department> items = [];
-    await collection.get().then((value) {
-      if (value.docs.isEmpty) return [];
-      items = value.docs.map((e) {
-        Department item = Department.fromJson(e.data());
-        item.id = e.id;
-        return item;
-      }).toList();
-    });
+    if (organization is Organization) {
+      organizationId = organization.id;
+    }
 
-    items.sort((a, b) => a.name.compareTo(b.name));
-
+    try {
+      if (organizationId.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection(tbName)
+            .where('organization', isEqualTo: organizationId)
+            .get()
+            .then((value) {
+          if (value.docs.isEmpty) return [];
+          items = value.docs.map((e) {
+            Department item = Department.fromJson(e.data());
+            item.id = e.id;
+            return item;
+          }).toList();
+        });
+      } else {
+        await FirebaseFirestore.instance.collection(tbName).get().then((value) {
+          if (value.docs.isEmpty) return [];
+          items = value.docs.map((e) {
+            Department item = Department.fromJson(e.data());
+            item.id = e.id;
+            return item;
+          }).toList();
+        });
+      }
+    } catch (e) {
+      // print('Error getting departments: $e');
+    }
     return items;
   }
 
@@ -988,7 +1651,7 @@ class Department {
       String employeeCode) async {
     // get from database
     List<Department> items = [];
-    await collection.get().then((value) {
+    await FirebaseFirestore.instance.collection(tbName).get().then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         Department item = Department.fromJson(e.data());
@@ -998,7 +1661,7 @@ class Department {
     });
 
     items = items
-        .where((element) => element.employees!.contains(employeeCode))
+        .where((element) => element.employees.contains(employeeCode))
         .toList();
 
     items.sort((a, b) => a.name.compareTo(b.name));
@@ -1010,7 +1673,11 @@ class Department {
     // get from database
     List<Department> items = [];
 
-    await collection.where('parent', isEqualTo: parent).get().then((value) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('parent', isEqualTo: parent)
+        .get()
+        .then((value) {
       if (value.docs.isEmpty) return [];
       items = value.docs.map((e) {
         Department item = Department.fromJson(e.data());
@@ -1022,5 +1689,172 @@ class Department {
     items.sort((a, b) => a.name.compareTo(b.name));
 
     return items;
+  }
+
+  static Future<Department> byId(String id) async {
+    // get from database
+    Department item = Department.getEmpty();
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .doc(id)
+        .get()
+        .then((value) {
+      if (!value.exists) return Department.getEmpty();
+      item = Department.fromJson(value.data()!);
+      item.id = value.id;
+    });
+
+    return item;
+  }
+
+  static Future<List<Department>> getDepartmentsByManager(
+      String manager) async {
+    // get from database
+    List<Department> items = [];
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('manager', isEqualTo: manager)
+        .get()
+        .then((value) {
+      if (value.docs.isEmpty) return [];
+      items = value.docs.map((e) {
+        Department item = Department.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }).toList();
+    });
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
+  }
+}
+
+class Workplace {
+  static const String tbName = 's4c_workplaces';
+
+  String id;
+  String name;
+  Organization? organization;
+  String? address;
+  String? city;
+  String? postalCode;
+  String? country;
+  String? phone;
+
+  Workplace({
+    required this.name,
+    this.id = '',
+    this.organization,
+    this.address,
+    this.city,
+    this.postalCode,
+    this.country,
+    this.phone,
+  });
+
+  @override
+  String toString() {
+    return 'Working Center: $name, organization: ${organization?.id}, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone';
+  }
+
+  static Future<Workplace> fromJson(Map<String, dynamic> json) async {
+    Workplace item = Workplace(
+        name: json['name'],
+        organization: (json.containsKey('organization'))
+            ? await Organization.byId(json['organization'])
+            : null,
+        address: (json.containsKey('address')) ? json['address'] : null,
+        city: (json.containsKey('city')) ? json['city'] : null,
+        postalCode:
+            (json.containsKey('postalCode')) ? json['postalCode'] : null,
+        country: (json.containsKey('country')) ? json['country'] : null,
+        phone: (json.containsKey('phone')) ? json['phone'] : null);
+    if (json.containsKey('id')) {
+      item.id = (json['id'] == null) ? '' : json['id'];
+    } else {
+      item.id = '';
+    }
+
+    return item;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'organization': organization?.id,
+        'address': address,
+        'city': city,
+        'postalCode': postalCode,
+        'country': country,
+        'phone': phone,
+      };
+
+  Future<Workplace> save() async {
+    if (id == '') {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) {
+        id = value.id;
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(id)
+            .update({'id': id});
+      });
+    } else {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(id)
+          .update(toJson());
+    }
+    return this;
+  }
+
+  Future<void> delete() async {
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
+  }
+
+  static Workplace getEmpty() {
+    return Workplace(name: '');
+  }
+
+  static Future<List<Workplace>> getAll({Organization? organization}) async {
+    // get from database
+    List<Workplace> items = [];
+    if (organization == null) {
+      final value = await FirebaseFirestore.instance.collection(tbName).get();
+      if (value.docs.isEmpty) return [];
+      items = await Future.wait(value.docs.map((e) async {
+        Workplace item = await Workplace.fromJson(e.data());
+        item.id = e.id;
+        return item;
+      }));
+      items.sort((a, b) => a.name.compareTo(b.name));
+      return items;
+    }
+    final value = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('organization', isEqualTo: organization.id)
+        .get();
+    if (value.docs.isEmpty) return [];
+    for (var doc in value.docs) {
+      items.add(await Workplace.fromJson(doc.data()));
+    }
+
+    items.sort((a, b) => a.name.compareTo(b.name));
+
+    return items;
+  }
+
+  static Future<Workplace> byId(String? id) async {
+    if (id == null) return getEmpty();
+    if (id.isEmpty) return getEmpty();
+    final doc =
+        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
+    if (doc.exists) {
+      return await Workplace.fromJson(doc.data()!);
+    }
+    return getEmpty();
   }
 }

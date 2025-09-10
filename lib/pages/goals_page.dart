@@ -69,7 +69,7 @@ class _GoalsPageState extends State<GoalsPage>
 
   void loadGoals() async {
     setLoading();
-    await getGoalsByProject(project!.uuid).then((val) async {
+    await Goal.getGoalsByProject(project!.uuid).then((val) async {
       goals = val;
     });
     stopLoading();
@@ -78,21 +78,21 @@ class _GoalsPageState extends State<GoalsPage>
   void loadInit() async {
     setLoading();
     bool first = true;
-    await getGoalsByProject(project!.uuid).then((val) async {
+    await Goal.getGoalsByProject(project!.uuid).then((val) async {
       goals = val;
       for (Goal goal in goals!) {
-        results[goal.uuid] = await getResultsByGoal(goal.uuid);
+        results[goal.uuid] = await Result.getResultsByGoal(goal.uuid);
         double resPercent = 0;
         int i = 0;
         for (Result res in results[goal.uuid]) {
           resultIndicatorList[res.uuid] =
-              await getResultIndicatorsByResult(res.uuid);
-          resultActivityList[res.uuid] = await getActivitiesByResult(res.uuid);
+              await ResultIndicator.getResultIndicatorsByResult(res.uuid);
+          resultActivityList[res.uuid] = await Activity.getActivitiesByResult(res.uuid);
           double actPercent = 0;
           int j = 0;
           for (Activity activity in resultActivityList[res.uuid]) {
             activityIndicatorList[activity.uuid] =
-                await getActivityIndicatorsByActivity(activity.uuid);
+                await ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid);
             activityIndicatorPercent[activity.uuid] =
                 await Activity.getIndicatorsPercent(activity.uuid);
             actPercent += activityIndicatorPercent[activity.uuid];
@@ -111,7 +111,7 @@ class _GoalsPageState extends State<GoalsPage>
           resPercent = resPercent + rPer;
           i += 1;
         }
-        goalIndicatorList[goal.uuid] = await getGoalIndicatorsByGoal(goal.uuid);
+        goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
         /*goalIndicatorPercent[goal.uuid] =
             await Goal.getIndicatorsPercent(goal.uuid);*/
         double indPercent = await Goal.getIndicatorsPercent(goal.uuid);
@@ -474,19 +474,19 @@ class _GoalsPageState extends State<GoalsPage>
 
     Goal goal = args[0];
 
-    List resultList = await getResultsByGoal(goal.uuid);
+    List<Result> resultList = await Result.getResultsByGoal(goal.uuid);
     for (Result res in resultList) {
       //Indicadores de resultado
-      List riList = await getResultIndicatorsByResult(res.uuid);
+      List<ResultIndicator> riList = await ResultIndicator.getResultIndicatorsByResult(res.uuid);
       for (ResultIndicator ri in riList) {
         ri.delete();
       }
 
       //Actividades del resultado
-      List actList = await getActivitiesByResult(res.uuid);
+      List actList = await Activity.getActivitiesByResult(res.uuid);
       for (Activity act in actList) {
         //Indicadores de la actividad
-        List aiList = await getActivityIndicatorsByActivity(act.uuid);
+        List aiList = await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
         for (ActivityIndicator ai in aiList) {
           ai.delete();
         }
@@ -494,7 +494,7 @@ class _GoalsPageState extends State<GoalsPage>
       }
 
       //Tareas del resultado
-      List taskList = await getResultTasksByResult(res.uuid);
+      List taskList = await ResultTask.getResultTasksByResult(res.uuid);
       for (ResultTask task in taskList) {
         task.delete();
       }
@@ -720,16 +720,16 @@ class _GoalsPageState extends State<GoalsPage>
     Result res = args[0];
 
     //Indicadores de resultado
-    List riList = await getResultIndicatorsByResult(res.uuid);
+    List riList = await ResultIndicator.getResultIndicatorsByResult(res.uuid);
     for (ResultIndicator ri in riList) {
       ri.delete();
     }
 
     //Actividades del resultado
-    List actList = await getActivitiesByResult(res.uuid);
+    List actList = await Activity.getActivitiesByResult(res.uuid);
     for (Activity act in actList) {
       //Indicadores de la actividad
-      List aiList = await getActivityIndicatorsByActivity(act.uuid);
+      List aiList = await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
       for (ActivityIndicator ai in aiList) {
         ai.delete();
       }
@@ -737,7 +737,7 @@ class _GoalsPageState extends State<GoalsPage>
     }
 
     //Tareas del resultado
-    List taskList = await getResultTasksByResult(res.uuid);
+    List taskList = await ResultTask.getResultTasksByResult(res.uuid);
     for (ResultTask task in taskList) {
       task.delete();
     }
@@ -1416,15 +1416,15 @@ class _GoalsPageState extends State<GoalsPage>
 /*--------------------------------------------------------------------*/
   void callTaskEditDialog(context, HashMap args) async {
     Activity activity = args["activity"];
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

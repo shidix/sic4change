@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models.dart';
+// import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
-import 'package:sic4change/services/models_marco.dart';
+// import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -36,7 +36,7 @@ class _ZonePageState extends State<ZonePage>
 
   void loadZones() async {
     setLoading();
-    await getZones().then((val) {
+    await Zone.getZones().then((val) {
       zones = val;
       stopLoading();
     });

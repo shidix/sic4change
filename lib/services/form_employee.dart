@@ -5,12 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+// import "dart:developer" as dev;
 
 class EmployeeForm extends StatefulWidget {
+  final Organization organization;
   final Employee selectedItem;
-  const EmployeeForm({Key? key, required this.selectedItem}) : super(key: key);
+  final List<Employee> existingEmployees;
+
+  const EmployeeForm(
+      {super.key,
+      required this.selectedItem,
+      required this.existingEmployees,
+      required this.organization});
 
   @override
   _EmployeeFormState createState() => _EmployeeFormState();
@@ -21,22 +30,24 @@ class _EmployeeFormState extends State<EmployeeForm> {
   late Employee employee;
   List<KeyValue> promotions = [];
   int contentIndex = 0;
-  String employmentPromotion = '';
+  String employmentPromotion = 'Ninguna';
   double employeeSalary = 0;
   late DateTime selectedBajaDate;
   late DateTime selectedAltaDate;
   List<KeyValue> reasonsOptions = [];
   Map<String, BajaReason> reasons = {};
   String selectedReason = '';
-  String employmenPromotion = '';
+  List<KeyValue> workplaceOptions = [];
 
   late int indexReason;
+  late bool isNewEmployee;
 
   @override
   void initState() {
     super.initState();
 
     employee = widget.selectedItem;
+    isNewEmployee = employee.id == '';
     selectedBajaDate = employee.getBajaDate();
     selectedAltaDate = employee.getAltaDate();
 
@@ -46,7 +57,15 @@ class _EmployeeFormState extends State<EmployeeForm> {
       employeeSalary = employee.getSalary();
     }
     EmploymentPromotion.getActive().then((value) {
+      value.sort((a, b) => a.order.compareTo(b.order));
       promotions = value.map((e) => KeyValue(e.name, e.name)).toList();
+      // check if promotions contains the current employmentPromotion as key
+      if (promotions
+              .indexWhere((element) => element.key == employmentPromotion) ==
+          -1) {
+        employmentPromotion = promotions[0].key;
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -63,14 +82,43 @@ class _EmployeeFormState extends State<EmployeeForm> {
       indexReason = 0;
 
       if (employee.altas.isNotEmpty) {
-        indexReason = reasons.values.toList().indexWhere(
-            (element) => element.name == employee.altas.last.baja.reason);
+        if (employee.altas.last.baja != null) {
+          indexReason = reasons.values.toList().indexWhere(
+              (element) => element.name == employee.altas.last.baja.reason);
+        } else {
+          indexReason = reasons.values
+              .toList()
+              .indexWhere((element) => element.order == -1);
+        }
       }
       if (indexReason != -1) {
         selectedReason = reasons.values.toList()[indexReason].uuid!;
       } else {
         indexReason = 0;
         selectedReason = reasons.values.toList()[indexReason].uuid!;
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    Workplace.getAll().then((value) {
+      value.sort((a, b) => a.name.compareTo(b.name));
+      //Filter by organization
+      if (employee.organization != null) {
+        value = value
+            .where(
+                (element) => element.organization?.id == employee.organization)
+            .toList();
+      }
+
+      workplaceOptions = value.map((e) => KeyValue(e.id, e.name)).toList();
+      if (employee.workplace.id.isNotEmpty) {
+        if (workplaceOptions.indexWhere(
+                (element) => element.key == employee.workplace.id) ==
+            -1) {
+          employee.workplace = Workplace.getEmpty();
+        }
       }
       if (mounted) {
         setState(() {});
@@ -102,10 +150,40 @@ class _EmployeeFormState extends State<EmployeeForm> {
           alta.setSalary(employeeSalary);
           employee.altas.add(alta);
         }
+        if ((employee.organization == null || employee.organization == '') &&
+            widget.organization != null) {
+          employee.organization = widget.organization!.id;
+        }
         employee.save();
+        // Check if exists profile with email
+        Profile.getProfile(employee.email).then((profile) {
+          if (profile.email == '') {
+            // Create profile
+            Profile newProfile = Profile(
+                id: '',
+                email: employee.email,
+                holidaySupervisor: [],
+                mainRole: 'Usuario');
+            newProfile.save();
+          }
+        });
         Navigator.of(context).pop(employee);
       }
     }
+
+    Widget worplaceField = CustomSelectFormField(
+        key: UniqueKey(),
+        labelText: 'Centro de Trabajo',
+        padding: const EdgeInsets.only(top: 8, left: 5),
+        initial: employee.workplace.id,
+        options: workplaceOptions,
+        required: false,
+        onSelectedOpt: (value) {
+          Workplace.byId(value).then((workplace) {
+            employee.workplace = workplace;
+            setState(() {});
+          });
+        });
 
     Widget bajaReason = CustomSelectFormField(
         key: UniqueKey(),
@@ -164,35 +242,102 @@ class _EmployeeFormState extends State<EmployeeForm> {
               Row(children: [
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.code,
-                      decoration:
-                          const InputDecoration(labelText: 'NIF/NIE/ID'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El campo no puede estar vacío';
-                        }
-                        return null;
-                      },
-                      onSaved: (String? value) {
-                        employee.code = value!;
-                      },
-                    )),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 0),
+                        child: TextFormField(
+                          initialValue: employee.code,
+                          decoration:
+                              const InputDecoration(labelText: 'NIF/NIE/ID'),
+                          onChanged: (value) {
+                            // Check if code exists in other employee
+                            if (widget.existingEmployees.any((element) =>
+                                element.code == value &&
+                                element.id != employee.id)) {
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Ya existe un empleado con este NIF/NIE/ID'),
+                                ),
+                              );
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El campo no puede estar vacío';
+                            }
+                            if (widget.existingEmployees.any((element) =>
+                                element.code == value &&
+                                element.id != employee.id)) {
+                              return 'Ya existe un empleado con este NIF/NIE/ID';
+                            }
+                            return null;
+                          },
+                          onSaved: (String? value) {
+                            employee.code = value!;
+                          },
+                        ))),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.firstName,
-                      decoration: const InputDecoration(labelText: 'Nombre(s)'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El campo no puede estar vacío';
-                        }
-                        return null;
-                      },
-                      onSaved: (String? value) {
-                        employee.firstName = value!;
-                      },
-                    ))
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.affiliation,
+                          decoration:
+                              const InputDecoration(labelText: 'Número SS'),
+                          onChanged: (value) {
+                            if (value.length < 12) {
+                              return;
+                            }
+                            // Check if affiliation exists in other employee
+                            if (widget.existingEmployees.any((element) =>
+                                element.affiliation == value &&
+                                element.id != employee.id)) {
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Ya existe un empleado con este Número SS'),
+                                ),
+                              );
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return null;
+                            }
+                            if (value.length < 12) {
+                              return null;
+                            }
+                            if (widget.existingEmployees.any((element) =>
+                                element.affiliation == value &&
+                                element.id != employee.id)) {
+                              return 'Ya existe un empleado con este Número SS';
+                            }
+                            return null;
+                          },
+                          onSaved: (String? value) {
+                            employee.affiliation = value!;
+                          },
+                        ))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.firstName,
+                          decoration:
+                              const InputDecoration(labelText: 'Nombre(s)'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El campo no puede estar vacío';
+                            }
+                            return null;
+                          },
+                          onSaved: (String? value) {
+                            employee.firstName = value!;
+                          },
+                        )))
               ]),
               Row(children: [
                 Expanded(
@@ -213,14 +358,16 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     )),
                 Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: employee.lastName2,
-                      decoration:
-                          const InputDecoration(labelText: 'Segundo Apellido'),
-                      onSaved: (String? value) {
-                        employee.lastName2 = value!;
-                      },
-                    ))
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.lastName2,
+                          decoration: const InputDecoration(
+                              labelText: 'Segundo Apellido'),
+                          onSaved: (String? value) {
+                            employee.lastName2 = value!;
+                          },
+                        )))
               ]),
               Row(children: [
                 Expanded(
@@ -228,9 +375,36 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     child: TextFormField(
                       initialValue: employee.email,
                       decoration: const InputDecoration(labelText: 'Email'),
+                      onChanged: (value) {
+                        // Check if email exists in other employee
+                        if (widget.existingEmployees.any((element) =>
+                            element.email == value &&
+                            element.id != employee.id)) {
+                          // Show error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Ya existe un empleado con este email'),
+                            ),
+                          );
+                        }
+                        if (value.isNotEmpty) {
+                          employee.email = value;
+                        } else {
+                          employee.email = '';
+                        }
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'El campo no puede estar vacío';
+                        }
+                        if (!isValidEmail(value)) {
+                          return 'El email no es válido';
+                        }
+                        if (widget.existingEmployees.any((element) =>
+                            element.email == value &&
+                            element.id != employee.id)) {
+                          return 'Ya existe un empleado con este email';
                         }
                         return null;
                       },
@@ -240,40 +414,53 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     )),
                 Expanded(
                     flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: TextFormField(
+                          initialValue: employee.phone,
+                          decoration:
+                              const InputDecoration(labelText: 'Teléfono'),
+                          onSaved: (String? value) {
+                            employee.phone = value!;
+                          },
+                        ))),
+              ]),
+              Row(children: [
+                Expanded(
+                    flex: 2,
                     child: TextFormField(
-                      initialValue: employee.phone,
-                      decoration: const InputDecoration(labelText: 'Teléfono'),
+                      initialValue: employee.getPosition(),
+                      decoration: const InputDecoration(labelText: 'Puesto'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El campo no puede estar vacío';
+                        }
+                        return null;
+                      },
                       onSaved: (String? value) {
-                        employee.phone = value!;
+                        employee.setPosition(value!);
                       },
                     )),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: CustomSelectFormField(
+                            labelText: 'Categoría',
+                            initial: employee.getCategory(),
+                            options: [
+                              KeyValue('0', '0'),
+                              KeyValue('1', '1'),
+                              KeyValue('2', '2'),
+                              KeyValue('3', '3'),
+                              KeyValue('4', '4')
+                            ],
+                            onSelectedOpt: (value) {
+                              employee.setCategory(value);
+                            })))
               ]),
-              TextFormField(
-                initialValue: employee.getPosition(),
-                decoration: const InputDecoration(labelText: 'Puesto'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) {
-                  employee.setPosition(value!);
-                },
-              ),
-              TextFormField(
-                initialValue: employee.getCategory(),
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                onSaved: (String? value) {
-                  employee.setCategory(value!);
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El campo no puede estar vacío';
-                  }
-                  return null;
-                },
-              ),
+              Padding(
+                  padding: const EdgeInsets.only(top: 8), child: worplaceField),
               TextFormField(
                 initialValue: employee.bankAccount,
                 decoration: const InputDecoration(labelText: 'Cuenta Bancaria'),
@@ -395,6 +582,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
             children: <Widget>[
               s4cSubTitleBar('Nueva situación de promoción de empleo', null),
               TextFormField(
+                initialValue: 'Ninguna',
+                decoration: const InputDecoration(labelText: 'Orden'),
+                enabled: true,
+                onChanged: (String value) {
+                  newItem.order = int.parse(value);
+                },
+              ),
+              TextFormField(
                 initialValue: '',
                 decoration: const InputDecoration(labelText: 'Nombre'),
                 enabled: true,
@@ -477,13 +672,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
                                   newItem.extraDocument = value;
                                 },
                               ),
-                              Text("Documentos adicionales"),
+                              const Text("Documentos adicionales"),
                             ],
                           ),
                           if (field.hasError)
                             Text(
                               field.errorText ?? '',
-                              style: TextStyle(color: Colors.red),
+                              style: const TextStyle(color: Colors.red),
                             ),
                         ],
                       );
@@ -986,7 +1181,7 @@ class _EmployeeDocumentsFormState extends State<EmployeeDocumentsForm> {
                                       if (e['path'] != null) {
                                         openFileUrl(context, e['path'])
                                             .then((value) {
-                                          if (value) {
+                                          if (value['success']) {
                                             //Use toast to show a message
 
                                             ScaffoldMessenger.of(context)
@@ -1109,5 +1304,177 @@ class _EmployeeSalaryFormState extends State<EmployeeSalaryForm> {
             ]),
           ],
         )));
+  }
+}
+
+class EmployeeShiftForm extends StatefulWidget {
+  final Employee selectedItem;
+  const EmployeeShiftForm({Key? key, required this.selectedItem})
+      : super(key: key);
+
+  @override
+  _EmployeeShiftFormState createState() => _EmployeeShiftFormState();
+}
+
+class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late Employee employee;
+  late Shift? shift;
+
+  void removeShift(List args) {
+    DateTime date = args[0] as DateTime;
+    employee.removeShift(date);
+    Shift currentShift = employee.getShift()!;
+    shift = Shift(
+        date: currentShift.date, hours: List<double>.from(currentShift.hours));
+    setState(() {
+      _formKey = GlobalKey<FormState>();
+      shift = shift;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    employee = widget.selectedItem;
+    Shift currentShift = employee.getShift()!;
+    shift = Shift(
+        date: currentShift.date, hours: List<double>.from(currentShift.hours));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+        key: _formKey,
+        child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.6,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                // Add date time picker for shift start date
+
+                Row(children: [
+                  Expanded(
+                    flex: 3,
+                    child: DateTimePicker(
+                      labelText: 'Fecha de Inicio',
+                      selectedDate: shift!.date,
+                      onSelectedDate: (DateTime? date) {
+                        if (date != null) {
+                          shift!.date = date;
+                        }
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  Expanded(flex: 1, child: Container()),
+                  for (int i = 0; i < 7; i++)
+                    Expanded(
+                        flex: 1,
+                        child: Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: TextFormField(
+                              initialValue: shift!.hours[i].toStringAsFixed(2),
+                              onChanged: (value) {
+                                try {
+                                  shift!.hours[i] =
+                                      double.parse(value.replaceAll(',', '.'));
+                                } catch (e) {
+                                  value = '0';
+                                }
+                              },
+                              onSaved: (String? value) {
+                                try {
+                                  shift!.hours[i] =
+                                      double.parse(value!.replaceAll(',', '.'));
+                                } catch (e) {
+                                  value = '0';
+                                }
+                              },
+                              decoration: InputDecoration(
+                                  labelText: DaysNamesES[i].substring(0, 3)),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              validator: (String? value) {
+                                try {
+                                  double val =
+                                      double.parse(value!.replaceAll(',', '.'));
+                                  if (val < 0 || val > 24) {
+                                    return 'Debe estar entre 0 y 24';
+                                  }
+                                } catch (e) {
+                                  return 'Debe ser un número válido';
+                                }
+                                return null;
+                              },
+                            ))),
+                ]),
+                space(height: 10),
+                const Divider(thickness: 1),
+                const Text(
+                  'Histórico de turnos',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                // Show all shifts in employee.shift
+                Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Row(children: [
+                      const Expanded(
+                          flex: 3,
+                          child: Text('Fecha',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 1, child: Container()),
+                      for (int i = 0; i < 7; i++)
+                        Expanded(
+                            flex: 1,
+                            child: Text(DaysNamesES[i].substring(0, 3),
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold))),
+                    ])),
+
+                for (Shift s in employee.shift)
+                  Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Row(children: [
+                        Expanded(
+                            flex: 3,
+                            child:
+                                Text(DateFormat('dd/MM/yyyy').format(s.date))),
+                        Expanded(flex: 1, child: Container()),
+                        for (double hour in s.hours)
+                          Expanded(
+                              flex: 1, child: Text(hour.toStringAsFixed(2))),
+                      ])),
+
+                space(height: 30),
+                Row(children: [
+                  Expanded(flex: 1, child: Container()),
+                  Expanded(
+                      flex: 2,
+                      child: saveBtnForm(
+                        context,
+                        () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            employee.setShift(shift!);
+                            Navigator.of(context).pop(employee);
+                          } else {
+                            setState(() {});
+                          }
+                        },
+                      )),
+                  Expanded(flex: 1, child: Container()),
+                  Expanded(
+                      flex: 2,
+                      child:
+                          removeBtnForm(context, removeShift, [shift!.date])),
+                  Expanded(flex: 1, child: Container()),
+                ]),
+              ],
+            )));
   }
 }

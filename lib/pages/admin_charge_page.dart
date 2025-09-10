@@ -37,10 +37,12 @@ class _ChargePageState extends State<ChargePage>
 
   void loadCharges() async {
     setLoading();
-    await getContactCharges().then((val) {
-      charges = val;
-      stopLoading();
-    });
+    charges = await ContactCharge.getContactCharges();
+    stopLoading();
+    // await getContactCharges().then((val) {
+    //   charges = val;
+    //   stopLoading();
+    // });
   }
 
   @override
@@ -141,7 +143,7 @@ class _ChargePageState extends State<ChargePage>
           sortColumnIndex: 0,
           showCheckboxColumn: false,
           headingRowColor:
-              MaterialStateColor.resolveWith((states) => headerListBgColor),
+              WidgetStateColor.resolveWith((states) => headerListBgColor),
           headingRowHeight: 40,
           columns: [
             DataColumn(

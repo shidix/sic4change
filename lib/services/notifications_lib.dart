@@ -10,7 +10,7 @@ class NotificationValues {
   NotificationValues(this.nList, this.unread);
 }
 
-Future<NotificationValues> getNotificationList(user) async {
+Future<NotificationValues> getNotificationList(user, [List? nList]) async {
   /*SNotification.getUnreadNotificationsByReceiver(user.email).then((val) {
       notif = val;
       //if (val > 0) notifColor = Colors.red;
@@ -18,18 +18,24 @@ Future<NotificationValues> getNotificationList(user) async {
     });*/
 
   int count = 0;
-  List nList = await SNotification.getNotificationsByReceiver(user);
+  if (nList == null) {
+    print("Loading notifications for $user");
+    nList = await SNotification.getNotificationsByReceiver(user);
+  }
   for (SNotification n in nList) {
     if (!n.readed) count += 1;
   }
   return NotificationValues(nList, count);
 }
 
-void createNotification(String sender, List receivers, String msg) {
+void createNotification(String sender, List receivers, String msg,
+    {String objId = "", String objType = ""}) {
   for (String r in receivers) {
     SNotification n = SNotification(sender);
     n.receiver = r;
     n.msg = msg;
+    n.objId = objId;
+    n.objType = objType;
     n.save();
   }
 }

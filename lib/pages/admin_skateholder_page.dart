@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:sic4change/services/models_commons.dart';
+// import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact_info.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -35,10 +35,12 @@ class _StakeholderPageState extends State<StakeholderPage>
 
   void loadStakeholders() async {
     setLoading();
-    await getContactStakeholders().then((val) {
-      stakeholders = val;
-      stopLoading();
-    });
+    stakeholders = await ContactStakeholder.getContactStakeholders();
+    stopLoading();
+    // await getContactStakeholders().then((val) {
+    //   stakeholders = val;
+    //   stopLoading();
+    // });
   }
 
   @override

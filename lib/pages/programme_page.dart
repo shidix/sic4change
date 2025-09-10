@@ -50,7 +50,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     setState(() {
       loading = true;
     });
-    await getProjectsByProgramme(programme!.uuid).then((val) async {
+    await SProject.getProjectsByProgramme(programme!.uuid).then((val) async {
       projects = val;
       financiers = await getProgrammeFinanciers(projects);
       projStatus = setProjectByStatus(projects);
@@ -69,7 +69,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
       totalBudget = totalBudget + fromCurrency(p.budget);
     }
 
-    indicators = await getProgrammesIndicators(programme!.uuid);
+    indicators = await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
     setState(() {});
   }
 
@@ -714,7 +714,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
       );
     } else {
       return Container();
-      return const CircularProgressIndicator();
+      // return const CircularProgressIndicator();
     }
   }
 

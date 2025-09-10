@@ -3,11 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:to_csv/to_csv.dart' as exportCSV;
 
-void createLog(String msg) {
+Future<void> createLog(String msg) async {
   final user = FirebaseAuth.instance.currentUser!;
   SLogs log = SLogs(user.email!);
   log.msg = msg;
-  log.save();
+  await log.save();
 }
 
 /*void exportLogFromFirebase() async {

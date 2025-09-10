@@ -30,16 +30,19 @@ class _DocumentsPageState extends State<DocumentsPage> {
   String urlBase = "";
 
   void loadFolders(value) async {
-    await getFolders(value).then((val) {
-      folders = val;
-    });
+    // await getFolders(value).then((val) {
+    //   folders = val;
+    // });
+
+    folders = await Folder.getFolders(value);
     setState(() {});
   }
 
   void loadFiles(value) async {
-    await getFiles(value).then((val) {
-      files = val;
-    });
+    // await getFiles(value).then((val) {
+    //   files = val;
+    // });
+    files = await SFile.getFiles(value);
     setState(() {});
   }
 
@@ -74,7 +77,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
       currentFolder = null;
     }*/
 
-    if (currentFolder != null) print(currentFolder!.name);
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -169,7 +171,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
           uploadTask = null;
         });
       } catch (err) {
-        print(err);
+        // Handle error
       }
     }
   }
@@ -224,7 +226,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
               tooltip: 'Up folder',
               onPressed: () {
                 if (currentFolder.parent != "") {
-                  getFolderByUuid(currentFolder.parent).then((value) {
+                  Folder.getFolderByUuid(currentFolder.parent).then((value) {
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -284,7 +286,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     if (currentFolder != null) parentUuid = currentFolder.uuid;
 
     return FutureBuilder(
-        future: getFolders(parentUuid),
+        future: Folder.getFolders(parentUuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             folders = snapshot.data!;
@@ -526,7 +528,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     if (currentFolder != null) folderUuid = currentFolder.uuid;
 
     return FutureBuilder(
-        future: getFiles(folderUuid),
+        future: SFile.getFiles(folderUuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             files = snapshot.data!;

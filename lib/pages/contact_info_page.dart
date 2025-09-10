@@ -3,6 +3,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
 //import 'package:sic4change/pages/404_page.dart';
@@ -10,6 +11,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_contact_info.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/contact_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -28,13 +30,32 @@ class ContactInfoPage extends StatefulWidget {
 }
 
 class _ContactInfoPageState extends State<ContactInfoPage> {
+  late ProfileProvider _provider;
   Contact? contact;
   ContactInfo? _contactInfo;
   Widget? contactInfoDetailsPanel;
+  Organization? currentOrg;
+  Profile? currentProfile;
 
   @override
   void initState() {
     super.initState();
+    _provider = Provider.of<ProfileProvider>(context, listen: false);
+
+    _provider.addListener(() {
+      if (!mounted) return;
+      currentOrg = _provider.organization;
+      currentProfile = _provider.profile;
+      if (currentOrg == null || currentProfile == null) {
+        _provider.loadProfile();
+      }
+      setState(() {});
+
+    });
+    if ((currentOrg == null) || (currentProfile == null)) {
+      _provider.loadProfile();
+    }
+
     contact = widget.contact;
     _contactInfo = widget.contactInfo;
     contactInfoDetailsPanel = contactInfoDetails(context);
@@ -427,56 +448,102 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
     List<KeyValue> stakeholders = [];
     List<KeyValue> sectors = [];
 
-    await getOrganizations().then((value) async {
+    await Organization.getOrganizations().then((value) async {
       for (Organization item in value) {
         organizations.add(item.toKeyValue());
       }
-      await getContactCharges().then((value) async {
-        for (ContactCharge item2 in value) {
-          charges.add(item2.toKeyValue());
-        }
-        await getContactCategories().then((value) async {
-          for (TasksStatus item3 in value) {
-            categories.add(item3.toKeyValue());
-          }
-          await getZones().then((value) async {
-            for (Zone item4 in value) {
-              zones.add(item4.toKeyValue());
-            }
-            await getContactDecisions().then((value) async {
-              for (ContactDecision item5 in value) {
-                decisions.add(item5.toKeyValue());
-              }
-              await getAmbits().then((value) async {
-                for (Ambit item6 in value) {
-                  ambits.add(item6.toKeyValue());
-                }
-                await getContactStakeholders().then((value) async {
-                  for (ContactStakeholder item6 in value) {
-                    stakeholders.add(item6.toKeyValue());
-                  }
-                  await getSectors().then((value) async {
-                    for (Sector item7 in value) {
-                      sectors.add(item7.toKeyValue());
-                    }
-                    editContactInfoDialog(
-                        context,
-                        organizations,
-                        charges,
-                        categories,
-                        zones,
-                        decisions,
-                        ambits,
-                        stakeholders,
-                        sectors);
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
     });
+
+
+    await ContactCharge.getContactCharges().then((value) async {
+      for (ContactCharge item2 in value) {
+        charges.add(item2.toKeyValue());
+      }
+    });
+    await ContactCategory.getContactCategories().then((value) async {
+      for (ContactCategory item3 in value) {
+        categories.add(item3.toKeyValue());
+      }
+    });
+    await Zone.getZones().then((value) async {
+      for (Zone item4 in value) {
+        zones.add(item4.toKeyValue());
+      }
+    });
+    await ContactDecision.getContactDecisions().then((value) async {
+      for (ContactDecision item5 in value) {
+        decisions.add(item5.toKeyValue());
+      }
+    });
+    await Ambit.getAmbits().then((value) async {
+      for (Ambit item6 in value) {
+        ambits.add(item6.toKeyValue());
+      }
+    });
+    await ContactStakeholder.getContactStakeholders().then((value) async {
+      for (ContactStakeholder item6 in value) {
+        stakeholders.add(item6.toKeyValue());
+      }
+    });
+    await Sector.getSectors().then((value) async {
+      for (Sector item7 in value) {
+        sectors.add(item7.toKeyValue());
+      }
+    });
+
+    editContactInfoDialog(context, organizations, charges, categories, zones, decisions, ambits, stakeholders, sectors);
+
+
+    // await getOrganizations().then((value) async {
+    //   for (Organization item in value) {
+    //     organizations.add(item.toKeyValue());
+    //   }
+    //   await getContactCharges().then((value) async {
+    //     for (ContactCharge item2 in value) {
+    //       charges.add(item2.toKeyValue());
+    //     }
+    //     await getContactCategories().then((value) async {
+    //       for (TasksStatus item3 in value) {
+    //         categories.add(item3.toKeyValue());
+    //       }
+    //       await Zone.getZones().then((value) async {
+    //         for (Zone item4 in value) {
+    //           zones.add(item4.toKeyValue());
+    //         }
+    //         await getContactDecisions().then((value) async {
+    //           for (ContactDecision item5 in value) {
+    //             decisions.add(item5.toKeyValue());
+    //           }
+    //           await Ambit.getAmbits().then((value) async {
+    //             for (Ambit item6 in value) {
+    //               ambits.add(item6.toKeyValue());
+    //             }
+    //             await getContactStakeholders().then((value) async {
+    //               for (ContactStakeholder item6 in value) {
+    //                 stakeholders.add(item6.toKeyValue());
+    //               }
+    //               await Sector.getSectors().then((value) async {
+    //                 for (Sector item7 in value) {
+    //                   sectors.add(item7.toKeyValue());
+    //                 }
+    //                 editContactInfoDialog(
+    //                     context,
+    //                     organizations,
+    //                     charges,
+    //                     categories,
+    //                     zones,
+    //                     decisions,
+    //                     ambits,
+    //                     stakeholders,
+    //                     sectors);
+    //               });
+    //             });
+    //           });
+    //         });
+    //       });
+    //     });
+    //   });
+    // });
   }
 
   Future<void> editContactInfoDialog(context, organizations, charges,
@@ -742,7 +809,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 
   void _callProjectEditDialog(context) async {
     List<KeyValue> projects = [];
-    await getProjects().then((value) async {
+    await SProject.getProjects().then((value) async {
       for (SProject item in value) {
         projects.add(item.toKeyValue());
       }

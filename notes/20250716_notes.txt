@@ -1,0 +1,33 @@
+Que no hayan varias jornadas abiertas.
+En feriados y fines de semana sí se puede fichar.
+No se puede fichar en vacaciones.
+Los usuarios se hacen responsables de la duración de las jornadas (si es un numero excesivo se avisa)
+Hora fijada por el navegador
+
+Zona Personal.
+    Subir documento de horas firmado
+
+Los días de enfermedad se quitan de las vacaciones.
+    Asignar días en el calendario.
+    Los días se asignan por organización
+
+Calendarios
+    Cambiar label de Dias totales en Calendario por días de vacaciones
+    No se puede poner el mismo día festivo varias veces en el calendario
+    Un calendario por usuario
+    Agregar el número de días de asuntos propios
+    No se pueden pedir más d{ias de los que te quedan
+    Cambiar Asuntos Propios por Puente/Cumpleaños (3)
+
+Vacaciones:
+    Agregar el número de días disponibles en función de la solicitud
+    Agregar vista general del status de vacaciones
+    Subir documentos justificativos
+
+Personal a Cargo.
+    El registro de Jornada debe ser el resumen total por mes (navegable) de los usuarios a mi cargo (tb debe mostrarse el total anual). Saldo anual
+
+En empleados
+    Categoria es un select de 0 a 4
+
+Roles asginados por Recursos Humanos y Superadmin

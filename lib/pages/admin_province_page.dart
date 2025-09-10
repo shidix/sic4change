@@ -34,10 +34,12 @@ class _ProvincePageState extends State<ProvincePage>
 
   void loadProvinces() async {
     setLoading();
-    await getProvinces().then((val) {
-      provinces = val;
-      stopLoading();
-    });
+    provinces = await Province.getProvinces();
+    stopLoading();
+    // await getProvinces().then((val) {
+    //   provinces = val;
+    //   stopLoading();
+    // });
   }
 
   @override

@@ -43,16 +43,15 @@ class _ProjectListPageState extends State<ProjectListPage> {
   }
 
   void loadProgrammes() async {
-    await getProgrammes().then((val) {
-      programList = val;
-    });
+    programList = await Programme.getProgrammes();
     setState(() {});
   }
 
   void loadProjects() async {
-    await getProjects().then((val) {
-      prList = val;
-    });
+    // await getProjects().then((val) {
+    //   prList = val;
+    // });
+    prList = await SProject.getProjectsByType(prType!);
     setState(() {});
   }
 
@@ -70,19 +69,19 @@ class _ProjectListPageState extends State<ProjectListPage> {
     }
 
     //getProjects().then((val) {
-    getProjectsByType(prType!).then((val) {
+    SProject.getProjectsByType(prType!).then((val) {
       if (mounted) {
         setState(() {
           prList = val;
         });
         stopLoading();
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
+        // for (SProject item in prList) {
+        //   item.loadObjs().then((value) {
+        //     if (mounted) {
+        //       setState(() {});
+        //     }
+        //   });
+        // }
       }
     });
   }
@@ -150,7 +149,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
         child: FutureBuilder(
-            future: getProgrammes(),
+            future: Programme.getProgrammes(),
             builder: ((context, snapshot) {
               if (snapshot.hasData) {
                 programList = snapshot.data!;

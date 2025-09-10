@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +10,7 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:uuid/uuid.dart';
 import 'package:excel/excel.dart';
 
 class InvoicePage extends StatefulWidget {
@@ -379,12 +378,17 @@ class _InvoicePageState extends State<InvoicePage> {
   }
 
   Future<void> removeInvoice(context, Invoice invoice) async {
+    String tracker = invoice.tracker;
     invoice.delete().then((value) {
       if (value) {
+        invoices.removeWhere((element) => element.tracker == tracker);
+
         populateInvoices().then((value) {
-          setState(() {
-            containerInvoices = value;
-          });
+          if (mounted) {
+            setState(() {
+              containerInvoices = value;
+            });
+          }
         });
       }
     });
@@ -543,7 +547,7 @@ class _InvoicePageState extends State<InvoicePage> {
           String currency = row[7]!.value.toString();
           double base = double.parse(row[8]!.value.toString());
           double taxes = double.parse(row[9]!.value.toString());
-          double total = double.parse(row[10]!.value.toString());
+          // double total = double.parse(row[10]!.value.toString());
           String taxKind = row[11]!.value.toString();
           String tracker = row[12]!.value.toString();
           if (tracker.isEmpty || tracker.length < 3) {

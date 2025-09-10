@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sic4change/pages/task_info_page.dart';
 import 'package:sic4change/services/log_lib.dart';
-import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -55,7 +53,7 @@ class _TasksUserPageState extends State<TasksUserPage> {
       tasksLoading = true;
       myTasksLoading = true;
     });
-    await getTasks().then((value) {
+    await STask.getTasks().then((value) {
       List<STask> tList = value as List<STask>;
       for (STask t in tList) {
         t.rel = "Cargando...";
@@ -322,8 +320,8 @@ class _TasksUserPageState extends State<TasksUserPage> {
             children: [
               customSearchBar(table),
               space(height: 10),
-              SizedBox(
-                width: double.infinity,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: DataTable(
                   sortAscending: sortAsc,
                   sortColumnIndex: sortColumnIndex,
@@ -391,15 +389,15 @@ class _TasksUserPageState extends State<TasksUserPage> {
 /*                           EDIT TASK                                */
 /*--------------------------------------------------------------------*/
   void callEditDialog(context, HashMap args) async {
-    List<KeyValue> statusList = await getTasksStatusHash();
-    List<KeyValue> contactList = await getContactsHash();
+    List<KeyValue> statusList = await TasksStatus.getTasksStatusHash();
+    List<KeyValue> contactList = await Contact.getContactsHash();
     //List<KeyValue> projectList = await getProjectsHash();
     //List<KeyValue> programmeList = await getProgrammesHash();
     List<KeyValue> profileList = await Profile.getProfileHash();
-    List<KeyValue> orgList = await getOrganizationsHash();
+    List<KeyValue> orgList = await Organization.getOrganizationsHash();
 
-    List projectList = await getProjects();
-    List programmeList = await getProgrammes();
+    List projectList = await SProject.getProjects();
+    List programmeList = await Programme.getProgrammes();
 
     final List<MultiSelectItem<KeyValue>> cList = contactList
         .map((contact) => MultiSelectItem<KeyValue>(contact, contact.value))

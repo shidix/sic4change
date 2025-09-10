@@ -36,7 +36,7 @@ class _ContactClaimPageState extends State<ContactClaimPage> {
   }
 
   void loadContactClaim(value) async {
-    await getClaimsByContact(value).then((val) {
+    await ContactClaim.getClaimsByContact(value).then((val) {
       claimList = val;
     });
     setState(() {});

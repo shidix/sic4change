@@ -34,10 +34,12 @@ class _CountryPageState extends State<CountryPage>
 
   void loadCountries() async {
     setLoading();
-    await getCountries().then((val) {
-      countries = val;
-      stopLoading();
-    });
+    countries = await Country.getCountries();
+    stopLoading();
+    // await getCountries().then((val) {
+    //   countries = val;
+    //   stopLoading();
+    // });
   }
 
   @override

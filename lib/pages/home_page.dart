@@ -1,25 +1,38 @@
-// ignore_for_file: prefer_const_constructors, non_constant_identifier_names
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, avoid_web_libraries_in_flutter
 
+import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
-import "dart:developer" as dev;
+// import "dart:developer" as dev;
 import 'dart:convert';
+// import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+// import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/services/holiday_form.dart';
+import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_projects.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
+import 'package:sic4change/services/form_holiday.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_tasks.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
+import 'package:sic4change/services/reports_utils.dart';
 import 'package:sic4change/services/workday_form.dart';
+import 'package:sic4change/widgets/calendar_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
+// import 'package:sic4change/widgets/holidays_widgets.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 // import 'package:sic4change/pages/contacts_page.dart';
@@ -35,224 +48,1002 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //bool _main = false;
+  bool initialized = false;
+  late final VoidCallback _listener;
+  late final ProfileProvider _profileProvider;
+  late final RRHHProvider? _rrhhProvider;
+  late final ProjectsProvider? _projectsProvider;
+
+  late Map<String, TasksStatus> hashStatus;
+  late Map<String, SProject> hashProjects;
+
+  Organization? currentOrganization;
+  Employee? currentEmployee;
+
+  late String _currentPage;
   User user = FirebaseAuth.instance.currentUser!;
   Profile? profile;
   List<STask>? mytasks = [];
   Contact? contact;
   HolidayRequest? currentHoliday;
   List<HolidayRequest>? myHolidays = [];
+  List<HolidaysCategory>? holCat = [];
+  Map<String, int> remainingHolidays = {};
   int holidayDays = 0;
+  int obligatoryHolidays = 0;
+  HolidaysConfig? myCalendar;
 
   Workday? currentWorkday;
   Widget workdayButton = Container();
   List<Workday>? myWorkdays = [];
   Widget mainMenuWidget = Container();
+  List<Employee> mypeople = [];
+  List<Employee> myManagers = [];
+  List<HolidayRequest> myPeopleHolidays = [];
+  List<Workday> myPeopleWorkdays = [];
+  Map<String, HolidaysConfig> myPeopleCalendars = {};
+
+  Widget contentHolidaysPanel = Container();
+  Widget contentWorkPanel = Container();
+  Widget contentTasksPanel = Container();
+  Widget contentProjectsPanel = Container();
+  Widget topButtonsPanel = Container();
+  Widget debugPanel = Container();
+  Widget contentNotifyPanel = Container();
 
   List<SProject>? myProjects;
 
   List notificationList = [];
   //List logList = [];
 
+  bool onHolidays(String userEmail, DateTime date,
+      {bool acceptedOnly = false}) {
+    if (myHolidays == null) return false;
+
+    for (HolidayRequest holiday in myHolidays!) {
+      bool inRange = (date.isAfter(holiday.startDate) &&
+              date.isBefore(
+                  truncDate(holiday.endDate.add(Duration(days: 1))))) ||
+          (holiday.startDate.isAtSameMomentAs(date) ||
+              holiday.endDate.isAtSameMomentAs(date));
+      if (holiday.userId == userEmail && inRange) {
+        if ((!acceptedOnly) || (acceptedOnly && (holiday.isAproved()))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   void dispose() {
+    if (mounted) {
+      _profileProvider.removeListener(_listener);
+    }
+
     super.dispose();
   }
 
-  Future<void> loadMyTasks() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      STask.getByAssigned(value.uuid).then((value) {
-        // mytasks = value;
-        setState(() {
-          mytasks = value;
-        });
-      });
-    });
-  }
+  Map<String, Color> holidayStatusColors = {
+    "pendiente": warningColor,
+    "aprobado": successColor,
+    "rechazado": dangerColor,
+  };
 
-  Future<void> loadMyHolidays() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      HolidayRequest.byUser(value.uuid).then((value) {
-        myHolidays = value;
-        holidayDays = widget.HOLIDAY_DAYS;
-        for (HolidayRequest holiday in myHolidays!) {
-          holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-        }
-        setState(() {});
-      });
-    });
-  }
+  // Future<void> loadMyProjects() async {
+  //   await Contact.byEmail(user.email!).then((value) {
+  //     contact = value;
+  //     contact!.getProjects().then((value) {
+  //       myProjects = value;
+  //       setState(() {});
+  //     });
+  //   });
+  // }
 
-  Future<void> loadMyProjects() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-      contact!.getProjects().then((value) {
-        myProjects = value;
-        setState(() {});
-      });
-    });
-  }
-
-  Future<void> loadMyWorkdays() async {
+  Future<List<Workday>> loadMyWorkdays() async {
     if ((myWorkdays == null) || (myWorkdays!.isEmpty)) {
-      await Contact.byEmail(user.email!).then((value) {
-        contact = value;
-        Workday.byUser(value.email).then((value) {
-          setState(() {
-            myWorkdays = value;
-            myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-          });
-        });
-      });
-    } else {
-      setState(() {
-        myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-        myWorkdays = myWorkdays;
-      });
+      List<Workday> fullworkdays = _rrhhProvider!.workdays;
+      if (fullworkdays.isNotEmpty) {
+        myWorkdays = fullworkdays
+            .where((wd) => wd.userId == user.email)
+            .toList(growable: false);
+      } else {
+        myWorkdays = await Workday.byUser(user.email!);
+      }
+      if (myWorkdays!.isEmpty) {
+        currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+        currentWorkday!.save();
+        myWorkdays = [currentWorkday!];
+      }
     }
+
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    currentWorkday = myWorkdays!.first;
+    if (currentWorkday!.open) {
+      // Check if the current workday is from today; if not, close it and create a new one
+      bool beClosed =
+          truncDate(currentWorkday!.startDate) != truncDate(DateTime.now()) &&
+              DateTime.now().difference(currentWorkday!.startDate).inHours > 12;
+      if (beClosed) {
+        currentWorkday!.endDate = currentWorkday!.startDate.add(
+            Duration(hours: 11, minutes: 59, seconds: 59)); // Maximo 12 horas
+        currentWorkday!.open = false;
+        currentWorkday!.save();
+        currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+        currentWorkday!.save();
+        myWorkdays!.insert(0, currentWorkday!);
+      }
+    }
+    // Set workday.open to false for all workdays except the first one
+    List<Workday> toUpdate = [];
+    for (var workday in myWorkdays!) {
+      if (workday != currentWorkday) {
+        if (workday.open) {
+          workday.open = false;
+          workday.endDate = workday.startDate.add(
+              Duration(hours: 11, minutes: 59, seconds: 59)); // Maximo 12 horas
+          final update = await workday.save();
+          if (update != null) {
+            toUpdate.add(update);
+          }
+        } else {
+          toUpdate.add(workday);
+        }
+      } else {
+        toUpdate.add(workday);
+      }
+    }
+    myWorkdays = toUpdate;
+
+    // Remove duplicate workdays (check userId, startDate, endDate)
+    for (Workday element in myWorkdays!) {
+      element.startDate = DateTime(
+          element.startDate.year,
+          element.startDate.month,
+          element.startDate.day,
+          element.startDate.hour,
+          element.startDate.minute);
+      element.endDate = DateTime(element.endDate.year, element.endDate.month,
+          element.endDate.day, element.endDate.hour, element.endDate.minute);
+      if (!element.isValid()) {
+        String idsToRemove = element.id;
+        element.delete();
+        myWorkdays!.removeWhere((e) => e.id == idsToRemove);
+        // If so, set the endDate to the startDate
+      }
+    }
+
+    Queue<Workday> workdayQueue = Queue<Workday>.from(myWorkdays!);
+
+    List<Workday> uniques = [];
+    while (workdayQueue.isNotEmpty) {
+      Workday current = workdayQueue.removeFirst();
+      uniques.add(current);
+      workdayQueue.removeWhere((element) =>
+          element.userId == current.userId &&
+          element.startDate == current.startDate &&
+          element.endDate == current.endDate &&
+          element.id != current.id);
+    }
+
+    //Get elements from myWorkdays that are not in uniques using id to compare
+    List<Workday> toRemove = [];
+    for (Workday element in myWorkdays!) {
+      if (!uniques.any((e) => e.id == element.id)) {
+        toRemove.add(element);
+      }
+    }
+    for (Workday element in toRemove) {
+      element.delete();
+    }
+    myWorkdays = uniques;
+
+    if (mounted) {
+      if (currentWorkday!.open) {
+        workdayButton = actionButton(
+            context, null, workdayAction, Icons.stop_circle_outlined, context,
+            iconColor: dangerColor);
+      } else {
+        workdayButton = actionButton(context, null, workdayAction,
+            Icons.play_circle_outline_sharp, context,
+            iconColor: successColor);
+      }
+    }
+    return myWorkdays!;
   }
 
   Future<void> loadMyData() async {
-    await Contact.byEmail(user.email!).then((value) {
-      contact = value;
-    });
-    contact!.getProjects().then((value) {
-      if (mounted) {
-        setState(() {
-          myProjects = value;
-        });
-      }
-    });
-    STask.getByAssigned(contact!.uuid).then((value) {
-      if (mounted) {
-        setState(() {
-          mytasks = value;
-        });
-      }
-    });
-    HolidayRequest.byUser(user.email!).then((value) {
-      myHolidays = value;
-      holidayDays = widget.HOLIDAY_DAYS;
-      for (HolidayRequest holiday in myHolidays!) {
-        holidayDays -=
-            getWorkingDaysBetween(holiday.startDate, holiday.endDate);
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    Workday.byUser(user.email!).then((value) {
-      myWorkdays = value;
-      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      if ((myWorkdays!.first.open) &&
-          (truncDate(myWorkdays!.first.startDate) ==
-              truncDate(DateTime.now()))) {
-        currentWorkday = myWorkdays!.first;
-      } else {
-        currentWorkday = Workday.getEmpty();
-        currentWorkday!.userId = user.email!;
-        currentWorkday!.open = true;
-        currentWorkday!.save();
-      }
-      // Workday.currentByUser(user.email!).then((value) {
-      //   currentWorkday = value;
-      //   // if (!myWorkdays!.contains(value)) {
-      //   //   myWorkdays!.add(value!);
-      //   // }
-      //   if (mounted) {
-      //     setState(() {
-      //       myWorkdays = myWorkdays;
-      //       myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
-      //     });
-      //   }
-      // });
-    });
-  }
+    contact ??= await Contact.byEmail(user.email!);
+    currentEmployee ??= await Employee.byEmail(user.email!);
+    if (currentEmployee!.organization == null) {
+      currentEmployee!.organization = currentOrganization!.id;
+      currentEmployee!.save();
+    }
+    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!);
+    final results = await Future.wait([
+      contact!.getProjects(),
+      STask.getByAssigned(user.email!, lazy: true),
+      HolidayRequest.byUser(user.email!),
+      //Workday.byUser(user.email!),
+      loadMyWorkdays(),
+      ((currentEmployee != null) && (mypeople.isEmpty))
+          ? currentEmployee!
+              .getSubordinates(departments: _rrhhProvider?.departments)
+          : Future.value(mypeople),
+      // Future.value(mypeople),
+      getNotificationList(user.email)
+    ]);
 
-  void getNotifications() async {
-    NotificationValues nVal = await getNotificationList(user.email);
+    myProjects = results[0] as List<SProject>;
+    mytasks = results[1] as List<STask>;
+    contentTasksPanel = tasksPanel();
+    contentProjectsPanel = projectsPanel();
+    myHolidays = results[2] as List<HolidayRequest>;
+    updateRemainingHolidays();
+
+    contentWorkPanel = workTimePanel();
+
+    mypeople = results[4] as List<Employee>;
+
+    currentEmployee ??= await Employee.byEmail(user.email!);
+    mypeople.add(currentEmployee!);
+
+    for (Employee emp in mypeople) {
+      myPeopleCalendars[emp.email] = await HolidaysConfig.byEmployee(emp);
+    }
+
+    if (profile!.mainRole == Profile.RRHH) {
+      // Load all employees
+      Employee.getAll().then((value) {
+        mypeople = value;
+        mypeople = mypeople.where((element) => element.isActive()).toList();
+        for (Employee element in mypeople) {
+          HolidayRequest.byUser(element.email).then((value) {
+            // Check if value is not in myPeopleHolidays using id to compare
+            myPeopleHolidays.addAll(value.where(
+                (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
+            if (mounted) setState(() {});
+          });
+        }
+      });
+    }
+    loadMyPeopleWorkdays().then((value) {
+      myPeopleWorkdays = value;
+      myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
+    });
+
+    for (Employee element in mypeople) {
+      HolidayRequest.byUser(element.email).then((value) {
+        // Check if value is not in myPeopleHolidays using id to compare
+        myPeopleHolidays.addAll(value.where(
+            (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
+      });
+    }
+    NotificationValues nVal = results[5] as NotificationValues;
     notificationList = nVal.nList;
     notif = nVal.unread;
-    setState(() {});
   }
 
-  /*void getLogs() async {
-    SLogs.getLogs().then((val) {
-      logList = val;
-      setState(() {});
+  Future<List<Workday>> loadMyPeopleWorkdays() async {
+    List<String> emails = mypeople.map((e) => e.email).toList();
+    if (!emails.contains(user.email!)) {
+      emails.add(user.email!);
+    }
+    myPeopleWorkdays = _rrhhProvider!.workdays
+        .where((wd) => emails.contains(wd.userId))
+        .toList(growable: false);
+    // if (myPeopleWorkdays.isEmpty) {
+    //     myPeopleWorkdays = await Workday.byUser(emails);
+    // }
+    // // myPeopleWorkdays = await Workday.byUser(emails);
+    myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
+    return myPeopleWorkdays;
+  }
+
+  Future<void> getNotifications() async {
+    NotificationValues nVal =
+        await getNotificationList(user.email, _rrhhProvider?.notifications);
+    notificationList = nVal.nList;
+    notif = nVal.unread;
+  }
+
+  Widget loadMyPeopleWorkdaysWidget() {
+    if (myPeopleWorkdays.isEmpty) {
+      return const Center(
+        child: Text("No hay registros de jornada para este usuario."),
+      );
+    }
+
+    Map<String, Map<String, double>> workdayHours = {};
+    DateTime currentMonthStart =
+        DateTime(DateTime.now().year, DateTime.now().month, 1);
+    DateTime lastMonthStart =
+        DateTime(DateTime.now().year, DateTime.now().month - 1, 1);
+    DateTime nextMonthStart = currentMonthStart.add(Duration(days: 35));
+    nextMonthStart = DateTime(nextMonthStart.year, nextMonthStart.month, 1);
+    DateTime currentWeekStart = truncDate(
+        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
+    DateTime lastWeekStart =
+        truncDate(currentWeekStart.subtract(Duration(days: 7)));
+
+    for (Employee employee in mypeople) {
+      double currentYearHours = 0;
+      double currentMonthHours = 0;
+      double lastMonthHours = 0;
+      double currentWeekHours = 0;
+      double lastWeekHours = 0;
+      // Calcular horas en el año actual, en el mes pasado, en el mes actual, en la semana pasada y en la semana actual
+      double balanceYearsHours = 0;
+      double balanceLastMonthHours = 0;
+      double balanceCurrentMonthHours = 0;
+      double balanceLastWeekHours = 0;
+      double balanceCurrentWeekHours = 0;
+
+      HolidaysConfig employeeCalendar =
+          myPeopleCalendars[employee.email] ?? HolidaysConfig.getEmpty();
+      DateTime currentDate = DateTime(DateTime.now().year, 1, 1);
+
+      while (currentDate.isBefore(DateTime.now())) {
+        Shift currentShift = employee.getShift(date: currentDate);
+        if ((!onHolidays(employee.email, currentDate, acceptedOnly: true)) &&
+            (employeeCalendar.isWorkingDay(currentDate)) &&
+            (currentDate.isAfter(truncDate(employee.getAltaDate())))) {
+          balanceYearsHours += currentShift.hours[currentDate.weekday - 1];
+          if (currentDate.month == DateTime.now().month - 1) {
+            balanceLastMonthHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+          if (currentDate.month == DateTime.now().month) {
+            balanceCurrentMonthHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+          if (dateInRange(currentDate, lastWeekStart,
+              currentWeekStart.subtract(Duration(seconds: 1)))) {
+            balanceLastWeekHours += currentShift.hours[currentDate.weekday - 1];
+          }
+
+          if (dateInRange(
+              currentDate,
+              currentWeekStart,
+              currentWeekStart
+                  .add(Duration(days: 7))
+                  .subtract(Duration(seconds: 1)))) {
+            balanceCurrentWeekHours +=
+                currentShift.hours[currentDate.weekday - 1];
+          }
+        }
+        currentDate = currentDate.add(Duration(days: 1));
+      }
+
+      List<Workday> employeeWorkdays =
+          myPeopleWorkdays.where((wd) => wd.userId == employee.email).toList();
+
+      for (var workday in employeeWorkdays) {
+        if (workday.startDate.year == DateTime.now().year) {
+          currentYearHours += workday.hours();
+        }
+        if (workday.startDate.year == DateTime.now().year &&
+            workday.startDate.month == DateTime.now().month) {
+          currentMonthHours += workday.hours();
+        }
+        if (workday.startDate.year == lastMonthStart.year &&
+            workday.startDate.month == lastMonthStart.month) {
+          lastMonthHours += workday.hours();
+        }
+        if (workday.startDate.isAfter(currentWeekStart)) {
+          currentWeekHours += workday.hours();
+        }
+        if (workday.startDate.isAfter(lastWeekStart) &&
+            workday.startDate.isBefore(currentWeekStart)) {
+          lastWeekHours += workday.hours();
+        }
+      }
+
+      // Calculate percentage of hours worked, assuming 40 hours per week
+      // currentYearHours = (currentYearHours / (40 * 52)) * 100.0;
+      // currentMonthHours = (currentMonthHours / (40 * 4)) * 100.0;
+      // lastMonthHours = (lastMonthHours / (40 * 4)) * 100.0;
+      // currentWeekHours = (currentWeekHours / (40)) * 100.0;
+      // lastWeekHours = (lastWeekHours / (40)) * 100.0;
+
+      currentYearHours = currentYearHours - balanceYearsHours;
+      currentMonthHours = currentMonthHours - balanceCurrentMonthHours;
+      lastMonthHours = lastMonthHours - balanceLastMonthHours;
+      currentWeekHours = currentWeekHours - balanceCurrentWeekHours;
+      lastWeekHours = lastWeekHours - balanceLastWeekHours;
+
+      workdayHours[employee.email] = {
+        "currentYear": currentYearHours,
+        "currentMonth": currentMonthHours,
+        "lastMonth": lastMonthHours,
+        "currentWeek": currentWeekHours,
+        "lastWeek": lastWeekHours,
+      };
+      currentYearHours = 0;
+      currentMonthHours = 0;
+      lastMonthHours = 0;
+      currentWeekHours = 0;
+      lastWeekHours = 0;
+    }
+
+    Widget listSummary = Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            for (var item in workdayHours.entries)
+              ListTile(
+                // title: Text(mypeople
+                //     .firstWhere((e) => e.email == item.key)
+                //     .getFullName()),
+                subtitle: Row(
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Text(
+                          mypeople
+                              .firstWhere((e) => e.email == item.key)
+                              .getFullName(),
+                          style: normalText,
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        (item.value['currentYear']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentYear']!,
+                                format: 'hm'),
+                        style: normalText,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        (item.value['lastMonth']! < 0 ? '-' : '') +
+                            toDuration(item.value['lastMonth']!, format: 'hm'),
+                        style: normalText,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        (item.value['currentMonth']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentMonth']!,
+                                format: 'hm'),
+                        style: normalText,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    // Expanded(
+                    //   flex: 1,
+                    //   child: Text(
+                    //     (item.value['lastWeek']! < 0 ? '-' : '') +
+                    //         toDuration(item.value['lastWeek']!, format: 'hm'),
+                    //     style: normalText,
+                    //     textAlign: TextAlign.right,
+                    //   ),
+                    // ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        (item.value['currentWeek']! < 0 ? '-' : '') +
+                            toDuration(item.value['currentWeek']!,
+                                format: 'hm'),
+                        style: normalText,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (workdayHours.isEmpty)
+              const Center(
+                child: Text("No hay registros de jornada para este usuario."),
+              ),
+          ],
+        ));
+
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withAlpha(128),
+                    spreadRadius: 0,
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(0),
+            child: Column(children: [
+              Container(
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.grey[100],
+                  child: Row(
+                    children: [
+                      const Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Card(
+                                child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 5),
+                              child:
+                                  Icon(Icons.access_time, color: Colors.black),
+                            )),
+                          )),
+                      Expanded(
+                          flex: 8,
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          "Registro de jornada",
+                                          style: cardHeaderText,
+                                        )),
+                                    Text(dateToES(DateTime.now()),
+                                        style: subTitleText),
+                                  ]))),
+                    ],
+                  )),
+              ListTile(
+                title: Row(
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Nombre",
+                          style: subTitleText,
+                          textAlign: TextAlign.left,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          DateTime.now().year.toString(),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          MonthsNamesES[DateTime.now().month - 2]
+                              .substring(0, 3),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          MonthsNamesES[DateTime.now().month - 1]
+                              .substring(0, 3),
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                    // Expanded(
+                    //     flex: 1,
+                    //     child: Text(
+                    //       "Semana previa",
+                    //       style: subTitleText,
+                    //       textAlign: TextAlign.right,
+                    //     )),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          "Semana actual",
+                          style: subTitleText,
+                          textAlign: TextAlign.center,
+                        )),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: Colors.grey[300],
+              ),
+              SizedBox(
+                  height: 560,
+                  child: SingleChildScrollView(
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 0),
+                          child: Container(
+                              color: Colors.white,
+                              padding: const EdgeInsets.all(2),
+                              child: Column(
+                                children: [
+                                  listSummary,
+                                ],
+                              )))))
+            ])));
+  }
+
+  Future<void> loadCurrentWorkday() async {
+    if (!mounted) return;
+
+    Workday? previous;
+    for (Workday wd in myWorkdays!) {
+      if (!wd.isValid()) {
+        _rrhhProvider?.removeWorkday(wd);
+        wd.delete();
+        continue;
+      }
+      if (wd.isSame(previous)) {
+        _rrhhProvider?.removeWorkday(wd);
+        wd.delete();
+        continue;
+      }
+      if (wd.open &&
+          (DateTime.now().difference(wd.startDate) >
+              Duration(hours: 11, minutes: 59))) {
+        wd.endDate = wd.startDate.add(Duration(hours: 12));
+        wd.open = false;
+        wd.save();
+        _rrhhProvider?.addWorkday(wd);
+      }
+      previous = wd;
+    }
+  }
+
+  Future<void> loadFromCache() async {
+    if (!mounted) return;
+    // My data
+    profile = _profileProvider.profile;
+    contact = _rrhhProvider?.contact;
+    myWorkdays = _rrhhProvider?.workdays
+        .where((wd) => wd.userId == user.email)
+        .toList(growable: false);
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+
+    await loadCurrentWorkday();
+
+    if (_rrhhProvider?.employee != null) {
+      currentEmployee = _rrhhProvider?.employee;
+
+      if (profile!.isRRHH()) {
+        mypeople = _rrhhProvider!.employees
+            .where((e) => e.isActive())
+            .toList(growable: false);
+      } else {
+        mypeople = await currentEmployee!
+            .getSubordinates(departments: _rrhhProvider?.departments);
+      }
+
+      updateRemainingHolidays();
+
+      myPeopleWorkdays = _rrhhProvider!.workdays
+          .where((wd) => mypeople.map((e) => e.email).contains(wd.userId))
+          .toList(growable: false);
+
+      myPeopleHolidays = _rrhhProvider!.holidaysRequests
+          .where((hr) => mypeople.map((e) => e.email).contains(hr.userId))
+          .toList(growable: false);
+    }
+    myHolidays = _rrhhProvider?.holidaysRequests
+        .where((hr) => hr.userId == user.email)
+        .toList(growable: false);
+    holCat = _rrhhProvider?.holidaysCategories;
+    myCalendar = _rrhhProvider?.calendars.firstWhere(
+        (hc) => hc.employees.contains(currentEmployee!),
+        orElse: () => HolidaysConfig.getEmpty());
+
+    await getNotifications();
+    setState(() {
+      mainMenuWidget = mainMenu(context, "/home", profile);
+      contentWorkPanel = workTimePanel();
+      contentHolidaysPanel = holidayPanel();
+      topButtonsPanel = topButtons(null);
+      contentNotifyPanel = notifyPanel();
     });
-  }*/
+  }
+
+  Future<void> loadFromProjectsCache() async {
+    if (!mounted) return;
+    if (contact == null) return;
+
+    myProjects = _projectsProvider!.projects
+        .where((p) => contact!.projects.contains(p.uuid))
+        .toList(growable: false);
+
+    mytasks = _projectsProvider!.tasks
+        .where((t) => t.assigned.contains(user.email))
+        .toList(growable: false);
+
+    setState(() {
+      contentProjectsPanel = projectsPanel();
+      contentTasksPanel = tasksPanel();
+    });
+  }
+
+  void initializeData() async {
+    if (!mounted) return;
+    profile = _profileProvider.profile;
+    currentOrganization = _profileProvider.organization;
+    mainMenuWidget = mainMenu(context, "/home", profile);
+    setState(() {});
+
+    return;
+  }
+
+  Widget peopleCalendar() {
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withAlpha(128),
+                    spreadRadius: 0,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.all(2),
+            child: Column(
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.grey[100],
+                    child: Row(
+                      children: [
+                        const Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Card(
+                                  child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 5),
+                                child:
+                                    Icon(Icons.beach_access, color: mainColor),
+                              )),
+                            )),
+                        Expanded(
+                            flex: 4,
+                            child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: const [
+                                      Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            "Solicitud de permisos",
+                                            style: cardHeaderText,
+                                          )),
+                                      Row(
+                                        children: [
+                                          Text(
+                                              "Calendario del personal a cargo ",
+                                              style: subTitleText),
+                                        ],
+                                      )
+                                    ]))),
+                        Expanded(
+                            flex: 3,
+                            child: actionButton(
+                                context,
+                                "Solicitar días",
+                                addHolidayRequestDialog,
+                                Icons.play_circle_outline_sharp,
+                                context)),
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: CalendarWidget(
+                      holidays: myPeopleHolidays,
+                      currentProfile: profile ?? Profile.getEmpty(),
+                      categories: holCat ?? [],
+                      onDateSelected: (date) {
+                        // Handle date selection
+                      },
+                      employees: mypeople,
+                      height: 600,
+                    ))
+              ],
+            )));
+  }
 
   @override
   void initState() {
     super.initState();
-    if (user.email == null) {
-      Navigator.of(context).pushNamed('/');
-    } else {
-      Profile.getProfile(user.email!).then((value) {
-        profile = value;
-        if ((profile != null) && (profile!.mainRole == "Administrativo")) {
-          mainMenuWidget = mainMenuOperator(context,
-              url: ModalRoute.of(context)!.settings.name, profile: profile);
-        } else {
-          mainMenuWidget = mainMenu(context, "/home");
-        }
-        if (mounted) {
-          setState(() {});
-        }
-      });
-      loadMyData();
-      autoStartWorkday(context);
+    _currentPage = "home";
+    hashStatus = {};
+    hashProjects = {};
+    debugPanel = Container(color: Colors.red, child: Text("Debug Panel"));
 
-      notif = 0;
-      getNotifications();
-      //getLogs();
+    // _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _profileProvider = context.read<ProfileProvider>();
+    _listener = () {
+      if (!mounted) return;
+      currentOrganization = _profileProvider.organization;
+
+      profile = _profileProvider.profile;
+      mainMenuWidget = mainMenu(context, "/home", profile);
+      if ((profile != null) && (currentOrganization != null)) {
+        initializeData();
+      } else {
+        // If profile or organization is null, load profile again
+        if (mounted) _profileProvider.loadProfile();
+      }
+
+      if (mounted) setState(() {});
+    };
+    _profileProvider.addListener(_listener);
+
+    _rrhhProvider = context.read<RRHHProvider?>();
+    _rrhhProvider?.addListener(() {
+      loadFromCache();
+    });
+    _rrhhProvider ??= RRHHProvider();
+    _rrhhProvider?.initialize();
+    // loadFromCache();
+
+    currentOrganization = _profileProvider.organization;
+    profile = _profileProvider.profile;
+    if ((profile == null) || (currentOrganization == null)) {
+      _profileProvider.loadProfile();
+    } else {
+      initializeData();
     }
+
+    _projectsProvider = context.read<ProjectsProvider?>();
+    _projectsProvider ??= ProjectsProvider();
+
+    _projectsProvider?.addListener(() {
+      loadFromProjectsCache();
+    });
+
+    topButtonsPanel = topButtons(context);
+
+    mainMenuWidget = mainMenu(context, "/home", profile);
+    contentWorkPanel = workTimePanel();
+    contentHolidaysPanel = holidayPanel();
+    contentTasksPanel = tasksPanel();
+    contentProjectsPanel = projectsPanel();
+    contentNotifyPanel = notifyPanel();
+    loadFromCache();
+    loadFromProjectsCache();
+    // _rrhhProvider.initialize();
+
+    // initializeData();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Remove duplicate from mypeople
+    // mypeople = mypeople.toSet().toList();
+    for (Employee emp in _rrhhProvider!.employees) {
+      emp.onChanged ??= () {
+        if (mounted) {
+          setState(() {});
+        }
+      };
+    }
+    for (STask task in _projectsProvider!.tasks) {
+      task.onChanged ??= () {
+        if (task.assigned.contains(user.email)) {
+          //Show message in status bar
+          if (initialized) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Tarea '${task.name}' actualizada."),
+              duration: Duration(seconds: 2),
+            ));
+          }
+
+          // _projectsProvider!.reloadTaskInfo(task, notify: true);
+          if (mounted) setState(() {});
+        }
+      };
+    }
+    mainMenuWidget = mainMenu(context, "/home", profile);
+    List<Widget> contents = [];
+    if (MediaQuery.of(context).size.width < 800) {
+      if (_currentPage == "home") {
+        contents = [
+          contentWorkPanel,
+          contentHolidaysPanel,
+          contentTasksPanel,
+          contentNotifyPanel,
+          contentProjectsPanel,
+
+          //logsPanel(context),
+        ];
+      } else if (_currentPage == "yourpeople") {
+        contents = [
+          loadMyPeopleWorkdaysWidget(),
+          peopleCalendar(),
+        ];
+      }
+    } else if (_currentPage == "home") {
+      contents = [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentWorkPanel),
+            Expanded(flex: 1, child: contentHolidaysPanel),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentTasksPanel),
+            Expanded(flex: 1, child: contentNotifyPanel),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: contentProjectsPanel),
+            //Expanded(flex: 1, child: logsPanel(context)),
+          ],
+        ),
+      ];
+    } else if (_currentPage == "yourpeople") {
+      contents = [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 1, child: loadMyPeopleWorkdaysWidget()),
+            Expanded(flex: 1, child: peopleCalendar()),
+          ],
+        ),
+      ];
+    }
+    initialized = true;
     return Scaffold(
         body: SingleChildScrollView(
       child: Column(
         children: [
           mainMenuWidget,
           space(height: 10),
-          // topButtons(context),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: workTimePanel(context)),
-              Expanded(flex: 1, child: holidayPanel(context)),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: tasksPanel(context)),
-              Expanded(flex: 1, child: notifyPanel(context)),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 1, child: projectsPanel(context)),
-              //Expanded(flex: 1, child: logsPanel(context)),
-            ],
-          ),
+          // debugPanel,
+          topButtonsPanel,
+          space(height: 10),
+          ...contents,
           footer(context),
         ],
       ),
     ));
   }
 
-  Widget topButtons(BuildContext context) {
+  Widget topButtons(context) {
+    if (!mounted) return Container();
     List<Widget> buttons = [
-      actionButton(context, "Imprimir", printSummary, Icons.print, context),
+      actionButton(context, "Dashboard", () {
+        setState(() {
+          _currentPage = "home";
+          topButtonsPanel = topButtons(null);
+        });
+      }, Icons.dashboard, null,
+          bgColor:
+              (_currentPage == "home") ? Colors.green.shade50 : Colors.white),
       space(width: 10),
-      backButton(context),
+      actionButton(context, "Personal a cargo [${mypeople.length}]", () {
+        setState(() {
+          _currentPage = "yourpeople";
+          topButtonsPanel = topButtons(null);
+        });
+      }, Icons.people, null,
+          bgColor: (_currentPage == "yourpeople")
+              ? Colors.green.shade50
+              : Colors.white),
+      space(width: 10),
+      // backButton(context),
     ];
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -261,95 +1052,110 @@ class _HomePageState extends State<HomePage> {
   }
 
   void printSummary(context) {
+    if (!mounted) return;
     setState(() {});
-    dev.log("printSummary");
   }
 
-/////////// WORKTIME ///////////
-
-  void autoStartWorkday(context) async {
-    Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-      // if ((currentWorkday == null) || (!currentWorkday!.open)) {
-      //   currentWorkday = Workday.getEmpty();
-      //   currentWorkday!.userId = user.email!;
-      //   currentWorkday!.open = true;
-      //   currentWorkday!.save();
-      // }
-      if (mounted) {
-        setState(() {
-          currentWorkday = currentWorkday;
-        });
-      }
-    });
-  }
-
-  void autoStopWorkday(context) async {
-    Workday.currentByUser(user.email!).then((value) {
-      currentWorkday = value;
-      if (currentWorkday!.open) {
-        currentWorkday!.endDate = DateTime.now();
-        currentWorkday!.open = false;
-        currentWorkday!.save();
-      }
-    });
-  }
-
-  void workdayAction(context) {
+  void workdayAction(dynamic context) {
     _workdayAction(context);
   }
 
-  void _workdayAction(context) async {
-    if (currentWorkday!.open) {
-      currentWorkday!.endDate = DateTime.now();
-      currentWorkday!.open = false;
-      currentWorkday!.save();
-    } else {
-      currentWorkday = Workday.getEmpty();
-      currentWorkday!.userId = user.email!;
-      currentWorkday!.open = true;
-      currentWorkday!.save();
+  void _workdayAction(dynamic context) async {
+    // Sort myWorkdays by startDate in descending order
+    if (myWorkdays == null || myWorkdays!.isEmpty) {
+      await loadMyWorkdays();
     }
-    // await Workday.currentByUser(contact!.email).then((value) {
-    //   currentWorkday = value;
-    //   if (currentWorkday!.open) {
-    //     currentWorkday!.endDate = DateTime.now();
-    //     currentWorkday!.open = false;
-    //     currentWorkday!.save();
-    //   } else {
-    //     currentWorkday = Workday.getEmpty();
-    //     currentWorkday!.userId = contact!.email;
-    //     currentWorkday!.open = true;
-    //     currentWorkday!.save();
-    //   }
-    // });
-    loadMyWorkdays();
-  }
+    if (myWorkdays == null || myWorkdays!.isEmpty) {
+      currentWorkday = Workday.getEmpty(email: user.email!, open: true);
+      currentWorkday!.save();
+      _rrhhProvider?.addWorkday(currentWorkday!);
+    } else {
+      myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+      currentWorkday = myWorkdays!.first;
 
-  Widget workTimePanel(BuildContext context) {
-    if (currentWorkday?.open == true) {
-      workdayButton = actionButton(
-          context, null, workdayAction, Icons.stop_circle_outlined, context,
-          iconColor: dangerColor);
-    } else {
-      workdayButton = actionButton(context, null, workdayAction,
-          Icons.play_circle_outline_sharp, context,
-          iconColor: successColor);
-    }
-    Widget addWorkdayButton = actionButton(context, null, () {
-      _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
-          .then((value) {
-        if ((value != null) && (!myWorkdays!.contains(value))) {
-          myWorkdays!.add(value);
+      if (currentWorkday!.open) {
+        currentWorkday!.endDate = DateTime.now();
+        currentWorkday!.open = false;
+        currentWorkday!.save().then((value) {
+          if (value != null) {
+            myWorkdays![0] = value;
+          }
           if (mounted) {
             setState(() {
               myWorkdays = myWorkdays;
-              myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+              contentWorkPanel = workTimePanel();
             });
           }
-        }
-      });
-    }, Icons.add, null);
+        });
+      } else {
+        currentWorkday = Workday.getEmpty();
+        currentWorkday!.userId = user.email!;
+        currentWorkday!.startDate = DateTime.now();
+        currentWorkday!.open = true;
+
+        currentWorkday!.save().then((value) {
+          if (value != null) {
+            _rrhhProvider?.addWorkday(value);
+          }
+        });
+      }
+    }
+
+    //loadMyWorkdays();
+  }
+
+  Widget workTimePanel() {
+    myWorkdays ??= [];
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+    Widget addWorkdayButton;
+
+    if (myWorkdays!.isNotEmpty) {
+      currentWorkday = myWorkdays!.first;
+
+      if (currentWorkday?.open == true) {
+        workdayButton = actionButton(
+            null, null, workdayAction, Icons.stop_circle_outlined, [],
+            iconColor: dangerColor);
+      } else {
+        workdayButton = actionButton(
+            null, null, workdayAction, Icons.play_circle_outline_sharp, [],
+            iconColor: successColor);
+      }
+      addWorkdayButton = actionButton(null, null, () {
+        _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+            .then((value) {
+          if ((value != null) && (!myWorkdays!.contains(value))) {
+            myWorkdays!.add(value);
+            if (mounted) {
+              setState(() {
+                myWorkdays = myWorkdays;
+                myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+              });
+            }
+          }
+        });
+      }, Icons.add, null);
+    } else {
+      currentWorkday = null;
+      workdayButton = actionButton(
+          null, null, () {}, Icons.question_mark_rounded, [],
+          iconColor: Colors.orange);
+      addWorkdayButton = actionButton(null, null, () {
+        _editWorkdayDialog(Workday.getEmpty(open: false, email: user.email!))
+            .then((value) {
+          if ((value != null) && (!myWorkdays!.contains(value))) {
+            myWorkdays!.add(value);
+            if (mounted) {
+              setState(() {
+                myWorkdays = myWorkdays;
+                myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+              });
+            }
+          }
+        });
+      }, Icons.add_rounded, null);
+    }
+
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -357,7 +1163,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -406,8 +1212,8 @@ class _HomePageState extends State<HomePage> {
                             child: Tooltip(
                                 message: (currentWorkday != null)
                                     ? (currentWorkday!.open)
-                                        ? "Parar jornada"
-                                        : "(Re)Iniciar jornada"
+                                        ? "Parar jornadas"
+                                        : "(Re)Iniciar jornadas"
                                     : "",
                                 child: workdayButton)),
                         Expanded(
@@ -427,12 +1233,27 @@ class _HomePageState extends State<HomePage> {
                                     padding: EdgeInsets.symmetric(
                                         horizontal: 5, vertical: 0),
                                     child: actionButton(
-                                      context,
+                                      null,
                                       null,
                                       dialogPrintWorkday,
                                       Icons.print,
-                                      context,
+                                      [],
                                     )))),
+                        Expanded(
+                            flex: 1,
+                            child: Tooltip(
+                                message: "Subir registro firmado",
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 0),
+                                  child: actionButton(
+                                    null,
+                                    null,
+                                    dialogUploadWorkday,
+                                    Icons.upload,
+                                    [],
+                                  ),
+                                ))),
                       ],
                     )),
                 Container(
@@ -481,98 +1302,93 @@ class _HomePageState extends State<HomePage> {
                   height: 1,
                   color: Colors.grey[300],
                 ),
-                worktimeRows(context),
+                worktimeRows(),
               ],
             )));
   }
 
-  Widget worktimeRows(context) {
+  Widget worktimeRows() {
+    myWorkdays ??= [];
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+
     Widget result = Container(
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         height: 150,
         color: Colors.white,
-        child: contact != null
-            ? ListView.builder(
-                shrinkWrap: true,
-                itemCount: myWorkdays!.length,
-                scrollDirection: Axis.vertical,
-                itemBuilder: (BuildContext context, int index) {
-                  Workday item = myWorkdays!.elementAt(index);
-                  item.open = (index == 0);
-                  return ListTile(
-                      subtitle: Column(children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            flex: 4,
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy').format(
-                                        myWorkdays!.elementAt(index).startDate),
-                                    style:
-                                        (item.open) ? successText : normalText,
-                                  )),
-                            )),
-                        Expanded(
-                          flex: 2,
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: myWorkdays!.length,
+            scrollDirection: Axis.vertical,
+            itemBuilder: (BuildContext context, int index) {
+              Workday item = myWorkdays!.elementAt(index);
+              // item.open = (index == 0);
+              return ListTile(
+                  subtitle: Column(children: [
+                Row(
+                  children: [
+                    Expanded(
+                        flex: 4,
+                        child: Align(
+                          alignment: Alignment.center,
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Text(
-                                DateFormat('HH:mm').format(item.startDate),
+                                DateFormat('dd-MM-yyyy').format(
+                                    myWorkdays!.elementAt(index).startDate),
                                 style: (item.open) ? successText : normalText,
-                                textAlign: TextAlign.center,
                               )),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                DateFormat('HH:mm').format(item.open
-                                    ? DateTime.now()
-                                    : myWorkdays!.elementAt(index).endDate),
-                                style: (item.open) ? successText : normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                item.open
-                                    ? "En curso"
-                                    : (((myWorkdays!
-                                                .elementAt(index)
-                                                .endDate
-                                                .difference(myWorkdays!
-                                                    .elementAt(index)
-                                                    .startDate)
-                                                .inMinutes) /
-                                            60))
-                                        .toStringAsFixed(2),
-                                style: (item.open) ? successText : normalText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: IconButton(
-                              icon: Icon(Icons.edit, size: 15),
-                              onPressed: () {
-                                _editWorkdayDialog(item);
-                              },
-                            )),
-                      ],
-                    )
-                  ]));
-                })
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+                        )),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            DateFormat('HH:mm').format(item.startDate),
+                            style: (item.open) ? successText : normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            DateFormat('HH:mm').format(item.open
+                                ? DateTime.now()
+                                : myWorkdays!.elementAt(index).endDate),
+                            style: (item.open) ? successText : normalText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            item.open
+                                ? "En curso"
+                                : (myWorkdays!.elementAt(index).hours())
+                                    .toStringAsFixed(2),
+                            style: (item.open)
+                                ? successText
+                                : (myWorkdays!.elementAt(index).hours() < 10)
+                                    ? normalText
+                                    : warningText,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    Expanded(
+                        flex: 1,
+                        child: IconButton(
+                          icon: Icon(Icons.edit, size: 15),
+                          onPressed: () {
+                            _editWorkdayDialog(item);
+                          },
+                        )),
+                  ],
+                )
+              ]));
+            }));
 
     return result;
   }
@@ -601,8 +1417,7 @@ class _HomePageState extends State<HomePage> {
       }
       if (mounted) {
         setState(() {
-          myWorkdays = myWorkdays;
-          myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
+          contentWorkPanel = workTimePanel();
         });
       }
 
@@ -612,6 +1427,125 @@ class _HomePageState extends State<HomePage> {
 
   void dialogPrintWorkday(context) {
     _dialogPrintWorkday(context);
+  }
+
+  Future<void> _dialogUploadWorkday(List<dynamic>? args) async {
+    List<DateTime> dates = [];
+    DateTime currentMonth =
+        DateTime(DateTime.now().year, DateTime.now().month, 1);
+    for (int i = 0; i < 12; i++) {
+      dates.add(DateTime(currentMonth.year, currentMonth.month - i, 1));
+    }
+    dates = dates.reversed.toList();
+    List<dynamic> matrix = reshape(dates, 3, 4);
+
+    List<WorkdayUpload> uploads =
+        await WorkdayUpload.byEmployee(currentEmployee!);
+
+    List<Widget> buttonsMonth = [];
+    for (var row in matrix) {
+      List<Widget> buttonsRow = [];
+      for (var date in row) {
+        // Widget actionBtn = actionButton(
+        //   context,
+        //   "${MonthsNamesES[date.month - 1]} ${date.year}",
+        //   printWorkday,
+        //   Icons.upload,
+        //   {'month': date},
+        // );
+
+        Widget actionBtn = UploadFileField(
+          textToShow: "${MonthsNamesES[date.month - 1]} ${date.year}",
+          onSelectedFile: (file) {
+            String filePath =
+                "files/workreports_signed/${currentEmployee!.id}/";
+            String extension = file!.name.split('.').last;
+            String fname =
+                "workreport_${currentEmployee!.id}_${date.year}_${date.month.toString().padLeft(2, '0')}.$extension";
+
+            // Check if there is already a file for that month and employee
+
+            uploadFileToStorage(
+              file,
+              rootPath: filePath.replaceAll(" ", "_"),
+              fileName: fname,
+            ).then((fname) async {
+              if (fname != '') {
+                WorkdayUpload workdayUpload = uploads.firstWhere(
+                    (u) =>
+                        truncDate(u.date) == DateTime(date.year, date.month, 1),
+                    orElse: () => WorkdayUpload.getEmpty());
+                workdayUpload.employee = currentEmployee!.id!;
+                workdayUpload.date = DateTime(date.year, date.month, 1);
+                workdayUpload.path = fname;
+                workdayUpload.updatedAt = DateTime.now();
+                workdayUpload.save();
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Archivo subido correctamente: $fname'),
+                  backgroundColor: successColor,
+                ));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: const Text('Error subiendo el archivo.'),
+                  backgroundColor: dangerColor,
+                ));
+              }
+            });
+
+            // Handle file selection
+          },
+        );
+        Widget textExists;
+        if (uploads.any(
+            (u) => truncDate(u.date) == DateTime(date.year, date.month, 1))) {
+          textExists = Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: iconBtn(context, (() {
+                WorkdayUpload upload = uploads.firstWhere((u) =>
+                    truncDate(u.date) == DateTime(date.year, date.month, 1));
+                String fullPath = upload.path;
+                openFileUrl(context, fullPath);
+              }), null,
+                  icon: Icons.open_in_browser_outlined,
+                  text: "Abrir archivo",
+                  color: Colors.green.shade700));
+        } else {
+          textExists = Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: iconBtn(context, (() {}), null,
+                  icon: Icons.warning_amber_outlined,
+                  text: "No subido",
+                  color: Colors.red.shade700));
+        }
+        buttonsRow.add(Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(children: [actionBtn, textExists]))));
+      }
+      buttonsMonth.add(Row(
+        children: buttonsRow,
+      ));
+      buttonsMonth.add(space(height: 5));
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Subir registro horario firmado', context),
+          content:
+              Column(mainAxisSize: MainAxisSize.min, children: buttonsMonth),
+        );
+      },
+    );
+  }
+
+  void dialogUploadWorkday(context) {
+    _dialogUploadWorkday(context);
   }
 
   Widget printWorkdaysButtons(context) {
@@ -636,7 +1570,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(10),
                 child: actionButton(
                   context,
-                  "${MONTHS[date.month - 1]} ${date.year}",
+                  "${MonthsNamesES[date.month - 1]} ${date.year}",
                   printWorkday,
                   Icons.print,
                   {'month': date},
@@ -656,27 +1590,97 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _printWorkday(Map<String, dynamic> args) async {
+    currentOrganization ??= _profileProvider.organization;
+    currentEmployee ??= await Employee.byEmail(user.email!);
+    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!);
+
+    ReportPDF reportPDF = ReportPDF();
+
     DateTime month = DateTime(DateTime.now().year, DateTime.now().month, 1);
     try {
       month = args['month'];
     } catch (e) {
-      dev.log(e.toString());
+      month = month;
     }
 
-    List<Workday> workdays = [];
-    await Workday.byUser(user.email!, month).then((value) {
-      workdays = value;
-    });
+    List<Workday> workdays = _rrhhProvider!.workdays
+        .where((wd) =>
+            (wd.userId == user.email) &&
+            (wd.startDate.year == month.year) &&
+            (wd.startDate.month == month.month))
+        .toList(growable: true);
+    if (workdays.isEmpty) {
+      workdays = await Workday.byUser(user.email!, month).catchError((e) {
+        // dev.log("Error loading workdays: $e");
+        return [] as List<Workday>;
+      });
+    }
+
+    DateTime checkDay = DateTime(month.year, month.month, 1);
+    while (checkDay.month == month.month) {
+      // check if there is any workday in that day
+      if (!(workdays.any((w) => truncDate(w.startDate) == checkDay))) {
+        // if not, add an empty workday
+        workdays.add(Workday(
+            id: '',
+            userId: user.email!,
+            open: false,
+            startDate: DateTime(checkDay.year, checkDay.month, checkDay.day, 9),
+            endDate: DateTime(checkDay.year, checkDay.month, checkDay.day, 9)));
+      }
+      checkDay = checkDay.add(const Duration(days: 1));
+    }
+
+    if (workdays.length > 200) {
+      workdays = workdays.sublist(0, 200);
+    }
+
+    List<double> hoursInWeekEmployeeList = [];
+    double hoursInWeekEmployee = 0.0;
 
     workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
     workdays = workdays.reversed.toList();
     Map<String, double> hoursDict = {};
     Map<String, DateTime> inDict = {};
     Map<String, DateTime> outDict = {};
+    double normalHoursTotal = 0.0;
+    double extraHoursTotal = 0.0;
+    Map<DateTime, double> hoursByDay = {};
+
+    List<List<String>> fullRows = [];
+    double balanceHours = 0.0;
+    DateTime previousDate = truncDate(DateTime(1970, 1, 1));
 
     for (Workday workday in workdays) {
+      try {
+        Shift currentShift = currentEmployee!.getShift(date: workday.startDate);
+        hoursInWeekEmployeeList = currentShift.hours;
+      } catch (e) {
+        hoursInWeekEmployeeList = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
+        // dev.log("Error loading shift: $e");
+      }
+      hoursInWeekEmployee =
+          hoursInWeekEmployeeList[workday.startDate.weekday - 1];
+
+      if (hoursInWeekEmployee != 0) {
+        if ((myCalendar!.isHoliday(truncDate(workday.startDate))) ||
+            (onHolidays(currentEmployee!.email, workday.startDate,
+                acceptedOnly: true))) {
+          hoursInWeekEmployee = 0.0;
+          if (onHolidays(currentEmployee!.email, workday.startDate,
+              acceptedOnly: true)) {
+            workday.id = 'FREE';
+          }
+        }
+      }
+
       if (workday.startDate.month == month.month &&
           workday.startDate.year == month.year) {
+        if (truncDate(workday.startDate) != previousDate) {
+          balanceHours = balanceHours - hoursInWeekEmployee;
+          previousDate = truncDate(workday.startDate);
+        }
+        balanceHours = balanceHours + workday.hours();
         String key = DateFormat('yyyy-MM-dd').format(workday.startDate);
         if (hoursDict.containsKey(key)) {
           hoursDict[key] = hoursDict[key]! + workday.hours();
@@ -697,158 +1701,234 @@ class _HomePageState extends State<HomePage> {
         } else {
           outDict[key] = workday.endDate;
         }
+
+        DateTime keyDate = truncDate(workday.startDate);
+
+        double normalHours = workday.hours();
+        double extraHours = 0.0;
+
+        if (hoursByDay.containsKey(keyDate)) {
+          normalHours =
+              min(workday.hours(), hoursInWeekEmployee - hoursByDay[keyDate]!);
+        } else {
+          hoursByDay[keyDate] = 0.0;
+          normalHours = min(workday.hours(), hoursInWeekEmployee);
+        }
+        hoursByDay[keyDate] = hoursByDay[keyDate]! + normalHours;
+        extraHours = workday.hours() - normalHours;
+        normalHoursTotal += normalHours;
+        extraHoursTotal += extraHours;
+
+        if ((normalHours > 0) ||
+            (extraHours > 0) ||
+            (workday.id != '') ||
+            (hoursInWeekEmployee > 0)) {
+          fullRows.add([
+            DateFormat('dd-MM-yyyy').format(workday.startDate),
+            (workday.id != '')
+                ? (workday.id == 'FREE')
+                    ? 'PERMISO'
+                    : DateFormat('HH:mm').format(workday.startDate)
+                : '-',
+            (workday.id != '')
+                ? (workday.id == 'FREE')
+                    ? 'PERMISO'
+                    : DateFormat('HH:mm').format(workday.endDate)
+                : '-',
+            toDuration(normalHours, format: 'hm'),
+            toDuration(extraHours, format: 'hm'),
+            if (balanceHours >= 0)
+              toDuration(balanceHours, format: 'hm')
+            else
+              '-${toDuration(-balanceHours, format: 'hm')}'
+          ]);
+        }
       }
     }
 
     // Crea un nuevo documento PDF
     pw.TextStyle headerPdf = pw.TextStyle(
-        fontSize: 10, color: PdfColors.black, fontWeight: pw.FontWeight.bold);
+        fontSize: 8,
+        color: PdfColors.black,
+        fontWeight: pw.FontWeight.bold,
+        background: pw.BoxDecoration(color: PdfColors.grey300));
     pw.TextStyle normalPdf =
-        const pw.TextStyle(fontSize: 10, color: PdfColors.black);
+        const pw.TextStyle(fontSize: 8, color: PdfColors.black);
 
     List<pw.TableRow> rows = [];
 
     List<String> keysSorted = hoursDict.keys.toList();
     keysSorted.sort((a, b) => a.compareTo(b));
 
-    for (var keyDate in keysSorted) {
-      double normalHours = min(hoursDict[keyDate]!, 8);
-      double extraHours = max(hoursDict[keyDate]! - 8, 0);
-      rows.add(pw.TableRow(children: [
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(
-                    DateFormat("dd-MM-yyyy").format(inDict[keyDate]!),
-                    style: normalPdf,
-                    textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(DateFormat('HH:mm').format(inDict[keyDate]!),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(DateFormat('HH:mm').format(outDict[keyDate]!),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(normalHours.toStringAsFixed(2),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text(extraHours.toStringAsFixed(2),
-                    style: normalPdf, textAlign: pw.TextAlign.center))),
-        pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: pw.SizedBox(width: 60, height: 5, child: pw.Container()),
-        )
-      ]));
+    final pdf = pw.Document();
+    const pdfFormat = PdfPageFormat.a4;
+
+    for (var row in fullRows) {
+      rows.add(reportPDF.getRow(row,
+          styles: [normalPdf],
+          padding: const pw.EdgeInsets.all(5),
+          height: 20,
+          aligns: [
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center
+          ]));
     }
 
-    final pdf = pw.Document();
+    List<pw.Widget> tables = [];
+    int rowsPerPage = 25;
+    int currentPage = 0;
+    for (int i = 0; i < rows.length; i += rowsPerPage) {
+      int end = (i + rowsPerPage < rows.length) ? i + rowsPerPage : rows.length;
+      List<pw.TableRow> pageRows = rows.sublist(i, end);
+      tables.add(pw.Table(
+        border: pw.TableBorder.all(),
+        columnWidths: {
+          0: pw.FlexColumnWidth(0.16),
+          1: pw.FlexColumnWidth(0.13),
+          2: pw.FlexColumnWidth(0.11),
+          3: pw.FlexColumnWidth(0.2),
+          4: pw.FlexColumnWidth(0.2),
+          5: pw.FlexColumnWidth(0.2),
+        },
+        children: [
+          reportPDF.getRow([
+            "FECHA",
+            "ENTRADA",
+            "SALIDA",
+            "HORAS ORDINARIAS",
+            "HORAS EXTRA\nCOMPLEMENTARIAS",
+            "BALANCE DE HORAS"
+          ], aligns: [
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center,
+            pw.TextAlign.center
+          ], styles: [
+            headerPdf
+          ], height: 30),
+          ...pageRows,
+        ],
+      ));
+      currentPage = currentPage + 1;
+    }
+
     // Añade una cabecera al documento
-    pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
+    pdf.addPage(pw.MultiPage(
+        pageFormat: pdfFormat,
         //margin: const pw.EdgeInsets.all(5),
-        build: (pw.Context context) {
+        header: (pw.Context context) {
           return pw.Container(
             child: pw.Column(
               children: [
-                pw.Table(
-                  border: pw.TableBorder.all(),
-                  children: [
-                    pw.TableRow(
-                      children: [
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('Empresa', style: headerPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(contact!.company, style: normalPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('Año', style: headerPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(month.year.toString(),
-                                style: normalPdf)),
-                        // pw.Text('Empresa', style: headerPdf),
-                        // pw.Text(contact!.company, style: normalPdf),
-                        // pw.Text('Año', style: headerPdf),
-                        // pw.Text(month.year.toString(), style: normalPdf),
-                      ],
-                    ),
-                    pw.TableRow(
-                      children: [
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('Trabajador', style: headerPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(contact!.name, style: normalPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('Mes', style: headerPdf)),
-                        pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(MONTHS[month.month - 1],
-                                style: normalPdf)),
-                      ],
-                    ),
-                    pw.TableRow(
-                        //decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                        children: [
-                          pw.Padding(
-                              padding: const pw.EdgeInsets.all(5),
-                              child: pw.Text('Cargo', style: headerPdf)),
-                          pw.Padding(
-                              padding: const pw.EdgeInsets.all(5),
-                              child:
-                                  pw.Text(contact!.position, style: normalPdf)),
-                          pw.Padding(
-                              padding: const pw.EdgeInsets.all(5),
-                              child: pw.Text('Centro', style: headerPdf)),
-                          pw.Padding(
-                              padding: const pw.EdgeInsets.all(5),
-                              child: pw.Text('--', style: normalPdf)),
-                        ])
-                  ],
+                pw.Text(
+                  "Listado Resumen mensual del registro de jornada (detalle horario)",
+                  style: headerPdf.copyWith(
+                      background: pw.BoxDecoration(color: PdfColors.white)),
+                  textAlign: pw.TextAlign.center,
                 ),
+                pw.SizedBox(height: 5),
                 pw.SizedBox(height: 5),
                 pw.Table(
                   border: pw.TableBorder.all(),
+                  columnWidths: {
+                    0: pw.FlexColumnWidth(0.5),
+                    1: pw.FlexColumnWidth(0.5),
+                  },
                   children: [
-                    pw.TableRow(
-                      children: [
-                        pw.Text('Fecha',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Hora\nentrada',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Hora\nsalida',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Horas\nnormales',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Horas\nExtraordinarias',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                        pw.Text('Firma',
-                            style: headerPdf, textAlign: pw.TextAlign.center),
-                      ],
-                    ),
-                    ...rows,
+                    reportPDF.getRow([
+                      'Empresa : ${(currentOrganization!.billingName.isNotEmpty) ? currentOrganization!.billingName : currentOrganization!.name}',
+                      'Trabajador : ${currentEmployee!.getFullName()}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
+                    reportPDF.getRow([
+                      'C.I.F.:   ${currentOrganization?.cif ?? ''}',
+                      'N.I.F.:  ${currentEmployee!.code}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
+                    reportPDF.getRow([
+                      'Centro de Trabajo : ${currentEmployee!.workplace.name}',
+                      'Mes y año : ${MonthsNamesES[month.month - 1]} / ${month.year}'
+                    ], styles: [
+                      normalPdf
+                    ], height: 20),
                   ],
                 ),
+                pw.SizedBox(height: 5),
               ],
             ),
           );
+        },
+        footer: (context) {
+          return pw.Column(children: [
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text('Firma del trabajador',
+                    style: const pw.TextStyle(fontSize: 9))),
+            pw.SizedBox(height: 40),
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text('________________________________',
+                    style: const pw.TextStyle(fontSize: 9))),
+            pw.SizedBox(height: 10),
+            pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text(
+                    'Página ${context.pageNumber} de ${context.pagesCount}',
+                    style: const pw.TextStyle(fontSize: 9))),
+          ]);
+        },
+        build: (pw.Context context) {
+          return [
+            pw.Container(
+              child: pw.Column(
+                children: [
+                  ...tables,
+                  pw.SizedBox(height: 5),
+                  pw.Table(
+                      border: pw.TableBorder.all(),
+                      columnWidths: {
+                        0: pw.FlexColumnWidth(0.4),
+                        1: pw.FlexColumnWidth(0.2),
+                        2: pw.FlexColumnWidth(0.2),
+                        3: pw.FlexColumnWidth(0.2),
+                      },
+                      defaultVerticalAlignment:
+                          pw.TableCellVerticalAlignment.middle,
+                      children: [
+                        pw.TableRow(
+                            children: [
+                              reportPDF.getCell("TOTAL HORAS",
+                                  style: headerPdf, align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  toDuration(normalHoursTotal, format: 'hm'),
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  toDuration(extraHoursTotal, format: 'hm'),
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                              reportPDF.getCell(
+                                  (balanceHours >= 0)
+                                      ? toDuration(balanceHours, format: 'hm')
+                                      : '-${toDuration(-balanceHours, format: 'hm')}',
+                                  style: normalPdf,
+                                  align: pw.TextAlign.center),
+                            ],
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.grey300,
+                            )),
+                      ]),
+                  pw.SizedBox(height: 5),
+                ],
+              ),
+            )
+          ];
         }));
 
     final List<int> savedFile = await pdf.save();
@@ -861,11 +1941,11 @@ class _HomePageState extends State<HomePage> {
       ..click();
   }
 
-  Future<void> _dialogPrintWorkday(context) async {
+  Future<void> _dialogPrintWorkday(List<dynamic>? args) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context2) {
+      builder: (BuildContext context) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Imprimir hojas de registro', context),
@@ -876,135 +1956,379 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// HOLIDAYS ///////////
-  void addHolidayRequestDialog(context) {
-    _addHolidayRequestDialog(context).then((value) {
-      currentHoliday = null;
-      HolidayRequest.byUser(user.email!).then((value) {
-        myHolidays = value;
-        holidayDays = 30;
-        for (HolidayRequest holiday in myHolidays!) {
-          holidayDays -=
-              getWorkingDaysBetween(holiday.startDate, holiday.endDate);
+  void updateRemainingHolidays() {
+    remainingHolidays = {};
+    holidayDays = 0;
+    myHolidays = _rrhhProvider?.holidaysRequests
+        .where((hr) => hr.userId == user.email && !hr.isRejected())
+        .toList(growable: true);
+    if (currentEmployee == null || holCat == null || myHolidays == null) {
+      return;
+    }
+    holCat = _rrhhProvider?.holidaysCategories
+        .where((cat) => cat.isActive())
+        .toList(growable: false);
+
+    double factor = 1.0;
+    DateTime altaDate = currentEmployee!.getAltaDate();
+    DateTime bajaDate = currentEmployee!.getBajaDate();
+    obligatoryHolidays = 0;
+
+    if ((altaDate.isBefore(DateTime(DateTime.now().year, 1, 1)) &&
+        (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))))) {
+      factor =
+          1; // If the employee's start date is before the current year, return 0
+    } else {
+      if (bajaDate.isAfter(DateTime(DateTime.now().year + 1, 1, 1))) {
+        bajaDate = DateTime(DateTime.now().year + 1, 1, 1);
+      }
+      int daysInYear = DateTime(DateTime.now().year + 1, 1, 1)
+          .difference(DateTime(DateTime.now().year, 1, 1))
+          .inDays;
+      int daysWorked = bajaDate.difference(altaDate).inDays;
+      factor = daysWorked /
+          daysInYear; // Calculate the factor based on the days worked
+    }
+    for (HolidaysCategory cat in holCat!) {
+      if (cat.retroactive) {
+        remainingHolidays[cat.autoCode()] = cat.days;
+      } else {
+        remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+      }
+      if (cat.obligation && cat.docRequired == 0) {
+        holidayDays = (holidayDays + (cat.days * factor)).round();
+        obligatoryHolidays = (obligatoryHolidays + (cat.days * factor)).round();
+      }
+    }
+
+    // for (HolidaysCategory cat in holCat!) {
+    //   if (cat.retroactive) {
+    //     remainingHolidays[cat.autoCode()] = cat.days;
+    //   } else {
+    //     remainingHolidays[cat.autoCode()] = (cat.days * factor).round();
+    //   }
+    // }
+
+    for (HolidayRequest holiday in myHolidays!) {
+      if (holiday.status != "Rechazado") {
+        HolidaysCategory? checkingCat = holiday.getCategory(holCat ?? []);
+        int laborDays = getWorkingDaysBetween(
+            holiday.startDate, holiday.endDate, myCalendar);
+        holidayDays -= laborDays;
+        if (remainingHolidays
+            .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  laborDays;
+        } else {
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              (holiday.getCategory(holCat ?? []).retroactive)
+                  ? (holiday.getCategory(holCat ?? []).days * factor).round()
+                  : holiday.getCategory(holCat ?? []).days;
+          remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()] =
+              remainingHolidays[holiday.getCategory(holCat ?? []).autoCode()]! -
+                  laborDays;
         }
-        setState(() {
-          myHolidays = value;
-        });
-      });
-    });
+        if (checkingCat.obligation) {
+          obligatoryHolidays -= laborDays;
+        }
+      }
+    }
   }
 
-  Future<void> _addHolidayRequestDialog(context) {
+  void addHolidayRequestDialog(context) async {
+    currentHoliday = await _addHolidayRequestDialog(context);
     if (currentHoliday == null) {
-      currentHoliday = HolidayRequest.getEmpty();
-      currentHoliday!.userId = user.email!;
+      return;
     }
-    return showDialog<void>(
+    _rrhhProvider?.addHolidaysRequest(currentHoliday!);
+  }
+
+  Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
+    String currentHolidayId = '';
+
+    currentHoliday = HolidayRequest.getEmpty();
+    currentHoliday!.userId = user.email!;
+    List<Employee> superiors = await currentEmployee!.getSuperiors();
+
+    HolidayRequest? item = await showDialog<HolidayRequest>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context2) {
+        updateRemainingHolidays();
         return AlertDialog(
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Solicitud de días libres', context),
           content: HolidayRequestForm(
-            key: null,
-            currentRequest: currentHoliday,
-            user: user,
-          ),
+              key: null,
+              currentRequest: currentHoliday,
+              user: user,
+              profile: profile!,
+              superiors: superiors,
+              categories: holCat!,
+              calendar: myCalendar!,
+              remainingHolidays: remainingHolidays,
+              granted: myHolidays!
+                  .where((element) =>
+                      (element.status.toLowerCase() == "aprobado" ||
+                          element.status.toLowerCase() == "concedido"))
+                  .toList()),
         );
       },
     );
+
+    if (item != null) {
+      if (item.id == "--remove--") {
+        item.id = currentHolidayId;
+        _rrhhProvider?.removeHolidaysRequest(item);
+        currentHoliday = null;
+      } else {
+        _rrhhProvider?.addHolidaysRequest(item);
+      }
+    }
+    return item;
   }
 
-  Widget holidayRows(BuildContext context) {
+  Future<HolidayRequest?> _editHolidayRequestDialog(int index) async {
+    currentHoliday = myHolidays!.elementAt(index);
+    List<Employee> superiors =
+        await currentEmployee!.getSuperiors(org: currentOrganization);
+    String currentHolidayId = currentHoliday!.id;
+    HolidayRequest? item = await showDialog<HolidayRequest>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context2) {
+        HolidayRequest holiday = myHolidays!.elementAt(index);
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Editar solicitud de días libres', context),
+          content: HolidayRequestForm(
+              key: null,
+              currentRequest: holiday,
+              user: user,
+              superiors: superiors,
+              profile: profile!,
+              categories: holCat!,
+              remainingHolidays: remainingHolidays,
+              calendar: myCalendar!,
+              granted: myHolidays!
+                  .where((element) =>
+                      (element.status.toLowerCase() == "aprobado" ||
+                          element.status.toLowerCase() == "concedido"))
+                  .toList()),
+        );
+      },
+    );
+    if (item != null) {
+      if (item.id == "--remove--") {
+        item.id = currentHolidayId;
+        _rrhhProvider?.removeHolidaysRequest(item);
+        currentHoliday = null;
+      } else {
+        _rrhhProvider?.addHolidaysRequest(item);
+      }
+    }
+    return item;
+  }
+
+  Widget btnDocuments(context, HolidayRequest holiday) {
+    Widget btn = actionButton(
+      context,
+      null,
+      () {
+        HolidaysCategory? category = holCat!.firstWhere(
+            (cat) => cat.id == holiday.category,
+            orElse: () => HolidaysCategory.getEmpty());
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              titlePadding: const EdgeInsets.all(0),
+              title: s4cTitleBar(
+                  'Probatorios requeridos: ${category.docRequired}', context),
+              content: HolidayDocumentsForm(
+                  holidayRequest: holiday,
+                  categories: holCat!,
+                  afterSave: () {
+                    if (mounted) {
+                      setState(() {
+                        myHolidays = myHolidays;
+                      });
+                    }
+                  }),
+            );
+          },
+        );
+      },
+      Icons.document_scanner,
+      null,
+      scale: "sm",
+    );
+
+    HolidaysCategory? category = holCat!.firstWhere(
+        (cat) => cat.id == holiday.category,
+        orElse: () => HolidaysCategory.getEmpty());
+
+    return Container(
+      alignment: Alignment.center,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Tooltip(
+        message: "Se requieren ${category.docRequired} documentos",
+        child: (category.docRequired) > 0 ? btn : Text("NO REQUIERE"),
+      ),
+    );
+  }
+
+  Widget holidayRows(context) {
     return Container(
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: contact != null
+        child: profile != null
             ? ListView.builder(
                 shrinkWrap: true,
                 itemCount: myHolidays!.length,
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
-                  return ListTile(
-                      subtitle: Column(children: [
-                        Row(
-                          children: [
-                            Expanded(
-                                flex: 2,
-                                child: Align(
-                                  alignment: Alignment.center,
+                  // return ListTile with info popup
+
+                  return Row(children: [
+                    Expanded(
+                        flex: 8,
+                        child: ListTile(
+                          subtitle: Column(children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                    flex: 2,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 10),
+                                          child: Text(
+                                            holiday.getCategory(holCat!).name,
+                                            style: normalText,
+                                          )),
+                                    )),
+                                Expanded(
+                                  flex: 1,
                                   child: Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        holiday.catetory,
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(holiday.startDate),
                                         style: normalText,
+                                        textAlign: TextAlign.center,
                                       )),
-                                )),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy')
-                                        .format(holiday.startDate),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy')
-                                        .format(holiday.endDate),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    getWorkingDaysBetween(
-                                            holiday.startDate, holiday.endDate)
-                                        .toString(),
-                                    style: normalText,
-                                    textAlign: TextAlign.center,
-                                  )),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Card(
-                                      color: warningColor,
-                                      child: Padding(
-                                          padding: const EdgeInsets.all(10),
-                                          child: Text(
-                                            holiday.status,
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                            textAlign: TextAlign.center,
-                                          )))),
-                            ),
-                          ],
-                        )
-                      ]),
-                      onTap: () {
-                        currentHoliday = holiday;
-                        addHolidayRequestDialog(context);
-                      });
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(holiday.endDate),
+                                        style: normalText,
+                                        textAlign: TextAlign.center,
+                                      )),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Text(
+                                        getWorkingDaysBetween(holiday.startDate,
+                                                holiday.endDate, myCalendar)
+                                            .toString(),
+                                        style: normalText,
+                                        textAlign: TextAlign.center,
+                                      )),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: Card(
+                                          color: holidayStatusColors[
+                                              holiday.status.toLowerCase()]!,
+                                          child: Padding(
+                                              padding: const EdgeInsets.all(10),
+                                              child: Text(
+                                                holiday.status
+                                                    .substring(0, 3)
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                                textAlign: TextAlign.center,
+                                              )))),
+                                ),
+                              ],
+                            )
+                          ]),
+                          onTap: () {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (holiday.status.toLowerCase() == 'pendiente') {
+                                _editHolidayRequestDialog(index);
+                              } else {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return infoDialog(
+                                        context,
+                                        Icon(Icons.info),
+                                        "Solicitud de ${holiday.getCategory(holCat!).name}",
+                                        "Esta solicitud ya ha sido aprobada o denegada. No se puede editar.",
+                                      );
+                                    });
+                              }
+                            });
+                          },
+                        )),
+                    Expanded(
+                        flex: 2,
+                        child: (mounted)
+                            ? btnDocuments(context, holiday)
+                            : Container()),
+                  ]);
                 })
-            : const Center(
-                child: CircularProgressIndicator(),
+            : Center(
+                child: Container(),
+                // child: CircularProgressIndicator(),
               ));
   }
 
-  Widget holidayPanel(BuildContext context) {
+  void showHolidayInfo(String info) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return infoDialog(
+              context, Icon(Icons.info), "Días libres restantes", info);
+        });
+  }
+
+  Widget holidayPanel() {
+    String remainingHolidaysMsg = "";
+
+    if (remainingHolidays.isNotEmpty) {
+      remainingHolidaysMsg = "";
+      remainingHolidays.forEach((key, value) {
+        if (value > 0) {
+          remainingHolidaysMsg += "$key: $value días \n ";
+        }
+      });
+      if (remainingHolidaysMsg.endsWith(", ")) {
+        remainingHolidaysMsg =
+            remainingHolidaysMsg.substring(0, remainingHolidaysMsg.length - 2);
+      }
+    } else {
+      remainingHolidaysMsg = "No hay días restantes";
+    }
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1012,7 +2336,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3),
@@ -1047,97 +2371,133 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Padding(
+                                      Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Solicitud de vacaciones",
+                                            "Solicitud de permisos",
                                             style: cardHeaderText,
                                           )),
-                                      Row(
-                                        children: [
-                                          const Text("Me quedan ",
-                                              style: subTitleText),
-                                          Text(holidayDays.toString(),
-                                              style: mainText),
-                                          const Text(" días libres",
-                                              style: subTitleText),
-                                        ],
-                                      )
+                                      Container(
+                                          padding: const EdgeInsets.all(0),
+                                          color: Colors.grey[100],
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                                "Te quedan $obligatoryHolidays días de permiso de libre disposición.",
+                                                style: subTitleText,
+                                                textAlign: TextAlign.left),
+                                          )),
                                     ]))),
                         Expanded(
+                            flex: 1,
+                            child: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: (mounted)
+                                    ? actionButton(context, null, (args) {
+                                        showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return infoDialog(
+                                                  context,
+                                                  Icon(Icons.info),
+                                                  "Días libres restantes",
+                                                  remainingHolidaysMsg);
+                                            });
+                                      }, Icons.question_mark_outlined, [],
+                                        tooltip: "Días libres restantes")
+                                    : Container())),
+                        Expanded(
                             flex: 3,
-                            child: actionButton(
-                                context,
-                                "Solicitar días",
-                                addHolidayRequestDialog,
-                                Icons.play_circle_outline_sharp,
-                                context)),
+                            child: (mounted)
+                                ? actionButton(
+                                    context,
+                                    "Solicitar días",
+                                    addHolidayRequestDialog,
+                                    Icons.play_circle_outline_sharp,
+                                    context)
+                                : Container()),
                       ],
                     )),
                 Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     color: Colors.white,
-                    child: const ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(
-                              flex: 2,
-                              child: Text(
-                                "Concepto",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Desde",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Hasta",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Días",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Estado",
-                                style: subTitleText,
-                                textAlign: TextAlign.center,
-                              )),
-                        ],
-                      ),
-                    )),
+                    child: const Row(children: [
+                      Expanded(
+                          flex: 8,
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      "Concepto",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Desde",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Hasta",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Días",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      "Estado",
+                                      style: subTitleText,
+                                      textAlign: TextAlign.center,
+                                    )),
+                              ],
+                            ),
+                          )),
+                      Expanded(
+                          flex: 2,
+                          child: Text(
+                            "Docs",
+                            style: subTitleText,
+                            textAlign: TextAlign.center,
+                          ))
+                    ])),
                 Divider(
                   height: 1,
                   color: Colors.grey[300],
                 ),
-                holidayRows(context),
+                mounted ? holidayRows(context) : Container(),
               ],
             )));
   }
 
+// ee008237-691d-4e4f-a5e4-c87137941369
+// d0b17ac2-7d13-4b77-bff6-d8e6e06561d0
 /////////// TASKS ///////////
-  Widget taskRows(BuildContext context) {
+  Widget taskRows() {
+    mytasks = _projectsProvider?.tasks
+        .where((task) => task.assigned.contains(user.email))
+        .toList();
     return Container(
         height: 150,
         padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
         color: Colors.white,
-        child: contact != null
+        child: profile != null
             ? ListView.builder(
                 shrinkWrap: true,
-                itemCount: mytasks!.length,
+                itemCount: mytasks?.length,
                 itemBuilder: (BuildContext context, int index) {
                   STask task = mytasks!.elementAt(index);
                   return ListTile(
@@ -1179,7 +2539,13 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: statusCard(task.statusObj.getName()),
+                          child:
+                              // statusCard((hashStatus.containsKey(task.status))
+                              //     ? (hashStatus[task.status] != null)
+                              //         ? hashStatus[task.status]!.getName()
+                              //         : "Not found"
+                              //     : ""),
+                              statusCard(task.statusObj.name),
                         ),
                       ],
                     )
@@ -1190,7 +2556,10 @@ class _HomePageState extends State<HomePage> {
               ));
   }
 
-  Widget tasksPanel(BuildContext context) {
+  Widget tasksPanel() {
+    mytasks = _projectsProvider?.tasks
+        .where((task) => task.assigned.contains(user.email))
+        .toList();
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1198,7 +2567,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
+                    color: Colors.grey.withAlpha(128),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 3), // changes position of shadow
@@ -1233,10 +2602,10 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Padding(
+                                      Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Mis tareas",
+                                            "Mis tareas (${mytasks?.length})",
                                             style: cardHeaderText,
                                           )),
                                       Text(dateToES(DateTime.now()),
@@ -1286,135 +2655,13 @@ class _HomePageState extends State<HomePage> {
                   height: 1,
                   color: Colors.grey[300],
                 ),
-                taskRows(context),
+                taskRows(),
               ],
             )));
   }
 
 /////////// NOTIFICATIONS ///////////
 
-  /*Widget notifyPanelSubHead() {
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-        color: Colors.white,
-        child: const ListTile(
-          title: Row(
-            children: [
-              Expanded(
-                  flex: 2,
-                  child: Text(
-                    "Concepto",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Desde",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Hasta",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-              Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Días Totales",
-                    style: subTitleText,
-                    textAlign: TextAlign.center,
-                  )),
-            ],
-          ),
-        ));
-  }
-
-  Widget notifyPanelContentOld() {
-    return Container(
-        height: 150,
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        color: Colors.white,
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: 3,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                  subtitle: Column(children: [
-                Row(
-                  children: [
-                    Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                ([
-                                  'Vacaciones',
-                                  'Asuntos propios',
-                                  'Enfermedad'
-                                ]).elementAt(Random().nextInt(3)),
-                                style: normalText,
-                              )),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "A"
-                            /*DateFormat('dd-MM-yyyy').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(0))*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "B"
-                            /*DateFormat('dd-MM-yyyy').format(
-                                            holidayPeriods
-                                                .elementAt(index)
-                                                .elementAt(1))*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            "C"
-                            /*getWorkingDaysBetween(
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(0),
-                                                holidayPeriods
-                                                    .elementAt(index)
-                                                    .elementAt(1))
-                                            .toString()*/
-                            ,
-                            style: normalText,
-                            textAlign: TextAlign.center,
-                          )),
-                    ),
-                  ],
-                )
-              ]));
-            }));
-  }*/
   Widget notifyPanelHead() {
     return Container(
         padding: const EdgeInsets.all(10),
@@ -1458,85 +2705,81 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget notifyPanelContent() {
-/*    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(children: [*/
-    //Container(
-    //  color: Colors.white,
-    //child: SizedBox(
     return SizedBox(
         width: double.infinity,
-        //height: 100,
-        child: DataTable(
-          showCheckboxColumn: false,
-          columns: [
-            DataColumn(
-                label: customText("Notificación", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Usuario", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(
-                label: customText("Fecha", 16,
-                    bold: FontWeight.bold, textColor: subTitleColor)),
-            DataColumn(label: Container()),
-          ],
-          rows: notificationList
-              .map(
-                (notify) => DataRow(
-                    onSelectChanged: (bool? selected) {
-                      if (notify.readed) {
-                        notify.readed = false;
-                        notify.save();
-                        notif += 1;
-                      } else {
-                        notify.readed = true;
-                        notify.save();
-                        notif += -1;
-                      }
-                      setState(() {});
-                    },
-                    color: (notify.readed)
-                        ? MaterialStateColor.resolveWith(
-                            (states) => Colors.white)
-                        : MaterialStateColor.resolveWith((states) => greyColor),
-                    cells: [
-                      DataCell(Text(notify.msg)),
-                      DataCell(Text(notify.sender)),
-                      DataCell(
-                        Text(DateFormat('yyyy-MM-dd').format(notify.date)),
-                      ),
-                      DataCell(Row(children: [
-                        removeConfirmBtn(context, () {
-                          notify.delete();
-                          setState(() {
-                            notificationList.remove(notify);
-                          });
-                        }, null),
-                      ]))
-                    ]),
-              )
-              .toList(),
-        )); //)
-    //]));
+        height: 200,
+        child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: DataTable(
+              // Hide header
+              headingRowHeight: 30,
+              showCheckboxColumn: false,
+              // Set width of the columns
+
+              columns: [
+                DataColumn(
+                    label: customText("Notificación", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(
+                    label: customText("Usuario", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(
+                    label: customText("Fecha", 16,
+                        bold: FontWeight.bold, textColor: subTitleColor)),
+                DataColumn(label: Container()),
+              ],
+              rows: notificationList
+                  .map(
+                    (notify) => DataRow(
+                        onSelectChanged: (bool? selected) {
+                          if (notify.readed) {
+                            notify.readed = false;
+                            notify.save();
+                            notif += 1;
+                          } else {
+                            notify.readed = true;
+                            notify.save();
+                            notif += -1;
+                          }
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                        color: (notify.readed)
+                            ? WidgetStateColor.resolveWith(
+                                (states) => Colors.white)
+                            : WidgetStateColor.resolveWith(
+                                (states) => greyColor),
+                        cells: [
+                          DataCell(Text(notify.msg)),
+                          DataCell(Text(notify.sender)),
+                          DataCell(
+                            Text(DateFormat('yyyy-MM-dd').format(notify.date)),
+                          ),
+                          DataCell(Row(children: [
+                            removeConfirmBtn(context, () {
+                              notify.delete();
+                              if (mounted) {
+                                setState(() {
+                                  notificationList.remove(notify);
+                                });
+                              }
+                            }, null),
+                          ]))
+                        ]),
+                  )
+                  .toList(),
+            )));
   }
 
-  Widget notifyPanel(BuildContext context) {
+  Widget notifyPanel() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Card(
-            /*decoration: tabDecoration,
-            padding: const EdgeInsets.all(2),*/
             child: Column(
           children: [
             notifyPanelHead(),
             notifyPanelContent(),
-            /*notifyPanelSubHead(),
-                Divider(
-                  height: 1,
-                  color: Colors.grey[300],
-                ),
-                notifyPanelContentOld(),*/
           ],
         )));
 
@@ -1568,7 +2811,45 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// PROJECTS ///////////
-  Widget projectsPanel(BuildContext context) {
+  Widget projectsPanel() {
+    contact ??= _rrhhProvider?.contact;
+    contact ??= _projectsProvider?.contacts
+        .firstWhere((c) => c.email == user.email, orElse: () => Contact.getEmpty());
+    myProjects = [];
+    // for (STask task in _projectsProvider!.tasks) {
+    //   if (hashProjects.containsKey(task.project)) {
+    //     SProject project = hashProjects[task.project]!;
+    //     if (!myProjects!.contains(project)) {
+    //       myProjects!.add(project);
+    //     }
+    //   }
+    // }
+    myProjects = _projectsProvider!.projects
+        .where((p) => contact!.projects.contains(p.uuid))
+        .toList(growable: true);
+
+    List<String> uuidFromTasks = (mytasks != null)
+        ? mytasks!.map((t) => t.project).toSet().toList()
+        : [];
+    myProjects?.addAll(_projectsProvider!.projects
+        .where((p) => uuidFromTasks.contains(p.uuid))
+        .toList(growable: true));
+    for (SProject p in myProjects!) {
+      p.onChanged ??= () {
+        if (mounted) {
+          setState(() {
+            contentProjectsPanel = projectsPanel();
+          });
+        }
+      };
+      p.datesObj.onChanged ??= () {
+        if (mounted) {
+          setState(() {
+            contentProjectsPanel = projectsPanel();
+          });
+        }
+      };
+    }
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Container(
@@ -1646,7 +2927,7 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                               flex: 4,
                               child: Text(
-                                "Projecto",
+                                "Proyecto",
                                 style: subTitleText,
                                 textAlign: TextAlign.left,
                               )),

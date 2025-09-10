@@ -34,10 +34,12 @@ class _ProjectTypePageState extends State<ProjectTypePage>
 
   void loadProjectTypes() async {
     setLoading();
-    await getProjectTypes().then((val) {
-      projectTypes = val;
-      stopLoading();
-    });
+    projectTypes = await ProjectType.getProjectTypes();
+    stopLoading();
+    // await getProjectTypes().then((val) {
+    //   projectTypes = val;
+    //   stopLoading();
+    // });
   }
 
   @override

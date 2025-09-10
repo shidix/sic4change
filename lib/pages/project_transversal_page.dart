@@ -115,9 +115,9 @@ class _ProjectTransversalPageState extends State<ProjectTransversalPage> {
     if (widget.profile == null) {
       Profile.getCurrentProfile().then((value) {
         profile = value;
-        if (mounted) {
-          setState() {}
-        }
+        // if (mounted) {
+        //   setState() {}
+        // }
       });
     } else {
       profile = widget.profile;

@@ -1,10 +1,13 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:sic4change/services/models_commons.dart';
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
-
 class Profile {
+  static const String tbName = "s4c_profiles";
+
   String id;
   String email;
   String name = "";
@@ -12,8 +15,14 @@ class Profile {
   String phone = "";
   List<dynamic> holidaySupervisor;
   String mainRole;
+  String? organization;
 
-  final database = db.collection("s4c_profiles");
+  static const String ADMIN = 'Admin';
+  static const String TECHNICIAN = 'Técnico';
+  static const String SUPERVISOR = 'Supervisor';
+  static const String ADMINISTRATIVE = 'Administrativo';
+  static const String RRHH = 'Administrativo';
+  static const String USER = 'Usuario';
 
   static const List<String> profiles = [
     'Admin',
@@ -28,6 +37,7 @@ class Profile {
     required this.email,
     required this.holidaySupervisor,
     required this.mainRole,
+    this.organization,
   });
 
   factory Profile.fromJson(Map data) {
@@ -36,6 +46,10 @@ class Profile {
       email: data['email'],
       holidaySupervisor: data['holidaySupervisor'],
       mainRole: data['mainRole'],
+      organization:
+          data.containsKey('organization') && data['organization'] != null
+              ? data['organization']
+              : null,
     );
     profile.name = (data['name'] != null) ? data['name'] : '';
     profile.position = (data['position'] != null) ? data['position'] : '';
@@ -57,82 +71,118 @@ class Profile {
         'phone': phone,
         'holidaySupervisor': holidaySupervisor,
         'mainRole': mainRole,
+        'organization': organization,
       };
 
   @override
   String toString() {
-    return 'Profile{id: $id, email: $email, holidaySupervisor: $holidaySupervisor, mainRole: $mainRole}';
+    return 'Profile{id: $id, email: $email, holidaySupervisor: $holidaySupervisor, mainRole: $mainRole, organization: $organization}';
   }
 
   KeyValue toKeyValue() {
     return KeyValue(email, email);
   }
 
-  factory Profile.getEmpty() {
+  factory Profile.getEmpty(
+      {String email = "none@none.com", String id = "", String mainRole = ""}) {
     return Profile(
-      id: "",
-      email: "",
+      id: id,
+      email: email,
       holidaySupervisor: [],
-      mainRole: "",
+      mainRole: mainRole,
     );
   }
 
-  void save() {
+  Future<Profile> save() async {
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      database.add(data).then((value) => id = value.id);
+      DocumentReference docRef =
+          await FirebaseFirestore.instance.collection(Profile.tbName).add(data);
+      id = docRef.id;
+      docRef.update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
-      database.doc(id).update(data);
+      await FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .doc(id)
+          .update(data);
     }
+    return this;
   }
 
   void delete() {
-    database.doc(id).delete();
+    FirebaseFirestore.instance.collection(Profile.tbName).doc(id).delete();
+  }
+
+  Future<Organization?> getOrganization() async {
+    if (organization == null || organization!.isEmpty) {
+      if (email.isNotEmpty) {
+        return Organization.byDomain(email);
+      }
+      return Organization("Sin organización");
+    }
+    Organization? result = await Organization.byId(organization!);
+    result ??= Organization("Sin organización");
+    return result;
+  }
+
+  bool isAdmin() {
+    return mainRole == ADMIN;
+  }
+
+  bool isRRHH() {
+    return mainRole == RRHH || mainRole == ADMINISTRATIVE;
   }
 
   static Future<List<Profile>> getProfiles({List<String>? emails}) async {
     if ((emails != null) && (emails.isNotEmpty)) {
-      return db
-          .collection("s4c_profiles")
+      return FirebaseFirestore.instance
+          .collection(Profile.tbName)
           .where("email", whereIn: emails)
           .get()
           .then((snap) =>
               snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
     }
 
-    return db.collection("s4c_profiles").get().then(
+    return FirebaseFirestore.instance.collection(Profile.tbName).get().then(
         (snap) => snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
   }
 
-  static Future<Profile> getProfile(String email) async {
-    QuerySnapshot query = await db.collection("s4c_profiles").get();
+  static Future<Profile> getProfile(dynamic email) async {
+    QuerySnapshot query;
 
-    List<Profile> items = [];
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      Profile item = Profile.fromJson(data);
-      items.add(item);
-    }
-    if (items.isNotEmpty) {
-      return items.firstWhere((element) => element.email == email,
-          orElse: () => Profile.getEmpty());
+    if (email is String) {
+      query = await FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .where("email", isEqualTo: email)
+          .get();
+    } else if (email is List<String>) {
+      query = await FirebaseFirestore.instance
+          .collection(Profile.tbName)
+          .where("email", whereIn: email)
+          .get();
     } else {
-      return Profile.getEmpty();
+      throw ArgumentError("Email must be a String or List<String>");
     }
 
-    // if (query.docs.isEmpty) {
-    //   return Profile.getEmpty();
-    // } else {
-    //   final dbResult = query.docs.first;
-    //   return Profile.fromFirestore(dbResult);
-    // }
+    if (query.docs.isEmpty) {
+      return Profile.getEmpty(email: email, mainRole: Profile.USER);
+    }
+
+    DocumentSnapshot doc = query.docs.first;
+    final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data["id"] = doc.id;
+    return Profile.fromJson(data);
+  }
+
+  static Future<Profile> byEmail(dynamic email) async {
+    return await getProfile(email);
   }
 
   static Future<List<KeyValue>> getProfileHash() async {
     List<KeyValue> items = [];
-    QuerySnapshot query = await db.collection("s4c_profiles").get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(Profile.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -146,9 +196,104 @@ class Profile {
     try {
       final user = FirebaseAuth.instance.currentUser!;
       String email = user.email!;
-      return getProfile(email);
+      Profile result = await getProfile(email);
+      return result;
     } catch (e) {
-      return Profile.getEmpty();
+      return Profile.getEmpty(
+          email: "none@none.com", mainRole: Profile.ADMINISTRATIVE);
     }
   }
+
+  static Future<List<Profile>> byOrganization({dynamic organization}) async {
+    if (organization == null) {
+      return [];
+    }
+    if (organization is Organization) {
+      organization = organization.id;
+    }
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection(Profile.tbName)
+        .where("organization", isEqualTo: organization)
+        .get();
+
+    return query.docs
+        .map((doc) => Profile.fromJson(doc.data() as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+}
+
+class ProfileProvider with ChangeNotifier {
+  Profile? _profile;
+  Organization? _organization;
+  User? user = FirebaseAuth.instance.currentUser;
+  bool _loading = false;
+  Organization? get organization => _organization;
+  set organization(Organization? value) {
+    _organization = value;
+    notifyListeners();
+  }
+
+  ProfileProvider() {}
+
+  Profile? get profile => _profile;
+
+  void loadProfile() async {
+    if ((_profile != null || _loading) &&
+        (user != null) &&
+        (user?.email == _profile?.email)) {
+      return; // Profile already loaded
+    }
+    _loading = true;
+    _profile = await Profile.getCurrentProfile();
+    if (profile != null) {
+      if (_profile!.organization != null &&
+          _profile!.organization!.isNotEmpty) {
+        _organization = await Organization.byId(_profile!.organization!);
+        _loading = false;
+      } else {
+        // Load organization by email domain
+        String email = _profile?.email ?? user?.email ?? "none@none.com";
+        _organization = await Organization.byDomain(email);
+        if (_organization != null) {
+          _profile!.organization = _organization!.id;
+          _profile!.save();
+        }
+      }
+    }
+
+    _loading = false;
+    notifyListeners();
+  }
+
+  Future<void> setProfile(Profile profile) async {
+    _profile = profile;
+    if (profile.organization != null && profile.organization!.isNotEmpty) {
+      profile.getOrganization().then((value) {
+        _organization = value;
+        notifyListeners();
+      });
+    } else {
+      _organization = null;
+      notifyListeners();
+    }
+  }
+
+  void clearProfile() {
+    _profile = null;
+    _organization = null;
+    notifyListeners();
+  }
+
+  // Future<void> loadProfile() async {
+  //   // _profile = await Profile.getCurrentProfile();
+  //   _profile = await Future.delayed(Duration(seconds: 5), () {
+  //     return Profile.getEmpty(email: "none@none.com");
+  //   });
+  //   notifyListeners();
+  // }
+
+  // void clear() {
+  //   _profile = null;
+  //   notifyListeners();
+  // }
 }

@@ -1,8 +1,10 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/activity_indicators_page.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
@@ -21,9 +23,10 @@ class ActivitiesPage extends StatefulWidget {
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
   Result? result;
+  Profile? currentProfile;
 
   void loadActivities(value) async {
-    await getActivitiesByResult(value).then((val) {
+    await Activity.getActivitiesByResult(value).then((val) {
       activities = val;
     });
     setState(() {});
@@ -37,15 +40,27 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        mainMenu(context),
-        activityPath(context, result),
-        activityHeader(context, result),
-        contentTab(context, activityList, result),
-        footer(context)
-      ]),
-    );
+    return FutureBuilder<Profile>(
+        future: (currentProfile != null)
+            ? Future.value(currentProfile)
+            : Profile.getProfile(FirebaseAuth.instance.currentUser!.email!),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            currentProfile = snapshot.data!;
+          } else {
+            currentProfile = Profile.getEmpty();
+          }
+          return Scaffold(
+            body:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              mainMenu(context, currentProfile),
+              activityPath(context, result),
+              activityHeader(context, result),
+              contentTab(context, activityList, result),
+              footer(context)
+            ]),
+          );
+        });
   }
 
 /*-------------------------------------------------------------
@@ -132,7 +147,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   Widget activityList(context, result) {
     return FutureBuilder(
-        future: getActivitiesByResult(result.uuid),
+        future: Activity.getActivitiesByResult(result.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             activities = snapshot.data!;

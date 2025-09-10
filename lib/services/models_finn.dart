@@ -10,9 +10,8 @@ import 'package:sic4change/services/utils.dart';
 // import 'package:sic4change/services/models.dart';
 import 'package:uuid/uuid.dart';
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-
 class SFinnInfo extends Object {
+  static const String tbName = "s4c_finninfo";
   String id;
   String uuid;
   String project;
@@ -52,7 +51,7 @@ class SFinnInfo extends Object {
       };
 
   void save() async {
-    final database = db.collection("s4c_finninfo");
+    final database = FirebaseFirestore.instance.collection(tbName);
     if (id == "") {
       Map<String, dynamic> data = toJson();
       database.add(data).then((value) => id = value.id);
@@ -68,7 +67,7 @@ class SFinnInfo extends Object {
   }
 
   void delete() {
-    final database = db.collection("s4c_finninfo");
+    final database = FirebaseFirestore.instance.collection(tbName);
     if (id != "") {
       database.doc(id).delete();
       createLog(
@@ -78,7 +77,7 @@ class SFinnInfo extends Object {
 
   static Future<SFinnInfo?> byProject(String uuidProject) async {
     try {
-      final database = db.collection("s4c_finninfo");
+      final database = FirebaseFirestore.instance.collection(tbName);
       QuerySnapshot query =
           await database.where('project', isEqualTo: uuidProject).get();
       if (query.docs.isNotEmpty) {
@@ -89,7 +88,6 @@ class SFinnInfo extends Object {
       }
     } catch (e) {
       log('ERROR in SFinnInfo.byProject');
-      print(e);
     }
     return null;
   }
@@ -164,6 +162,7 @@ class SFinnInfo extends Object {
 }
 
 class SFinn extends Object {
+  static const String tbName = "s4c_finns";
   String id;
   String uuid;
   String name;
@@ -320,8 +319,8 @@ class SFinn extends Object {
 
   static Future<List> byProject(String uuidProject) async {
     final List<SFinn> items = [];
-    final database = db.collection("s4c_finns");
-    await database
+    await FirebaseFirestore.instance
+        .collection(tbName)
         .where("project", isEqualTo: uuidProject)
         .get()
         .then((querySnapshot) {
@@ -348,7 +347,8 @@ class SFinn extends Object {
   }
 
   static Future<void> fixModels() async {
-    QuerySnapshot query = await db.collection("s4c_finns").get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -359,7 +359,7 @@ class SFinn extends Object {
 
   static Future<List> byProjectAndMain(String uuidProject) async {
     final List<SFinn> items = [];
-    final database = db.collection("s4c_finns");
+    final database = FirebaseFirestore.instance.collection(tbName);
     await database
         .where("project", isEqualTo: uuidProject)
         .where("parent", isEqualTo: "")
@@ -410,10 +410,13 @@ class SFinn extends Object {
   // }
 
   static SFinn byUuid(String uuid) {
-    final database = db.collection("s4c_finns");
     SFinn item = SFinn('', uuid, '', '', '', '', DateTime.now(),
         DateTime.now().add(const Duration(days: 365)));
-    database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+    FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((querySnapshot) {
       var first = querySnapshot.docs.first;
       item = SFinn.fromJson(first.data());
       item.id = first.id;
@@ -425,10 +428,13 @@ class SFinn extends Object {
   }
 
   static String getFinnName(String uuid) {
-    final database = db.collection("s4c_finns");
     SFinn item = SFinn('', uuid, '', '', '', '', DateTime.now(),
         DateTime.now().add(const Duration(days: 365)));
-    database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+    FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get()
+        .then((querySnapshot) {
       var first = querySnapshot.docs.first;
       item = SFinn.fromJson(first.data());
       item.id = first.id;
@@ -441,8 +447,11 @@ class SFinn extends Object {
 
   Future<List<SFinn>> getChildrens() async {
     final List<SFinn> items = [];
-    final database = db.collection("s4c_finns");
-    await database.where("parent", isEqualTo: uuid).get().then((querySnapshot) {
+    await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("parent", isEqualTo: uuid)
+        .get()
+        .then((querySnapshot) {
       for (var doc in querySnapshot.docs) {
         final Map<String, dynamic> data = doc.data();
         final item = SFinn.fromJson(data);
@@ -455,35 +464,43 @@ class SFinn extends Object {
   }
 
   void save() async {
-    final database = db.collection("s4c_finns");
     if (uuid == "") {
       uuid = const Uuid().v4();
       Map<String, dynamic> data = toJson();
-      await database.add(data).then((value) {
+      await FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) {
         id = value.id;
       });
       createLog(
           "Creada financiación $name de la iniciativa ${SProject.getProjectName(project)}");
     } else {
       if (id == "") {
-        final query = await database.where("uuid", isEqualTo: uuid).get();
+        final query = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where("uuid", isEqualTo: uuid)
+            .get();
         if (query.docs.isNotEmpty) {
           id = query.docs.first.id;
         }
       }
       Map<String, dynamic> data = toJson();
-      database.doc(id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
       createLog(
           "Modificada financiación $name de la iniciativa ${SProject.getProjectName(project)}");
     }
   }
 
   void delete() {
-    final database = db.collection("s4c_finns");
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     } else {
-      database.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .where("uuid", isEqualTo: uuid)
+          .get()
+          .then((querySnapshot) {
         for (var doc in querySnapshot.docs) {
           doc.reference.delete();
         }
@@ -520,6 +537,8 @@ class FinnDistribution {
   String finn;
   String subject;
 
+  static const String tbName = "s4c_finndistrib";
+
   FinnDistribution(this.id, this.partner, this.amount, this.finn, this.subject);
 
   FinnDistribution.fromJson(Map<String, dynamic> json)
@@ -538,18 +557,21 @@ class FinnDistribution {
       };
 
   void save() async {
-    final collection = db.collection("s4c_finndistrib");
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
-      collection.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
       createLog(
           "Creada distribución de la financiación ${SFinn.getFinnName(finn)}");
     } else {
-      final query = await collection.where("id", isEqualTo: id).limit(1).get();
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("id", isEqualTo: id)
+          .limit(1)
+          .get();
       final item = query.docs.first;
       Map<String, dynamic> data = toJson();
-      collection.doc(item.id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(item.id).set(data);
       createLog(
           "Modificada distribución de la financiación ${SFinn.getFinnName(finn)}");
     }
@@ -557,19 +579,22 @@ class FinnDistribution {
 
   static Future<Map<String, double>> getSummaryByPartner(partner,
       {project}) async {
-    final collection = db.collection("s4c_finndistrib");
     QuerySnapshot<Map<String, dynamic>>? query;
     if (project != null) {
       List? finnList;
       await SFinn.byProject(project).then((value) {
         finnList = value.map((e) => e.uuid).toList();
       });
-      query = await collection
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
           .where("partner", isEqualTo: partner)
           .where("finn", whereIn: finnList)
           .get();
     } else {
-      query = await collection.where("partner", isEqualTo: partner).get();
+      query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("partner", isEqualTo: partner)
+          .get();
     }
     double total = 0;
     for (var element in query.docs) {
@@ -582,8 +607,8 @@ class FinnDistribution {
   }
 
   static Future<List> getByFinnAndFinancier(finn, partner) async {
-    final collection = db.collection("s4c_finndistrib");
-    final query = await collection
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
         .where("finn", isEqualTo: finn)
         .where('partner', isEqualTo: partner)
         .get();
@@ -595,8 +620,10 @@ class FinnDistribution {
   }
 
   static Future<List> getByFinn(finn) async {
-    final collection = db.collection("s4c_finndistrib");
-    final query = await collection.where("finn", isEqualTo: finn).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("finn", isEqualTo: finn)
+        .get();
     List items = [];
     for (var element in query.docs) {
       items.add(FinnDistribution.fromJson(element.data()));
@@ -623,9 +650,8 @@ class FinnDistribution {
   }
 
   void delete() {
-    final database = db.collection("s4c_finndistrib");
     if (id != "") {
-      database.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
     createLog(
         "Borrada distribución de la financiación ${SFinn.getFinnName(finn)}");
@@ -638,6 +664,8 @@ class FinnDistribution {
 }
 
 class TaxKind extends Object {
+  static const String tbName = "s4c_taxkind";
+
   String id = "";
   String uuid;
   String code;
@@ -683,25 +711,26 @@ class TaxKind extends Object {
       };
 
   Future<TaxKind> save() async {
-    final collection = db.collection("s4c_taxkind");
-
     (uuid == "") ? uuid = const Uuid().v4() : uuid = uuid;
 
     if (id == "") {
-      collection.add(toJson()).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .add(toJson())
+          .then((value) => id = value.id);
     } else {
-      final item = await collection.doc(id).get();
+      final item =
+          await FirebaseFirestore.instance.collection(tbName).doc(id).get();
       Map<String, dynamic> data = toJson();
-      collection.doc(item.id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(item.id).set(data);
     }
     return this;
   }
 
   Future<bool> delete() async {
     try {
-      final collection = db.collection("s4c_taxkind");
       if (id != "") {
-        await collection.doc(id).delete();
+        await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
       }
       return true;
     } catch (e) {
@@ -710,8 +739,8 @@ class TaxKind extends Object {
   }
 
   static Future<TaxKind?> byUuid(String uuid) {
-    final collection = db.collection("s4c_taxkind");
-    return collection
+    return FirebaseFirestore.instance
+        .collection(tbName)
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((querySnapshot) {
@@ -725,10 +754,10 @@ class TaxKind extends Object {
   }
 
   static Future<List<TaxKind>> getAll() async {
-    final collection = db.collection("s4c_taxkind");
     List<TaxKind> items = [];
 
-    QuerySnapshot query = await collection.get();
+    QuerySnapshot query =
+        await FirebaseFirestore.instance.collection(tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       TaxKind item = TaxKind.fromJson(data);
@@ -745,6 +774,8 @@ class TaxKind extends Object {
 }
 
 class Invoice extends Object {
+  static const String tbName = "s4c_invoices";
+
   String id;
   String uuid;
   String number;
@@ -899,11 +930,13 @@ class Invoice extends Object {
       };
 
   static Future<String> newTracker() async {
-    final collection = db.collection("s4c_invoices");
     String tracker = getTracker();
     bool exists = true;
     while (exists) {
-      final query = await collection.where("tracker", isEqualTo: tracker).get();
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("tracker", isEqualTo: tracker)
+          .get();
       if (query.docs.isEmpty) {
         exists = false;
       } else {
@@ -914,22 +947,27 @@ class Invoice extends Object {
   }
 
   Future<Invoice> save() async {
-    final collection = db.collection("s4c_invoices");
-
     if (id == "") {
       tracker = tracker.toUpperCase();
       Invoice? item = await Invoice.byTracker(tracker);
       if (item != null) {
         id = item.id;
-        collection.doc(item.id).set(toJson());
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(item.id)
+            .set(toJson());
       } else {
-        collection.add(toJson()).then((value) => id = value.id);
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .add(toJson())
+            .then((value) => id = value.id);
       }
       createLog("Creada la factura '$number'");
     } else {
-      final item = await collection.doc(id).get();
+      final item =
+          await FirebaseFirestore.instance.collection(tbName).doc(id).get();
       Map<String, dynamic> data = toJson();
-      collection.doc(item.id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(item.id).set(data);
       createLog("Modificada la factura '$number'");
     }
     return this;
@@ -937,9 +975,8 @@ class Invoice extends Object {
 
   Future<bool> delete() async {
     try {
-      final collection = db.collection("s4c_invoices");
       if (id != "") {
-        await collection.doc(id).delete();
+        await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
       }
       createLog("Borrada la factura '$number'");
       return true;
@@ -949,8 +986,8 @@ class Invoice extends Object {
   }
 
   static Future<Invoice?> byTracker(String tracker) {
-    final collection = db.collection("s4c_invoices");
-    return collection
+    return FirebaseFirestore.instance
+        .collection(tbName)
         .where("tracker", isEqualTo: tracker.toUpperCase())
         .get()
         .then((querySnapshot) {
@@ -967,14 +1004,16 @@ class Invoice extends Object {
     List finnUuids = [];
     finnUuids = [finn];
 
-    final collection = db.collection("s4c_invoices");
     List items = [];
     if (finnUuids.isEmpty) {
       return items;
     }
 
     try {
-      final query = await collection.where("finn", whereIn: finnUuids).get();
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("finn", whereIn: finnUuids)
+          .get();
       for (var element in query.docs) {
         Invoice item = Invoice.fromJson(element.data());
         item.id = element.id;
@@ -989,10 +1028,11 @@ class Invoice extends Object {
   }
 
   static Future<List<Invoice>> afterDate(DateTime date) async {
-    final collection = db.collection("s4c_invoices");
     List<Invoice> items = [];
-    final query =
-        await collection.where("date", isGreaterThanOrEqualTo: date).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("date", isGreaterThanOrEqualTo: date)
+        .get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;
@@ -1002,9 +1042,8 @@ class Invoice extends Object {
   }
 
   static Future<List<Invoice>> all() async {
-    final collection = db.collection("s4c_invoices");
     List<Invoice> items = [];
-    final query = await collection.get();
+    final query = await FirebaseFirestore.instance.collection(tbName).get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;
@@ -1014,10 +1053,11 @@ class Invoice extends Object {
   }
 
   static Future<List<Invoice>> beforeDate(DateTime date) async {
-    final collection = db.collection("s4c_invoices");
     List<Invoice> items = [];
-    final query =
-        await collection.where("date", isLessThanOrEqualTo: date).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("date", isLessThanOrEqualTo: date)
+        .get();
 
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
@@ -1028,8 +1068,10 @@ class Invoice extends Object {
   }
 
   static Future<Invoice> getByUuid(uuid) async {
-    final collection = db.collection("s4c_invoices");
-    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
     if (query.docs.isEmpty) {
       return Invoice.getEmpty();
     }
@@ -1053,9 +1095,11 @@ class Invoice extends Object {
   }
 
   static Future<List<Invoice>> getListUuids(listUuids) async {
-    final collection = db.collection("s4c_invoices");
     List<Invoice> items = [];
-    final query = await collection.where("uuid", whereIn: listUuids).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", whereIn: listUuids)
+        .get();
     for (var element in query.docs) {
       Invoice item = Invoice.fromJson(element.data());
       item.id = element.id;
@@ -1077,6 +1121,7 @@ class Invoice extends Object {
 }
 
 class InvoiceDistrib extends Object {
+  static const String tbName = "s4c_invoicedistrib";
   String id;
   String uuid;
   String invoice;
@@ -1119,25 +1164,30 @@ class InvoiceDistrib extends Object {
       };
 
   void save() async {
-    final collection = db.collection("s4c_invoicedistrib");
     if (uuid == "") {
       uuid = const Uuid().v4();
     }
 
     if (id == "") {
       Map<String, dynamic> data = toJson();
-      collection.add(data).then((value) => id = value.id);
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .add(data)
+          .then((value) => id = value.id);
     } else {
-      collection.doc(id).set(toJson());
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(toJson());
     }
   }
 
   void remove() {
-    final collection = db.collection("s4c_invoicedistrib");
     if (id != "") {
-      collection.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     } else {
-      collection.where("uuid", isEqualTo: uuid).get().then((querySnapshot) {
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .where("uuid", isEqualTo: uuid)
+          .get()
+          .then((querySnapshot) {
         for (var doc in querySnapshot.docs) {
           doc.reference.delete();
         }
@@ -1152,8 +1202,8 @@ class InvoiceDistrib extends Object {
 
   static Future<InvoiceDistrib> getByDistributionAndInvoice(
       String distribution, String invoice) async {
-    final collection = db.collection("s4c_invoicedistrib");
-    final query = await collection
+    final query = await FirebaseFirestore.instance
+        .collection(InvoiceDistrib.tbName)
         .where("distribution", isEqualTo: distribution)
         .where("invoice", isEqualTo: invoice)
         .get();
@@ -1171,18 +1221,20 @@ class InvoiceDistrib extends Object {
       return [];
     }
 
-    final collection = db.collection("s4c_invoicedistrib");
-
     QuerySnapshot<Map<String, dynamic>> query;
     if (invoice is List) {
       if (invoice.isEmpty) {
         return [];
       }
-      query = await collection
+      query = await FirebaseFirestore.instance
+          .collection(InvoiceDistrib.tbName)
           .where("invoice", whereIn: invoice.map((e) => e.uuid).toList())
           .get();
     } else {
-      query = await collection.where("invoice", isEqualTo: invoice.uuid).get();
+      query = await FirebaseFirestore.instance
+          .collection(InvoiceDistrib.tbName)
+          .where("invoice", isEqualTo: invoice.uuid)
+          .get();
     }
     List<InvoiceDistrib> items = [];
     for (var element in query.docs) {
@@ -1192,14 +1244,18 @@ class InvoiceDistrib extends Object {
   }
 
   void delete() {
-    final collection = db.collection("s4c_invoicedistrib");
     if (id != "") {
-      collection.doc(id).delete();
+      FirebaseFirestore.instance
+          .collection(InvoiceDistrib.tbName)
+          .doc(id)
+          .delete();
     }
   }
 }
 
 class BankTransfer {
+  static const String tbName = "s4c_banktransfers";
+
   String id;
   String uuid;
   String number;
@@ -1370,7 +1426,6 @@ class BankTransfer {
       };
 
   void save() async {
-    final collection = db.collection("s4c_banktransfers");
     if (amountIntermediary != 0) {
       exchangeSource = amountIntermediary / (amountSource - commissionSource);
       exchangeIntermediary =
@@ -1383,17 +1438,18 @@ class BankTransfer {
     if (id == "") {
       id = const Uuid().v4();
       Map<String, dynamic> data = toJson();
-      collection.add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
-      final item = await collection.doc(id).get();
+      final item =
+          await FirebaseFirestore.instance.collection(tbName).doc(id).get();
       Map<String, dynamic> data = toJson();
-      collection.doc(item.id).set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(item.id).set(data);
     }
   }
 
   static Future<List<BankTransfer>> getByProject(project) async {
-    final collection = db.collection("s4c_banktransfers");
-    final query = await collection
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
         .where("project", isEqualTo: project)
         .orderBy('date')
         .get();
@@ -1407,8 +1463,10 @@ class BankTransfer {
   }
 
   static Future<BankTransfer> getByUuid(uuid) async {
-    final collection = db.collection("s4c_banktransfers");
-    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
     BankTransfer item = BankTransfer.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
@@ -1445,9 +1503,8 @@ class BankTransfer {
   }
 
   void delete() {
-    final collection = db.collection("s4c_banktransfers");
     if (id != "") {
-      collection.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
   }
 
@@ -1509,6 +1566,7 @@ class BankTransfer {
 }
 
 class Distribution extends Object {
+  static const String tbName = "s4c_distributions";
   String id = "";
   String uuid;
   String project;
@@ -1589,9 +1647,8 @@ class Distribution extends Object {
 
   static Future<List<Distribution>> all() async {
     try {
-      final collection = db.collection("s4c_distributions");
       List<Distribution> items = [];
-      final query = await collection.get();
+      final query = await FirebaseFirestore.instance.collection(tbName).get();
       if (query.docs.isEmpty) {
         return items;
       }
@@ -1609,17 +1666,21 @@ class Distribution extends Object {
   }
 
   static Future<Distribution> getByUuid(String uuid) async {
-    final collection = db.collection("s4c_distributions");
-    final query = await collection.where("uuid", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid)
+        .get();
     Distribution item = Distribution.fromJson(query.docs.first.data());
     item.id = query.docs.first.id;
     return item;
   }
 
   static Future<List<Distribution>> listByUuid(List<String> uuid) async {
-    final collection = db.collection("s4c_distributions");
     List<Distribution> items = [];
-    final query = await collection.where("uuid", whereIn: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("uuid", whereIn: uuid)
+        .get();
     for (var element in query.docs) {
       Distribution item = Distribution.fromJson(element.data());
       item.id = element.id;
@@ -1629,8 +1690,10 @@ class Distribution extends Object {
   }
 
   static Future<List<Distribution>> byProject(String uuid) async {
-    final collection = db.collection("s4c_distributions");
-    final query = await collection.where("project", isEqualTo: uuid).get();
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where("project", isEqualTo: uuid)
+        .get();
     List<Distribution> items = [];
     for (var element in query.docs) {
       Distribution item = Distribution.fromJson(element.data());
@@ -1641,30 +1704,34 @@ class Distribution extends Object {
   }
 
   void save() async {
-    final collection = db.collection("s4c_distributions");
     project = finn.project;
     if (uuid == "") {
       uuid = const Uuid().v4();
     } else {
-      final query = await collection.where("uuid", isEqualTo: uuid).get();
+      final query = await FirebaseFirestore.instance
+          .collection(tbName)
+          .where("uuid", isEqualTo: uuid)
+          .get();
       if (query.docs.isNotEmpty) {
         id = query.docs.first.id;
       }
 
       if (id == "") {
         Map<String, dynamic> data = toJson();
-        collection.add(data).then((value) => id = value.id);
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .add(data)
+            .then((value) => id = value.id);
       } else {
         Map<String, dynamic> data = toJson();
-        collection.doc(id).set(data);
+        FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
       }
     }
   }
 
   void delete() {
-    final collection = db.collection("s4c_distributions");
     if (id != "") {
-      collection.doc(id).delete();
+      FirebaseFirestore.instance.collection(tbName).doc(id).delete();
     }
   }
 

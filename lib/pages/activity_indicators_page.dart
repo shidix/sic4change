@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
@@ -18,17 +20,20 @@ class ActivityIndicatorsPage extends StatefulWidget {
 
 class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
   Activity? activity;
+  late final Profile? profile;
 
   void loadActivityIndicators(value) async {
-    await getActivityIndicatorsByActivity(value).then((val) {
-      aiList = val;
-    });
+    // await getActivityIndicatorsByActivity(value).then((val) {
+    //   aiList = val;
+    // });
+    aiList = await ActivityIndicator.getActivityIndicatorsByActivity(value);
     setState(() {});
   }
 
   @override
   initState() {
     super.initState();
+    profile = Provider.of<ProfileProvider>(context, listen: false).profile;
     activity = widget.activity;
   }
 
@@ -145,7 +150,8 @@ class _ActivityIndicatorsPageState extends State<ActivityIndicatorsPage> {
 
   Widget activityIndicatorList(context, activity) {
     return FutureBuilder(
-        future: getActivityIndicatorsByActivity(activity.uuid),
+        future:
+            ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             aiList = snapshot.data!;

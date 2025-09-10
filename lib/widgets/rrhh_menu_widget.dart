@@ -2,38 +2,57 @@
 
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/hierarchy_page.dart';
-import 'package:sic4change/pages/nominas_page.dart';
+import 'package:sic4change/pages/rrhh_calendars_page.dart';
+import 'package:sic4change/pages/rrhh_hierarchy_page.dart';
+import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/pages/rrhh_holiday_category_page.dart';
+import 'package:sic4change/pages/rrhh_nominas_page.dart';
 // import 'package:sic4change/pages/home_page.dart';
-import 'package:sic4change/pages/employee_page.dart';
-import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/pages/rrhh_employee_page.dart';
+import 'package:sic4change/pages/rrhh_workplace_pages.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
 const NOMINA_ITEM = 0;
 const EMPLOYEE_ITEM = 1;
 const HIERARCHY_ITEM = 2;
+const CALENDAR_ITEM = 3;
+const WORKPLACE_ITEM = 4;
+const HOLIDAYS_ITEM = 5;
 
-Widget secondaryMenu(context, int option, Profile? profile) {
+Widget secondaryMenu(context, int option) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.end,
     mainAxisSize: MainAxisSize.max,
     children: [
       (option != NOMINA_ITEM)
-          ? goPage(context, 'Nóminas', NominasPage(profile: profile),
-              Icons.euro_symbol)
+          ? goPage(context, 'Nóminas', const NominasPage(), Icons.euro_symbol)
           : goPage(context, 'Nóminas', null, Icons.euro_symbol),
       space(width: 10),
       (option != EMPLOYEE_ITEM)
-          ? goPage(context, 'Empleados', EmployeesPage(profile: profile),
-              Icons.people)
+          ? goPage(context, 'Empleados', const EmployeesPage(), Icons.people)
           : goPage(context, 'Empleados', null, Icons.people),
       space(width: 10),
       (option != HIERARCHY_ITEM)
-          ? goPage(context, 'Departamentos', HierarchyPage(profile: profile),
+          ? goPage(context, 'Departamentos', const HierarchyPage(),
               Icons.account_tree)
           : goPage(context, 'Departamentos', null, Icons.account_tree),
       space(width: 10),
-      backButton(context),
+      (option != CALENDAR_ITEM)
+          ? goPage(context, 'Calendarios', const CalendarHolidaysPage(),
+              Icons.calendar_today)
+          : goPage(context, 'Calendarios', null, Icons.calendar_today),
+      space(width: 10),
+      (option != WORKPLACE_ITEM)
+          ? goPage(context, 'Centros de Trabajo', const WorkplacePage(),
+              Icons.business_rounded)
+          : goPage(context, 'Centros de Trabajo', null, Icons.business_rounded),
+      space(width: 10),
+      (option != HOLIDAYS_ITEM)
+          ? goPage(context, 'Permisos', const HolidayCategoryPage(),
+              Icons.beach_access)
+          : goPage(context, 'Permisos', null, Icons.beach_access),
+      // space(width: 10),
+      // backButton(context),
     ],
   );
 }

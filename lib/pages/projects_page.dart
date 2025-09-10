@@ -1,10 +1,14 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+// import 'package:googleapis/cloudresourcemanager/v3.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/documents_page.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_drive.dart';
@@ -12,6 +16,7 @@ import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/models_risks.dart';
+import 'package:sic4change/services/programme_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -33,54 +38,94 @@ class _ProjectsPageState extends State<ProjectsPage> {
   List prList = [];
   List programList = [];
   Profile? profile;
+  Organization? currentOrg;
   String deleteMsg = "";
+  late ProfileProvider? _profileProvider;
+  late ProjectsProvider? _projectsProvider;
+  late VoidCallback _listener;
   final user = FirebaseAuth.instance.currentUser!;
 
   void setLoading() {
+    loading = true;
+    if (!mounted) return;
     setState(() {
       loading = true;
     });
   }
 
   void stopLoading() {
+    loading = false;
+    if (!mounted) return;
     setState(() {
       loading = false;
     });
   }
 
   void loadProgrammes() async {
-    await getProgrammes().then((val) {
-      programList = val;
-    });
+    programList = _projectsProvider!.programmes;
+    if ((programList.isEmpty) || (programList == null)) {
+      programList = await Programme.getProgrammes();
+    }
+    if (!mounted) return;
     setState(() {});
   }
 
   void loadProjects() async {
     setLoading();
-    await getProjects().then((val) {
-      if (mounted) {
-        setState(() {
-          prList = val;
-        });
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
+    prList = _projectsProvider!.projects;
+    if ((prList.isEmpty) || (prList == null)) {
+      prList = await SProject.getProjects();
+      if (prList.isNotEmpty) {
+        _projectsProvider!.initialize();
       }
-      //prList = val;
-    });
-    setState(() {});
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
     stopLoading();
   }
 
   void getProfile(user) async {
-    await Profile.getProfile(user.email!).then((value) {
-      profile = value;
-      //print(profile?.mainRole);
-    });
+    profile = _profileProvider!.profile;
+    currentOrg = _profileProvider!.organization;
+    // await Profile.getProfile(user.email!).then((value) {
+    //   profile = value;
+    //   //print(profile?.mainRole);
+    // });
+  }
+
+  void initializeData() async {
+    // // loadProjects();
+    // _projectsProvider = Provider.of<ProjectsProvider>(context, listen: false);
+    // _projectsProvider = context.read<ProjectsProvider?>();
+    // _projectsProvider ??= ProjectsProvider();
+    // // _projectsProvider.profile = profile;
+    // // _projectsProvider.organization = currentOrg;
+    // if (prList.isEmpty) {
+    //   loadProjects();
+    // }
+    // _projectsProvider!.addListener(() {
+    //   // prList = _projectsProvider.projects;
+    //   loadProjects();
+    //   if (!mounted) return;
+    //   setState(() {});
+    // });
+    // if (_projectsProvider!.projects.isEmpty) {
+    //   _projectsProvider!.initialize();
+    // }
+    loadProgrammes();
+    loadProjects();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    // _projectsProvider!.removeListener(_listener);
+    // _projectsProvider!.dispose();
+    super.dispose();
   }
 
   @override
@@ -88,23 +133,49 @@ class _ProjectsPageState extends State<ProjectsPage> {
     super.initState();
 
     _mainMenu = mainMenu(context, "/projects");
-    loadProjects();
-    /*getProjects().then((val) {
-      if (mounted) {
-        setState(() {
-          prList = val;
-        });
-        for (SProject item in prList) {
-          item.loadObjs().then((value) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
-      }
-    });*/
+    _projectsProvider = context.read<ProjectsProvider?>();
+    _projectsProvider ??= ProjectsProvider();
 
-    getProfile(user);
+    try {
+      _profileProvider = context.read<ProfileProvider?>();
+    } catch (e) {
+      _profileProvider = ProfileProvider();
+    }
+    _listener = () {
+      if (!mounted) return;
+      getProfile(user);
+      _mainMenu = mainMenu(context, "/projects");
+      profile = _profileProvider!.profile;
+      currentOrg = _profileProvider!.organization;
+      if (!((profile != null) && (currentOrg != null))) {
+        _profileProvider!.loadProfile();
+      }
+      if (mounted) setState(() {});
+    };
+    _profileProvider!.addListener(_listener);
+
+    if ((profile == null) || (currentOrg == null)) {
+      _profileProvider!.loadProfile();
+    }
+
+    try {
+      _projectsProvider = context.read<ProjectsProvider?>();
+    } catch (e) {
+      _projectsProvider = ProjectsProvider();
+    }
+
+    _projectsProvider ??= context.read<ProjectsProvider?>();
+    if (prList.isEmpty) {
+      loadProjects();
+    }
+    _projectsProvider!.addListener(() {
+      // prList = _projectsProvider.projects;
+      loadProjects();
+      if (!mounted) return;
+      setState(() {});
+    });
+
+    initializeData();
   }
 
   @override
@@ -115,7 +186,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //mainMenu(context, "/projects"),
           _mainMenu!,
           projectSearch(),
           Container(
@@ -144,7 +214,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
               /*goPage(context, "Listado", const ProjectListPage(), Icons.info,
                   style: "bigBtn", extraction: () {}),*/
               space(width: 10),
-              addBtn(context, callDialog, {"programme": null},
+              addBtn(context, callDialog,
+                  {"programme": Programme('Nuevo programa')},
                   text: "Añadir Programa"),
               space(width: 10),
               addBtn(context, callProjectDialog, {"programme": null},
@@ -167,81 +238,133 @@ class _ProjectsPageState extends State<ProjectsPage> {
 /*-------------------------------------------------------------
                      PROGRAMMES
 -------------------------------------------------------------*/
+
   Widget programmeList(context) {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
-        child: FutureBuilder(
-            future: getProgrammes(),
-            builder: ((context, snapshot) {
-              if (snapshot.hasData) {
-                programList = snapshot.data!;
-                return SizedBox(
-                    height: 150,
-                    child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5,
-                          //crossAxisSpacing: 20,
-                          //mainAxisSpacing: 20,
-                          childAspectRatio: 2,
-                        ),
-                        itemCount: programList.length,
-                        itemBuilder: (_, index) {
-                          Programme programme = programList[index];
-                          if (programme.logo != "") {
-                            return Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  InkWell(
-                                      child: Image.network(
-                                        programme.logo,
-                                      ),
-                                      onTap: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: ((context) =>
-                                                    ProgrammePage(
-                                                        programme:
-                                                            programme))));
-                                      }),
-                                  /*InkWell(
-                                    child: customText(programme.name, 16),
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: ((context) =>
-                                                  ProgrammePage(
-                                                      programme: programme))));
-                                    },
-                                  ),*/
-                                  editBtn(context, callDialog,
-                                      {'programme': programme}),
-                                ]);
-                          } else {
-                            return Column(children: [
-                              Row(
-                                children: [
-                                  customText(programme.name, 15,
-                                      bold: FontWeight.bold),
-                                  customText(
-                                      " ('${programme.projects}' proyectos)",
-                                      15),
-                                  editBtn(context, callDialog,
-                                      {'programme': programme})
-                                ],
-                              )
-                            ]);
-                          }
-                        }));
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            })));
+        child: Builder(builder: ((context) {
+          programList = _projectsProvider!.programmes;
+          int nCols = 5;
+          int nRows = (programList.length / nCols).ceil();
+
+          List<Widget> matrix = List<Widget>.filled(nRows * nCols, Container());
+          for (int i = 0; i < programList.length; i++) {
+            Programme programme = programList[i];
+            matrix[i] = Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(
+                      child: Column(children: [
+                        customText(programme.name, 16, bold: FontWeight.bold),
+                        (programme.logo != '')
+                            ? Image.network(programme.logo, height: 100)
+                            : SizedBox(height: 100, width: 100),
+                      ]),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) =>
+                                    ProgrammePage(programme: programme))));
+                      }),
+                  editBtn(context, callDialog, {'programme': programme}),
+                ]);
+          }
+
+          // List<dynamic> matrixDyn = reshape(matrix, nRows, nCols);
+          List<Widget> rows = [];
+          if (programList != null) {
+            for (var row in reshape(matrix, nRows, nCols)) {
+              rows.add(Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [for (var col in row) Expanded(child: col)]));
+            }
+            //print(row);
+
+            return SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 200,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: rows,
+                  ),
+                ));
+
+            // return SizedBox(
+            //     height: 150,
+            //     child: GridView.builder(
+            //         gridDelegate:
+            //             const SliverGridDelegateWithFixedCrossAxisCount(
+            //           crossAxisCount: 5,
+            //           //crossAxisSpacing: 20,
+            //           //mainAxisSpacing: 20,
+            //           childAspectRatio: 2,
+            //         ),
+            //         itemCount: programList.length,
+            //         itemBuilder: (_, index) {
+            //           Programme programme = programList[index];
+
+            //           if (programme.logo != "") {
+            //             return Column(
+            //                 mainAxisAlignment: MainAxisAlignment.start,
+            //                 crossAxisAlignment: CrossAxisAlignment.center,
+            //                 children: [
+            //                   InkWell(
+            //                       child: Column(children: [
+            //                         customText(programme.name, 16,
+            //                             bold: FontWeight.bold),
+            //                         Image.network(programme.logo, height: 100),
+            //                       ]),
+            //                       onTap: () {
+            //                         Navigator.push(
+            //                             context,
+            //                             MaterialPageRoute(
+            //                                 builder: ((context) =>
+            //                                     ProgrammePage(
+            //                                         programme: programme))));
+            //                       }),
+            //                   /*InkWell(
+            //                         child: customText(programme.name, 16),
+            //                         onTap: () {
+            //                           Navigator.push(
+            //                               context,
+            //                               MaterialPageRoute(
+            //                                   builder: ((context) =>
+            //                                       ProgrammePage(
+            //                                           programme: programme))));
+            //                         },
+            //                       ),*/
+            //                   editBtn(context, callDialog,
+            //                       {'programme': programme}),
+            //                 ]);
+            //           } else {
+            //             return Column(children: [
+            //               Row(
+            //                 children: [
+            //                   customText(programme.name, 15,
+            //                       bold: FontWeight.bold),
+            //                   customText(
+            //                       (programme.projects != 1)
+            //                           ? " (${programme.projects} proyectos)"
+            //                           : " (${programme.projects} proyecto)",
+            //                       15),
+            //                   editBtn(
+            //                       context, callDialog, {'programme': programme})
+            //                 ],
+            //               )
+            //             ]);
+            //           }
+            //         }));
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        })));
   }
 
   void callDialog(context, args) {
@@ -254,19 +377,64 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void saveProgramme(List args) async {
     Programme programme = args[0];
+
+    String tmpPath = "files/programmes/${programme.id}/logoTemp.png";
+    String logoPath = "files/programmes/${programme.id}/logo.png";
+    logoPath = await moveFileInStorage(tmpPath, logoPath);
+    programme.logo = await getDownloadUrl(logoPath);
     programme.save();
+    _projectsProvider!.addProgramme(programme);
     loadProgrammes();
     Navigator.pop(context);
   }
 
+  Future<String> uploadLogoProgramme(PlatformFile? file, int index) async {
+    if (file != null) {
+      String extention = file.name.split('.').last;
+      String idPrograme = _projectsProvider!.programmes[index].id;
+
+      String uploadFile = await uploadFileToStorage(file,
+          rootPath: 'files/programmes/$idPrograme',
+          fileName: 'logo.$extention');
+      // await _projectsProvider!.programmes[index].save();
+      _projectsProvider!.programmes[index].logo =
+          await getDownloadUrl(uploadFile);
+      await _projectsProvider!.programmes[index].save();
+      if (mounted) {
+        setState(() {});
+      }
+      return _projectsProvider!.programmes[index].logo;
+    }
+    return "";
+  }
+
   Future<void> programmeEditDialog(context, programme) {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              titlePadding: const EdgeInsets.all(0),
+              title: s4cTitleBar('Modificar programa'),
+              content: ProgrammeForm(
+                currentProgramme: (programme != null) ? programme : null,
+                onSaved: (args) {
+                  saveProgramme(args);
+                },
+              ));
+        });
+  }
+
+  Future<void> programmeEditDialog_old(context, programme) {
     programme ??= Programme("");
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        Key dialogKey = UniqueKey();
         return AlertDialog(
+          key: dialogKey,
           //title: const Text('Modificar programa'),
           titlePadding: const EdgeInsets.all(0),
           title: s4cTitleBar('Modificar programa'),
@@ -286,19 +454,40 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ]),
             space(height: 20),
             Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                //customText("Logo:", 16, textColor: titleColor),
-                //customTextField(logoController, "Logo", size: 600),
-                SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue: (programme.logo != "") ? programme.logo : "",
-                    decoration: const InputDecoration(labelText: 'Logo'),
-                    onChanged: (val) => setState(() => programme.logo = val),
-                  ),
-                ),
-              ]),
+              Expanded(
+                  flex: 1,
+                  child: Image.network(programme.logo, height: 40, width: 40)),
+              Expanded(
+                  flex: 9,
+                  child: UploadImageField(
+                      textToShow: "Logo",
+                      rootPath: "files/programmes/${programme.id}",
+                      fileName: "logo.png",
+                      pathImage: programme.logo,
+                      onSelectedFile: (file) async {
+                        int index = _projectsProvider!.programmes.indexWhere(
+                            (element) => element.id == programme.id);
+                        programme.logo = await uploadLogoProgramme(file, index);
+                        dialogKey = UniqueKey();
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      })),
             ]),
+            // Row(children: [
+            //   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            //     //customText("Logo:", 16, textColor: titleColor),
+            //     //customTextField(logoController, "Logo", size: 600),
+            //     SizedBox(
+            //       width: 600,
+            //       child: TextFormField(
+            //         initialValue: (programme.logo != "") ? programme.logo : "",
+            //         decoration: const InputDecoration(labelText: 'Logo'),
+            //         onChanged: (val) => setState(() => programme.logo = val),
+            //       ),
+            //     ),
+            //   ]),
+            // ]),
           ])),
           actions: <Widget>[
             Row(children: [
@@ -448,7 +637,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           financiers.add(
               (getObject(project.financiersObj, uuid) as Organization).name);
         } catch (e) {
-          print(e);
+          continue; // Ignore errors if the object is not found
         }
       }
     }
@@ -468,8 +657,15 @@ class _ProjectsPageState extends State<ProjectsPage> {
     List partners = [];
     if (project.partnersObj.isNotEmpty) {
       for (var uuid in list) {
-        partners
-            .add((getObject(project.partnersObj, uuid) as Organization).name);
+        Object? obj = getObject(project.partnersObj, uuid);
+        if (obj != Null) {
+          partners.add((obj as Organization).name);
+        } else {
+          project.partners.remove(uuid);
+          project.save();
+        }
+        // partners
+        //     .add((getObject(project.partnersObj, uuid) as Organization).name);
       }
     }
 
@@ -507,7 +703,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
-        IntrinsicHeight(
+        SizedBox(
+          width: double.infinity,
           child: Row(
             children: [
               Column(
@@ -678,18 +875,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     SProject project = args[0];
 
-    ProjectDates pd = await getProjectDatesByProject(project.uuid);
+    ProjectDates pd = await ProjectDates.getProjectDatesByProject(project.uuid);
     pd.delete();
 
-    ProjectLocation pl = await getProjectLocationByProject(project.uuid);
+    ProjectLocation pl =
+        await ProjectLocation.getProjectLocationByProject(project.uuid);
     pl.delete();
 
-    List refList = await getReformulationsByProject(project.uuid);
+    List refList = await Reformulation.getReformulationsByProject(project.uuid);
     for (Reformulation ref in refList) {
       ref.delete();
     }
 
-    List riskList = await getRisksByProject(project.uuid);
+    List riskList = await Risk.getRisksByProject(project.uuid);
     for (Risk risk in riskList) {
       risk.delete();
     }
@@ -739,7 +937,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       bt.delete();
     }
 
-    Folder? folder = await getFolderByUuid(project.folder);
+    Folder? folder = await Folder.getFolderByUuid(project.folder);
     bool haveChildren = await folder!.haveChildren();
     if (!haveChildren) {
       folder.delete();
