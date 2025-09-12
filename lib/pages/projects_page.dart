@@ -474,20 +474,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         }
                       })),
             ]),
-            // Row(children: [
-            //   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            //     //customText("Logo:", 16, textColor: titleColor),
-            //     //customTextField(logoController, "Logo", size: 600),
-            //     SizedBox(
-            //       width: 600,
-            //       child: TextFormField(
-            //         initialValue: (programme.logo != "") ? programme.logo : "",
-            //         decoration: const InputDecoration(labelText: 'Logo'),
-            //         onChanged: (val) => setState(() => programme.logo = val),
-            //       ),
-            //     ),
-            //   ]),
-            // ]),
           ])),
           actions: <Widget>[
             Row(children: [
