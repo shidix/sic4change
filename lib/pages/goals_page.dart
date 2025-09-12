@@ -114,7 +114,7 @@ class _GoalsPageState extends State<GoalsPage>
         goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
         /*goalIndicatorPercent[goal.uuid] =
             await Goal.getIndicatorsPercent(goal.uuid);*/
-        double indPercent = await Goal.getIndicatorsPercent(goal.uuid);
+        double indPercent = await Goal.getIndicatorsPercent(goal.uuid, goalIndicatorList[goal.uuid]);
         if (i != 0) {
           goalIndicatorPercent[goal.uuid] = (indPercent + (resPercent / i)) / 2;
         } else {
@@ -1503,7 +1503,7 @@ class _GoalsPageState extends State<GoalsPage>
     GoalIndicator indicator = args[0];
     //indicator.getFolder();
     indicator.save();
-    Goal.getIndicatorsPercent(indicator.goal).then((value) {
+    Goal.getIndicatorsPercent(indicator.goal, null).then((value) {
       goalIndicatorPercent[indicator.goal] = value;
       setState(() {});
     });

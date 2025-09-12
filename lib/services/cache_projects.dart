@@ -17,7 +17,7 @@ class ProjectsProvider with ChangeNotifier {
 
   Profile? _profile;
   User? user = FirebaseAuth.instance.currentUser;
-  bool _loading = false;
+  // bool _loading = false;
   List<SProject> _projects = [];
   List<Ambit> _ambits = [];
   List<ProjectType> _projectTypes = [];
@@ -32,6 +32,35 @@ class ProjectsProvider with ChangeNotifier {
   List<STask> _tasks = [];
   List<TasksStatus> _taskStatuses = [];
   List<Profile> _profiles = [];
+  List<ProgrammeIndicators> _programmeIndicators = [];
+
+  List<ProgrammeIndicators> get programmeIndicators => _programmeIndicators;
+  set programmeIndicators(List<ProgrammeIndicators> value) {
+    _programmeIndicators = value;
+    sendNotify();
+  }
+  void addProgrammeIndicator(ProgrammeIndicators? indicator) {
+    if (indicator == null) return;
+    int index = _programmeIndicators.indexWhere((element) => element.id == indicator.id);
+    if (index != -1) {
+      _programmeIndicators[index] = indicator;
+    } else {
+      _programmeIndicators.add(indicator);
+    }
+    sendNotify();
+  }
+  void removeProgrammeIndicator(ProgrammeIndicators? indicator) {
+    if (indicator == null) return;
+    if (!_programmeIndicators.any((element) => element.id == indicator.id)) return;
+    _programmeIndicators.remove(indicator);
+    sendNotify();
+  }
+  Future<void> loadProgrammeIndicators(Programme programme) async {
+    _isLoading.add(true);
+    _programmeIndicators = await ProgrammeIndicators.getProgrammesIndicators(programme.uuid);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
 
   final Queue<bool> _isLoading = Queue();
 
@@ -94,6 +123,12 @@ class ProjectsProvider with ChangeNotifier {
   List<Programme> get programmes => _programmes;
   set programmes(List<Programme> value) {
     _programmes = value;
+    sendNotify();
+  }
+
+  List<Organization> get organizations => _organizations;
+  set organizations(List<Organization> value) {
+    _organizations = value;
     sendNotify();
   }
 
@@ -163,6 +198,29 @@ class ProjectsProvider with ChangeNotifier {
     if (!_programmes.any((element) => element.id == programme.id)) return;
     _isLoading.add(true);
     _programmes.remove(programme);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void addOrganization(Organization? organization) {
+    if (organization == null) return;
+    _isLoading.add(true);
+    int index =
+        _organizations.indexWhere((element) => element.id == organization.id);
+    if (index != -1) {
+      _organizations[index] = organization;
+    } else {
+      _organizations.add(organization);
+    }
+    _isLoading.removeFirst();
+    sendNotify();
+  } 
+
+  void removeOrganization(Organization? organization) {
+    if (organization == null) return;
+    if (!_organizations.any((element) => element.id == organization.id)) return;
+    _isLoading.add(true);
+    _organizations.remove(organization);
     _isLoading.removeFirst();
     sendNotify();
   }
@@ -395,15 +453,15 @@ class ProjectsProvider with ChangeNotifier {
   }
 
   void initialize() async {
-    if (_loading) return;
+    if (_isLoading.isNotEmpty) return;
+    _isLoading.add(true);
     if (_initialized) return;
-    _loading = true;
     if (user == null) return;
     profile = await Profile.byEmail(user!.email!);
     await loadProjects();
     await loadTasks();
+    _isLoading.removeFirst();
     sendNotify();
-    _loading = false;
     _initialized = true;
   }
 

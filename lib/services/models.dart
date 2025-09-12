@@ -331,9 +331,10 @@ class SProject {
     return datesObj;
   }
 
-  Future<ProjectLocation> getLocation() async {
+  Future<ProjectLocation> getLocation([List<ProjectLocation>? locationList]) async {
     if (locationObj.project == "") {
-      locationObj = await ProjectLocation.getProjectLocationByProject(uuid);
+      locationList ??= await ProjectLocation.getProjectLocation();
+      locationObj = locationList.firstWhere((loc) => loc.project == uuid, orElse: () => ProjectLocation(uuid));
     }
     return locationObj;
   }
@@ -2325,13 +2326,13 @@ class ProgrammeIndicators {
     }
   }
 
-  static Future<List> getProgrammesIndicators(uuid) async {
+  static Future<List<ProgrammeIndicators>> getProgrammesIndicators(uuid) async {
     final dbProgrammeIndicators =
         FirebaseFirestore.instance.collection("s4c_programme_indicators");
-    List items = [];
+    List<ProgrammeIndicators> items = [];
     try {
       QuerySnapshot queryProgrammeIndicators = await dbProgrammeIndicators
-          .orderBy("order", descending: true)
+          // .orderBy("order", descending: true)
           .where("programme", isEqualTo: uuid)
           .get();
 
@@ -2342,6 +2343,7 @@ class ProgrammeIndicators {
         await item.getSumValues();
         items.add(item);
       }
+      items.sort((a, b) => a.order.compareTo(b.order));
     } catch (e) {
       print(e);
     }

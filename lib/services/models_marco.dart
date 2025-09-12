@@ -78,12 +78,14 @@ class Goal {
     return proj.name;
   }*/
 
-  static Future<double> getIndicatorsPercent(uuid) async {
+  static Future<double> getIndicatorsPercent(uuid, List<GoalIndicator>? indicators) async {
     double totalExpected = 0;
     double totalObtained = 0;
     double total = 0;
-    List<GoalIndicator> indicators =
-        await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    indicators ??= await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;       
+        // await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    indicators = indicators.where((ind) => ind.goal == uuid).toList();
+
     for (GoalIndicator indicator in indicators) {
       try {
         totalExpected += double.parse(indicator.expected);
@@ -324,7 +326,7 @@ class GoalIndicator {
       QuerySnapshot query = await FirebaseFirestore.instance
           .collection("s4c_goal_indicators")
           .orderBy("goal")
-          .orderBy("order", descending: true)
+          // .orderBy("order", descending: true)
           .where("goal", isEqualTo: goal)
           .get();
       for (var doc in query.docs) {
@@ -335,6 +337,9 @@ class GoalIndicator {
         items.add(item);
         //items.add(GoalIndicator.fromJson(data));
       }
+
+      // Order items by order field (descending)
+      items.sort((a, b) => a.order.compareTo(b.order));
     } catch (e) {}
     return items;
   }

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'dart:developer' as dev;
 
 //--------------------------------------------------------------
 //                       DIAGRAM VALUES
@@ -117,21 +118,28 @@ Widget pieDiagram(List<DiagramValues> diagList) {
 
 List<PieChartSectionData> showingSections(List diagList) {
   List<PieChartSectionData> pList = [];
+
   for (DiagramValues dv in diagList) {
-    PieChartSectionData section = PieChartSectionData(
-      color: dv.color,
-      value: double.parse(dv.percent),
-      title: '${dv.percent}%',
-      //radius: radius,
-      titleStyle: const TextStyle(
-        //fontSize: fontSize,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-      ),
-    );
-    pList.add(section);
+    try {
+      PieChartSectionData section = PieChartSectionData(
+        color: dv.color,
+        value: double.parse(dv.percent),
+        title: '${dv.percent}%',
+        //radius: radius,
+        titleStyle: const TextStyle(
+          //fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+        ),
+      );
+      pList.add(section);
+    }
+    catch (e) {
+      dev.log(e.toString());
+    }
   }
+  
   return pList;
 }
 
