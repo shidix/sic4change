@@ -59,6 +59,7 @@ lib/generated/
 .firebase/
 .firebaserc
 firebase.json
+cors.json
 firebase.json.orig
 web/404.html
 lib/firebase_options.dart**
@@ -67,4 +68,3 @@ macos**
 
 macos/Flutter/GeneratedPluginRegistrant.swift
 **.old
-

@@ -17,7 +17,7 @@ class ProjectsProvider with ChangeNotifier {
 
   Profile? _profile;
   User? user = FirebaseAuth.instance.currentUser;
-  bool _loading = false;
+  // bool _loading = false;
   List<SProject> _projects = [];
   List<Ambit> _ambits = [];
   List<ProjectType> _projectTypes = [];
@@ -32,9 +32,6 @@ class ProjectsProvider with ChangeNotifier {
   List<STask> _tasks = [];
   List<TasksStatus> _taskStatuses = [];
   List<Profile> _profiles = [];
-  List<Region> _regions = [];
-  List<Town> _towns = [];
-  List<Province> _provinces = [];
 
   final Queue<bool> _isLoading = Queue();
 
@@ -124,32 +121,6 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
-  List<Country> get countries => _countries;
-  set countries(List<Country> value) {
-    _countries = value;
-    sendNotify();
-  }
-
-  //// Add and remove methods
-
-  void addCountry(Country? country) {
-    if (country == null) return;
-    int index = _countries.indexWhere((element) => element.id == country.id);
-    if (index != -1) {
-      _countries[index] = country;
-    } else {
-      _countries.add(country);
-    }
-    sendNotify();
-  }
-
-  void removeCountry(Country? country) {
-    if (country == null) return;
-    if (!_countries.any((element) => element.id == country.id)) return;
-    _countries.remove(country);
-    sendNotify();
-  }
-
   void addProfile(Profile? profile) {
     if (profile == null) return;
     int index = _profiles.indexWhere((element) => element.id == profile.id);
@@ -218,94 +189,6 @@ class ProjectsProvider with ChangeNotifier {
     _programmes.remove(programme);
     _isLoading.removeFirst();
     sendNotify();
-  }
-
-  void addRegion(Region? region) {
-    if (region == null) return;
-    _isLoading.add(true);
-    int index = _regions.indexWhere((element) => element.id == region.id);
-    if (index != -1) {
-      _regions[index] = region;
-    } else {
-      _regions.add(region);
-    }
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  void removeRegion(Region? region) {
-    if (region == null) return;
-    if (!_regions.any((element) => element.id == region.id)) return;
-    _isLoading.add(true);
-    _regions.remove(region);
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  void addProvince(Province? province) {
-    if (province == null) return;
-    _isLoading.add(true);
-    int index = _provinces.indexWhere((element) => element.id == province.id);
-    if (index != -1) {
-      _provinces[index] = province;
-    } else {
-      _provinces.add(province);
-    }
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  void removeProvince(Province? province) {
-    if (province == null) return;
-    if (!_provinces.any((element) => element.id == province.id)) return;
-    _isLoading.add(true);
-    _provinces.remove(province);
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  void addTown(Town? town) {
-    if (town == null) return;
-    _isLoading.add(true);
-    int index = _towns.indexWhere((element) => element.id == town.id);
-    if (index != -1) {
-      _towns[index] = town;
-    } else {
-      _towns.add(town);
-    }
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  void removeTown(Town? town) {
-    if (town == null) return;
-    if (!_towns.any((element) => element.id == town.id)) return;
-    _isLoading.add(true);
-    _towns.remove(town);
-    _isLoading.removeFirst();
-    sendNotify();
-  }
-
-  //load methods for _regions, _provinces, _towns
-  Future<void> loadRegions({bool notify = false}) async {
-    _isLoading.add(true);
-    _regions = await Region.getRegions() as List<Region>;
-    _isLoading.removeFirst();
-    if (notify) sendNotify();
-  }
-
-  Future<void> loadProvinces({bool notify = false}) async {
-    _isLoading.add(true);
-    _provinces = await Province.getProvinces() as List<Province>;
-    _isLoading.removeFirst();
-    if (notify) sendNotify();
-  }
-
-  Future<void> loadTowns({bool notify = false}) async {
-    _isLoading.add(true);
-    _towns = await Town.getTowns() as List<Town>;
-    _isLoading.removeFirst();
-    if (notify) sendNotify();
   }
 
   Future<void> loadProjects({bool notify = false}) async {
@@ -542,15 +425,15 @@ class ProjectsProvider with ChangeNotifier {
   }
 
   void initialize() async {
-    if (_loading) return;
+    if (_isLoading.isNotEmpty) return;
+    _isLoading.add(true);
     if (_initialized) return;
-    _loading = true;
     if (user == null) return;
     profile = await Profile.byEmail(user!.email!);
     await loadProjects();
     await loadTasks();
+    _isLoading.removeFirst();
     sendNotify();
-    _loading = false;
     _initialized = true;
   }
 

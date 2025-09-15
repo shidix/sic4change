@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/diagram_lib.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/programme_lib.dart';
 import 'package:sic4change/services/utils.dart';
@@ -26,16 +29,19 @@ class ProgrammePage extends StatefulWidget {
 }
 
 class _ProgrammePageState extends State<ProgrammePage> {
+  ProjectsProvider? projectsProvider;
+
   Programme? programme;
   bool returnToList = false;
   Profile? profile;
-  List projects = [];
-  List indicators = [];
+  List<SProject> projects = [];
+  List<ProgrammeIndicators> indicators = [];
   Map<String, double> financiers = {};
   Map<String, double> goalsPercent = {};
   Map<String, double> totalsExecuted = {};
   Map<String, double> projStatus = {};
   Map<String, int> sourceFinancing = {};
+
 
   double totalBudget = 0.0; //Suma de los presupuestos de los proyectos
   double totalFinancing = 0.0; //Suma de las aportaciones de los financiadores
@@ -46,13 +52,24 @@ class _ProgrammePageState extends State<ProgrammePage> {
 
   int touchedIndex = -1;
 
-  void loadProgrammeProjects() async {
-    setState(() {
-      loading = true;
-    });
-    await SProject.getProjectsByProgramme(programme!.uuid).then((val) async {
-      projects = val;
-      financiers = await getProgrammeFinanciers(projects);
+  Future<void> loadFromProjectsCache() async {
+    if (projectsProvider != null) {
+      projects = projectsProvider!.projects
+          .where((p) => p.programme == programme!.uuid)
+          .toList();
+
+      List<String> fullFinanciers = [];
+      for (SProject p in projects) {
+        for (String f in p.financiers) {
+          if (!fullFinanciers.contains(f) && f.isNotEmpty) {
+            fullFinanciers.add(f);
+          }
+        }
+      }
+      List<Organization> finList = projectsProvider!.organizations
+          .where((o) => fullFinanciers.contains(o.uuid))
+          .toList();
+      financiers = await getProgrammeFinanciers(projects, finList);
       projStatus = setProjectByStatus(projects);
       sourceFinancing = await setSourceFinancing(projects);
       totalsExecuted = await getTotalExectuteBudget(projects);
@@ -60,7 +77,26 @@ class _ProgrammePageState extends State<ProgrammePage> {
       totalFinancing = financiers["total"]!;
       totalGoals = goalsPercent["total"]!;
       totalExecuted = totalsExecuted["total"]!;
+    }
+  }
+
+  void loadProgrammeProjects() async {
+    setState(() {
+      loading = true;
     });
+    // await SProject.getProjectsByProgramme(programme!.uuid).then((val) async {
+    //   projects = val;
+      
+    //   financiers = await getProgrammeFinanciers(projects, null);
+    //   projStatus = setProjectByStatus(projects);
+    //   sourceFinancing = await setSourceFinancing(projects);
+    //   totalsExecuted = await getTotalExectuteBudget(projects);
+    //   goalsPercent = await getGoalsPercent(projects);
+    //   totalFinancing = financiers["total"]!;
+    //   totalGoals = goalsPercent["total"]!;
+    //   totalExecuted = totalsExecuted["total"]!;
+    // });
+    await loadFromProjectsCache();
     setState(() {
       loading = false;
     });
@@ -69,16 +105,21 @@ class _ProgrammePageState extends State<ProgrammePage> {
       totalBudget = totalBudget + fromCurrency(p.budget);
     }
 
-    indicators =
-        await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
+    if (projectsProvider!.programmeIndicators.isEmpty) {
+      await projectsProvider!.loadProgrammeIndicators(programme!);
+    }
+    indicators = projectsProvider!.programmeIndicators;
+
+        // await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
     setState(() {});
   }
 
-  void getProfile(user) async {
-    await Profile.getProfile(user.email!).then((value) {
-      profile = value;
-      //print(profile?.mainRole);
-    });
+  Future<void> getProfile(user) async {
+    profile = projectsProvider?.profile;
+    // await Profile.getProfile(user.email!).then((value) {
+    //   profile = value;
+    //   //print(profile?.mainRole);
+    // });
   }
 
   @override
@@ -91,6 +132,15 @@ class _ProgrammePageState extends State<ProgrammePage> {
       returnToList = false;
     }
     _mainMenu = mainMenu(context, "/projects");
+
+    projectsProvider = context.read<ProjectsProvider?>();
+    projectsProvider ??= ProjectsProvider();
+
+    projectsProvider?.addListener(() {
+      loadFromProjectsCache();
+    });
+
+
     loadProgrammeProjects();
 
     final user = FirebaseAuth.instance.currentUser!;
@@ -115,10 +165,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     programmeGraphs(),
-                    //programmeProjects(context),
+                    // programmeProjects(context),
                   ],
                 )
-          //programmeList(context),
         ],
       ),
     ));
@@ -187,6 +236,17 @@ class _ProgrammePageState extends State<ProgrammePage> {
   }
 
   Widget diag1() {
+    projStatus[statusFormulation] ??= 0;
+    projStatus[statusSended] ??= 0;
+    projStatus[statusReject] ??= 0;
+    projStatus[statusRefuse] ??= 0;
+    projStatus[statusApproved] ??= 0;
+    projStatus[statusStart] ??= 0;
+    projStatus[statusEnds] ??= 0;
+    projStatus[statusJustification] ??= 0;
+    projStatus[statusClose] ??= 0;
+    projStatus[statusDelivery] ??= 0;
+
     List<DiagramValues> diagList = [
       DiagramValues("Formulación",
           projStatus[statusFormulation]!.toStringAsFixed(2), diagramColors[0]),

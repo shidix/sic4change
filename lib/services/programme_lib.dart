@@ -4,14 +4,14 @@ import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/utils.dart';
 
-Future<Map<String, double>> getProgrammeFinanciers(projects) async {
+Future<Map<String, double>> getProgrammeFinanciers(projects, List<Organization>? finList) async {
   Map<String, double> finMap = {};
   Map<String, String> finUUID = {};
   Map<String, dynamic> finnInfo = {};
   finMap["total"] = 0;
 
   for (SProject project in projects) {
-    List<Organization> finList = await project.getFinanciers();
+    finList ??= await project.getFinanciers();
     project.financiersObj = finList;
     for (Organization financier in finList) {
       finMap[financier.name] = 0;
@@ -145,7 +145,10 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
 
   projectsExecuted["total"] = 0;
   for (SProject proj in projects) {
-    List distribItems = await Distribution.byProject(proj.uuid);
+    
+    // List distribItems = await Distribution.byProject(proj.uuid);
+    List<Distribution> distribItems = await Distribution.all();
+    distribItems = distribItems.where((d) => d.project == proj.uuid).toList();
     double totalDistrib = 0;
 
     for (var partner in proj.partners) {
@@ -284,13 +287,17 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
   Map<String, double> goalsPercent = {};
   goalsPercent["total"] = 0;
   int i = 0;
+  List fullGoals = await Goal.getGoals();
+  List<GoalIndicator> fullIndicators = await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;
   for (SProject proj in projects) {
-    List goals = await Goal.getGoalsByProject(proj.uuid);
+    // List goals = await Goal.getGoalsByProject(proj.uuid);
+    List goals = fullGoals.where((g) => g.project == proj.uuid).toList();
     double totalProj = 0;
     int j = 0;
+
     for (Goal goal in goals) {
       if (goal.name != "OE0") {
-        totalProj += await Goal.getIndicatorsPercent(goal.uuid);
+        totalProj += await Goal.getIndicatorsPercent(goal.uuid, fullIndicators);
         j += 1;
         i += 1;
       }
