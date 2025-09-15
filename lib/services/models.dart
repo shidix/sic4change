@@ -632,8 +632,11 @@ class SProject {
 
   Future<Folder> createFolder() async {
     Folder f = Folder(name, "");
+    f.loc = await f.getLoc();
     f.save();
     folder = f.uuid;
+    folderObj = f;
+
     save();
     createProjectFolders(f);
     return f;

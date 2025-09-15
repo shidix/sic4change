@@ -798,8 +798,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     _projectsProvider!.addProject(project, notify: true);
   }
 
-  void saveProject(List args) {
+  void saveProject(List args) async {
     SProject project = args[0];
+    if (project.folder == "") {
+      Folder folder = await project.createFolder();
+      _projectsProvider!.addFolder(folder, notify: true);
+    }
+
     setProjectStatus(project);
     Navigator.pop(context);
   }
