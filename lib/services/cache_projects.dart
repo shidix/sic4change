@@ -27,11 +27,14 @@ class ProjectsProvider with ChangeNotifier {
   List<Organization> _organizations = [];
   List<ProjectDates> _projectDates = [];
   List<ProjectStatus> _projectStatuses = [];
-  List<ProjectLocation> _projectLocations = [];
+  List<ProjectLocation> _locations = [];
   List<Folder> _folders = [];
   List<STask> _tasks = [];
   List<TasksStatus> _taskStatuses = [];
   List<Profile> _profiles = [];
+  List<Region> _regions = [];
+  List<Town> _towns = [];
+  List<Province> _provinces = [];
 
   final Queue<bool> _isLoading = Queue();
 
@@ -44,6 +47,30 @@ class ProjectsProvider with ChangeNotifier {
   //   _organization = value;
   //   sendNotify();
   // }
+
+  List<Region> get regions => _regions;
+  set regions(List<Region> value) {
+    _regions = value;
+    sendNotify();
+  }
+
+  List<Province> get provinces => _provinces;
+  set provinces(List<Province> value) {
+    _provinces = value;
+    sendNotify();
+  }
+
+  List<Town> get towns => _towns;
+  set towns(List<Town> value) {
+    _towns = value;
+    sendNotify();
+  }
+
+  List<ProjectLocation> get locations => _locations;
+  set locations(List<ProjectLocation> value) {
+    _locations = value;
+    sendNotify();
+  }
 
   Profile? get profile => _profile;
   set profile(Profile? value) {
@@ -94,6 +121,32 @@ class ProjectsProvider with ChangeNotifier {
   List<Programme> get programmes => _programmes;
   set programmes(List<Programme> value) {
     _programmes = value;
+    sendNotify();
+  }
+
+  List<Country> get countries => _countries;
+  set countries(List<Country> value) {
+    _countries = value;
+    sendNotify();
+  }
+
+  //// Add and remove methods
+
+  void addCountry(Country? country) {
+    if (country == null) return;
+    int index = _countries.indexWhere((element) => element.id == country.id);
+    if (index != -1) {
+      _countries[index] = country;
+    } else {
+      _countries.add(country);
+    }
+    sendNotify();
+  }
+
+  void removeCountry(Country? country) {
+    if (country == null) return;
+    if (!_countries.any((element) => element.id == country.id)) return;
+    _countries.remove(country);
     sendNotify();
   }
 
@@ -167,6 +220,94 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
+  void addRegion(Region? region) {
+    if (region == null) return;
+    _isLoading.add(true);
+    int index = _regions.indexWhere((element) => element.id == region.id);
+    if (index != -1) {
+      _regions[index] = region;
+    } else {
+      _regions.add(region);
+    }
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void removeRegion(Region? region) {
+    if (region == null) return;
+    if (!_regions.any((element) => element.id == region.id)) return;
+    _isLoading.add(true);
+    _regions.remove(region);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void addProvince(Province? province) {
+    if (province == null) return;
+    _isLoading.add(true);
+    int index = _provinces.indexWhere((element) => element.id == province.id);
+    if (index != -1) {
+      _provinces[index] = province;
+    } else {
+      _provinces.add(province);
+    }
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void removeProvince(Province? province) {
+    if (province == null) return;
+    if (!_provinces.any((element) => element.id == province.id)) return;
+    _isLoading.add(true);
+    _provinces.remove(province);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void addTown(Town? town) {
+    if (town == null) return;
+    _isLoading.add(true);
+    int index = _towns.indexWhere((element) => element.id == town.id);
+    if (index != -1) {
+      _towns[index] = town;
+    } else {
+      _towns.add(town);
+    }
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  void removeTown(Town? town) {
+    if (town == null) return;
+    if (!_towns.any((element) => element.id == town.id)) return;
+    _isLoading.add(true);
+    _towns.remove(town);
+    _isLoading.removeFirst();
+    sendNotify();
+  }
+
+  //load methods for _regions, _provinces, _towns
+  Future<void> loadRegions({bool notify = false}) async {
+    _isLoading.add(true);
+    _regions = await Region.getRegions() as List<Region>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
+  Future<void> loadProvinces({bool notify = false}) async {
+    _isLoading.add(true);
+    _provinces = await Province.getProvinces() as List<Province>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
+  Future<void> loadTowns({bool notify = false}) async {
+    _isLoading.add(true);
+    _towns = await Town.getTowns() as List<Town>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
   Future<void> loadProjects({bool notify = false}) async {
     _isLoading.add(true);
     await Future.wait(
@@ -181,6 +322,9 @@ class ProjectsProvider with ChangeNotifier {
         loadProjectStatus(),
         loadProjectLocation(),
         loadFolders(),
+        loadProvinces(),
+        loadRegions(),
+        loadTowns(),
       ],
     );
     _projects = await SProject.getProjects();
@@ -224,9 +368,12 @@ class ProjectsProvider with ChangeNotifier {
             .firstWhere((element) => element.uuid == project.status);
       }
       // locationObj
-      if (_projectLocations.any((element) => element.project == project.uuid)) {
-        project.locationObj = _projectLocations
-            .firstWhere((element) => element.project == project.uuid);
+      if (_locations.any((element) => element.project == project.uuid)) {
+        project.locationObj =
+            _locations.firstWhere((element) => element.project == project.uuid);
+        project.locationObj.countryObj = _countries.firstWhere(
+            (element) => element.uuid == project.locationObj.country,
+            orElse: () => Country("Unknown"));
       }
       // Check if folder exists
       if (!_folders.any((element) => element.uuid == project.folder)) {
@@ -298,7 +445,7 @@ class ProjectsProvider with ChangeNotifier {
 
   Future<void> loadProjectLocation({bool notify = false}) async {
     _isLoading.add(true);
-    _projectLocations = await ProjectLocation.getProjectLocation();
+    _locations = await ProjectLocation.getProjectLocation();
     _isLoading.removeFirst();
     if (notify) sendNotify();
   }

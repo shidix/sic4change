@@ -141,6 +141,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     } catch (e) {
       _profileProvider = ProfileProvider();
     }
+
     _listener = () {
       if (!mounted) return;
       getProfile(user);

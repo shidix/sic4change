@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/dfareporting/v4.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -37,6 +39,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   Profile? profile;
   bool _canEdit = false;
   bool returnToList = false;
+  ProjectsProvider? projectsProvider;
 
   void loadProject() async {
     setState(() {
@@ -68,10 +71,33 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         (project!.status != statusReject && project!.status != statusClose);
   }
 
+  Future<void> loadProjectFromCache() async {
+    setState(() {
+      projLoading = false;
+    });
+  }
+
   @override
   initState() {
     super.initState();
     project = widget.project;
+    projectsProvider = context.read<ProjectsProvider?>();
+    projectsProvider ??= ProjectsProvider();
+    try {
+      projectsProvider = context.read<ProjectsProvider?>();
+    } catch (e) {
+      projectsProvider = ProjectsProvider();
+    }
+    projectsProvider ??= context.read<ProjectsProvider?>();
+
+    projectsProvider!.addListener(() {
+      // prList = _projectsProvider.projects;
+      loadProjectFromCache().then((value) {
+        if (!mounted) return;
+        setState(() {});
+      });
+    });
+
     try {
       returnToList = widget.returnToList!;
     } catch (e) {
@@ -331,7 +357,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectTracing(context, project) {
     return FutureBuilder(
-        future: ProjectDatesTracing.getProjectDatesTracingByProject(project.uuid),
+        future:
+            ProjectDatesTracing.getProjectDatesTracingByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             List dates = snapshot.data!;
@@ -520,46 +547,73 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         });
   }
 
+  Future<ProjectLocation> getProjectLocation(project) async {
+    // Check if locationObj exists in provider
+    int index = projectsProvider!.locations
+        .indexWhere((element) => element.project == project.uuid);
+    if (index != -1) {
+      project.locationObj = projectsProvider!.locations[index];
+    } else {
+      // If not, fetch from database
+      project.locationObj =
+          await ProjectLocation.getProjectLocationByProject(project.uuid);
+    }
+    project.locationObj.countryObj = projectsProvider!.countries.firstWhere(
+        (element) => element.uuid == project.locationObj.country,
+        orElse: () => Country("Unknown"));
+    project.locationObj.regionObj = projectsProvider!.regions.firstWhere(
+        (element) => element.uuid == project.locationObj.region,
+        orElse: () => Region("Unknown"));
+    project.locationObj.provinceObj = projectsProvider!.provinces.firstWhere(
+        (element) => element.uuid == project.locationObj.province,
+        orElse: () => Province("Unknown"));
+    project.locationObj.townObj = projectsProvider!.towns.firstWhere(
+        (element) => element.uuid == project.locationObj.town,
+        orElse: () => Town("Unknown"));
+    return project.locationObj;
+  }
+
   Widget projectInfoLocation(context, project) {
-    return FutureBuilder(
-        future: ProjectLocation.getProjectLocationByProject(project.uuid),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            var loc = snapshot.data!;
-            return Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Ubicación", 15, bold: FontWeight.bold),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  tooltip: 'Editar ubicación',
-                  onPressed: () {
-                    _callLocationEditDialog(context, project);
-                  },
-                )
-              ]),
-              Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    TableRow(children: [
-                      customText("País", 14, bold: FontWeight.bold),
-                      customText("Comunidad", 14, bold: FontWeight.bold),
-                      customText("Provincia", 14, bold: FontWeight.bold),
-                      customText("Municipio", 14, bold: FontWeight.bold),
-                    ]),
-                    TableRow(children: [
-                      customText(loc.countryObj.name, 14),
-                      customText(loc.regionObj.name, 14),
-                      customText(loc.provinceObj.name, 14),
-                      customText(loc.townObj.name, 14),
-                    ])
-                  ])
-            ]);
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+    return FutureBuilder(future: () async {
+      project!.locationObj = await getProjectLocation(project);
+      return project!.locationObj;
+    }(), builder: ((context, snapshot) {
+      if (snapshot.hasData) {
+        var loc = snapshot.data!;
+        return Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            customText("Ubicación", 15, bold: FontWeight.bold),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Editar ubicación',
+              onPressed: () {
+                _callLocationEditDialog(context, project);
+              },
+            )
+          ]),
+          Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(children: [
+                  customText("País", 14, bold: FontWeight.bold),
+                  customText("Comunidad", 14, bold: FontWeight.bold),
+                  customText("Provincia", 14, bold: FontWeight.bold),
+                  customText("Municipio", 14, bold: FontWeight.bold),
+                ]),
+                TableRow(children: [
+                  customText(loc.countryObj.name, 14),
+                  customText(loc.regionObj.name, 14),
+                  customText(loc.provinceObj.name, 14),
+                  customText(loc.townObj.name, 14),
+                ])
+              ])
+        ]);
+      } else {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    }));
   }
 
   Widget projectInfoDetails(context, args) {
@@ -1372,7 +1426,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     List<KeyValue> provinces = await Province.getProvincesHash();
     List<KeyValue> regions = await Region.getRegionsHash();
     List<KeyValue> towns = await Town.getTownsHash();
-    await ProjectLocation.getProjectLocationByProject(project.uuid).then((value) async {
+    await ProjectLocation.getProjectLocationByProject(project.uuid)
+        .then((value) async {
       editProjectLocationDialog(
           context, value, project, countries, provinces, regions, towns);
     });

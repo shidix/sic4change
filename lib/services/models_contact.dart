@@ -283,6 +283,9 @@ class Contact {
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) {
+      if (value.docs.isEmpty) {
+        return Contact("Desconocido");
+      }
       final doc = value.docs.first;
       final Map<String, dynamic> data = doc.data();
       data["id"] = doc.id;
