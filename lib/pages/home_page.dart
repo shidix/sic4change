@@ -1367,8 +1367,9 @@ class _HomePageState extends State<HomePage> {
                           child: Text(
                             item.open
                                 ? "En curso"
-                                : (myWorkdays!.elementAt(index).hours())
-                                    .toStringAsFixed(2),
+                                : toDuration(
+                                    myWorkdays!.elementAt(index).hours(),
+                                    format: 'hm'),
                             style: (item.open)
                                 ? successText
                                 : (myWorkdays!.elementAt(index).hours() < 10)
@@ -2813,8 +2814,9 @@ class _HomePageState extends State<HomePage> {
 /////////// PROJECTS ///////////
   Widget projectsPanel() {
     contact ??= _rrhhProvider?.contact;
-    contact ??= _projectsProvider?.contacts
-        .firstWhere((c) => c.email == user.email, orElse: () => Contact.getEmpty());
+    contact ??= _projectsProvider?.contacts.firstWhere(
+        (c) => c.email == user.email,
+        orElse: () => Contact.getEmpty());
     myProjects = [];
     // for (STask task in _projectsProvider!.tasks) {
     //   if (hashProjects.containsKey(task.project)) {
