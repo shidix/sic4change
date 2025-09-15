@@ -63,7 +63,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void loadProgrammes() async {
     programList = _projectsProvider!.programmes;
-    if ((programList.isEmpty) || (programList == null)) {
+    if ((programList.isEmpty)) {
       programList = await Programme.getProgrammes();
     }
     if (!mounted) return;
@@ -73,7 +73,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   void loadProjects() async {
     setLoading();
     prList = _projectsProvider!.projects;
-    if ((prList.isEmpty) || (prList == null)) {
+    if ((prList.isEmpty)) {
       prList = await SProject.getProjects();
       if (prList.isNotEmpty) {
         _projectsProvider!.initialize();
@@ -795,21 +795,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ProjectStatus st = await ProjectStatus.byUuid(statusFormulation);
     project.status = st.uuid;
     project.save();
+    _projectsProvider!.addProject(project, notify: true);
   }
 
   void saveProject(List args) {
     SProject project = args[0];
-
     setProjectStatus(project);
-    loadProjects();
-
     Navigator.pop(context);
-    /*Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: ((context) => ProjectInfoPage(
-                  project: project,
-                ))));*/
   }
 
   Future<void> projectEditDialog(context, project) {
@@ -862,12 +854,21 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     SProject project = args[0];
 
-    ProjectDates pd = await ProjectDates.getProjectDatesByProject(project.uuid);
-    pd.delete();
+    List<ProjectDates> pdList = _projectsProvider!.projectDates
+        .where((pd) => pd.project == project.uuid)
+        .toList();
+    for (ProjectDates pd in pdList) {
+      _projectsProvider!.removeProjectDates(pd);
+      pd.delete();
+    }
 
-    ProjectLocation pl =
-        await ProjectLocation.getProjectLocationByProject(project.uuid);
-    pl.delete();
+    List<ProjectLocation> plList = _projectsProvider!.locations
+        .where((pl) => pl.project == project.uuid)
+        .toList();
+    for (ProjectLocation pl in plList) {
+      _projectsProvider!.removeLocation(pl);
+      pl.delete();
+    }
 
     List refList = await Reformulation.getReformulationsByProject(project.uuid);
     for (Reformulation ref in refList) {
@@ -924,18 +925,37 @@ class _ProjectsPageState extends State<ProjectsPage> {
       bt.delete();
     }
 
-    Folder? folder = await Folder.getFolderByUuid(project.folder);
-    bool haveChildren = await folder!.haveChildren();
-    if (!haveChildren) {
-      folder.delete();
+    Folder? folder;
+
+    if (_projectsProvider!.folders.any((f) => f.uuid == project.folder)) {
+      folder = _projectsProvider!.folders
+          .firstWhere((f) => f.uuid == project.folder);
+      _projectsProvider!.removeFolder(folder);
     } else {
+      folder = await Folder.getFolderByUuid(project.folder);
+    }
+
+    bool haveChildren = await folder?.haveChildren() ?? false;
+    if (!haveChildren) {
+      folder?.delete();
+    } else if (folder != null) {
       folder.name = "BORRADO!-${folder.name}";
       folder.save();
     }
 
-    project.delete();
+    // await Folder.getFolderByUuid(project.folder);
+    // bool haveChildren = await folder!.haveChildren();
+    // if (!haveChildren) {
+    //   folder.delete();
+    // } else {
+    //   folder.name = "BORRADO!-${folder.name}";
+    //   folder.save();
+    // }
 
-    loadProjects();
+    project.delete();
+    _projectsProvider!.removeProject(project);
+
+    // loadProjects();
   }
 
   Future<void> projectRemoveDialog(context, project) {

@@ -105,6 +105,9 @@ class Risk {
 
   Future<void> delete() async {
     final dbRisk = FirebaseFirestore.instance.collection("risks");
+    if (id == "") {
+      return;
+    }
     await dbRisk.doc(id).delete();
     createLog(
         "Borrado el riesgo '$name' en la iniciativa '${SProject.getProjectName(project)}'");

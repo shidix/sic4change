@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/androidpublisher/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -96,6 +97,13 @@ class SProject {
     item.docRef = doc.reference;
 
     item.id = json["id"];
+    if ((item.id == "") && (doc.id != "")) {
+      item.id = doc.id;
+      FirebaseFirestore.instance
+          .collection(SProject.tbName)
+          .doc(item.id)
+          .update({"id": item.id});
+    }
     item.uuid = json["uuid"];
     item.name = json['name'];
     item.description = json['description'];
@@ -161,7 +169,14 @@ class SProject {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection(SProject.tbName).add(data);
+      var item = await FirebaseFirestore.instance
+          .collection(SProject.tbName)
+          .add(data);
+      id = item.id;
+      FirebaseFirestore.instance
+          .collection(SProject.tbName)
+          .doc(id)
+          .update({"id": id});
       createLog("Creada la iniciativa: $name");
     } else {
       Map<String, dynamic> data = toJson();
@@ -217,6 +232,7 @@ class SProject {
     List<SProject> items = [];
     QuerySnapshot query;
     if (uuids != null) {
+      if (uuids.isEmpty) return items;
       query = await FirebaseFirestore.instance
           .collection(SProject.tbName)
           .where("uuid", whereIn: uuids)
@@ -331,10 +347,12 @@ class SProject {
     return datesObj;
   }
 
-  Future<ProjectLocation> getLocation([List<ProjectLocation>? locationList]) async {
+  Future<ProjectLocation> getLocation(
+      [List<ProjectLocation>? locationList]) async {
     if (locationObj.project == "") {
       locationList ??= await ProjectLocation.getProjectLocation();
-      locationObj = locationList.firstWhere((loc) => loc.project == uuid, orElse: () => ProjectLocation(uuid));
+      locationObj = locationList.firstWhere((loc) => loc.project == uuid,
+          orElse: () => ProjectLocation(uuid));
     }
     return locationObj;
   }
@@ -1066,6 +1084,9 @@ class ProjectDates {
   }
 
   static ProjectDates fromJson(DocumentSnapshot doc) {
+    if (doc.data() == null) {
+      return ProjectDates("");
+    }
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     ProjectDates item = ProjectDates(data["project"]);
     item.docRef = doc.reference;
@@ -1080,6 +1101,9 @@ class ProjectDates {
     item.reject = getDate(data["reject"]);
     item.refuse = getDate(data["refuse"]);
     item.docRef?.snapshots().listen((event) {
+      if (event.data() == null) {
+        return;
+      }
       final Map<String, dynamic> data = event.data() as Map<String, dynamic>;
       item.update(data);
       item.onChanged?.call();
@@ -1186,51 +1210,83 @@ class ProjectDates {
   }
 
   String getApprovedStr() {
-    return approved.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(approved);
+    try {
+      return approved.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(approved);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getStartStr() {
-    return start.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(start);
+    try {
+      return start.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(start);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getEndStr() {
-    return end.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(end);
+    try {
+      return end.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(end);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getJustificationStr() {
-    return justification.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(justification);
+    try {
+      return justification.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(justification);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getDeliveryStr() {
-    return delivery.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(delivery);
+    try {
+      return delivery.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(delivery);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getSendedStr() {
-    return sended.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(sended);
+    try {
+      return sended.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(sended);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getRejectStr() {
-    return reject.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(reject);
+    try {
+      return reject.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(reject);
+    } catch (e) {
+      return "";
+    }
   }
 
   String getRefuseStr() {
-    return refuse.compareTo(limitDate) > 0
-        ? ""
-        : DateFormat("dd-MM-yyyy").format(refuse);
+    try {
+      return refuse.compareTo(limitDate) > 0
+          ? ""
+          : DateFormat("dd-MM-yyyy").format(refuse);
+    } catch (e) {
+      return "";
+    }
   }
 
   static Future<List<ProjectDates>> getProjectDates() async {
@@ -2347,6 +2403,21 @@ class ProgrammeIndicators {
     } catch (e) {
       print(e);
     }
+    return items;
+  }
+
+  static Future<List<ProgrammeIndicators>> all() async {
+    final dbProgrammeIndicators =
+        FirebaseFirestore.instance.collection("s4c_programme_indicators");
+    List<ProgrammeIndicators> items = [];
+    await dbProgrammeIndicators.get().then((value) {
+      for (var doc in value.docs) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data["id"] = doc.id;
+        final item = ProgrammeIndicators.fromJson(data);
+        items.add(item);
+      }
+    });
     return items;
   }
 

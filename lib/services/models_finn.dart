@@ -1448,10 +1448,13 @@ class BankTransfer {
   }
 
   static Future<List<BankTransfer>> getByProject(project) async {
+    if (project == null || project == "") {
+      return [];
+    }
     final query = await FirebaseFirestore.instance
         .collection(tbName)
         .where("project", isEqualTo: project)
-        .orderBy('date')
+        // .orderBy('date')
         .get();
     List<BankTransfer> items = [];
     for (var element in query.docs) {
@@ -1459,6 +1462,8 @@ class BankTransfer {
       item.id = element.id;
       items.add(item);
     }
+    items.sort((a, b) => a.date.compareTo(b.date));
+
     return items;
   }
 

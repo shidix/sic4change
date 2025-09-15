@@ -42,7 +42,6 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Map<String, double> projStatus = {};
   Map<String, int> sourceFinancing = {};
 
-
   double totalBudget = 0.0; //Suma de los presupuestos de los proyectos
   double totalFinancing = 0.0; //Suma de las aportaciones de los financiadores
   double totalExecuted =
@@ -86,7 +85,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     });
     // await SProject.getProjectsByProgramme(programme!.uuid).then((val) async {
     //   projects = val;
-      
+
     //   financiers = await getProgrammeFinanciers(projects, null);
     //   projStatus = setProjectByStatus(projects);
     //   sourceFinancing = await setSourceFinancing(projects);
@@ -110,7 +109,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
     }
     indicators = projectsProvider!.programmeIndicators;
 
-        // await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
+    // await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
     setState(() {});
   }
 
@@ -139,7 +138,6 @@ class _ProgrammePageState extends State<ProgrammePage> {
     projectsProvider?.addListener(() {
       loadFromProjectsCache();
     });
-
 
     loadProgrammeProjects();
 

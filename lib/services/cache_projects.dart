@@ -32,18 +32,61 @@ class ProjectsProvider with ChangeNotifier {
   List<STask> _tasks = [];
   List<TasksStatus> _taskStatuses = [];
   List<Profile> _profiles = [];
+  List<Region> _regions = [];
+  List<Province> _provinces = [];
+  List<Town> _towns = [];
+  List<ProgrammeIndicators> _programmeIndicators = [];
 
   final Queue<bool> _isLoading = Queue();
 
   void sendNotify() {
-    notifyListeners();
+    if (_isLoading.isEmpty) {
+      notifyListeners();
+    } else
+      return;
   }
 
-  // Organization? get organization => _organization;
-  // set organization(Organization? value) {
-  //   _organization = value;
-  //   sendNotify();
-  // }
+  List<Folder> get folders => _folders;
+  set folders(List<Folder> value) {
+    _folders = value;
+    sendNotify();
+  }
+
+  void removeFolder(Folder folder, {bool notify = false}) {
+    if (!_folders.any((element) => element.uuid == folder.uuid)) return;
+    _folders.remove(folder);
+    if (notify) sendNotify();
+  }
+
+  void addFolder(Folder folder, {bool notify = false}) {
+    int index = _folders.indexWhere((element) => element.uuid == folder.uuid);
+    if (index != -1) {
+      _folders[index] = folder;
+    } else {
+      _folders.add(folder);
+    }
+    if (notify) sendNotify();
+  }
+
+  // Add set and get for organizations
+  List<Organization> get organizations => _organizations;
+  set organizations(List<Organization> value) {
+    _organizations = value;
+    sendNotify();
+  }
+
+  // Add set and get for programme indicators
+  List<ProgrammeIndicators> get programmeIndicators => _programmeIndicators;
+  set programmeIndicators(List<ProgrammeIndicators> value) {
+    _programmeIndicators = value;
+    sendNotify();
+  }
+
+  List<Country> get countries => _countries;
+  set countries(List<Country> value) {
+    _countries = value;
+    sendNotify();
+  }
 
   List<Region> get regions => _regions;
   set regions(List<Region> value) {
@@ -81,20 +124,44 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
+  List<ProjectDates> get projectDates => _projectDates;
+  set projectDates(List<ProjectDates> value) {
+    _projectDates = value;
+    sendNotify();
+  }
+
   List<Contact> get contacts => _contacts;
   set contacts(List<Contact> value) {
     _contacts = value;
     sendNotify();
   }
 
-  void addProject(SProject project) {
-    _projects.add(project);
-    sendNotify();
+  void addLocation(ProjectLocation? location, {bool notify = true}) {
+    if (location == null) return;
+    int index = _locations.indexWhere((element) => element.id == location.id);
+    if (index != -1) {
+      _locations[index] = location;
+    } else {
+      _locations.add(location);
+    }
+    if (notify) sendNotify();
   }
 
-  void removeProject(SProject project) {
+  void removeLocation(ProjectLocation? location, {bool notify = true}) {
+    if (location == null) return;
+    if (!_locations.any((element) => element.id == location.id)) return;
+    _locations.remove(location);
+    if (notify) sendNotify();
+  }
+
+  void addProject(SProject project, {bool notify = true}) {
+    _projects.add(project);
+    if (notify) sendNotify();
+  }
+
+  void removeProject(SProject project, {bool notify = true}) {
     _projects.remove(project);
-    sendNotify();
+    if (notify) sendNotify();
   }
 
   List<STask> get tasks => _tasks;
@@ -121,7 +188,29 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
-  void addProfile(Profile? profile) {
+  // ADD AND REMOVE METHODS
+
+  void addProjectDates(ProjectDates? projectDates, {bool notify = true}) {
+    if (projectDates == null) return;
+    int index =
+        _projectDates.indexWhere((element) => element.id == projectDates.id);
+    if (index != -1) {
+      _projectDates[index] = projectDates;
+    } else {
+      _projectDates.add(projectDates);
+    }
+
+    if (notify) sendNotify();
+  }
+
+  void removeProjectDates(ProjectDates? projectDates, {bool notify = true}) {
+    if (projectDates == null) return;
+    if (!_projectDates.any((element) => element.id == projectDates.id)) return;
+    _projectDates.remove(projectDates);
+    if (notify) sendNotify();
+  }
+
+  void addProfile(Profile? profile, {bool notify = true}) {
     if (profile == null) return;
     int index = _profiles.indexWhere((element) => element.id == profile.id);
     if (index != -1) {
@@ -129,22 +218,22 @@ class ProjectsProvider with ChangeNotifier {
     } else {
       _profiles.add(profile);
     }
-    sendNotify();
+    if (notify) sendNotify();
   }
 
-  void removeProfile(Profile? profile) {
+  void removeProfile(Profile? profile, {bool notify = true}) {
     if (profile == null) return;
     if (!_profiles.any((element) => element.id == profile.id)) return;
     _profiles.remove(profile);
-    sendNotify();
+    if (notify) sendNotify();
   }
 
-  void loadProfiles(User user) async {
-    isLoading = true;
+  void loadProfiles(User user, {bool notify = true}) async {
+    _isLoading.add(true);
     _profiles =
         await Profile.byOrganization(organization: _profile!.organization);
-    isLoading = false;
-    sendNotify();
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
   }
 
   void addTask(STask? task, {bool notify = true}) {
@@ -204,6 +293,7 @@ class ProjectsProvider with ChangeNotifier {
         loadProjectDates(),
         loadProjectStatus(),
         loadProjectLocation(),
+        // loadProgrammeIndicators(),
         loadFolders(),
         loadProvinces(),
         loadRegions(),
@@ -291,9 +381,39 @@ class ProjectsProvider with ChangeNotifier {
     if (notify) sendNotify();
   }
 
+  Future<void> loadProgrammeIndicators(Programme programme,
+      {bool notify = false}) async {
+    _isLoading.add(true);
+    _programmeIndicators =
+        await ProgrammeIndicators.getProgrammesIndicators(programme.uuid);
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
   Future<void> loadCountries({bool notify = false}) async {
     _isLoading.add(true);
     _countries = await Country.getCountries() as List<Country>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
+  Future<void> loadProvinces({bool notify = false}) async {
+    _isLoading.add(true);
+    _provinces = await Province.getProvinces() as List<Province>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
+  Future<void> loadRegions({bool notify = false}) async {
+    _isLoading.add(true);
+    _regions = await Region.getRegions() as List<Region>;
+    _isLoading.removeFirst();
+    if (notify) sendNotify();
+  }
+
+  Future<void> loadTowns({bool notify = false}) async {
+    _isLoading.add(true);
+    _towns = await Town.getTowns() as List<Town>;
     _isLoading.removeFirst();
     if (notify) sendNotify();
   }

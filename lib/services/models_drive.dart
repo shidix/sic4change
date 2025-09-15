@@ -3,6 +3,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:uuid/uuid.dart';
 
 String getRandomString(_length) {
@@ -50,10 +51,9 @@ class Folder {
       uuid = newUuid.v4();
       loc = await getLoc();
       Map<String, dynamic> data = toJson();
-      await FirebaseFirestore.instance
-          .collection(tbName)
-          .add(data)
-          .then((value) => id = value.id);
+      var item = await FirebaseFirestore.instance.collection(tbName).add(data);
+      id = item.id;
+      FirebaseFirestore.instance.collection(tbName).doc(id).update({"id": id});
     } else {
       Map<String, dynamic> data = toJson();
       await FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
@@ -100,7 +100,13 @@ class Folder {
     } else {
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
+      if (data["id"] == "" || data["id"] == null) {
+        data["id"] = doc.id;
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(doc.id)
+            .update({"id": doc.id});
+      }
       return Folder.fromJson(data);
     }
   }
@@ -134,6 +140,9 @@ class Folder {
   }
 
   static Future<Folder?> getFolderByUuid(String uuid) async {
+    if (uuid == "") {
+      return null;
+    }
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection(tbName)
         .where("uuid", isEqualTo: uuid)
@@ -239,7 +248,6 @@ class SFile {
     query = await FirebaseFirestore.instance
         .collection("s4c_files")
         .where("folder", isEqualTo: folder)
-        .orderBy("name", descending: false)
         .get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -247,6 +255,7 @@ class SFile {
       final file = SFile.fromJson(data);
       files.add(file);
     }
+    files.sort((a, b) => a.name.compareTo(b.name));
     return files;
   }
 }
