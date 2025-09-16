@@ -150,9 +150,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
           alta.setSalary(employeeSalary);
           employee.altas.add(alta);
         }
-        if ((employee.organization == null || employee.organization == '') &&
-            widget.organization != null) {
-          employee.organization = widget.organization!.id;
+        if ((employee.organization == null || employee.organization == '')) {
+          employee.organization = widget.organization.id;
         }
         employee.save();
         // Check if exists profile with email
@@ -1324,7 +1323,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
   void removeShift(List args) {
     DateTime date = args[0] as DateTime;
     employee.removeShift(date);
-    Shift currentShift = employee.getShift()!;
+    Shift currentShift = employee.getShift();
     shift = Shift(
         date: currentShift.date, hours: List<double>.from(currentShift.hours));
     setState(() {
@@ -1337,7 +1336,7 @@ class _EmployeeShiftFormState extends State<EmployeeShiftForm> {
   void initState() {
     super.initState();
     employee = widget.selectedItem;
-    Shift currentShift = employee.getShift()!;
+    Shift currentShift = employee.getShift();
     shift = Shift(
         date: currentShift.date, hours: List<double>.from(currentShift.hours));
   }

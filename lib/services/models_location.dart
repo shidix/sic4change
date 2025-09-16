@@ -95,8 +95,16 @@ class Country {
     return items;
   }
 
-  static Future<List<KeyValue>> getCountriesHash() async {
+  static Future<List<KeyValue>> getCountriesHash(
+      List<Country>? countries) async {
     List<KeyValue> items = [];
+
+    if (countries != null) {
+      for (var country in countries) {
+        items.add(country.toKeyValue());
+      }
+      return items;
+    }
 
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection(tbName).get();
@@ -190,8 +198,16 @@ class Province {
     return items;
   }
 
-  static Future<List<KeyValue>> getProvincesHash() async {
+  static Future<List<KeyValue>> getProvincesHash(
+      List<Province>? provinces) async {
     List<KeyValue> items = [];
+
+    if (provinces != null) {
+      for (var province in provinces) {
+        items.add(province.toKeyValue());
+      }
+      return items;
+    }
 
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection(Province.tbName).get();
@@ -279,8 +295,15 @@ class Region {
     return items;
   }
 
-  static Future<List<KeyValue>> getRegionsHash() async {
+  static Future<List<KeyValue>> getRegionsHash(List<Region>? regions) async {
     List<KeyValue> items = [];
+
+    if (regions != null) {
+      for (var region in regions) {
+        items.add(region.toKeyValue());
+      }
+      return items;
+    }
 
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection('s4c_region').get();
@@ -368,8 +391,15 @@ class Town {
     return items;
   }
 
-  static Future<List<KeyValue>> getTownsHash() async {
+  static Future<List<KeyValue>> getTownsHash(List<Town>? towns) async {
     List<KeyValue> items = [];
+
+    if (towns != null) {
+      for (var town in towns) {
+        items.add(town.toKeyValue());
+      }
+      return items;
+    }
 
     QuerySnapshot query =
         await FirebaseFirestore.instance.collection("s4c_town").get();

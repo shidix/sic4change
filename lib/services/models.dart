@@ -5,7 +5,6 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/androidpublisher/v3.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -56,6 +55,7 @@ class SProject {
   List<Organization> partnersObj = [];
   ProjectDates datesObj = ProjectDates("");
   ProjectLocation locationObj = ProjectLocation("");
+  List<ProjectDatesAudit> datesAudit = [];
   Folder folderObj = Folder("", "");
 
   double dblbudget = 0;
@@ -128,6 +128,14 @@ class SProject {
       item.assignedBudget = 0;
     } else {
       item.assignedBudget = json['assignedBudget'];
+    }
+
+    if (item.uuid != "") {
+      ProjectDatesAudit.getProjectDatesAuditByProject(item.uuid).then((list) {
+        if (list.isNotEmpty) {
+          item.datesAudit = list as List<ProjectDatesAudit>;
+        }
+      });
     }
 
     item.docRef!.snapshots().listen((snapshot) {
@@ -1425,6 +1433,8 @@ class ProjectDatesTracing {
 //--------------------------------------------------------------
 
 class ProjectDatesAudit {
+  static String tbName = "s4c_project_dates_audit";
+
   String id = "";
   String uuid = "";
   DateTime date = DateTime.now();
@@ -1451,13 +1461,11 @@ class ProjectDatesAudit {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_project_dates_audit")
-          .add(data);
+      FirebaseFirestore.instance.collection(ProjectDatesAudit.tbName).add(data);
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance
-          .collection("s4c_project_dates_audit")
+          .collection(ProjectDatesAudit.tbName)
           .doc(id)
           .set(data);
     }
@@ -1466,16 +1474,16 @@ class ProjectDatesAudit {
   Future<void> delete() async {
     // CollectionReference dbDatesAudit = FirebaseFirestore.instance.collection("s4c_project_dates_audit");
     await FirebaseFirestore.instance
-        .collection("s4c_project_dates_audit")
+        .collection(ProjectDatesAudit.tbName)
         .doc(id)
         .delete();
   }
 
-  static Future<List> getProjectDatesAudit() async {
+  static Future<List<ProjectDatesAudit>> getProjectDatesAudit() async {
     // CollectionReference dbDatesAudit = FirebaseFirestore.instance.collection("s4c_project_dates_audit");
-    List items = [];
+    List<ProjectDatesAudit> items = [];
     QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_project_dates_audit")
+        .collection(ProjectDatesAudit.tbName)
         .get();
 
     for (var doc in query.docs) {
@@ -1488,11 +1496,12 @@ class ProjectDatesAudit {
     return items;
   }
 
-  static Future<List> getProjectDatesAuditByProject(String project) async {
+  static Future<List<ProjectDatesAudit>> getProjectDatesAuditByProject(
+      String project) async {
     // CollectionReference dbDatesAudit = FirebaseFirestore.instance.collection("s4c_project_dates_audit");
-    List items = [];
+    List<ProjectDatesAudit> items = [];
     QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_project_dates_audit")
+        .collection(ProjectDatesAudit.tbName)
         .where("project", isEqualTo: project)
         .get();
 

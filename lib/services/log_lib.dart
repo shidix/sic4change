@@ -1,5 +1,4 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:sic4change/services/logs_lib.dart';
 
 FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 FirebaseAnalyticsObserver observer =

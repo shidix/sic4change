@@ -12,8 +12,10 @@ import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
+import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -41,29 +43,92 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   bool returnToList = false;
   ProjectsProvider? projectsProvider;
 
+  Widget projectInfoHeaderPanel = Container();
+  Widget profileMenuPanel = Container();
+  Widget projectInfoDetailsPanel = Container();
+  Widget projectInfoLocationPanel = Container();
+
   void loadProject() async {
     setState(() {
       projLoading = false;
     });
 
-    await project!.reload().then((val) {
-      /*Navigator.popAndPushNamed(context, "/project_info",
-          arguments: {"project": val});*/
-      setState(() {
-        project = val;
-        projLoading = true;
-      });
+    project!.typeObj = projectsProvider!.types.firstWhere(
+        (element) => element.uuid == project!.type,
+        orElse: () => ProjectType("Unknown"));
+
+    project!.statusObj = projectsProvider!.status.firstWhere(
+        (element) => element.uuid == project!.status,
+        orElse: () => ProjectStatus("Unknown"));
+
+    project!.managerObj = projectsProvider!.contacts.firstWhere(
+        (element) => element.uuid == project!.manager,
+        orElse: () => Contact("Unknown"));
+    project!.programmeObj = projectsProvider!.programmes.firstWhere(
+        (element) => element.uuid == project!.programme,
+        orElse: () => Programme("Unknown"));
+    project!.ambitObj = projectsProvider!.ambits.firstWhere(
+        (element) => element.uuid == project!.ambit,
+        orElse: () => Ambit("Unknown"));
+    project!.financiersObj = projectsProvider!.organizations
+        .where((element) => project!.financiers.contains(element.uuid))
+        .toList();
+    project!.partnersObj = projectsProvider!.organizations
+        .where((element) => project!.partners.contains(element.uuid))
+        .toList();
+    project!.locationObj = projectsProvider!.locations.firstWhere(
+        (element) => element.project == project!.uuid,
+        orElse: () => ProjectLocation("Unknown"));
+    project!.locationObj.countryObj = projectsProvider!.countries.firstWhere(
+        (element) => element.uuid == project!.locationObj.country,
+        orElse: () => Country("Unknown"));
+    project!.locationObj.regionObj = projectsProvider!.regions.firstWhere(
+        (element) => element.uuid == project!.locationObj.region,
+        orElse: () => Region("Unknown"));
+    project!.locationObj.provinceObj = projectsProvider!.provinces.firstWhere(
+        (element) => element.uuid == project!.locationObj.province,
+        orElse: () => Province("Unknown"));
+    project!.locationObj.townObj = projectsProvider!.towns.firstWhere(
+        (element) => element.uuid == project!.locationObj.town,
+        orElse: () => Town("Unknown"));
+    project!.locationObj = projectsProvider!.locations.firstWhere(
+        (element) => element.project == project!.uuid,
+        orElse: () => ProjectLocation("Unknown"));
+    project!.datesObj = projectsProvider!.projectDates.firstWhere(
+        (element) => element.project == project!.uuid,
+        orElse: () => ProjectDates("Unknown"));
+    project!.folderObj = projectsProvider!.folders.firstWhere(
+        (element) => element.uuid == project!.folder,
+        orElse: () => Folder("Unknown", ""));
+    setState(() {
+      project = project;
+      projLoading = true;
     });
+
+    // await project!.reload().then((val) {
+    //   /*Navigator.popAndPushNamed(context, "/project_info",
+    //       arguments: {"project": val});*/
+    //   setState(() {
+    //     project = val;
+    //     projLoading = true;
+    //   });
+    // });
   }
 
   void getProfile(user) async {
-    await Profile.getProfile(user.email!).then((value) {
-      profile = value;
+    profile = projectsProvider!.profile;
+    profile ??= await Profile.getProfile(user.email!);
+    _mainMenu = mainMenu(context, null, profile);
+    _canEdit = canEdit();
+    if (!mounted) return;
+    setState(() {});
+    // await Profile.getProfile(user.email!).then((value) {
+    //   profile = value;
 
-      setState(() {
-        _canEdit = canEdit();
-      });
-    });
+    //   setState(() {
+    //     _canEdit = canEdit();
+    //   });
+    // });
   }
 
   bool canEdit() {
@@ -94,6 +159,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       // prList = _projectsProvider.projects;
       loadProjectFromCache().then((value) {
         if (!mounted) return;
+        projectInfoHeaderPanel = projectInfoHeader(context);
+        profileMenuPanel = profileMenu(context, project, "info");
+        projectInfoDetailsPanel =
+            projectInfoDetails(context, {"project": project});
         setState(() {});
       });
     });
@@ -103,10 +172,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     } catch (e) {
       returnToList = false;
     }
-    _mainMenu = mainMenu(context);
+    // _mainMenu = mainMenu(context);
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
+    projectInfoLocationPanel = projectInfoLocation(context, project);
+    projectInfoHeaderPanel = projectInfoHeader(context); //, widget.project);
+    profileMenuPanel = profileMenu(context, project, "info");
+    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
     createLog("Acceso a al detalle de la iniciativa: ${project!.name}");
   }
 
@@ -119,10 +192,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           //mainMenu(context),
           _mainMenu!,
-          projectInfoHeader(context),
-          profileMenu(context, project, "info"),
+          projectInfoHeaderPanel,
+          // projectInfoHeader(context),
+          profileMenuPanel,
+          // profileMenu(context, project, "info"),
           projLoading
-              ? contentTab(context, projectInfoDetails, {"project": project})
+              ? contentTab(
+                  context, projectInfoDetailsPanel, {"project": project})
               : const Center(child: CircularProgressIndicator()),
         ],
       ),
@@ -206,9 +282,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return IntrinsicHeight(
       child: Row(
         children: [
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 3.2,
-              //width: 200,
+          Expanded(
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -222,8 +297,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             width: 10,
             color: Colors.grey,
           ),
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 3.2,
+          Expanded(
+              flex: 2,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -259,10 +334,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Widget projectDatesAudit(context, project) {
     return FutureBuilder(
-        future: ProjectDatesAudit.getProjectDatesAuditByProject(project.uuid),
+        future: (project.datesAudit.isNotEmpty)
+            ? Future.value(project.datesAudit)
+            : ProjectDatesAudit.getProjectDatesAuditByProject(project.uuid),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
-            List dates = snapshot.data!;
+            List<ProjectDatesAudit> dates =
+                snapshot.data! as List<ProjectDatesAudit>;
             return SizedBox(
               width: double.infinity,
               child: DataTable(
@@ -275,22 +353,25 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     label: customText("", 14),
                   ),
                 ],
-                rows: dates
-                    .map(
-                      (date) => DataRow(cells: [
-                        DataCell(
-                          customText(
-                              DateFormat("dd-MM-yyyy").format(date.date), 14),
-                        ),
-                        DataCell(Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              removeBtn(context, removeDateAuditDialog,
-                                  {"dateAudit": date}),
-                            ]))
-                      ]),
-                    )
-                    .toList(),
+                rows: (dates.isNotEmpty)
+                    ? dates
+                        .map(
+                          (date) => DataRow(cells: [
+                            DataCell(
+                              customText(
+                                  DateFormat("dd-MM-yyyy").format(date.date),
+                                  14),
+                            ),
+                            DataCell(Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  removeBtn(context, removeDateAuditDialog,
+                                      {"dateAudit": date}),
+                                ]))
+                          ]),
+                        )
+                        .toList()
+                    : [],
               ),
             );
           } else {
@@ -430,64 +511,70 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return IntrinsicHeight(
       child: Row(
         children: [
-          Container(
-              padding: const EdgeInsets.only(left: 10),
-              width: MediaQuery.of(context).size.width / 3.2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    customText("Auditoría: ", 14, bold: FontWeight.bold),
-                    space(width: 10),
-                    customText(audit, 14),
-                  ]),
-                  space(height: 5),
-                  project.audit
-                      ? projectDatesAuditHeader(context, project)
-                      : Container(),
-                  project.audit
-                      ? projectDatesAudit(context, project)
-                      : Container(),
-                ],
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        customText("Auditoría: ", 14, bold: FontWeight.bold),
+                        space(width: 10),
+                        customText(audit, 14),
+                      ]),
+                      space(height: 5),
+                      project.audit
+                          ? projectDatesAuditHeader(context, project)
+                          : Container(),
+                      project.audit
+                          ? projectDatesAudit(context, project)
+                          : Container(),
+                      const VerticalDivider(
+                        width: 10,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ))),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        customText("Evaluación: ", 14, bold: FontWeight.bold),
+                        space(width: 10),
+                        customText(evaluation, 14),
+                      ]),
+                      space(height: 5),
+                      project.evaluation
+                          ? projectDatesEvalHeader(context, project)
+                          : Container(),
+                      project.evaluation
+                          ? projectDatesEval(context, project)
+                          : Container(),
+                      const VerticalDivider(
+                        width: 10,
+                        color: Colors.grey,
+                      ),
+                    ]),
               )),
-          const VerticalDivider(
-            width: 10,
-            color: Colors.grey,
-          ),
-          Container(
-            padding: const EdgeInsets.only(left: 10),
-            width: MediaQuery.of(context).size.width / 3.2,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                customText("Evaluación: ", 14, bold: FontWeight.bold),
-                space(width: 10),
-                customText(evaluation, 14),
-              ]),
-              space(height: 5),
-              project.evaluation
-                  ? projectDatesEvalHeader(context, project)
-                  : Container(),
-              project.evaluation
-                  ? projectDatesEval(context, project)
-                  : Container(),
-            ]),
-          ),
-          const VerticalDivider(
-            width: 10,
-            color: Colors.grey,
-          ),
-          Container(
-            padding: const EdgeInsets.only(left: 10),
-            width: MediaQuery.of(context).size.width / 3.2,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              customText("Informes de seguimiento", 14, bold: FontWeight.bold),
-              space(height: 5),
-              projectTracingHeader(context, project),
-              projectTracing(context, project),
-            ]),
-          ),
+          Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      customText("Informes de seguimiento", 14,
+                          bold: FontWeight.bold),
+                      space(height: 5),
+                      projectTracingHeader(context, project),
+                      projectTracing(context, project),
+                    ]),
+              )),
         ],
       ),
     );
@@ -684,7 +771,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoLocation(context, proj),
+                projectInfoLocationPanel,
               ],
             )));
   }
@@ -703,7 +790,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void saveProject(List args) async {
     SProject proj = args[0];
     proj.save();
+
     loadProject();
+    projectsProvider!.addProject(proj, notify: false);
+    project = proj;
+    projectInfoLocationPanel = projectInfoLocation(context, project);
+    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
+    projectInfoHeaderPanel = projectInfoHeader(context);
+    profileMenuPanel = profileMenu(context, project, "info");
+
+    if (!mounted) return;
+    setState(() {});
 
     Navigator.pop(context);
   }
@@ -1423,21 +1520,33 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void saveLocation(List args) async {
     ProjectLocation loc = args[0];
     loc.save();
+    projectsProvider!.addLocation(loc, notify: false);
     loadProject();
-
+    projectInfoLocationPanel = projectInfoLocation(context, project);
+    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
+    if (!mounted) return;
+    setState(() {});
     Navigator.pop(context);
   }
 
   void _callLocationEditDialog(context, project) async {
-    List<KeyValue> countries = await Country.getCountriesHash();
-    List<KeyValue> provinces = await Province.getProvincesHash();
-    List<KeyValue> regions = await Region.getRegionsHash();
-    List<KeyValue> towns = await Town.getTownsHash();
-    await ProjectLocation.getProjectLocationByProject(project.uuid)
-        .then((value) async {
-      editProjectLocationDialog(
-          context, value, project, countries, provinces, regions, towns);
-    });
+    List<KeyValue> countries =
+        await Country.getCountriesHash(projectsProvider!.countries);
+    List<KeyValue> provinces =
+        await Province.getProvincesHash(projectsProvider!.provinces);
+    List<KeyValue> regions =
+        await Region.getRegionsHash(projectsProvider!.regions);
+    List<KeyValue> towns = await Town.getTownsHash(projectsProvider!.towns);
+    ProjectLocation currentLoc = projectsProvider!.locations.firstWhere(
+        (loc) => loc.project == project.uuid,
+        orElse: () => ProjectLocation(project.uuid));
+    // await ProjectLocation.getProjectLocationByProject(project.uuid)
+    //     .then((value) async {
+    //   editProjectLocationDialog(
+    //       context, value, project, countries, provinces, regions, towns);
+    // });
+    editProjectLocationDialog(
+        context, currentLoc, project, countries, provinces, regions, towns);
   }
 
   Future<void> editProjectLocationDialog(
@@ -1880,401 +1989,3 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     );
   }
 }
-  /*Widget projectInfoDates(context, project) {
-    ProjectDates dates = project.datesObj;
-    return Column(children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        customText("Plazos", 15, bold: FontWeight.bold),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Editar fechas',
-          onPressed: () {
-            callDatesEditDialog(context, project);
-          },
-        )
-      ]),
-      Row(children: [
-        (project.statusInt() > 1)
-            ? Row(children: [
-                customText("Presentación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getSendedStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() == 3)
-            ? Row(children: [
-                customText("Denegación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getRejectStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() == 4)
-            ? Row(children: [
-                customText("Rechazo: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getRefuseStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Aprobación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getApprovedStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Inicio: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getStartStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Finalización: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getEndStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-        (project.statusInt() >= 5)
-            ? Row(children: [
-                customText("Justificación: ", 14, bold: FontWeight.bold),
-                space(width: 5),
-                customText(dates.getJustificationStr(), 14),
-                space(width: 10),
-              ])
-            : Container(),
-      ]),
-    ]);
-  }*/
-
-  /*Widget projectInfoDates(context, project) {
-    return FutureBuilder(
-        future: getProjectDatesByProject(project.uuid),
-        builder: ((context, snapshot) {
-          print("--GGGGG---");
-          if (snapshot.hasData) {
-            var dates = snapshot.data!;
-            return Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                customText("Plazos", 15, bold: FontWeight.bold),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  tooltip: 'Editar fechas',
-                  onPressed: () {
-                    callDatesEditDialog(context, project);
-                  },
-                )
-              ]),
-              Row(children: [
-                (project.statusInt() > 1)
-                    ? Row(children: [
-                        customText("Presentación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getSendedStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() == 3)
-                    ? Row(children: [
-                        customText("Denegación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getRejectStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() == 4)
-                    ? Row(children: [
-                        customText("Rechazo: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getRefuseStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Aprobación: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getApprovedStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Inicio: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getStartStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Finalización: ", 14, bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getEndStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-                (project.statusInt() >= 5)
-                    ? Row(children: [
-                        customText("Justificación: ", 14,
-                            bold: FontWeight.bold),
-                        space(width: 5),
-                        customText(dates.getJustificationStr(), 14),
-                        space(width: 10),
-                      ])
-                    : Container(),
-              ]),
-              /*Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    (project.status == "12")
-                        ? TableRow(children: [
-                            customText("Presentación", 14,
-                                bold: FontWeight.bold),
-                            customText("Aprobación", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                            customText("", 14, bold: FontWeight.bold),
-                          ])
-                        : TableRow(children: [
-                            customText("Presentación", 14,
-                                bold: FontWeight.bold),
-                            customText("Aprobación", 14, bold: FontWeight.bold),
-                            customText("Inicio", 14, bold: FontWeight.bold),
-                            customText("Finalización", 14,
-                                bold: FontWeight.bold),
-                            customText("Justificación", 14,
-                                bold: FontWeight.bold),
-                          ]),
-                    (project.status == "12")
-                        ? TableRow(children: [
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.sended),
-                                dates.getSendedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.approved),
-                                dates.getApprovedStr(),
-                                14),
-                            customText("", 14),
-                            customText("", 14),
-                            customText("", 14),
-                          ])
-                        : TableRow(children: [
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.sended),
-                                dates.getSendedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.approved),
-                                dates.getApprovedStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.start),
-                                dates.getStartStr(),
-                                14),
-                            customText(
-                                //DateFormat("dd-MM-yyyy").format(dates.end), 14),
-                                dates.getEndStr(),
-                                14),
-                            customText(
-                                /*DateFormat("dd-MM-yyyy")
-                                    .format(dates.justification),*/
-                                dates.getJustificationStr(),
-                                14),
-                          ])
-                  ]),
-              space(height: 10),
-              Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    TableRow(children: [
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("Denegación", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                      customText("", 14, bold: FontWeight.bold),
-                    ]),
-                    TableRow(children: [
-                      customText("", 14),
-                      customText(
-                          //DateFormat("dd-MM-yyyy").format(dates.reject!), 14),
-                          dates.getRejectStr(),
-                          14),
-                      customText("", 14),
-                      customText("", 14),
-                      customText("", 14),
-                    ])
-                  ]),*/
-            ]);
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
-  }*/
-
-
-  /*Widget customDateField(context, dates, st) {
-    switch (st) {
-      case statusReject:
-        dates.reject = dates.getReject();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Denegación',
-              selectedDate: dates.reject,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.reject = date;
-                });
-              },
-            ));
-      case statusApproved:
-        dates.approved = dates.getApproved();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Aprobación',
-              selectedDate: dates.approved,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.approved = date;
-                });
-              },
-            ));
-      case statusRefuse:
-        dates.refuse = dates.getRefuse();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Rechazo',
-              selectedDate: dates.refuse,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.refuse = date;
-                });
-              },
-            ));
-      case statusStart:
-        dates.start = dates.getStart();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Inicio',
-              selectedDate: dates.start,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.start = date;
-                });
-              },
-            ));
-      case statusEnds:
-        dates.end = dates.getEnd();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Inicio',
-              selectedDate: dates.end,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.end = date;
-                });
-              },
-            ));
-      case statusJustification:
-        dates.justification = dates.getJustification();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Justificación',
-              selectedDate: dates.justification,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.justification = date;
-                });
-              },
-            ));
-      case statusClose:
-        dates.close = dates.getClose();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Cerrado',
-              selectedDate: dates.close,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.close = date;
-                });
-              },
-            ));
-      case statusDelivery:
-        dates.delivery = dates.getDelivery();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Seguimiento',
-              selectedDate: dates.delivery,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.delivery = date;
-                });
-              },
-            ));
-      default:
-        dates.sended = dates.getSended();
-        return SizedBox(
-            width: 220,
-            child: DateTimePicker(
-              labelText: 'Presentación',
-              //selectedDate: dates.getSended(),
-              selectedDate: dates.sended,
-              onSelectedDate: (DateTime date) {
-                setState(() {
-                  dates.sended = date;
-                });
-              },
-            ));
-    }
-  }*/
-
-
-/*Widget customDateField(context, dateController) {
-    return SizedBox(
-        width: 220,
-        child: TextField(
-          controller: dateController, //editing controller of this TextField
-          decoration: const InputDecoration(
-              icon: Icon(Icons.calendar_today), //icon of text field
-              labelText: "Enter Date" //label text of field
-              ),
-          readOnly: true, //set it true, so that user will not able to edit text
-          onTap: () async {
-            DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(
-                    2000), //DateTime.now() - not to allow to choose before today.
-                lastDate: DateTime(2101));
-
-            if (pickedDate != null) {
-              //print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-              String formattedDate =
-                  DateFormat('dd-MM-yyyy').format(pickedDate);
-              //print(formattedDate); //formatted date output using intl package =>  2021-03-16
-
-              setState(() {
-                dateController.text = formattedDate;
-              });
-            } else {}
-          },
-        ));
-  }*/

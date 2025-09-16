@@ -503,7 +503,7 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
   var _percentText = (_percent * 100).toStringAsFixed(2);
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     LinearPercentIndicator(
-      width: MediaQuery.of(context).size.width / _offset,
+      width: 600 / _offset,
       animation: true,
       lineHeight: 10.0,
       animationDuration: 500,
@@ -1623,7 +1623,7 @@ Widget contentTab(context, action, obj, {widthFactor = 1}) {
               borderRadius: const BorderRadius.all(Radius.circular(5)),
               color: Colors.white,
             ),*/
-            child: action(context, obj),
+            child: (action is Function) ? action(context, obj) : action,
           )));
 }
 

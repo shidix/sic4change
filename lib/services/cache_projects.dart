@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -46,6 +45,51 @@ class ProjectsProvider with ChangeNotifier {
       return;
   }
 
+  List<Ambit> get ambits => _ambits;
+  set ambits(List<Ambit> value) {
+    _ambits = value;
+    sendNotify();
+  }
+
+  void removeAmbit(Ambit ambit, {bool notify = false}) {
+    if (!_ambits.any((element) => element.uuid == ambit.uuid)) return;
+    _ambits.remove(ambit);
+    if (notify) sendNotify();
+  }
+
+  void addAmbit(Ambit ambit, {bool notify = false}) {
+    int index = _ambits.indexWhere((element) => element.uuid == ambit.uuid);
+    if (index != -1) {
+      _ambits[index] = ambit;
+    } else {
+      _ambits.add(ambit);
+    }
+    if (notify) sendNotify();
+  }
+
+  List<ProjectStatus> get status => _projectStatuses;
+  set status(List<ProjectStatus> value) {
+    _projectStatuses = value;
+    sendNotify();
+  }
+
+  void removeStatus(ProjectStatus status, {bool notify = false}) {
+    if (!_projectStatuses.any((element) => element.uuid == status.uuid)) return;
+    _projectStatuses.remove(status);
+    if (notify) sendNotify();
+  }
+
+  void addStatus(ProjectStatus status, {bool notify = false}) {
+    int index =
+        _projectStatuses.indexWhere((element) => element.uuid == status.uuid);
+    if (index != -1) {
+      _projectStatuses[index] = status;
+    } else {
+      _projectStatuses.add(status);
+    }
+    if (notify) sendNotify();
+  }
+
   List<Folder> get folders => _folders;
   set folders(List<Folder> value) {
     _folders = value;
@@ -65,6 +109,29 @@ class ProjectsProvider with ChangeNotifier {
     } else {
       _folders.add(folder);
     }
+    if (notify) sendNotify();
+  }
+
+  List<ProjectType> get types => _projectTypes;
+  set types(List<ProjectType> value) {
+    _projectTypes = value;
+    sendNotify();
+  }
+
+  void addType(ProjectType type, {bool notify = false}) {
+    int index =
+        _projectTypes.indexWhere((element) => element.uuid == type.uuid);
+    if (index != -1) {
+      _projectTypes[index] = type;
+    } else {
+      _projectTypes.add(type);
+    }
+    if (notify) sendNotify();
+  }
+
+  void removeType(ProjectType type, {bool notify = false}) {
+    if (!_projectTypes.any((element) => element.uuid == type.uuid)) return;
+    _projectTypes.remove(type);
     if (notify) sendNotify();
   }
 

@@ -45,6 +45,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   late VoidCallback _listener;
   final user = FirebaseAuth.instance.currentUser!;
 
+  Widget projectSearchBar = Container();
+  Widget programmeListPanel = Container();
+  Widget projectListPanel = Container();
+
   void setLoading() {
     loading = true;
     if (!mounted) return;
@@ -66,6 +70,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     if ((programList.isEmpty)) {
       programList = await Programme.getProgrammes();
     }
+    programmeListPanel = programmeList();
     if (!mounted) return;
     setState(() {});
   }
@@ -79,7 +84,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         _projectsProvider!.initialize();
       }
     }
-
+    projectListPanel = projectList();
     if (mounted) {
       setState(() {});
     }
@@ -176,6 +181,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
       setState(() {});
     });
 
+    projectSearchBar = projectSearch();
+    programmeListPanel = programmeList();
+    projectListPanel = projectList();
+
     initializeData();
   }
 
@@ -188,17 +197,17 @@ class _ProjectsPageState extends State<ProjectsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _mainMenu!,
-          projectSearch(),
+          projectSearchBar,
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "PROGRAMAS")),
-          programmeList(context),
+          programmeListPanel,
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
           loading
               ? const Center(child: CircularProgressIndicator())
-              : projectList(context),
+              : projectListPanel,
         ],
       ),
     ));
@@ -240,7 +249,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                      PROGRAMMES
 -------------------------------------------------------------*/
 
-  Widget programmeList(context) {
+  Widget programmeList() {
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
         child: Builder(builder: ((context) {
@@ -260,7 +269,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         customText(programme.name, 16, bold: FontWeight.bold),
                         (programme.logo != '')
                             ? Image.network(programme.logo, height: 100)
-                            : SizedBox(height: 100, width: 100),
+                            : const SizedBox(height: 100, width: 100),
                       ]),
                       onTap: () {
                         Navigator.push(
@@ -275,96 +284,90 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
           // List<dynamic> matrixDyn = reshape(matrix, nRows, nCols);
           List<Widget> rows = [];
-          if (programList != null) {
-            for (var row in reshape(matrix, nRows, nCols)) {
-              rows.add(Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [for (var col in row) Expanded(child: col)]));
-            }
-            //print(row);
-
-            return SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 200,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: rows,
-                  ),
-                ));
-
-            // return SizedBox(
-            //     height: 150,
-            //     child: GridView.builder(
-            //         gridDelegate:
-            //             const SliverGridDelegateWithFixedCrossAxisCount(
-            //           crossAxisCount: 5,
-            //           //crossAxisSpacing: 20,
-            //           //mainAxisSpacing: 20,
-            //           childAspectRatio: 2,
-            //         ),
-            //         itemCount: programList.length,
-            //         itemBuilder: (_, index) {
-            //           Programme programme = programList[index];
-
-            //           if (programme.logo != "") {
-            //             return Column(
-            //                 mainAxisAlignment: MainAxisAlignment.start,
-            //                 crossAxisAlignment: CrossAxisAlignment.center,
-            //                 children: [
-            //                   InkWell(
-            //                       child: Column(children: [
-            //                         customText(programme.name, 16,
-            //                             bold: FontWeight.bold),
-            //                         Image.network(programme.logo, height: 100),
-            //                       ]),
-            //                       onTap: () {
-            //                         Navigator.push(
-            //                             context,
-            //                             MaterialPageRoute(
-            //                                 builder: ((context) =>
-            //                                     ProgrammePage(
-            //                                         programme: programme))));
-            //                       }),
-            //                   /*InkWell(
-            //                         child: customText(programme.name, 16),
-            //                         onTap: () {
-            //                           Navigator.push(
-            //                               context,
-            //                               MaterialPageRoute(
-            //                                   builder: ((context) =>
-            //                                       ProgrammePage(
-            //                                           programme: programme))));
-            //                         },
-            //                       ),*/
-            //                   editBtn(context, callDialog,
-            //                       {'programme': programme}),
-            //                 ]);
-            //           } else {
-            //             return Column(children: [
-            //               Row(
-            //                 children: [
-            //                   customText(programme.name, 15,
-            //                       bold: FontWeight.bold),
-            //                   customText(
-            //                       (programme.projects != 1)
-            //                           ? " (${programme.projects} proyectos)"
-            //                           : " (${programme.projects} proyecto)",
-            //                       15),
-            //                   editBtn(
-            //                       context, callDialog, {'programme': programme})
-            //                 ],
-            //               )
-            //             ]);
-            //           }
-            //         }));
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+          for (var row in reshape(matrix, nRows, nCols)) {
+            rows.add(Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [for (var col in row) Expanded(child: col)]));
           }
+          //print(row);
+
+          return SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: 200,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: rows,
+                ),
+              ));
+
+          // return SizedBox(
+          //     height: 150,
+          //     child: GridView.builder(
+          //         gridDelegate:
+          //             const SliverGridDelegateWithFixedCrossAxisCount(
+          //           crossAxisCount: 5,
+          //           //crossAxisSpacing: 20,
+          //           //mainAxisSpacing: 20,
+          //           childAspectRatio: 2,
+          //         ),
+          //         itemCount: programList.length,
+          //         itemBuilder: (_, index) {
+          //           Programme programme = programList[index];
+
+          //           if (programme.logo != "") {
+          //             return Column(
+          //                 mainAxisAlignment: MainAxisAlignment.start,
+          //                 crossAxisAlignment: CrossAxisAlignment.center,
+          //                 children: [
+          //                   InkWell(
+          //                       child: Column(children: [
+          //                         customText(programme.name, 16,
+          //                             bold: FontWeight.bold),
+          //                         Image.network(programme.logo, height: 100),
+          //                       ]),
+          //                       onTap: () {
+          //                         Navigator.push(
+          //                             context,
+          //                             MaterialPageRoute(
+          //                                 builder: ((context) =>
+          //                                     ProgrammePage(
+          //                                         programme: programme))));
+          //                       }),
+          //                   /*InkWell(
+          //                         child: customText(programme.name, 16),
+          //                         onTap: () {
+          //                           Navigator.push(
+          //                               context,
+          //                               MaterialPageRoute(
+          //                                   builder: ((context) =>
+          //                                       ProgrammePage(
+          //                                           programme: programme))));
+          //                         },
+          //                       ),*/
+          //                   editBtn(context, callDialog,
+          //                       {'programme': programme}),
+          //                 ]);
+          //           } else {
+          //             return Column(children: [
+          //               Row(
+          //                 children: [
+          //                   customText(programme.name, 15,
+          //                       bold: FontWeight.bold),
+          //                   customText(
+          //                       (programme.projects != 1)
+          //                           ? " (${programme.projects} proyectos)"
+          //                           : " (${programme.projects} proyecto)",
+          //                       15),
+          //                   editBtn(
+          //                       context, callDialog, {'programme': programme})
+          //                 ],
+          //               )
+          //             ]);
+          //           }
+          //         }));
         })));
   }
 
@@ -386,6 +389,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     programme.save();
     _projectsProvider!.addProgramme(programme);
     loadProgrammes();
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -426,79 +430,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
         });
   }
 
-  Future<void> programmeEditDialog_old(context, programme) {
-    programme ??= Programme("");
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        Key dialogKey = UniqueKey();
-        return AlertDialog(
-          key: dialogKey,
-          //title: const Text('Modificar programa'),
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Modificar programa'),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
-                  width: 600,
-                  child: TextFormField(
-                    initialValue: (programme.name != "") ? programme.name : "",
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                    onChanged: (val) => setState(() => programme.name = val),
-                  ),
-                ),
-              ]),
-            ]),
-            space(height: 20),
-            Row(children: [
-              Expanded(
-                  flex: 1,
-                  child: Image.network(programme.logo, height: 40, width: 40)),
-              Expanded(
-                  flex: 9,
-                  child: UploadImageField(
-                      textToShow: "Logo",
-                      rootPath: "files/programmes/${programme.id}",
-                      fileName: "logo.png",
-                      pathImage: programme.logo,
-                      onSelectedFile: (file) async {
-                        int index = _projectsProvider!.programmes.indexWhere(
-                            (element) => element.id == programme.id);
-                        programme.logo = await uploadLogoProgramme(file, index);
-                        dialogKey = UniqueKey();
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      })),
-            ]),
-          ])),
-          actions: <Widget>[
-            Row(children: [
-              Expanded(
-                flex: 5,
-                child: actionButton(context, "Enviar", saveProgramme,
-                    Icons.save_outlined, [programme]),
-              ),
-              space(width: 10),
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cancelar", cancelItem, Icons.cancel, context))
-            ]),
-          ],
-        );
-      },
-    );
-  }
-
 /*-------------------------------------------------------------
                      PROJECTS
 -------------------------------------------------------------*/
-  Widget projectList(context) {
+  Widget projectList() {
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: SizedBox(
@@ -823,6 +758,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
 
     setProjectStatus(project);
+    if (!mounted) return;
     Navigator.pop(context);
   }
 

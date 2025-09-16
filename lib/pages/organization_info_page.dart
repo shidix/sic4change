@@ -318,7 +318,7 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
       // OrganizationBilling billing = args["billing"];
       List<KeyValue> types = await OrganizationType.getOrganizationsTypeHash();
       // List<Country> countriesList = await Country.getAll();
-      List<KeyValue> countries = await Country.getCountriesHash();
+      List<KeyValue> countries = await Country.getCountriesHash(null);
       if (countriesList.any((element) => element.uuid == org.country)) {
         org.countryObj =
             countriesList.firstWhere((element) => element.uuid == org.country);
