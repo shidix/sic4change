@@ -646,30 +646,33 @@ class _ProjectsPageState extends State<ProjectsPage> {
           width: double.infinity,
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText(
-                      "En ejecución: ${toCurrency(project.assignedBudget)}",
-                      16),
-                  space(height: 5),
-                  /*customLinearPercent(
+              Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      customText(
+                          "En ejecución: ${toCurrency(project.assignedBudget)}",
+                          16),
+                      space(height: 5),
+                      /*customLinearPercent(
                       context, 4.5, execVsAssigned, percentBarPrimary),*/
-                  customLinearPercent(context, 4.5, project.getExecVsAssigned(),
-                      percentBarPrimary),
-                ],
-              ),
-              const VerticalDivider(
-                width: 10,
-                color: Colors.grey,
-              ),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                customText("Presupuesto total:   ${project.budget} €", 16),
-                space(height: 5),
-                //customLinearPercent(context, 4.5, execVsBudget, blueColor),
-                customLinearPercent(
-                    context, 4.5, project.getExecVsBudget(), blueColor),
-              ]),
+                      customLinearPercent(context, 4.5,
+                          project.getExecVsAssigned(), percentBarPrimary),
+                    ],
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        customText(
+                            "Presupuesto total:   ${project.budget} €", 16),
+                        space(height: 5),
+                        //customLinearPercent(context, 4.5, execVsBudget, blueColor),
+                        customLinearPercent(
+                            context, 4.5, project.getExecVsBudget(), blueColor),
+                      ])),
             ],
           ),
         ),

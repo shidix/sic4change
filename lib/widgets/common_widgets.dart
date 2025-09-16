@@ -503,7 +503,7 @@ Widget customLinearPercent(context, _offset, _percent, _color) {
   var _percentText = (_percent * 100).toStringAsFixed(2);
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     LinearPercentIndicator(
-      width: 600 / _offset,
+      width: MediaQuery.of(context).size.width / _offset,
       animation: true,
       lineHeight: 10.0,
       animationDuration: 500,
