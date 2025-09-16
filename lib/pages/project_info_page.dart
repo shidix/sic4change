@@ -43,11 +43,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   bool returnToList = false;
   ProjectsProvider? projectsProvider;
 
-  Widget projectInfoHeaderPanel = Container();
-  Widget profileMenuPanel = Container();
-  Widget projectInfoDetailsPanel = Container();
-  Widget projectInfoLocationPanel = Container();
-
+  Widget? projectInfoHeaderPanel;
+  Widget? profileMenuPanel;
+  Widget? projectInfoDetailsPanel;
+  Widget? projectInfoLocationPanel;
   void loadProject() async {
     setState(() {
       projLoading = false;
@@ -176,15 +175,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
-    projectInfoLocationPanel = projectInfoLocation(context, project);
-    projectInfoHeaderPanel = projectInfoHeader(context); //, widget.project);
-    profileMenuPanel = profileMenu(context, project, "info");
-    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
+
     createLog("Acceso a al detalle de la iniciativa: ${project!.name}");
   }
 
   @override
   Widget build(BuildContext context) {
+    projectInfoLocationPanel ??= projectInfoLocation(context, project);
+    projectInfoHeaderPanel ??= projectInfoHeader(context); //, widget.project);
+    profileMenuPanel ??= profileMenu(context, project, "info");
+    projectInfoDetailsPanel ??=
+        projectInfoDetails(context, {"project": project});
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -192,9 +193,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         children: [
           //mainMenu(context),
           _mainMenu!,
-          projectInfoHeaderPanel,
+          projectInfoHeaderPanel == null
+              ? const Center(child: CircularProgressIndicator())
+              : projectInfoHeaderPanel!,
           // projectInfoHeader(context),
-          profileMenuPanel,
+          profileMenuPanel == null
+              ? const Center(child: CircularProgressIndicator())
+              : profileMenuPanel!,
           // profileMenu(context, project, "info"),
           projLoading
               ? contentTab(
@@ -207,6 +212,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   //Widget projectInfoHeader(context, project) {
   Widget projectInfoHeader(context) {
+    if (!mounted) return Container();
     return Container(
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -238,22 +244,28 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
           IntrinsicHeight(
             child: Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    customText("En ejecución:", 16),
-                    space(height: 5),
-                    customLinearPercent(context, 2.3,
-                        project!.getExecVsAssigned(), percentBarPrimary),
-                  ],
-                ),
-                space(width: 50),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  customText("Presupuesto total:   ${project!.budget} €", 16),
-                  space(height: 5),
-                  customLinearPercent(
-                      context, 2.3, project!.getExecVsBudget(), blueColor),
-                ]),
+                Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        customText("En ejecución:", 16),
+                        space(height: 5),
+                        customLinearPercent(context, null,
+                            project!.getExecVsAssigned(), percentBarPrimary),
+                      ],
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          customText(
+                              "Presupuesto total:   ${project!.budget} €", 16),
+                          space(height: 5),
+                          customLinearPercent(context, null,
+                              project!.getExecVsBudget(), blueColor),
+                        ])),
               ],
             ),
           ),
@@ -771,7 +783,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectInfoLocationPanel,
+                projectInfoLocationPanel ?? projectInfoLocation(context, proj),
               ],
             )));
   }
