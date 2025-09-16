@@ -134,22 +134,29 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     return Container(
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            customText(project!.name, 20),
-            customText(project!.statusObj.name, 18, textColor: mainColor),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              _canEdit
-                  ? addBtn(context, _callProjectEditDialog, project,
-                      icon: Icons.edit, text: "Editar")
-                  : customText("", 10),
-              space(width: 10),
-              //returnBtn(context),
-              (returnToList)
-                  ? goPage(context, "Volver", const ProjectListPage(),
-                      Icons.arrow_circle_left_outlined)
-                  : goPage(context, "Volver", const ProjectsPage(),
-                      Icons.arrow_circle_left_outlined),
-            ])
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Expanded(
+                flex: 1,
+                child: customText(project!.statusObj.name, 18,
+                    textColor: mainColor)),
+            Expanded(
+                flex: 3,
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  _canEdit
+                      ? addBtn(context, _callProjectEditDialog, project,
+                          icon: Icons.edit, text: "Editar")
+                      : customText("", 10),
+                  space(width: 10),
+                  //returnBtn(context),
+                  (returnToList)
+                      ? goPage(context, "Volver", const ProjectListPage(),
+                          Icons.arrow_circle_left_outlined)
+                      : goPage(context, "Volver", const ProjectsPage(),
+                          Icons.arrow_circle_left_outlined),
+                ]))
+          ]),
+          Row(children: [
+            Expanded(flex: 1, child: customText(project!.name, 20)),
           ]),
           space(height: 20),
           IntrinsicHeight(

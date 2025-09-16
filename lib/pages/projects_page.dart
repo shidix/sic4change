@@ -593,18 +593,35 @@ class _ProjectsPageState extends State<ProjectsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            customText(project.name, 20, bold: FontWeight.bold),
-            customText(project.statusObj.name.toUpperCase(), 15,
-                textColor: mainColor),
-            customText(project.typeObj.name.toUpperCase(), 15,
-                textColor: mainColor),
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline),
-              tooltip: 'Eliminar proyecto',
-              onPressed: () {
-                projectRemoveDialog(context, project);
-              },
-            ),
+            Expanded(
+                flex: 1,
+                child: customText(project.statusObj.name.toUpperCase(), 15,
+                    textColor: mainColor)),
+            Expanded(
+                flex: 1,
+                child: customText(project.typeObj.name.toUpperCase(), 15,
+                    textColor: mainColor, align: TextAlign.center)),
+            Expanded(
+                flex: 1,
+                child: Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      tooltip: 'Eliminar proyecto',
+                      onPressed: () {
+                        projectRemoveDialog(context, project);
+                      },
+                    ))),
+          ],
+        ),
+        space(height: 5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 6,
+              child: customText(project.name, 20, bold: FontWeight.bold),
+            )
           ],
         ),
         space(height: 10),

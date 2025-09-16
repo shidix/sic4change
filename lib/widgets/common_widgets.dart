@@ -968,6 +968,7 @@ Widget customText(_text, _size,
   return Text(
     _text ?? '',
     textAlign: align,
+    maxLines: 4,
     style: TextStyle(fontSize: _size, color: textColor, fontWeight: bold),
   );
 }
