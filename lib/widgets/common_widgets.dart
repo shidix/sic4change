@@ -2194,9 +2194,11 @@ class CustomDropdown extends StatelessWidget {
     return SizedBox(
         width: size,
         child: DropdownSearch<KeyValue>(
-          popupProps: const PopupProps.menu(
+          popupProps: PopupProps.menu(
             showSearchBox: true,
             showSelectedItems: true,
+            constraints: BoxConstraints(
+                maxHeight: min(60 + 50 * options.length.toDouble(), 300)),
           ),
           items: options_new,
           itemAsString: (KeyValue p) => p.value,
