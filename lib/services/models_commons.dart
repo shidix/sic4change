@@ -649,7 +649,12 @@ class Ambit {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_ambits").add(data);
+      var item =
+          await FirebaseFirestore.instance.collection("s4c_ambits").add(data);
+      id = item.id;
+      await item.update({'id': item.id}).catchError((onError) {
+        dev.log("Error updating document: $onError");
+      });
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection("s4c_ambits").doc(id).set(data);
@@ -686,7 +691,13 @@ class Ambit {
         await FirebaseFirestore.instance.collection("s4c_ambits").get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
+      if (data["id"] == null || data["id"] == "") {
+        data["id"] = doc.id;
+        FirebaseFirestore.instance
+            .collection("s4c_ambits")
+            .doc(doc.id)
+            .update({"id": doc.id});
+      }
       items.add(Ambit.fromJson(data));
     }
     return items;

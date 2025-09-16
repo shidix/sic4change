@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/pages/admin_ambits_page.dart';
 import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
@@ -209,6 +210,10 @@ class _AdminPageState extends State<AdminPage> {
             setState(() {});
           }),
           goPage(context, "Tipos", const ProjectTypePage(), Icons.type_specimen,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(context, 'Ámbitos', const AdminAmbitsPage(), Icons.map,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),

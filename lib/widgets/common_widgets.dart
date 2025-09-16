@@ -2691,3 +2691,23 @@ Widget infoDialog(BuildContext context, Icon icon, String title, String content,
         ],
   );
 }
+
+class TitlePageS4C extends StatelessWidget {
+  final String title;
+  final IconData? icon;
+
+  const TitlePageS4C({super.key, required this.title, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.all(20),
+        child: Row(children: [
+          (icon != null)
+              ? Icon(icon, color: mainColor, size: 40)
+              : const SizedBox(width: 0),
+          (icon != null) ? space(width: 10) : const SizedBox(width: 0),
+          customText(title, 20, textColor: mainColor, bold: FontWeight.bold)
+        ]));
+  }
+}

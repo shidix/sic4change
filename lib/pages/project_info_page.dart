@@ -15,7 +15,6 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
-import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -117,9 +116,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void getProfile(user) async {
     profile = projectsProvider!.profile;
     profile ??= await Profile.getProfile(user.email!);
-    _mainMenu = mainMenu(context, null, profile);
     _canEdit = canEdit();
     if (!mounted) return;
+    _mainMenu = mainMenu(context, null, profile);
     setState(() {});
     // await Profile.getProfile(user.email!).then((value) {
     //   profile = value;
