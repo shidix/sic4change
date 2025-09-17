@@ -126,18 +126,21 @@ class Province {
   String id = "";
   String uuid = "";
   String name = "";
+  String region = "";
 
-  Province(this.name);
+  Province(this.name, {this.region = ""});
 
   Province.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        name = json['name'];
+        name = json['name'],
+        region = json['region'] ?? "";
 
   Map<String, String> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'region': region,
       };
 
   KeyValue toKeyValue() {
@@ -149,16 +152,23 @@ class Province {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_province").add(data);
+      var item = await FirebaseFirestore.instance
+          .collection(Province.tbName)
+          .add(data);
+      id = item.id;
+      FirebaseFirestore.instance
+          .collection(Province.tbName)
+          .doc(id)
+          .update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_province").doc(id).set(data);
+      FirebaseFirestore.instance.collection(Province.tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
     await FirebaseFirestore.instance
-        .collection('s4c_province')
+        .collection(Province.tbName)
         .doc(id)
         .delete();
   }
@@ -175,14 +185,23 @@ class Province {
             : Province(""));
   }
 
-  static Future<Province> byUuid(String uuid) {
-    return FirebaseFirestore.instance
+  static Future<Province> byUuid(String uuid) async {
+    var query = await FirebaseFirestore.instance
         .collection(Province.tbName)
         .where("uuid", isEqualTo: uuid)
-        .get()
-        .then((value) => (value.docs.isNotEmpty)
-            ? Province.fromJson(value.docs.first.data())
-            : Province(""));
+        .get();
+    if (query.docs.isEmpty) {
+      return Province("");
+    }
+    Map<String, dynamic> data = query.docs.first.data();
+    if (data["id"] != query.docs.first.id) {
+      data["id"] = query.docs.first.id;
+      FirebaseFirestore.instance
+          .collection(Province.tbName)
+          .doc(query.docs.first.id)
+          .update({'id': data["id"]});
+    }
+    return Province.fromJson(data);
   }
 
   static Future<List> getProvinces() async {
@@ -225,21 +244,25 @@ class Province {
 //--------------------------------------------------------------
 
 class Region {
+  static const String tbName = "s4c_region";
   String id = "";
   String uuid = "";
   String name = "";
+  String country = "";
 
-  Region(this.name);
+  Region(this.name, {this.country = ""});
 
   Region.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        name = json['name'];
+        name = json['name'],
+        country = json['country'] ?? "";
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'country': country,
       };
 
   KeyValue toKeyValue() {
@@ -251,20 +274,26 @@ class Region {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_region").add(data);
+      var item =
+          await FirebaseFirestore.instance.collection(Region.tbName).add(data);
+      id = item.id;
+      FirebaseFirestore.instance
+          .collection(Region.tbName)
+          .doc(id)
+          .update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_region").doc(id).set(data);
+      FirebaseFirestore.instance.collection(Region.tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance.collection("s4c_region").doc(id).delete();
+    await FirebaseFirestore.instance.collection(Region.tbName).doc(id).delete();
   }
 
   static Future<Region> byId(String id) {
     return FirebaseFirestore.instance
-        .collection("s4c_region")
+        .collection(Region.tbName)
         .doc(id)
         .get()
         .then((value) => (value.exists)
@@ -272,21 +301,30 @@ class Region {
             : Region(""));
   }
 
-  static Future<Region> byUuid(String uuid) {
-    return FirebaseFirestore.instance
-        .collection('s4c_region')
+  static Future<Region> byUuid(String uuid) async {
+    var query = await FirebaseFirestore.instance
+        .collection(Region.tbName)
         .where("uuid", isEqualTo: uuid)
-        .get()
-        .then((value) => (value.docs.isNotEmpty)
-            ? Region.fromJson(value.docs.first.data())
-            : Region(""));
+        .get();
+    if (query.docs.isEmpty) {
+      return Region("");
+    }
+    Map<String, dynamic> data = query.docs.first.data();
+    if (data["id"] != query.docs.first.id) {
+      data["id"] = query.docs.first.id;
+      FirebaseFirestore.instance
+          .collection(Region.tbName)
+          .doc(query.docs.first.id)
+          .update({'id': data["id"]});
+    }
+    return Region.fromJson(data);
   }
 
   static Future<List> getRegions() async {
     List<Region> items = [];
 
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection('s4c_region').get();
+        await FirebaseFirestore.instance.collection(Region.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -306,7 +344,7 @@ class Region {
     }
 
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection('s4c_region').get();
+        await FirebaseFirestore.instance.collection(Region.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
@@ -321,23 +359,27 @@ class Region {
 //--------------------------------------------------------------
 
 class Town {
+  static const String tbName = "s4c_town";
   String id = "";
   String uuid = "";
   String name = "";
+  String province = "";
 
   // static final CollectionReference dbTown = FirebaseFirestore.instance.collection("s4c_town");
 
-  Town(this.name);
+  Town(this.name, {this.province = ""});
 
   Town.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         uuid = json["uuid"],
-        name = json['name'];
+        name = json['name'],
+        province = json['province'] ?? "";
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'province': province,
       };
 
   KeyValue toKeyValue() {
@@ -349,42 +391,70 @@ class Town {
       var _uuid = const Uuid();
       uuid = _uuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_town").add(data);
+      var item =
+          await FirebaseFirestore.instance.collection(Town.tbName).add(data);
+      id = item.id;
+      FirebaseFirestore.instance
+          .collection(Town.tbName)
+          .doc(id)
+          .update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_town").doc(id).set(data);
+      FirebaseFirestore.instance.collection(Town.tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance.collection("s4c_town").doc(id).delete();
+    await FirebaseFirestore.instance.collection(Town.tbName).doc(id).delete();
   }
 
   //byUuid
   static Future<Town> byId(String id) {
-    return FirebaseFirestore.instance.collection("s4c_town").doc(id).get().then(
-        (value) => (value.exists)
+    return FirebaseFirestore.instance
+        .collection(Town.tbName)
+        .doc(id)
+        .get()
+        .then((value) => (value.exists)
             ? Town.fromJson(value.data() as Map<String, dynamic>)
             : Town(""));
   }
 
   static Future<Town> byUuid(String uuid) {
     return FirebaseFirestore.instance
-        .collection("s4c_town")
+        .collection(Town.tbName)
         .where("uuid", isEqualTo: uuid)
         .get()
-        .then((value) => (value.docs.isNotEmpty)
-            ? Town.fromJson(value.docs.first.data())
-            : Town(""));
+        .then((value) {
+      if (value.docs.isNotEmpty) {
+        Map<String, dynamic> data = value.docs.first.data();
+        if (data["id"] != value.docs.first.id) {
+          data["id"] = value.docs.first.id;
+          FirebaseFirestore.instance
+              .collection(Town.tbName)
+              .doc(value.docs.first.id)
+              .update({'id': data["id"]});
+        }
+        return Town.fromJson(value.docs.first.data());
+      } else {
+        return Town("");
+      }
+    });
   }
 
   static Future<List> getTowns() async {
     List<Town> items = [];
 
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_town").get();
+        await FirebaseFirestore.instance.collection(Town.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      if (data["id"] != doc.id) {
+        data["id"] = doc.id;
+        FirebaseFirestore.instance
+            .collection(Town.tbName)
+            .doc(doc.id)
+            .update({'id': data["id"]});
+      }
       data["id"] = doc.id;
       items.add(Town.fromJson(data));
     }
@@ -402,7 +472,7 @@ class Town {
     }
 
     QuerySnapshot query =
-        await FirebaseFirestore.instance.collection("s4c_town").get();
+        await FirebaseFirestore.instance.collection(Town.tbName).get();
     for (var doc in query.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;

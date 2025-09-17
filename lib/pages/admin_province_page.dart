@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -20,6 +21,9 @@ class ProvincePage extends StatefulWidget {
 
 class _ProvincePageState extends State<ProvincePage>
     with SingleTickerProviderStateMixin {
+  List<Country> countries = [];
+  List<Region> regions = [];
+
   void setLoading() {
     setState(() {
       loadingProvince = true;
@@ -35,6 +39,8 @@ class _ProvincePageState extends State<ProvincePage>
   void loadProvinces() async {
     setLoading();
     provinces = await Province.getProvinces();
+    regions = await Region.getRegions() as List<Region>;
+    countries = await Country.getCountries() as List<Country>;
     stopLoading();
     // await getProvinces().then((val) {
     //   provinces = val;
@@ -100,33 +106,108 @@ class _ProvincePageState extends State<ProvincePage>
 
   Future<void> editProvinceDialog(context, Map<String, dynamic> args) {
     Province province = args["province"];
+    if (province.region.isEmpty && regions.isNotEmpty) {
+      province.region = regions.first.id;
+    }
+    Region region = regions.firstWhere((reg) => reg.id == province.region,
+        orElse: () => (regions.isNotEmpty
+            ? regions.first
+            : Region("-- No hay regiones --")));
+    Country country = countries.firstWhere((coun) => coun.id == region.country,
+        orElse: () => (countries.isNotEmpty
+            ? countries.first
+            : Country("-- No hay países --")));
+    List<Region> filteredRegions =
+        regions.where((reg) => reg.country == country.id).toList();
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar("Provincia"),
-          content: SingleChildScrollView(
-              child: Column(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: province.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  setState(() => province.name = val);
-                },
-              )
-            ]),
-          ])),
-          actions: <Widget>[
-            dialogsBtns(context, saveProvince, province),
-          ],
-        );
+        return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+                  titlePadding: const EdgeInsets.all(0),
+                  title: s4cTitleBar("Provincia"),
+                  content: SingleChildScrollView(
+                      child: Column(children: <Widget>[
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            labelText: "Nombre",
+                            initial: province.name,
+                            size: 900,
+                            minLines: 2,
+                            maxLines: 9999,
+                            fieldValue: (String val) {
+                              setState(() => province.name = val);
+                            },
+                          ),
+                          space(height: 10),
+                          DropdownButtonFormField(
+                              decoration: const InputDecoration(
+                                labelText: "País",
+                                border: OutlineInputBorder(),
+                              ),
+                              items: countries
+                                  .map((country) => DropdownMenuItem(
+                                        value: country.id,
+                                        child: Text(country.name),
+                                      ))
+                                  .toList(),
+                              value: country.id,
+                              isExpanded: true,
+                              hint: const Text("País"),
+                              onChanged: (value) {
+                                Country selected = countries.firstWhere(
+                                    (coun) => coun.id == value,
+                                    orElse: () => Country(""));
+                                filteredRegions = regions
+                                    .where((reg) => reg.country == selected.id)
+                                    .toList();
+                                setState(() {
+                                  country = selected;
+                                  if (region.country != country.id) {
+                                    region = filteredRegions.isNotEmpty
+                                        ? filteredRegions.first
+                                        : Region("-- No hay regiones --");
+                                    province.region = region.id;
+                                  }
+                                });
+                              }),
+                          space(height: 10),
+                          DropdownButtonFormField(
+                              items: filteredRegions
+                                  .map((region) => DropdownMenuItem(
+                                        value: region.id,
+                                        child: Text(region.name),
+                                      ))
+                                  .toList(),
+                              decoration: const InputDecoration(
+                                labelText: "Región",
+                                border: OutlineInputBorder(),
+                              ),
+                              value: region.id,
+                              isExpanded: true,
+                              hint: const Text("Región"),
+                              onChanged: (value) {
+                                Region selected = filteredRegions.firstWhere(
+                                    (reg) => reg.id == value,
+                                    orElse: () => Region(""));
+                                country = countries.firstWhere(
+                                    (coun) => coun.id == selected.country,
+                                    orElse: () => Country(""));
+                                setState(() {
+                                  region = selected;
+                                  province.region = region.id;
+                                });
+                              }),
+                        ]),
+                  ])),
+                  actions: <Widget>[
+                    dialogsBtns(context, saveProvince, province),
+                  ],
+                ));
       },
     );
   }

@@ -20,6 +20,9 @@ class RegionPage extends StatefulWidget {
 
 class _RegionPageState extends State<RegionPage>
     with SingleTickerProviderStateMixin {
+  List<Country> countries = [];
+  List<Province> provinces = [];
+
   void setLoading() {
     setState(() {
       loadingRegion = true;
@@ -35,6 +38,8 @@ class _RegionPageState extends State<RegionPage>
   void loadRegions() async {
     setLoading();
     regions = await Region.getRegions();
+    countries = await Country.getCountries() as List<Country>;
+    provinces = await Province.getProvinces() as List<Province>;
     stopLoading();
     // await getRegions().then((val) {
     //   regions = val;
@@ -100,33 +105,68 @@ class _RegionPageState extends State<RegionPage>
 
   Future<void> editRegionDialog(context, Map<String, dynamic> args) {
     Region region = args["region"];
+    Country country = countries.isNotEmpty
+        ? countries.firstWhere((c) => c.id == region.country, orElse: () {
+            return countries.first;
+          })
+        : Country("-- No hay países --");
+
+    if (region.country.isEmpty && countries.isNotEmpty) {
+      region.country = countries.first.id;
+    } else if (region.country.isNotEmpty) {
+      country = countries.firstWhere((c) => c.id == region.country, orElse: () {
+        return countries.first;
+      });
+    }
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar("Región"),
-          content: SingleChildScrollView(
-              child: Column(children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: region.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  setState(() => region.name = val);
-                },
-              )
-            ]),
-          ])),
-          actions: <Widget>[
-            dialogsBtns(context, saveRegion, region),
-          ],
-        );
+        return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+                  titlePadding: const EdgeInsets.all(0),
+                  title: s4cTitleBar("Región"),
+                  content: SingleChildScrollView(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        CustomTextField(
+                          labelText: "Nombre",
+                          initial: region.name,
+                          size: 900,
+                          minLines: 2,
+                          maxLines: 9999,
+                          fieldValue: (String val) {
+                            setState(() => region.name = val);
+                          },
+                        ),
+                        space(height: 10),
+                        DropdownButtonFormField(
+                          decoration: const InputDecoration(
+                            labelText: "País",
+                            border: OutlineInputBorder(),
+                          ),
+                          items: countries
+                              .map((e) => DropdownMenuItem(
+                                    value: e.id,
+                                    child: Text(e.name),
+                                  ))
+                              .toList(),
+                          value: country.id,
+                          hint: const Text("País"),
+                          onChanged: (value) {
+                            Country selected =
+                                countries.firstWhere((c) => c.id == value);
+                            region.country = selected.id;
+                            setState(() {});
+                          },
+                        )
+                      ])),
+                  actions: <Widget>[
+                    dialogsBtns(context, saveRegion, region),
+                  ],
+                ));
       },
     );
   }
