@@ -1,5 +1,6 @@
 // import 'dart:developer' as developer;
 // import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/pages/admin_page.dart';
@@ -268,6 +269,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.web,
   );
+  try {
+    await FirebaseFirestore.instance.enablePersistence(
+      const PersistenceSettings(synchronizeTabs: true),
+    );
+  } catch (e) {
+    // Si la persistencia ya está habilitada, se lanzará una excepción.
+    // Puedes manejarla aquí si es necesario.
+  }
 
   initializeDateFormatting('es_ES', '').then((_) => runApp(RestartApp(
         child: MultiProvider(

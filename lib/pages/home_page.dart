@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
       if (fullworkdays.isNotEmpty) {
         myWorkdays = fullworkdays
             .where((wd) => wd.userId == user.email)
-            .toList(growable: false);
+            .toList(growable: true);
       } else {
         myWorkdays = await Workday.byUser(user.email!);
       }
@@ -262,23 +262,27 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (emails.length > 1) {
+      DateTime firstDayOfYear = DateTime(DateTime.now().year, 1, 1);
       await _rrhhProvider?.loadWorkdays(
-          fromDate: DateTime.now().subtract(const Duration(days: 40)),
+          fromDate: firstDayOfYear,
           // fromDate: DateTime.now().subtract(const Duration(days: 400)), --- IGNORE ---
           // endDate: DateTime.now().add(const Duration(days: 400)), --- IGNORE ---
           userEmail: emails,
           notify: false);
     }
+    myWorkdays = _rrhhProvider!.workdays
+        .where((wd) => wd.userId == user.email)
+        .toList(growable: true);
+    myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
     myPeopleWorkdays = _rrhhProvider!.workdays
         .where((wd) => emails.contains(wd.userId))
-        .toList(growable: false);
+        .toList(growable: true);
     // if (myPeopleWorkdays.isEmpty) {
     //     myPeopleWorkdays = await Workday.byUser(emails);
     // }
     // // myPeopleWorkdays = await Workday.byUser(emails);
     myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
-    dev.log(
-        "Loaded ${myPeopleWorkdays.length} workdays for ${emails.length} employees");
+
     return myPeopleWorkdays;
   }
 
@@ -642,7 +646,7 @@ class _HomePageState extends State<HomePage> {
     contact = _rrhhProvider?.contact;
     myWorkdays = _rrhhProvider?.workdays
         .where((wd) => wd.userId == user.email)
-        .toList(growable: false);
+        .toList(growable: true);
     myWorkdays!.sort((a, b) => b.startDate.compareTo(a.startDate));
 
     await loadCurrentWorkday();
@@ -653,7 +657,7 @@ class _HomePageState extends State<HomePage> {
       if (profile!.isRRHH()) {
         mypeople = _rrhhProvider!.employees
             .where((e) => e.isActive())
-            .toList(growable: false);
+            .toList(growable: true);
       } else {
         mypeople = await currentEmployee!
             .getSubordinates(departments: _rrhhProvider?.departments);
@@ -669,11 +673,11 @@ class _HomePageState extends State<HomePage> {
 
       myPeopleHolidays = _rrhhProvider!.holidaysRequests
           .where((hr) => mypeople.map((e) => e.email).contains(hr.userId))
-          .toList(growable: false);
+          .toList(growable: true);
     }
     myHolidays = _rrhhProvider?.holidaysRequests
         .where((hr) => hr.userId == user.email)
-        .toList(growable: false);
+        .toList(growable: true);
     holCat = _rrhhProvider?.holidaysCategories;
     if (currentEmployee != null) {
       myCalendar = _rrhhProvider?.calendars.firstWhere(
@@ -689,6 +693,7 @@ class _HomePageState extends State<HomePage> {
       contentHolidaysPanel = holidayPanel();
       topButtonsPanel = topButtons(null);
       contentNotifyPanel = notifyPanel();
+      contentMyPeopleCalendar = peopleCalendar();
     });
   }
 
@@ -698,11 +703,11 @@ class _HomePageState extends State<HomePage> {
 
     myProjects = _projectsProvider!.projects
         .where((p) => contact!.projects.contains(p.uuid))
-        .toList(growable: false);
+        .toList(growable: true);
 
     mytasks = _projectsProvider!.tasks
         .where((t) => t.assigned.contains(user.email))
-        .toList(growable: false);
+        .toList(growable: true);
 
     if (!mounted) return;
     setState(() {
@@ -1935,7 +1940,7 @@ class _HomePageState extends State<HomePage> {
     }
     holCat = _rrhhProvider?.holidaysCategories
         .where((cat) => cat.isActive())
-        .toList(growable: false);
+        .toList(growable: true);
 
     double factor = 1.0;
     DateTime altaDate = currentEmployee!.getAltaDate();

@@ -144,11 +144,15 @@ class Workday {
       List<Workday> items = [];
       DateTime today = DateTime.now();
       today = truncDate(today);
-      final query = await FirebaseFirestore.instance
+      Query queryBuilder = await FirebaseFirestore.instance
           .collection(Workday.tbName)
           .where("userId", isEqualTo: email)
-          .where("startDate", isGreaterThanOrEqualTo: today)
-          .get();
+          .where("startDate", isGreaterThanOrEqualTo: today);
+      QuerySnapshot query =
+          await queryBuilder.get(const GetOptions(source: Source.cache));
+      if (query.docs.isEmpty) {
+        query = await queryBuilder.get();
+      }
       if (query.docs.isNotEmpty) {
         for (var result in query.docs) {
           Workday item = Workday.fromFirestore(result);
@@ -203,7 +207,7 @@ class Workday {
       allItems.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
       return allItems;
     } else {
-      QuerySnapshot query = await FirebaseFirestore.instance
+      Query queryBuilder = FirebaseFirestore.instance
           .collection(Workday.tbName)
           .where("userId", whereIn: email)
           .where("startDate",
@@ -211,10 +215,24 @@ class Workday {
                   fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))
           .where("startDate",
               isLessThanOrEqualTo:
-                  DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59))
-          .get();
+                  DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59));
+
+      QuerySnapshot query =
+          await queryBuilder.get(const GetOptions(source: Source.cache));
+      if (query.docs.isEmpty) {
+        query = await queryBuilder.get();
+      }
+
       for (var result in query.docs) {
-        items.add(Workday.fromJson(result.data() as Map<String, dynamic>));
+        Map<String, dynamic> data = result.data() as Map<String, dynamic>;
+        if (!data.containsKey('id') || (data['id'] != result.id)) {
+          data['id'] = result.id;
+          FirebaseFirestore.instance
+              .collection(Workday.tbName)
+              .doc(result.id)
+              .update({'id': result.id});
+        }
+        items.add(Workday.fromJson(data));
       }
       if (items.isNotEmpty) {
         // Workday empty = Workday.getEmpty();

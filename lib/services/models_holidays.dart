@@ -3,7 +3,7 @@ import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
-// import 'dart:developer' as dev;
+import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
 class HolidaysConfig {
@@ -94,14 +94,19 @@ class HolidaysConfig {
     if (employee.id!.isEmpty) {
       return getEmpty(year: year);
     }
-    final query = await FirebaseFirestore.instance
+
+    final Query query = FirebaseFirestore.instance
         .collection(tbName)
-        .where("employees", arrayContains: employee.id)
-        .get();
+        .where("employees", arrayContains: employee.id);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty) {
+      querySnap = await query.get();
+    }
 
     List<HolidaysConfig> items = [];
-    for (var result in query.docs) {
-      Map<String, dynamic> data = result.data();
+    for (var result in querySnap.docs) {
+      Map<String, dynamic> data = result.data() as Map<String, dynamic>;
       data['id'] = result.id;
       items.add(HolidaysConfig.fromJson(data));
     }
@@ -121,12 +126,17 @@ class HolidaysConfig {
   //byOrganization (uuid)
   static Future<List<HolidaysConfig>> byOrganization(String uuid) async {
     List<HolidaysConfig> items = [];
-    final query = await FirebaseFirestore.instance
+    final Query query = FirebaseFirestore.instance
         .collection(tbName)
-        .where("organization", isEqualTo: uuid)
-        .get();
-    if (query.docs.isNotEmpty) {
-      items = query.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
+        .where("organization", isEqualTo: uuid);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty) {
+      querySnap = await query.get();
+    }
+    if (querySnap.docs.isNotEmpty) {
+      items =
+          querySnap.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
       //Sort by year and Name
       items.sort((a, b) {
         int yearComparison = b.year.compareTo(a.year);
@@ -390,12 +400,25 @@ class HolidayRequest {
     for (var i = 0; i < email.length; i += chunkSize) {
       var chunk = email.sublist(
           i, i + chunkSize > email.length ? email.length : i + chunkSize);
-      final query = await FirebaseFirestore.instance
+
+      // Query => usendIds in chunk and (startDate OR endDate in datesRange)
+      // final query = await FirebaseFirestore.instance
+      //     .collection(tbName)
+      //     .where("userId", whereIn: chunk)
+      //     .get();
+      Query queryBuilder = FirebaseFirestore.instance
           .collection(tbName)
           .where("userId", whereIn: chunk)
-          .get();
+          .where("startDate", isLessThan: endDate)
+          .where("endDate", isGreaterThan: startDate);
+      QuerySnapshot query =
+          await queryBuilder.get(const GetOptions(source: Source.cache));
+      if (query.docs.isEmpty) {
+        query = await queryBuilder.get();
+      }
+
       for (var result in query.docs) {
-        Map<String, dynamic> data = result.data();
+        Map<String, dynamic> data = result.data() as Map<String, dynamic>;
         data['id'] = result.id;
         items.add(HolidayRequest.fromJson(data));
       }
@@ -690,8 +713,14 @@ class HolidaysCategory {
   }
 
   static Future<HolidaysCategory> byId(String id) async {
-    final doc =
-        await FirebaseFirestore.instance.collection(tbName).doc(id).get();
+    DocumentReference snap =
+        FirebaseFirestore.instance.collection(tbName).doc(id);
+    DocumentSnapshot doc;
+    try {
+      doc = await snap.get(const GetOptions(source: Source.cache));
+    } catch (e) {
+      doc = await snap.get();
+    }
     if (doc.exists) {
       return HolidaysCategory.fromJson(doc.data() as Map<String, dynamic>);
     } else {
@@ -710,13 +739,23 @@ class HolidaysCategory {
     if (uuid.isEmpty) {
       return [];
     }
-    final query = await FirebaseFirestore.instance
+    Query query = FirebaseFirestore.instance
         .collection(tbName)
-        .where("organization", isEqualTo: uuid)
-        .get();
-    if (query.docs.isNotEmpty) {
-      return query.docs
-          .map((e) => HolidaysCategory.fromJson(e.data()))
+        .where("organization", isEqualTo: uuid);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty) {
+      querySnap = await query.get();
+    }
+    if (querySnap.docs.isNotEmpty) {
+      if (querySnap.metadata.isFromCache) {
+        dev.log("Returned ${querySnap.docs.length} items from CACHE");
+      } else {
+        dev.log("Returned ${querySnap.docs.length} items from SERVER");
+      }
+      return querySnap.docs
+          .map((e) =>
+              HolidaysCategory.fromJson(e.data() as Map<String, dynamic>))
           .toList();
     } else {
       return [];
@@ -728,10 +767,14 @@ class HolidaysCategory {
     if (organization != null && organization.uuid.isNotEmpty) {
       return await HolidaysCategory.byOrganization(organization);
     } else {
-      QuerySnapshot query =
-          await FirebaseFirestore.instance.collection(tbName).get();
-      if (query.docs.isNotEmpty) {
-        return query.docs
+      Query query = FirebaseFirestore.instance.collection(tbName);
+      QuerySnapshot querySnap =
+          await query.get(const GetOptions(source: Source.cache));
+      if (querySnap.docs.isEmpty) {
+        querySnap = await query.get();
+      }
+      if (querySnap.docs.isNotEmpty) {
+        return querySnap.docs
             .map((e) =>
                 HolidaysCategory.fromJson(e.data() as Map<String, dynamic>))
             .toList();
