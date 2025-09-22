@@ -175,11 +175,12 @@ class Workday {
   }
 
   static Future<List<Workday>> byUser(dynamic email,
-      [DateTime? fromDate]) async {
+      [DateTime? fromDate, DateTime? toDate]) async {
     // Check if email are > 30 elements
 
     List<Workday> items = [];
     fromDate ??= DateTime.now().subtract(const Duration(days: 40));
+    toDate ??= DateTime.now();
 
     if (email is String) {
       email = [email];
@@ -208,6 +209,9 @@ class Workday {
           .where("startDate",
               isGreaterThanOrEqualTo: DateTime(
                   fromDate.year, fromDate.month, fromDate.day, 0, 0, 0))
+          .where("startDate",
+              isLessThanOrEqualTo:
+                  DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59))
           .get();
       for (var result in query.docs) {
         items.add(Workday.fromJson(result.data() as Map<String, dynamic>));

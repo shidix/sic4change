@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer' as dev;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -327,11 +328,13 @@ class RRHHProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadWorkdays({DateTime? fromDate, bool notify = true}) async {
+  Future<void> loadWorkdays(
+      {DateTime? fromDate, List<String>? userEmail, bool notify = true}) async {
     if (_organization != null) {
       isLoading.add(true);
-      List<String> emailsEmployees =
-          _employees.map((e) => e.email).toList(growable: false);
+      List<String> emailsEmployees = (userEmail != null)
+          ? userEmail
+          : _employees.map((e) => e.email).toList(growable: false);
       _workdays = await Workday.byUser(emailsEmployees, fromDate);
       _workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
@@ -413,16 +416,16 @@ class RRHHProvider with ChangeNotifier {
   }
 
   void status() {
-    print("RRHHProvider status:");
-    print("Profile: ${_profile?.email}");
-    print("Organization: ${_organization?.name}");
-    print("Employee: ${_employee?.getFullName()}");
-    print("Employees: ${_employees.length}");
-    print("Organizations: ${_organizations.length}");
-    print("Holidays Categories: ${_holidaysCategories.length}");
-    print("Holidays Requests: ${_holidaysRequests.length}");
-    print("Calendars: ${_calendars.length}");
-    print("Workdays: ${_workdays.length}");
+    dev.log("----- RRHHProvider Status -----");
+    dev.log("Profile: ${_profile?.email}");
+    dev.log("Organization: ${_organization?.name}");
+    dev.log("Employee: ${_employee?.getFullName()}");
+    dev.log("Employees: ${_employees.length}");
+    dev.log("Organizations: ${_organizations.length}");
+    dev.log("Holidays Categories: ${_holidaysCategories.length}");
+    dev.log("Holidays Requests: ${_holidaysRequests.length}");
+    dev.log("Calendars: ${_calendars.length}");
+    dev.log("Workdays: ${_workdays.length}");
   }
 
   void initialize() {
@@ -448,9 +451,11 @@ class RRHHProvider with ChangeNotifier {
                         DateTime.now().subtract(const Duration(days: 770)),
                     endDate: DateTime.now().add(const Duration(days: 770)),
                     notify: true);
+                List<String>? emailToFind =
+                    (profile.isRRHH()) ? null : [user.email!];
                 loadWorkdays(
-                    fromDate:
-                        DateTime.now().subtract(const Duration(days: 400)),
+                    fromDate: DateTime.now().subtract(const Duration(days: 40)),
+                    userEmail: emailToFind,
                     notify: true);
               });
               loadHolidaysCategories(notify: true);

@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
-// import "dart:developer" as dev;
+import "dart:developer" as dev;
 import 'dart:convert';
 // import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -90,6 +90,9 @@ class _HomePageState extends State<HomePage> {
   Widget topButtonsPanel = Container();
   Widget debugPanel = Container();
   Widget contentNotifyPanel = Container();
+
+  Widget contentMyPeopleWorkday = Container();
+  Widget contentMyPeopleCalendar = Container();
 
   List<SProject>? myProjects;
 
@@ -252,82 +255,19 @@ class _HomePageState extends State<HomePage> {
     return myWorkdays!;
   }
 
-  Future<void> loadMyData() async {
-    contact ??= await Contact.byEmail(user.email!);
-    currentEmployee ??= await Employee.byEmail(user.email!);
-    if (currentEmployee!.organization == null) {
-      currentEmployee!.organization = currentOrganization!.id;
-      currentEmployee!.save();
-    }
-    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!);
-    final results = await Future.wait([
-      contact!.getProjects(),
-      STask.getByAssigned(user.email!, lazy: true),
-      HolidayRequest.byUser(user.email!),
-      //Workday.byUser(user.email!),
-      loadMyWorkdays(),
-      ((currentEmployee != null) && (mypeople.isEmpty))
-          ? currentEmployee!
-              .getSubordinates(departments: _rrhhProvider?.departments)
-          : Future.value(mypeople),
-      // Future.value(mypeople),
-      getNotificationList(user.email)
-    ]);
-
-    myProjects = results[0] as List<SProject>;
-    mytasks = results[1] as List<STask>;
-    contentTasksPanel = tasksPanel();
-    contentProjectsPanel = projectsPanel();
-    myHolidays = results[2] as List<HolidayRequest>;
-    updateRemainingHolidays();
-
-    contentWorkPanel = workTimePanel();
-
-    mypeople = results[4] as List<Employee>;
-
-    currentEmployee ??= await Employee.byEmail(user.email!);
-    mypeople.add(currentEmployee!);
-
-    for (Employee emp in mypeople) {
-      myPeopleCalendars[emp.email] = await HolidaysConfig.byEmployee(emp);
-    }
-
-    if (profile!.mainRole == Profile.RRHH) {
-      // Load all employees
-      Employee.getAll().then((value) {
-        mypeople = value;
-        mypeople = mypeople.where((element) => element.isActive()).toList();
-        for (Employee element in mypeople) {
-          HolidayRequest.byUser(element.email).then((value) {
-            // Check if value is not in myPeopleHolidays using id to compare
-            myPeopleHolidays.addAll(value.where(
-                (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
-            if (mounted) setState(() {});
-          });
-        }
-      });
-    }
-    loadMyPeopleWorkdays().then((value) {
-      myPeopleWorkdays = value;
-      myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
-    });
-
-    for (Employee element in mypeople) {
-      HolidayRequest.byUser(element.email).then((value) {
-        // Check if value is not in myPeopleHolidays using id to compare
-        myPeopleHolidays.addAll(value.where(
-            (holiday) => !myPeopleHolidays.any((h) => h.id == holiday.id)));
-      });
-    }
-    NotificationValues nVal = results[5] as NotificationValues;
-    notificationList = nVal.nList;
-    notif = nVal.unread;
-  }
-
   Future<List<Workday>> loadMyPeopleWorkdays() async {
     List<String> emails = mypeople.map((e) => e.email).toList();
     if (!emails.contains(user.email!)) {
       emails.add(user.email!);
+    }
+
+    if (emails.length > 1) {
+      await _rrhhProvider?.loadWorkdays(
+          fromDate: DateTime.now().subtract(const Duration(days: 40)),
+          // fromDate: DateTime.now().subtract(const Duration(days: 400)), --- IGNORE ---
+          // endDate: DateTime.now().add(const Duration(days: 400)), --- IGNORE ---
+          userEmail: emails,
+          notify: false);
     }
     myPeopleWorkdays = _rrhhProvider!.workdays
         .where((wd) => emails.contains(wd.userId))
@@ -337,6 +277,8 @@ class _HomePageState extends State<HomePage> {
     // }
     // // myPeopleWorkdays = await Workday.byUser(emails);
     myPeopleWorkdays.sort((a, b) => b.startDate.compareTo(a.startDate));
+    dev.log(
+        "Loaded ${myPeopleWorkdays.length} workdays for ${emails.length} employees");
     return myPeopleWorkdays;
   }
 
@@ -719,9 +661,11 @@ class _HomePageState extends State<HomePage> {
 
       updateRemainingHolidays();
 
-      myPeopleWorkdays = _rrhhProvider!.workdays
-          .where((wd) => mypeople.map((e) => e.email).contains(wd.userId))
-          .toList(growable: false);
+      // myPeopleWorkdays = _rrhhProvider!.workdays
+      //     .where((wd) => mypeople.map((e) => e.email).contains(wd.userId))
+      //     .toList(growable: false);
+      myPeopleWorkdays = await loadMyPeopleWorkdays();
+      contentMyPeopleWorkday = loadMyPeopleWorkdaysWidget();
 
       myPeopleHolidays = _rrhhProvider!.holidaysRequests
           .where((hr) => mypeople.map((e) => e.email).contains(hr.userId))
@@ -731,11 +675,14 @@ class _HomePageState extends State<HomePage> {
         .where((hr) => hr.userId == user.email)
         .toList(growable: false);
     holCat = _rrhhProvider?.holidaysCategories;
-    myCalendar = _rrhhProvider?.calendars.firstWhere(
-        (hc) => hc.employees.contains(currentEmployee!),
-        orElse: () => HolidaysConfig.getEmpty());
+    if (currentEmployee != null) {
+      myCalendar = _rrhhProvider?.calendars.firstWhere(
+          (hc) => hc.employees.contains(currentEmployee!),
+          orElse: () => HolidaysConfig.getEmpty());
+    }
 
     await getNotifications();
+    if (!mounted) return;
     setState(() {
       mainMenuWidget = mainMenu(context, "/home", profile);
       contentWorkPanel = workTimePanel();
@@ -757,6 +704,7 @@ class _HomePageState extends State<HomePage> {
         .where((t) => t.assigned.contains(user.email))
         .toList(growable: false);
 
+    if (!mounted) return;
     setState(() {
       contentProjectsPanel = projectsPanel();
       contentTasksPanel = tasksPanel();
@@ -886,11 +834,17 @@ class _HomePageState extends State<HomePage> {
     _profileProvider.addListener(_listener);
 
     _rrhhProvider = context.read<RRHHProvider?>();
+    if (_rrhhProvider == null) {
+      _rrhhProvider = RRHHProvider();
+      _rrhhProvider?.initialize();
+    } else {
+      loadFromCache();
+    }
+
     _rrhhProvider?.addListener(() {
       loadFromCache();
     });
-    _rrhhProvider ??= RRHHProvider();
-    _rrhhProvider?.initialize();
+
     // loadFromCache();
 
     currentOrganization = _profileProvider.organization;
@@ -916,8 +870,12 @@ class _HomePageState extends State<HomePage> {
     contentTasksPanel = tasksPanel();
     contentProjectsPanel = projectsPanel();
     contentNotifyPanel = notifyPanel();
-    loadFromCache();
-    loadFromProjectsCache();
+
+    contentMyPeopleWorkday = loadMyPeopleWorkdaysWidget();
+    contentMyPeopleCalendar = peopleCalendar();
+
+    // loadFromCache();
+    // loadFromProjectsCache();
     // _rrhhProvider.initialize();
 
     // initializeData();
@@ -950,7 +908,7 @@ class _HomePageState extends State<HomePage> {
         }
       };
     }
-    mainMenuWidget = mainMenu(context, "/home", profile);
+    // mainMenuWidget = mainMenu(context, "/home", profile);
     List<Widget> contents = [];
     if (MediaQuery.of(context).size.width < 800) {
       if (_currentPage == "home") {
@@ -965,8 +923,10 @@ class _HomePageState extends State<HomePage> {
         ];
       } else if (_currentPage == "yourpeople") {
         contents = [
-          loadMyPeopleWorkdaysWidget(),
-          peopleCalendar(),
+          // loadMyPeopleWorkdaysWidget(),
+          // peopleCalendar(),
+          contentMyPeopleWorkday,
+          contentMyPeopleCalendar,
         ];
       }
     } else if (_currentPage == "home") {
@@ -998,8 +958,8 @@ class _HomePageState extends State<HomePage> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 1, child: loadMyPeopleWorkdaysWidget()),
-            Expanded(flex: 1, child: peopleCalendar()),
+            Expanded(flex: 1, child: contentMyPeopleWorkday),
+            Expanded(flex: 1, child: contentMyPeopleCalendar),
           ],
         ),
       ];
@@ -1604,15 +1564,23 @@ class _HomePageState extends State<HomePage> {
       month = month;
     }
 
-    List<Workday> workdays = _rrhhProvider!.workdays
-        .where((wd) =>
-            (wd.userId == user.email) &&
-            (wd.startDate.year == month.year) &&
-            (wd.startDate.month == month.month))
-        .toList(growable: true);
+    // List<Workday> workdays = _rrhhProvider!.workdays
+    //     .where((wd) =>
+    //         (wd.userId == user.email) &&
+    //         (wd.startDate.year == month.year) &&
+    //         (wd.startDate.month == month.month))
+    //     .toList(growable: true);
+    DateTime toDate = DateTime(month.year + ((month.month - 1 + 1) ~/ 12),
+            (month.month - 1 + 1) % 12 + 1, 1)
+        .subtract(const Duration(seconds: 1));
+    List<Workday> workdays = await Workday.byUser(user.email!, month, toDate);
+    // workdays = workdays
+    //     .where((wd) =>
+    //         (wd.startDate.year == month.year) &&
+    //         (wd.startDate.month == month.month))
+    //     .toList(growable: true);
     if (workdays.isEmpty) {
       workdays = await Workday.byUser(user.email!, month).catchError((e) {
-        // dev.log("Error loading workdays: $e");
         return [] as List<Workday>;
       });
     }
@@ -1658,7 +1626,6 @@ class _HomePageState extends State<HomePage> {
         hoursInWeekEmployeeList = currentShift.hours;
       } catch (e) {
         hoursInWeekEmployeeList = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
-        // dev.log("Error loading shift: $e");
       }
       hoursInWeekEmployee =
           hoursInWeekEmployeeList[workday.startDate.weekday - 1];
