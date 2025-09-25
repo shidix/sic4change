@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 // import 'package:googleapis/batch/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/form_holiday.dart';
@@ -641,7 +642,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadFromCache() async {
     if (!mounted) return;
-    // My data
+    if (_profileProvider.profile == null) return;
     profile = _profileProvider.profile;
     contact = _rrhhProvider?.contact;
     myWorkdays = _rrhhProvider?.workdays

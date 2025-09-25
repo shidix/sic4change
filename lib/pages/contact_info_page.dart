@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
 //import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
@@ -50,7 +51,6 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         _provider.loadProfile();
       }
       setState(() {});
-
     });
     if ((currentOrg == null) || (currentProfile == null)) {
       _provider.loadProfile();
@@ -454,7 +454,6 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
       }
     });
 
-
     await ContactCharge.getContactCharges().then((value) async {
       for (ContactCharge item2 in value) {
         charges.add(item2.toKeyValue());
@@ -491,8 +490,8 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
       }
     });
 
-    editContactInfoDialog(context, organizations, charges, categories, zones, decisions, ambits, stakeholders, sectors);
-
+    editContactInfoDialog(context, organizations, charges, categories, zones,
+        decisions, ambits, stakeholders, sectors);
 
     // await getOrganizations().then((value) async {
     //   for (Organization item in value) {

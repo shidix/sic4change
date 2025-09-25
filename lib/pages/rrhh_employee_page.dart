@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 // import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/rrhh_nominas_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/form_employee.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -960,7 +961,7 @@ class _EmployeeInfoCardState extends State<EmployeeInfoCard> {
   void initState() {
     super.initState();
     holidaysInfo = [
-      Row(children: [Text('Revisando histórico de vacaciones...')])
+      const Row(children: [Text('Revisando histórico de vacaciones...')])
     ];
     initializeData();
   }

@@ -15,8 +15,7 @@ class ProjectsProvider with ChangeNotifier {
   late final Key key;
 
   Profile? _profile;
-  User? user = FirebaseAuth.instance.currentUser;
-  // bool _loading = false;
+  User? user;
   List<SProject> _projects = [];
   List<Ambit> _ambits = [];
   List<ProjectType> _projectTypes = [];
@@ -612,10 +611,12 @@ class ProjectsProvider with ChangeNotifier {
   }
 
   void initialize() async {
+    user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     if (_isLoading.isNotEmpty) return;
     _isLoading.add(true);
     if (_initialized) return;
-    if (user == null) return;
     profile = await Profile.byEmail(user!.email!);
     await loadProjects();
     await loadTasks();

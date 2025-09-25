@@ -190,7 +190,7 @@ class _TownPageState extends State<TownPage>
                                       child: Text(c.name),
                                     ))
                                 .toList(),
-                            value: country?.id,
+                            value: country.id,
                             hint: const Text("País"),
                             onChanged: (value) {
                               Country selected =

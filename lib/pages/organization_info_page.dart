@@ -4,8 +4,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sic4change/pages/contacts_page.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/form_organization.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_location.dart';
@@ -335,11 +335,11 @@ class _OrganizationInfoPageState extends State<OrganizationInfoPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text(
+            title: const Text(
                 "No tienes permisos para editar esta organización porque es a la que perteneces.\n Si deseas realizar cambios, contacta a un administrador."),
             actions: <Widget>[
               TextButton(
-                child: Text("Cerrar"),
+                child: const Text("Cerrar"),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },

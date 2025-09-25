@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/form_rrhh_workplace.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -32,10 +33,11 @@ class WorkplacePageState extends State<WorkplacePage> {
   void initializeData() async {
     if ((currentOrganization == null) || (profile == null)) return;
     workplaces = await Workplace.getAll(organization: currentOrganization);
-    if (mounted)
+    if (mounted) {
       setState(() {
         contentPanel = content(context);
       });
+    }
   }
 
   @override
@@ -225,9 +227,9 @@ class WorkplacePageState extends State<WorkplacePage> {
                       return AlertDialog(
                         title: s4cTitleBar("Eliminar Centro de Trabajo",
                             context, Icons.delete_rounded),
-                        content: Row(children: [
+                        content: const Row(children: [
                           Expanded(
-                              child: const Text(
+                              child: Text(
                                   "¿Está seguro que desea eliminar este centro de trabajo?",
                                   textAlign: TextAlign.center)),
                         ]),

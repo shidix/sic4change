@@ -12,6 +12,7 @@ import 'package:sic4change/services/models_workday.dart';
 
 class RRHHProvider with ChangeNotifier {
   late final Key key;
+  User? user = FirebaseAuth.instance.currentUser;
   bool initialized = false;
   Profile? _profile;
   Organization? _organization;
@@ -380,10 +381,10 @@ class RRHHProvider with ChangeNotifier {
   }
 
   Future<void> loadNotifications({bool notify = true}) async {
-    final user = FirebaseAuth.instance.currentUser;
+    // final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     isLoading.add(true);
-    _notifications = await SNotification.getNotificationsByReceiver(user.email)
+    _notifications = await SNotification.getNotificationsByReceiver(user?.email)
         as List<SNotification>;
     isLoading.removeFirst();
     if (notify && isLoading.isEmpty) {
@@ -429,15 +430,16 @@ class RRHHProvider with ChangeNotifier {
   }
 
   void initialize() {
-    final user = FirebaseAuth.instance.currentUser;
+    user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
     if (user != null && !initialized && isLoading.isEmpty) {
-      Employee.byEmail(user.email!).then((value) {
+      Employee.byEmail(user!.email!).then((value) {
         _employee = value;
       });
-      Contact.byEmail(user.email!).then((value) {
+      Contact.byEmail(user!.email!).then((value) {
         _contact = value;
       });
-      Profile.getProfile(user.email!).then((profile) {
+      Profile.getProfile(user!.email!).then((profile) {
         if (profile.id.isNotEmpty) {
           _profile = profile;
           if (profile.organization != null &&
@@ -452,7 +454,7 @@ class RRHHProvider with ChangeNotifier {
                     endDate: DateTime.now().add(const Duration(days: 770)),
                     notify: true);
                 List<String>? emailToFind =
-                    (profile.isRRHH()) ? null : [user.email!];
+                    (profile.isRRHH()) ? null : [user!.email!];
                 loadWorkdays(
                     fromDate: DateTime.now().subtract(const Duration(days: 40)),
                     userEmail: emailToFind,

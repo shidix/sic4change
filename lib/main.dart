@@ -16,9 +16,9 @@ import 'package:sic4change/pages/orgchart_page.dart';
 import 'package:sic4change/pages/profile_page.dart';
 import 'package:sic4change/pages/project_transversal_page.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
-import 'package:sic4change/services/models_profile.dart';
 
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -150,7 +150,6 @@ class RestartApp extends StatefulWidget {
   final Widget child;
   const RestartApp({super.key, required this.child});
 
-  /// Llama a esto para reiniciar TODO el árbol debajo de RestartApp.
   static void restart(BuildContext context) {
     final state = context.findAncestorStateOfType<_RestartAppState>();
     state?._restart();
@@ -166,7 +165,6 @@ class _RestartAppState extends State<RestartApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Al cambiar _key, se vuelve a construir TODO el subárbol
     return KeyedSubtree(
       key: _key,
       child: widget.child,

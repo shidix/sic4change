@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sic4change/pages/home_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/log_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -26,7 +27,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  late final ProfileProvider profileProvider;
+  late ProfileProvider? profileProvider;
   late final VoidCallback listener;
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
@@ -37,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     emailController.dispose();
     passwdController.dispose();
-    profileProvider.removeListener(listener);
+    profileProvider?.removeListener(listener);
 
     super.dispose();
   }
@@ -46,13 +47,13 @@ class _LoginPageState extends State<LoginPage> {
     if (FirebaseAuth.instance.currentUser == null) {
       return;
     } else {
-      profile = profileProvider.profile;
+      profile = profileProvider!.profile;
 
       if (profile == null) {
-        profileProvider.loadProfile();
+        profileProvider!.loadProfile();
         return;
       }
-      currentOrganization = profileProvider.organization;
+      currentOrganization = profileProvider!.organization;
     }
   }
 
@@ -64,19 +65,19 @@ class _LoginPageState extends State<LoginPage> {
 
     listener = () {
       if (!mounted) return;
-      currentOrganization = profileProvider.organization;
+      currentOrganization = profileProvider!.organization;
 
-      profile = profileProvider.profile;
+      profile = profileProvider!.profile;
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
       } else {
         // If profile or organization is null, load profile again
-        profileProvider.loadProfile();
+        profileProvider!.loadProfile();
       }
 
       // if (mounted) setState(() {});
     };
-    profileProvider.addListener(listener);
+    profileProvider!.addListener(listener);
 
     // ignore: unused_local_variable
     final user = FirebaseAuth.instance.currentUser;
@@ -253,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.symmetric(horizontal: 95),
       child: ElevatedButton(
         onPressed: () {
-          signIn(context, emailController, passwdController);
+          signIn(emailController, passwdController);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: mainColor,
@@ -264,7 +265,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future signIn(context, emailController, passwdController) async {
+  Future signIn(emailController, passwdController) async {
     Map<String, String> messagesI18n = {
       "invalid-email": "Las credenciales son incorrectas o han expirado",
       "invalid-credential": "Las credenciales son incorrectas o han expirado",
@@ -283,10 +284,17 @@ class _LoginPageState extends State<LoginPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         profile = null;
-        profileProvider.loadProfile();
+        profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+        profileProvider!.user = user;
+        await profileProvider!.loadProfile();
+
         RRHHProvider rrhhProvider =
             Provider.of<RRHHProvider>(context, listen: false);
         rrhhProvider.initialize();
+
+        // RRHHProvider rrhhProvider =
+        //     Provider.of<RRHHProvider>(context, listen: false);
+        // rrhhProvider.initialize();
 
         List<Workday> userWorkdays =
             await Workday.byUser(FirebaseAuth.instance.currentUser!.email!);
