@@ -2705,18 +2705,32 @@ class _HomePageState extends State<HomePage> {
               rows: notificationList
                   .map(
                     (notify) => DataRow(
+                        selected: false,
                         onSelectChanged: (bool? selected) {
-                          if (notify.readed) {
-                            notify.readed = false;
-                            notify.save();
-                            notif += 1;
-                          } else {
-                            notify.readed = true;
-                            notify.save();
-                            notif += -1;
-                          }
-                          if (mounted) {
-                            setState(() {});
+                          if (selected != null && selected) {
+                            // Show notification details dialog
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    titlePadding: const EdgeInsets.all(0),
+                                    title: s4cTitleBar('Notificación', context),
+                                    content: Text(notify.msg),
+                                  );
+                                }).then((value) {
+                              if (!notify.readed) {
+                                notify.readed = true;
+                                notify.save();
+
+                                notif += -1;
+                                if (mounted) {
+                                  mainMenuWidget =
+                                      mainMenu(context, "/home", profile);
+                                  contentNotifyPanel = notifyPanel();
+                                  setState(() {});
+                                }
+                              }
+                            });
                           }
                         },
                         color: (notify.readed)
@@ -2731,6 +2745,37 @@ class _HomePageState extends State<HomePage> {
                             Text(DateFormat('yyyy-MM-dd').format(notify.date)),
                           ),
                           DataCell(Row(children: [
+                            // Button to mark as read/unread with confirmation dialog
+                            notify.readed
+                                ? IconButton(
+                                    onPressed: () {
+                                      notify.readed = false;
+                                      notif += 1;
+                                      if (mounted) {
+                                        setState(() {
+                                          mainMenuWidget = mainMenu(
+                                              context, "/home", profile);
+                                          contentNotifyPanel = notifyPanel();
+                                        });
+                                      }
+                                      notify.save();
+                                    },
+                                    icon: Icon(Icons.mark_email_unread))
+                                : IconButton(
+                                    onPressed: () {
+                                      notify.readed = true;
+                                      notif += -1;
+                                      if (mounted) {
+                                        setState(() {
+                                          mainMenuWidget = mainMenu(
+                                              context, "/home", profile);
+                                          contentNotifyPanel = notifyPanel();
+                                        });
+                                      }
+                                      notify.save();
+                                    },
+                                    icon: Icon(Icons.mark_email_read)),
+                            space(width: 10),
                             removeConfirmBtn(context, () {
                               notify.delete();
                               if (mounted) {
