@@ -292,12 +292,8 @@ class _LoginPageState extends State<LoginPage> {
             Provider.of<RRHHProvider>(context, listen: false);
         rrhhProvider.initialize();
 
-        // RRHHProvider rrhhProvider =
-        //     Provider.of<RRHHProvider>(context, listen: false);
-        // rrhhProvider.initialize();
-
-        List<Workday> userWorkdays =
-            await Workday.byUser(FirebaseAuth.instance.currentUser!.email!);
+        List<Workday> userWorkdays = await Workday.byUser(
+            FirebaseAuth.instance.currentUser!.email!, null, null, true);
         // Check if there is any open workday
         if (userWorkdays.isNotEmpty) {
           userWorkdays
@@ -306,7 +302,7 @@ class _LoginPageState extends State<LoginPage> {
           if (!currentWorkday.open) {
             Workday newWorkday = Workday(
                 id: "",
-                userId: FirebaseAuth.instance.currentUser!.email!,
+                userId: user.email!,
                 startDate: DateTime.now(),
                 endDate: DateTime.now(),
                 open: true);
@@ -317,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           Workday newWorkday = Workday(
               id: "",
-              userId: FirebaseAuth.instance.currentUser!.email!,
+              userId: user.email!,
               startDate: DateTime.now(),
               endDate: DateTime.now(),
               open: true);

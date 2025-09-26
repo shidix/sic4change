@@ -179,7 +179,7 @@ class Workday {
   }
 
   static Future<List<Workday>> byUser(dynamic email,
-      [DateTime? fromDate, DateTime? toDate]) async {
+      [DateTime? fromDate, DateTime? toDate, bool forceServer = false]) async {
     // Check if email are > 30 elements
 
     List<Workday> items = [];
@@ -201,7 +201,8 @@ class Workday {
       for (var i = 0; i < email.length; i += 30) {
         var chunk =
             email.sublist(i, i + 30 > email.length ? email.length : i + 30);
-        var chunkItems = await Workday.byUser(chunk, fromDate);
+        var chunkItems =
+            await Workday.byUser(chunk, fromDate, toDate, forceServer);
         allItems.addAll(chunkItems);
       }
       allItems.sort((a, b) => (-1 * (a.startDate.compareTo(b.startDate))));
@@ -217,9 +218,13 @@ class Workday {
               isLessThanOrEqualTo:
                   DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59));
 
-      QuerySnapshot query =
-          await queryBuilder.get(const GetOptions(source: Source.cache));
-      if (query.docs.isEmpty) {
+      QuerySnapshot query;
+      if (!forceServer) {
+        query = await queryBuilder.get(const GetOptions(source: Source.cache));
+        if (query.docs.isEmpty) {
+          query = await queryBuilder.get();
+        }
+      } else {
         query = await queryBuilder.get();
       }
 
