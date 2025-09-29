@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:html' as html;
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
+import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -19,6 +20,7 @@ import 'package:sic4change/services/models_holidays.dart';
 import 'dart:math' as math;
 
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
@@ -112,7 +114,10 @@ DateTime today() {
   return truncDate(DateTime.now());
 }
 
-DateTime truncDate(DateTime date) {
+DateTime truncDate(DateTime date, {bool toEndOfDay = false}) {
+  if (toEndOfDay) {
+    return DateTime(date.year, date.month, date.day, 23, 59, 59);
+  }
   return DateTime(date.year, date.month, date.day);
 }
 
@@ -150,15 +155,19 @@ String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
 }
 
 int getWorkingDaysBetween(
-    DateTime date1, DateTime date2, HolidaysConfig? calendar) {
+    DateTime date1, DateTime date2, HolidaysConfig? calendar,
+    {Shift? shift}) {
+  shift ??= Shift.getEmpty();
   int workingDays = 0;
-  DateTime currentDate = date1;
-  while (currentDate.isBefore(date2.add(const Duration(days: 1)))) {
-    if (currentDate.weekday == DateTime.saturday ||
-        currentDate.weekday == DateTime.sunday) {
+  DateTime currentDate = truncDate(date1);
+  date2 = truncDate(date2, toEndOfDay: true);
+
+  while (currentDate.isBefore(date2)) {
+    if (!shift.isWorkingDay(currentDate)) {
       currentDate = currentDate.add(const Duration(days: 1));
       continue;
     }
+
     if (calendar != null) {
       if (calendar.isHoliday(currentDate)) {
         currentDate = currentDate.add(const Duration(days: 1));

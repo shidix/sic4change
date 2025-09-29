@@ -640,6 +640,14 @@ class Shift {
         date: truncDate(date ?? DateTime.now()),
         hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]);
   }
+
+  bool isWorkingDay(DateTime date) {
+    int weekday = date.weekday; // 1 = Monday, 7 = Sunday
+    if (hours.length < weekday) {
+      return false;
+    }
+    return hours[weekday - 1] > 0;
+  }
 }
 
 class Employee {

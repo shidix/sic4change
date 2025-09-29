@@ -13,7 +13,8 @@ class HolidaysConfig {
   int totalDays;
   String organization;
   List<Event> gralHolidays;
-  List<Employee> employees = [];
+  // List<Employee> employees = [];
+  List<String> employees = [];
 
   static const String tbName = "s4c_holidays_config";
 
@@ -38,15 +39,16 @@ class HolidaysConfig {
           .toList(),
     );
     if (data['employees'] != null &&
-        data['employees'] is List &&
+        data['employees'] is List<String> &&
         data['employees'].isNotEmpty) {
-      for (var idEmployee in data['employees']) {
-        Employee.byId(idEmployee).then((employee) {
-          if (employee.id != "") {
-            temp.employees.add(employee);
-          }
-        }).catchError((error) {});
-      }
+      // for (var idEmployee in data['employees']) {
+      //   Employee.byId(idEmployee).then((employee) {
+      //     if (employee.id != "") {
+      //       temp.employees.add(employee);
+      //     }
+      // }).catchError((error) {});
+      // }
+      temp.employees = data['employees'] as List<String>;
     } else {
       temp.employees = [];
     }
@@ -67,7 +69,7 @@ class HolidaysConfig {
         'totalDays': totalDays,
         'organization': organization,
         'gralHolidays': gralHolidays.map((e) => e.toJson()).toList(),
-        'employees': employees.map((e) => e.id).toList(),
+        'employees': employees,
       };
 
   @override
@@ -192,15 +194,15 @@ class HolidaysConfig {
   }
 
   HolidaysConfig addEmployee(Employee employee) {
-    if (!employees.any((e) => e.id == employee.id)) {
-      employees.add(employee);
+    if (!employees.any((e) => e == employee.id)) {
+      employees.add(employee.id!);
       save();
     }
     return this;
   }
 
   HolidaysConfig removeEmployee(Employee employee) {
-    employees.removeWhere((e) => e.id == employee.id);
+    employees.removeWhere((e) => e == employee.id);
     save();
     return this;
   }

@@ -633,15 +633,20 @@ class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
   @override
   Widget build(BuildContext context) {
     List<Widget> userButtons = [];
+    List<Employee> employeesInCalendar = employees
+        .where((emp) =>
+            holidaysConfig.employees.any((element) => element == emp.id))
+        .toList();
 
     userButtons = employees.map((employee) {
       bool isSelected =
-          holidaysConfig.employees.any((element) => element.id == employee.id);
+          holidaysConfig.employees.any((element) => element == employee.id);
+
       return Padding(
         padding: const EdgeInsets.all(5),
         child: Container(
           decoration: BoxDecoration(
-            color: (holidaysConfig.employees
+            color: (employeesInCalendar
                     .any((element) => element.code == employee.code))
                 ? Colors.white
                 : Colors.grey,
@@ -654,7 +659,7 @@ class _HolidayConfigUserFormState extends State<HolidayConfigUserForm> {
               flex: 3,
               child: Text(employee.getFullName(),
                   style: TextStyle(
-                      color: (holidaysConfig.employees
+                      color: (employeesInCalendar
                               .any((element) => element.code == employee.code))
                           ? Colors.black
                           : Colors.white)),

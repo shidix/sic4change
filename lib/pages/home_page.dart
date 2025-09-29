@@ -681,9 +681,8 @@ class _HomePageState extends State<HomePage> {
         .toList(growable: true);
     holCat = _rrhhProvider?.holidaysCategories;
     if (currentEmployee != null) {
-      myCalendar = _rrhhProvider?.calendars.firstWhere(
-          (hc) => hc.employees.contains(currentEmployee!),
-          orElse: () => HolidaysConfig.getEmpty());
+      myCalendar ??= _rrhhProvider?.calendars
+          .firstWhere((hc) => hc.employees.contains(currentEmployee!));
     }
 
     await getNotifications();
@@ -1930,9 +1929,13 @@ class _HomePageState extends State<HomePage> {
   }
 
 /////////// HOLIDAYS ///////////
-  void updateRemainingHolidays() {
+  void updateRemainingHolidays() async {
+    if (!mounted) return;
+
     remainingHolidays = {};
     holidayDays = 0;
+    myCalendar ??= await HolidaysConfig.byEmployee(currentEmployee!,
+        year: DateTime.now().year);
     myHolidays = _rrhhProvider?.holidaysRequests
         .where((hr) => hr.userId == user.email && !hr.isRejected())
         .toList(growable: true);

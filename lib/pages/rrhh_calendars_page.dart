@@ -537,9 +537,9 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     List<String> employeesInCalendars = [];
     for (HolidaysConfig calendar in holidaysList!) {
       if (calendar.id == holidaysConfig!.id) continue;
-      for (Employee emp in calendar.employees) {
-        if (emp.id != null) {
-          employeesInCalendars.add(emp.id!);
+      for (String emp in calendar.employees) {
+        if (emp != null) {
+          employeesInCalendars.add(emp);
         }
       }
     }
@@ -668,9 +668,9 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                     for (HolidaysConfig calendar in holidaysList!) {
                       if (calendar.id == holidaysConfig!.id) continue;
                       if (calendar.year != holidaysConfig!.year) continue;
-                      for (Employee emp in calendar.employees) {
-                        if (emp.id != null) {
-                          employeesInCalendars.add(emp.id!);
+                      for (String emp in calendar.employees) {
+                        if (emp != null) {
+                          employeesInCalendars.add(emp);
                         }
                       }
                     }
