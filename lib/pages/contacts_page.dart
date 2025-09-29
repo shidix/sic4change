@@ -92,8 +92,16 @@ class _ContactsPageState extends State<ContactsPage> {
       contacts = allContacts;
     } else {
       contacts = allContacts
-          .where((element) =>
-              (element.name.toLowerCase().contains(value.toLowerCase()) ||
+          .where((element) {
+              element.organizationObj ??= orgs.firstWhere(
+                  (org) => org.uuid == element.organization,
+                  orElse: () => Organization(""));
+              if (element.organizationObj!.name == "") {
+                element.organizationObj = allOrgs.firstWhere(
+                    (org) => ((element.email ?? "").contains(org.email) && (org.domain.length > 4)),
+                    orElse: () => Organization(""));
+              }
+              return (element.name.toLowerCase().contains(value.toLowerCase()) ||
                   element.email.toLowerCase().contains(value.toLowerCase()) ||
                   element.organizationObj.name
                       .toLowerCase()
@@ -104,8 +112,8 @@ class _ContactsPageState extends State<ContactsPage> {
                   element.positionObj.name
                       .toLowerCase()
                       .contains(value.toLowerCase()) ||
-                  element.phone.toLowerCase().contains(value.toLowerCase())))
-          .toList();
+                  element.phone.toLowerCase().contains(value.toLowerCase()));
+          }).toList();
     }
     if (mounted) {
       setState(() {
@@ -215,7 +223,7 @@ class _ContactsPageState extends State<ContactsPage> {
     return Builder(builder: ((context) {
       //if (orgs.isNotEmpty) {
       return Column(children: [
-        s4cTitleBar("Organizaciones"),
+        s4cTitleBar("Organizaciones", null, null, 10),
         Container(
             padding: const EdgeInsets.all(5),
             child: Row(
@@ -297,8 +305,9 @@ class _ContactsPageState extends State<ContactsPage> {
                           if (selected == true) {
                             currentOrg = org.name;
                             contacts = allContacts
-                                .where((element) =>
-                                    element.organizationObj.uuid == org.uuid)
+                                .where((element) =>(
+                                    (element.organization == org.uuid)) || ((element.email.endsWith(org.domain) && (org.domain.length > 4)))
+                                    )
                                 .toList();
                             if (mounted) {
                               setState(() {});
@@ -313,14 +322,9 @@ class _ContactsPageState extends State<ContactsPage> {
                             customText("  -  ", 14),
                             Icon(org.isPartner())
                           ])),
-                          //DataCell(Icon(org.isPartner())),
-                          //DataCell(Text(org.typeObj.name)),
+
                           DataCell(Row(children: [
-                            /*editBtn(context, callEditOrgDialog, {"org": org},
-                                iconSize: 18),
-                            editBtn(context, callEditOrgBillingDialog,
-                                    {"org": org},
-                                    icon: Icons.abc_outlined, iconSize: 14),*/
+
                             goPageIcon(
                               context,
                               "Ver",
@@ -465,11 +469,25 @@ class _ContactsPageState extends State<ContactsPage> {
   void filterContacts(context, args) {
     if (args["filter"] == "all") {
       findContacts("");
+      currentOrg = "Todas";
+      _currentOrg = null;
       //loadContacts("-1");
     }
     if (args["filter"] == "generic") {
+      currentOrg = "Sin organización";
+      _currentOrg = null;
       contacts = allContacts
-          .where((element) => element.organizationObj.name == "")
+          .where((element) {
+            Organization org = orgs.firstWhere(
+                (org) => org.uuid == element.organization,
+                orElse: () => Organization(""));
+            if (org.name == "") {
+              org = allOrgs.firstWhere(
+                  (org) => ((element.email.endsWith(org.domain)) && (org.domain.length > 4)),
+                  orElse: () => Organization(""));
+            }
+            return org.name == "";
+          })
           .toList();
       if (mounted) {
         setState(() {});
@@ -480,7 +498,7 @@ class _ContactsPageState extends State<ContactsPage> {
   Widget contactList(context, args) {
     return Builder(builder: ((context) {
       return Column(children: [
-        s4cTitleBar("Contactos"),
+        s4cTitleBar("Contactos", null, null, 10),
         Container(
             padding: const EdgeInsets.all(5),
             child: Row(
@@ -514,7 +532,10 @@ class _ContactsPageState extends State<ContactsPage> {
                 customText("Organización seleccionada:", 16,
                     textColor: mainColor),
                 space(width: 10),
-                customText(currentOrg, 16, textColor: mainColor)
+                currentOrg == ""
+                    ? customText("Ninguna seleccionada", 16,
+                        textColor: Colors.red)
+                    : customText(currentOrg, 16, textColor: mainColor)
               ],
             )),
         Container(
@@ -558,28 +579,40 @@ class _ContactsPageState extends State<ContactsPage> {
         ],
         rows: contacts
             .map(
-              (contact) => DataRow(cells: [
-                DataCell(Text(contact.name + " " + contact.email)),
-                DataCell(
-                  Text(contact.organizationObj.name),
-                ),
-                DataCell(
-                  Text(contact.companyObj.name),
-                ),
-                // const DataCell(Text("")),
-                DataCell(Text(contact.positionObj.name)),
-                DataCell(Text(contact.phone)),
-                DataCell(Row(children: [
-                  goPageIcon(
-                    context,
-                    "View",
-                    Icons.info,
-                    ContactInfoPage(contact: contact),
-                  ),
-                  editBtn(context, callEditDialog, {"contact": contact}),
-                  removeBtn(context, removeContactDialog, {"contact": contact})
-                ]))
-              ]),
+              (contact) { 
+                      Organization org = orgs.firstWhere(
+                          (org) => org.uuid == contact.organization,
+                          orElse: () => Organization(""));
+                      if (org.name == "") {
+                        org = allOrgs.firstWhere(
+                            (org) => ((contact.email != null && contact.email != "" && contact.email.endsWith(org.domain)) && (org.domain.length > 4)),
+                            orElse: () => Organization(""));
+                      }
+                      contact.organizationObj = org;
+              
+                       return DataRow(cells: [
+                          DataCell(Text(contact.name + " " + contact.email)),
+                          DataCell(
+                            Text(contact.organizationObj.name),
+                          ),
+                          DataCell(
+                            Text(contact.companyObj.name),
+                          ),
+                          // const DataCell(Text("")),
+                          DataCell(Text(contact.positionObj.name)),
+                          DataCell(Text(contact.phone)),
+                          DataCell(Row(children: [
+                            goPageIcon(
+                              context,
+                              "View",
+                              Icons.info,
+                              ContactInfoPage(contact: contact),
+                            ),
+                            editBtn(context, callEditDialog, {"contact": contact}),
+                            removeBtn(context, removeContactDialog, {"contact": contact})
+                          ]))
+                        ]);
+              }
             )
             .toList(),
       );

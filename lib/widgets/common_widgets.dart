@@ -1024,7 +1024,7 @@ SizedBox s4cSubTitleBar(dynamic title, [context, icon]) {
               ]))));
 }
 
-SizedBox s4cTitleBar(dynamic title, [context, icon]) {
+SizedBox s4cTitleBar(dynamic title, [context, icon, double roundBorder=25]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
     closeButton = IconButton(
@@ -1057,12 +1057,12 @@ SizedBox s4cTitleBar(dynamic title, [context, icon]) {
   return SizedBox(
       width: double.infinity,
       child: Card(
-          shape: const RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
-                  bottomLeft: Radius.circular(5),
-                  bottomRight: Radius.circular(5))),
+                  topLeft: Radius.circular(roundBorder),
+                  topRight: Radius.circular(roundBorder),
+                  bottomLeft: const Radius.circular(5),
+                  bottomRight: const Radius.circular(5))),
           color: mainColor,
           child: Padding(
               padding: const EdgeInsets.all(10),
@@ -1990,7 +1990,7 @@ class UploadImageFieldState extends State<UploadImageField> {
                           errorBuilder: (ctx, err, stack) =>
                               const Text('No se pudo cargar el logo'),
                           height: 80)
-                      : SizedBox(height: 80, width: 80))),
+                      : const SizedBox(height: 80, width: 80))),
         ]));
   }
 }
@@ -2049,7 +2049,7 @@ class DateTimeRangePicker extends StatelessWidget {
               ? OutlineInputBorder(
                   borderSide:
                       BorderSide(color: Colors.red.shade700, width: 1.0),
-                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                  borderRadius: const BorderRadius.all(Radius.circular(4.0)),
                 )
               : null,
         ),
@@ -2651,7 +2651,7 @@ class CheckboxFormField extends FormField<bool> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
                           state.errorText ?? '',
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                   ],
@@ -2677,7 +2677,7 @@ Widget infoDialog(BuildContext context, Icon icon, String title, String content,
     ),
     content: Text(
       content,
-      style: TextStyle(color: mainColor, fontSize: 20),
+      style: const TextStyle(color: mainColor, fontSize: 20),
       textAlign: TextAlign.center,
     ),
     actions: actions ??

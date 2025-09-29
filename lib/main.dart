@@ -243,23 +243,23 @@ class MyApp extends StatelessWidget {
 //========================
 // 3) Punto de entrada (envuelve MyApp con RestartApp)
 //========================
-void main2() {
-  WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(); // si corresponde
+// void main2() {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   // await Firebase.initializeApp(); // si corresponde
 
-  runApp(
-    // Si usas MultiProvider, colócalo DENTRO de RestartApp
-    // para que se reconstruyan también tus providers al reiniciar:
-    //
-    // RestartApp(
-    //   child: MultiProvider(
-    //     providers: [ /* tus providers */ ],
-    //     child: MyApp(),
-    //   ),
-    // ),
-    RestartApp(child: MyApp()),
-  );
-}
+//   runApp(
+//     // Si usas MultiProvider, colócalo DENTRO de RestartApp
+//     // para que se reconstruyan también tus providers al reiniciar:
+//     //
+//     // RestartApp(
+//     //   child: MultiProvider(
+//     //     providers: [ /* tus providers */ ],
+//     //     child: MyApp(),
+//     //   ),
+//     // ),
+//     RestartApp(child: MyApp()),
+//   );
+// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -268,6 +268,7 @@ void main() async {
     options: DefaultFirebaseOptions.web,
   );
   try {
+    // ignore: deprecated_member_use
     await FirebaseFirestore.instance.enablePersistence(
       const PersistenceSettings(synchronizeTabs: true),
     );
@@ -285,10 +286,5 @@ void main() async {
           ],
           child: MyApp(),
         ),
-        // ChangeNotifierProvider(
-        //   create: (_) => ProfileProvider(),
-        //   child: MyApp(),
-        // ),
       )));
-  // runApp(MyApp());
 }

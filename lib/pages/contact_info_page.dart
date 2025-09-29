@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contacts_page.dart';
 import 'package:sic4change/services/cache_profiles.dart';
+import 'package:sic4change/services/cache_projects.dart';
 // import 'package:sic4change/pages/contact_tracking_page.dart';
 //import 'package:sic4change/pages/404_page.dart';
 import 'package:sic4change/services/models.dart';
@@ -32,6 +33,7 @@ class ContactInfoPage extends StatefulWidget {
 
 class _ContactInfoPageState extends State<ContactInfoPage> {
   late ProfileProvider _provider;
+  late ProjectsProvider cacheProjects;
   Contact? contact;
   ContactInfo? _contactInfo;
   Widget? contactInfoDetailsPanel;
@@ -42,7 +44,6 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
   void initState() {
     super.initState();
     _provider = Provider.of<ProfileProvider>(context, listen: false);
-
     _provider.addListener(() {
       if (!mounted) return;
       currentOrg = _provider.organization;
@@ -56,18 +57,43 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
       _provider.loadProfile();
     }
 
+    cacheProjects = context.read<ProjectsProvider>();
+
     contact = widget.contact;
     _contactInfo = widget.contactInfo;
-    contactInfoDetailsPanel = contactInfoDetails(context);
+    contactInfoDetailsPanel = Container();
 
     if (_contactInfo == null) {
       contact!.getContactInfo().then((val) {
         _contactInfo = val;
+        _contactInfo!.projectsObj = cacheProjects.projects.where((project) => _contactInfo!.projects.contains(project.uuid)).toList();
+        // remove projects that are not in the cache
+        int before = _contactInfo!.projects.length;
+        _contactInfo!.projects.removeWhere((project) => !cacheProjects.projects.any((p) => p.uuid == project));
+        int after = _contactInfo!.projects.length;
+        if (before != after) {
+          // if some projects were removed, save the contact info
+          _contactInfo!.save();
+        }
+        contactInfoDetailsPanel = contactInfoDetails(context);
+
+
         setState(() {
           isLoading = true;
-          contactInfoDetailsPanel = contactInfoDetails(context);
         });
       });
+    }
+    else {
+      int before = _contactInfo!.projects.length;
+      _contactInfo!.projectsObj = cacheProjects.projects.where((project) => _contactInfo!.projects.contains(project.uuid)).toList();
+      _contactInfo!.projects.removeWhere((project) => !cacheProjects.projects.any((p) => p.uuid == project));
+      int after = _contactInfo!.projects.length;
+      if (before != after) {
+        // if some projects were removed, save the contact info
+        _contactInfo!.save();
+      }
+      contactInfoDetailsPanel = contactInfoDetails(context);
+
     }
   }
 
@@ -396,11 +422,10 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
   }
 
   Widget contactInfoProjects(context, contactInfo) {
-    return FutureBuilder(
-        future: _contactInfo?.getProjects(),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            List<SProject> prList = snapshot.data!;
+    return Builder(
+        builder: ((context) {
+          if (contactInfo.projectsObj.isNotEmpty) {
+            List<SProject> prList = contactInfo.projectsObj;
             return ListView.builder(
                 //padding: const EdgeInsets.all(8),
                 physics: const NeverScrollableScrollPhysics(),
@@ -429,7 +454,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
                 });
           } else {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: Text("No hay proyectos asignados"),
             );
           }
         }));
