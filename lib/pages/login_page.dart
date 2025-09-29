@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
       if (loadProf == true) {
         return const Center(child: CircularProgressIndicator());
       } else {
-        sendAnalyticsEvent("Nuevo acceso", "Usuario: ${user.email}");
+        // sendAnalyticsEvent("Nuevo acceso", "Usuario: ${user.email}");
 
         // if (profile?.mainRole == "Admin") {
         //   return const HomeAdminPage();
