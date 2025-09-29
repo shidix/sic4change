@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
@@ -30,7 +31,7 @@ class ContactInfo {
   String subzone = "";
   String twitter = "";
   String zone = "";
-  List projects = [];
+  List<String> projects = [];
 
   Organization orgObj = Organization("");
   ContactCharge chargeObj = ContactCharge("");
@@ -100,7 +101,11 @@ class ContactInfo {
       var newUuid = Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_contact_info").add(data);
+      var item = await FirebaseFirestore.instance.collection("s4c_contact_info").add(data);
+      if (item.id != id) {
+        id = item.id;
+        FirebaseFirestore.instance.collection("s4c_contact_info").doc(id).update({"id": id});
+      }
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance
@@ -125,6 +130,9 @@ class ContactInfo {
   }
 
   Future<ContactInfo> reload() async {
+    if (id.isEmpty) {
+      return this;
+    }
     DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection("s4c_contact_info")
         .doc(id)
@@ -132,15 +140,15 @@ class ContactInfo {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     ContactInfo contactInfo = ContactInfo.fromJson(data);
-    contactInfo.orgObj = await contactInfo.getOrganization();
-    contactInfo.chargeObj = await contactInfo.getCharge();
-    contactInfo.catObj = await contactInfo.getCategory();
-    contactInfo.subcatObj = await contactInfo.getSubcategory();
-    contactInfo.zoneObj = await contactInfo.getZone();
-    contactInfo.subzoneObj = await contactInfo.getSubzone();
-    contactInfo.ambitObj = await contactInfo.getAmbit();
-    contactInfo.sectorObj = await contactInfo.getSector();
-    contactInfo.stakeholderObj = await contactInfo.getSkateholder();
+    // contactInfo.orgObj = await contactInfo.getOrganization();
+    // contactInfo.chargeObj = await contactInfo.getCharge();
+    // contactInfo.catObj = await contactInfo.getCategory();
+    // contactInfo.subcatObj = await contactInfo.getSubcategory();
+    // contactInfo.zoneObj = await contactInfo.getZone();
+    // contactInfo.subzoneObj = await contactInfo.getSubzone();
+    // contactInfo.ambitObj = await contactInfo.getAmbit();
+    // contactInfo.sectorObj = await contactInfo.getSector();
+    // contactInfo.stakeholderObj = await contactInfo.getSkateholder();
     contactInfo.decisionObj = await contactInfo.getDecision();
     //contactInfo.projectsObj = await contactInfo.getProjects();
 
@@ -287,19 +295,7 @@ class ContactInfo {
 
   Future<List<SProject>> getProjects() async {
     List<SProject> prList =
-        await SProject.getProjects(uuids: projects as List<String>);
-    // for (String pr in projects) {
-
-    // try {
-    //   QuerySnapshot query =
-    //       await dbProject.where("uuid", isEqualTo: pr).get();
-    //   final doc = query.docs.first;
-    //   final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    //   data["id"] = doc.id;
-    //   SProject project = SProject.fromJson(data);
-    //   prList.add(project);
-    // } catch (e) {}
-    // }
+        await SProject.getProjects(uuids: projects);
     return prList;
   }
 
@@ -316,7 +312,16 @@ class ContactInfo {
     if (query.docs.isEmpty) {
       contactInfo.save();
     }
-    contactInfo.reload();
+    else {
+      final doc = query.docs.first;
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      if (data["id"] != doc.id) {
+        data["id"] = doc.id;
+        FirebaseFirestore.instance.collection("s4c_contact_info").doc(doc.id).update({"id": doc.id});
+      }
+      contactInfo = ContactInfo.fromJson(data);
+    }
+//    contactInfo.reload();
     return contactInfo;
   }
 
@@ -344,6 +349,7 @@ class ContactInfo {
       //   contactInfo.decisionObj = await contactInfo.getDecision();
       // }
       contactInfo = await ContactInfo.byUuid(uuid);
+
       // await contactInfo.reload();
       return contactInfo;
     } catch (exc) {}
@@ -525,21 +531,32 @@ class ContactCategory {
 //--------------------------------------------------------------
 
 class ContactDecision {
+  static const String tbName = "s4c_contact_decision";
   String id = "";
   String uuid = "";
   String name;
+  int priority = 0;
 
   ContactDecision(this.name);
 
-  ContactDecision.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'];
+  static ContactDecision fromJson(Map<String, dynamic> json) {
+    ContactDecision item =  ContactDecision(
+      json['name'],
+    )..id = json["id"]
+      ..uuid = json["uuid"]
+      ..priority = (json.containsKey('priority')) ? json['priority'] : 0;
+    if (!json.containsKey('priority')) {
+      FirebaseFirestore.instance.collection(tbName).doc(item.id).update({"priority": 0});
+    }
+    return item;
+  }
+
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'priority': priority,
       };
 
   KeyValue toKeyValue() {
@@ -551,11 +568,14 @@ class ContactDecision {
       var newUuid = Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_contact_decision").add(data);
+      var item = await FirebaseFirestore.instance.collection(tbName).add(data);
+      id = item.id;
+      FirebaseFirestore.instance.collection(tbName).doc(id).update({"id": id});
+
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance
-          .collection("s4c_contact_decision")
+          .collection(tbName)
           .doc(id)
           .set(data);
     }
@@ -563,37 +583,52 @@ class ContactDecision {
 
   Future<void> delete() async {
     await FirebaseFirestore.instance
-        .collection("s4c_contact_decision")
+        .collection(tbName)
         .doc(id)
         .delete();
   }
 
   static Future<List> getContactDecisions() async {
     List<ContactDecision> items = [];
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_contact_decision")
-        .get();
-    for (var doc in query.docs) {
+    Query query = FirebaseFirestore.instance
+        .collection(tbName);
+    QuerySnapshot querySnapshot = await query.get(
+        const GetOptions(source: Source.cache)
+    );  // Query from cache
+    if (querySnapshot.docs.isEmpty) {
+      querySnapshot = await query.get();  // Query from server
+    }
+    for (var doc in querySnapshot.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       items.add(ContactDecision.fromJson(data));
     }
+    items.sort((a, b) => a.priority.compareTo(b.priority));
     return items;
   }
 
   static Future<ContactDecision> byUuid(String uuid) async {
     ContactDecision contactDecision = ContactDecision(uuid);
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection("s4c_contact_decision")
-        .where("uuid", isEqualTo: uuid)
-        .get();
-    if (query.docs.isEmpty) {
-      contactDecision.save();
-    } else {
-      final doc = query.docs.first;
+    Query query = FirebaseFirestore.instance
+        .collection(tbName).where("uuid", isEqualTo: uuid);
+
+    QuerySnapshot querySnapshot = await query.get( 
+        const GetOptions(source: Source.cache)
+    );  // Query from cache
+    if (querySnapshot.docs.isEmpty) {
+      querySnapshot = await query.get();  // Query from server
+    }
+    if (querySnapshot.docs.isNotEmpty) {
+      final doc = querySnapshot.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
+      if (data["id"] != doc.id) {
+        data["id"] = doc.id;
+        FirebaseFirestore.instance.collection(tbName).doc(doc.id).update({"id": doc.id});
+      }
       contactDecision = ContactDecision.fromJson(data);
+    }
+    else {
+      contactDecision.name = "Sin definir";
     }
     return contactDecision;
   }

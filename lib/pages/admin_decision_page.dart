@@ -125,6 +125,19 @@ class _DecisionPageState extends State<DecisionPage>
                 },
               )
             ]),
+            space(height: 10),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CustomTextField(
+                labelText: "Prioridad",
+                initial: decision.priority.toString(),
+                size: 900,
+                // keyboardType: TextInputType.number,
+                fieldValue: (String val) {
+                  setState(() => decision.priority = int.tryParse(val) ?? 0);
+                },
+              )
+            ]),
+            space(height: 10),
           ])),
           actions: <Widget>[
             dialogsBtns(context, saveDecision, decision),
@@ -150,12 +163,15 @@ class _DecisionPageState extends State<DecisionPage>
               label: customText("Nombre", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
+            DataColumn(label: customText("Prioridad", 14,
+                bold: FontWeight.bold, textColor: headerListTitleColor)),
             DataColumn(label: Container()),
           ],
           rows: decisions
               .map(
                 (decision) => DataRow(cells: [
                   DataCell(Text(decision.name)),
+                  DataCell(Text(decision.priority.toString())),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     editBtn(
