@@ -155,7 +155,7 @@ String dateToES(DateTime date, {bool withDay = true, bool withTime = false}) {
 }
 
 int getWorkingDaysBetween(
-    DateTime date1, DateTime date2, HolidaysConfig? calendar,
+    DateTime date1, DateTime date2, List<HolidaysConfig?>? calendars,
     {Shift? shift}) {
   shift ??= Shift.getEmpty();
   int workingDays = 0;
@@ -168,8 +168,15 @@ int getWorkingDaysBetween(
       continue;
     }
 
-    if (calendar != null) {
-      if (calendar.isHoliday(currentDate)) {
+    if (calendars != null) {
+      bool isHoliday = false;
+      for (var calendar in calendars) {
+        if (calendar != null && calendar.isHoliday(currentDate)) {
+          isHoliday = true;
+          break;
+        }
+      }
+      if (isHoliday) {
         currentDate = currentDate.add(const Duration(days: 1));
         continue;
       }

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:uuid/uuid.dart';
@@ -101,10 +100,15 @@ class ContactInfo {
       var newUuid = Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      var item = await FirebaseFirestore.instance.collection("s4c_contact_info").add(data);
+      var item = await FirebaseFirestore.instance
+          .collection("s4c_contact_info")
+          .add(data);
       if (item.id != id) {
         id = item.id;
-        FirebaseFirestore.instance.collection("s4c_contact_info").doc(id).update({"id": id});
+        FirebaseFirestore.instance
+            .collection("s4c_contact_info")
+            .doc(id)
+            .update({"id": id});
       }
     } else {
       Map<String, dynamic> data = toJson();
@@ -294,8 +298,7 @@ class ContactInfo {
   }
 
   Future<List<SProject>> getProjects() async {
-    List<SProject> prList =
-        await SProject.getProjects(uuids: projects);
+    List<SProject> prList = await SProject.getProjects(uuids: projects);
     return prList;
   }
 
@@ -311,13 +314,15 @@ class ContactInfo {
         .get();
     if (query.docs.isEmpty) {
       contactInfo.save();
-    }
-    else {
+    } else {
       final doc = query.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       if (data["id"] != doc.id) {
         data["id"] = doc.id;
-        FirebaseFirestore.instance.collection("s4c_contact_info").doc(doc.id).update({"id": doc.id});
+        FirebaseFirestore.instance
+            .collection("s4c_contact_info")
+            .doc(doc.id)
+            .update({"id": doc.id});
       }
       contactInfo = ContactInfo.fromJson(data);
     }
@@ -540,17 +545,20 @@ class ContactDecision {
   ContactDecision(this.name);
 
   static ContactDecision fromJson(Map<String, dynamic> json) {
-    ContactDecision item =  ContactDecision(
+    ContactDecision item = ContactDecision(
       json['name'],
-    )..id = json["id"]
+    )
+      ..id = json["id"]
       ..uuid = json["uuid"]
       ..priority = (json.containsKey('priority')) ? json['priority'] : 0;
     if (!json.containsKey('priority')) {
-      FirebaseFirestore.instance.collection(tbName).doc(item.id).update({"priority": 0});
+      FirebaseFirestore.instance
+          .collection(tbName)
+          .doc(item.id)
+          .update({"priority": 0});
     }
     return item;
   }
-
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -571,32 +579,23 @@ class ContactDecision {
       var item = await FirebaseFirestore.instance.collection(tbName).add(data);
       id = item.id;
       FirebaseFirestore.instance.collection(tbName).doc(id).update({"id": id});
-
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection(tbName)
-          .doc(id)
-          .set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance
-        .collection(tbName)
-        .doc(id)
-        .delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Future<List> getContactDecisions() async {
     List<ContactDecision> items = [];
-    Query query = FirebaseFirestore.instance
-        .collection(tbName);
-    QuerySnapshot querySnapshot = await query.get(
-        const GetOptions(source: Source.cache)
-    );  // Query from cache
+    Query query = FirebaseFirestore.instance.collection(tbName);
+    QuerySnapshot querySnapshot = await query
+        .get(const GetOptions(source: Source.cache)); // Query from cache
     if (querySnapshot.docs.isEmpty) {
-      querySnapshot = await query.get();  // Query from server
+      querySnapshot = await query.get(); // Query from server
     }
     for (var doc in querySnapshot.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -610,24 +609,26 @@ class ContactDecision {
   static Future<ContactDecision> byUuid(String uuid) async {
     ContactDecision contactDecision = ContactDecision(uuid);
     Query query = FirebaseFirestore.instance
-        .collection(tbName).where("uuid", isEqualTo: uuid);
+        .collection(tbName)
+        .where("uuid", isEqualTo: uuid);
 
-    QuerySnapshot querySnapshot = await query.get( 
-        const GetOptions(source: Source.cache)
-    );  // Query from cache
+    QuerySnapshot querySnapshot = await query
+        .get(const GetOptions(source: Source.cache)); // Query from cache
     if (querySnapshot.docs.isEmpty) {
-      querySnapshot = await query.get();  // Query from server
+      querySnapshot = await query.get(); // Query from server
     }
     if (querySnapshot.docs.isNotEmpty) {
       final doc = querySnapshot.docs.first;
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       if (data["id"] != doc.id) {
         data["id"] = doc.id;
-        FirebaseFirestore.instance.collection(tbName).doc(doc.id).update({"id": doc.id});
+        FirebaseFirestore.instance
+            .collection(tbName)
+            .doc(doc.id)
+            .update({"id": doc.id});
       }
       contactDecision = ContactDecision.fromJson(data);
-    }
-    else {
+    } else {
       contactDecision.name = "Sin definir";
     }
     return contactDecision;

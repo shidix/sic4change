@@ -50,10 +50,10 @@ class CalendarWidget extends StatefulWidget {
   }
 
   @override
-  _CalendarWidgetState createState() => _CalendarWidgetState();
+  CalendarWidgetState createState() => CalendarWidgetState();
 }
 
-class _CalendarWidgetState extends State<CalendarWidget> {
+class CalendarWidgetState extends State<CalendarWidget> {
   final user = FirebaseAuth.instance.currentUser!;
   List<Event> events = [];
   late DateTime selectedDate;
@@ -69,7 +69,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   }
 
   Widget eventLoader(Event event) {
-    return EventTile(event: event);
+    return EventTile(event: event, inSameYear: true);
   }
 
   // Dialog to show the list of holidays for the selected date

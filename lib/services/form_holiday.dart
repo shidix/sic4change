@@ -17,26 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:uuid/uuid.dart';
-
-// class Event extends Appointment {
-//   final int index;
-//   Event(
-//       {required String subject,
-//       required DateTime startTime,
-//       required DateTime endTime,
-//       String? notes,
-//       Color? color,
-//       bool isAllDay = false,
-//       required this.index})
-//       : super(
-//             subject: subject,
-//             startTime: startTime,
-//             endTime: endTime,
-//             notes: notes,
-//             color: color ?? Colors.blue,
-//             isAllDay: isAllDay);
-
-// }
+import 'dart:developer' as dev;
 
 class EventForm extends StatefulWidget {
   final Event? currentEvent;
@@ -91,7 +72,8 @@ class _EventFormState extends State<EventForm> {
 
   void removeItem(List args) {
     holidaysConfig.gralHolidays.removeAt(widget.index);
-    holidaysConfig.save();
+    print("Users in calendar after remove: ${holidaysConfig.employees}");
+    //holidaysConfig.save();
     Navigator.of(args[0]).pop(null);
 
     // BuildContext context = args[0];
@@ -121,6 +103,7 @@ class _EventFormState extends State<EventForm> {
                 [context, event, _formKey]))
       ];
     }
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -229,7 +212,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
         remainingHolidays[cat.autoCode()] =
             (remainingHolidays[cat.autoCode()] ?? 0) +
                 getWorkingDaysBetween(holidayRequest.startDate,
-                    holidayRequest.endDate, widget.calendar);
+                    holidayRequest.endDate, [widget.calendar]);
       }
     }
   }
@@ -397,7 +380,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
                   errorMessage = null; // Reset error message
                   setState(() {
                     int workingDays = getWorkingDaysBetween(
-                        date.start, date.end, widget.calendar);
+                        date.start, date.end, [widget.calendar]);
                     if (workingDays >
                         remainingHolidays[holidayRequest
                             .getCategory(categories)

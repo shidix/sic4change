@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:googleapis/transcoder/v1.dart';
 import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
@@ -7,6 +8,10 @@ import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
 class HolidaysConfig {
+  static const String tbName = "s4c_holidays_config";
+  DocumentReference? docRef;
+  Function? onChanged;
+
   String id = "";
   String name = "";
   int year;
@@ -15,8 +20,6 @@ class HolidaysConfig {
   List<Event> gralHolidays;
   // List<Employee> employees = [];
   List<String> employees = [];
-
-  static const String tbName = "s4c_holidays_config";
 
   HolidaysConfig({
     required this.id,
@@ -27,40 +30,50 @@ class HolidaysConfig {
     required this.gralHolidays,
   });
 
-  factory HolidaysConfig.fromJson(Map data) {
-    HolidaysConfig temp = HolidaysConfig(
-      id: data['id'],
-      name: data['name'] ?? '',
-      year: data['year'],
-      totalDays: data['totalDays'],
-      organization: data['organization'] ?? '',
-      gralHolidays: (data['gralHolidays'] as List)
-          .map<Event>((e) => Event.fromJson(e))
-          .toList(),
-    );
-    if (data['employees'] != null &&
-        data['employees'] is List<String> &&
-        data['employees'].isNotEmpty) {
-      // for (var idEmployee in data['employees']) {
-      //   Employee.byId(idEmployee).then((employee) {
-      //     if (employee.id != "") {
-      //       temp.employees.add(employee);
-      //     }
-      // }).catchError((error) {});
-      // }
-      temp.employees = data['employees'] as List<String>;
+  void mapping(Map data) {
+    id = data['id'];
+    name = data['name'] ?? '';
+    year = data['year'];
+    totalDays = data['totalDays'];
+    organization = data['organization'] ?? '';
+    gralHolidays = (data['gralHolidays'] as List)
+        .map<Event>((e) => Event.fromJson(e))
+        .toList();
+    if (!data.containsKey('employees')) {
+      employees = [];
     } else {
-      temp.employees = [];
+      employees = List<String>.from(data['employees']);
     }
-
-    return temp;
   }
 
-  factory HolidaysConfig.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
-    data['id'] = doc.id;
-    return HolidaysConfig.fromJson(data);
+  static Future<HolidaysConfig> fromJson(DocumentReference doc) async {
+    DocumentSnapshot docSnap = await doc.get();
+    HolidaysConfig? temp;
+    if (docSnap.exists) {
+      Map data = docSnap.data() as Map<String, dynamic>;
+      temp = HolidaysConfig.getEmpty();
+      temp.mapping(data);
+      temp.docRef ??= doc;
+      if (temp.docRef != null) {
+        temp.docRef!.snapshots().listen((event) {
+          if (event.exists) {
+            Map data = event.data() as Map<String, dynamic>;
+            temp?.mapping(data);
+            if (temp?.onChanged != null) {
+              temp?.onChanged!.call();
+            }
+          }
+        });
+      }
+    }
+    return temp!;
   }
+
+  // factory HolidaysConfig.fromFirestore(DocumentSnapshot doc) {
+  //   Map data = doc.data() as Map<String, dynamic>;
+  //   data['id'] = doc.id;
+  //   return HolidaysConfig.fromJson(data);
+  // }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -89,7 +102,7 @@ class HolidaysConfig {
   }
 
   static Future<HolidaysConfig> byEmployee(Employee employee,
-      {int year = 0}) async {
+      {int year = 0, bool fromServer = false}) async {
     if (year == 0) {
       year = DateTime.now().year;
     }
@@ -102,15 +115,16 @@ class HolidaysConfig {
         .where("employees", arrayContains: employee.id);
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
-    if (querySnap.docs.isEmpty) {
+    if (querySnap.docs.isEmpty || fromServer) {
       querySnap = await query.get();
     }
 
     List<HolidaysConfig> items = [];
     for (var result in querySnap.docs) {
       Map<String, dynamic> data = result.data() as Map<String, dynamic>;
-      data['id'] = result.id;
-      items.add(HolidaysConfig.fromJson(data));
+      HolidaysConfig temp = HolidaysConfig.getEmpty();
+      temp.mapping(data);
+      items.add(temp);
     }
 
     // Filter by organization and year
@@ -126,25 +140,34 @@ class HolidaysConfig {
   }
 
   //byOrganization (uuid)
-  static Future<List<HolidaysConfig>> byOrganization(String uuid) async {
+  static Future<List<HolidaysConfig>> byOrganization(String uuid,
+      {bool fromServer = false}) async {
     List<HolidaysConfig> items = [];
     final Query query = FirebaseFirestore.instance
         .collection(tbName)
         .where("organization", isEqualTo: uuid);
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
-    if (querySnap.docs.isEmpty) {
+    if (querySnap.docs.isEmpty || fromServer) {
+      dev.log("Fetching HolidaysConfig from SERVER");
       querySnap = await query.get();
+      dev.log("HolidaysConfig fetched from SERVER: ${querySnap.docs.length}");
     }
     if (querySnap.docs.isNotEmpty) {
-      items =
-          querySnap.docs.map((e) => HolidaysConfig.fromFirestore(e)).toList();
-      //Sort by year and Name
-      items.sort((a, b) {
-        int yearComparison = b.year.compareTo(a.year);
-        if (yearComparison != 0) return yearComparison;
-        return a.name.compareTo(b.name);
-      });
+      for (var result in querySnap.docs) {
+        Map<String, dynamic> data = result.data() as Map<String, dynamic>;
+        HolidaysConfig temp = HolidaysConfig.getEmpty();
+        temp.mapping(data);
+        items.add(temp);
+      }
+      // items =
+      //     querySnap.docs.map((e) => HolidaysConfig.fromJson(e)).toList();
+      // //Sort by year and Name
+      // items.sort((a, b) {
+      //   int yearComparison = b.year.compareTo(a.year);
+      //   if (yearComparison != 0) return yearComparison;
+      //   return a.name.compareTo(b.name);
+      // });
       return items;
     } else {
       return [];

@@ -33,9 +33,9 @@ class _ReformulationPageState extends State<ReformulationPage> {
       setState(() {
         refLoading = false;
       });
-      for (Reformulation item in refList) {
-        // item.loadObjs();
-      }
+      // for (Reformulation item in refList) {
+      //   // item.loadObjs();
+      // }
     });
   }
 

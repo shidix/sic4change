@@ -7,7 +7,7 @@ import 'package:sic4change/widgets/common_widgets.dart';
 Widget buildHolidayListItem(
   BuildContext context,
   List<HolidaysCategory> categories,
-  HolidaysConfig calendar,
+  List<HolidaysConfig> calendars,
   HolidayRequest holiday, {
   required Function? onTap,
 }) {
@@ -58,7 +58,7 @@ Widget buildHolidayListItem(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
                   getWorkingDaysBetween(
-                          holiday.startDate, holiday.endDate, calendar)
+                          holiday.startDate, holiday.endDate, calendars)
                       .toString(),
                   style: normalText,
                   textAlign: TextAlign.center,

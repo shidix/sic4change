@@ -8,7 +8,6 @@ import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
-import 'package:sic4change/services/models_rrhh.dart';
 // import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -20,8 +19,9 @@ import 'package:uuid/uuid.dart';
 
 class EventTile extends StatelessWidget {
   final Event event;
+  final bool inSameYear;
 
-  const EventTile({super.key, required this.event});
+  const EventTile({super.key, required this.event, required this.inSameYear});
 
   @override
   Widget build(BuildContext context) {
@@ -66,14 +66,20 @@ class EventTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      event.subject,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: event.isAllDay ? Colors.grey : Colors.black,
-                      ),
-                    ),
+                    Row(children: [
+                      Text(event.subject,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: event.isAllDay ? Colors.grey : Colors.black,
+                          )),
+                      if (!inSameYear)
+                        Text(" (${event.startTime.year})",
+                            style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic)),
+                    ]),
                     if (event.notes!.isNotEmpty)
                       Text(
                         event.notes!,
@@ -107,7 +113,10 @@ class EventList extends StatelessWidget {
       itemCount: events.length,
       itemBuilder: (context, index) {
         return InkWell(
-            child: EventTile(event: events[index]),
+            child: EventTile(
+                event: events[index],
+                inSameYear:
+                    (events[index].startTime.year == holidaysConfig.year)),
             onTap: () {
               showDialog(
                   context: context,
@@ -214,7 +223,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
 
     // Load holidays configuration for the current organization
     final results = await Future.wait([
-      HolidaysConfig.byOrganization(currentOrganization!.id),
+      HolidaysConfig.byOrganization(currentOrganization!.id, fromServer: true),
       // Employee.getEmployees(organization: currentOrganization!)
     ]);
 
@@ -324,8 +333,8 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
               ),
               TextButton(
                 onPressed: () async {
-                  HolidaysConfig newCalendar =
-                      HolidaysConfig.fromJson(calendar.toJson());
+                  HolidaysConfig newCalendar = HolidaysConfig.getEmpty();
+                  newCalendar.mapping(calendar.toJson());
                   newCalendar.id = "";
                   newCalendar.name = "${calendar.name} (Copia)";
                   newCalendar.employees = [];
@@ -538,21 +547,19 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     for (HolidaysConfig calendar in holidaysList!) {
       if (calendar.id == holidaysConfig!.id) continue;
       for (String emp in calendar.employees) {
-        if (emp != null) {
-          employeesInCalendars.add(emp);
-        }
+        employeesInCalendars.add(emp);
       }
     }
 
-    // Check it every day is in this year
-    for (var event in meetings) {
-      if (event.startTime.year != holidaysConfig!.year) {
-        event.startTime = DateTime(
-            holidaysConfig!.year, event.startTime.month, event.startTime.day);
-        event.endTime = DateTime(
-            holidaysConfig!.year, event.endTime.month, event.endTime.day);
-      }
-    }
+    // // Check it every day is in this year
+    // for (var event in meetings) {
+    //   if (event.startTime.year != holidaysConfig!.year) {
+    //     event.startTime = DateTime(
+    //         holidaysConfig!.year, event.startTime.month, event.startTime.day);
+    //     event.endTime = DateTime(
+    //         holidaysConfig!.year, event.endTime.month, event.endTime.day);
+    //   }
+    // }
 
     meetings.sort((a, b) => a.startTime.compareTo(b.endTime));
 
@@ -625,7 +632,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                             context: context,
                             initialDate: DateTime(holidaysConfig!.year, 1, 1),
                             firstDate: DateTime(holidaysConfig!.year, 1, 1),
-                            lastDate: DateTime(holidaysConfig!.year, 12, 31))
+                            lastDate: DateTime(holidaysConfig!.year + 1, 1, 31))
                         .then((value) {
                       if (value != null) {
                         Event newEvent = Event(
@@ -669,9 +676,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                       if (calendar.id == holidaysConfig!.id) continue;
                       if (calendar.year != holidaysConfig!.year) continue;
                       for (String emp in calendar.employees) {
-                        if (emp != null) {
-                          employeesInCalendars.add(emp);
-                        }
+                        employeesInCalendars.add(emp);
                       }
                     }
                     showDialog(

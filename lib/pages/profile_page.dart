@@ -56,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
         for (HolidayRequest holiday in myHolidays!) {
           if (holiday.status != "Rechazado") {
             holidayDays -= getWorkingDaysBetween(
-                holiday.startDate, holiday.endDate, myCalendar!);
+                holiday.startDate, holiday.endDate, [myCalendar]);
           }
         }
       }
@@ -289,9 +289,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                    getWorkingDaysBetween(holiday.startDate,
-                                            holiday.endDate, myCalendar!)
-                                        .toString(),
+                                    getWorkingDaysBetween(
+                                        holiday.startDate,
+                                        holiday.endDate,
+                                        [myCalendar]).toString(),
                                     style: normalText,
                                     textAlign: TextAlign.center,
                                   )),

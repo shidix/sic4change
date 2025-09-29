@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
-import "dart:developer" as dev;
 import 'dart:convert';
 // import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1990,7 +1989,7 @@ class _HomePageState extends State<HomePage> {
       if (holiday.status != "Rechazado") {
         HolidaysCategory? checkingCat = holiday.getCategory(holCat ?? []);
         int laborDays = getWorkingDaysBetween(
-            holiday.startDate, holiday.endDate, myCalendar);
+            holiday.startDate, holiday.endDate, [myCalendar]);
         holidayDays -= laborDays;
         if (remainingHolidays
             .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
@@ -2219,9 +2218,10 @@ class _HomePageState extends State<HomePage> {
                                       padding:
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
-                                        getWorkingDaysBetween(holiday.startDate,
-                                                holiday.endDate, myCalendar)
-                                            .toString(),
+                                        getWorkingDaysBetween(
+                                            holiday.startDate,
+                                            holiday.endDate,
+                                            [myCalendar]).toString(),
                                         style: normalText,
                                         textAlign: TextAlign.center,
                                       )),
