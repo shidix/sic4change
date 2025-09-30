@@ -171,7 +171,12 @@ int getWorkingDaysBetween(
     if (calendars != null) {
       bool isHoliday = false;
       for (var calendar in calendars) {
-        if (calendar != null && ((calendar.isHoliday(currentDate)) || (calendar.year != currentDate.year))) {
+        if (calendar != null && calendar.isHoliday(currentDate)) {
+          isHoliday = true;
+          break;
+        }
+        if (calendar != null && calendar.year != currentDate.year && currentDate.month == 1) {
+          // recalculate holidays for the new year
           isHoliday = true;
           break;
         }
