@@ -271,17 +271,12 @@ void main() async {
     // Check if persistence is enabled
     final settings = FirebaseFirestore.instance.settings;
     if (settings.persistenceEnabled == true) {
-      // Persistence is already enabled, no need to enable it again
       return;
     } else {
-      FirebaseFirestore.instance.settings =
-          const Settings(persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
-      // await FirebaseFirestore.instance.enablePersistence(
-      //   const PersistenceSettings(synchronizeTabs: true),
-      // );
+      FirebaseFirestore.instance.settings = const Settings(
+          persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
     }
-
-
   } catch (e) {
     // Si la persistencia ya está habilitada, se lanzará una excepción.
     // Puedes manejarla aquí si es necesario.

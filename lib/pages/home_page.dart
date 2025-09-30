@@ -679,10 +679,12 @@ class _HomePageState extends State<HomePage> {
         .where((hr) => hr.userId == user.email)
         .toList(growable: true);
     holCat = _rrhhProvider?.holidaysCategories;
-    if ((currentEmployee != null) && (_rrhhProvider != null) && (_rrhhProvider!.calendars.isNotEmpty)) {
-    
-      myCalendar ??= _rrhhProvider?.calendars
-          .firstWhere((hc) => hc.employees.contains(currentEmployee!), orElse: () => HolidaysConfig.getEmpty());
+    if ((currentEmployee != null) &&
+        (_rrhhProvider != null) &&
+        (_rrhhProvider!.calendars.isNotEmpty)) {
+      myCalendar ??= _rrhhProvider?.calendars.firstWhere(
+          (hc) => hc.employees.contains(currentEmployee!),
+          orElse: () => HolidaysConfig.getEmpty());
     }
 
     await getNotifications();
@@ -899,9 +901,12 @@ class _HomePageState extends State<HomePage> {
     }
     for (STask task in _projectsProvider!.tasks) {
       task.onChanged ??= () {
+        if (!mounted) return;
+        contentTasksPanel = tasksPanel();
+
         if (task.assigned.contains(user.email)) {
           //Show message in status bar
-          if (initialized) {
+          if (initialized && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text("Tarea '${task.name}' actualizada."),
               duration: Duration(seconds: 2),
@@ -1121,7 +1126,9 @@ class _HomePageState extends State<HomePage> {
       }, Icons.add_rounded, null);
     }
 
-    String fullName = (currentEmployee != null) ? "Hola, ${currentEmployee?.getFullName()}" : "Registro de jornada";
+    String fullName = (currentEmployee != null)
+        ? "Hola, ${currentEmployee?.getFullName()}"
+        : "Registro de jornada";
     String subTitle = (currentEmployee != null)
         ? "Registro a ${dateToES(DateTime.now())}"
         : dateToES(DateTime.now());
@@ -1168,14 +1175,13 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                       Padding(
+                                      Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
                                             fullName,
                                             style: cardHeaderText,
                                           )),
-                                      Text(subTitle,
-                                          style: subTitleText),
+                                      Text(subTitle, style: subTitleText),
                                     ]))),
                         Expanded(
                             flex: 1,

@@ -99,207 +99,220 @@ class CalendarWidgetState extends State<CalendarWidget> {
     }
 
     await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-              'Solicitudes de permisos para ${date.day} ${MonthsNamesES[date.month - 1]}'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: holidaysInDate.map((holiday) {
-                Employee employee = widget.employees.firstWhere(
-                    (emp) => emp.email == holiday.userId,
-                    orElse: () => Employee.getEmpty(name: 'Desconocido'));
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text(
+                    'Solicitudes de permisos para ${date.day} ${MonthsNamesES[date.month - 1]}'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: holidaysInDate.map((holiday) {
+                      Employee employee = widget.employees.firstWhere(
+                          (emp) => emp.email == holiday.userId,
+                          orElse: () => Employee.getEmpty(name: 'Desconocido'));
 
-                bool canModify = (holiday.startDate.isAfter(DateTime.now()) ||
-                        (holiday.getCategory(widget.categories).retroactive)) &&
-                    (holiday.userId != user.email!) &&
-                    (!holiday.getCategory(widget.categories).onlyRRHH ||
-                        ([Profile.RRHH]
-                            .contains(widget.currentProfile.mainRole)));
+                      bool canModify = (holiday.startDate
+                                  .isAfter(DateTime.now()) ||
+                              (holiday
+                                  .getCategory(widget.categories)
+                                  .retroactive)) &&
+                          (holiday.userId != user.email!) &&
+                          (!holiday.getCategory(widget.categories).onlyRRHH ||
+                              ([Profile.RRHH]
+                                  .contains(widget.currentProfile.mainRole)));
 
-                String scale = 'sm';
-                HolidaysCategory currentCategory =
-                    holiday.getCategory(widget.categories);
+                      String scale = 'sm';
+                      HolidaysCategory currentCategory =
+                          holiday.getCategory(widget.categories);
 
-                Widget statusMsg = Container();
-                for (var doc in holiday.documents) {
-                  if (doc.isEmpty) {
-                    holiday.documents.remove(doc);
-                  }
-                }
+                      Widget statusMsg = Container();
+                      for (var doc in holiday.documents) {
+                        if (doc.isEmpty) {
+                          holiday.documents.remove(doc);
+                        }
+                      }
 
-                if (currentCategory.docRequired != holiday.documents.length) {
-                  statusMsg = Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Text(
-                      'Faltan documentos adjuntos: ${currentCategory.docMessage}',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
-                } else {
-                  statusMsg = Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Text(
-                      (currentCategory.docRequired > 0)
-                          ? 'Documentos adjuntos completos.'
-                          : 'No se requieren documentos adjuntos.',
-                      style: const TextStyle(color: Colors.green),
-                    ),
-                  );
-                }
+                      if (currentCategory.docRequired !=
+                          holiday.documents.length) {
+                        statusMsg = Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            'Faltan documentos adjuntos: ${currentCategory.docMessage}',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        );
+                      } else {
+                        statusMsg = Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            (currentCategory.docRequired > 0)
+                                ? 'Documentos adjuntos completos.'
+                                : 'No se requieren documentos adjuntos.',
+                            style: const TextStyle(color: Colors.green),
+                          ),
+                        );
+                      }
 
-                return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Row(children: [
-                            Expanded(
-                                flex: 7,
-                                child: ListTile(
-                                  title: Text(
-                                      '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()} (quedan ${availableDays["${holiday.category}-${holiday.userId}"]} días)',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                          color: holiday.isAproved()
-                                              ? Colors.green
-                                              : (holiday.isPending()
-                                                  ? Colors.orange
-                                                  : Colors.red))),
-                                  subtitle: Text(
-                                      '${holiday.startDate.day} ${MonthsNamesES[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MonthsNamesES[holiday.endDate.month - 1]}'),
-                                )),
-                            if ((!holiday.isAproved()) &&
-                                (holiday.userId != user.email!) &&
-                                (holiday.startDate.isAfter(DateTime.now()) ||
-                                    (holiday
-                                        .getCategory(widget.categories)
-                                        .retroactive)) &&
-                                canModify)
-                              actionButton(context, "", (args) {
-                                HolidayRequest holiday = args[0];
-                                // Approve the holiday request
-                                holiday.status = 'Aprobado';
-                                holiday.approvalDate = DateTime.now();
-                                holiday.approvedBy = user.email!;
-                                holiday.save();
-                                // Search holiday in the holidays list and update it
-                                int index = listHolidays
-                                    .indexWhere((h) => h.id == holiday.id);
-                                if (index != -1) {
-                                  listHolidays[index] = holiday;
-                                }
-                                if (mounted) {
-                                  setState(() {});
-                                  // Update this dialog
-                                  Navigator.of(context).pop();
-                                  showHolidaysDialog(date);
-                                }
-                              }, Icons.check, [holiday, null],
-                                  iconColor: Colors.green,
-                                  tooltip: 'Aprobar solicitud',
-                                  scale: scale),
-                            space(width: 10),
-                            if (!holiday.isRejected() &&
-                                holiday.userId != user.email! &&
-                                canModify)
-                              actionButton(context, "", (args) {
-                                HolidayRequest holiday = args[0];
-                                // Reject the holiday request
-                                holiday.status = 'Rechazado';
-                                holiday.approvalDate = DateTime.now();
-                                holiday.approvedBy = user.email!;
-                                holiday.save();
-                                // Search holiday in the holidays list and update it
-                                int index = listHolidays
-                                    .indexWhere((h) => h.id == holiday.id);
-                                if (index != -1) {
-                                  listHolidays[index] = holiday;
-                                }
-                                if (mounted) {
-                                  // Update this dialog
-                                  setState(() {});
-                                  Navigator.of(context).pop();
-                                  showHolidaysDialog(date);
-                                }
-                              }, Icons.close, [holiday, null],
-                                  iconColor: Colors.red,
-                                  tooltip: 'Rechazar solicitud',
-                                  scale: scale),
-                            space(width: 10),
-                            if (!holiday.isPending() &&
-                                holiday.userId != user.email! &&
-                                (holiday.startDate.isAfter(DateTime.now()) ||
-                                    (holiday
-                                        .getCategory(widget.categories)
-                                        .retroactive)) &&
-                                canModify)
-                              actionButton(context, "", (args) {
-                                HolidayRequest holiday = args[0];
-                                // Reject the holiday request
-                                holiday.status = 'Pendiente';
-                                holiday.approvalDate = DateTime.now();
-                                holiday.approvedBy = user.email!;
-                                holiday.save();
-                                // Search holiday in the holidays list and update it
-                                int index = listHolidays
-                                    .indexWhere((h) => h.id == holiday.id);
-                                if (index != -1) {
-                                  listHolidays[index] = holiday;
-                                }
-                                if (mounted) {
-                                  setState(() {});
-                                  // Update this dialog
-                                  Navigator.of(context).pop();
-                                  showHolidaysDialog(date);
-                                }
-                              }, Icons.question_mark, [holiday, null],
-                                  iconColor: Colors.orange,
-                                  tooltip: 'Cambiar solicitud a pendiente',
-                                  scale: scale),
-                            space(width: 10),
-                            if (currentCategory.docRequired > 0)
-                              actionButton(context, "", (args) {
-                                HolidayRequest holiday = args[0];
-                                // Open the document URL in a web browser
-                                if (holiday.documents.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'No hay documentos adjuntos para esta solicitud.'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                for (var docPath in holiday.documents) {
-                                  openFileUrl(context, docPath);
-                                }
-                              }, Icons.picture_as_pdf, [holiday, null],
-                                  iconColor: Colors.blue,
-                                  tooltip: 'Ver documentos adjunto',
-                                  scale: scale),
-                            space(width: 10),
-                          ]),
-                          statusMsg
-                        ],
-                      ),
-                    ));
-              }).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
+                      return Card(
+                          key: UniqueKey(),
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Row(children: [
+                                  Expanded(
+                                      flex: 7,
+                                      child: ListTile(
+                                        title: Text(
+                                            '${employee.getFullName()} - ${holiday.getCategory(widget.categories).autoCode()} (quedan ${availableDays["${holiday.category}-${holiday.userId}"]} días)',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                                color: holiday.isAproved()
+                                                    ? Colors.green
+                                                    : (holiday.isPending()
+                                                        ? Colors.orange
+                                                        : Colors.red))),
+                                        subtitle: Text(
+                                            '${holiday.startDate.day} ${MonthsNamesES[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MonthsNamesES[holiday.endDate.month - 1]}'),
+                                      )),
+                                  if ((!holiday.isAproved()) &&
+                                      (holiday.userId != user.email!) &&
+                                      (holiday.startDate
+                                              .isAfter(DateTime.now()) ||
+                                          (holiday
+                                              .getCategory(widget.categories)
+                                              .retroactive)) &&
+                                      canModify)
+                                    actionButton(context, "", (args) {
+                                      HolidayRequest holiday = args[0];
+                                      // Approve the holiday request
+                                      holiday.status = 'Aprobado';
+                                      holiday.approvalDate = DateTime.now();
+                                      holiday.approvedBy = user.email!;
+                                      holiday.save();
+                                      // Search holiday in the holidays list and update it
+                                      int index = listHolidays.indexWhere(
+                                          (h) => h.id == holiday.id);
+                                      if (index != -1) {
+                                        listHolidays[index] = holiday;
+                                      }
+                                      if (mounted) {
+                                        setState(() {});
+
+                                        // Update this dialog
+                                        // Navigator.of(context).pop();
+                                        // showHolidaysDialog(date);
+                                      }
+                                    }, Icons.check, [holiday, null],
+                                        iconColor: Colors.green,
+                                        tooltip: 'Aprobar solicitud',
+                                        scale: scale),
+                                  space(width: 10),
+                                  if (!holiday.isRejected() &&
+                                      holiday.userId != user.email! &&
+                                      canModify)
+                                    actionButton(context, "", (args) {
+                                      HolidayRequest holiday = args[0];
+                                      // Reject the holiday request
+                                      holiday.status = 'Rechazado';
+                                      holiday.approvalDate = DateTime.now();
+                                      holiday.approvedBy = user.email!;
+                                      holiday.save();
+                                      // Search holiday in the holidays list and update it
+                                      int index = listHolidays.indexWhere(
+                                          (h) => h.id == holiday.id);
+                                      if (index != -1) {
+                                        listHolidays[index] = holiday;
+                                      }
+                                      if (mounted) {
+                                        // Update this dialog
+                                        setState(() {});
+                                        // Navigator.of(context).pop();
+                                        // showHolidaysDialog(date);
+                                      }
+                                    }, Icons.close, [holiday, null],
+                                        iconColor: Colors.red,
+                                        tooltip: 'Rechazar solicitud',
+                                        scale: scale),
+                                  space(width: 10),
+                                  if (!holiday.isPending() &&
+                                      holiday.userId != user.email! &&
+                                      (holiday.startDate
+                                              .isAfter(DateTime.now()) ||
+                                          (holiday
+                                              .getCategory(widget.categories)
+                                              .retroactive)) &&
+                                      canModify)
+                                    actionButton(context, "", (args) {
+                                      HolidayRequest holiday = args[0];
+                                      // Reject the holiday request
+                                      holiday.status = 'Pendiente';
+                                      holiday.approvalDate = DateTime.now();
+                                      holiday.approvedBy = user.email!;
+                                      holiday.save();
+                                      // Search holiday in the holidays list and update it
+                                      int index = listHolidays.indexWhere(
+                                          (h) => h.id == holiday.id);
+                                      if (index != -1) {
+                                        listHolidays[index] = holiday;
+                                      }
+                                      if (mounted) {
+                                        setState(() {});
+                                        // Update this dialog
+                                        // Navigator.of(context).pop();
+                                        // showHolidaysDialog(date);
+                                      }
+                                    }, Icons.question_mark, [holiday, null],
+                                        iconColor: Colors.orange,
+                                        tooltip:
+                                            'Cambiar solicitud a pendiente',
+                                        scale: scale),
+                                  space(width: 10),
+                                  if (currentCategory.docRequired > 0)
+                                    actionButton(context, "", (args) {
+                                      HolidayRequest holiday = args[0];
+                                      // Open the document URL in a web browser
+                                      if (holiday.documents.isEmpty) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'No hay documentos adjuntos para esta solicitud.'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      for (var docPath in holiday.documents) {
+                                        openFileUrl(context, docPath);
+                                      }
+                                    }, Icons.picture_as_pdf, [holiday, null],
+                                        iconColor: Colors.blue,
+                                        tooltip: 'Ver documentos adjunto',
+                                        scale: scale),
+                                  space(width: 10),
+                                ]),
+                                statusMsg
+                              ],
+                            ),
+                          ));
+                    }).toList(),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cerrar'),
+                  ),
+                ],
+              );
+            },
+          );
+        });
   }
 
   @override
