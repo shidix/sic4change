@@ -679,9 +679,10 @@ class _HomePageState extends State<HomePage> {
         .where((hr) => hr.userId == user.email)
         .toList(growable: true);
     holCat = _rrhhProvider?.holidaysCategories;
-    if (currentEmployee != null) {
+    if ((currentEmployee != null) && (_rrhhProvider != null) && (_rrhhProvider!.calendars.isNotEmpty)) {
+    
       myCalendar ??= _rrhhProvider?.calendars
-          .firstWhere((hc) => hc.employees.contains(currentEmployee!));
+          .firstWhere((hc) => hc.employees.contains(currentEmployee!), orElse: () => HolidaysConfig.getEmpty());
     }
 
     await getNotifications();
@@ -1120,6 +1121,11 @@ class _HomePageState extends State<HomePage> {
       }, Icons.add_rounded, null);
     }
 
+    String fullName = (currentEmployee != null) ? "Hola, ${currentEmployee?.getFullName()}" : "Registro de jornada";
+    String subTitle = (currentEmployee != null)
+        ? "Registro a ${dateToES(DateTime.now())}"
+        : dateToES(DateTime.now());
+
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -1162,13 +1168,13 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Padding(
+                                       Padding(
                                           padding: EdgeInsets.only(bottom: 10),
                                           child: Text(
-                                            "Registro de jornada",
+                                            fullName,
                                             style: cardHeaderText,
                                           )),
-                                      Text(dateToES(DateTime.now()),
+                                      Text(subTitle,
                                           style: subTitleText),
                                     ]))),
                         Expanded(

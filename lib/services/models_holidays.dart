@@ -153,6 +153,10 @@ class HolidaysConfig {
       querySnap = await query.get();
       dev.log("HolidaysConfig fetched from SERVER: ${querySnap.docs.length}");
     }
+    else {
+      dev.log("Fetching ${querySnap.docs.length} HolidaysConfig from CACHE");
+
+    }
     if (querySnap.docs.isNotEmpty) {
       for (var result in querySnap.docs) {
         Map<String, dynamic> data = result.data() as Map<String, dynamic>;
