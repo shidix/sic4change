@@ -22,6 +22,8 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
+import 'dart:developer' as dev;
+
 const projectTitle = "Proyectos";
 bool loading = false;
 Widget? _mainMenu;
@@ -373,7 +375,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   void callDialog(context, args) {
-    programmeEditDialog(context, args["programme"]);
+    programmeEditDialog(args["programme"]);
   }
 
   void cancelItem(BuildContext context) {
@@ -414,7 +416,36 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return "";
   }
 
-  Future<void> programmeEditDialog(context, programme) {
+  Future<void> programmeEditDialog(programme) {
+    // Check permission
+    ProfileProvider profileProvider = context.read<ProfileProvider>();
+    Profile? profile = profileProvider.profile;
+    dev.log("Profile: ${profile?.toJson()}");
+    if ((profile == null) || (!profile!.isAdmin())) {
+      dev.log("No permission to edit programmes");
+      // Show alert dialog with warning
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Permiso denegado'),
+            content: const SingleChildScrollView(
+              child: Text(
+                  'No tienes permiso para modificar programas. Pointe en contacto con el administrador.'),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
     return showDialog<void>(
         context: context,
         barrierDismissible: false,

@@ -4,10 +4,14 @@ import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_list_menu_widget.dart';
+import 'package:provider/provider.dart';
+// import 'dart:developer' as dev;
 
 const projectTitle = "Proyectos";
 bool loading = false;
@@ -175,6 +179,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                   InkWell(
                                     child: Image.network(
                                       programme.logo,
+                                      height: 80,
                                     ),
                                     onTap: () {
                                       Navigator.push(
@@ -214,7 +219,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
   }
 
   void callDialog(context, args) {
-    programmeEditDialog(context, args["programme"]);
+    programmeEditDialog(args["programme"]);
   }
 
   void cancelItem(BuildContext context) {
@@ -228,7 +233,35 @@ class _ProjectListPageState extends State<ProjectListPage> {
     Navigator.pop(context);
   }
 
-  Future<void> programmeEditDialog(context, programme) {
+  Future<void> programmeEditDialog(programme) async {
+    // Check permission
+    ProfileProvider profileProvider = context.read<ProfileProvider>();
+    Profile? profile = profileProvider.profile;
+    if ((profile == null) || (!profile!.isAdmin())) {
+      // Show alert dialog with warning
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Permiso denegado'),
+            content: const SingleChildScrollView(
+              child: Text(
+                  'No tienes permiso para modificar programas. Ponte en contacto con el administrador.'),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     programme ??= Programme("");
 
     return showDialog<void>(
