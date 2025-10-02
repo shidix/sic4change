@@ -11,10 +11,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 import 'package:sic4change/main.dart';
-import 'package:sic4change/services/cache_rrhh.dart';
-import 'package:sic4change/services/logs_lib.dart';
+// import 'package:sic4change/services/cache_rrhh.dart';
+// import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'dart:math' as math;
@@ -175,7 +175,9 @@ int getWorkingDaysBetween(
           isHoliday = true;
           break;
         }
-        if (calendar != null && calendar.year != currentDate.year && currentDate.month == 1) {
+        if (calendar != null &&
+            calendar.year != currentDate.year &&
+            currentDate.month == 1) {
           // recalculate holidays for the new year
           isHoliday = true;
           break;
