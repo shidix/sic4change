@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, library_private_types_in_public_api
 
 import 'dart:math';
+// import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -1024,7 +1025,7 @@ SizedBox s4cSubTitleBar(dynamic title, [context, icon]) {
               ]))));
 }
 
-SizedBox s4cTitleBar(dynamic title, [context, icon, double roundBorder=25]) {
+SizedBox s4cTitleBar(dynamic title, [context, icon, double roundBorder = 25]) {
   Widget closeButton = const SizedBox(width: 0);
   if (context != null) {
     closeButton = IconButton(
@@ -1369,7 +1370,7 @@ Widget removeConfirmBtn(context, action, args,
                 shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(5.0))),
                 titlePadding: const EdgeInsets.all(0),
-                title: s4cTitleBar(removeText),
+                title: s4cTitleBar(removeText, null, Icons.remove_circle, 5),
                 content: const SingleChildScrollView(
                   child: Text(removeConfirm),
                 ),
@@ -1410,15 +1411,15 @@ Widget removeConfirmBtn(context, action, args,
       if (confirmation) {
         if (args == null) {
           try {
-            action();
+            return action();
           } catch (e) {
-            action(context);
+            return action(context);
           }
         } else {
           try {
-            action(args);
+            return action(args);
           } catch (e) {
-            action(context, args);
+            return action(context, args);
           }
         }
       }
@@ -1587,13 +1588,16 @@ Widget menuTab(context, btnName, btnRoute, args, {selected = false}) {
   }
 }
 
-Widget menuTab2(context, btnName, newContext, {selected = false}) {
+Widget menuTab2(context, btnName, newContext,
+    {selected = false, Function? extraction}) {
   if (selected) {
     return Container(
         padding: const EdgeInsets.all(5),
         decoration: tabDecoration,
         child: TextButton(
           onPressed: () {
+            extraction?.call();
+            if (newContext == null) return;
             Navigator.push(
                 context, MaterialPageRoute(builder: ((context) => newContext)));
           },
@@ -1604,6 +1608,8 @@ Widget menuTab2(context, btnName, newContext, {selected = false}) {
         padding: const EdgeInsets.all(5),
         child: TextButton(
           onPressed: () {
+            extraction?.call();
+            if (newContext == null) return;
             Navigator.push(
                 context, MaterialPageRoute(builder: ((context) => newContext)));
           },

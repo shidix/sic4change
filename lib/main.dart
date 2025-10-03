@@ -281,7 +281,7 @@ void main() async {
     // Si la persistencia ya está habilitada, se lanzará una excepción.
     // Puedes manejarla aquí si es necesario.
   }
-
+  print("Initializing app...");
   initializeDateFormatting('es_ES', '').then((_) => runApp(RestartApp(
         child: MultiProvider(
           providers: [

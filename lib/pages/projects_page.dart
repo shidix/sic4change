@@ -22,8 +22,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
-import 'dart:developer' as dev;
-
 const projectTitle = "Proyectos";
 bool loading = false;
 Widget? _mainMenu;
@@ -420,9 +418,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     // Check permission
     ProfileProvider profileProvider = context.read<ProfileProvider>();
     Profile? profile = profileProvider.profile;
-    dev.log("Profile: ${profile?.toJson()}");
     if ((profile == null) || (!profile!.isAdmin())) {
-      dev.log("No permission to edit programmes");
       // Show alert dialog with warning
       return showDialog<void>(
         context: context,

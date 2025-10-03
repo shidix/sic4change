@@ -1,5 +1,6 @@
 // import 'dart:ffi';
 // import 'dart:html';
+import 'dart:developer' as dev;
 
 import 'dart:ui';
 
@@ -236,20 +237,33 @@ class SProject {
     return items;
   }
 
-  static Future<List<SProject>> getProjects({List<String>? uuids}) async {
+  static Future<List<SProject>> getProjects(
+      {List<String>? uuids, bool cache = true}) async {
     List<SProject> items = [];
-    QuerySnapshot query;
+    Query query;
+    QuerySnapshot querySnapshot;
     if (uuids != null) {
       if (uuids.isEmpty) return items;
-      query = await FirebaseFirestore.instance
+      query = FirebaseFirestore.instance
           .collection(SProject.tbName)
-          .where("uuid", whereIn: uuids)
-          .get();
+          .where("uuid", whereIn: uuids);
     } else {
-      query =
-          await FirebaseFirestore.instance.collection(SProject.tbName).get();
+      query = FirebaseFirestore.instance.collection(SProject.tbName);
     }
-    for (var doc in query.docs) {
+
+    if (cache) {
+      dev.log("Projects: Loading from cache");
+    } else {
+      dev.log("Projects: Loading from server");
+    }
+
+    querySnapshot = await query
+        .get(GetOptions(source: cache ? Source.cache : Source.server));
+    if ((cache) && (querySnapshot.docs.isEmpty)) {
+      dev.log("Projects: Cache miss - loading from server");
+      querySnapshot = await query.get(const GetOptions(source: Source.server));
+    }
+    for (var doc in querySnapshot.docs) {
       // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       // data["id"] = doc.id;
       final item = SProject.fromJson(doc);
@@ -817,6 +831,7 @@ class SProject {
 //--------------------------------------------------------------
 
 class ProjectType {
+  static const String tbName = "s4c_project_type";
   String id = "";
   String uuid = "";
   String name = "";
@@ -847,27 +862,21 @@ class ProjectType {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_project_type").add(data);
+      FirebaseFirestore.instance.collection(tbName).add(data);
     } else {
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance
-          .collection("s4c_project_type")
-          .doc(id)
-          .set(data);
+      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
     }
   }
 
   Future<void> delete() async {
-    await FirebaseFirestore.instance
-        .collection("s4c_project_type")
-        .doc(id)
-        .delete();
+    await FirebaseFirestore.instance.collection(tbName).doc(id).delete();
   }
 
   static Future<ProjectType> byUuid(uuid) async {
     ProjectType item = ProjectType("");
     await FirebaseFirestore.instance
-        .collection("s4c_project_type")
+        .collection(tbName)
         .where("uuid", isEqualTo: uuid)
         .get()
         .then((value) {
@@ -882,7 +891,7 @@ class ProjectType {
   static Future<ProjectType> byName(name) async {
     ProjectType item = ProjectType("");
     await FirebaseFirestore.instance
-        .collection("s4c_project_type")
+        .collection(tbName)
         .where("name", isEqualTo: name)
         .get()
         .then((value) {
@@ -896,14 +905,27 @@ class ProjectType {
 
   static Future<List<ProjectType>> getProjectTypes() async {
     List<ProjectType> items = <ProjectType>[];
-    QuerySnapshot queryProjectType =
-        await FirebaseFirestore.instance.collection("s4c_project_type").get();
+    Query query = FirebaseFirestore.instance.collection(ProjectType.tbName);
+
+    QuerySnapshot queryProjectType = await query.get(
+      const GetOptions(source: Source.cache),
+    );
+
+    if (queryProjectType.docs.isEmpty) {
+      queryProjectType = await query.get();
+    }
 
     for (var doc in queryProjectType.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      if (!data.containsKey("id") || (data["id"] != doc.id)) {
+        FirebaseFirestore.instance
+            .collection(ProjectType.tbName)
+            .doc(doc.id)
+            .update({"id": doc.id});
+      }
       data["id"] = doc.id;
-      final _item = ProjectType.fromJson(data);
-      items.add(_item);
+      final item = ProjectType.fromJson(data);
+      items.add(item);
     }
 
     return items;
@@ -912,7 +934,7 @@ class ProjectType {
   static Future<List<KeyValue>> getProjectTypesHash() async {
     List<KeyValue> items = [];
     QuerySnapshot queryProjectType =
-        await FirebaseFirestore.instance.collection("s4c_project_type").get();
+        await FirebaseFirestore.instance.collection(ProjectType.tbName).get();
 
     for (var doc in queryProjectType.docs) {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

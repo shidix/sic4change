@@ -1,4 +1,6 @@
 import 'dart:collection';
+import 'dart:core';
+// import 'dart:developer' as dev;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,9 @@ import 'package:sic4change/services/models_tasks.dart';
 class ProjectsProvider with ChangeNotifier {
   bool _initialized = false;
   late final Key key;
+  late DateTime lastSync;
+  DateTime syncProjects = DateTime(2000, 1, 1);
+  DateTime syncProgrammes = DateTime(2000, 1, 1);
 
   Profile? _profile;
   User? user;
@@ -37,11 +42,14 @@ class ProjectsProvider with ChangeNotifier {
 
   final Queue<bool> _isLoading = Queue();
 
+  bool isUpdated(DateTime syncTime, {int minutes = 15}) {
+    return syncTime.difference(DateTime.now()).inMinutes.abs() < minutes;
+  }
+
   void sendNotify() {
     if (_isLoading.isEmpty) {
       notifyListeners();
-    } else
-      return;
+    }
   }
 
   List<Ambit> get ambits => _ambits;
@@ -184,7 +192,14 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
-  List<SProject> get projects => _projects;
+  List<SProject> get projects {
+    if (!isUpdated(syncProjects)) {
+      loadProjects();
+      syncProjects = DateTime.now();
+    }
+    return _projects;
+  }
+
   set projects(List<SProject> value) {
     _projects = value;
     sendNotify();
@@ -248,7 +263,14 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
-  List<Programme> get programmes => _programmes;
+  List<Programme> get programmes {
+    if (!isUpdated(syncProgrammes) || _programmes.isEmpty) {
+      loadProgrammes();
+      syncProgrammes = DateTime.now();
+    }
+    return _programmes;
+  }
+
   set programmes(List<Programme> value) {
     _programmes = value;
     sendNotify();
@@ -366,7 +388,9 @@ class ProjectsProvider with ChangeNotifier {
         loadTowns(),
       ],
     );
-    _projects = await SProject.getProjects();
+    _projects = await SProject.getProjects(
+        cache: isUpdated(syncProjects) && _projects.isNotEmpty);
+    syncProjects = DateTime.now();
     for (var project in _projects) {
       // check and assign related objects
       if (_ambits.any((element) => element.uuid == project.ambit)) {
@@ -623,10 +647,13 @@ class ProjectsProvider with ChangeNotifier {
     _isLoading.removeFirst();
     sendNotify();
     _initialized = true;
+    lastSync = DateTime.now();
   }
 
   ProjectsProvider() {
     key = UniqueKey();
+    lastSync = DateTime(2000, 1, 1);
     initialize();
+    // Add listener to this provider to update lastSync
   }
 }
