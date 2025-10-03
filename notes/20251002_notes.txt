@@ -1,0 +1,22 @@
+General:
+    Al hacer refresh te saca a la home y es un poco infernal. 
+Programas:
+    Al crear 1, se crearon dos. No puedo borrarlos -
+    Solo pueden agregar programas  desde el super admin. DONE
+Proyectos:
+    En el visualizador de todas las fichas de proyecto hay 3 roll simultáneos y para usarlo en un pelin insoportable
+    Debe de existir algún filtro o alguna forma de elegir aquellos que visualizas en primer lugar por que es un infierno encontrar los proyectos en los que trabajas. (Por programa, Estado...). Quizas no necesito una tarjeta con tantos datos al inicio y puedo tener un vial más comprimido. 
+    En la lista de responsables de programa no aparece el listado de las personas "Supervisoras". Quizás si añadimos una lista de técnicos, ese puede ser uno de los filtros de visualización de proyectos. O bien que tú seas responsable o técnico.
+    Alguna información del proyecto se borra, no se si es porque se edita antes de refrescar... desde otra cuenta y se pierde información
+    Se siguen duplicando proyectos.
+Documentación:
+    Se podrían visualizar PDF e imagenes sin necesidad de descarga?
+    Siempre que subo un documento, sin importar su naturaleza, aparece el logo de PDF. 
+
+Presupuesto: 
+    en los campos de dinero puedo incluir texto, que esté capado solo a números. con comas
+    El presu tengo que mirarlo bien porque creo que contiene bastantes errores
+Perfil RRHH
+    No hay desplazamiento hacia abajo en el cuadro de proyectos. En que orden se ven? podemos poner filtros?
+    En ningun sitio puedo indicar el año del proyecto entonces aparece en todos 2100
+
