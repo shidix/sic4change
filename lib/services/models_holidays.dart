@@ -15,7 +15,7 @@ class HolidaysConfig {
   String id = "";
   String name = "";
   int year;
-  int totalDays;
+  // int totalDays;
   String organization;
   List<Event> gralHolidays;
   // List<Employee> employees = [];
@@ -25,16 +25,18 @@ class HolidaysConfig {
     required this.id,
     required this.name,
     required this.year,
-    required this.totalDays,
+    // required this.totalDays,
     required this.organization,
     required this.gralHolidays,
   });
+
+  get totalDays => gralHolidays.length;
 
   void mapping(Map data) {
     id = data['id'];
     name = data['name'] ?? '';
     year = data['year'];
-    totalDays = data['totalDays'];
+    // totalDays = data['totalDays'];
     organization = data['organization'] ?? '';
     gralHolidays = (data['gralHolidays'] as List)
         .map<Event>((e) => Event.fromJson(e))
@@ -95,7 +97,7 @@ class HolidaysConfig {
       id: '',
       name: name,
       year: year == 0 ? DateTime.now().year : year,
-      totalDays: 0,
+      // totalDays: 0,
       organization: '',
       gralHolidays: [],
     );
@@ -152,10 +154,8 @@ class HolidaysConfig {
       dev.log("Fetching HolidaysConfig from SERVER");
       querySnap = await query.get();
       dev.log("HolidaysConfig fetched from SERVER: ${querySnap.docs.length}");
-    }
-    else {
+    } else {
       dev.log("Fetching ${querySnap.docs.length} HolidaysConfig from CACHE");
-
     }
     if (querySnap.docs.isNotEmpty) {
       for (var result in querySnap.docs) {

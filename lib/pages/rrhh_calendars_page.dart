@@ -238,7 +238,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     } else {
       holidaysConfig = HolidaysConfig.getEmpty();
       holidaysConfig!.year = DateTime.now().year;
-      holidaysConfig!.totalDays = 30;
+      // holidaysConfig!.totalDays = 30;
       holidaysConfig!.gralHolidays = [
         Event(
             subject: "Año Nuevo",

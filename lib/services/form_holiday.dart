@@ -530,16 +530,16 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
               }),
             ),
             space(),
-            TextFormField(
-              initialValue: holidaysConfig.totalDays.toString(),
-              //only numbers
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Días totales'),
-              onSaved: (val) => setState(() {
-                holidaysConfig.totalDays = int.parse(val!);
-              }),
-            ),
-            space(),
+            // TextFormField(
+            //   initialValue: holidaysConfig.totalDays.toString(),
+            //   //only numbers
+            //   keyboardType: TextInputType.number,
+            //   decoration: const InputDecoration(labelText: 'Días totales'),
+            //   onSaved: (val) => setState(() {
+            //     holidaysConfig.totalDays = int.parse(val!);
+            //   }),
+            // ),
+            // space(),
             // Buttons
             Row(
                 children: [
