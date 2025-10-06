@@ -1,7 +1,7 @@
 General:
     Al hacer refresh te saca a la home y es un poco infernal. 
 Programas:
-    Al crear 1, se crearon dos. No puedo borrarlos -
+    Al crear 1, se crearon dos. No puedo borrarlos -    DONE
     Solo pueden agregar programas  desde el super admin. DONE
 Proyectos:
     En el visualizador de todas las fichas de proyecto hay 3 roll simultáneos y para usarlo en un pelin insoportable

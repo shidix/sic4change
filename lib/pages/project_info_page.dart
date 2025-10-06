@@ -1820,7 +1820,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 icon: Icons.edit, text: "Presentar")*/
             addBtnRow(context, callCustomDatesEditDialog,
                 {'project': project, 'st': statusSended},
-                text: "Presentar", icon: Icons.abc)
+                text: "Presentar", icon: Icons.slideshow_outlined)
             : Column(children: [
                 customText("Presentado", 16),
                 Row(
@@ -1842,10 +1842,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ? Row(children: [
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusApproved},
-                    text: "Aprobar", icon: Icons.abc),
+                    text: "Aprobar", icon: Icons.thumb_up_outlined),
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusReject},
-                    text: "Denegar", icon: Icons.abc),
+                    text: "Denegar", icon: Icons.thumb_down_outlined),
               ])
             : (project.statusInt() == 3)
                 ? Column(children: [
@@ -1885,10 +1885,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ? Row(children: [
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusStart},
-                    text: "Iniciar", icon: Icons.abc),
+                    text: "Iniciar", icon: Icons.play_circle_outline),
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusRefuse},
-                    text: "Rechazar", icon: Icons.abc),
+                    text: "Rechazar", icon: Icons.cancel_outlined),
               ])
             : (project.statusInt() >= 6)
                 ? Column(children: [
@@ -1928,7 +1928,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ? Row(children: [
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusEnds},
-                    text: "Finalizar", icon: Icons.abc),
+                    text: "Finalizar", icon: Icons.sports_score_outlined),
               ])
             : (project.statusInt() >= 6)
                 ? Column(children: [
@@ -1953,7 +1953,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ? Row(children: [
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusJustification},
-                    text: "Justificar", icon: Icons.abc),
+                    text: "Justificar", icon: Icons.history_edu_outlined),
               ])
             : (project.statusInt() >= 7)
                 ? Column(children: [
@@ -1978,7 +1978,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             ? Row(children: [
                 addBtnRow(context, callCustomDatesEditDialog,
                     {'project': project, 'st': statusDelivery},
-                    text: "Evaluar", icon: Icons.abc),
+                    text: "Evaluar", icon: Icons.manage_search_outlined),
               ])
             : (project.statusInt() >= 8)
                 ? Column(children: [
