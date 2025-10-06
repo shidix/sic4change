@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -94,7 +95,20 @@ Future<void> notificationsDialog(context, user, url) async {
           rows: notificationList
               .map(
                 (n) => DataRow(cells: [
-                  DataCell(Text(n.msg)),
+                  DataCell(Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: Text("De: ${n.sender}")),
+                            Expanded(
+                                child: Text(
+                                    "Fecha: ${DateFormat('yyyy-MM-dd').format(n.date)}")),
+                          ],
+                        ),
+                        Text(n.msg),
+                      ]))
                 ]),
               )
               .toList(),
@@ -105,8 +119,7 @@ Future<void> notificationsDialog(context, user, url) async {
             onPressed: () {
               Navigator.pushReplacementNamed(context, url, arguments: []);
             },
-            child: customText("Marcar como leídos", 16,
-                textColor: cardHeaderColor),
+            child: customText("Cerrar", 16, textColor: cardHeaderColor),
           ),
         ],
       );
