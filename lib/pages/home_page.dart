@@ -2730,7 +2730,23 @@ class _HomePageState extends State<HomePage> {
                                   return AlertDialog(
                                     titlePadding: const EdgeInsets.all(0),
                                     title: s4cTitleBar('Notificación', context),
-                                    content: Text(notify.msg),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(children: [
+                                          Expanded(
+                                              child:
+                                                  Text("De: ${notify.sender}")),
+                                          Expanded(
+                                              child: Text(
+                                                  "Fecha: ${DateFormat('yyyy-MM-dd').format(notify.date)}")),
+                                        ]),
+                                        const Divider(),
+                                        Text(notify.msg),
+                                      ],
+                                    ),
                                   );
                                 }).then((value) {
                               if (!notify.readed) {
