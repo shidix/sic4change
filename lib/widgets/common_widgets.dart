@@ -2195,14 +2195,18 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double sizeWidth = size;
     // Create a list of DropDownnOnSearchFind options from options_src
     DropdownSearchOnFind<KeyValue> options_new = (filter, loadProps) {
       return Future.value(
           options.where((element) => element.value.contains(filter)).toList());
     };
+    if (sizeWidth < 1) {
+      sizeWidth = sizeWidth * MediaQuery.of(context).size.width;
+    }
 
     return SizedBox(
-        width: size,
+        width: sizeWidth,
         child: DropdownSearch<KeyValue>(
           popupProps: PopupProps.menu(
             showSearchBox: true,

@@ -42,7 +42,6 @@ class Organization {
   bool partner = false;
   bool public = false;
   String domain = "";
-  // Billing fields
   String account = "";
   String address = "";
   String cif = "";

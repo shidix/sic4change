@@ -91,29 +91,29 @@ class _ContactsPageState extends State<ContactsPage> {
     if (value == "") {
       contacts = allContacts;
     } else {
-      contacts = allContacts
-          .where((element) {
-              element.organizationObj ??= orgs.firstWhere(
-                  (org) => org.uuid == element.organization,
-                  orElse: () => Organization(""));
-              if (element.organizationObj!.name == "") {
-                element.organizationObj = allOrgs.firstWhere(
-                    (org) => ((element.email ?? "").contains(org.email) && (org.domain.length > 4)),
-                    orElse: () => Organization(""));
-              }
-              return (element.name.toLowerCase().contains(value.toLowerCase()) ||
-                  element.email.toLowerCase().contains(value.toLowerCase()) ||
-                  element.organizationObj.name
-                      .toLowerCase()
-                      .contains(value.toLowerCase()) ||
-                  element.companyObj.name
-                      .toLowerCase()
-                      .contains(value.toLowerCase()) ||
-                  element.positionObj.name
-                      .toLowerCase()
-                      .contains(value.toLowerCase()) ||
-                  element.phone.toLowerCase().contains(value.toLowerCase()));
-          }).toList();
+      contacts = allContacts.where((element) {
+        element.organizationObj ??= orgs.firstWhere(
+            (org) => org.uuid == element.organization,
+            orElse: () => Organization(""));
+        if (element.organizationObj!.name == "") {
+          element.organizationObj = allOrgs.firstWhere(
+              (org) => ((element.email ?? "").contains(org.email) &&
+                  (org.domain.length > 4)),
+              orElse: () => Organization(""));
+        }
+        return (element.name.toLowerCase().contains(value.toLowerCase()) ||
+            element.email.toLowerCase().contains(value.toLowerCase()) ||
+            element.organizationObj.name
+                .toLowerCase()
+                .contains(value.toLowerCase()) ||
+            element.companyObj.name
+                .toLowerCase()
+                .contains(value.toLowerCase()) ||
+            element.positionObj.name
+                .toLowerCase()
+                .contains(value.toLowerCase()) ||
+            element.phone.toLowerCase().contains(value.toLowerCase()));
+      }).toList();
     }
     if (mounted) {
       setState(() {
@@ -305,9 +305,10 @@ class _ContactsPageState extends State<ContactsPage> {
                           if (selected == true) {
                             currentOrg = org.name;
                             contacts = allContacts
-                                .where((element) =>(
-                                    (element.organization == org.uuid)) || ((element.email.endsWith(org.domain) && (org.domain.length > 4)))
-                                    )
+                                .where((element) =>
+                                    ((element.organization == org.uuid)) ||
+                                    ((element.email.endsWith(org.domain) &&
+                                        (org.domain.length > 4))))
                                 .toList();
                             if (mounted) {
                               setState(() {});
@@ -316,15 +317,18 @@ class _ContactsPageState extends State<ContactsPage> {
                           }
                         },
                         cells: [
-                          DataCell(Text(org.name)),
+                          DataCell(Row(children: [
+                            Text(org.name),
+                            space(width: 5),
+                            if (org.uuid == _currentOrg?.uuid)
+                              Icon(Icons.my_location_outlined, color: mainColor)
+                          ])),
                           DataCell(Row(children: [
                             Icon(org.isFinancier()),
                             customText("  -  ", 14),
                             Icon(org.isPartner())
                           ])),
-
                           DataCell(Row(children: [
-
                             goPageIcon(
                               context,
                               "Ver",
@@ -476,19 +480,18 @@ class _ContactsPageState extends State<ContactsPage> {
     if (args["filter"] == "generic") {
       currentOrg = "Sin organización";
       _currentOrg = null;
-      contacts = allContacts
-          .where((element) {
-            Organization org = orgs.firstWhere(
-                (org) => org.uuid == element.organization,
-                orElse: () => Organization(""));
-            if (org.name == "") {
-              org = allOrgs.firstWhere(
-                  (org) => ((element.email.endsWith(org.domain)) && (org.domain.length > 4)),
-                  orElse: () => Organization(""));
-            }
-            return org.name == "";
-          })
-          .toList();
+      contacts = allContacts.where((element) {
+        Organization org = orgs.firstWhere(
+            (org) => org.uuid == element.organization,
+            orElse: () => Organization(""));
+        if (org.name == "") {
+          org = allOrgs.firstWhere(
+              (org) => ((element.email.endsWith(org.domain)) &&
+                  (org.domain.length > 4)),
+              orElse: () => Organization(""));
+        }
+        return org.name == "";
+      }).toList();
       if (mounted) {
         setState(() {});
       }
@@ -577,44 +580,43 @@ class _ContactsPageState extends State<ContactsPage> {
               label: customText("Acciones", 14, bold: FontWeight.bold),
               tooltip: "Acciones"),
         ],
-        rows: contacts
-            .map(
-              (contact) { 
-                      Organization org = orgs.firstWhere(
-                          (org) => org.uuid == contact.organization,
-                          orElse: () => Organization(""));
-                      if (org.name == "") {
-                        org = allOrgs.firstWhere(
-                            (org) => ((contact.email != null && contact.email != "" && contact.email.endsWith(org.domain)) && (org.domain.length > 4)),
-                            orElse: () => Organization(""));
-                      }
-                      contact.organizationObj = org;
-              
-                       return DataRow(cells: [
-                          DataCell(Text(contact.name + " " + contact.email)),
-                          DataCell(
-                            Text(contact.organizationObj.name),
-                          ),
-                          DataCell(
-                            Text(contact.companyObj.name),
-                          ),
-                          // const DataCell(Text("")),
-                          DataCell(Text(contact.positionObj.name)),
-                          DataCell(Text(contact.phone)),
-                          DataCell(Row(children: [
-                            goPageIcon(
-                              context,
-                              "View",
-                              Icons.info,
-                              ContactInfoPage(contact: contact),
-                            ),
-                            editBtn(context, callEditDialog, {"contact": contact}),
-                            removeBtn(context, removeContactDialog, {"contact": contact})
-                          ]))
-                        ]);
-              }
-            )
-            .toList(),
+        rows: contacts.map((contact) {
+          Organization org = orgs.firstWhere(
+              (org) => org.uuid == contact.organization,
+              orElse: () => Organization(""));
+          if (org.name == "") {
+            org = allOrgs.firstWhere(
+                (org) => ((contact.email != null &&
+                        contact.email != "" &&
+                        contact.email.endsWith(org.domain)) &&
+                    (org.domain.length > 4)),
+                orElse: () => Organization(""));
+          }
+          contact.organizationObj = org;
+
+          return DataRow(cells: [
+            DataCell(Text(contact.name + " " + contact.email)),
+            DataCell(
+              Text(contact.organizationObj.name),
+            ),
+            DataCell(
+              Text(contact.companyObj.name),
+            ),
+            // const DataCell(Text("")),
+            DataCell(Text(contact.positionObj.name)),
+            DataCell(Text(contact.phone)),
+            DataCell(Row(children: [
+              goPageIcon(
+                context,
+                "View",
+                Icons.info,
+                ContactInfoPage(contact: contact),
+              ),
+              editBtn(context, callEditDialog, {"contact": contact}),
+              removeBtn(context, removeContactDialog, {"contact": contact})
+            ]))
+          ]);
+        }).toList(),
       );
     } else {
       return const Center(

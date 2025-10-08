@@ -1,6 +1,8 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/keep/v1.dart';
 // import 'package:googleapis/cloudresourcemanager/v3.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/documents_page.dart';
@@ -22,6 +24,8 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
+import 'dart:developer' as dev;
+
 const projectTitle = "Proyectos";
 bool loading = false;
 Widget? _mainMenu;
@@ -36,19 +40,25 @@ class ProjectsPage extends StatefulWidget {
 }
 
 class _ProjectsPageState extends State<ProjectsPage> {
-  List prList = [];
+  // List prList = [];
   List programList = [];
   Profile? profile;
   Organization? currentOrg;
   String deleteMsg = "";
   late ProfileProvider? _profileProvider;
   late ProjectsProvider? _projectsProvider;
+  get projectsCache => _projectsProvider;
   late VoidCallback _listener;
   final user = FirebaseAuth.instance.currentUser!;
 
-  Widget projectSearchBar = Container();
+  Widget contentTopButtons = Container();
   Widget programmeListPanel = Container();
   Widget projectListPanel = Container();
+  Widget projectFilter = Container();
+
+  String searchText = "";
+  String searchStatus = "";
+  String searchType = "";
 
   void setLoading() {
     loading = true;
@@ -78,14 +88,73 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   void loadProjects() async {
     setLoading();
-    prList = _projectsProvider!.projects;
-    if ((prList.isEmpty)) {
-      prList = await SProject.getProjects();
-      if (prList.isNotEmpty) {
-        _projectsProvider!.initialize();
-      }
+    if ((projectsCache!.projects.isEmpty)) {
+      await projectsCache!.initialize();
     }
+
+    List<KeyValue> statusOptions = [];
+    for (ProjectStatus st in projectsCache!.status) {
+      statusOptions.add(KeyValue(st.uuid, st.name));
+    }
+    statusOptions.sort((a, b) => a.value.compareTo(b.value));
+    statusOptions.insert(0, KeyValue("all", "Todos"));
+
+    List<KeyValue> typeOptions = [];
+    for (ProjectType pt in projectsCache!.types) {
+      typeOptions.add(KeyValue(pt.uuid, pt.name));
+    }
+    typeOptions.sort((a, b) => a.value.compareTo(b.value));
+    typeOptions.insert(0, KeyValue("all", "Todos"));
+
+    projectFilter = Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          CustomDropdown(
+              labelText: "Filtrar por tipo",
+              size: 0.3,
+              options: typeOptions,
+              selected: typeOptions.first,
+              onSelectedOpt: (uuid) {
+                searchType = uuid;
+                if (!mounted) return;
+                setState(() {
+                  projectListPanel = projectList();
+                });
+              }),
+          CustomDropdown(
+              labelText: "Filtrar por estado",
+              size: 0.3,
+              options: statusOptions,
+              selected: statusOptions.first,
+              onSelectedOpt: (uuid) {
+                searchStatus = uuid;
+                if (!mounted) return;
+                setState(() {
+                  projectListPanel = projectList();
+                });
+              }),
+          SizedBox(
+            width: 500,
+            child: SearchBar(
+              hintText: 'Buscar proyecto por nombre (mínimo 3 caracteres)...',
+              padding: const WidgetStatePropertyAll<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 10.0)),
+              onTap: () {},
+              onChanged: (searchValue) {
+                searchText = searchValue;
+                if (!mounted) return;
+                setState(() {
+                  searchText = searchValue;
+                  projectListPanel = projectList();
+                });
+              },
+              leading: const Icon(Icons.search),
+            ),
+          ),
+        ]));
     projectListPanel = projectList();
+
     if (mounted) {
       setState(() {});
     }
@@ -172,7 +241,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
 
     _projectsProvider ??= context.read<ProjectsProvider?>();
-    if (prList.isEmpty) {
+    if (projectsCache!.projects.isEmpty) {
+      print(1);
       loadProjects();
     }
     _projectsProvider!.addListener(() {
@@ -182,7 +252,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       setState(() {});
     });
 
-    projectSearchBar = projectSearch();
+    contentTopButtons = projectTopButtons();
     programmeListPanel = programmeList();
     projectListPanel = projectList();
 
@@ -198,7 +268,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _mainMenu!,
-          projectSearchBar,
+          contentTopButtons,
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "PROGRAMAS")),
@@ -206,6 +276,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
           Container(
               padding: const EdgeInsets.all(10),
               child: customTitle(context, "INICIATIVAS")),
+          projectFilter,
+          space(height: 10),
           loading
               ? const Center(child: CircularProgressIndicator())
               : projectListPanel,
@@ -214,7 +286,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ));
   }
 
-  Widget projectSearch() {
+  Widget projectTopButtons() {
     return Container(
         padding: const EdgeInsets.only(left: 20, top: 20),
         child: Row(
@@ -231,17 +303,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               space(width: 10),
               addBtn(context, callProjectDialog, {"programme": null},
                   text: "Añadir Iniciativa"),
-            ])
-            /*Container(
-          width: 500,
-          child: SearchBar(
-            padding: const MaterialStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 10.0)),
-            onTap: () {},
-            onChanged: (_) {},
-            leading: const Icon(Icons.search),
-          ),
-        ),*/
+            ]),
           ],
         ));
   }
@@ -462,6 +524,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
                      PROJECTS
 -------------------------------------------------------------*/
   Widget projectList() {
+    List<SProject> filteredProjects = [];
+    filteredProjects = List<SProject>.from(_projectsProvider!.projects);
+    if (searchStatus != "" && searchStatus != "all") {
+      // Remove projects that do not match the status
+      filteredProjects.removeWhere((p) => p.status != searchStatus);
+    }
+
+    if (searchType != "" && searchType != "all") {
+      // Remove projects that do not match the type
+      filteredProjects.removeWhere((p) => p.type != searchType);
+    }
+
+    if (searchText.length >= 3) {
+      // Remove projects that do not match the search text
+      filteredProjects.removeWhere(
+          (p) => !p.name.toLowerCase().contains(searchText.toLowerCase()));
+    }
     return Container(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: SizedBox(
@@ -473,9 +552,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   mainAxisSpacing: 10,
                   childAspectRatio: 1.1,
                 ),
-                itemCount: prList.length,
+                itemCount: filteredProjects.length,
                 itemBuilder: (_, index) {
-                  return projectCard(context, prList[index]);
+                  return projectCard(context, filteredProjects[index]);
                 })));
 
     /*return Container(
