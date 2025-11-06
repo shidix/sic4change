@@ -1,7 +1,6 @@
 // import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sic4change/services/logs_lib.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -144,7 +143,7 @@ class Workday {
       List<Workday> items = [];
       DateTime today = DateTime.now();
       today = truncDate(today);
-      Query queryBuilder = await FirebaseFirestore.instance
+      Query queryBuilder = FirebaseFirestore.instance
           .collection(Workday.tbName)
           .where("userId", isEqualTo: email)
           .where("startDate", isGreaterThanOrEqualTo: today);

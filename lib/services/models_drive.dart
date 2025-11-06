@@ -3,7 +3,6 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:uuid/uuid.dart';
 
 String getRandomString(_length) {
@@ -135,7 +134,9 @@ class Folder {
         final folder = Folder.fromJson(data);
         folders.add(folder);
       }
-    } catch (e) {}
+    } catch (e) {
+      //print("Error getting folders: $e");
+    }
     return folders;
   }
 

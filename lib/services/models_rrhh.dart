@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
-import 'dart:developer' as dev;
 // import 'package:flutter/material.dart';
 
 // import 'package:uuid/uuid.dart';
@@ -1309,7 +1308,7 @@ class Employee {
   Future<List<Employee>> getSuperiors({dynamic org}) async {
     id ??= '';
     if (id!.isEmpty) return [];
-    org ??= this.organization;
+    org ??= organization;
 
     String organizationId = '';
     if (org is Organization) {
