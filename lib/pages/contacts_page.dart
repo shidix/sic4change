@@ -1,15 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/contact_info_page.dart';
 import 'package:sic4change/pages/organization_info_page.dart';
 import 'package:sic4change/pages/organization_invoices_page.dart';
 import 'package:sic4change/services/cache_profiles.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'dart:developer' as dev;
 
 const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];
@@ -31,8 +34,10 @@ class ContactsPage extends StatefulWidget {
 class _ContactsPageState extends State<ContactsPage> {
   var searchController = TextEditingController();
   ProfileProvider? _provider;
+  ProjectsProvider? cacheProjects;
   Organization? _currentOrg;
   Profile? _currentProfile;
+  final user = FirebaseAuth.instance.currentUser!;
 
   void loadOrgs() async {
     setState(() {
@@ -145,6 +150,25 @@ class _ContactsPageState extends State<ContactsPage> {
         setState(() {});
       }
     });
+    cacheProjects = context.read<ProjectsProvider?>();
+    if (cacheProjects == null) {
+      cacheProjects ??= ProjectsProvider();
+      cacheProjects?.addListener(() {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    } else {
+      cacheProjects?.addListener(() {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+      if (cacheProjects!.profiles.isEmpty) {
+        cacheProjects!.loadProfiles();
+      }
+    }
+
     _currentOrg = _provider?.organization;
     _currentProfile = _provider?.profile;
     _mainMenu = mainMenu(context, "/contacts");
@@ -551,10 +575,13 @@ class _ContactsPageState extends State<ContactsPage> {
 
   Widget contactTable(context) {
     //if (contacts.isNotEmpty) {
+    List<Profile> allProfiles = cacheProjects!.profiles;
     if (contactsLoading == false) {
       return DataTable(
         sortColumnIndex: 0,
         showCheckboxColumn: false,
+        dataRowMinHeight: 60,
+        dataRowMaxHeight: 90,
         columns: [
           DataColumn(
               label: customText("Nombre", 14, bold: FontWeight.bold),
@@ -593,18 +620,28 @@ class _ContactsPageState extends State<ContactsPage> {
                 orElse: () => Organization(""));
           }
           contact.organizationObj = org;
+          Profile contactProfile = allProfiles.firstWhere(
+              (profile) => profile.email == contact.email,
+              orElse: () => Profile.getEmpty(
+                  mainRole: "Externo", email: contact.email ?? ""));
 
           return DataRow(cells: [
             DataCell(Text(contact.name + " " + contact.email)),
             DataCell(
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(contact.organizationObj.name),
-            ),
+              space(height: 5),
+              Text(contactProfile.mainRole, style: smallText)
+            ])),
             DataCell(
               Text(contact.companyObj.name),
             ),
             // const DataCell(Text("")),
             DataCell(Text(contact.positionObj.name)),
-            DataCell(Text(contact.phone)),
+            DataCell(Text(
+              contact.phone,
+              softWrap: false,
+            )),
             DataCell(Row(children: [
               goPageIcon(
                 context,

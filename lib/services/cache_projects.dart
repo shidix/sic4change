@@ -316,7 +316,7 @@ class ProjectsProvider with ChangeNotifier {
     if (notify) sendNotify();
   }
 
-  void loadProfiles(User user, {bool notify = true}) async {
+  void loadProfiles({bool notify = true}) async {
     _isLoading.add(true);
     _profiles =
         await Profile.byOrganization(organization: _profile!.organization);

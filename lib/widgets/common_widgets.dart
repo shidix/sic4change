@@ -1217,7 +1217,8 @@ Widget gralButton(context, action, args, text, {icon = Icons.settings}) {
       ));
 }
 
-Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
+Widget addBtn(context, action, args,
+    {text = addText, icon = Icons.add, ButtonStyle? style, Color? color}) {
   return FilledButton(
       onPressed: () {
         if (args == null) {
@@ -1226,13 +1227,13 @@ Widget addBtn(context, action, args, {text = addText, icon = Icons.add}) {
           action(context, args);
         }
       },
-      style: btnStyle,
+      style: style ?? btnStyle,
       child: Column(
         children: [
           space(height: 5),
-          Icon(icon, color: subTitleColor),
+          Icon(icon, color: color ?? subTitleColor),
           space(height: 5),
-          customText(text, 12, textColor: subTitleColor),
+          customText(text, 12, textColor: color ?? subTitleColor),
           space(height: 5),
         ],
       ));

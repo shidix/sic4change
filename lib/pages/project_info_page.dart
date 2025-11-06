@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
 import 'package:sic4change/pages/projects_page.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
@@ -226,7 +227,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   _canEdit
                       ? addBtn(context, _callProjectEditDialog, project,
                           icon: Icons.edit, text: "Editar")
-                      : customText("", 10),
+                      : addBtn(context, () {}, null,
+                          icon: Icons.gpp_bad_outlined,
+                          text: "Denegado",
+                          style: btnStyle.copyWith(
+                              backgroundColor:
+                                  WidgetStateProperty.all(Colors.grey)),
+                          color: Colors.white),
                   space(width: 10),
                   //returnBtn(context),
                   (returnToList)
@@ -817,10 +824,24 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callProjectEditDialog(context, project) async {
+    List<Profile> supervisorProfiles = projectsProvider!.profiles
+        .where((profile) => profile.mainRole == Profile.SUPERVISOR)
+        .toList();
+    List<Contact> supervisors = projectsProvider!.contacts
+        .where((contact) =>
+            supervisorProfiles.any((profile) => profile.email == contact.email))
+        .toList();
+
     List<KeyValue> ambits = await Ambit.getAmbitsHash();
     List<KeyValue> types = await ProjectType.getProjectTypesHash();
     List<KeyValue> status = await ProjectStatus.getProjectStatusHash();
-    List<KeyValue> contacts = await Contact.getContactsByOrgHash(s4cUuid);
+    List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
+    // Check if current manager is in the contacts list
+    if (!contacts.any((kv) => kv.key == project.manager)) {
+      project.manager = contacts.isNotEmpty ? contacts[0].key : "";
+      await project.save();
+    }
+
     List<KeyValue> programmes = await Programme.getProgrammesHash();
     editProjectDialog(
         context, project, ambits, types, status, contacts, programmes);

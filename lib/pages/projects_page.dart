@@ -1,8 +1,6 @@
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/keep/v1.dart';
 // import 'package:googleapis/cloudresourcemanager/v3.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/documents_page.dart';
@@ -23,8 +21,6 @@ import 'package:sic4change/services/programme_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
-
-import 'dart:developer' as dev;
 
 const projectTitle = "Proyectos";
 bool loading = false;
@@ -242,7 +238,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     _projectsProvider ??= context.read<ProjectsProvider?>();
     if (projectsCache!.projects.isEmpty) {
-      print(1);
       loadProjects();
     }
     _projectsProvider!.addListener(() {
@@ -480,7 +475,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     // Check permission
     ProfileProvider profileProvider = context.read<ProfileProvider>();
     Profile? profile = profileProvider.profile;
-    if ((profile == null) || (!profile!.isAdmin())) {
+    if ((profile == null) || (!profile.isAdmin())) {
       // Show alert dialog with warning
       return showDialog<void>(
         context: context,

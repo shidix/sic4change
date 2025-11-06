@@ -100,6 +100,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     } else {
       prType = "Proyecto";
     }
+    loadProgrammes();
     loadProjects().then((value) => stopLoading());
 
     // //getProjects().then((val) {
@@ -352,7 +353,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     // Check permission
     ProfileProvider profileProvider = context.read<ProfileProvider>();
     Profile? profile = profileProvider.profile;
-    if ((profile == null) || (!profile!.isAdmin())) {
+    if ((profile == null) || (!profile.isAdmin())) {
       // Show alert dialog with warning
       return showDialog<void>(
         context: context,
@@ -396,7 +397,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     // Check permission
     ProfileProvider profileProvider = context.read<ProfileProvider>();
     Profile? profile = profileProvider.profile;
-    if ((profile == null) || (!profile!.isAdmin())) {
+    if ((profile == null) || (!profile.isAdmin())) {
       // Show alert dialog with warning
       return showDialog<void>(
         context: context,
@@ -603,7 +604,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
           (type) => type.name == prType,
           orElse: () => ProjectType(""));
       prList = cacheProjects!.projects
-          .where((pr) => pr.type == objPrType!.uuid)
+          .where((pr) => pr.type == objPrType.uuid)
           .toList();
     }
     return Container(

@@ -4,6 +4,7 @@ import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
+import 'package:sic4change/services/notifications_lib.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 
@@ -195,6 +196,14 @@ class CalendarWidgetState extends State<CalendarWidget> {
                                       holiday.approvalDate = DateTime.now();
                                       holiday.approvedBy = user.email!;
                                       holiday.save();
+                                      // Add notification to the user
+                                      String msg =
+                                          "La solicitud de ${holiday.getCategory(widget.categories).autoCode()} entre los días ${holiday.startDate.day} ${MonthsNamesES[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MonthsNamesES[holiday.endDate.month - 1]} ha sido aprobada.";
+                                      createNotification(
+                                          user.email!, [holiday.userId], msg,
+                                          objId: holiday.id,
+                                          objType: 'holiday');
+
                                       // Search holiday in the holidays list and update it
                                       int index = listHolidays.indexWhere(
                                           (h) => h.id == holiday.id);
@@ -223,6 +232,12 @@ class CalendarWidgetState extends State<CalendarWidget> {
                                       holiday.approvalDate = DateTime.now();
                                       holiday.approvedBy = user.email!;
                                       holiday.save();
+                                      String msg =
+                                          "La solicitud de ${holiday.getCategory(widget.categories).autoCode()} entre los días ${holiday.startDate.day} ${MonthsNamesES[holiday.startDate.month - 1]} - ${holiday.endDate.day} ${MonthsNamesES[holiday.endDate.month - 1]} ha sido rechazada.";
+                                      createNotification(
+                                          user.email!, [holiday.userId], msg,
+                                          objId: holiday.id,
+                                          objType: 'holiday');
                                       // Search holiday in the holidays list and update it
                                       int index = listHolidays.indexWhere(
                                           (h) => h.id == holiday.id);
