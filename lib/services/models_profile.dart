@@ -129,6 +129,10 @@ class Profile {
     return mainRole == ADMIN;
   }
 
+  bool isSupervisor() {
+    return mainRole == SUPERVISOR;
+  }
+
   bool isRRHH() {
     return mainRole == RRHH || mainRole == ADMINISTRATIVE;
   }

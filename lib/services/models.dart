@@ -173,6 +173,10 @@ class SProject {
     return KeyValue(uuid, name);
   }
 
+  String code_calculated() {
+    return "$name ($uuid)";
+  }
+
   Future<void> save() async {
     if (id == "") {
       var newUuid = const Uuid();

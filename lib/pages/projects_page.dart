@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,9 @@ import 'package:sic4change/services/programme_form.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
+import 'package:sic4change/services/check_permissions.dart';
+
+import 'dart:developer' as dev;
 
 const projectTitle = "Proyectos";
 bool loading = false;
@@ -106,46 +111,58 @@ class _ProjectsPageState extends State<ProjectsPage> {
         padding: const EdgeInsets.only(left: 20, right: 20),
         child:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          CustomDropdown(
-              labelText: "Filtrar por tipo",
-              size: 0.3,
-              options: typeOptions,
-              selected: typeOptions.first,
-              onSelectedOpt: (uuid) {
-                searchType = uuid;
-                if (!mounted) return;
-                setState(() {
-                  projectListPanel = projectList();
-                });
-              }),
-          CustomDropdown(
-              labelText: "Filtrar por estado",
-              size: 0.3,
-              options: statusOptions,
-              selected: statusOptions.first,
-              onSelectedOpt: (uuid) {
-                searchStatus = uuid;
-                if (!mounted) return;
-                setState(() {
-                  projectListPanel = projectList();
-                });
-              }),
-          SizedBox(
-            width: 500,
-            child: SearchBar(
-              hintText: 'Buscar proyecto por nombre (mínimo 3 caracteres)...',
-              padding: const WidgetStatePropertyAll<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 10.0)),
-              onTap: () {},
-              onChanged: (searchValue) {
-                searchText = searchValue;
-                if (!mounted) return;
-                setState(() {
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: CustomDropdown(
+                      labelText: "Filtrar por tipo",
+                      size: 0.3,
+                      options: typeOptions,
+                      selected: typeOptions.first,
+                      onSelectedOpt: (uuid) {
+                        searchType = uuid;
+                        if (!mounted) return;
+                        setState(() {
+                          projectListPanel = projectList();
+                        });
+                      }))),
+          Expanded(
+            flex: 1,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: CustomDropdown(
+                    labelText: "Filtrar por estado",
+                    size: 0.3,
+                    options: statusOptions,
+                    selected: statusOptions.first,
+                    onSelectedOpt: (uuid) {
+                      searchStatus = uuid;
+                      if (!mounted) return;
+                      setState(() {
+                        projectListPanel = projectList();
+                      });
+                    })),
+          ),
+          Expanded(
+            flex: 2,
+            child: Container(
+              // width: 500,
+              child: SearchBar(
+                hintText: 'Buscar proyecto por nombre (mínimo 3 caracteres)...',
+                padding: const WidgetStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 10.0)),
+                onTap: () {},
+                onChanged: (searchValue) {
                   searchText = searchValue;
-                  projectListPanel = projectList();
-                });
-              },
-              leading: const Icon(Icons.search),
+                  if (!mounted) return;
+                  setState(() {
+                    searchText = searchValue;
+                    projectListPanel = projectList();
+                  });
+                },
+                leading: const Icon(Icons.search),
+              ),
             ),
           ),
         ]));
@@ -157,9 +174,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
     stopLoading();
   }
 
-  void getProfile(user) async {
-    profile = _profileProvider!.profile;
-    currentOrg = _profileProvider!.organization;
+  void getProfile(user) {
+    // profile = _profileProvider!.profile;
+    // currentOrg = _profileProvider!.organization;
+    profile ??= Provider.of<ProfileProvider>(context, listen: false).profile;
+    currentOrg ??=
+        Provider.of<ProfileProvider>(context, listen: false).organization;
+
     // await Profile.getProfile(user.email!).then((value) {
     //   profile = value;
     //   //print(profile?.mainRole);
@@ -228,6 +249,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
     if ((profile == null) || (currentOrg == null)) {
       _profileProvider!.loadProfile();
+      getProfile(user);
     }
 
     try {
@@ -264,24 +286,45 @@ class _ProjectsPageState extends State<ProjectsPage> {
         children: [
           _mainMenu!,
           contentTopButtons,
-          Container(
-              padding: const EdgeInsets.all(10),
-              child: customTitle(context, "PROGRAMAS")),
-          programmeListPanel,
-          Container(
-              padding: const EdgeInsets.all(10),
-              child: customTitle(context, "INICIATIVAS")),
-          projectFilter,
-          space(height: 10),
-          loading
-              ? const Center(child: CircularProgressIndicator())
-              : projectListPanel,
+          Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                    flex: 1,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              padding: const EdgeInsets.all(10),
+                              child: customTitle(context, "PROGRAMAS")),
+                          programmeListPanel,
+                        ])),
+                Expanded(
+                    flex: 5,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              padding: const EdgeInsets.all(10),
+                              child: customTitle(context, "INICIATIVAS")),
+                          projectFilter,
+                          space(height: 10),
+                          loading
+                              ? const Center(child: CircularProgressIndicator())
+                              : projectListPanel,
+                        ])),
+              ]),
         ],
       ),
     ));
   }
 
   Widget projectTopButtons() {
+    dev.log("DBG:> ${profile?.mainRole}");
+
     return Container(
         padding: const EdgeInsets.only(left: 20, top: 20),
         child: Row(
@@ -292,12 +335,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
               /*goPage(context, "Listado", const ProjectListPage(), Icons.info,
                   style: "bigBtn", extraction: () {}),*/
               space(width: 10),
-              addBtn(context, callDialog,
-                  {"programme": Programme('Nuevo programa')},
-                  text: "Añadir Programa"),
+              if (canAddProgramme(profile))
+                addBtn(context, callDialog,
+                    {"programme": Programme('Nuevo programa')},
+                    text: "Añadir Programa"),
               space(width: 10),
-              addBtn(context, callProjectDialog, {"programme": null},
-                  text: "Añadir Iniciativa"),
+              if (canAddProject(profile))
+                addBtn(context, callProjectDialog, {"programme": null},
+                    text: "Añadir Iniciativa"),
             ]),
           ],
         ));
@@ -308,27 +353,34 @@ class _ProjectsPageState extends State<ProjectsPage> {
 -------------------------------------------------------------*/
 
   Widget programmeList() {
-    return Container(
-        padding: const EdgeInsets.only(left: 30, right: 30),
-        child: Builder(builder: ((context) {
-          programList = _projectsProvider!.programmes;
-          int nCols = 5;
-          int nRows = (programList.length / nCols).ceil();
-
-          List<Widget> matrix = List<Widget>.filled(nRows * nCols, Container());
-          for (int i = 0; i < programList.length; i++) {
-            Programme programme = programList[i];
-            matrix[i] = Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+    return Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Column(
+          children: [
+            for (var programme in programList)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   InkWell(
-                      child: Column(children: [
-                        customText(programme.name, 16, bold: FontWeight.bold),
-                        (programme.logo != '')
-                            ? Image.network(programme.logo, height: 100)
-                            : const SizedBox(height: 100, width: 100),
-                      ]),
+                      child: Column(
+                        children: [
+                          (programme.logo != '')
+                              ? Image.network(programme.logo, height: 50)
+                              : const SizedBox(height: 50, width: 50),
+                          space(width: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              customText(programme.name, 16,
+                                  bold: FontWeight.bold, textColor: mainColor),
+                              if (canAddProgramme(profile))
+                                editBtn(context, callDialog,
+                                    {'programme': programme}),
+                            ],
+                          )
+                        ],
+                      ),
                       onTap: () {
                         Navigator.push(
                             context,
@@ -336,97 +388,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
                                 builder: ((context) =>
                                     ProgrammePage(programme: programme))));
                       }),
-                  editBtn(context, callDialog, {'programme': programme}),
-                ]);
-          }
-
-          // List<dynamic> matrixDyn = reshape(matrix, nRows, nCols);
-          List<Widget> rows = [];
-          for (var row in reshape(matrix, nRows, nCols)) {
-            rows.add(Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [for (var col in row) Expanded(child: col)]));
-          }
-          //print(row);
-
-          return SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 200,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: rows,
-                ),
-              ));
-
-          // return SizedBox(
-          //     height: 150,
-          //     child: GridView.builder(
-          //         gridDelegate:
-          //             const SliverGridDelegateWithFixedCrossAxisCount(
-          //           crossAxisCount: 5,
-          //           //crossAxisSpacing: 20,
-          //           //mainAxisSpacing: 20,
-          //           childAspectRatio: 2,
-          //         ),
-          //         itemCount: programList.length,
-          //         itemBuilder: (_, index) {
-          //           Programme programme = programList[index];
-
-          //           if (programme.logo != "") {
-          //             return Column(
-          //                 mainAxisAlignment: MainAxisAlignment.start,
-          //                 crossAxisAlignment: CrossAxisAlignment.center,
-          //                 children: [
-          //                   InkWell(
-          //                       child: Column(children: [
-          //                         customText(programme.name, 16,
-          //                             bold: FontWeight.bold),
-          //                         Image.network(programme.logo, height: 100),
-          //                       ]),
-          //                       onTap: () {
-          //                         Navigator.push(
-          //                             context,
-          //                             MaterialPageRoute(
-          //                                 builder: ((context) =>
-          //                                     ProgrammePage(
-          //                                         programme: programme))));
-          //                       }),
-          //                   /*InkWell(
-          //                         child: customText(programme.name, 16),
-          //                         onTap: () {
-          //                           Navigator.push(
-          //                               context,
-          //                               MaterialPageRoute(
-          //                                   builder: ((context) =>
-          //                                       ProgrammePage(
-          //                                           programme: programme))));
-          //                         },
-          //                       ),*/
-          //                   editBtn(context, callDialog,
-          //                       {'programme': programme}),
-          //                 ]);
-          //           } else {
-          //             return Column(children: [
-          //               Row(
-          //                 children: [
-          //                   customText(programme.name, 15,
-          //                       bold: FontWeight.bold),
-          //                   customText(
-          //                       (programme.projects != 1)
-          //                           ? " (${programme.projects} proyectos)"
-          //                           : " (${programme.projects} proyecto)",
-          //                       15),
-          //                   editBtn(
-          //                       context, callDialog, {'programme': programme})
-          //                 ],
-          //               )
-          //             ]);
-          //           }
-          //         }));
-        })));
+                  const Divider(color: Colors.grey),
+                  space(height: 10),
+                ],
+              ),
+          ],
+        ));
   }
 
   void callDialog(context, args) {
@@ -518,7 +485,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 /*-------------------------------------------------------------
                      PROJECTS
 -------------------------------------------------------------*/
-  Widget projectList() {
+  Widget projectList({bool inline = true}) {
     List<SProject> filteredProjects = [];
     filteredProjects = List<SProject>.from(_projectsProvider!.projects);
     if (searchStatus != "" && searchStatus != "all") {
@@ -536,79 +503,41 @@ class _ProjectsPageState extends State<ProjectsPage> {
       filteredProjects.removeWhere(
           (p) => !p.name.toLowerCase().contains(searchText.toLowerCase()));
     }
-    return Container(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: SizedBox(
-            height: 900,
-            child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1.1,
-                ),
-                itemCount: filteredProjects.length,
-                itemBuilder: (_, index) {
-                  return projectCard(context, filteredProjects[index]);
-                })));
 
-    /*return Container(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: Builder(builder: ((context) {
-          if (prList.isNotEmpty) {
-            return SizedBox(
-                height: 900,
-                child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.1,
-                    ),
-                    itemCount: prList.length,
-                    itemBuilder: (_, index) {
-                      return projectCard(context, prList[index]);
-                    }));
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        })));*/
+    if (inline) {
+      return Container(
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: SizedBox(
+              height: 900,
+              child: ListView.builder(
+                  itemCount: filteredProjects.length,
+                  itemBuilder: (_, index) {
+                    return Column(children: [
+                      projectCard(context, filteredProjects[index],
+                          inline: true),
+                      const Divider(color: Colors.grey),
+                    ]);
+                  })));
+    } else {
+      return Container(
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: SizedBox(
+              height: 900,
+              child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 1,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 12,
+                  ),
+                  itemCount: filteredProjects.length,
+                  itemBuilder: (_, index) {
+                    return projectCard(context, filteredProjects[index]);
+                  })));
+    }
   }
 
-  // Widget projectList2(context) {
-  //   return Container(
-  //       padding: const EdgeInsets.only(left: 20, right: 20),
-  //       child: FutureBuilder(
-  //           future: getProjects(),
-  //           builder: ((context, snapshot) {
-  //             if (snapshot.hasData) {
-  //               prList = snapshot.data!;
-  //               return SizedBox(
-  //                   height: 900,
-  //                   child: GridView.builder(
-  //                       gridDelegate:
-  //                           const SliverGridDelegateWithFixedCrossAxisCount(
-  //                         crossAxisCount: 2,
-  //                         crossAxisSpacing: 10,
-  //                         mainAxisSpacing: 10,
-  //                         childAspectRatio: .9,
-  //                       ),
-  //                       itemCount: prList.length,
-  //                       itemBuilder: (_, index) {
-  //                         return projectCard(context, prList[index]);
-  //                       }));
-  //             } else {
-  //               return const Center(
-  //                 child: CircularProgressIndicator(),
-  //               );
-  //             }
-  //           })));
-  // }
-
-  Widget projectCard(context, project) {
+  Widget projectCard(context, project, {bool inline = true}) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -616,11 +545,80 @@ class _ProjectsPageState extends State<ProjectsPage> {
             color: Colors.grey,
           ),
           borderRadius: const BorderRadius.all(Radius.circular(10))),
-      child: projectCardDatas(context, project),
+      child: (inline
+          ? projectInLine(context, project)
+          : projectCardDatas(context, project)),
       /*child: SingleChildScrollView(
         child: projectCardDatas(context, _project),
       ),*/
     );
+  }
+
+  Widget projectInLine(context, SProject project) {
+    // Code, status, type, budget, assigned budget, executed budget
+    Programme programme = _projectsProvider!.programmes.firstWhere(
+        (prog) => prog.uuid == project.programme,
+        orElse: () => Programme('NON EXISTENT'));
+
+    // Extracte acronym from programme name => Trhee first letter for each word in uppercase
+    String progAcronym = programme.name
+        .split(' ')
+        .map(
+            (word) => word.isNotEmpty ? word.substring(0, 3).toUpperCase() : '')
+        .join();
+
+    String projectAcronym = project.name
+        .split(' ')
+        .map((word) =>
+            ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
+                ? word.substring(0, min(3, word.length)).toUpperCase()
+                : '')
+        .join();
+    if (projectAcronym.isEmpty) {
+      // In case the project_acronym has less than 3 letters, acronym is the the name replacen non letter and numbers
+      projectAcronym =
+          project.name.toUpperCase().replaceAll(RegExp(r'[^(A-Z0-9)]'), '');
+    }
+    if (projectAcronym.length > 9) {
+      projectAcronym = projectAcronym.substring(0, 9);
+    }
+    projectAcronym = projectAcronym.replaceAll('\r', '').replaceAll('\n', '');
+
+    String acronym = "$progAcronym-$projectAcronym";
+    return Column(children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(flex: 4, child: Text(acronym, style: mainText)),
+          Expanded(
+              flex: 1,
+              child: Text(project.statusObj.name,
+                  style: normalText, textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text(project.typeObj.name,
+                  style: normalText, textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text("${project.budget} €",
+                  style: normalText, textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text("${toCurrency(project.assignedBudget)} €",
+                  style: normalText, textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text("${toCurrency(project.execBudget)} €",
+                  style: normalText, textAlign: TextAlign.center)),
+          Expanded(
+              flex: 2,
+              child: projectCardButtons(context, project, inline: true)),
+        ],
+      ),
+      // space(height: 10),
+      // projectCardButtons(context, project, inline: true),
+    ]);
   }
 
   Widget projectCardDatasHeader(context, project) {
@@ -722,6 +720,67 @@ class _ProjectsPageState extends State<ProjectsPage> {
     ]);
   }
 
+  Widget projectCardButtons(context, SProject project, {bool inline = false}) {
+    if (!inline) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          goPage(
+              context, "+ Info", ProjectInfoPage(project: project), Icons.info,
+              style: "bigBtn", extraction: () {}),
+          (project.folderObj.uuid != "")
+              ? goPage(context, "Documentos",
+                  DocumentsPage(currentFolder: project.folderObj), Icons.info,
+                  style: "bigBtn", extraction: () {})
+              : Container(),
+          goPage(
+              context, "Marco técnico", GoalsPage(project: project), Icons.task,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          goPage(
+              context, "Presupuesto", FinnsPage(project: project), Icons.euro,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
+          customBtn(context, "Personal", Icons.people, "/projects", {}),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          goPageIcon(
+            context,
+            "+ Info",
+            Icons.info,
+            ProjectInfoPage(project: project),
+          ),
+          (project.folderObj.uuid != "")
+              ? goPageIcon(
+                  context,
+                  "Documentos",
+                  Icons.folder,
+                  DocumentsPage(currentFolder: project.folderObj),
+                )
+              : Container(),
+          goPageIcon(
+            context,
+            "Marco técnico",
+            Icons.task,
+            GoalsPage(project: project),
+          ),
+          goPageIcon(
+            context,
+            "Presupuesto",
+            Icons.euro,
+            FinnsPage(project: project),
+          ),
+        ],
+      );
+    }
+  }
+
   Widget projectCardDatas(context, SProject project) {
     /*double prjBudget = fromCurrency(project.budget);
     double execVsBudget = (prjBudget != 0) ? project.execBudget / prjBudget : 0;
@@ -751,6 +810,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Expanded(
                   flex: 1,
                   child: Column(
+                    mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       customText(
@@ -766,6 +826,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               Expanded(
                   flex: 1,
                   child: Column(
+                      mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         customText(

@@ -41,6 +41,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
   Map<String, double> totalsExecuted = {};
   Map<String, double> projStatus = {};
   Map<String, int> sourceFinancing = {};
+  Widget programmeGraphPanel = const Center(
+    child: CircularProgressIndicator(),
+  );
 
   double totalBudget = 0.0; //Suma de los presupuestos de los proyectos
   double totalFinancing = 0.0; //Suma de las aportaciones de los financiadores
@@ -110,7 +113,9 @@ class _ProgrammePageState extends State<ProgrammePage> {
     indicators = projectsProvider!.programmeIndicators;
 
     // await ProgrammeIndicators.getProgrammesIndicators(programme!.uuid);
-    setState(() {});
+    setState(() {
+      programmeGraphPanel = programmeGraphs();
+    });
   }
 
   Future<void> getProfile(user) async {
@@ -158,14 +163,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
               ? const Center(
                   child: CircularProgressIndicator(),
                 )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    programmeGraphs(),
-                    // programmeProjects(context),
-                  ],
-                )
+              : programmeGraphPanel
         ],
       ),
     ));
@@ -182,13 +180,15 @@ class _ProgrammePageState extends State<ProgrammePage> {
             Container(
               padding: const EdgeInsets.only(left: 10),
               width: MediaQuery.of(context).size.width * 0.8,
+              height: 100,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  customText(programme!.title, 16,
-                      bold: FontWeight.bold, textColor: headerListTitleColor),
-                  space(height: 10),
-                  customText(programme!.description, 14),
+                  Text(programme!.name, style: mainText.copyWith(fontSize: 24)),
+                  if (programme!.description.isNotEmpty) space(height: 10),
+                  if (programme!.description.isNotEmpty)
+                    Text(programme!.description, style: normalText),
                 ],
               ),
             ),
@@ -205,30 +205,30 @@ class _ProgrammePageState extends State<ProgrammePage> {
                       PROGRAMME GRAPHS
   -------------------------------------------------------------*/
   Widget programmeGraphs() {
-    return Container(
-      padding: const EdgeInsets.only(left: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        verticalDirection: VerticalDirection.down,
-        children: <Widget>[
-          row1(),
-          space(height: 20),
-          row2(),
-          space(height: 10),
-          row3(),
-        ],
-      ),
-    );
+    return Column(children: [
+      row1(),
+      const Divider(height: 20),
+      row2(),
+      const Divider(height: 20),
+      row3(),
+    ]);
   }
 
   Widget row1() {
     return Row(
       children: [
-        diag1(),
-        diag2(),
-        diag3(),
+        Expanded(
+          flex: 1,
+          child: diag1(),
+        ),
+        Expanded(
+          flex: 1,
+          child: diag2(),
+        ),
+        Expanded(
+          flex: 1,
+          child: diag3(),
+        ),
       ],
     );
   }
@@ -270,14 +270,12 @@ class _ProgrammePageState extends State<ProgrammePage> {
           diagramColors[9]),
     ];
 
-    return SizedBox(
-        height: 300,
-        width: 440,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          customText("Proyectos por estado", 16,
-              bold: FontWeight.bold, textColor: headerListTitleColor),
-          pieDiagram(diagList),
-        ]));
+    return Align(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      customText("Proyectos por estado", 16,
+          bold: FontWeight.bold, textColor: headerListTitleColor),
+      pieDiagram(context, diagList),
+    ]));
   }
 
   Widget diag2() {
@@ -296,34 +294,32 @@ class _ProgrammePageState extends State<ProgrammePage> {
           diagramColors[3]),
     ];
 
-    return SizedBox(
-        height: 300,
-        width: 440,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          customText("Proyectos por ámbito", 16,
-              bold: FontWeight.bold, textColor: headerListTitleColor),
-          pieDiagram(diagList),
-        ]));
+    return Align(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      customText("Proyectos por ámbito", 16,
+          bold: FontWeight.bold, textColor: headerListTitleColor),
+      pieDiagram(context, diagList),
+    ]));
   }
 
   Widget diag3() {
     List<DiagramValues> diagList = [];
-    financiers.forEach((key, value) {
-      if (key != "total") {
-        String label = "$key: $value";
-        double val = value * 100 / totalFinancing;
-        diagList
-            .add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
-      }
-    });
+    if (totalFinancing != 0) {
+      financiers.forEach((key, value) {
+        if (key != "total") {
+          String label = "$key: $value";
+          double val = value * 100 / totalFinancing;
+          diagList
+              .add(DiagramValues(label, val.toStringAsFixed(2), randomColor()));
+        }
+      });
+    }
 
-    return SizedBox(
-      height: 300,
-      width: 440,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Align(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         customText("Proyectos por financiador", 16,
             bold: FontWeight.bold, textColor: headerListTitleColor),
-        pieDiagram(diagList),
+        pieDiagram(context, diagList),
       ]),
     );
   }
@@ -345,21 +341,6 @@ class _ProgrammePageState extends State<ProgrammePage> {
             width: MediaQuery.of(context).size.width * 0.9,
             child: programmeImpact(),
           ),
-          /*SizedBox(
-              width: MediaQuery.of(context).size.width * 0.5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [programmeImpact()],
-              )),
-          SizedBox(
-              width: MediaQuery.of(context).size.width * 0.4,
-              child: SizedBox(
-                  height: 300,
-                  width: 450,
-                  //child: barDiagram(diagList),
-                  child: indicators.isNotEmpty
-                      ? barDiagram(diagList)
-                      : Container())),*/
         ],
       ),
     );
@@ -372,42 +353,28 @@ class _ProgrammePageState extends State<ProgrammePage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-              width: MediaQuery.of(context).size.width * 0.45,
+          Expanded(
+              flex: 1,
               child: Column(children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.15,
-                      child: customText("Ejecución Técnica", 16,
-                          bold: FontWeight.bold,
-                          textColor: headerListTitleColor),
-                    ),
-                    //space(width: 10),
-                    customLinearPercent(
-                        context, 3.5, totalGoals, percentBarPrimary)
-                  ],
+                Text(
+                  "Ejecución Técnica",
+                  style: mainText.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: headerListTitleColor),
                 ),
-                programmeProjectList(context),
+                customLinearPercent(context, 3.5, totalGoals, percentBarPrimary)
               ])),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.45,
+          Expanded(
+            flex: 1,
             child: Column(children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.15,
-                    child: customText("Ejecución Presupuestaria", 16,
-                        bold: FontWeight.bold, textColor: headerListTitleColor),
-                  ),
-                  //space(width: 10),
-                  customLinearPercent(
-                      context, 3.5, totalExecuted, percentBarPrimary)
-                ],
-              ),
-              programmeFinancierList(context),
+              Text("Ejecución Presupuestaria",
+                  style: mainText.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: headerListTitleColor)),
+              customLinearPercent(
+                  context, 3.5, totalExecuted, percentBarPrimary),
             ]),
           ),
         ],

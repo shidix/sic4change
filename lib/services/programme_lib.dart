@@ -4,7 +4,8 @@ import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/utils.dart';
 
-Future<Map<String, double>> getProgrammeFinanciers(projects, List<Organization>? finList) async {
+Future<Map<String, double>> getProgrammeFinanciers(
+    projects, List<Organization>? finList) async {
   Map<String, double> finMap = {};
   Map<String, String> finUUID = {};
   Map<String, dynamic> finnInfo = {};
@@ -63,8 +64,10 @@ Map<String, double> setProjectByStatus(projects) {
       }
     }
   }
-  for (String st in statusList) {
-    projStatus[st] = (total > 0) ? ((projStatus[st]! / total) * 100) : 100;
+  if (total != 0) {
+    for (String st in statusList) {
+      projStatus[st] = (total > 0) ? ((projStatus[st]! / total) * 100) : 100;
+    }
   }
   return projStatus;
 }
@@ -145,7 +148,6 @@ Future<Map<String, double>> getTotalExectuteBudget(projects) async {
 
   projectsExecuted["total"] = 0;
   for (SProject proj in projects) {
-    
     // List distribItems = await Distribution.byProject(proj.uuid);
     List<Distribution> distribItems = await Distribution.all();
     distribItems = distribItems.where((d) => d.project == proj.uuid).toList();
@@ -288,7 +290,8 @@ Future<Map<String, double>> getGoalsPercent(projects) async {
   goalsPercent["total"] = 0;
   int i = 0;
   List fullGoals = await Goal.getGoals();
-  List<GoalIndicator> fullIndicators = await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;
+  List<GoalIndicator> fullIndicators =
+      await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;
   for (SProject proj in projects) {
     // List goals = await Goal.getGoalsByProject(proj.uuid);
     List goals = fullGoals.where((g) => g.project == proj.uuid).toList();

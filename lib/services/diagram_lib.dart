@@ -65,12 +65,27 @@ class DiagramValues2 {
 /*
           PIE DIAGRAM
 */
-Widget pieDiagram(List<DiagramValues> diagList) {
+Widget pieDiagram(context, List<DiagramValues> diagList) {
+  double totalSum = 0;
+  for (DiagramValues dv in diagList) {
+    try {
+      totalSum = totalSum + double.parse(dv.percent);
+    } catch (e) {
+      // ignore exception
+    }
+  }
+  if (totalSum == 0) {
+    return const Center(child: Text("No data"));
+  }
+  for (DiagramValues dv in diagList) {
+    dev.log('DiagramValues: ${dv.text}, ${dv.percent}, ${dv.color}');
+  }
   return Row(
     children: [
-      SizedBox(
-          width: 200,
+      Container(
+          width: MediaQuery.of(context).size.width * 0.20,
           height: 200,
+          padding: const EdgeInsets.only(top: 20),
           child: PieChart(PieChartData(
             pieTouchData: PieTouchData(
               touchCallback: (FlTouchEvent event, pieTouchResponse) {
@@ -93,7 +108,7 @@ Widget pieDiagram(List<DiagramValues> diagList) {
             sections: showingSections(diagList),
           ))),
       Container(
-        width: 200,
+        width: MediaQuery.of(context).size.width * 0.12,
         height: 200,
         padding: const EdgeInsets.only(top: 100),
         child: ListView.builder(
@@ -134,12 +149,11 @@ List<PieChartSectionData> showingSections(List diagList) {
         ),
       );
       pList.add(section);
-    }
-    catch (e) {
+    } catch (e) {
       dev.log(e.toString());
     }
   }
-  
+
   return pList;
 }
 
