@@ -1356,12 +1356,13 @@ Widget removeBtn(context, action, args,
     ),
     tooltip: text,
     onPressed: () {
-      action(context, args).then((value) {
-        if (callback != null) {
-          print('value from removeBtn: $value');
-          callback(value);
-        }
-      });
+      action(context, args);
+      // action(context, args).then((value) {
+      //   if (callback != null) {
+      //     print('value from removeBtn: $value');
+      //     callback(value);
+      //   }
+      // });
     },
   );
 }

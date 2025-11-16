@@ -1,6 +1,6 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/dfareporting/v4.dart';
 import 'package:intl/intl.dart';
@@ -20,8 +20,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_info_menu_widget.dart';
-
-// import 'dart:developer' as dev;
 
 String s4cUuid = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
 const projectInfoTitle = "Detalles del Proyecto";
@@ -44,6 +42,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   bool _canEdit = false;
   bool returnToList = false;
   ProjectsProvider? projectsProvider;
+  ProfileProvider? profileProvider;
   bool _update = false;
   bool get update => _update;
   set update(bool val) {
@@ -58,7 +57,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Widget? projectInfoHeaderPanel;
-  Widget? profileMenuPanel;
+  Widget profileMenuPanel = Container();
   Widget? projectInfoDetailsPanel;
   Widget? projectInfoLocationPanel;
   void loadProject() async {
@@ -117,31 +116,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       project = project;
       projLoading = true;
     });
-
-    // await project!.reload().then((val) {
-    //   /*Navigator.popAndPushNamed(context, "/project_info",
-    //       arguments: {"project": val});*/
-    //   setState(() {
-    //     project = val;
-    //     projLoading = true;
-    //   });
-    // });
   }
 
-  void getProfile(user) async {
+  void getProfile() async {
     profile = projectsProvider!.profile;
-    profile ??= await Profile.getProfile(user.email!);
+    if (profile == null) return;
+    // profile ??= await Profile.getProfile(user.email!);
     _canEdit = canEdit();
     if (!mounted) return;
     _mainMenu = mainMenu(context, null, profile);
+    if (!mounted) return;
     setState(() {});
-    // await Profile.getProfile(user.email!).then((value) {
-    //   profile = value;
-
-    //   setState(() {
-    //     _canEdit = canEdit();
-    //   });
-    // });
   }
 
   bool canEdit() {
@@ -162,11 +147,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void updateProject(SProject project) {
-    // dev.log("Updating project in ProjectInfoPageState",
-    //     name: "ProjectInfoPage");
-    // setState(() {
-    //   this.project = project;
-    // });
+    project.save();
+    project.managerObj = projectsProvider!.contacts.firstWhere(
+        (element) => element.uuid == project.manager,
+        orElse: () => Contact("Unknown"));
+    project.programmeObj = projectsProvider!.programmes.firstWhere(
+        (element) => element.uuid == project.programme,
+        orElse: () => Programme("Unknown"));
+    project.ambitObj = projectsProvider!.ambits.firstWhere(
+        (element) => element.uuid == project.ambit,
+        orElse: () => Ambit("Unknown"));
+    projectsProvider!.addProject(project);
   }
 
   @override
@@ -202,8 +193,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     }
     // _mainMenu = mainMenu(context);
 
-    final user = FirebaseAuth.instance.currentUser!;
-    getProfile(user);
+    try {
+      profileProvider = context.read<ProfileProvider?>();
+    } catch (e) {
+      profileProvider = ProfileProvider();
+    }
+    profileProvider ??= ProfileProvider();
+    profileProvider!.addListener(() {
+      getProfile();
+      if (!mounted) return;
+      setState(() {});
+    });
+
+    getProfile();
     projectInfoLocationPanel = projectInfoLocation(context, project);
     projectInfoHeaderPanel = projectInfoHeader(context); //, widget.project);
     profileMenuPanel = profileMenu(context, project, "info");
@@ -311,24 +313,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         ]));
   }
 
-  /*Widget projectInfoMenu(context, _project) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Row(
-        children: [
-          menuTabSelect(context, "Datos generales", "/project_info",
-              {'project': _project}),
-          menuTab(context, "Comunicación con el financiador",
-              "/project_reformulation", {'project': _project}),
-        ],
-      ),
-    );
-  }*/
-
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget projectManagerProgramme(context, _project) {
+    _project.managerObj = projectsProvider!.contacts.firstWhere(
+        (element) => element.uuid == _project.manager,
+        orElse: () => Contact("Unknown"));
+    _project.programmeObj = projectsProvider!.programmes.firstWhere(
+        (element) => element.uuid == _project.programme,
+        orElse: () => Programme("Unknown"));
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -635,13 +629,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       customText("Financiador/es", 15, bold: FontWeight.bold),
       addBtnRow(context, callFinancierEditDialog, {"project": project},
           text: "Añadir financiador", icon: Icons.add_circle_outline),
-      /*IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Añadir financiador',
-        onPressed: () {
-          callFinancierEditDialog(context, _project);
-        },
-      )*/
     ]);
   }
 
@@ -658,23 +645,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               (element) => element.uuid == project!.financiers[index],
               orElse: () => Organization("Unknown"));
 
-          return Container(
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    customText('${financier.name}', 14),
-                    removeBtn(
-                      context,
-                      removeFinancierDialog,
-                      {"financier": financier},
-                      callback: (bool? update) {
-                        if (update != null && update) {
-                          setState(() {});
-                        }
-                      },
-                    ),
-                  ]));
+          return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                customText('${financier.name}', 14),
+                removeBtn(
+                  context,
+                  removeFinancierDialog,
+                  {"financier": financier},
+                  callback: (bool? update) {
+                    if (update != null && update) {
+                      setState(() {});
+                    }
+                  },
+                ),
+              ]);
         });
   }
 
@@ -691,14 +676,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: project.partnersObj.length,
+        itemCount: project.partners.length,
         itemBuilder: (BuildContext context, int index) {
+          List<Organization> partners = projectsProvider!.organizations
+              .where((element) => project.partners.contains(element.uuid))
+              .toList();
+
+          Organization currentPartner = projectsProvider!.organizations
+              .firstWhere((element) => element.uuid == project.partners[index],
+                  orElse: () => Organization("Unknown"));
           return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                customText('${project.partnersObj[index].name}', 14),
-                removeBtn(context, removePartnerDialog,
-                    {"partner": project?.partnersObj[index]}),
+                customText(partners[index].name, 14),
+                removeBtn(
+                    context, removePartnerDialog, {"partner": currentPartner}),
               ]);
         });
   }
@@ -815,32 +807,47 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Expanded(
                       flex: 1,
-                      child: Padding(
-                          padding: const EdgeInsets.only(right: 50),
-                          child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Colors.grey.shade400,
-                                    width: 1,
-                                  ),
-                                ),
+                      child: Container(
+                          padding: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(
+                                color: Colors.grey.shade400,
+                                width: (proj.partners.length <
+                                        proj.financiers.length)
+                                    ? 1
+                                    : 0,
                               ),
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    projectFinanciersHeader(context, proj),
-                                    projectFinanciers(context)
-                                  ])))),
+                            ),
+                          ),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                projectFinanciersHeader(context, proj),
+                                projectFinanciers(context)
+                              ]))),
                   Expanded(
                       flex: 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          projectPartnersHeader(context, proj),
-                          projectPartners(context, proj)
-                        ],
-                      ))
+                      child: Container(
+                          padding: const EdgeInsets.only(left: 10),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(
+                                color: Colors.grey.shade400,
+                                width: (proj.partners.length >=
+                                        proj.financiers.length)
+                                    ? 1
+                                    : 0,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              projectPartnersHeader(context, proj),
+                              projectPartners(context, proj)
+                            ],
+                          )))
                 ]),
                 //projectFinanciers(context, proj),
                 // space(height: 5),
@@ -878,14 +885,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void saveProject(List args) async {
     SProject proj = args[0];
+
     proj.save();
     // loadProject();
-    projectsProvider!.addProject(proj, notify: false);
+    // projectsProvider!.addProject(proj, notify: false);
+    updateProject(proj);
     project = proj;
-    projectInfoLocationPanel = projectInfoLocation(context, project);
-    projectInfoDetailsPanel = projectInfoDetails(context);
-    projectInfoHeaderPanel = projectInfoHeader(context);
-    profileMenuPanel = profileMenu(context, project, "info");
+    // projectInfoLocationPanel = projectInfoLocation(context, project);
+    // projectInfoDetailsPanel = projectInfoDetails(context);
+    // projectInfoHeaderPanel = projectInfoHeader(context);
+    // profileMenuPanel = profileMenu(context, project, "info");
 
     if (!mounted) return;
     setState(() {});
@@ -894,7 +903,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callProjectEditDialog(context, project) async {
-    List<Profile> supervisorProfiles = projectsProvider!.profiles
+    List<Profile> supervisorProfiles = profileProvider!.profiles
         .where((profile) => profile.mainRole == Profile.SUPERVISOR)
         .toList();
     List<Contact> supervisors = projectsProvider!.contacts
@@ -917,8 +926,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         context, project, ambits, types, status, contacts, programmes);
   }
 
-  Future<void> editProjectDialog(
-      context, proj, ambits, types, status, contacts, programmes) async {
+  Future<void> editProjectDialog(context, SProject proj, ambits, types, status,
+      contacts, programmes) async {
+    List<Contact> supervisors = projectsProvider!.contacts
+        .where((contact) => profileProvider!.profiles.any((profile) =>
+            profile.email == contact.email &&
+            profile.mainRole == Profile.SUPERVISOR))
+        .toList();
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1019,10 +1034,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               Row(children: <Widget>[
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
-                    labelText: 'Responsable',
+                    labelText: "Responsable",
                     size: 220,
                     selected: proj.managerObj.toKeyValue(),
-                    options: contacts,
+                    options: supervisors.map((e) => e.toKeyValue()).toList(),
                     onSelectedOpt: (String val) {
                       proj.manager = val;
                       /*setState(() {
@@ -1172,96 +1187,16 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     Navigator.pop(context);
   }
 
-  // void removeFinancierDialog(context, Map<String, dynamic> args) {
-  //   Organization financier = args["financier"];
-  //   Future<bool> showDialog<bool>(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         titlePadding: const EdgeInsets.all(0),
-  //         title: s4cTitleBar('Eliminar financiador'),
-  //         content: SingleChildScrollView(
-  //           child: Column(children: [
-  //             Text(
-  //                 '¿Está seguro de que desea eliminar el financiador "${financier.name}" del proyecto?'),
-  //           ]),
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: const Text('Cancelar'),
-  //             onPressed: () {
-  //               Navigator.of(context).pop(false);
-  //             },
-  //           ),
-  //           TextButton(
-  //             child: const Text('Eliminar'),
-  //             onPressed: () {
-  //               Navigator.of(context).pop(true);
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   ).then((value) {
-  //     if (value == true) {
-  //       removeFinancier(financier);
-  //       setState(() {});
-  //     }
-  //   });
-// }
   Future<bool> removeFinancierDialog(
       BuildContext context, Map<String, dynamic> args) async {
-    final Organization financier = args['financier'] as Organization;
-
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Eliminar financiador'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '¿Está seguro de que desea eliminar el financiador "${financier.name}" del proyecto?',
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('Eliminar'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true) {
-      removeFinancier(financier);
-    }
-    return confirmed ?? false;
+    customRemoveDialog(context, null, removeFinancier, args["financier"]);
+    return Future.value(true);
   }
 
   void removeFinancier(financier) async {
     project!.financiers.remove(financier.uuid);
-    // project!.financiersObj.remove(financier);
     project!.save();
-    // setState(() {});
-    //loadProject();
-
-    //project.updateProjectFinanciers();
-    //loadProject(project);
+    projectsProvider!.addProject(project!);
   }
 
   void callFinancierEditDialog(context, Map<String, dynamic> args) async {
@@ -1343,11 +1278,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*                           PARTNERS                                 */
   /*--------------------------------------------------------------------*/
   void savePartner(List args) async {
-    project!.updateProjectPartners();
-    Organization.byUuid(args[0].text).then((value) {
-      project?.partnersObj.add(value);
-      setState(() {});
-    });
+    // project!.updateProjectPartners();
+    // Organization.byUuid(args[0].text).then((value) {
+    //   project?.partnersObj.add(value);
+    //   setState(() {});
+    // });
+    String? uuidSelected = args[0];
+    if (uuidSelected == null) {
+      Navigator.pop(context);
+      return;
+    }
+    if (!project!.partners.contains(uuidSelected)) {
+      project?.partners.add(uuidSelected);
+      project!.save();
+      projectsProvider!.addProject(project!);
+    }
     Navigator.pop(context);
   }
 
@@ -1357,9 +1302,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void removePartner(partner) async {
     project!.partners.remove(partner.uuid);
-    project!.partnersObj.remove(partner);
-    project!.updateProjectPartners();
-    setState(() {});
+    project!.save();
+    projectsProvider!.addProject(project!);
+    // project!.partnersObj.remove(partner);
+    // project!.updateProjectPartners();
+    // setState(() {});
   }
 
   void callPartnerEditDialog(context, Map<String, dynamic> args) async {
@@ -1373,6 +1320,40 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Future<void> editProjectPartnerDialog(context, project, orgs) {
     TextEditingController controller = TextEditingController(text: "");
+    List<Organization> availablePartnersOrgs = projectsProvider!.organizations
+        .where((org) => (org.partner && !project.partners.contains(org.uuid)))
+        .toList();
+
+    if (availablePartnersOrgs.isEmpty) {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Añadir socio'),
+            content: const SingleChildScrollView(
+              child: Column(children: [
+                Text("No hay más socios disponibles para añadir."),
+              ]),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    List<KeyValue> availablePartners =
+        availablePartnersOrgs.map((e) => KeyValue(e.uuid, e.name)).toList();
+    String? uuidSelected = availablePartners.first.key;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1385,22 +1366,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               CustomDropdown(
                 labelText: 'Socio',
                 size: 220,
-                selected: KeyValue("", ""),
-                options: orgs,
+                selected: availablePartners.first,
+                options: availablePartners,
                 onSelectedOpt: (String val) {
-                  project?.partners.add(val);
-                  controller.text = val;
-                  /*setState(() {
-                    project?.partners.add(val);
-                  });*/
+                  uuidSelected = val;
                 },
               ),
             ]),
           ),
-          actions: <Widget>[dialogsBtns(context, savePartner, controller)],
+          actions: <Widget>[dialogsBtns(context, savePartner, uuidSelected)],
         );
       },
-    );
+    ).then((_) {
+      updateProject(project);
+    });
   }
 
   /*--------------------------------------------------------------------*/

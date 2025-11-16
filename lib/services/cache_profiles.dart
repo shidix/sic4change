@@ -6,6 +6,7 @@ import 'package:sic4change/services/models_profile.dart';
 class ProfileProvider with ChangeNotifier {
   Profile? _profile;
   Organization? _organization;
+  List<Profile> _profiles = [];
   late final UniqueKey key;
   User? user;
   bool _loading = false;
@@ -16,6 +17,12 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Profile? get profile => _profile;
+
+  List<Profile> get profiles => _profiles;
+  set profiles(List<Profile> value) {
+    _profiles = value;
+    notifyListeners();
+  }
 
   Future<void> loadProfile() async {
     if (user == null) return;
@@ -30,6 +37,7 @@ class ProfileProvider with ChangeNotifier {
       if (_profile!.organization != null &&
           _profile!.organization!.isNotEmpty) {
         _organization = await Organization.byId(_profile!.organization!);
+        _profiles = await Profile.byOrganization(organization: _organization);
         _loading = false;
       } else {
         // Load organization by email domain
@@ -38,6 +46,7 @@ class ProfileProvider with ChangeNotifier {
         if (_organization != null) {
           _profile!.organization = _organization!.id;
           _profile!.save();
+          _profiles = await Profile.byOrganization(organization: _organization);
         }
       }
     }
