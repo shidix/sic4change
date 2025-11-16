@@ -21,6 +21,8 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/project_info_menu_widget.dart';
 
+// import 'dart:developer' as dev;
+
 String s4cUuid = "b1b0c5a8-d0f0-4b43-a50b-33aef2249d00";
 const projectInfoTitle = "Detalles del Proyecto";
 //SProject? project;
@@ -42,6 +44,18 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   bool _canEdit = false;
   bool returnToList = false;
   ProjectsProvider? projectsProvider;
+  bool _update = false;
+  bool get update => _update;
+  set update(bool val) {
+    _update = val;
+    if (_update) {
+      if (!mounted) return;
+      setState(() {
+        loadProject();
+        _update = false;
+      });
+    }
+  }
 
   Widget? projectInfoHeaderPanel;
   Widget? profileMenuPanel;
@@ -136,14 +150,30 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Future<void> loadProjectFromCache() async {
+    project = projectsProvider!.projects.firstWhere(
+        (element) => element.uuid == project!.uuid,
+        orElse: () => project!);
+    projectInfoHeaderPanel = projectInfoHeader(context);
+    profileMenuPanel = profileMenu(context, project, "info");
+    projectInfoDetailsPanel = projectInfoDetails(context);
     setState(() {
       projLoading = false;
     });
   }
 
+  void updateProject(SProject project) {
+    // dev.log("Updating project in ProjectInfoPageState",
+    //     name: "ProjectInfoPage");
+    // setState(() {
+    //   this.project = project;
+    // });
+  }
+
   @override
   initState() {
     super.initState();
+    // Create a listener to update the project when update chante to true
+    // update = false;
     project = widget.project;
     projectsProvider = context.read<ProjectsProvider?>();
     projectsProvider ??= ProjectsProvider();
@@ -155,13 +185,12 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     projectsProvider ??= context.read<ProjectsProvider?>();
 
     projectsProvider!.addListener(() {
-      // prList = _projectsProvider.projects;
       loadProjectFromCache().then((value) {
         if (!mounted) return;
+
         projectInfoHeaderPanel = projectInfoHeader(context);
         profileMenuPanel = profileMenu(context, project, "info");
-        projectInfoDetailsPanel =
-            projectInfoDetails(context, {"project": project});
+        projectInfoDetailsPanel = projectInfoDetails(context);
         setState(() {});
       });
     });
@@ -175,17 +204,20 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
     final user = FirebaseAuth.instance.currentUser!;
     getProfile(user);
+    projectInfoLocationPanel = projectInfoLocation(context, project);
+    projectInfoHeaderPanel = projectInfoHeader(context); //, widget.project);
+    profileMenuPanel = profileMenu(context, project, "info");
+    projectInfoDetailsPanel = projectInfoDetails(context);
 
     createLog("Acceso a al detalle de la iniciativa: ${project!.name}");
   }
 
   @override
   Widget build(BuildContext context) {
-    projectInfoLocationPanel ??= projectInfoLocation(context, project);
-    projectInfoHeaderPanel ??= projectInfoHeader(context); //, widget.project);
-    profileMenuPanel ??= profileMenu(context, project, "info");
-    projectInfoDetailsPanel ??=
-        projectInfoDetails(context, {"project": project});
+    projectInfoLocationPanel = projectInfoLocation(context, project);
+    projectInfoHeaderPanel = projectInfoHeader(context); //, widget.project);
+    profileMenuPanel = profileMenu(context, project, "info");
+    projectInfoDetailsPanel = projectInfoDetails(context);
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -201,7 +233,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ? const Center(child: CircularProgressIndicator())
               : profileMenuPanel!,
           // profileMenu(context, project, "info"),
-          projLoading
+          projectInfoDetailsPanel != null
               ? contentTab(
                   context, projectInfoDetailsPanel, {"project": project})
               : const Center(child: CircularProgressIndicator()),
@@ -620,16 +652,28 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         physics: const NeverScrollableScrollPhysics(),
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: project!.financiersObj.length,
+        itemCount: project!.financiers.length,
         itemBuilder: (BuildContext context, int index) {
+          Organization financier = projectsProvider!.organizations.firstWhere(
+              (element) => element.uuid == project!.financiers[index],
+              orElse: () => Organization("Unknown"));
+
           return Container(
               padding: const EdgeInsets.all(5),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    customText('${project?.financiersObj[index].name}', 14),
-                    removeBtn(context, removeFinancierDialog,
-                        {"financier": project?.financiersObj[index]})
+                    customText('${financier.name}', 14),
+                    removeBtn(
+                      context,
+                      removeFinancierDialog,
+                      {"financier": financier},
+                      callback: (bool? update) {
+                        if (update != null && update) {
+                          setState(() {});
+                        }
+                      },
+                    ),
                   ]));
         });
   }
@@ -728,8 +772,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     }));
   }
 
-  Widget projectInfoDetails(context, args) {
-    //SProject proj = args["project"];
+  Widget projectInfoDetails(context) {
     SProject proj = project!;
     return SingleChildScrollView(
         physics: const ScrollPhysics(),
@@ -769,14 +812,42 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                projectFinanciersHeader(context, proj),
-                projectFinanciers(context),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 50),
+                          child: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Colors.grey.shade400,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    projectFinanciersHeader(context, proj),
+                                    projectFinanciers(context)
+                                  ])))),
+                  Expanded(
+                      flex: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          projectPartnersHeader(context, proj),
+                          projectPartners(context, proj)
+                        ],
+                      ))
+                ]),
                 //projectFinanciers(context, proj),
-                space(height: 5),
-                customRowDivider(),
-                space(height: 5),
-                projectPartnersHeader(context, proj),
-                projectPartners(context, proj),
+                // space(height: 5),
+                // customRowDivider(),
+                // space(height: 5),
+                // projectPartnersHeader(context, proj),
+                // projectPartners(context, proj),
                 /*space(height: 5),
                 customRowDivider(),
                 space(height: 5),
@@ -808,12 +879,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   void saveProject(List args) async {
     SProject proj = args[0];
     proj.save();
-
-    loadProject();
+    // loadProject();
     projectsProvider!.addProject(proj, notify: false);
     project = proj;
     projectInfoLocationPanel = projectInfoLocation(context, project);
-    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
+    projectInfoDetailsPanel = projectInfoDetails(context);
     projectInfoHeaderPanel = projectInfoHeader(context);
     profileMenuPanel = profileMenu(context, project, "info");
 
@@ -978,20 +1048,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 ]),
                 space(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: 'Convocatoria',
-                    size: 220,
-                    initial: proj.announcement,
-                    fieldValue: (String val) {
-                      proj.announcement = val;
-                      /*setState(() {
-                        proj.announcement = val;
-                      });*/
-                    },
-                  ),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomDropdown(
                     labelText: 'Ámbito',
                     size: 220,
@@ -1016,6 +1072,49 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     },
                   ),*/
                 ]),
+              ]),
+              space(height: 20),
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: CustomTextField(
+                          labelText: 'Nombre Convocatoria',
+                          size: 220,
+                          initial: proj.announcement,
+                          fieldValue: (String val) {
+                            proj.announcement = val;
+                            /*setState(() {
+                        proj.announcement = val;
+                      });*/
+                          },
+                        ))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 10),
+                        child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Código Convocatoria',
+                            ),
+                            initialValue: proj.announcementCode,
+                            onChanged: (String val) {
+                              proj.announcementCode = val;
+                            }))),
+                // announcementYear
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 20),
+                        child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Año Convocatoria',
+                            ),
+                            initialValue: proj.announcementYear,
+                            onChanged: (String val) {
+                              proj.announcementYear = val;
+                            }))),
               ]),
               space(height: 20),
               Row(
@@ -1062,25 +1161,103 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*                           FINACIERS                                */
   /*--------------------------------------------------------------------*/
   void saveFinancier(List args) async {
-    project!.updateProjectFinanciers();
-    //Financier.getByUuid(args[0].text).then((value) {
-    Organization.byUuid(args[0].text).then((value) {
-      project?.financiersObj.add(value);
-      setState(() {});
-    });
+    String? uuid = args[0];
+    if (uuid != null) {
+      if (!project!.financiers.contains(uuid)) {
+        project?.financiers.add(uuid);
+        projectsProvider!.addProject(project!);
+        project!.save();
+      }
+    }
     Navigator.pop(context);
   }
 
-  void removeFinancierDialog(context, Map<String, dynamic> args) {
-    Organization financier = args["financier"];
-    customRemoveDialog(context, null, removeFinancier, financier);
+  // void removeFinancierDialog(context, Map<String, dynamic> args) {
+  //   Organization financier = args["financier"];
+  //   Future<bool> showDialog<bool>(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         titlePadding: const EdgeInsets.all(0),
+  //         title: s4cTitleBar('Eliminar financiador'),
+  //         content: SingleChildScrollView(
+  //           child: Column(children: [
+  //             Text(
+  //                 '¿Está seguro de que desea eliminar el financiador "${financier.name}" del proyecto?'),
+  //           ]),
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: const Text('Cancelar'),
+  //             onPressed: () {
+  //               Navigator.of(context).pop(false);
+  //             },
+  //           ),
+  //           TextButton(
+  //             child: const Text('Eliminar'),
+  //             onPressed: () {
+  //               Navigator.of(context).pop(true);
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   ).then((value) {
+  //     if (value == true) {
+  //       removeFinancier(financier);
+  //       setState(() {});
+  //     }
+  //   });
+// }
+  Future<bool> removeFinancierDialog(
+      BuildContext context, Map<String, dynamic> args) async {
+    final Organization financier = args['financier'] as Organization;
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Eliminar financiador'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '¿Está seguro de que desea eliminar el financiador "${financier.name}" del proyecto?',
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Eliminar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      removeFinancier(financier);
+    }
+    return confirmed ?? false;
   }
 
   void removeFinancier(financier) async {
     project!.financiers.remove(financier.uuid);
-    project!.financiersObj.remove(financier);
-    project!.updateProjectFinanciers();
-    setState(() {});
+    // project!.financiersObj.remove(financier);
+    project!.save();
+    // setState(() {});
     //loadProject();
 
     //project.updateProjectFinanciers();
@@ -1089,38 +1266,77 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void callFinancierEditDialog(context, Map<String, dynamic> args) async {
     SProject project = args["project"];
-    //List<KeyValue> financiers = await getOrganizationsHash();
-    List<KeyValue> financiers = await Organization.getFinanciersHash();
-    editProjectFinancierDialog(context, project, financiers);
+    List<Organization> existingFinanciers = projectsProvider!.organizations
+        .where((org) => (org.financier))
+        .toList();
+
+    List<KeyValue> financiers =
+        existingFinanciers.map((e) => KeyValue(e.uuid, e.name)).toList();
+
+    editProjectFinancierDialog(context, project, financiers).then((_) {
+      updateProject(project);
+    });
   }
 
   Future<void> editProjectFinancierDialog(context, project, financiers) {
-    TextEditingController controller = TextEditingController(text: "");
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Añadir financiador'),
-          content: SingleChildScrollView(
-            child: Column(children: [
-              CustomDropdown(
-                labelText: 'Financiador',
-                size: 220,
-                selected: KeyValue("", ""),
-                options: financiers,
-                onSelectedOpt: (String val) {
-                  project?.financiers.add(val);
-                  controller.text = val;
+    List<KeyValue> availableFinanciers = financiers
+        .where((financier) => !project.financiers.contains(financier.key))
+        .toList();
+
+    String? uuidSelected;
+    if (availableFinanciers.isEmpty) {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Añadir financiador'),
+            content: const SingleChildScrollView(
+              child: Column(children: [
+                Text("No hay más financiadores disponibles para añadir."),
+              ]),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
                 },
               ),
-            ]),
-          ),
-          actions: <Widget>[dialogsBtns(context, saveFinancier, controller)],
-        );
-      },
-    );
+            ],
+          );
+        },
+      );
+    } else {
+      uuidSelected = availableFinanciers.first.key;
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Añadir financiador'),
+            content: SingleChildScrollView(
+              child: Column(children: [
+                CustomDropdown(
+                  labelText: 'Financiador',
+                  size: 220,
+                  selected: availableFinanciers.first,
+                  options: availableFinanciers,
+                  onSelectedOpt: (String val) {
+                    uuidSelected = val;
+                  },
+                ),
+              ]),
+            ),
+            actions: <Widget>[
+              dialogsBtns(context, saveFinancier, uuidSelected)
+            ],
+          );
+        },
+      );
+    }
   }
 
   /*--------------------------------------------------------------------*/
@@ -1555,7 +1771,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     projectsProvider!.addLocation(loc, notify: false);
     loadProject();
     projectInfoLocationPanel = projectInfoLocation(context, project);
-    projectInfoDetailsPanel = projectInfoDetails(context, {"project": project});
+    projectInfoDetailsPanel = projectInfoDetails(context);
     if (!mounted) return;
     setState(() {});
     Navigator.pop(context);

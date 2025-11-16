@@ -39,6 +39,8 @@ class SProject {
   String manager = "";
   String programme = "";
   String announcement = "";
+  String announcementYear = "";
+  String announcementCode = "";
   String ambit = "";
   String folder = "";
   bool audit = false;
@@ -85,6 +87,10 @@ class SProject {
     if (json.containsKey("partners")) partners = json['partners'];
     if (json.containsKey("folder")) folder = json['folder'];
     if (json.containsKey("execBudget")) execBudget = json['execBudget'];
+    if (json.containsKey("announcementYear"))
+      announcementYear = json['announcementYear'];
+    if (json.containsKey("announcementCode"))
+      announcementCode = json['announcementCode'];
     if (json.containsKey("assignedBudget")) {
       assignedBudget = json['assignedBudget'];
     }
@@ -119,6 +125,8 @@ class SProject {
     item.evaluation = json['evaluation'];
     item.financiers = json['financiers'];
     item.partners = json['partners'];
+    item.announcementYear = json['announcementYear'] ?? "";
+    item.announcementCode = json['announcementCode'] ?? "";
     item.folder = json['folder'];
     if (!json.containsKey("execBudget")) {
       item.execBudget = 0;
@@ -159,6 +167,8 @@ class SProject {
         'manager': manager,
         'programme': programme,
         'announcement': announcement,
+        'announcementYear': announcementYear,
+        'announcementCode': announcementCode,
         'ambit': ambit,
         'audit': audit,
         'evaluation': evaluation,

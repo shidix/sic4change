@@ -236,7 +236,12 @@ class ProjectsProvider with ChangeNotifier {
   }
 
   void addProject(SProject project, {bool notify = true}) {
-    _projects.add(project);
+    int index = _projects.indexWhere((element) => element.uuid == project.uuid);
+    if (index != -1) {
+      _projects[index] = project;
+    } else {
+      _projects.add(project);
+    }
     if (notify) sendNotify();
   }
 

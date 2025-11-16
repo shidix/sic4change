@@ -1345,7 +1345,10 @@ Widget iconBtnConfirm(context, action, args,
 }
 
 Widget removeBtn(context, action, args,
-    {text = removeText, icon = Icons.remove_circle, iconSize = 20}) {
+    {text = removeText,
+    icon = Icons.remove_circle,
+    iconSize = 20,
+    Function? callback}) {
   return IconButton(
     icon: Icon(
       icon,
@@ -1353,7 +1356,12 @@ Widget removeBtn(context, action, args,
     ),
     tooltip: text,
     onPressed: () {
-      action(context, args);
+      action(context, args).then((value) {
+        if (callback != null) {
+          print('value from removeBtn: $value');
+          callback(value);
+        }
+      });
     },
   );
 }
@@ -1762,7 +1770,7 @@ Future<Organization?> customRemoveDialog(context, obj, action, [args]) async {
                     } else {
                       action(args);
                     }
-                    return obj;
+                    Navigator.of(context).pop(obj);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -2213,7 +2221,7 @@ class CustomDropdown extends StatelessWidget {
             showSearchBox: true,
             showSelectedItems: true,
             constraints: BoxConstraints(
-                maxHeight: min(60 + 50 * options.length.toDouble(), 300)),
+                maxHeight: min(100 + 50 * options.length.toDouble(), 150)),
           ),
           items: options_new,
           itemAsString: (KeyValue p) => p.value,

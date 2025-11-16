@@ -489,17 +489,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
     List<SProject> filteredProjects = [];
     filteredProjects = List<SProject>.from(_projectsProvider!.projects);
     if (searchStatus != "" && searchStatus != "all") {
-      // Remove projects that do not match the status
       filteredProjects.removeWhere((p) => p.status != searchStatus);
     }
 
     if (searchType != "" && searchType != "all") {
-      // Remove projects that do not match the type
       filteredProjects.removeWhere((p) => p.type != searchType);
     }
 
     if (searchText.length >= 3) {
-      // Remove projects that do not match the search text
       filteredProjects.removeWhere(
           (p) => !p.name.toLowerCase().contains(searchText.toLowerCase()));
     }
@@ -546,7 +543,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           ),
           borderRadius: const BorderRadius.all(Radius.circular(10))),
       child: (inline
-          ? projectInLine(context, project)
+          ? projectInLineData(context, project)
           : projectCardDatas(context, project)),
       /*child: SingleChildScrollView(
         child: projectCardDatas(context, _project),
@@ -554,7 +551,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     );
   }
 
-  Widget projectInLine(context, SProject project) {
+  Widget projectInLineData(context, SProject project) {
     // Code, status, type, budget, assigned budget, executed budget
     Programme programme = _projectsProvider!.programmes.firstWhere(
         (prog) => prog.uuid == project.programme,
@@ -575,7 +572,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 : '')
         .join();
     if (projectAcronym.isEmpty) {
-      // In case the project_acronym has less than 3 letters, acronym is the the name replacen non letter and numbers
       projectAcronym =
           project.name.toUpperCase().replaceAll(RegExp(r'[^(A-Z0-9)]'), '');
     }
@@ -603,10 +599,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
               flex: 1,
               child: Text("${project.budget} €",
                   style: normalText, textAlign: TextAlign.center)),
-          Expanded(
-              flex: 1,
-              child: Text("${toCurrency(project.assignedBudget)} €",
-                  style: normalText, textAlign: TextAlign.center)),
+          // Expanded(
+          //     flex: 1,
+          //     child: Text("${toCurrency(project.assignedBudget)} €",
+          //         style: normalText, textAlign: TextAlign.center)),
           Expanded(
               flex: 1,
               child: Text("${toCurrency(project.execBudget)} €",
