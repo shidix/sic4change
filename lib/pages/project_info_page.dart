@@ -146,18 +146,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     });
   }
 
-  void updateProject(SProject project) {
-    project.save();
-    project.managerObj = projectsProvider!.contacts.firstWhere(
-        (element) => element.uuid == project.manager,
+  void updateProject(SProject projectToUpdate) {
+    projectToUpdate.save();
+    projectToUpdate.managerObj = projectsProvider!.contacts.firstWhere(
+        (element) => element.uuid == projectToUpdate.manager,
         orElse: () => Contact("Unknown"));
-    project.programmeObj = projectsProvider!.programmes.firstWhere(
-        (element) => element.uuid == project.programme,
+    projectToUpdate.programmeObj = projectsProvider!.programmes.firstWhere(
+        (element) => element.uuid == projectToUpdate.programme,
         orElse: () => Programme("Unknown"));
-    project.ambitObj = projectsProvider!.ambits.firstWhere(
-        (element) => element.uuid == project.ambit,
+    projectToUpdate.ambitObj = projectsProvider!.ambits.firstWhere(
+        (element) => element.uuid == projectToUpdate.ambit,
         orElse: () => Ambit("Unknown"));
-    projectsProvider!.addProject(project);
+    project = projectToUpdate;
+    projectsProvider!.addProject(projectToUpdate);
   }
 
   @override
@@ -316,7 +317,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*--------------------------------------------------------------------*/
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
-  Widget projectManagerProgramme(context, _project) {
+  Widget projectManagerProgramme(context, SProject _project) {
     _project.managerObj = projectsProvider!.contacts.firstWhere(
         (element) => element.uuid == _project.manager,
         orElse: () => Contact("Unknown"));
@@ -350,19 +351,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     space(height: 5),
                     customText(_project.programmeObj.name, 14),
                   ])),
-          /*const VerticalDivider(
+          const VerticalDivider(
             width: 10,
             color: Colors.grey,
           ),
-          SizedBox(
-              width: MediaQuery.of(context).size.width / 3,
+          Expanded(
+              flex: 2,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    customText("Estado", 14, bold: FontWeight.bold),
+                    customText("Convocatoria", 14, bold: FontWeight.bold),
                     space(height: 5),
-                    customText(_project.statusObj.name, 14),
-                  ])),*/
+                    customText(
+                        "${_project.announcementYear} ${_project.announcement} ${_project.announcementCode} ",
+                        14),
+                  ])),
         ],
       ),
     );
@@ -788,12 +791,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                 space(height: 5),
                 customRowDivider(),
                 space(height: 5),
-                customText("Convocatoria", 14, bold: FontWeight.bold),
-                space(height: 5),
-                customText(proj.announcement, 14),
-                space(height: 5),
-                customRowDivider(),
-                space(height: 5),
                 customText("Ámbito del proyecto", 14, bold: FontWeight.bold),
                 space(height: 5),
                 customText(proj.ambitObj.name, 14),
@@ -902,7 +899,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     Navigator.pop(context);
   }
 
-  void _callProjectEditDialog(context, project) async {
+  void _callProjectEditDialog(context, SProject project) async {
     List<Profile> supervisorProfiles = profileProvider!.profiles
         .where((profile) => profile.mainRole == Profile.SUPERVISOR)
         .toList();
@@ -911,19 +908,30 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             supervisorProfiles.any((profile) => profile.email == contact.email))
         .toList();
 
-    List<KeyValue> ambits = await Ambit.getAmbitsHash();
-    List<KeyValue> types = await ProjectType.getProjectTypesHash();
-    List<KeyValue> status = await ProjectStatus.getProjectStatusHash();
-    List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> ambits = await Ambit.getAmbitsHash();
+    // List<KeyValue> types = await ProjectType.getProjectTypesHash();
+    // List<KeyValue> status = await ProjectStatus.getProjectStatusHash();
+    // List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
     // Check if current manager is in the contacts list
+    List<KeyValue> ambits =
+        projectsProvider!.ambits.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> types =
+        projectsProvider!.types.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> status =
+        projectsProvider!.status.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> programmes =
+        projectsProvider!.programmes.map((e) => e.toKeyValue()).toList();
+
     if (!contacts.any((kv) => kv.key == project.manager)) {
       project.manager = contacts.isNotEmpty ? contacts[0].key : "";
       await project.save();
     }
 
-    List<KeyValue> programmes = await Programme.getProgrammesHash();
+    SProject projectToEdit = project.clone();
+
     editProjectDialog(
-        context, project, ambits, types, status, contacts, programmes);
+        context, projectToEdit, ambits, types, status, contacts, programmes);
   }
 
   Future<void> editProjectDialog(context, SProject proj, ambits, types, status,
@@ -956,9 +964,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                               options: status,
                               onSelectedOpt: (String val) {
                                 proj.status = val;
-                                /*setState(() {
-                        proj.type = val;
-                      });*/
                               },
                             ),
                           ]),
@@ -974,9 +979,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     initial: proj.name,
                     fieldValue: (String val) {
                       proj.name = val;
-                      /*setState(() {
-                        proj.name = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -992,9 +994,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     initial: proj.description,
                     fieldValue: (String val) {
                       proj.description = val;
-                      /*setState(() {
-                        proj.description = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -1009,9 +1008,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     options: types,
                     onSelectedOpt: (String val) {
                       proj.type = val;
-                      /*setState(() {
-                        proj.type = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -1023,9 +1019,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     initial: proj.budget,
                     fieldValue: (String val) {
                       proj.budget = val;
-                      /*setState(() {
-                        proj.budget = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -1040,9 +1033,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     options: supervisors.map((e) => e.toKeyValue()).toList(),
                     onSelectedOpt: (String val) {
                       proj.manager = val;
-                      /*setState(() {
-                        proj.manager = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -1055,9 +1045,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     options: programmes,
                     onSelectedOpt: (String val) {
                       proj.programme = val;
-                      /*setState(() {
-                        proj.programme = val;
-                      });*/
                     },
                   ),
                 ]),
@@ -1070,22 +1057,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     options: ambits,
                     onSelectedOpt: (String val) {
                       proj.ambit = val;
-                      /*setState(() {
-                        proj.ambit = val;
-                      });*/
                     },
                   ),
-
-                  /*CustomTextField(
-                    labelText: 'Ámbito',
-                    size: 220,
-                    initial: project.ambit,
-                    fieldValue: (String val) {
-                      setState(() {
-                        project.ambit = val;
-                      });
-                    },
-                  ),*/
                 ]),
               ]),
               space(height: 20),
@@ -1100,17 +1073,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                           initial: proj.announcement,
                           fieldValue: (String val) {
                             proj.announcement = val;
-                            /*setState(() {
-                        proj.announcement = val;
-                      });*/
                           },
                         ))),
                 Expanded(
                     flex: 1,
                     child: Padding(
-                        padding: EdgeInsets.only(left: 10),
+                        padding: const EdgeInsets.only(left: 10),
                         child: TextFormField(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Código Convocatoria',
                             ),
                             initialValue: proj.announcementCode,
@@ -1123,7 +1093,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     child: Padding(
                         padding: EdgeInsets.only(left: 20),
                         child: TextFormField(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Año Convocatoria',
                             ),
                             initialValue: proj.announcementYear,
@@ -1141,9 +1111,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       onChanged: (bool? value) {
                         proj.audit = value!;
                         state.didChange(proj.audit);
-                        /*setState(() {
-                          state.didChange(proj.audit);
-                        });*/
                       },
                     );
                   }),
@@ -1155,10 +1122,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       onChanged: (bool? value) {
                         proj.evaluation = value!;
                         state.didChange(proj.evaluation);
-                        /*setState(() {
-                          proj.evaluation = value!;
-                          state.didChange(proj.evaluation);
-                        });*/
                       },
                     );
                   }),
@@ -1166,7 +1129,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               )
             ]),
           ),
-          actions: <Widget>[dialogsBtns(context, saveProject, project)],
+          actions: <Widget>[dialogsBtns(context, saveProject, proj)],
         );
       },
     );

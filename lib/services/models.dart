@@ -156,6 +156,30 @@ class SProject {
     return item;
   }
 
+  SProject clone() {
+    SProject newProject = SProject(name);
+    newProject.id = id;
+    newProject.uuid = uuid;
+    newProject.description = description;
+    newProject.type = type;
+    newProject.status = status;
+    newProject.budget = budget;
+    newProject.manager = manager;
+    newProject.programme = programme;
+    newProject.announcement = announcement;
+    newProject.announcementYear = announcementYear;
+    newProject.announcementCode = announcementCode;
+    newProject.ambit = ambit;
+    newProject.audit = audit;
+    newProject.evaluation = evaluation;
+    newProject.financiers = List.from(financiers);
+    newProject.partners = List.from(partners);
+    newProject.execBudget = execBudget;
+    newProject.assignedBudget = assignedBudget;
+    newProject.folder = folder;
+    return newProject;
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
