@@ -232,10 +232,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ? const Center(child: CircularProgressIndicator())
               : projectInfoHeaderPanel!,
           // projectInfoHeader(context),
-          profileMenuPanel == null
-              ? const Center(child: CircularProgressIndicator())
-              : profileMenuPanel!,
-          // profileMenu(context, project, "info"),
+          profileMenuPanel,
           projectInfoDetailsPanel != null
               ? contentTab(
                   context, projectInfoDetailsPanel, {"project": project})
@@ -970,8 +967,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     ])
                   : customText("", 14),
               Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
+                Expanded(
+                  flex: 1,
+                  child: CustomTextField(
                     labelText: 'Nombre',
                     size: 900,
                     minLines: 2,
@@ -981,12 +979,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       proj.name = val;
                     },
                   ),
-                ]),
+                )
               ]),
               space(height: 20),
               Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
+                Expanded(
+                  flex: 1,
+                  child: CustomTextField(
                     labelText: 'Descripción',
                     size: 900,
                     minLines: 2,
@@ -996,37 +995,59 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       proj.description = val;
                     },
                   ),
-                ]),
+                ),
               ]),
               space(height: 20),
               Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomDropdown(
-                    labelText: 'Tipología',
-                    size: 440,
-                    selected: proj.typeObj.toKeyValue(),
-                    options: types,
-                    onSelectedOpt: (String val) {
-                      proj.type = val;
-                    },
-                  ),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: 'Presupuesto',
-                    size: 440,
-                    initial: proj.budget,
-                    fieldValue: (String val) {
-                      proj.budget = val;
-                    },
-                  ),
-                ]),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: TextFormField(
+                            decoration: const InputDecoration(
+                              labelText: 'Código Proyecto',
+                            ),
+                            initialValue: proj.code,
+                            onChanged: (String val) {
+                              proj.code = val;
+                            }))),
+                Expanded(
+                    flex: 1,
+                    child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomDropdown(
+                                labelText: 'Tipología',
+                                size: 440,
+                                selected: proj.typeObj.toKeyValue(),
+                                options: types,
+                                onSelectedOpt: (String val) {
+                                  proj.type = val;
+                                },
+                              ),
+                            ]))),
+                Expanded(
+                    flex: 1,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            labelText: 'Presupuesto',
+                            size: 440,
+                            initial: proj.budget,
+                            fieldValue: (String val) {
+                              proj.budget = val;
+                            },
+                          ),
+                        ])),
               ]),
               space(height: 20),
               Row(children: <Widget>[
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomDropdown(
+                Expanded(
+                  flex: 1,
+                  child: CustomDropdown(
                     labelText: "Responsable",
                     size: 220,
                     selected: proj.managerObj.toKeyValue(),
@@ -1035,10 +1056,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       proj.manager = val;
                     },
                   ),
-                ]),
-                space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomDropdown(
+                ),
+                Expanded(
+                  flex: 1,
+                  child: CustomDropdown(
                     labelText: 'Programa',
                     size: 220,
                     selected: proj.programmeObj.toKeyValue(),
@@ -1047,10 +1068,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       proj.programme = val;
                     },
                   ),
-                ]),
+                ),
                 space(width: 20),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomDropdown(
+                Expanded(
+                  flex: 1,
+                  child: CustomDropdown(
                     labelText: 'Ámbito',
                     size: 220,
                     selected: proj.ambitObj.toKeyValue(),
@@ -1059,7 +1081,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                       proj.ambit = val;
                     },
                   ),
-                ]),
+                ),
               ]),
               space(height: 20),
               Row(children: [

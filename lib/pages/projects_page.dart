@@ -558,19 +558,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
         orElse: () => Programme('NON EXISTENT'));
 
     // Extracte acronym from programme name => Trhee first letter for each word in uppercase
-    String progAcronym = programme.name
+    String progAcronym = (programme.code != ""
+            ? programme.code
+            : programme.name)
         .split(' ')
         .map(
             (word) => word.isNotEmpty ? word.substring(0, 3).toUpperCase() : '')
         .join();
 
-    String projectAcronym = project.name
-        .split(' ')
-        .map((word) =>
-            ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
-                ? word.substring(0, min(3, word.length)).toUpperCase()
-                : '')
-        .join();
+    String projectAcronym = (project.code != "")
+        ? project.code
+        : project.name
+            .split(' ')
+            .map((word) =>
+                ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
+                    ? word.substring(0, min(3, word.length)).toUpperCase()
+                    : '')
+            .join();
     if (projectAcronym.isEmpty) {
       projectAcronym =
           project.name.toUpperCase().replaceAll(RegExp(r'[^(A-Z0-9)]'), '');
@@ -580,7 +584,19 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
     projectAcronym = projectAcronym.replaceAll('\r', '').replaceAll('\n', '');
 
-    String acronym = "$progAcronym-$projectAcronym";
+    String annAcronym = (project.announcementCode != "")
+        ? project.announcementCode
+        : project.announcement
+            .split(' ')
+            .map((word) =>
+                ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
+                    ? word.substring(0, min(3, word.length)).toUpperCase()
+                    : '')
+            .join();
+
+    String acronym = (project.announcementYear.isNotEmpty)
+        ? "${project.announcementYear}-$progAcronym-$annAcronym-$projectAcronym"
+        : "0000-$progAcronym-$annAcronym-$projectAcronym";
     return Column(children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

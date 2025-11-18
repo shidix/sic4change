@@ -32,6 +32,7 @@ class SProject {
   String id = "";
   String uuid = "";
   String name = "";
+  String code = "";
   String description = "";
   String type = "";
   String status = "";
@@ -73,6 +74,7 @@ class SProject {
     if (json.containsKey("id")) id = json["id"];
     if (json.containsKey("uuid")) uuid = json["uuid"];
     if (json.containsKey("name")) name = json['name'];
+    if (json.containsKey("code")) code = json['code'];
     if (json.containsKey("description")) description = json['description'];
     if (json.containsKey("type")) type = json['type'];
     if (json.containsKey("status")) status = json['status'];
@@ -160,6 +162,7 @@ class SProject {
     SProject newProject = SProject(name);
     newProject.id = id;
     newProject.uuid = uuid;
+    newProject.code = code;
     newProject.description = description;
     newProject.type = type;
     newProject.status = status;
@@ -184,6 +187,7 @@ class SProject {
         'id': id,
         'uuid': uuid,
         'name': name,
+        'code': code,
         'description': description,
         'type': type,
         'status': status,
@@ -2250,6 +2254,7 @@ class Programme {
   String uuid = "";
   String name = "";
   String title = "";
+  String code = "";
   String description = "";
   String impact = "";
   String logo = "";
@@ -2259,6 +2264,7 @@ class Programme {
 
   Programme.fromJson(Map<String, dynamic> json)
       : id = json["id"],
+        code = (json.containsKey("code") ? json["code"] : ""),
         uuid = json["uuid"],
         name = json['name'],
         title = json['title'],
@@ -2269,6 +2275,7 @@ class Programme {
   Map<String, dynamic> toJson() => {
         'id': id,
         'uuid': uuid,
+        'code': code,
         'name': name,
         'title': title,
         'description': description,
