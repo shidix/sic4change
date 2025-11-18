@@ -41,6 +41,8 @@ class RRHHProvider with ChangeNotifier {
   List<Department> get departments => _departments;
   // List<STask> get tasks => _tasks;
 
+  Map<String, DateTime> updateAt = {};
+
   Queue<bool> isLoading = Queue();
 
   set profile(Profile? value) {
@@ -356,7 +358,19 @@ class RRHHProvider with ChangeNotifier {
   //   }
   // }
 
-  List<SNotification> get notifications => _notifications;
+  List<SNotification> get notifications {
+    DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (updateAt.containsKey('notifications')) {
+      lastUpdate = updateAt['notifications']!;
+    }
+    // Return notifications if lastUpdate is less than 5 minutes ago
+    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
+      loadNotifications(notify: true);
+      updateAt['notifications'] = DateTime.now();
+    }
+    return _notifications;
+  }
+
   set notifications(List<SNotification> value) {
     _notifications = value;
     sendNotify();
