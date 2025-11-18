@@ -290,6 +290,7 @@ class _HomePageState extends State<HomePage> {
     NotificationValues nVal =
         await getNotificationList(user.email, _rrhhProvider?.notifications);
     notificationList = nVal.nList;
+    notificationList.sort((a, b) => b.date.compareTo(a.date));
     notif = nVal.unread;
   }
 
