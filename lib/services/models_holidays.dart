@@ -414,10 +414,10 @@ class HolidayRequest {
   }
 
   static Future<List<HolidayRequest>> byUser(dynamic email,
-      [DateTime? startDate, DateTime? endDate]) async {
+      [DateTime? startDate, DateTime? endDate, bool fromServer = false]) async {
     List<HolidayRequest> items = [];
     startDate ??= DateTime(DateTime.now().year, 1, 1);
-    endDate ??= DateTime(DateTime.now().year + 1, 1, 1);
+    endDate ??= DateTime(DateTime.now().year + 1, 12, 31);
 
     if (email is String) {
       email = [email];
@@ -439,8 +439,13 @@ class HolidayRequest {
           .where("userId", whereIn: chunk)
           .where("startDate", isLessThan: endDate)
           .where("endDate", isGreaterThan: startDate);
-      QuerySnapshot query =
-          await queryBuilder.get(const GetOptions(source: Source.cache));
+
+      QuerySnapshot query;
+      if (!fromServer) {
+        query = await queryBuilder.get(const GetOptions(source: Source.cache));
+      } else {
+        query = await queryBuilder.get();
+      }
       if (query.docs.isEmpty) {
         query = await queryBuilder.get();
       }

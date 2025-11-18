@@ -43,8 +43,8 @@ class RRHHProvider with ChangeNotifier {
       lastUpdate = updateAt['holidaysRequests']!;
     }
     // Return holidaysRequests if lastUpdate is less than 5 minutes ago
-    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
-      loadHolidaysRequests(notify: true);
+    if (DateTime.now().difference(lastUpdate).inMinutes > 1) {
+      loadHolidaysRequests(notify: true, fromServer: true);
       updateAt['holidaysRequests'] = DateTime.now();
     }
     return _holidaysRequests;
@@ -317,13 +317,16 @@ class RRHHProvider with ChangeNotifier {
   }
 
   Future<void> loadHolidaysRequests(
-      {DateTime? startDate, DateTime? endDate, bool notify = true}) async {
+      {DateTime? startDate,
+      DateTime? endDate,
+      bool notify = true,
+      bool fromServer = false}) async {
     if (_organization != null) {
       isLoading.add(true);
       List<String> emailsEmployees =
           _employees.map((e) => e.email).toList(growable: false);
-      _holidaysRequests =
-          await HolidayRequest.byUser(emailsEmployees, startDate, endDate);
+      _holidaysRequests = await HolidayRequest.byUser(
+          emailsEmployees, startDate, endDate, fromServer);
       _holidaysRequests.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
