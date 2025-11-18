@@ -2694,6 +2694,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget notifyPanelContent() {
+    // Order notificationList by date descending
+    notificationList.sort((a, b) => b.date.compareTo(a.date));
     return SizedBox(
         width: double.infinity,
         height: 200,
