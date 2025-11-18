@@ -43,9 +43,8 @@ class RRHHProvider with ChangeNotifier {
       lastUpdate = updateAt['holidaysRequests']!;
     }
     // Return holidaysRequests if lastUpdate is less than 5 minutes ago
-    if (DateTime.now().difference(lastUpdate).inMinutes > 1) {
+    if (DateTime.now().difference(lastUpdate).inMinutes > 60) {
       loadHolidaysRequests(notify: true, fromServer: true);
-      updateAt['holidaysRequests'] = DateTime.now();
     }
     return _holidaysRequests;
   }
@@ -329,6 +328,9 @@ class RRHHProvider with ChangeNotifier {
           emailsEmployees, startDate, endDate, fromServer);
       _holidaysRequests.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
+      if (fromServer) {
+        updateAt['holidaysRequests'] = DateTime.now();
+      }
       if (notify && isLoading.isEmpty) {
         notifyListeners();
       }
