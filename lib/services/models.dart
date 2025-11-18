@@ -89,10 +89,12 @@ class SProject {
     if (json.containsKey("partners")) partners = json['partners'];
     if (json.containsKey("folder")) folder = json['folder'];
     if (json.containsKey("execBudget")) execBudget = json['execBudget'];
-    if (json.containsKey("announcementYear"))
+    if (json.containsKey("announcementYear")) {
       announcementYear = json['announcementYear'];
-    if (json.containsKey("announcementCode"))
+    }
+    if (json.containsKey("announcementCode")) {
       announcementCode = json['announcementCode'];
+    }
     if (json.containsKey("assignedBudget")) {
       assignedBudget = json['assignedBudget'];
     }

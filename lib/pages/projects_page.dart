@@ -597,6 +597,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     String acronym = (project.announcementYear.isNotEmpty)
         ? "${project.announcementYear}-$progAcronym-$annAcronym-$projectAcronym"
         : "0000-$progAcronym-$annAcronym-$projectAcronym";
+
     return Column(children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
