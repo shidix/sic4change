@@ -483,7 +483,8 @@ class RRHHProvider with ChangeNotifier {
                     startDate:
                         DateTime.now().subtract(const Duration(days: 770)),
                     endDate: DateTime.now().add(const Duration(days: 770)),
-                    notify: true);
+                    notify: true,
+                    fromServer: true);
                 List<String>? emailToFind =
                     (profile.isRRHH()) ? null : [user!.email!];
                 loadWorkdays(
