@@ -27,6 +27,7 @@ class RRHHProvider with ChangeNotifier {
   List<Department> _departments = [];
   List<SNotification> _notifications = [];
   // List<STask> _tasks = [];
+  Map<String, DateTime> updateAt = {};
 
   Profile? get profile => _profile;
   Organization? get organization => _organization;
@@ -35,13 +36,24 @@ class RRHHProvider with ChangeNotifier {
   List<Employee> get employees => _employees;
   List<Organization> get organizations => _organizations;
   List<HolidaysCategory> get holidaysCategories => _holidaysCategories;
-  List<HolidayRequest> get holidaysRequests => _holidaysRequests;
+
+  List<HolidayRequest> get holidaysRequests {
+    DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (updateAt.containsKey('holidaysRequests')) {
+      lastUpdate = updateAt['holidaysRequests']!;
+    }
+    // Return holidaysRequests if lastUpdate is less than 5 minutes ago
+    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
+      loadHolidaysRequests(notify: true);
+      updateAt['holidaysRequests'] = DateTime.now();
+    }
+    return _holidaysRequests;
+  }
+
   List<HolidaysConfig> get calendars => _calendars;
   List<Workday> get workdays => _workdays;
   List<Department> get departments => _departments;
   // List<STask> get tasks => _tasks;
-
-  Map<String, DateTime> updateAt = {};
 
   Queue<bool> isLoading = Queue();
 
