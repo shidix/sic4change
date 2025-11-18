@@ -2195,6 +2195,7 @@ class CustomDropdown extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.onSelectedOpt,
+    this.padding = const EdgeInsets.all(0),
   }) : super(key: key);
 
   final double size;
@@ -2202,6 +2203,7 @@ class CustomDropdown extends StatelessWidget {
   final KeyValue selected;
   final List<KeyValue> options;
   final ValueChanged<String> onSelectedOpt;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
@@ -2217,27 +2219,29 @@ class CustomDropdown extends StatelessWidget {
 
     return SizedBox(
         width: sizeWidth,
-        child: DropdownSearch<KeyValue>(
-          popupProps: PopupProps.menu(
-            showSearchBox: true,
-            showSelectedItems: true,
-            constraints: BoxConstraints(
-                maxHeight: min(100 + 50 * options.length.toDouble(), 150)),
-          ),
-          items: options_new,
-          itemAsString: (KeyValue p) => p.value,
-          compareFn: (i1, i2) => i1.key == i2.key,
-          decoratorProps: DropDownDecoratorProps(
-            decoration: InputDecoration(
-              labelText: labelText,
-              hintText: labelText,
-            ),
-          ),
-          onChanged: (val) {
-            onSelectedOpt(val!.key);
-          },
-          selectedItem: selected,
-        ));
+        child: Padding(
+            padding: padding,
+            child: DropdownSearch<KeyValue>(
+              popupProps: PopupProps.menu(
+                showSearchBox: true,
+                showSelectedItems: true,
+                constraints: BoxConstraints(
+                    maxHeight: min(100 + 50 * options.length.toDouble(), 150)),
+              ),
+              items: options_new,
+              itemAsString: (KeyValue p) => p.value,
+              compareFn: (i1, i2) => i1.key == i2.key,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  hintText: labelText,
+                ),
+              ),
+              onChanged: (val) {
+                onSelectedOpt(val!.key);
+              },
+              selectedItem: selected,
+            )));
   }
 }
 

@@ -1049,6 +1049,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   flex: 1,
                   child: CustomDropdown(
                     labelText: "Responsable",
+                    padding: const EdgeInsets.only(right: 10),
                     size: 220,
                     selected: proj.managerObj.toKeyValue(),
                     options: supervisors.map((e) => e.toKeyValue()).toList(),
@@ -1061,6 +1062,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   flex: 1,
                   child: CustomDropdown(
                     labelText: 'Programa',
+                    padding: const EdgeInsets.only(right: 10),
                     size: 220,
                     selected: proj.programmeObj.toKeyValue(),
                     options: programmes,
@@ -1069,7 +1071,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     },
                   ),
                 ),
-                space(width: 20),
                 Expanded(
                   flex: 1,
                   child: CustomDropdown(
