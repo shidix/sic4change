@@ -323,7 +323,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectTopButtons() {
-    dev.log("DBG:> ${profile?.mainRole}");
 
     return Container(
         padding: const EdgeInsets.only(left: 20, top: 20),
@@ -358,6 +357,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
         child: Column(
           children: [
             for (var programme in programList)
+            Tooltip(
+                message: "${programme.name}",
+                child:
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -372,7 +374,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              customText(programme.name, 16,
+                              customText(programme.name.length < 16 ? programme.name : programme.name.substring(0, 15) + "...", 16,
                                   bold: FontWeight.bold, textColor: mainColor),
                               if (canAddProgramme(profile))
                                 editBtn(context, callDialog,
@@ -391,7 +393,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   const Divider(color: Colors.grey),
                   space(height: 10),
                 ],
-              ),
+              )),
           ],
         ));
   }
@@ -563,7 +565,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             : programme.name)
         .split(' ')
         .map(
-            (word) => word.isNotEmpty ? word.substring(0, 3).toUpperCase() : '')
+            (word) => ((word.isNotEmpty) && (word.length >= 3)) ? word.substring(0, 3).toUpperCase() : '')
         .join();
 
     String projectAcronym = (project.code != "")

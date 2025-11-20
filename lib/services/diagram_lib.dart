@@ -77,9 +77,7 @@ Widget pieDiagram(context, List<DiagramValues> diagList) {
   if (totalSum == 0) {
     return const Center(child: Text("No data"));
   }
-  for (DiagramValues dv in diagList) {
-    dev.log('DiagramValues: ${dv.text}, ${dv.percent}, ${dv.color}');
-  }
+
   return Row(
     children: [
       Container(
@@ -150,7 +148,7 @@ List<PieChartSectionData> showingSections(List diagList) {
       );
       pList.add(section);
     } catch (e) {
-      dev.log(e.toString());
+      // dev.log(e.toString());
     }
   }
 

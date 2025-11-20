@@ -279,8 +279,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             Expanded(flex: 1, child: customText(project!.name, 20)),
           ]),
           space(height: 20),
-          IntrinsicHeight(
-            child: Row(
+Row(
               children: [
                 Expanded(
                     flex: 1,
@@ -306,7 +305,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                         ])),
               ],
             ),
-          ),
+          
           space(height: 20)
         ]));
   }
