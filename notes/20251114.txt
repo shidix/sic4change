@@ -1,0 +1,8 @@
+El codigo debe tener la convocatoria y el codigo del primer financiador que no sea la organizacion del usuario y los codigos de los socios que no sea la organización del usuario y pais
+Agregar financiador principal
+No refresca al agregar financiador
+No se debe mostrar en el listado principal el presupuesto asignado
+Mostrar el % de indicadores completados
+Revisar la cache de las vacaciones
+Agregar campo "año convocatoria" "codigo convocatoria" "nombre convocatoria" al proyecto.
+CODIGO:AñoConvo-Financiador-Convocatoria-Socio0-Socio1-Socio2-Pais-Programa 
