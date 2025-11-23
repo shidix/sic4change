@@ -9,8 +9,9 @@ Agregar campo "año convocatoria" "codigo convocatoria" "nombre convocatoria" al
 CODIGO:AñoConvo-Financiador-Convocatoria-Socio0-Socio1-Socio2-Pais-Programa 
 
 ============================================
-Revisar nombres de Programas para que si son muy largos aparece un acrónimo
-Arreglar la subida incontrolada
+Mostrar el % de indicadores completados en el listado de proyectos
+Revisar nombres de Programas para que si son muy largos aparece un acrónimo => DONE
+Arreglar la subida incontrolada => DONE
 Cuadro de proyectos en RRHH => no se mueve el listado
 Limitacion de los campos a numeros.
 Gestion de partidas
