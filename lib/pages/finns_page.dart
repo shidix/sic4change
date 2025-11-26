@@ -3,9 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:provider/provider.dart';
 import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/invoices_pages.dart';
 import 'package:sic4change/pages/projects_list_page.dart';
+import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/finn_form.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
@@ -37,6 +39,7 @@ class _FinnsPageState extends State<FinnsPage> {
   Map<String, Organization> partners = {};
   SFinnInfo finnInfo = SFinnInfo("", "", "");
   String tracker = "";
+  ProjectsProvider? projectsCache;
 
   List finnList = [];
   Map<String, Map> invoicesSummary = {};
@@ -72,6 +75,30 @@ class _FinnsPageState extends State<FinnsPage> {
   void initState() {
     super.initState();
     _project = widget.project;
+    projectsCache = context.read<ProjectsProvider>();
+    projectsCache!.addListener(() {
+      if (mounted) {
+        setState(() {
+          _project = projectsCache!.projects
+              .firstWhere((proj) => proj.uuid == _project!.uuid);
+          financiers.clear();
+          partners.clear();
+          financiers = projectsCache!.organizations
+              .where((org) => _project!.financiers.contains(org.uuid))
+              .fold<Map<String, Organization>>({}, (map, org) {
+            map[org.uuid] = org;
+            return map;
+          });
+          partners = projectsCache!.organizations
+              .where((org) => _project!.partners.contains(org.uuid))
+              .fold<Map<String, Organization>>({}, (map, org) {
+            map[org.uuid] = org;
+            return map;
+          });
+        });
+      }
+    });
+
     returnToList = getReturnList();
     loadInitialData();
     createLog("Acceso al Presupuesto de la iniciativa: ${_project!.name}");
@@ -81,69 +108,82 @@ class _FinnsPageState extends State<FinnsPage> {
     Invoice.newTracker().then((val) {
       tracker = val;
     });
-    Organization.getOrganizations().then((val) {
-      for (Organization item in val) {
-        if (_project!.financiers.contains(item.uuid)) {
-          financiers[item.uuid] = item;
-        }
-        if (_project!.partners.contains(item.uuid)) {
-          partners[item.uuid] = item;
-        }
-      }
-      SFinnInfo.byProject(_project!.uuid).then((val) {
-        if (val != null) {
-          finnInfo = val;
-          finnInfo.partners = _project!.partners;
-          finnList = getAllFinns();
-          if (finnInfo.distributions.isEmpty) {
-            Distribution.byProject(_project!.uuid).then((val) {
-              if (val.isNotEmpty) {
-                finnInfo.distributions = val;
-                distribItems = val;
-                finnInfo.save();
-                for (Distribution dist in finnInfo.distributions) {
-                  dist.updateMapinvoices();
-                }
-                if (mounted) {
-                  setState(() {
-                    distribSummaryContainer = populateDistribSummaryContainer();
-                  });
-                }
-              }
-            });
-          } else {
-            distribItems = finnInfo.distributions;
-            for (Distribution dist in finnInfo.distributions) {
-              dist.updateMapinvoices();
-            }
-            if (mounted) {
-              setState(() {
-                distribSummaryContainer = populateDistribSummaryContainer();
-              });
-            }
-          }
-        } else {
-          finnInfo = SFinnInfo("", const Uuid().v4(), _project!.uuid);
-          finnInfo.partners = _project!.partners;
-          finnInfo.save();
-        }
-        aportesSummaryContainer = populateAportesSummaryContainer();
+    // Organization.getOrganizations().then((val) {
+    //   for (Organization item in val) {
+    //     if (_project!.financiers.contains(item.uuid)) {
+    //       financiers[item.uuid] = item;
+    //     }
+    //     if (_project!.partners.contains(item.uuid)) {
+    //       partners[item.uuid] = item;
+    //     }
+    //   }
+    // });
 
-        if (mounted) {
-          setState(() {
-            finnList = getAllFinns();
-          });
-        }
-      });
-
-      totalBudgetProject = fromCurrency(_project!.budget);
-      executedBudgetProject = 0;
-      invoicesContainer = Container(width: 0);
-      finnanciersContainer = populateFinnanciersContainer();
-      partnersContainer = populatePartnersContainer();
-      distribSummaryContainer = populateDistribSummaryContainer();
-      summaryContainer = populateSummaryContainer();
+    financiers = projectsCache!.organizations
+        .where((org) => _project!.financiers.contains(org.uuid))
+        .fold<Map<String, Organization>>({}, (map, org) {
+      map[org.uuid] = org;
+      return map;
     });
+    partners = projectsCache!.organizations
+        .where((org) => _project!.partners.contains(org.uuid))
+        .fold<Map<String, Organization>>({}, (map, org) {
+      map[org.uuid] = org;
+      return map;
+    });
+    SFinnInfo.byProject(_project!.uuid).then((val) {
+      if (val != null) {
+        finnInfo = val;
+        finnInfo.partners = _project!.partners;
+        finnList = getAllFinns();
+        if (finnInfo.distributions.isEmpty) {
+          Distribution.byProject(_project!.uuid).then((val) {
+            if (val.isNotEmpty) {
+              finnInfo.distributions = val;
+              distribItems = val;
+              finnInfo.save();
+              for (Distribution dist in finnInfo.distributions) {
+                dist.updateMapinvoices();
+              }
+              if (mounted) {
+                setState(() {
+                  distribSummaryContainer = populateDistribSummaryContainer();
+                });
+              }
+            }
+          });
+        } else {
+          distribItems = finnInfo.distributions;
+          for (Distribution dist in finnInfo.distributions) {
+            dist.updateMapinvoices();
+          }
+          if (mounted) {
+            setState(() {
+              distribSummaryContainer = populateDistribSummaryContainer();
+            });
+          }
+        }
+      } else {
+        finnInfo = SFinnInfo("", const Uuid().v4(), _project!.uuid);
+        finnInfo.partners = _project!.partners;
+        finnInfo.save();
+      }
+      aportesSummaryContainer = populateAportesSummaryContainer();
+
+      if (mounted) {
+        setState(() {
+          finnList = getAllFinns();
+        });
+      }
+    });
+
+    totalBudgetProject = fromCurrency(_project!.budget);
+    executedBudgetProject = 0;
+    invoicesContainer = Container(width: 0);
+    finnanciersContainer = populateFinnanciersContainer();
+    partnersContainer = populatePartnersContainer();
+    distribSummaryContainer = populateDistribSummaryContainer();
+    summaryContainer = populateSummaryContainer();
   }
 
   bool belongsTo(SFinn finn, String financierUuid) {
