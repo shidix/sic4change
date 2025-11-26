@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+// import 'package:googleapis/driveactivity/v2.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
+import 'package:sic4change/pages/index.dart';
 import 'package:sic4change/pages/programme_page.dart';
 import 'package:sic4change/pages/project_info_page.dart';
 import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_projects.dart';
+import 'package:sic4change/services/check_permissions.dart';
 import 'package:sic4change/services/models.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/programme_form.dart';
 import 'package:sic4change/services/utils.dart';
@@ -38,7 +43,10 @@ class _ProjectListPageState extends State<ProjectListPage> {
   Widget contentProgrammList = Container();
   Widget contentProjectList = Container();
   Widget? _mainMenu;
-
+  Profile? get currentProfile => cacheProjects!.profile;
+  Organization? get currentOrg => cacheProjects!.organizations.firstWhere(
+      (org) => org.id == currentProfile!.organization,
+      orElse: () => Organization(''));
   void setLoading() {
     setState(() {
       loading = true;
@@ -124,6 +132,25 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   Widget build(BuildContext context) {
     String currentTab = (prType == "Proyecto") ? "proyectos" : "consultorias";
+    // Count of projects in each tab
+    int proyectosCount = cacheProjects!.projects
+        .where((pr) {
+          ProjectType? objPrType = cacheProjects!.types.firstWhere(
+              (type) => type.name == "Proyecto",
+              orElse: () => ProjectType(""));
+          return pr.type == objPrType.uuid;
+        })
+        .toList()
+        .length;
+    int consultoriasCount = cacheProjects!.projects
+        .where((pr) {
+          ProjectType? objPrType = cacheProjects!.types.firstWhere(
+              (type) => type.name == "Consultoría",
+              orElse: () => ProjectType(""));
+          return pr.type == objPrType.uuid;
+        })
+        .toList()
+        .length;
     return Scaffold(
       //body: SingleChildScrollView(
       //child: Column(
@@ -134,40 +161,63 @@ class _ProjectListPageState extends State<ProjectListPage> {
           _mainMenu!,
           //mainMenu(context, "/projects"),
           projectSearch(),
-          Container(
-              padding: const EdgeInsets.all(10),
-              child: customTitle(context, "PROGRAMAS")),
-          contentProgrammList,
-          Container(
-              padding: const EdgeInsets.all(10),
-              child: customTitle(context, "INICIATIVAS")),
-          // projectListMenu(context, currentTab, extraction: () {
-
-          //   setState(() {});
-          // }),
-          Container(
-            padding: const EdgeInsets.only(left: 10, right: 10),
-            child: Row(
-              children: [
-                menuTab2(context, "Cuadro de proyectos", null,
-                    selected: (currentTab == "proyectos"), extraction: () {
-                  setState(() {
-                    prType = "Proyecto";
-                    contentProjectList = projectList(null, null);
-                  });
-                }),
-                menuTab2(context, "Cuadro de consultorías", null,
-                    // const ProjectListPage(prType: "Consultoria"),
-                    selected: (currentTab == "consultorias"), extraction: () {
-                  setState(() {
-                    prType = "Consultoría";
-                    contentProjectList = projectList(null, null);
-                  });
-                }),
-              ],
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                  flex: 1,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                            padding: const EdgeInsets.all(10),
+                            child: customTitle(context, "PROGRAMAS")),
+                        contentProgrammList,
+                      ])),
+              Expanded(
+                  flex: 4,
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                            padding: const EdgeInsets.all(10),
+                            child: customTitle(context, "INICIATIVAS")),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(
+                            children: [
+                              menuTab2(context,
+                                  "Cuadro de proyectos ($proyectosCount)", null,
+                                  selected: (currentTab == "proyectos"),
+                                  extraction: () {
+                                setState(() {
+                                  prType = "Proyecto";
+                                  contentProjectList = projectList(null, null);
+                                });
+                              }),
+                              menuTab2(
+                                  context,
+                                  "Cuadro de consultorías ($consultoriasCount)",
+                                  null,
+                                  // const ProjectListPage(prType: "Consultoria"),
+                                  selected: (currentTab == "consultorias"),
+                                  extraction: () {
+                                setState(() {
+                                  prType = "Consultoría";
+                                  contentProjectList = projectList(null, null);
+                                });
+                              }),
+                            ],
+                          ),
+                        ),
+                        Container(
+                            padding: const EdgeInsets.all(10),
+                            child: contentProjectList)
+                      ])),
+            ],
           ),
-          contentProjectList
+
           // contentTab(context, projectList, null)
           //projectList(context),
         ],
@@ -207,6 +257,58 @@ class _ProjectListPageState extends State<ProjectListPage> {
                      PROGRAMMES
 -------------------------------------------------------------*/
   Widget programmeList() {
+    return Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Column(
+          children: [
+            for (var programme in programList)
+              Tooltip(
+                  message: "${programme.name}",
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      InkWell(
+                          child: Column(
+                            children: [
+                              (programme.logo != '')
+                                  ? Image.network(programme.logo, height: 50)
+                                  : const SizedBox(height: 50, width: 50),
+                              space(width: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText(
+                                      programme.name.length < 16
+                                          ? programme.name
+                                          : programme.name.substring(0, 15) +
+                                              "...",
+                                      16,
+                                      bold: FontWeight.bold,
+                                      textColor: mainColor),
+                                  if (canAddProgramme(profile))
+                                    editBtn(context, callDialog,
+                                        {'programme': programme}),
+                                ],
+                              )
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) =>
+                                        ProgrammePage(programme: programme))));
+                          }),
+                      const Divider(color: Colors.grey),
+                      space(height: 10),
+                    ],
+                  )),
+          ],
+        ));
+  }
+
+  Widget programmeList2() {
     programList = cacheProjects!.programmes;
     return Container(
         padding: const EdgeInsets.only(left: 30, right: 30),
@@ -607,70 +709,133 @@ class _ProjectListPageState extends State<ProjectListPage> {
           .where((pr) => pr.type == objPrType.uuid)
           .toList();
     }
-    return Container(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: Builder(builder: ((context) {
-          //if (prList.isNotEmpty) {
-          return DataTable(
-              sortColumnIndex: 0,
-              showCheckboxColumn: false,
-              columns: [
-                DataColumn(
-                  label: customText("Código", 14, bold: FontWeight.bold),
-                  tooltip: "Código",
-                ),
-                DataColumn(
-                    label: customText("Título", 14, bold: FontWeight.bold),
-                    tooltip: "Título"),
-                DataColumn(
-                    label: customText("Programa", 14, bold: FontWeight.bold),
-                    tooltip: "Programa"),
-                DataColumn(
-                    label: customText("Estado", 14, bold: FontWeight.bold),
-                    tooltip: "Estado"),
-                DataColumn(
-                    label: customText("Responsable", 14, bold: FontWeight.bold),
-                    tooltip: "Responsable"),
-                DataColumn(
-                    label: customText("Presupuesto", 14, bold: FontWeight.bold),
-                    tooltip: "Presupuesto"),
-                DataColumn(
-                    label: customText("País", 14, bold: FontWeight.bold),
-                    tooltip: "País"),
-                DataColumn(
-                    label: customText("Donante", 14, bold: FontWeight.bold),
-                    tooltip: "Donante"),
-                DataColumn(
-                    label: customText("Año", 14, bold: FontWeight.bold),
-                    tooltip: "Año"),
-                DataColumn(
-                    label: customText("Acciones", 14, bold: FontWeight.bold),
-                    tooltip: "Acciones"),
-              ],
-              rows: prList
-                  .map(
-                    (proj) => DataRow(cells: [
-                      DataCell(customText(proj.getCode(), 14)),
-                      DataCell(customText(proj.name, 14)),
-                      DataCell(customText(proj.programmeObj.name, 14)),
-                      DataCell(customText(proj.statusObj.name, 14,
-                          textColor: proj.getStatusColor())),
-                      DataCell(customText(proj.managerObj.name, 14)),
-                      DataCell(customText(proj.budget, 14)),
-                      DataCell(
-                          customText(proj.locationObj.countryObj.name, 14)),
-                      DataCell(customText(proj.getFinanciersStr(), 14)),
-                      (proj.datesObj.approved == null)
-                          ? DataCell(Container())
-                          : DataCell(customText(
-                              DateFormat('yyyy').format(proj.datesObj.approved),
-                              14)),
-                      DataCell(Column(children: [
-                        actionsPopUpBtn(context, proj),
-                      ]))
-                    ]),
-                  )
-                  .toList());
-        })));
+
+    // List<String> projAcronyms = [];
+    // for (SProject proj in prList) {
+    //   projAcronyms.add(
+    //       getAcronym(cacheProjects!, proj, currentOrg ?? Organization('')));
+    // }
+
+    List<double> columnWidths = [
+      70,
+      10, // Estado
+      10, // Presupuesto
+      10, // Acciones
+    ];
+
+    double factorScreen = 0.80;
+
+    return SizedBox(
+        height: 600,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Material(
+              elevation: 2,
+              child: LayoutBuilder(builder: (context, constraints) {
+                double totalWidth = constraints.maxWidth * factorScreen;
+                List<DataColumn> columns = [
+                  DataColumn(
+                    label: SizedBox(
+                        width: columnWidths[0] * 0.01 * totalWidth,
+                        child: customText("Código", 14, bold: FontWeight.bold)),
+                    tooltip: "Código",
+                  ),
+                  DataColumn(
+                      label: SizedBox(
+                          width: columnWidths[1] * 0.01 * totalWidth,
+                          child:
+                              customText("Estado", 14, bold: FontWeight.bold)),
+                      tooltip: "Estado"),
+                  DataColumn(
+                      label: SizedBox(
+                          width: columnWidths[2] * 0.01 * totalWidth,
+                          child: customText("Presupuesto", 14,
+                              bold: FontWeight.bold)),
+                      tooltip: "Presupuesto"),
+                  DataColumn(
+                      label: SizedBox(
+                          width: columnWidths[3] * 0.01 * totalWidth,
+                          child: customText("Acciones", 14,
+                              bold: FontWeight.bold)),
+                      tooltip: "Acciones"),
+                ];
+
+                return DataTable(
+                    headingRowHeight: 65, columns: columns, rows: const []);
+              })),
+          Expanded(
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Builder(builder: ((context) {
+                    return LayoutBuilder(builder: (context, constraints) {
+                      double totalWidth = constraints.maxWidth * factorScreen;
+                      List<DataColumn> columns = [
+                        DataColumn(
+                          label: SizedBox(
+                              width: columnWidths[0] * 0.01 * totalWidth,
+                              child: customText("Código", 14,
+                                  bold: FontWeight.bold)),
+                          tooltip: "Código",
+                        ),
+                        DataColumn(
+                            label: SizedBox(
+                                width: columnWidths[1] * 0.01 * totalWidth,
+                                child: customText("Estado", 14,
+                                    bold: FontWeight.bold)),
+                            tooltip: "Estado"),
+                        DataColumn(
+                            label: SizedBox(
+                                width: columnWidths[2] * 0.01 * totalWidth,
+                                child: customText("Presupuesto", 14,
+                                    bold: FontWeight.bold)),
+                            tooltip: "Presupuesto"),
+                        DataColumn(
+                            label: SizedBox(
+                                width: columnWidths[3] * 0.01 * totalWidth,
+                                child: customText("Acciones", 14,
+                                    bold: FontWeight.bold)),
+                            tooltip: "Acciones"),
+                      ];
+                      return DataTable(
+                          sortColumnIndex: 0,
+                          showCheckboxColumn: false,
+                          headingRowHeight: 0,
+                          columns: columns,
+                          rows: prList
+                              .map(
+                                (proj) => DataRow(cells: [
+                                  DataCell(SizedBox(
+                                    width: columnWidths[0] * 0.01 * totalWidth,
+                                    child: Text(
+                                      getAcronym(cacheProjects!, proj,
+                                          currentOrg ?? Organization('')),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  )),
+                                  DataCell(SizedBox(
+                                    width: columnWidths[1] * 0.01 * totalWidth,
+                                    child: Text(
+                                      proj.statusObj.name,
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: proj.getStatusColor()),
+                                    ),
+                                  )),
+                                  DataCell(SizedBox(
+                                    width: columnWidths[2] * 0.01 * totalWidth,
+                                    child: Text(
+                                      proj.budget,
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  )),
+                                  DataCell(SizedBox(
+                                    width: columnWidths[3] * 0.01 * totalWidth,
+                                    child: actionsPopUpBtn(context, proj),
+                                  )),
+                                ]),
+                              )
+                              .toList());
+                    });
+                  }))))
+        ]));
   }
 }

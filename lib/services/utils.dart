@@ -13,10 +13,13 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 // import 'package:provider/provider.dart';
 import 'package:sic4change/main.dart';
+import 'package:sic4change/services/cache_projects.dart';
+import 'package:sic4change/services/models.dart';
 // import 'package:sic4change/services/cache_rrhh.dart';
 // import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'dart:math' as math;
 
 import 'package:sic4change/services/models_profile.dart';
@@ -681,4 +684,99 @@ bool isEmail(String value) {
   String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
   RegExp regex = RegExp(pattern);
   return regex.hasMatch(value);
+}
+
+String getAcronym(
+    ProjectsProvider projectsCache, SProject project, Organization currentOrg) {
+  Programme programme = projectsCache.programmes.firstWhere(
+      (prog) => prog.uuid == project.programme,
+      orElse: () => Programme('NODEF'));
+
+  String progAcronym = (programme.code != "" ? programme.code : programme.name)
+      .split(' ')
+      .map((word) => ((word.isNotEmpty) && (word.length >= 3))
+          ? word.substring(0, 3).toUpperCase()
+          : '')
+      .join();
+
+  String projectAcronym = (project.code != "")
+      ? project.code
+      : project.name
+          .split(' ')
+          .map((word) =>
+              ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
+                  ? word.substring(0, min(3, word.length)).toUpperCase()
+                  : '')
+          .join();
+  if (projectAcronym.isEmpty) {
+    projectAcronym =
+        project.name.toUpperCase().replaceAll(RegExp(r'[^(A-Z0-9)]'), '');
+  }
+  if (projectAcronym.length > 9) {
+    projectAcronym = projectAcronym.substring(0, 9);
+  }
+  projectAcronym = projectAcronym.replaceAll('\r', '').replaceAll('\n', '');
+
+  String annAcronym = (project.announcementCode != "")
+      ? project.announcementCode
+      : project.announcement
+          .split(' ')
+          .map((word) =>
+              ((word.length > 3) || (RegExp(r'^[0-9]+$').hasMatch(word)))
+                  ? word.substring(0, min(3, word.length)).toUpperCase()
+                  : '')
+          .join();
+
+  List<Organization> financiers = [];
+
+  for (var uuid in project.financiers) {
+    try {
+      financiers.add(projectsCache!.organizations
+          .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
+    } catch (e) {
+      continue; // Ignore errors if the object is not found
+    }
+  }
+
+  List<Organization> partners = [];
+  for (var uuid in project.partners) {
+    try {
+      partners.add(projectsCache!.organizations
+          .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
+    } catch (e) {
+      continue; // Ignore errors if the object is not found
+    }
+  }
+
+  List<Country> countries = [];
+  for (var locations in project.locations) {
+    try {
+      Country country = projectsCache!.countries
+          .firstWhere((ctry) => (ctry.uuid == locations['country']));
+      if (!countries.contains(country)) {
+        countries.add(country);
+      }
+    } catch (e) {
+      continue; // Ignore errors if the object is not found
+    }
+  }
+
+  String finnAcronym = (financiers.isNotEmpty)
+      ? financiers.map((finn) => finn.acronym()).join('-')
+      : "NDF"; // No definido financiador
+  String partAcronym = (partners.isNotEmpty)
+      ? partners.map((part) => part.acronym()).join('-')
+      : "NDP"; // No definido partner
+  String countryAcronym = "NDC";
+  if (countries.isNotEmpty) {
+    countryAcronym = countries.map((country) => country.code).join('-');
+  }
+
+  // Acronym format: YYYY-FINN-CONV-PARTN-COUNTRY-PROG-PROY
+
+  String acronym = (project.announcementYear.isNotEmpty)
+      ? "${project.announcementYear}-$finnAcronym-$annAcronym-$partAcronym-$countryAcronym-$progAcronym-$projectAcronym"
+      : "0000-$progAcronym-$annAcronym-$projectAcronym";
+
+  return acronym;
 }
