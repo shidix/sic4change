@@ -1063,14 +1063,21 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomTextField(
+                          // CustomTextField(
+                          //   labelText: 'Presupuesto',
+                          //   size: 440,
+                          //   initial: proj.budget,
+                          //   fieldValue: (String val) {
+                          //     proj.budget = val;
+                          //   },
+                          // ),
+                          NumberFormField(
                             labelText: 'Presupuesto',
-                            size: 440,
-                            initial: proj.budget,
-                            fieldValue: (String val) {
+                            initialValue: proj.budget,
+                            onChanged: (String val) {
                               proj.budget = val;
                             },
-                          ),
+                          )
                         ])),
               ]),
               space(height: 20),

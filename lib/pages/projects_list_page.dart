@@ -823,7 +823,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                   DataCell(SizedBox(
                                     width: columnWidths[2] * 0.01 * totalWidth,
                                     child: Text(
-                                      proj.budget,
+                                      toCurrency(proj.budget),
                                       style: TextStyle(fontSize: 14),
                                     ),
                                   )),

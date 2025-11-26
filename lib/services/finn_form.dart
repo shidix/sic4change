@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -463,14 +464,14 @@ class _DistributionFormState extends State<DistributionForm> {
                     flex: 1,
                     child: Padding(
                         padding: const EdgeInsets.only(left: 5),
-                        child: TextFormField(
-                          initialValue: item.amount.toString(),
-                          decoration: InputDecoration(
-                              labelText:
-                                  'Importe (max: ${toCurrency(maxAllowed)})',
-                              contentPadding: const EdgeInsets.only(bottom: 1)),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
+                        child: NumberFormField(
+                          labelText: 'Importe (max: ${toCurrency(maxAllowed)})',
+                          initialValue: (item.amount == 0)
+                              ? toCurrency(maxAllowed)
+                              : toCurrency(item.amount),
+                          onChanged: (value) {
+                            item.amount = currencyToDouble(value);
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor, ingrese un importe';
@@ -479,9 +480,6 @@ class _DistributionFormState extends State<DistributionForm> {
                               return 'Importe mayor que ${toCurrency(maxAllowed)}';
                             }
                             return null;
-                          },
-                          onChanged: (value) {
-                            item.amount = currencyToDouble(value);
                           },
                           onSaved: (value) =>
                               item.amount = currencyToDouble(value!),
@@ -1235,11 +1233,16 @@ class _SFinnFormState extends State<SFinnForm> {
                       )),
                   Expanded(
                     flex: 2,
-                    child: TextFormField(
+                    child: NumberFormField(
+                      labelText: 'Importe',
                       initialValue: _finn.contribution.toString(),
-                      decoration: const InputDecoration(labelText: 'Importe'),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      // decoration: const InputDecoration(labelText: 'Importe'),
+                      // keyboardType:
+                      //     const TextInputType.numberWithOptions(decimal: true),
+                      // inputFormatters: [
+                      //   FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'),
+                      //       replacementString: ''),
+                      // ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor, ingrese un importe';

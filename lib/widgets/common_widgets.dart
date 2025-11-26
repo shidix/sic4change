@@ -2013,13 +2013,13 @@ class UploadImageFieldState extends State<UploadImageField> {
 
 class DateTimeRangePicker extends StatelessWidget {
   DateTimeRangePicker({
-    Key? key,
+    super.key,
     required DateTimeRange this.calendarRangeDate,
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
     this.errorMessage,
-  }) : super(key: key);
+  });
 
   final DateTimeRange calendarRangeDate;
   final String labelText;
@@ -2096,14 +2096,14 @@ class DateTimeRangePicker extends StatelessWidget {
 
 class DateTimePicker extends StatelessWidget {
   const DateTimePicker({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
     this.firstDate,
     this.lastDate,
     this.readOnly = false,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final DateTime selectedDate;
@@ -2189,14 +2189,14 @@ class _CustomPopupDialogState extends State<CustomPopupDialog> {
 
 class CustomDropdown extends StatelessWidget {
   const CustomDropdown({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.size,
     required this.options,
     required this.selected,
     required this.onSelectedOpt,
     this.padding = const EdgeInsets.all(0),
-  }) : super(key: key);
+  });
 
   final double size;
   final String labelText;
@@ -2247,14 +2247,14 @@ class CustomDropdown extends StatelessWidget {
 
 class CustomTextField extends StatelessWidget {
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.initial,
     required this.size,
     required this.fieldValue,
     this.minLines = 1,
     this.maxLines = 1,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final String initial;
@@ -2285,12 +2285,12 @@ class CustomTextField extends StatelessWidget {
 
 class CustomIntField extends StatelessWidget {
   const CustomIntField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.initial,
     required this.size,
     required this.fieldValue,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final int initial;
@@ -2320,14 +2320,14 @@ class CustomIntField extends StatelessWidget {
 
 class CustomSelectFormField extends StatelessWidget {
   const CustomSelectFormField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.initial,
     required this.options,
     required this.onSelectedOpt,
     this.required = false,
     this.padding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final String initial;
@@ -2401,14 +2401,14 @@ class CustomSelectFormField extends StatelessWidget {
 
 class CustomDateField extends StatelessWidget {
   const CustomDateField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
     this.minYear = 2000,
     this.maxYear = 2101,
     this.bottom = 16,
-  }) : super(key: key);
+  });
 
   final String labelText;
   final DateTime selectedDate;
@@ -2443,14 +2443,14 @@ class CustomDateField extends StatelessWidget {
 
 class FilterDateField extends StatelessWidget {
   const FilterDateField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.selectedDate,
     required this.onSelectedDate,
     this.minYear = 2000,
     this.maxYear = 2101,
     this.bottom = 16,
-  }) : super(key: key);
+  });
 
   final dynamic labelText;
   final DateTime selectedDate;
@@ -2634,19 +2634,14 @@ class _PasswordFieldState extends State<PasswordField> {
 
 class CheckboxFormField extends FormField<bool> {
   CheckboxFormField({
-    Key? key,
+    super.key,
     required Widget title,
-    bool initialValue = false,
-    FormFieldSetter<bool>? onSaved,
-    FormFieldValidator<bool>? validator,
-    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+    bool super.initialValue = false,
+    super.onSaved,
+    super.validator,
+    AutovalidateMode super.autovalidateMode = AutovalidateMode.disabled,
     bool enabled = true,
   }) : super(
-          key: key,
-          initialValue: initialValue,
-          onSaved: onSaved,
-          validator: validator,
-          autovalidateMode: autovalidateMode,
           builder: (FormFieldState<bool> state) {
             return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -2733,5 +2728,61 @@ class TitlePageS4C extends StatelessWidget {
           (icon != null) ? space(width: 10) : const SizedBox(width: 0),
           customText(title, 20, textColor: mainColor, bold: FontWeight.bold)
         ]));
+  }
+}
+
+// // define NumberFormField from TextFormField
+// class NumberFormField extends TextFormField {
+//   NumberFormField({
+//     super.key,
+//     required String labelText,
+//     String super.initialValue = '',
+//     required ValueChanged<String> onChanged,
+//     super.validator,
+//     Function(String)? onSaved,
+//   }) : super(
+//           decoration: InputDecoration(labelText: labelText),
+//           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+//           inputFormatters: <TextInputFormatter>[
+//             FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+//           ],
+//           onChanged: (value) {
+//             onChanged(value);
+//           },
+//           onSaved: onSaved != null ? (value) => onSaved(value ?? '') : null,
+//         );
+// }
+
+class NumberFormField extends StatelessWidget {
+  final String labelText;
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+  final FormFieldValidator<String>? validator;
+  final Function(String)? onSaved;
+
+  const NumberFormField({
+    super.key,
+    required this.labelText,
+    required this.initialValue,
+    required this.onChanged,
+    this.validator,
+    this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      initialValue: initialValue,
+      decoration: InputDecoration(labelText: labelText),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: <TextInputFormatter>[
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+      ],
+      onChanged: (value) {
+        onChanged(value);
+      },
+      validator: validator,
+      onSaved: onSaved != null ? (value) => onSaved!(value ?? '') : null,
+    );
   }
 }

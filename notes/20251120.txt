@@ -1,18 +1,18 @@
 ================= 20251114.txt =========
-El codigo debe tener la convocatoria y el codigo del primer financiador que no sea la organizacion del usuario y los codigos de los socios que no sea la organización del usuario y pais
+El codigo debe tener la convocatoria y el codigo del primer financiador que no sea la organizacion del usuario y los codigos de los socios que no sea la organización del usuario y pais => DONE
 Agregar financiador principal => Done
 No refresca al agregar financiador => Done
 No se debe mostrar en el listado principal el presupuesto asignado => Done
 Mostrar el % de indicadores completados  
 Revisar la cache de las vacaciones => Done
 Agregar campo "año convocatoria" "codigo convocatoria" "nombre convocatoria" al proyecto. => Done
-CODIGO:AñoConvo-Financiador-Convocatoria-Socio0-Socio1-Socio2-Pais-Programa 
+CODIGO:AñoConvo-Financiador-Convocatoria-Socio0-Socio1-Socio2-Pais-Programa => DONE
 
 ============================================
 Mostrar el % de indicadores completados en el listado de proyectos
 Revisar nombres de Programas para que si son muy largos aparece un acrónimo => DONE
 Arreglar la subida incontrolada => DONE
-Cuadro de proyectos en RRHH => no se mueve el listado
+Cuadro de proyectos en RRHH => no se mueve el listado => DONE
 Limitacion de los campos a numeros.
 Gestion de partidas
     Borrado de partidas => No se refresca

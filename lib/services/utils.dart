@@ -198,8 +198,11 @@ int getWorkingDaysBetween(
   return workingDays;
 }
 
-String toCurrency(double value, [String symbol = 'EUR']) {
+String toCurrency(dynamic value, [String symbol = 'EUR']) {
   try {
+    if (value is String) {
+      value = currencyToDouble(value);
+    }
     return NumberFormat.currency(
             locale: 'es_ES', symbol: CURRENCIES[symbol]!.value)
         .format(value);
@@ -328,6 +331,12 @@ double currencyToDouble(String value) {
   } catch (e) {
     // value = value.replaceAll('€', '');
     // value = value.replaceAll(' ', '');
+    // Check if contains multiples '.'
+    int dotCount = '.'.allMatches(value).length;
+    if (dotCount > 1) {
+      // remove all dots except the last one
+      value = value.replaceAll('.', '');
+    }
     if ((value.contains(".")) && (value.contains(","))) {
       value = value.replaceAll('.', '');
       value = value.replaceAll(',', '.');

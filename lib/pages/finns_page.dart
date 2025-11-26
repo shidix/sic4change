@@ -714,7 +714,7 @@ class _FinnsPageState extends State<FinnsPage> {
 
     return Card(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(0.0),
           side: const BorderSide(
             color: headerListBgColorIndicator,
             width: 1.0,
