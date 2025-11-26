@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:googleapis/monitoring/v3.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -111,16 +112,29 @@ class _CountryPageState extends State<CountryPage>
           content: SingleChildScrollView(
               child: Column(children: <Widget>[
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CustomTextField(
-                labelText: "Nombre",
-                initial: country.name,
-                size: 900,
-                minLines: 2,
-                maxLines: 9999,
-                fieldValue: (String val) {
-                  setState(() => country.name = val);
-                },
-              )
+              Row(children: [
+                Expanded(
+                    flex: 1,
+                    child: CustomTextField(
+                      labelText: "Código",
+                      initial: country.code,
+                      size: 200,
+                      fieldValue: (String val) {
+                        setState(() => country.code = val);
+                      },
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: CustomTextField(
+                      labelText: "Nombre",
+                      initial: country.name,
+                      size: 900,
+                      maxLines: 9999,
+                      fieldValue: (String val) {
+                        setState(() => country.name = val);
+                      },
+                    ))
+              ]),
             ]),
           ])),
           actions: <Widget>[

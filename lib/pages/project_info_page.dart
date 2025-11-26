@@ -279,33 +279,32 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
             Expanded(flex: 1, child: customText(project!.name, 20)),
           ]),
           space(height: 20),
-Row(
-              children: [
-                Expanded(
-                    flex: 1,
-                    child: Column(
+          Row(
+            children: [
+              Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      customText("En ejecución:", 16),
+                      space(height: 5),
+                      customLinearPercent(context, null,
+                          project!.getExecVsAssigned(), percentBarPrimary),
+                    ],
+                  )),
+              Expanded(
+                  flex: 1,
+                  child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        customText("En ejecución:", 16),
+                        customText(
+                            "Presupuesto total:   ${project!.budget} €", 16),
                         space(height: 5),
                         customLinearPercent(context, null,
-                            project!.getExecVsAssigned(), percentBarPrimary),
-                      ],
-                    )),
-                Expanded(
-                    flex: 1,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          customText(
-                              "Presupuesto total:   ${project!.budget} €", 16),
-                          space(height: 5),
-                          customLinearPercent(context, null,
-                              project!.getExecVsBudget(), blueColor),
-                        ])),
-              ],
-            ),
-          
+                            project!.getExecVsBudget(), blueColor),
+                      ])),
+            ],
+          ),
           space(height: 20)
         ]));
   }
@@ -694,36 +693,54 @@ Row(
         });
   }
 
-  Future<ProjectLocation> getProjectLocation(project) async {
+  Future<List<ProjectLocation>> getProjectLocation(project) async {
     // Check if locationObj exists in provider
-    int index = projectsProvider!.locations
-        .indexWhere((element) => element.project == project.uuid);
-    if (index != -1) {
-      project.locationObj = projectsProvider!.locations[index];
-    } else {
-      // If not, fetch from database
-      project.locationObj =
-          await ProjectLocation.getProjectLocationByProject(project.uuid);
+    List<ProjectLocation> locations = projectsProvider!.locations
+        .where((element) => element.project == project.uuid)
+        .toList();
+
+    for (var loc in locations) {
+      loc.countryObj = projectsProvider!.countries.firstWhere(
+          (element) => element.uuid == loc.country,
+          orElse: () => Country("Unknown"));
+      loc.regionObj = projectsProvider!.regions.firstWhere(
+          (element) => element.uuid == loc.region,
+          orElse: () => Region("Unknown"));
+      loc.provinceObj = projectsProvider!.provinces.firstWhere(
+          (element) => element.uuid == loc.province,
+          orElse: () => Province("Unknown"));
+      loc.townObj = projectsProvider!.towns.firstWhere(
+          (element) => element.uuid == loc.town,
+          orElse: () => Town("Unknown"));
     }
-    project.locationObj.countryObj = projectsProvider!.countries.firstWhere(
-        (element) => element.uuid == project.locationObj.country,
-        orElse: () => Country("Unknown"));
-    project.locationObj.regionObj = projectsProvider!.regions.firstWhere(
-        (element) => element.uuid == project.locationObj.region,
-        orElse: () => Region("Unknown"));
-    project.locationObj.provinceObj = projectsProvider!.provinces.firstWhere(
-        (element) => element.uuid == project.locationObj.province,
-        orElse: () => Province("Unknown"));
-    project.locationObj.townObj = projectsProvider!.towns.firstWhere(
-        (element) => element.uuid == project.locationObj.town,
-        orElse: () => Town("Unknown"));
-    return project.locationObj;
+    // int index = projectsProvider!.locations
+    //     .indexWhere((element) => element.project == project.uuid);
+    // if (index != -1) {
+    //   project.locationObj = projectsProvider!.locations[index];
+    // } else {
+    //   // If not, fetch from database
+    //   project.locationObj =
+    //       await ProjectLocation.getProjectLocationByProject(project.uuid);
+    // }
+    // project.locationObj.countryObj = projectsProvider!.countries.firstWhere(
+    //     (element) => element.uuid == project.locationObj.country,
+    //     orElse: () => Country("Unknown"));
+    // project.locationObj.regionObj = projectsProvider!.regions.firstWhere(
+    //     (element) => element.uuid == project.locationObj.region,
+    //     orElse: () => Region("Unknown"));
+    // project.locationObj.provinceObj = projectsProvider!.provinces.firstWhere(
+    //     (element) => element.uuid == project.locationObj.province,
+    //     orElse: () => Province("Unknown"));
+    // project.locationObj.townObj = projectsProvider!.towns.firstWhere(
+    //     (element) => element.uuid == project.locationObj.town,
+    //     orElse: () => Town("Unknown"));
+    return locations;
   }
 
   Widget projectInfoLocation(context, project) {
     return FutureBuilder(future: () async {
-      project!.locationObj = await getProjectLocation(project);
-      return project!.locationObj;
+      List<ProjectLocation> locations = await getProjectLocation(project);
+      return locations;
     }(), builder: ((context, snapshot) {
       if (snapshot.hasData) {
         var loc = snapshot.data!;
@@ -731,8 +748,8 @@ Row(
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             customText("Ubicación", 15, bold: FontWeight.bold),
             IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Editar ubicación',
+              icon: const Icon(Icons.add),
+              tooltip: 'Añadir ubicación',
               onPressed: () {
                 _callLocationEditDialog(context, project);
               },
@@ -746,13 +763,27 @@ Row(
                   customText("Comunidad", 14, bold: FontWeight.bold),
                   customText("Provincia", 14, bold: FontWeight.bold),
                   customText("Municipio", 14, bold: FontWeight.bold),
+                  Container(),
                 ]),
-                TableRow(children: [
-                  customText(loc.countryObj.name, 14),
-                  customText(loc.regionObj.name, 14),
-                  customText(loc.provinceObj.name, 14),
-                  customText(loc.townObj.name, 14),
-                ])
+                for (var loc in snapshot.data as List<ProjectLocation>)
+                  TableRow(children: [
+                    customText(loc.countryObj.name, 14),
+                    customText(loc.regionObj.name, 14),
+                    customText(loc.provinceObj.name, 14),
+                    customText(loc.townObj.name, 14),
+                    Row(children: [
+                      Expanded(
+                          flex: 1,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit),
+                            tooltip: 'Editar ubicación',
+                            onPressed: () {
+                              _callLocationEditDialog(context, project,
+                                  loc: loc);
+                            },
+                          ))
+                    ]),
+                  ])
               ])
         ]);
       } else {
@@ -1729,19 +1760,8 @@ Row(
   /*--------------------------------------------------------------------*/
   /*                           LOCATION                                 */
   /*--------------------------------------------------------------------*/
-  void saveLocation(List args) async {
-    ProjectLocation loc = args[0];
-    loc.save();
-    projectsProvider!.addLocation(loc, notify: false);
-    loadProject();
-    projectInfoLocationPanel = projectInfoLocation(context, project);
-    projectInfoDetailsPanel = projectInfoDetails(context);
-    if (!mounted) return;
-    setState(() {});
-    Navigator.pop(context);
-  }
 
-  void _callLocationEditDialog(context, project) async {
+  void _callLocationEditDialog(context, project, {ProjectLocation? loc}) async {
     List<KeyValue> countries =
         await Country.getCountriesHash(projectsProvider!.countries);
     List<KeyValue> provinces =
@@ -1749,16 +1769,18 @@ Row(
     List<KeyValue> regions =
         await Region.getRegionsHash(projectsProvider!.regions);
     List<KeyValue> towns = await Town.getTownsHash(projectsProvider!.towns);
-    ProjectLocation currentLoc = projectsProvider!.locations.firstWhere(
-        (loc) => loc.project == project.uuid,
-        orElse: () => ProjectLocation(project.uuid));
+
+    loc ??= ProjectLocation(project.uuid);
+    // ProjectLocation currentLoc = projectsProvider!.locations.firstWhere(
+    //     (loc) => loc.project == project.uuid,
+    //     orElse: () => ProjectLocation(project.uuid));
     // await ProjectLocation.getProjectLocationByProject(project.uuid)
     //     .then((value) async {
     //   editProjectLocationDialog(
     //       context, value, project, countries, provinces, regions, towns);
     // });
     editProjectLocationDialog(
-        context, currentLoc, project, countries, provinces, regions, towns);
+        context, loc, project, countries, provinces, regions, towns);
   }
 
   Future<void> editProjectLocationDialog(
@@ -1767,6 +1789,56 @@ Row(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        Country country = projectsProvider!.countries
+            .firstWhere((c) => c.uuid == loc.country, orElse: () {
+          if (projectsProvider!.countries.isNotEmpty) {
+            return projectsProvider!.countries.first;
+          } else {
+            return Country('Unknown');
+          }
+        });
+        Province province = projectsProvider!.provinces
+            .firstWhere((p) => p.uuid == loc.province, orElse: () {
+          if (projectsProvider!.provinces.isNotEmpty) {
+            return projectsProvider!.provinces.first;
+          } else {
+            return Province('Unknown');
+          }
+        });
+        Region region = projectsProvider!.regions
+            .firstWhere((r) => r.uuid == loc.region, orElse: () {
+          if (projectsProvider!.regions.isNotEmpty) {
+            return projectsProvider!.regions.first;
+          } else {
+            return Region('Unknown');
+          }
+        });
+        Town town = projectsProvider!.towns
+            .firstWhere((t) => t.uuid == loc.town, orElse: () {
+          if (projectsProvider!.towns.isNotEmpty) {
+            return projectsProvider!.towns.first;
+          } else {
+            return Town('Unknown');
+          }
+        });
+
+        void saveLocation(List args) async {
+          ProjectLocation loc = args[0];
+
+          loc.country = country.uuid;
+          loc.province = province.uuid;
+          loc.region = region.uuid;
+          loc.town = town.uuid;
+          loc.save();
+          projectsProvider!.addLocation(loc, notify: false);
+          loadProject();
+          projectInfoLocationPanel = projectInfoLocation(context, project);
+          projectInfoDetailsPanel = projectInfoDetails(context);
+          if (!mounted) return;
+          setState(() {});
+          Navigator.pop(context);
+        }
+
         return AlertDialog(
           //title: const Text('Add location'),
           titlePadding: const EdgeInsets.all(0),
@@ -1777,26 +1849,11 @@ Row(
                 CustomDropdown(
                   labelText: 'País',
                   size: 220,
-                  selected: loc.countryObj.toKeyValue(),
+                  selected: country.toKeyValue(),
                   options: countries,
                   onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.country = val;
-                    });
-                  },
-                ),
-              ]),
-              space(width: 20),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CustomDropdown(
-                  labelText: 'Provincia',
-                  size: 220,
-                  selected: loc.provinceObj.toKeyValue(),
-                  options: provinces,
-                  onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.province = val;
-                    });
+                    country = projectsProvider!.countries
+                        .firstWhere((c) => c.uuid == val);
                   },
                 ),
               ]),
@@ -1805,12 +1862,24 @@ Row(
                 CustomDropdown(
                   labelText: 'Comunidad',
                   size: 220,
-                  selected: loc.regionObj.toKeyValue(),
+                  selected: region.toKeyValue(),
                   options: regions,
                   onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.region = val;
-                    });
+                    region = projectsProvider!.regions
+                        .firstWhere((r) => r.uuid == val);
+                  },
+                ),
+              ]),
+              space(width: 20),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CustomDropdown(
+                  labelText: 'Provincia',
+                  size: 220,
+                  selected: province.toKeyValue(),
+                  options: provinces,
+                  onSelectedOpt: (String val) {
+                    province = projectsProvider!.provinces
+                        .firstWhere((p) => p.uuid == val);
                   },
                 ),
               ]),
@@ -1819,12 +1888,11 @@ Row(
                 CustomDropdown(
                   labelText: 'Municipio',
                   size: 220,
-                  selected: loc.townObj.toKeyValue(),
+                  selected: town.toKeyValue(),
                   options: towns,
                   onSelectedOpt: (String val) {
-                    setState(() {
-                      loc.town = val;
-                    });
+                    town = projectsProvider!.towns
+                        .firstWhere((t) => t.uuid == val);
                   },
                 ),
               ]),

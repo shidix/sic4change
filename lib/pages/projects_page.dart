@@ -16,6 +16,7 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
+import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_quality.dart';
 import 'package:sic4change/services/models_risks.dart';
@@ -323,7 +324,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget projectTopButtons() {
-
     return Container(
         padding: const EdgeInsets.only(left: 20, top: 20),
         child: Row(
@@ -357,43 +357,48 @@ class _ProjectsPageState extends State<ProjectsPage> {
         child: Column(
           children: [
             for (var programme in programList)
-            Tooltip(
-                message: "${programme.name}",
-                child:
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  InkWell(
-                      child: Column(
-                        children: [
-                          (programme.logo != '')
-                              ? Image.network(programme.logo, height: 50)
-                              : const SizedBox(height: 50, width: 50),
-                          space(width: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+              Tooltip(
+                  message: "${programme.name}",
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      InkWell(
+                          child: Column(
                             children: [
-                              customText(programme.name.length < 16 ? programme.name : programme.name.substring(0, 15) + "...", 16,
-                                  bold: FontWeight.bold, textColor: mainColor),
-                              if (canAddProgramme(profile))
-                                editBtn(context, callDialog,
-                                    {'programme': programme}),
+                              (programme.logo != '')
+                                  ? Image.network(programme.logo, height: 50)
+                                  : const SizedBox(height: 50, width: 50),
+                              space(width: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText(
+                                      programme.name.length < 16
+                                          ? programme.name
+                                          : programme.name.substring(0, 15) +
+                                              "...",
+                                      16,
+                                      bold: FontWeight.bold,
+                                      textColor: mainColor),
+                                  if (canAddProgramme(profile))
+                                    editBtn(context, callDialog,
+                                        {'programme': programme}),
+                                ],
+                              )
                             ],
-                          )
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: ((context) =>
-                                    ProgrammePage(programme: programme))));
-                      }),
-                  const Divider(color: Colors.grey),
-                  space(height: 10),
-                ],
-              )),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) =>
+                                        ProgrammePage(programme: programme))));
+                          }),
+                      const Divider(color: Colors.grey),
+                      space(height: 10),
+                    ],
+                  )),
           ],
         ));
   }
@@ -560,13 +565,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
         orElse: () => Programme('NON EXISTENT'));
 
     // Extracte acronym from programme name => Trhee first letter for each word in uppercase
-    String progAcronym = (programme.code != ""
-            ? programme.code
-            : programme.name)
-        .split(' ')
-        .map(
-            (word) => ((word.isNotEmpty) && (word.length >= 3)) ? word.substring(0, 3).toUpperCase() : '')
-        .join();
+    String progAcronym =
+        (programme.code != "" ? programme.code : programme.name)
+            .split(' ')
+            .map((word) => ((word.isNotEmpty) && (word.length >= 3))
+                ? word.substring(0, 3).toUpperCase()
+                : '')
+            .join();
 
     String projectAcronym = (project.code != "")
         ? project.code
@@ -596,8 +601,54 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     : '')
             .join();
 
+    List<Organization> financiers = [];
+    for (var uuid in project.financiers) {
+      try {
+        financiers.add(projectsCache!.organizations
+            .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
+      } catch (e) {
+        continue; // Ignore errors if the object is not found
+      }
+    }
+
+    List<Organization> partners = [];
+    for (var uuid in project.partners) {
+      try {
+        partners.add(projectsCache!.organizations
+            .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
+      } catch (e) {
+        continue; // Ignore errors if the object is not found
+      }
+    }
+
+    List<Country> countries = [];
+    for (var locations in project.locations) {
+      try {
+        Country country = projectsCache!.countries
+            .firstWhere((ctry) => (ctry.uuid == locations['country']));
+        if (!countries.contains(country)) {
+          countries.add(country);
+        }
+      } catch (e) {
+        continue; // Ignore errors if the object is not found
+      }
+    }
+
+    String finnAcronym = (financiers.isNotEmpty)
+        ? financiers.map((finn) => finn.acronym()).join('-')
+        : "NDF"; // No definido financiador
+    String partAcronym = (partners.isNotEmpty)
+        ? partners.map((part) => part.acronym()).join('-')
+        : "NDP"; // No definido partner
+    String countryAcronym = "NDC";
+    if (countries.isNotEmpty) {
+      countryAcronym = countries.map((country) => country.code).join('-');
+    }
+
+    // Acronym format: YYYY-FINN-CONV-PARTN-COUNTRY-PROG-PROY
+
     String acronym = (project.announcementYear.isNotEmpty)
-        ? "${project.announcementYear}-$progAcronym-$annAcronym-$projectAcronym"
+        ? "${project.announcementYear}-$finnAcronym-$annAcronym-$partAcronym-$countryAcronym-$progAcronym-$projectAcronym"
         : "0000-$progAcronym-$annAcronym-$projectAcronym";
 
     return Column(children: [
