@@ -88,6 +88,23 @@ class Organization {
     return KeyValue(uuid, name);
   }
 
+  String acronym() {
+    if (code.isNotEmpty) {
+      return code.toUpperCase();
+    }
+    List<String> words = name.split(" ");
+    String acro = "";
+    for (var word in words) {
+      if (word.isNotEmpty) {
+        // Check if the word is not empty and > 3 chars, => take first 3 chars
+        if (word.length > 3) {
+          acro += word.substring(0, 3).toUpperCase();
+        }
+      }
+    }
+    return acro;
+  }
+
   Future<void> save() async {
     if (id == "") {
       var newUuid = const Uuid();

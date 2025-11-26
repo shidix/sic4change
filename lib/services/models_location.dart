@@ -40,9 +40,9 @@ class Country {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
-        id = value.id;
-      });
+      var item = await FirebaseFirestore.instance.collection(tbName).add(data);
+      id = item.id;
+      item.update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance.collection(tbName).doc(id).set(data);

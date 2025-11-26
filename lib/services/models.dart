@@ -44,6 +44,7 @@ class SProject {
   String announcementCode = "";
   String ambit = "";
   String folder = "";
+  List<Map<String, dynamic>> locations = [];
   bool audit = false;
   bool evaluation = false;
   List financiers = [];
@@ -70,6 +71,10 @@ class SProject {
 
   SProject update(Map<String, dynamic> json) {
     if (json["id"] != id) return this;
+
+    if (json.containsKey("locations")) {
+      locations = List<Map<String, dynamic>>.from(json['locations']);
+    }
 
     if (json.containsKey("id")) id = json["id"];
     if (json.containsKey("uuid")) uuid = json["uuid"];
@@ -131,6 +136,9 @@ class SProject {
     item.partners = json['partners'];
     item.announcementYear = json['announcementYear'] ?? "";
     item.announcementCode = json['announcementCode'] ?? "";
+    item.locations = (json.containsKey("locations"))
+        ? List<Map<String, dynamic>>.from(json['locations'])
+        : [];
     item.folder = json['folder'];
     if (!json.containsKey("execBudget")) {
       item.execBudget = 0;
@@ -218,10 +226,19 @@ class SProject {
   }
 
   Future<void> save() async {
+    List<ProjectLocation> locList =
+        await ProjectLocation.getProjectLocationByProject(uuid);
+    if (locList.isNotEmpty) {
+      locations = locList.map((loc) => loc.toJson()).toList();
+    } else {
+      locations = [];
+    }
     if (id == "") {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
+
+      data["locations"] = locations;
       var item = await FirebaseFirestore.instance
           .collection(SProject.tbName)
           .add(data);
@@ -233,6 +250,7 @@ class SProject {
       createLog("Creada la iniciativa: $name");
     } else {
       Map<String, dynamic> data = toJson();
+      data["locations"] = locations;
       FirebaseFirestore.instance.collection(SProject.tbName).doc(id).set(data);
       createLog("Modificada la iniciativa: $name");
     }
@@ -1712,7 +1730,11 @@ class ProjectLocation {
       var newUuid = const Uuid();
       uuid = newUuid.v4();
       Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection("s4c_project_location").add(data);
+      var item = await FirebaseFirestore.instance
+          .collection("s4c_project_location")
+          .add(data);
+      id = item.id;
+      item.update({'id': id});
     } else {
       Map<String, dynamic> data = toJson();
       FirebaseFirestore.instance
@@ -1805,7 +1827,7 @@ class ProjectLocation {
     return items;
   }
 
-  static Future<ProjectLocation> getProjectLocationByProject(
+  static Future<List<ProjectLocation>> getProjectLocationByProject(
       String _project) async {
     // CollectionReference dbLocation = db.collection("s4c_project_location");
     QuerySnapshot query = await FirebaseFirestore.instance
@@ -1813,21 +1835,36 @@ class ProjectLocation {
         .where("project", isEqualTo: _project)
         .get();
 
+    List<ProjectLocation> items = [];
+
     if (query.docs.isEmpty) {
       ProjectLocation loc = ProjectLocation(_project);
       loc.save();
-      return loc;
+      return [loc];
     }
 
-    final dbRes = query.docs.first;
-    final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
-    data["id"] = dbRes.id;
-    ProjectLocation pl = ProjectLocation.fromJson(data);
-    pl.countryObj = await pl.getCountry();
-    pl.provinceObj = await pl.getProvince();
-    pl.regionObj = await pl.getRegion();
-    pl.townObj = await pl.getTown();
-    return pl;
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      final item = ProjectLocation.fromJson(data);
+      item.countryObj = await item.getCountry();
+      item.provinceObj = await item.getProvince();
+      item.regionObj = await item.getRegion();
+      item.townObj = await item.getTown();
+      items.add(item);
+    }
+
+    return items;
+
+    // final dbRes = query.docs.first;
+    // final Map<String, dynamic> data = dbRes.data() as Map<String, dynamic>;
+    // data["id"] = dbRes.id;
+    // ProjectLocation pl = ProjectLocation.fromJson(data);
+    // pl.countryObj = await pl.getCountry();
+    // pl.provinceObj = await pl.getProvince();
+    // pl.regionObj = await pl.getRegion();
+    // pl.townObj = await pl.getTown();
+    // return pl;
   }
 }
 
