@@ -10,6 +10,8 @@ import 'package:sic4change/services/utils.dart';
 
 // import 'package:uuid/uuid.dart';
 
+const double defaultHours = 8.0;
+
 class Nomina {
   static const String tbName = "s4c_nominas";
 
@@ -635,9 +637,15 @@ class Shift {
       };
 
   factory Shift.getEmpty({DateTime? date}) {
-    return Shift(
-        date: truncDate(date ?? DateTime.now()),
-        hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]);
+    return Shift(date: truncDate(date ?? DateTime.now()), hours: [
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      0,
+      0
+    ]);
   }
 
   bool isWorkingDay(DateTime date) {
@@ -865,9 +873,15 @@ class Employee {
 
   Shift getShift({DateTime? date}) {
     if (shift.isEmpty) {
-      shift.add(Shift(
-          date: truncDate(DateTime.now()),
-          hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]));
+      shift.add(Shift(date: truncDate(DateTime.now()), hours: [
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        0,
+        0
+      ]));
       save();
       return shift.first;
     }
