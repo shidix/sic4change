@@ -10,14 +10,35 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_tasks.dart';
 
 class ProjectsProvider with ChangeNotifier {
   bool _initialized = false;
   late final Key key;
   late DateTime lastSync;
-  DateTime syncProjects = DateTime(2000, 1, 1);
-  DateTime syncProgrammes = DateTime(2000, 1, 1);
+  // DateTime syncProjects = DateTime(2000, 1, 1);
+  // DateTime syncProgrammes = DateTime(2000, 1, 1);
+  Map<String, DateTime> syncDates = {
+    'projects': DateTime(2000, 1, 1),
+    'ambits': DateTime(2000, 1, 1),
+    'types': DateTime(2000, 1, 1),
+    'contacts': DateTime(2000, 1, 1),
+    'countries': DateTime(2000, 1, 1),
+    'programmes': DateTime(2000, 1, 1),
+    'organizations': DateTime(2000, 1, 1),
+    'projectDates': DateTime(2000, 1, 1),
+    'projectStatuses': DateTime(2000, 1, 1),
+    'locations': DateTime(2000, 1, 1),
+    'folders': DateTime(2000, 1, 1),
+    'tasks': DateTime(2000, 1, 1),
+    'taskStatuses': DateTime(2000, 1, 1),
+    'profiles': DateTime(2000, 1, 1),
+    'regions': DateTime(2000, 1, 1),
+    'provinces': DateTime(2000, 1, 1),
+    'towns': DateTime(2000, 1, 1),
+    'programmeIndicators': DateTime(2000, 1, 1),
+  };
 
   Profile? _profile;
   User? user;
@@ -193,9 +214,9 @@ class ProjectsProvider with ChangeNotifier {
   }
 
   List<SProject> get projects {
-    if (!isUpdated(syncProjects)) {
+    if (!isUpdated(syncDates['projects']!) || _projects.isEmpty) {
       loadProjects();
-      syncProjects = DateTime.now();
+      syncDates['projects'] = DateTime.now();
     }
     return _projects;
   }
@@ -262,16 +283,23 @@ class ProjectsProvider with ChangeNotifier {
     sendNotify();
   }
 
-  List<Profile> get profiles => _profiles;
+  List<Profile> get profiles {
+    if (!isUpdated(syncDates['profiles']!) || _profiles.isEmpty) {
+      loadProfiles();
+      syncDates['profiles'] = DateTime.now();
+    }
+    return _profiles;
+  }
+
   set profiles(List<Profile> value) {
     _profiles = value;
     sendNotify();
   }
 
   List<Programme> get programmes {
-    if (!isUpdated(syncProgrammes) || _programmes.isEmpty) {
+    if (!isUpdated(syncDates['programmes']!) || _programmes.isEmpty) {
       loadProgrammes();
-      syncProgrammes = DateTime.now();
+      syncDates['programmes'] = DateTime.now();
     }
     return _programmes;
   }
@@ -321,7 +349,7 @@ class ProjectsProvider with ChangeNotifier {
     if (notify) sendNotify();
   }
 
-  void loadProfiles({bool notify = true}) async {
+  Future<void> loadProfiles({bool notify = true}) async {
     _isLoading.add(true);
     _profiles =
         await Profile.byOrganization(organization: _profile!.organization);
@@ -394,8 +422,8 @@ class ProjectsProvider with ChangeNotifier {
       ],
     );
     _projects = await SProject.getProjects(
-        cache: isUpdated(syncProjects) && _projects.isNotEmpty);
-    syncProjects = DateTime.now();
+        cache: isUpdated(syncDates['projects']!) && _projects.isNotEmpty);
+    syncDates['projects'] = DateTime.now();
     for (var project in _projects) {
       // check and assign related objects
       if (_ambits.any((element) => element.uuid == project.ambit)) {
@@ -408,10 +436,10 @@ class ProjectsProvider with ChangeNotifier {
             _projectTypes.firstWhere((element) => element.uuid == project.type);
       }
       // managerObj
-      if (_contacts.any((element) => element.uuid == project.manager)) {
-        project.managerObj =
-            _contacts.firstWhere((element) => element.uuid == project.manager);
+      if (project.managerObj.id != project.manager) {
+        project.managerObj = await Employee.byId(project.manager);
       }
+
       // programmeObj
       if (_programmes.any((element) => element.uuid == project.programme)) {
         project.programmeObj = _programmes

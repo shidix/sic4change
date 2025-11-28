@@ -1125,7 +1125,9 @@ class Employee {
   }
 
   static Future<List<Employee>> getEmployees(
-      {dynamic organization, bool includeInactive = false}) async {
+      {dynamic organization,
+      bool includeInactive = false,
+      List<String>? emails}) async {
     // get from database
     String organizationId = '';
 
@@ -1134,16 +1136,23 @@ class Employee {
     }
     List<Employee> items = [];
     QuerySnapshot<Map<String, dynamic>>? data;
-    if (organizationId.isNotEmpty) {
+    if (emails != null && emails.isNotEmpty) {
       data = await FirebaseFirestore.instance
           .collection(tbName)
-          .where('organization', isEqualTo: organizationId)
+          .where('email', whereIn: emails)
           .get();
-      if (data.docs.isEmpty) {
+    } else {
+      if (organizationId.isNotEmpty) {
+        data = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where('organization', isEqualTo: organizationId)
+            .get();
+        if (data.docs.isEmpty) {
+          data = await FirebaseFirestore.instance.collection(tbName).get();
+        }
+      } else {
         data = await FirebaseFirestore.instance.collection(tbName).get();
       }
-    } else {
-      data = await FirebaseFirestore.instance.collection(tbName).get();
     }
 
     if (data.docs.isNotEmpty) {
@@ -1170,6 +1179,13 @@ class Employee {
       items = items.where((element) => element.isActive()).toList();
     }
     return items;
+  }
+
+  KeyValue? toKeyValue() {
+    if (id == null || id!.isEmpty) {
+      return null;
+    }
+    return KeyValue(id!, getFullName());
   }
 
   bool inDepartment(dynamic departments) {

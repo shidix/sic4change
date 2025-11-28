@@ -14,6 +14,7 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_finn.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_marco.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/project_folders.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:uuid/uuid.dart';
@@ -54,7 +55,7 @@ class SProject {
   Ambit ambitObj = Ambit("");
   ProjectType typeObj = ProjectType("");
   ProjectStatus statusObj = ProjectStatus("");
-  Contact managerObj = Contact("");
+  Employee managerObj = Employee.getEmpty();
   Programme programmeObj = Programme("");
   List<Organization> financiersObj = [];
   List<Organization> partnersObj = [];
@@ -123,6 +124,7 @@ class SProject {
     item.uuid = json["uuid"];
     item.name = json['name'];
     item.description = json['description'];
+    item.manager = (json.containsKey("manager")) ? json['manager'] : "";
     item.type = json['type'];
     item.code = (json.containsKey("code")) ? json['code'] : "";
     item.status = json['status'];
@@ -222,9 +224,9 @@ class SProject {
     return KeyValue(uuid, name);
   }
 
-  String code_calculated() {
-    return "$name ($uuid)";
-  }
+  // String code_calculated() {
+  //   return "$name ($uuid)";
+  // }
 
   Future<void> save() async {
     List<ProjectLocation> locList =
@@ -276,7 +278,7 @@ class SProject {
     // SProject _project = SProject.fromJson(data);
     typeObj = await getProjectType();
     statusObj = await getProjectStatus();
-    managerObj = await getManager();
+    // managerObj = await getManager();
     programmeObj = await getProgramme();
     financiersObj = await getFinanciers();
     partnersObj = await getPartners();
@@ -486,7 +488,7 @@ class SProject {
     }*/
   }
 
-  Future<Contact> getManager() async {
+  Future<Employee> getManager() async {
     try {
       // QuerySnapshot query =
       //     await dbContacts.where("uuid", isEqualTo: manager).get();
@@ -494,9 +496,9 @@ class SProject {
       // final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       // data["id"] = doc.id;
       // return Contact.fromJson(data);
-      return Contact.byUuid(manager);
+      return Employee.byId(manager) as Employee;
     } catch (e) {
-      return Contact("");
+      return Employee.getEmpty();
     }
     /*if (managerObj.name == "") {
       try {
@@ -658,7 +660,7 @@ class SProject {
     ambitObj = await getAmbit();
     typeObj = await getProjectType();
     statusObj = await getProjectStatus();
-    managerObj = await getManager();
+    // managerObj = await getManager();
     programmeObj = await getProgramme();
     financiersObj = await getFinanciers();
     partnersObj = await getPartners();

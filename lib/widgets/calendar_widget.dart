@@ -520,6 +520,11 @@ class CalendarWidgetState extends State<CalendarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    for (HolidayRequest holiday in widget.holidays) {
+      if (listHolidays.indexWhere((h) => h.id == holiday.id) == -1) {
+        listHolidays.add(holiday);
+      }
+    }
     List<DateTime> daysInCalendar = [];
     DateTime current = startDate;
     while (current.isBefore(endDate) || isSameDay(current, endDate)) {

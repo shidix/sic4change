@@ -924,7 +924,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         space(height: 5),
         customText("Responsable del proyecto:", 16, textColor: Colors.grey),
         space(height: 5),
-        customText(project.managerObj.name, 16),
+        customText(project.managerObj.getFullName(), 16),
         space(height: 5),
         const Divider(color: Colors.grey),
         space(height: 5),
