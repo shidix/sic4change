@@ -6,6 +6,7 @@ No se debe mostrar en el listado principal el presupuesto asignado => Done
 Mostrar el % de indicadores completados  
 Revisar la cache de las vacaciones => Done
 Agregar campo "año convocatoria" "codigo convocatoria" "nombre convocatoria" al proyecto. => Done
+Multilocalización de proyectos => DONE
 CODIGO:AñoConvo-Financiador-Convocatoria-Socio0-Socio1-Socio2-Pais-Programa => DONE
 
 ============================================
@@ -13,17 +14,18 @@ Mostrar el % de indicadores completados en el listado de proyectos
 Revisar nombres de Programas para que si son muy largos aparece un acrónimo => DONE
 Arreglar la subida incontrolada => DONE
 Cuadro de proyectos en RRHH => no se mueve el listado => DONE
-Limitacion de los campos a numeros.
+Limitacion de los campos a numeros. => DONE
+Eliminar una localización de los proyectos.
 Gestion de partidas
-    Borrado de partidas => No se refresca
-    Revisar porque no aparecen todos los socios (Cache)
-    Que al hacer la distribucion aparezca lo que queda por distribuir
+    Borrado de partidas => No se refresca => DONE
+    Revisar porque no aparecen todos los socios (Cache) => DONE
+    Que al hacer la distribucion aparezca lo que queda por distribuir => DONE
 Marco Logico
     Al añadir resultados en un objetivo especifico
         Al añadir indicador de resultados => 
             El valor de "Resultado obtenido" debe ser un listado por fechas (Agregar fecha como campo)
             Todos los campos menos la unidad deben ser numéricos
-
     Tareas.
         Si se escoge un proyecto, se debe autorellenar el programa
 
+En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos.

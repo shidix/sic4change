@@ -74,8 +74,9 @@ class _FinnsPageState extends State<FinnsPage> {
   @override
   void initState() {
     super.initState();
-    _project = widget.project;
     projectsCache = context.read<ProjectsProvider>();
+    _project = projectsCache!.projects
+        .firstWhere((proj) => proj.uuid == widget.project!.uuid);
     projectsCache!.addListener(() {
       if (mounted) {
         setState(() {
@@ -1169,7 +1170,10 @@ class _FinnsPageState extends State<FinnsPage> {
 
   Widget getInfoPartners(context, args) {
     List<Widget> rows = [];
-    for (Organization partner in _project!.partnersObj) {
+    List<Organization> partners = projectsCache!.organizations
+        .where((org) => _project!.partners.contains(org.uuid))
+        .toList();
+    for (Organization partner in partners) {
       rows.add(Row(children: [
         Expanded(flex: 1, child: partnerSummaryCard(partner)),
       ]));

@@ -1,0 +1,24 @@
+Cambiar horas a 8 por default
+Duplicar permisos
+Agregar horas de permiso (se requiere documento)
+
+Finns
+    Revisar porque no aparecen todos los socios (Cache) => DONE
+    Que al hacer la distribucion aparezca lo que queda por distribuir => DONE
+Marco Logico
+    Al añadir resultados en un objetivo especifico
+        Al añadir indicador de resultados => 
+            El valor de "Resultado obtenido" debe ser un listado por fechas (Agregar fecha como campo)
+            Todos los campos menos la unidad deben ser numéricos
+    Tareas.
+        Si se escoge un proyecto, se debe autorellenar el programa
+
+RRHH
+    - Revisar la contabilizacion de dias disfrutados en el historial.
+
+
+Tarea Cristina
+    - Verificar la fecha de validez de los permisos. 
+    - Verificar multicalendario en usuarios.
+
+Desactivar el botón de enviar solicitud si no hay días suficientes.
