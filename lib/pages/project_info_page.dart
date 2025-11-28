@@ -632,6 +632,17 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   //Widget projectFinanciers(context, project) {
   Widget projectFinanciers(context) {
+    // Check if all uuids exist in organizations
+    int initialLength = project!.financiers.length;
+    project!.financiers.removeWhere((uuid) => !projectsProvider!.organizations
+        .any((organization) => organization.uuid == uuid));
+
+    if (project!.financiers.length < initialLength) {
+      // Some uuids were removed, update the project
+      project!.save();
+      projectsProvider!.addProject(project!, notify: false);
+    }
+
     return ListView.builder(
         //padding: const EdgeInsets.all(8),
         physics: const NeverScrollableScrollPhysics(),
@@ -1198,17 +1209,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           FINACIERS                                */
   /*--------------------------------------------------------------------*/
-  void saveFinancier(List args) async {
-    String? uuid = args[0];
-    if (uuid != null) {
-      if (!project!.financiers.contains(uuid)) {
-        project?.financiers.add(uuid);
-        projectsProvider!.addProject(project!);
-        project!.save();
-      }
-    }
-    Navigator.pop(context);
-  }
 
   Future<bool> removeFinancierDialog(
       BuildContext context, Map<String, dynamic> args) async {
@@ -1242,6 +1242,19 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         .toList();
 
     String? uuidSelected;
+
+    void saveFinancier(dynamic args) async {
+      String? uuid = uuidSelected;
+      if (uuid != null) {
+        if (!project!.financiers.contains(uuid)) {
+          project?.financiers.add(uuid);
+          projectsProvider!.addProject(project!);
+          project!.save();
+        }
+      }
+      Navigator.pop(context);
+    }
+
     if (availableFinanciers.isEmpty) {
       return showDialog<void>(
         context: context,
@@ -1300,24 +1313,6 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   /*--------------------------------------------------------------------*/
   /*                           PARTNERS                                 */
   /*--------------------------------------------------------------------*/
-  void savePartner(List args) async {
-    // project!.updateProjectPartners();
-    // Organization.byUuid(args[0].text).then((value) {
-    //   project?.partnersObj.add(value);
-    //   setState(() {});
-    // });
-    String? uuidSelected = args[0];
-    if (uuidSelected == null) {
-      Navigator.pop(context);
-      return;
-    }
-    if (!project!.partners.contains(uuidSelected)) {
-      project?.partners.add(uuidSelected);
-      project!.save();
-      projectsProvider!.addProject(project!);
-    }
-    Navigator.pop(context);
-  }
 
   void removePartnerDialog(context, Map<String, dynamic> args) {
     customRemoveDialog(context, null, removePartner, args["partner"]);
@@ -1342,10 +1337,25 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   Future<void> editProjectPartnerDialog(context, project, orgs) {
-    TextEditingController controller = TextEditingController(text: "");
+    // TextEditingController controller = TextEditingController(text: "");
     List<Organization> availablePartnersOrgs = projectsProvider!.organizations
         .where((org) => (org.partner && !project.partners.contains(org.uuid)))
         .toList();
+
+    String? uuidSelected;
+
+    void savePartner(List args) async {
+      if (uuidSelected == null) {
+        Navigator.pop(context);
+        return;
+      }
+      if (!project!.partners.contains(uuidSelected)) {
+        project?.partners.add(uuidSelected);
+        project!.save();
+        projectsProvider!.addProject(project!);
+      }
+      Navigator.pop(context);
+    }
 
     if (availablePartnersOrgs.isEmpty) {
       return showDialog<void>(
@@ -1375,7 +1385,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
     List<KeyValue> availablePartners =
         availablePartnersOrgs.map((e) => KeyValue(e.uuid, e.name)).toList();
-    String? uuidSelected = availablePartners.first.key;
+    uuidSelected = availablePartners.first.key;
 
     return showDialog<void>(
       context: context,
@@ -1397,7 +1407,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               ),
             ]),
           ),
-          actions: <Widget>[dialogsBtns(context, savePartner, uuidSelected)],
+          actions: <Widget>[dialogsBtns(context, savePartner, null)],
         );
       },
     ).then((_) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:googleapis/driveactivity/v2.dart';
 import 'package:intl/intl.dart';
-import 'package:sic4change/generated/l10n.dart';
+// import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/pages/finns_page.dart';
 import 'package:sic4change/pages/goals_page.dart';
 import 'package:sic4change/pages/index.dart';
@@ -43,6 +43,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
   Widget contentProgrammList = Container();
   Widget contentProjectList = Container();
   Widget? _mainMenu;
+  double screenHeight = 300;
   Profile? get currentProfile => cacheProjects!.profile;
   Organization? get currentOrg => cacheProjects!.organizations.firstWhere(
       (org) => org.id == currentProfile!.organization,
@@ -84,7 +85,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
             orElse: () => ProjectType(""));
       }
     }
-    contentProjectList = projectList();
+    contentProjectList = projectList(screenHeight);
     setState(() {});
   }
 
@@ -95,7 +96,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     cacheProjects!.addListener(() {
       _mainMenu = mainMenu(context, "/projects", cacheProjects!.profile);
       contentProgrammList = programmeList();
-      contentProjectList = projectList(null, null);
+      contentProjectList = projectList(screenHeight);
       setState(() {});
     });
 
@@ -131,6 +132,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
 
   @override
   Widget build(BuildContext context) {
+    screenHeight = 450;
     String currentTab = (prType == "Proyecto") ? "proyectos" : "consultorias";
     // Count of projects in each tab
     int proyectosCount = cacheProjects!.projects
@@ -193,7 +195,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                   extraction: () {
                                 setState(() {
                                   prType = "Proyecto";
-                                  contentProjectList = projectList(null, null);
+                                  contentProjectList =
+                                      projectList(screenHeight);
                                 });
                               }),
                               menuTab2(
@@ -205,7 +208,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                   extraction: () {
                                 setState(() {
                                   prType = "Consultoría";
-                                  contentProjectList = projectList(null, null);
+                                  contentProjectList =
+                                      projectList(screenHeight);
                                 });
                               }),
                             ],
@@ -699,7 +703,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  Widget projectList([args1, args2]) {
+  Widget projectList(double screenHeight) {
     prList = cacheProjects!.projects;
     if (prType != null) {
       ProjectType? objPrType = cacheProjects!.types.firstWhere(
@@ -726,7 +730,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     double factorScreen = 0.80;
 
     return SizedBox(
-        height: 600,
+        height: 0.7 * screenHeight,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Material(
               elevation: 2,
