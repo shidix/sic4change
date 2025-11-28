@@ -5,7 +5,7 @@ Finns
     Que al hacer la distribucion aparezca lo que queda por distribuir => DONE
 
 Proyectos
-    - En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos.
+    - En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos. => DONE
 
 Marco Logico
     Al añadir resultados en un objetivo especifico

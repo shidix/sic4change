@@ -124,6 +124,7 @@ class SProject {
     item.name = json['name'];
     item.description = json['description'];
     item.type = json['type'];
+    item.code = (json.containsKey("code")) ? json['code'] : "";
     item.status = json['status'];
     item.budget = json['budget'];
     item.manager = json['manager'];
