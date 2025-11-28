@@ -22,3 +22,4 @@ Tarea Cristina
     - Verificar multicalendario en usuarios.
 
 Desactivar el botón de enviar solicitud si no hay días suficientes.
+En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos.

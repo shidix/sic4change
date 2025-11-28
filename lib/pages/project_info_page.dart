@@ -699,7 +699,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               children: [
                 customText(partners[index].name, 14),
                 removeBtn(
-                    context, removePartnerDialog, {"partner": currentPartner}),
+                  context,
+                  removePartnerDialog,
+                  {"partner": partners[index]},
+                ),
               ]);
         });
   }
