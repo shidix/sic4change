@@ -709,7 +709,7 @@ String getAcronym(
       .join();
 
   String projectAcronym = (project.code != "")
-      ? project.code
+      ? project.code.toUpperCase()
       : project.name
           .split(' ')
           .map((word) =>
