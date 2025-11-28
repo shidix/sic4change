@@ -651,12 +651,26 @@ class _ProjectsPageState extends State<ProjectsPage> {
         ? "${project.announcementYear}-$finnAcronym-$annAcronym-$partAcronym-$countryAcronym-$progAcronym-$projectAcronym"
         : "0000-$progAcronym-$annAcronym-$projectAcronym";
 
+    acronym =
+        getAcronym(projectsCache!, project, currentOrg ?? Organization(''));
+
     return Column(children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(flex: 4, child: Text(acronym, style: mainText)),
+          Expanded(
+              flex: 4,
+              child: InkWell(
+                child: Text(acronym, style: mainText),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) =>
+                              ProjectInfoPage(project: project))));
+                },
+              )),
           Expanded(
               flex: 1,
               child: Text(project.statusObj.name,

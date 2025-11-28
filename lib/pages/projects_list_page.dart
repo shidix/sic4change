@@ -808,13 +808,27 @@ class _ProjectListPageState extends State<ProjectListPage> {
                               .map(
                                 (proj) => DataRow(cells: [
                                   DataCell(SizedBox(
-                                    width: columnWidths[0] * 0.01 * totalWidth,
-                                    child: Text(
-                                      getAcronym(cacheProjects!, proj,
-                                          currentOrg ?? Organization('')),
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                  )),
+                                      width:
+                                          columnWidths[0] * 0.01 * totalWidth,
+                                      child:
+                                          // Add onTap to show project info page
+                                          InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: ((context) =>
+                                                      ProjectInfoPage(
+                                                        project: proj,
+                                                        returnToList: true,
+                                                      ))));
+                                        },
+                                        child: Text(
+                                          getAcronym(cacheProjects!, proj,
+                                              currentOrg ?? Organization('')),
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ))),
                                   DataCell(SizedBox(
                                     width: columnWidths[1] * 0.01 * totalWidth,
                                     child: Text(
