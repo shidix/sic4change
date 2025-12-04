@@ -4,7 +4,6 @@ Agregar horas de permiso (se requiere documento)
 
 Finns
     Revisar porque no aparecen todos los socios (Cache) => DONE
-    Que al hacer la distribucion aparezca lo que queda por distribuir => DONE
 Marco Logico
     Al añadir resultados en un objetivo especifico
         Al añadir indicador de resultados => 
@@ -22,3 +21,8 @@ Tarea Cristina
     - Verificar multicalendario en usuarios.
 
 Desactivar el botón de enviar solicitud si no hay días suficientes.
+
+Proyectos.
+    - Revisar añadir y eliminar socios y financiadores en la pantalla de edición => DONE
+    - Agregar la opción de pinchar en el acrónimo para ir a los datos del proyecto => DONE
+    
