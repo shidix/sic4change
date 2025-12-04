@@ -65,7 +65,7 @@ class DiagramValues2 {
 /*
           PIE DIAGRAM
 */
-Widget pieDiagram(context, List<DiagramValues> diagList) {
+Widget pieDiagram(context, List<DiagramValues> diagList, {percent = true}) {
   double totalSum = 0;
   for (DiagramValues dv in diagList) {
     try {
@@ -103,7 +103,8 @@ Widget pieDiagram(context, List<DiagramValues> diagList) {
             ),
             sectionsSpace: 0,
             centerSpaceRadius: 40,
-            sections: showingSections(diagList),
+            //show values in percent
+            sections: showingSections(diagList, percent: percent),
           ))),
       Container(
         width: MediaQuery.of(context).size.width * 0.12,
@@ -129,7 +130,7 @@ Widget pieDiagram(context, List<DiagramValues> diagList) {
   );
 }
 
-List<PieChartSectionData> showingSections(List diagList) {
+List<PieChartSectionData> showingSections(List diagList, {percent = true}) {
   List<PieChartSectionData> pList = [];
 
   for (DiagramValues dv in diagList) {
@@ -137,7 +138,7 @@ List<PieChartSectionData> showingSections(List diagList) {
       PieChartSectionData section = PieChartSectionData(
         color: dv.color,
         value: double.parse(dv.percent),
-        title: '${dv.percent}%',
+        title: (percent) ? '${dv.percent}%' : dv.percent,
         //radius: radius,
         titleStyle: const TextStyle(
           //fontSize: fontSize,

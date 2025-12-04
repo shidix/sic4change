@@ -2,6 +2,7 @@
 
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // import 'package:googleapis/dfareporting/v4.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,7 @@ import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_location.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -56,6 +58,8 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     }
   }
 
+  List<Employee> supervisors = [];
+
   Widget? projectInfoHeaderPanel;
   Widget profileMenuPanel = Container();
   Widget? projectInfoDetailsPanel;
@@ -73,9 +77,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         (element) => element.uuid == project!.status,
         orElse: () => ProjectStatus("Unknown"));
 
-    project!.managerObj = projectsProvider!.contacts.firstWhere(
-        (element) => element.uuid == project!.manager,
-        orElse: () => Contact("Unknown"));
+    if (project!.managerObj.id != project!.manager) {
+      project!.managerObj = await Employee.byId(project!.manager);
+    }
+
     project!.programmeObj = projectsProvider!.programmes.firstWhere(
         (element) => element.uuid == project!.programme,
         orElse: () => Programme("Unknown"));
@@ -148,9 +153,11 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   void updateProject(SProject projectToUpdate) {
     projectToUpdate.save();
-    projectToUpdate.managerObj = projectsProvider!.contacts.firstWhere(
-        (element) => element.uuid == projectToUpdate.manager,
-        orElse: () => Contact("Unknown"));
+    if (projectToUpdate.managerObj.id != projectToUpdate.manager) {
+      Employee.byId(projectToUpdate.manager)
+          .then((value) => projectToUpdate.managerObj = value);
+    }
+
     projectToUpdate.programmeObj = projectsProvider!.programmes.firstWhere(
         (element) => element.uuid == projectToUpdate.programme,
         orElse: () => Programme("Unknown"));
@@ -175,15 +182,30 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       projectsProvider = ProjectsProvider();
     }
     projectsProvider ??= context.read<ProjectsProvider?>();
-
-    projectsProvider!.addListener(() {
-      loadProjectFromCache().then((value) {
+    projectsProvider!.loadProfiles().then((_) {
+      Employee.getEmployees(
+              emails: projectsProvider!.profiles
+                  .where((_profile) => _profile.isSupervisor(
+                      organization: profile!.organization))
+                  .map((e) => e.email)
+                  .toList())
+          .then((value) {
+        supervisors = value;
+        project!.managerObj = supervisors.firstWhere(
+            (element) => element.id == project!.manager,
+            orElse: () => Employee.getEmpty(name: "Sin asignar"));
         if (!mounted) return;
-
-        projectInfoHeaderPanel = projectInfoHeader(context);
-        profileMenuPanel = profileMenu(context, project, "info");
-        projectInfoDetailsPanel = projectInfoDetails(context);
         setState(() {});
+      });
+
+      projectsProvider!.addListener(() {
+        loadProjectFromCache().then((value) {
+          if (!mounted) return;
+          projectInfoHeaderPanel = projectInfoHeader(context);
+          profileMenuPanel = profileMenu(context, project, "info");
+          projectInfoDetailsPanel = projectInfoDetails(context);
+          setState(() {});
+        });
       });
     });
 
@@ -313,9 +335,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 /*                           PROJECT CARD                             */
 /*--------------------------------------------------------------------*/
   Widget projectManagerProgramme(context, SProject _project) {
-    _project.managerObj = projectsProvider!.contacts.firstWhere(
-        (element) => element.uuid == _project.manager,
-        orElse: () => Contact("Unknown"));
+    // _project.managerObj = projectsProvider!.contacts.firstWhere(
+    //     (element) => element.uuid == _project.manager,
+    //     orElse: () => Contact("Unknown"));
+    if (_project.managerObj.id != _project.manager) {
+      _project.managerObj = supervisors.firstWhere(
+          (element) => element.id == _project.manager,
+          orElse: () => Employee.getEmpty());
+    }
     _project.programmeObj = projectsProvider!.programmes.firstWhere(
         (element) => element.uuid == _project.programme,
         orElse: () => Programme("Unknown"));
@@ -330,7 +357,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   customText("Responsable del proyecto", 14,
                       bold: FontWeight.bold),
                   space(height: 5),
-                  customText(_project.managerObj.name, 14),
+                  customText(_project.managerObj.getFullName(), 14),
                 ],
               )),
           const VerticalDivider(
@@ -691,15 +718,18 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
               .where((element) => project.partners.contains(element.uuid))
               .toList();
 
-          Organization currentPartner = projectsProvider!.organizations
-              .firstWhere((element) => element.uuid == project.partners[index],
-                  orElse: () => Organization("Unknown"));
+          // Organization currentPartner = projectsProvider!.organizations
+          //     .firstWhere((element) => element.uuid == project.partners[index],
+          //         orElse: () => Organization("Unknown"));
           return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 customText(partners[index].name, 14),
                 removeBtn(
-                    context, removePartnerDialog, {"partner": currentPartner}),
+                  context,
+                  removePartnerDialog,
+                  {"partner": partners[index]},
+                ),
               ]);
         });
   }
@@ -938,13 +968,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
   }
 
   void _callProjectEditDialog(context, SProject project) async {
-    List<Profile> supervisorProfiles = profileProvider!.profiles
-        .where((profile) => profile.mainRole == Profile.SUPERVISOR)
-        .toList();
-    List<Contact> supervisors = projectsProvider!.contacts
-        .where((contact) =>
-            supervisorProfiles.any((profile) => profile.email == contact.email))
-        .toList();
+    // List<Profile> supervisorProfiles = profileProvider!.profiles
+    //     .where((profile) => profile.mainRole == Profile.SUPERVISOR)
+    //     .toList();
+    // List<Contact> supervisors = projectsProvider!.contacts
+    //     .where((contact) =>
+    //         supervisorProfiles.any((profile) => profile.email == contact.email))
+    //     .toList();
 
     // List<KeyValue> ambits = await Ambit.getAmbitsHash();
     // List<KeyValue> types = await ProjectType.getProjectTypesHash();
@@ -957,7 +987,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         projectsProvider!.types.map((e) => e.toKeyValue()).toList();
     List<KeyValue> status =
         projectsProvider!.status.map((e) => e.toKeyValue()).toList();
-    List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
+    // List<KeyValue> contacts = supervisors.map((e) => e.toKeyValue()).toList();
+    List<KeyValue> contacts =
+        supervisors.map((e) => e.toKeyValue()).whereType<KeyValue>().toList();
     List<KeyValue> programmes =
         projectsProvider!.programmes.map((e) => e.toKeyValue()).toList();
 
@@ -974,11 +1006,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
 
   Future<void> editProjectDialog(context, SProject proj, ambits, types, status,
       contacts, programmes) async {
-    List<Contact> supervisors = projectsProvider!.contacts
-        .where((contact) => profileProvider!.profiles.any((profile) =>
-            profile.email == contact.email &&
-            profile.mainRole == Profile.SUPERVISOR))
-        .toList();
+    List<KeyValue> supervisorOptions =
+        supervisors.map((e) => e.toKeyValue()).whereType<KeyValue>().toList();
+    supervisorOptions.insert(0, KeyValue("", "Sin asignar"));
+
+    proj.typeObj = projectsProvider!.types.firstWhere(
+        (element) => element.uuid == proj.type,
+        orElse: () => ProjectType("Unknown"));
 
     return showDialog<void>(
       context: context,
@@ -1099,8 +1133,10 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     labelText: "Responsable",
                     padding: const EdgeInsets.only(right: 10),
                     size: 220,
-                    selected: proj.managerObj.toKeyValue(),
-                    options: supervisors.map((e) => e.toKeyValue()).toList(),
+                    selected: supervisorOptions.firstWhere(
+                        (element) => element.key == proj.manager,
+                        orElse: () => KeyValue("", "Sin asignar")),
+                    options: supervisorOptions,
                     onSelectedOpt: (String val) {
                       proj.manager = val;
                     },

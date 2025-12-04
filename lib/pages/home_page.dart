@@ -665,10 +665,6 @@ class _HomePageState extends State<HomePage> {
       }
 
       updateRemainingHolidays();
-
-      // myPeopleWorkdays = _rrhhProvider!.workdays
-      //     .where((wd) => mypeople.map((e) => e.email).contains(wd.userId))
-      //     .toList(growable: false);
       myPeopleWorkdays = await loadMyPeopleWorkdays();
       contentMyPeopleWorkday = loadMyPeopleWorkdaysWidget();
 
@@ -689,6 +685,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     await getNotifications();
+    contentMyPeopleCalendar = peopleCalendar();
     if (!mounted) return;
     setState(() {
       mainMenuWidget = mainMenu(context, "/home", profile);
@@ -730,6 +727,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget peopleCalendar() {
+    myPeopleHolidays = _rrhhProvider!.holidaysRequests
+        .where((hr) => mypeople.map((e) => e.email).contains(hr.userId))
+        .toList(growable: true);
+
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -919,7 +920,7 @@ class _HomePageState extends State<HomePage> {
         }
       };
     }
-    // mainMenuWidget = mainMenu(context, "/home", profile);
+    // mainMenuWidget = mainMenu(context, "/home", profile);a
     List<Widget> contents = [];
     if (MediaQuery.of(context).size.width < 800) {
       if (_currentPage == "home") {
@@ -933,6 +934,8 @@ class _HomePageState extends State<HomePage> {
           //logsPanel(context),
         ];
       } else if (_currentPage == "yourpeople") {
+        // _rrhhProvider!.employees = mypeople;
+
         contents = [
           // loadMyPeopleWorkdaysWidget(),
           // peopleCalendar(),
@@ -965,6 +968,18 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     } else if (_currentPage == "yourpeople") {
+      if (_rrhhProvider!.employees.length < mypeople.length + 1) {
+        for (var emp in mypeople) {
+          if (!_rrhhProvider!.employees.any((e) => e.email == emp.email)) {
+            _rrhhProvider!.addEmployee(emp, notify: false);
+          }
+        }
+        _rrhhProvider!.loadHolidaysRequests(notify: true, fromServer: true);
+        // contentMyPeopleWorkday = loadMyPeopleWorkdaysWidget();
+        // if (mounted) {
+        //   _rrhhProvider!.sendNotify();
+        // }
+      }
       contents = [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,

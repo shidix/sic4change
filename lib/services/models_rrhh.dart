@@ -5,10 +5,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
+import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
 // import 'package:flutter/material.dart';
 
 // import 'package:uuid/uuid.dart';
+
+const double defaultHours = 8.0;
 
 class Nomina {
   static const String tbName = "s4c_nominas";
@@ -635,9 +638,15 @@ class Shift {
       };
 
   factory Shift.getEmpty({DateTime? date}) {
-    return Shift(
-        date: truncDate(date ?? DateTime.now()),
-        hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]);
+    return Shift(date: truncDate(date ?? DateTime.now()), hours: [
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      defaultHours,
+      0,
+      0
+    ]);
   }
 
   bool isWorkingDay(DateTime date) {
@@ -865,9 +874,15 @@ class Employee {
 
   Shift getShift({DateTime? date}) {
     if (shift.isEmpty) {
-      shift.add(Shift(
-          date: truncDate(DateTime.now()),
-          hours: [7.5, 7.5, 7.5, 7.5, 7.5, 0, 0]));
+      shift.add(Shift(date: truncDate(DateTime.now()), hours: [
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        defaultHours,
+        0,
+        0
+      ]));
       save();
       return shift.first;
     }
@@ -1111,7 +1126,9 @@ class Employee {
   }
 
   static Future<List<Employee>> getEmployees(
-      {dynamic organization, bool includeInactive = false}) async {
+      {dynamic organization,
+      bool includeInactive = false,
+      List<String>? emails}) async {
     // get from database
     String organizationId = '';
 
@@ -1120,16 +1137,23 @@ class Employee {
     }
     List<Employee> items = [];
     QuerySnapshot<Map<String, dynamic>>? data;
-    if (organizationId.isNotEmpty) {
+    if (emails != null && emails.isNotEmpty) {
       data = await FirebaseFirestore.instance
           .collection(tbName)
-          .where('organization', isEqualTo: organizationId)
+          .where('email', whereIn: emails)
           .get();
-      if (data.docs.isEmpty) {
+    } else {
+      if (organizationId.isNotEmpty) {
+        data = await FirebaseFirestore.instance
+            .collection(tbName)
+            .where('organization', isEqualTo: organizationId)
+            .get();
+        if (data.docs.isEmpty) {
+          data = await FirebaseFirestore.instance.collection(tbName).get();
+        }
+      } else {
         data = await FirebaseFirestore.instance.collection(tbName).get();
       }
-    } else {
-      data = await FirebaseFirestore.instance.collection(tbName).get();
     }
 
     if (data.docs.isNotEmpty) {
@@ -1156,6 +1180,13 @@ class Employee {
       items = items.where((element) => element.isActive()).toList();
     }
     return items;
+  }
+
+  KeyValue? toKeyValue() {
+    if (id == null || id!.isEmpty) {
+      return null;
+    }
+    return KeyValue(id!, getFullName());
   }
 
   bool inDepartment(dynamic departments) {

@@ -1,3 +1,5 @@
+// import 'dart:ffi';
+
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_finn.dart';
@@ -73,11 +75,11 @@ Map<String, double> setProjectByStatus(projects) {
 }
 
 Future<Map<String, int>> setSourceFinancing(projects) async {
-  Map<String, int> sources = {
-    'Nacional/Publico': 0,
-    'Nacional/Privado': 0,
-    'Internacional/Publico': 0,
-    'Internacional/Privado': 0
+  Map<String, double> sources = {
+    'Nacional/Publico': 0.0,
+    'Nacional/Privado': 0.0,
+    'Internacional/Publico': 0.0,
+    'Internacional/Privado': 0.0
   };
   int total = 0;
   for (SProject p in projects) {
@@ -109,20 +111,24 @@ Future<Map<String, int>> setSourceFinancing(projects) async {
   }
   if (total != 0) {
     sources['Nacional/Publico'] =
-        ((sources['Nacional/Publico']! / total) * 100) as int;
+        ((sources['Nacional/Publico']! / total) * 100);
     sources['Nacional/Privado'] =
-        ((sources['Nacional/Privado']! / total) * 100) as int;
+        ((sources['Nacional/Privado']! / total) * 100);
     sources['Internacional/Publico'] =
-        ((sources['Internacional/Publico']! / total) * 100) as int;
+        ((sources['Internacional/Publico']! / total) * 100);
     sources['Internacional/Privado'] =
-        ((sources['Internacional/Privado']! / total) * 100) as int;
+        ((sources['Internacional/Privado']! / total) * 100);
   } else {
     sources['Nacional/Publico'] = 0;
     sources['Nacional/Privado'] = 0;
     sources['Internacional/Publico'] = 0;
     sources['Internacional/Privado'] = 0;
   }
-  return sources;
+  Map<String, int> intSources = {};
+  sources.forEach((key, value) {
+    intSources[key] = (value * total * 0.01).toInt();
+  });
+  return intSources;
 }
 
 class Organizacion {}

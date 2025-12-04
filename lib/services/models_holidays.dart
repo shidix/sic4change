@@ -476,6 +476,27 @@ class HolidayRequest {
 
     return items;
   }
+
+  static Future<bool> userInHoliday(String userId, DateTime date) async {
+    final Query query = FirebaseFirestore.instance
+        .collection(tbName)
+        .where("userId", isEqualTo: userId)
+        .where("startDate", isLessThanOrEqualTo: date)
+        .where("endDate", isGreaterThanOrEqualTo: date);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty) {
+      querySnap = await query.get();
+    }
+    for (var doc in querySnap.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      HolidayRequest request = HolidayRequest.fromJson(data);
+      if (request.isAproved()) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class Event {

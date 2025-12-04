@@ -162,8 +162,32 @@ Widget menuTabSelect(context, btnName, btnRoute, args) {
 Widget logoutBtn(context, btnName, btnIcon) {
   return FilledButton(
     onPressed: () async {
-      //await signOut(context);
-      await FirebaseAuth.instance.signOut();
+      // Popup showing 'Logging out...'
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Row(
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Guardando contexto y cerrando sesión..."),
+              ],
+            ),
+          );
+        },
+      );
+      // Wait 2 seconds
+      await Future.delayed(const Duration(seconds: 2));
+      try {
+        if (FirebaseAuth.instance.currentUser != null) {
+          await FirebaseAuth.instance.signOut();
+        }
+      } catch (e) {
+        // Check if user is logged
+        await Future.delayed(const Duration(seconds: 1));
+      }
       RestartApp.restart(context);
       Navigator.of(context)
           .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);

@@ -129,8 +129,16 @@ class Profile {
     return mainRole == ADMIN;
   }
 
-  bool isSupervisor() {
-    return mainRole == SUPERVISOR;
+  bool isSupervisor({String? organization}) {
+    if (organization != null) {
+      if (this.organization == null) {
+        return false;
+      }
+      if (this.organization != organization) {
+        return false;
+      }
+    }
+    return (mainRole == SUPERVISOR);
   }
 
   bool isRRHH() {

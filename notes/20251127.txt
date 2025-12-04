@@ -1,9 +1,10 @@
-Cambiar horas a 8 por default
-Duplicar permisos
-Agregar horas de permiso (se requiere documento)
-
 Finns
     Revisar porque no aparecen todos los socios (Cache) => DONE
+    Que al hacer la distribucion aparezca lo que queda por distribuir => DONE
+
+Proyectos
+    - En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos. => DONE
+
 Marco Logico
     Al añadir resultados en un objetivo especifico
         Al añadir indicador de resultados => 
@@ -14,7 +15,11 @@ Marco Logico
 
 RRHH
     - Revisar la contabilizacion de dias disfrutados en el historial.
-
+    - Cambiar horas a 8 por default => DONE
+    - Duplicar permisos
+    - Agregar horas de permiso (se requiere documento)
+    - Desactivar el botón de enviar solicitud si no hay días suficientes.
+    - Revisar por qué a Cristina le aparece como si le quedaran solo 3 días en el usuario de Blanca.
 
 Tarea Cristina
     - Verificar la fecha de validez de los permisos. 

@@ -3,6 +3,7 @@ import 'dart:developer' as dev;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/transcoder/v1.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -50,7 +51,19 @@ class RRHHProvider with ChangeNotifier {
   }
 
   List<HolidaysConfig> get calendars => _calendars;
-  List<Workday> get workdays => _workdays;
+  List<Workday> get workdays {
+    DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (updateAt.containsKey('workdays')) {
+      lastUpdate = updateAt['workdays']!;
+    }
+    if (DateTime.now().difference(lastUpdate).inMinutes > 720) {
+      loadWorkdays(notify: true, forceServer: true);
+      updateAt['workdays'] = DateTime.now();
+    }
+
+    return _workdays;
+  }
+
   List<Department> get departments => _departments;
   // List<STask> get tasks => _tasks;
 
@@ -116,7 +129,7 @@ class RRHHProvider with ChangeNotifier {
   //   sendNotify();
   // }
 
-  void addEmployee(Employee employee) {
+  void addEmployee(Employee employee, {bool notify = true}) {
     int index = _employees.indexWhere((e) => e.id == employee.id);
     if (index != -1) {
       _employees[index] = employee;
@@ -124,7 +137,7 @@ class RRHHProvider with ChangeNotifier {
       _employees.add(employee);
     }
 
-    sendNotify();
+    sendNotify(notify: notify);
   }
 
   void removeEmployee(Employee employee) {
@@ -282,11 +295,17 @@ class RRHHProvider with ChangeNotifier {
   }
 
   Future<void> loadEmployees(
-      {bool includeInactive = true, bool notify = true}) async {
+      {bool includeInactive = true,
+      bool notify = true,
+      Profile? profile}) async {
     if (_organization != null) {
       isLoading.add(true);
-      _employees = await Employee.getEmployees(
-          organization: _organization!.id, includeInactive: includeInactive);
+      if (profile != null && !profile.isRRHH()) {
+        _employees = [await Employee.byEmail(profile.email)];
+      } else {
+        _employees = await Employee.getEmployees(
+            organization: _organization!.id, includeInactive: includeInactive);
+      }
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         sendNotify();
@@ -349,13 +368,17 @@ class RRHHProvider with ChangeNotifier {
   }
 
   Future<void> loadWorkdays(
-      {DateTime? fromDate, List<String>? userEmail, bool notify = true}) async {
+      {DateTime? fromDate,
+      List<String>? userEmail,
+      bool notify = true,
+      bool forceServer = false}) async {
     if (_organization != null) {
       isLoading.add(true);
       List<String> emailsEmployees = (userEmail != null)
           ? userEmail
           : _employees.map((e) => e.email).toList(growable: false);
-      _workdays = await Workday.byUser(emailsEmployees, fromDate);
+      _workdays =
+          await Workday.byUser(emailsEmployees, fromDate, null, forceServer);
       _workdays.sort((a, b) => b.startDate.compareTo(a.startDate));
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
@@ -441,8 +464,8 @@ class RRHHProvider with ChangeNotifier {
     // sendNotify();
   }
 
-  void sendNotify() {
-    if (isLoading.isEmpty) {
+  void sendNotify({bool notify = true}) {
+    if ((isLoading.isEmpty) && notify) {
       notifyListeners();
     }
   }
@@ -478,19 +501,20 @@ class RRHHProvider with ChangeNotifier {
             Organization.byId(profile.organization!).then((organization) {
               _organization = organization;
               loadOrganizations(notify: true);
-              loadEmployees(notify: true).then((value) {
+              loadEmployees(notify: true, profile: profile).then((value) {
                 loadHolidaysRequests(
                     startDate:
                         DateTime.now().subtract(const Duration(days: 770)),
                     endDate: DateTime.now().add(const Duration(days: 770)),
                     notify: true,
                     fromServer: true);
-                List<String>? emailToFind =
-                    (profile.isRRHH()) ? null : [user!.email!];
+                // List<String>? emailToFind = (profile.isRRHH()) ? null : [user!.email!];
+                List<String>? emailToFind = [user!.email!];
                 loadWorkdays(
                     fromDate: DateTime.now().subtract(const Duration(days: 40)),
                     userEmail: emailToFind,
-                    notify: true);
+                    notify: true,
+                    forceServer: true);
               });
               loadHolidaysCategories(notify: true);
               loadCalendars(notify: true);

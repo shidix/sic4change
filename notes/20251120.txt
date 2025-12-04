@@ -28,4 +28,3 @@ Marco Logico
     Tareas.
         Si se escoge un proyecto, se debe autorellenar el programa
 
-En el acronimo, poner los codigos COMPLETOS de financiador y de socios completos.

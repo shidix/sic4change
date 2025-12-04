@@ -298,7 +298,7 @@ class _ProgrammePageState extends State<ProgrammePage> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
       customText("Proyectos por ámbito", 16,
           bold: FontWeight.bold, textColor: headerListTitleColor),
-      pieDiagram(context, diagList),
+      pieDiagram(context, diagList, percent: false),
     ]));
   }
 
