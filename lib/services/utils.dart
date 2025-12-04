@@ -644,13 +644,6 @@ void checkPermissions(
   }
 }
 
-void signOut(BuildContext context) async {
-  await FirebaseAuth.instance.signOut();
-  RestartApp.restart(context);
-  Navigator.of(context)
-      .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
-}
-
 String toDuration(double hours, {String format = 'dhm'}) {
   if (hours.isNaN || hours.isInfinite) {
     hours = 0.0;
@@ -788,4 +781,9 @@ String getAcronym(
       : "0000-$progAcronym-$annAcronym-$projectAcronym";
 
   return acronym;
+}
+
+int weekOfYear(DateTime date) {
+  int dayOfYear = int.parse(DateFormat("D").format(date));
+  return ((dayOfYear - date.weekday + 10) / 7).floor();
 }

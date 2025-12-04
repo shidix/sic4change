@@ -1,6 +1,9 @@
 // import 'dart:ffi';
 
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic4change/services/models_holidays.dart';
 // import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
@@ -390,5 +393,199 @@ class WorkdayUpload {
   @override
   String toString() {
     return 'WorkdayUpload $employee $date $path';
+  }
+}
+
+class WorkdaysSummarize {
+  static const String tbName = 's4c_workdays_summarize';
+
+  String id;
+  int year;
+  String userId;
+
+  Map<int, Map<String, double>> weekInfo = {};
+
+  WorkdaysSummarize(
+      {required this.id,
+      required this.year,
+      required this.userId,
+      required this.weekInfo});
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'year': year,
+        'userId': userId,
+        'weekInfo': weekInfo,
+      };
+
+  static WorkdaysSummarize fromJson(Map<String, dynamic> json) {
+    return WorkdaysSummarize(
+      id: json['id'],
+      year: json['year'],
+      userId: json['userId'],
+      weekInfo: (json.containsKey('weekInfo'))
+          ? Map<int, Map<String, double>>.from(json['weekInfo'])
+          : {},
+    );
+  }
+
+  Future<void> save() async {
+    if (id.isEmpty) {
+      var item = await FirebaseFirestore.instance
+          .collection(WorkdaysSummarize.tbName)
+          .add(toJson());
+      id = item.id;
+      item.update({'id': id});
+    } else {
+      await FirebaseFirestore.instance
+          .collection(WorkdaysSummarize.tbName)
+          .doc(id)
+          .update(toJson());
+    }
+  }
+
+  Future<void> delete() async {
+    await FirebaseFirestore.instance
+        .collection(WorkdaysSummarize.tbName)
+        .doc(id)
+        .delete();
+  }
+
+  static Future<WorkdaysSummarize?> getByYearAndUser(
+      int year, String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection(WorkdaysSummarize.tbName)
+        .where('year', isEqualTo: year)
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      final doc = querySnapshot.docs.first;
+      return WorkdaysSummarize.fromJson(doc.data());
+    }
+    return null;
+  }
+
+  double addWeekHours(int weekNumber, double hours) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      weekInfo[weekNumber] = {};
+    }
+    if (!weekInfo[weekNumber]!.containsKey('ordinary')) {
+      weekInfo[weekNumber]!['ordinary'] = 0.0;
+    }
+    weekInfo[weekNumber]!['ordinary'] =
+        weekInfo[weekNumber]!['ordinary']! + hours;
+    return weekInfo[weekNumber]!['ordinary']!;
+  }
+
+  double addWeekExtraHours(int weekNumber, double hours) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      weekInfo[weekNumber] = {};
+    }
+    if (!weekInfo[weekNumber]!.containsKey('extra')) {
+      weekInfo[weekNumber]!['extra'] = 0.0;
+    }
+    weekInfo[weekNumber]!['extra'] = weekInfo[weekNumber]!['extra']! + hours;
+    return weekInfo[weekNumber]!['extra']!;
+  }
+
+  double addWeekMissingHours(int weekNumber, double hours) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      weekInfo[weekNumber] = {};
+    }
+    if (!weekInfo[weekNumber]!.containsKey('missing')) {
+      weekInfo[weekNumber]!['missing'] = 0.0;
+    }
+    weekInfo[weekNumber]!['missing'] =
+        weekInfo[weekNumber]!['missing']! + hours;
+    return weekInfo[weekNumber]!['missing']!;
+  }
+
+  double getWeekHours(int weekNumber) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      return 0.0;
+    }
+    if (!weekInfo[weekNumber]!.containsKey('ordinary')) {
+      return 0.0;
+    }
+    return weekInfo[weekNumber]!['ordinary']!;
+  }
+
+  double getWeekExtraHours(int weekNumber) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      return 0.0;
+    }
+    if (!weekInfo[weekNumber]!.containsKey('extra')) {
+      return 0.0;
+    }
+    return weekInfo[weekNumber]!['extra']!;
+  }
+
+  double getWeekMissingHours(int weekNumber) {
+    if (!weekInfo.containsKey(weekNumber)) {
+      return 0.0;
+    }
+    if (!weekInfo[weekNumber]!.containsKey('missing')) {
+      return 0.0;
+    }
+    return weekInfo[weekNumber]!['missing']!;
+  }
+
+  double getWeekTotalHours(int weekNumber) {
+    return getWeekHours(weekNumber) + getWeekExtraHours(weekNumber);
+  }
+
+  static Future<WorkdaysSummarize?> recalculate(int year, String userId) async {
+    Employee? employee = await Employee.byId(userId);
+    if (employee == null) {
+      return null;
+    }
+    WorkdaysSummarize? existing = await getByYearAndUser(year, userId);
+    if (existing == null) {
+      existing =
+          WorkdaysSummarize(id: '', year: year, userId: userId, weekInfo: {});
+    } else {
+      existing.weekInfo = {};
+    }
+
+    List<Workday> workdays = await Workday.byUser(
+        userId, DateTime(year, 1, 1), DateTime(year, 12, 31));
+
+    List<DateTime> datesInYear = [];
+
+    DateTime currentDate = DateTime(year, 1, 1);
+    DateTime endDate = DateTime(year, 12, 31);
+    while (currentDate.isBefore(endDate) ||
+        currentDate.isAtSameMomentAs(endDate)) {
+      datesInYear.add(currentDate);
+      currentDate = currentDate.add(const Duration(days: 1));
+    }
+
+    for (var currentDate in datesInYear) {
+      List<Workday> workdaysForDate = workdays
+          .where((workday) =>
+              (workday.startDate.year == year) &&
+              (workday.startDate.month == currentDate.month) &&
+              (workday.startDate.day == currentDate.day))
+          .toList();
+
+      for (var workday in workdaysForDate) {
+        Shift? shift = employee.getShift(date: workday.startDate);
+        double hours = workday.hours();
+        int weekNumber = weekOfYear(workday.startDate);
+        int weekDay = workday.startDate.weekday; // 1 = Monday, 7 = Sunday
+        double ordinaryHours = shift.hours[weekDay - 1];
+
+        // Check for holidays
+        bool inHoliday =
+            await HolidayRequest.userInHoliday(userId, workday.startDate);
+        existing.addWeekHours(weekNumber, min(hours, ordinaryHours));
+        existing.addWeekExtraHours(weekNumber, min(0, hours - ordinaryHours));
+        existing.addWeekMissingHours(weekNumber, max(0, ordinaryHours - hours));
+      }
+    }
+
+    await existing.save();
+    return existing;
   }
 }
