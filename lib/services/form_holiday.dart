@@ -6,6 +6,7 @@ import 'package:googleapis/transcoder/v1.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/pages/admin_holidays_categories_page.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/notifications_lib.dart';
@@ -191,6 +192,14 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     super.initState();
     user = widget.user!;
     categories = widget.categories;
+    // Order categories by valid from date asce, then by valid untir date asc, then by name asc
+    categories.sort((a, b) {
+      int cmp = a.validFrom.compareTo(b.validFrom);
+      if (cmp != 0) return cmp;
+      cmp = a.validUntil.compareTo(b.validUntil);
+      if (cmp != 0) return cmp;
+      return a.name.compareTo(b.name);
+    });
     granted = widget.granted;
     remainingHolidays = widget.remainingHolidays;
     profile = widget.profile;
@@ -699,10 +708,12 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
   late HolidaysCategory category;
   late final HolidaysCategory? originalCategory;
   bool isNewItem = false;
+  RRHHProvider? rrhhCache;
 
   @override
   void initState() {
     super.initState();
+    rrhhCache = Provider.of<RRHHProvider>(context, listen: false);
     isNewItem = (widget.category!.id == "");
     category = widget.category!;
     originalCategory = HolidaysCategory.fromJson(widget.category!.toJson());
@@ -714,7 +725,10 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
+
       category.save();
+      rrhhCache?.addHolidaysCategory(category);
+
       if (widget.afterSave != null) {
         widget.afterSave!(category);
       }
@@ -731,6 +745,7 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
+      rrhhCache?.removeHolidaysCategory(category);
       category.delete();
       if (widget.afterDelete != null) {
         widget.afterDelete!();
@@ -795,6 +810,20 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                   ),
                 ),
                 const SizedBox(width: 16),
+                // Valid from date picker
+                Expanded(
+                  flex: 1,
+                  child: DateTimePicker(
+                      labelText: 'Válido desde',
+                      selectedDate: getDate(category.validFrom),
+                      onSelectedDate: (date) {
+                        setState(() {
+                          category.validFrom = date;
+                        });
+                      }),
+                ),
+                const SizedBox(width: 16),
+
                 Expanded(
                   flex: 1,
                   child: DateTimePicker(

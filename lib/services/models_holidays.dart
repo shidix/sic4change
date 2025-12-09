@@ -636,6 +636,7 @@ class HolidaysCategory {
   String code;
   int docRequired = 0;
   int year = DateTime.now().year;
+  DateTime validFrom = DateTime(DateTime.now().year, 1, 1);
   DateTime validUntil = DateTime(DateTime.now().year + 1, 1, 1);
   String docMessage = "";
   bool retroactive = false;
@@ -680,11 +681,13 @@ class HolidaysCategory {
       year: year,
     );
 
-    if (data.containsKey('validUntil')) {
-      item.validUntil = getDate(data['validUntil']);
-    } else {
-      item.validUntil = DateTime(year + 1, 1, 1);
-    }
+    item.validUntil = data.containsKey('validUntil')
+        ? getDate(data['validUntil'])
+        : DateTime(year + 1, 1, 1);
+
+    item.validFrom = data.containsKey('validFrom')
+        ? getDate(data['validFrom'])
+        : DateTime(year, 1, 1);
 
     String orgUuid = data['organization'];
 
@@ -705,6 +708,7 @@ class HolidaysCategory {
         'obligation': obligation,
         'days': days,
         'year': year,
+        'validFrom': validFrom,
         'validUntil': validUntil,
         'onlyRRHH': onlyRRHH,
       };
@@ -747,7 +751,7 @@ class HolidaysCategory {
   }
 
   bool isActive() {
-    if (year > DateTime.now().year) return false;
+    if (validFrom.isAfter(DateTime.now())) return false;
     if (validUntil.isBefore(DateTime.now())) return false;
     return true;
   }
