@@ -782,8 +782,8 @@ class HolidaysCategory {
     }
   }
 
-  static Future<List<HolidaysCategory>> byOrganization(
-      dynamic organization) async {
+  static Future<List<HolidaysCategory>> byOrganization(dynamic organization,
+      {bool fromServer = false}) async {
     String uuid = "";
     if (organization is String) {
       uuid = organization;
@@ -798,7 +798,7 @@ class HolidaysCategory {
         .where("organization", isEqualTo: uuid);
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
-    if (querySnap.docs.isEmpty) {
+    if (querySnap.docs.isEmpty || fromServer) {
       querySnap = await query.get();
     }
     if (querySnap.docs.isNotEmpty) {

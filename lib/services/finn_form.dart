@@ -482,7 +482,7 @@ class _DistributionFormState extends State<DistributionForm> {
                             return null;
                           },
                           onSaved: (value) =>
-                              item.amount = currencyToDouble(value!),
+                              item.amount = currencyToDouble(value),
                         ))),
                 Expanded(
                     flex: 1,

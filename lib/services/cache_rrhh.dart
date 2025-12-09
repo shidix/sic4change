@@ -36,7 +36,17 @@ class RRHHProvider with ChangeNotifier {
   Contact? get contact => _contact;
   List<Employee> get employees => _employees;
   List<Organization> get organizations => _organizations;
-  List<HolidaysCategory> get holidaysCategories => _holidaysCategories;
+  List<HolidaysCategory> get holidaysCategories {
+    DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (updateAt.containsKey('holidaysCategories')) {
+      lastUpdate = updateAt['holidaysCategories']!;
+    }
+    // Return holidaysCategories if lastUpdate is less than 5 minutes ago
+    if (DateTime.now().difference(lastUpdate).inMinutes > 60) {
+      loadHolidaysCategories(notify: true, fromServer: true);
+    }
+    return _holidaysCategories;
+  }
 
   List<HolidayRequest> get holidaysRequests {
     DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
@@ -56,7 +66,7 @@ class RRHHProvider with ChangeNotifier {
     if (updateAt.containsKey('workdays')) {
       lastUpdate = updateAt['workdays']!;
     }
-    if (DateTime.now().difference(lastUpdate).inMinutes > 720) {
+    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
       loadWorkdays(notify: true, forceServer: true);
       updateAt['workdays'] = DateTime.now();
     }
@@ -313,11 +323,13 @@ class RRHHProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadHolidaysCategories({bool notify = true}) async {
+  Future<void> loadHolidaysCategories(
+      {bool notify = true, bool fromServer = false}) async {
     if (_organization != null) {
       isLoading.add(true);
-      _holidaysCategories =
-          await HolidaysCategory.byOrganization(_organization!.uuid);
+      _holidaysCategories = await HolidaysCategory.byOrganization(
+          _organization!.uuid,
+          fromServer: fromServer);
       // Sort by year, then by name
       _holidaysCategories.sort((a, b) {
         int yearCompare = b.year.compareTo(a.year);
@@ -327,6 +339,9 @@ class RRHHProvider with ChangeNotifier {
           return a.name.compareTo(b.name);
         }
       });
+      if (fromServer) {
+        updateAt['holidaysCategories'] = DateTime.now();
+      }
       isLoading.removeFirst();
       if (notify && isLoading.isEmpty) {
         sendNotify();

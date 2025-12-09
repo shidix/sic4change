@@ -784,7 +784,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       return locations;
     }(), builder: ((context, snapshot) {
       if (snapshot.hasData) {
-        var loc = snapshot.data!;
+        // var loc = snapshot.data!;
         return Column(children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             customText("Ubicación", 15, bold: FontWeight.bold),

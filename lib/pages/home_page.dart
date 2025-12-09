@@ -98,6 +98,7 @@ class _HomePageState extends State<HomePage> {
 
   List notificationList = [];
   //List logList = [];
+  bool _holidayDialogInFlight = false;
 
   bool onHolidays(String userEmail, DateTime date,
       {bool acceptedOnly = false}) {
@@ -2049,90 +2050,106 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<HolidayRequest?> _addHolidayRequestDialog(context) async {
+    if (_holidayDialogInFlight) {
+      return null;
+    }
+    _holidayDialogInFlight = true;
     String currentHolidayId = '';
 
     currentHoliday = HolidayRequest.getEmpty();
     currentHoliday!.userId = user.email!;
     List<Employee> superiors = await currentEmployee!.getSuperiors();
 
-    HolidayRequest? item = await showDialog<HolidayRequest>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context2) {
-        updateRemainingHolidays();
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Solicitud de días libres', context),
-          content: HolidayRequestForm(
-              key: null,
-              currentRequest: currentHoliday,
-              user: user,
-              profile: profile!,
-              superiors: superiors,
-              categories: holCat!,
-              calendar: myCalendar!,
-              remainingHolidays: remainingHolidays,
-              granted: myHolidays!
-                  .where((element) =>
-                      (element.status.toLowerCase() == "aprobado" ||
-                          element.status.toLowerCase() == "concedido"))
-                  .toList()),
-        );
-      },
-    );
+    try {
+      HolidayRequest? item = await showDialog<HolidayRequest>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context2) {
+          updateRemainingHolidays();
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Solicitud de días libres', context),
+            content: HolidayRequestForm(
+                key: null,
+                currentRequest: currentHoliday,
+                user: user,
+                profile: profile!,
+                superiors: superiors,
+                categories: holCat!,
+                calendar: myCalendar!,
+                remainingHolidays: remainingHolidays,
+                granted: myHolidays!
+                    .where((element) =>
+                        (element.status.toLowerCase() == "aprobado" ||
+                            element.status.toLowerCase() == "concedido"))
+                    .toList()),
+          );
+        },
+      );
 
-    if (item != null) {
-      if (item.id == "--remove--") {
-        item.id = currentHolidayId;
-        _rrhhProvider?.removeHolidaysRequest(item);
-        currentHoliday = null;
-      } else {
-        _rrhhProvider?.addHolidaysRequest(item);
+      if (item != null) {
+        if (item.id == "--remove--") {
+          item.id = currentHolidayId;
+          _rrhhProvider?.removeHolidaysRequest(item);
+          currentHoliday = null;
+        } else {
+          _rrhhProvider?.addHolidaysRequest(item);
+        }
       }
+      return item;
+    } finally {
+      _holidayDialogInFlight = false;
     }
-    return item;
   }
 
   Future<HolidayRequest?> _editHolidayRequestDialog(int index) async {
+    if (_holidayDialogInFlight) {
+      return null;
+    }
+    _holidayDialogInFlight = true;
     currentHoliday = myHolidays!.elementAt(index);
     List<Employee> superiors =
         await currentEmployee!.getSuperiors(org: currentOrganization);
     String currentHolidayId = currentHoliday!.id;
-    HolidayRequest? item = await showDialog<HolidayRequest>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context2) {
-        HolidayRequest holiday = myHolidays!.elementAt(index);
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Editar solicitud de días libres', context),
-          content: HolidayRequestForm(
-              key: null,
-              currentRequest: holiday,
-              user: user,
-              superiors: superiors,
-              profile: profile!,
-              categories: holCat!,
-              remainingHolidays: remainingHolidays,
-              calendar: myCalendar!,
-              granted: myHolidays!
-                  .where((element) =>
-                      (element.status.toLowerCase() == "aprobado" ||
-                          element.status.toLowerCase() == "concedido"))
-                  .toList()),
-        );
-      },
-    );
-    if (item != null) {
-      if (item.id == "--remove--") {
-        item.id = currentHolidayId;
-        _rrhhProvider?.removeHolidaysRequest(item);
-        currentHoliday = null;
-      } else {
-        _rrhhProvider?.addHolidaysRequest(item);
+    try {
+      HolidayRequest? item = await showDialog<HolidayRequest>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context2) {
+          HolidayRequest holiday = myHolidays!.elementAt(index);
+          return AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: s4cTitleBar('Editar solicitud de días libres', context),
+            content: HolidayRequestForm(
+                key: null,
+                currentRequest: holiday,
+                user: user,
+                superiors: superiors,
+                profile: profile!,
+                categories: holCat!,
+                remainingHolidays: remainingHolidays,
+                calendar: myCalendar!,
+                granted: myHolidays!
+                    .where((element) =>
+                        (element.status.toLowerCase() == "aprobado" ||
+                            element.status.toLowerCase() == "concedido"))
+                    .toList()),
+          );
+        },
+      );
+      if (item != null) {
+        if (item.id == "--remove--") {
+          item.id = currentHolidayId;
+          _rrhhProvider?.removeHolidaysRequest(item);
+          currentHoliday = null;
+        } else {
+          _rrhhProvider?.addHolidaysRequest(item);
+        }
       }
+      return item;
+    } finally {
+      _holidayDialogInFlight = false;
     }
-    return item;
   }
 
   Widget btnDocuments(context, HolidayRequest holiday) {
@@ -2283,6 +2300,7 @@ class _HomePageState extends State<HomePage> {
                               } else {
                                 showDialog(
                                     context: context,
+                                    barrierDismissible: false,
                                     builder: (BuildContext context) {
                                       return infoDialog(
                                         context,
