@@ -18,6 +18,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/main.dart';
 import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_projects.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
@@ -187,6 +188,12 @@ Widget logoutBtn(context, btnName, btnIcon) {
         ProjectsProvider projectsProvider =
             Provider.of<ProjectsProvider>(context, listen: false);
         projectsProvider.dispose();
+        RRHHProvider rrhhProvider =
+            Provider.of<RRHHProvider>(context, listen: false);
+        rrhhProvider.dispose();
+        ProfileProvider profileProvider =
+            Provider.of<ProfileProvider>(context, listen: false);
+        profileProvider.dispose();
 
         if (FirebaseAuth.instance.currentUser != null) {
           await FirebaseAuth.instance.signOut();
