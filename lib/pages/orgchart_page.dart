@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/profile_form.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
@@ -17,10 +19,14 @@ class _OrgchartState extends State<Orgchart> {
   Profile? currentProfile;
   List<Profile> profiles = [];
   List<Profile> filteredProfiles = [];
+  Profile? myProfile;
+  ProfileProvider? profileCache;
 
   @override
   void initState() {
     super.initState();
+    profileCache = context.read<ProfileProvider>();
+    myProfile = profileCache!.profile;
     getProfiles();
     currentProfile = null;
   }
@@ -31,7 +37,8 @@ class _OrgchartState extends State<Orgchart> {
     //     currentProfile = value;
     //   });
     // });
-    await Profile.getProfiles().then((value) {
+    await Profile.getProfiles(orgid: myProfile!.organization ?? "")
+        .then((value) {
       setState(() {
         profiles = value;
         filteredProfiles = value;
@@ -104,7 +111,7 @@ class _OrgchartState extends State<Orgchart> {
   Widget buildProfileList() {
     if (filteredProfiles.isEmpty) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: Text("No hay perfiles disponibles"),
       );
     } else {
       filteredProfiles.sort((a, b) => a.email.compareTo(b.email));

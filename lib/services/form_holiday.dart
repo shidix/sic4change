@@ -1000,12 +1000,13 @@ class _HolidayDocumentsFormState extends State<HolidayDocumentsForm> {
   void uploadFile(PlatformFile? file, int index) {
     if (file != null) {
       String extention = file.name.split('.').last;
-      HolidaysCategory catReq = categories.firstWhere(
-          (cat) => cat.id == holidayRequest.category,
-          orElse: () => HolidaysCategory.getEmpty());
-      if (catReq.id == '') {
-        catReq.name = 'NOCAT';
-      }
+      // HolidaysCategory catReq = categories.firstWhere(
+      //     (cat) => cat.id == holidayRequest.category,
+      //     orElse: () => HolidaysCategory.getEmpty());
+      // if (catReq.id == '') {
+      //   catReq.name = 'NOCAT';
+      // }
+      HolidaysCategory catReq = holidayRequest.getCategory(categories);
       uploadFileToStorage(file,
               rootPath:
                   'files/holidays/${holidayRequest.userId}/${holidayRequest.id}/documents/${catReq.name.replaceAll(" ", "_")}/',
