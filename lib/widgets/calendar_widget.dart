@@ -103,6 +103,8 @@ class CalendarWidgetState extends State<CalendarWidget> {
 
     await showDialog(
         context: context,
+        barrierColor: Colors.black54,
+        barrierDismissible: false,
         builder: (context) {
           return StatefulBuilder(
             builder: (context, setState) {
@@ -439,11 +441,13 @@ class CalendarWidgetState extends State<CalendarWidget> {
         flex: 1,
         child: GestureDetector(
             onDoubleTap: () {
-              // Launch a loading dialog and then lauch showHolidaysDialog
+              // Launch a loading dialog and then lauch showHolidaysDialog, with a background in order to avoid clicks during loading
 
+              // Show backgound barrier
               showDialog(
                   context: context,
                   barrierDismissible: false,
+                  barrierColor: Colors.black54,
                   builder: (BuildContext context) {
                     return const AlertDialog(
                       content: SizedBox(

@@ -2073,6 +2073,7 @@ class _HomePageState extends State<HomePage> {
                 key: null,
                 currentRequest: currentHoliday,
                 user: user,
+                userEmployee: currentEmployee!,
                 profile: profile!,
                 superiors: superiors,
                 categories: holCat!,
@@ -2106,10 +2107,37 @@ class _HomePageState extends State<HomePage> {
     if (_holidayDialogInFlight) {
       return null;
     }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      barrierColor: Colors.black54,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Cargando...', context),
+          content: SizedBox(
+              height: 100,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Calculando disponibles, por favor espere...',
+                        style: normalText),
+                    SizedBox(height: 20),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              )),
+        );
+      },
+    );
+
     _holidayDialogInFlight = true;
     currentHoliday = myHolidays!.elementAt(index);
-    List<Employee> superiors =
-        await currentEmployee!.getSuperiors(org: currentOrganization);
+    // List<Employee> superiors =
+    //     await currentEmployee!.getSuperiors(org: currentOrganization);
+    List<Employee> superiors = [];
     String currentHolidayId = currentHoliday!.id;
     try {
       HolidayRequest? item = await showDialog<HolidayRequest>(
@@ -2123,6 +2151,7 @@ class _HomePageState extends State<HomePage> {
             content: HolidayRequestForm(
                 key: null,
                 currentRequest: holiday,
+                userEmployee: currentEmployee!,
                 user: user,
                 superiors: superiors,
                 profile: profile!,
@@ -2137,6 +2166,7 @@ class _HomePageState extends State<HomePage> {
           );
         },
       );
+      Navigator.of(context).pop(); // Close the loading dialog
       if (item != null) {
         if (item.id == "--remove--") {
           item.id = currentHolidayId;
@@ -2301,6 +2331,7 @@ class _HomePageState extends State<HomePage> {
                                 showDialog(
                                     context: context,
                                     barrierDismissible: false,
+                                    barrierColor: Colors.black54,
                                     builder: (BuildContext context) {
                                       return infoDialog(
                                         context,

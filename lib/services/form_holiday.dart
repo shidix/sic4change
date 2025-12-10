@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:sic4change/pages/admin_holidays_categories_page.dart';
 import 'package:sic4change/pages/tasks_users_page.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
+import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/notifications_lib.dart';
@@ -153,6 +154,7 @@ class _EventFormState extends State<EventForm> {
 class HolidayRequestForm extends StatefulWidget {
   final HolidayRequest? currentRequest;
   final User? user;
+  final Employee userEmployee;
   final Profile profile;
   final List<Employee> superiors;
   final HolidaysConfig calendar;
@@ -164,6 +166,7 @@ class HolidayRequestForm extends StatefulWidget {
       {super.key,
       this.currentRequest,
       this.user,
+      required this.userEmployee,
       required this.superiors,
       required this.profile,
       required this.categories,
@@ -226,14 +229,27 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
     }
   }
 
-  void saveItem(List args) {
+  Future<void> saveItem(List args) async {
     BuildContext context = args[0];
     HolidayRequest holidayRequest = args[1];
     GlobalKey<FormState> formKey = args[2];
+
+    showDialog(
+        context: context,
+        builder: (context) => const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                ],
+              ),
+            ));
+    Organization? org = await widget.profile.getOrganization();
+    superiors = await widget.userEmployee.getSuperiors(org: org);
     if (formKey.currentState!.validate()) {
       List<String> superiorsEmails =
           superiors.map((e) => e.email).toList().cast<String>();
-      print("Superiores: $superiorsEmails");
       if (superiorsEmails.isNotEmpty) {
         createNotification(user.email!, superiorsEmails,
             "Solicitud de permiso: Del ${DateFormat('dd-MM-yyyy').format(holidayRequest.startDate)} al ${DateFormat('dd-MM-yyyy').format(holidayRequest.endDate)}, categoría: ${holidayRequest.getCategory(categories).name}, Estado: ${holidayRequest.status}",
@@ -243,6 +259,7 @@ class _HolidayRequestFormState extends State<HolidayRequestForm> {
       formKey.currentState!.save();
       holidayRequest.save().then((value) {
         if (mounted) {
+          Navigator.of(context).pop(); // Close the progress dialog
           Navigator.of(context).pop(value);
         }
       });
