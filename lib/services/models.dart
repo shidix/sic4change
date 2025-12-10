@@ -162,12 +162,12 @@ class SProject {
       });
     }
 
-    item.docRef!.snapshots().listen((snapshot) {
-      if (item.onChanged != null) {
-        item.update(snapshot.data() as Map<String, dynamic>);
-        item.onChanged?.call();
-      }
-    });
+    // item.docRef!.snapshots().listen((snapshot) {
+    //   if (item.onChanged != null) {
+    //     item.update(snapshot.data() as Map<String, dynamic>);
+    //     item.onChanged?.call();
+    //   }
+    // });
     return item;
   }
 
@@ -1198,14 +1198,14 @@ class ProjectDates {
     item.sended = getDate(data["sended"]);
     item.reject = getDate(data["reject"]);
     item.refuse = getDate(data["refuse"]);
-    item.docRef?.snapshots().listen((event) {
-      if (event.data() == null) {
-        return;
-      }
-      final Map<String, dynamic> data = event.data() as Map<String, dynamic>;
-      item.update(data);
-      item.onChanged?.call();
-    });
+    // item.docRef?.snapshots().listen((event) {
+    //   if (event.data() == null) {
+    //     return;
+    //   }
+    //   final Map<String, dynamic> data = event.data() as Map<String, dynamic>;
+    //   item.update(data);
+    //   item.onChanged?.call();
+    // });
 
     return item;
   }
@@ -1256,12 +1256,12 @@ class ProjectDates {
         id = value.id;
         docRef = value;
         docRef?.update({'id': id});
-        docRef?.snapshots().listen((event) {
-          final Map<String, dynamic> data =
-              event.data() as Map<String, dynamic>;
-          update(data);
-          onChanged?.call();
-        });
+        // docRef?.snapshots().listen((event) {
+        //   final Map<String, dynamic> data =
+        //       event.data() as Map<String, dynamic>;
+        //   update(data);
+        //   onChanged?.call();
+        // });
       });
     } else {
       Map<String, dynamic> data = toJson();

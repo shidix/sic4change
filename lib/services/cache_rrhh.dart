@@ -549,4 +549,13 @@ class RRHHProvider with ChangeNotifier {
     key = UniqueKey();
     initialize();
   }
+
+  void dispose() {
+    for (var calendar in _calendars) {
+      calendar.subscription?.cancel();
+    }
+    clear();
+
+    super.dispose();
+  }
 }

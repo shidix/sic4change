@@ -778,58 +778,58 @@ class Employee {
 
     item.docRef ??= doc;
     if (item.docRef != null) {
-      item.docRef!.snapshots().listen((snapshot) {
-        if (snapshot.exists) {
-          var data = snapshot.data() as Map<String, dynamic>;
-          var json = data;
-          // Update fields
-          item.code = data['code'];
-          item.firstName = data['firstName'];
-          item.lastName1 = data['lastName1'];
-          item.lastName2 = data['lastName2'];
-          item.email = data['email'];
-          item.phone = data['phone'];
-          item.photoPath = data['photoPath'];
-          item.organization = data['organization'];
-          item.sex = data['sex'];
-          item.bornDate = getDate(data['bornDate']);
-          item.bankAccount = data['bankAccount'];
-          item.altas = (json['altas'] == null) || (json['altas'].isEmpty)
-              ? []
-              : json['altas'].map((e) {
-                  try {
-                    return Alta.fromJson(e as Map<String, dynamic>);
-                  } catch (exception) {
-                    Alta alta = Alta(
-                      date: getDate(e),
-                    );
-                    alta.baja = Baja.getEmpty();
-                    return alta;
-                  }
-                }).toList();
-          item.extraDocs = data['extraDocs'];
-          item.affiliation = data['affiliation'];
+      // item.docRef!.snapshots().listen((snapshot) {
+      //   if (snapshot.exists) {
+      //     var data = snapshot.data() as Map<String, dynamic>;
+      //     var json = data;
+      //     // Update fields
+      //     item.code = data['code'];
+      //     item.firstName = data['firstName'];
+      //     item.lastName1 = data['lastName1'];
+      //     item.lastName2 = data['lastName2'];
+      //     item.email = data['email'];
+      //     item.phone = data['phone'];
+      //     item.photoPath = data['photoPath'];
+      //     item.organization = data['organization'];
+      //     item.sex = data['sex'];
+      //     item.bornDate = getDate(data['bornDate']);
+      //     item.bankAccount = data['bankAccount'];
+      //     item.altas = (json['altas'] == null) || (json['altas'].isEmpty)
+      //         ? []
+      //         : json['altas'].map((e) {
+      //             try {
+      //               return Alta.fromJson(e as Map<String, dynamic>);
+      //             } catch (exception) {
+      //               Alta alta = Alta(
+      //                 date: getDate(e),
+      //               );
+      //               alta.baja = Baja.getEmpty();
+      //               return alta;
+      //             }
+      //           }).toList();
+      //     item.extraDocs = data['extraDocs'];
+      //     item.affiliation = data['affiliation'];
 
-          item.shift = (!data.containsKey('shift')) ||
-                  (data['shift'] == null) ||
-                  (data['shift'].isEmpty)
-              ? []
-              : data['shift'].map((e) {
-                  try {
-                    return Shift.fromJson(e as Map<String, dynamic>);
-                  } catch (exception) {
-                    return Shift(date: truncDate(DateTime.now()), hours: []);
-                  }
-                }).toList();
+      //     item.shift = (!data.containsKey('shift')) ||
+      //             (data['shift'] == null) ||
+      //             (data['shift'].isEmpty)
+      //         ? []
+      //         : data['shift'].map((e) {
+      //             try {
+      //               return Shift.fromJson(e as Map<String, dynamic>);
+      //             } catch (exception) {
+      //               return Shift(date: truncDate(DateTime.now()), hours: []);
+      //             }
+      //           }).toList();
 
-          (json.containsKey('workplace'))
-              ? Workplace.byId(json['workplace']).then((value) {
-                  item.workplace = value;
-                })
-              : Workplace.getEmpty();
-        }
-        item.onChanged?.call();
-      });
+      //     (json.containsKey('workplace'))
+      //         ? Workplace.byId(json['workplace']).then((value) {
+      //             item.workplace = value;
+      //           })
+      //         : Workplace.getEmpty();
+      //   }
+      //   item.onChanged?.call();
+      // });
     }
 
     return item;

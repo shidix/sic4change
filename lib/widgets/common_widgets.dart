@@ -17,6 +17,9 @@ import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/main.dart';
+import 'package:sic4change/pages/index.dart';
+import 'package:sic4change/services/cache_projects.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_workday.dart';
 import 'package:sic4change/services/utils.dart';
@@ -181,6 +184,10 @@ Widget logoutBtn(context, btnName, btnIcon) {
       // Wait 2 seconds
       await Future.delayed(const Duration(seconds: 2));
       try {
+        ProjectsProvider projectsProvider =
+            Provider.of<ProjectsProvider>(context, listen: false);
+        projectsProvider.dispose();
+
         if (FirebaseAuth.instance.currentUser != null) {
           await FirebaseAuth.instance.signOut();
         }
@@ -188,6 +195,7 @@ Widget logoutBtn(context, btnName, btnIcon) {
         // Check if user is logged
         await Future.delayed(const Duration(seconds: 1));
       }
+
       RestartApp.restart(context);
       Navigator.of(context)
           .pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);

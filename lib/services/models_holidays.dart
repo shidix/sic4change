@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -10,6 +12,7 @@ class HolidaysConfig {
   static const String tbName = "s4c_holidays_config";
   DocumentReference? docRef;
   Function? onChanged;
+  StreamSubscription<DocumentSnapshot>? subscription;
 
   String id = "";
   String name = "";
@@ -56,7 +59,7 @@ class HolidaysConfig {
       temp.mapping(data);
       temp.docRef ??= doc;
       if (temp.docRef != null) {
-        temp.docRef!.snapshots().listen((event) {
+        temp.subscription = temp.docRef!.snapshots().listen((event) {
           if (event.exists) {
             Map data = event.data() as Map<String, dynamic>;
             temp?.mapping(data);
