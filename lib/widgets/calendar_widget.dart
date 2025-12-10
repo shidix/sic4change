@@ -99,6 +99,8 @@ class CalendarWidgetState extends State<CalendarWidget> {
       availableDays[key] = await category.getAvailableDays(holiday.userId);
     }
 
+    // Open previous loading dialog, when showDialog is called inside another showDialog
+
     await showDialog(
         context: context,
         builder: (context) {
@@ -383,6 +385,8 @@ class CalendarWidgetState extends State<CalendarWidget> {
       List<HolidayRequest> holidaysInDateRejected =
           holidaysInDate.where((holiday) => holiday.isRejected()).toList();
 
+      // Limit to 3 names per status
+
       textCell = holidaysInDateAproved.map((holiday) {
         if (widget.employees
                 .indexWhere((test) => test.email == holiday.userId) !=
@@ -394,6 +398,12 @@ class CalendarWidgetState extends State<CalendarWidget> {
           return '';
         }
       }).join(', ');
+      // Check if there are more than 3 names, then add +n more at the end
+      (textCell.split(', ').length > 3)
+          ? textCell =
+              '${textCell.split(', ').sublist(0, 2).join(', ')} +${textCell.split(', ').length - 2} más'
+          : textCell = textCell;
+
       textPending = holidaysInDatePending.map((holiday) {
         if (widget.employees
                 .indexWhere((test) => test.email == holiday.userId) !=
@@ -405,6 +415,10 @@ class CalendarWidgetState extends State<CalendarWidget> {
           return '';
         }
       }).join(', ');
+      textPending = (textPending.split(', ').length > 3)
+          ? '${textPending.split(', ').sublist(0, 2).join(', ')} +${textPending.split(', ').length - 2} más'
+          : textPending = textPending;
+
       textRejected = holidaysInDateRejected.map((holiday) {
         if (widget.employees
                 .indexWhere((test) => test.email == holiday.userId) !=
@@ -416,14 +430,42 @@ class CalendarWidgetState extends State<CalendarWidget> {
           return '';
         }
       }).join(', ');
+      textRejected = (textRejected.split(', ').length > 3)
+          ? '${textRejected.split(', ').sublist(0, 2).join(', ')} +${textRejected.split(', ').length - 2} más'
+          : textRejected = textRejected;
     }
 
     return Expanded(
         flex: 1,
         child: GestureDetector(
             onDoubleTap: () {
+              // Launch a loading dialog and then lauch showHolidaysDialog
+
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const AlertDialog(
+                      content: SizedBox(
+                        height: 100,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Cargando solicitudes...'),
+                              SizedBox(height: 20),
+                              CircularProgressIndicator(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  });
+
               showHolidaysDialog(date).then((_) {
                 // Scrool to the week of the selected date
+                // Close the loading dialog
+                Navigator.of(context).pop();
                 int weekForSelectedDate =
                     ((date.difference(startDate).inDays) / 7).floor();
                 _scrollController.jumpTo(weekForSelectedDate * 100.0);
