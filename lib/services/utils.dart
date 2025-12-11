@@ -178,13 +178,13 @@ int getWorkingDaysBetween(
           isHoliday = true;
           break;
         }
-        if (calendar != null &&
-            calendar.year != currentDate.year &&
-            currentDate.month == 1) {
-          // recalculate holidays for the new year
-          isHoliday = true;
-          break;
-        }
+        // if (calendar != null &&
+        //     calendar.year != currentDate.year &&
+        //     currentDate.month == 1) {
+        //   // recalculate holidays for the new year
+        //   isHoliday = true;
+        //   break;
+        // }
       }
       if (isHoliday) {
         currentDate = currentDate.add(const Duration(days: 1));

@@ -74,7 +74,6 @@ class _EventFormState extends State<EventForm> {
 
   void removeItem(List args) {
     holidaysConfig.gralHolidays.removeAt(widget.index);
-    print("Users in calendar after remove: ${holidaysConfig.employees}");
     //holidaysConfig.save();
     Navigator.of(args[0]).pop(null);
 
@@ -481,11 +480,13 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
   final _formKey = GlobalKey<FormState>();
   late HolidaysConfig holidaysConfig;
   bool isNewItem = false;
+  int originalYear = 0;
 
   @override
   void initState() {
     super.initState();
     isNewItem = (widget.index == -1);
+    originalYear = widget.holidaysConfig!.year;
     holidaysConfig = widget.holidaysConfig!;
   }
 
@@ -495,6 +496,28 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
     GlobalKey<FormState> formKey = args[2];
     if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
+      int difference = holidaysConfig.year - originalYear;
+
+      if (difference != 0) {
+        // Update the dates of all events in gralHolidays
+        for (int i = 0; i < holidaysConfig.gralHolidays.length; i++) {
+          Event event = holidaysConfig.gralHolidays[i];
+          event.startTime = DateTime(
+              event.startTime.year + difference,
+              event.startTime.month,
+              event.startTime.day,
+              event.startTime.hour,
+              event.startTime.minute,
+              event.startTime.second);
+          event.endTime = DateTime(
+              event.endTime.year + difference,
+              event.endTime.month,
+              event.endTime.day,
+              event.endTime.hour,
+              event.endTime.minute,
+              event.endTime.second);
+        }
+      }
       holidaysConfig.save();
       if (widget.afterSave != null) {
         widget.afterSave!();

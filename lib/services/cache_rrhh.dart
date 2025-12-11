@@ -60,7 +60,19 @@ class RRHHProvider with ChangeNotifier {
     return _holidaysRequests;
   }
 
-  List<HolidaysConfig> get calendars => _calendars;
+  List<HolidaysConfig> get calendars {
+    DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (updateAt.containsKey('calendars')) {
+      lastUpdate = updateAt['calendars']!;
+    }
+    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
+      loadCalendars(notify: true);
+      updateAt['calendars'] = DateTime.now();
+    }
+
+    return _calendars;
+  }
+
   List<Workday> get workdays {
     DateTime lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
     if (updateAt.containsKey('workdays')) {

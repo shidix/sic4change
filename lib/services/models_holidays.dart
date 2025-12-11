@@ -73,6 +73,18 @@ class HolidaysConfig {
     return temp!;
   }
 
+  HolidaysConfig clone() {
+    return HolidaysConfig(
+      id: '',
+      name: name,
+      year: year,
+      // totalDays: totalDays,
+      organization: organization,
+      gralHolidays:
+          gralHolidays.map((e) => Event.fromJson(e.toJson())).toList(),
+    );
+  }
+
   // factory HolidaysConfig.fromFirestore(DocumentSnapshot doc) {
   //   Map data = doc.data() as Map<String, dynamic>;
   //   data['id'] = doc.id;

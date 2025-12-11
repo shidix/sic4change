@@ -72,6 +72,7 @@ class _HomePageState extends State<HomePage> {
   int holidayDays = 0;
   int obligatoryHolidays = 0;
   HolidaysConfig? myCalendar;
+  List<HolidaysConfig> myListCalendars = [];
 
   Workday? currentWorkday;
   Widget workdayButton = Container();
@@ -681,8 +682,11 @@ class _HomePageState extends State<HomePage> {
         (_rrhhProvider != null) &&
         (_rrhhProvider!.calendars.isNotEmpty)) {
       myCalendar ??= _rrhhProvider?.calendars.firstWhere(
-          (hc) => hc.employees.contains(currentEmployee!),
+          (hc) => hc.employees.contains(currentEmployee!.id),
           orElse: () => HolidaysConfig.getEmpty());
+      myListCalendars = _rrhhProvider!.calendars
+          .where((hc) => hc.employees.contains(currentEmployee!.id))
+          .toList(growable: true);
     }
 
     await getNotifications();
@@ -2018,7 +2022,7 @@ class _HomePageState extends State<HomePage> {
       if (holiday.status != "Rechazado") {
         HolidaysCategory? checkingCat = holiday.getCategory(holCat ?? []);
         int laborDays = getWorkingDaysBetween(
-            holiday.startDate, holiday.endDate, [myCalendar]);
+            holiday.startDate, holiday.endDate, myListCalendars);
         holidayDays -= laborDays;
         if (remainingHolidays
             .containsKey(holiday.getCategory(holCat ?? []).autoCode())) {
@@ -2294,9 +2298,10 @@ class _HomePageState extends State<HomePage> {
                                           const EdgeInsets.only(bottom: 10),
                                       child: Text(
                                         getWorkingDaysBetween(
-                                            holiday.startDate,
-                                            holiday.endDate,
-                                            [myCalendar]).toString(),
+                                                holiday.startDate,
+                                                holiday.endDate,
+                                                myListCalendars)
+                                            .toString(),
                                         style: normalText,
                                         textAlign: TextAlign.center,
                                       )),
