@@ -1,0 +1,1 @@
+Fecha de activacion distinta de fecha de validez para los permisos.
