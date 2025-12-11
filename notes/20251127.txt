@@ -30,4 +30,3 @@ Desactivar el botón de enviar solicitud si no hay días suficientes.
 Proyectos.
     - Revisar añadir y eliminar socios y financiadores en la pantalla de edición => DONE
     - Agregar la opción de pinchar en el acrónimo para ir a los datos del proyecto => DONE
-    

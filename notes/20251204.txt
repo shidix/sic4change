@@ -1,0 +1,27 @@
+Registro de horas
+    Registro de jornada del personal a cargo no se actualiza. Pone siempre -160H en el mes. Creo que no recoge la información pertinente.
+Proyectos / Iniciativas
+    Cuando genero iniciativas/proyectos se duplican.
+    El botón de crear iniciativas a veces aparece y a veces no. image.png
+    - No se donde borrar proyectos.
+    -   No se van a borrar. Se va a implementar un borrador soft-> (Descartado) solo el admin
+    - No se donde crear o borrar programas
+    -   Nos e van a borrar.
+    - También desaparece el botón de documentos en algunos proyectos.
+Admin:
+    Desde el Admin en usuarios me aparecen duplicados
+    Ubicación podría estar encadenada?? Si pongo Guat solo me aparece las comunidades de GT....
+    Debería de poder borrar una ubicación si me equivoco.
+    Aparecen dos símbolos de euro:image.png
+ML:
+    El Resultado no debe de tener apartado de FUENTE
+    Línea base resultado esperado y obtenido  deben de ser únicamente números. Tanto en indicadores de Resultado como en los indicadores de Actividad. En todos los INDICADORES vaya. image.png
+    Todos los resultados obtenidos se debe poder registrar de forma acumulativa y con registro de fecha.
+    Al generar tareas se debe de autocompletar: Proyecto y Programa.
+    Me gustaría poder ver las tareas que corresponden a cada actividad.
+        - Sociolo... -> Objetivo 01 -> Actividad Terrible y terrorifica tiene tareas. Hay que ver la forma de mostrarlo... bpoton con numero que abra popup
+    Al generar tareas necesitaría algún filtro para poder seleccionar ejecutores.
+    La lista de supervisores está incompleta. Deberían de aparecer todo los usuarios de la plataforma.
+    Esto molaria mogollon. Pero cuando se completan tareas asociadas a una actividad te debería de sacar un mensaje para rellenar "Resultados obtenidos" Esto lo hablamos bien.
+
+Las tareas no las puede editar cualquiera, solo el creador de la tarea, con excepción de la tarea.
