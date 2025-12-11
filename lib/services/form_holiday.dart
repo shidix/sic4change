@@ -850,7 +850,21 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                   ),
                 ),
                 const SizedBox(width: 16),
+                // AvtivationDate picker
+                Expanded(
+                  flex: 2,
+                  child: DateTimePicker(
+                      labelText: 'Fecha de activación',
+                      selectedDate: getDate(category.activationDate),
+                      onSelectedDate: (date) {
+                        setState(() {
+                          category.activationDate = date;
+                        });
+                      }),
+                ),
+                const SizedBox(width: 16),
                 // Valid from date picker
+
                 Expanded(
                   flex: 1,
                   child: DateTimePicker(

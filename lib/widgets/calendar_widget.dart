@@ -21,8 +21,10 @@ class CalendarWidget extends StatefulWidget {
   final List<Employee> employees;
   final Profile currentProfile;
   DateTime selectedDate = DateTime.now();
-  DateTime startDate = DateTime(DateTime.now().year, 1, 1);
-  DateTime endDate = DateTime(DateTime.now().year, 12, 31);
+  DateTime startDate =
+      DateTime(DateTime.now().year, 1, 1).subtract(const Duration(days: 60));
+  DateTime endDate =
+      DateTime(DateTime.now().year, 12, 31).add(const Duration(days: 60));
   double height = double.infinity;
   double width = 400;
 
