@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,32 @@ import 'package:sic4change/widgets/footer_widget.dart';
 Profile? profile;
 Organization? currentOrganization;
 bool loadProf = false;
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final user = snap.data;
+
+        if (user == null) {
+          return const LoginPage();
+        }
+
+        return HomePage();
+      },
+    );
+  }
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,6 +71,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void initializeData() {
+    // Start FirebaseFirestore instance
+    FirebaseFirestore.instance;
+
     if (FirebaseAuth.instance.currentUser == null) {
       return;
     } else {
@@ -114,6 +144,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      return Scaffold(
+        body: Center(
+            child: loginBody(emailController, passwdController, message)),
+      );
+    }
     try {
       // final user = FirebaseAuth.instance.currentUser!;
       final user = FirebaseAuth.instance.currentUser!;

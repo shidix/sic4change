@@ -689,4 +689,11 @@ class ProjectsProvider with ChangeNotifier {
     initialize();
     // Add listener to this provider to update lastSync
   }
+
+  void dispose() {
+    for (STask task in _tasks) {
+      task.subscription?.cancel();
+    }
+    super.dispose();
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sic4change/services/models.dart';
@@ -60,6 +62,7 @@ class STask {
   List<Organization> receiversOrgObj = [];
   String rel = "";
   String assignedStr = "";
+  StreamSubscription<DocumentSnapshot>? subscription;
   //List<Programme> programmesObj = [];
 
   List<KeyValue> progList = [];
@@ -145,7 +148,8 @@ class STask {
     // task.programmes = (json['programmes'] as List).map((item) => item as String).toList();
     task.public = json['public'] ?? false;
     task.revision = json['revision'] ?? false;
-    task.docRef!.snapshots().listen((event) async {
+
+    task.subscription = task.docRef!.snapshots().listen((event) async {
       task.docRef = event.reference;
       task.update(event.data() as Map<String, dynamic>);
       if (task.onChanged != null) task.onChanged!();

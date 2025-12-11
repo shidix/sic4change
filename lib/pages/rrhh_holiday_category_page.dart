@@ -176,6 +176,7 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
         'Código',
         'Documentos',
         'Días disponibles',
+        'Válido desde',
         'Válido hasta',
         'Acciones'
       ].map((e) {
@@ -198,6 +199,9 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
               holidaysCategories.sort((a, b) =>
                   orderDirection *
                   (a.code).toLowerCase().compareTo((b.code).toLowerCase()));
+            } else if (e == 'Válido desde') {
+              holidaysCategories.sort((a, b) =>
+                  orderDirection * a.validFrom.compareTo(b.validFrom));
             } else if (e == 'Válido hasta') {
               holidaysCategories.sort((a, b) =>
                   orderDirection * a.validUntil.compareTo(b.validUntil));
@@ -227,6 +231,8 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
           DataCell(Text(e.code)),
           DataCell(Text(e.docRequired.toString())),
           DataCell(Text(e.days.toString())),
+          DataCell(Text(
+              "${e.validFrom.day.toString().padLeft(2, '0')}/${e.validFrom.month.toString().padLeft(2, '0')}/${e.validFrom.year}")),
           DataCell(Text(
               "${e.validUntil.day.toString().padLeft(2, '0')}/${e.validUntil.month.toString().padLeft(2, '0')}/${e.validUntil.year}")),
           DataCell(

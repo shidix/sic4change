@@ -733,7 +733,7 @@ String getAcronym(
 
   for (var uuid in project.financiers) {
     try {
-      financiers.add(projectsCache!.organizations
+      financiers.add(projectsCache.organizations
           .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
     } catch (e) {
       continue; // Ignore errors if the object is not found
@@ -743,7 +743,7 @@ String getAcronym(
   List<Organization> partners = [];
   for (var uuid in project.partners) {
     try {
-      partners.add(projectsCache!.organizations
+      partners.add(projectsCache.organizations
           .firstWhere((org) => ((org.uuid == uuid) && (org != currentOrg))));
     } catch (e) {
       continue; // Ignore errors if the object is not found
@@ -753,7 +753,7 @@ String getAcronym(
   List<Country> countries = [];
   for (var locations in project.locations) {
     try {
-      Country country = projectsCache!.countries
+      Country country = projectsCache.countries
           .firstWhere((ctry) => (ctry.uuid == locations['country']));
       if (!countries.contains(country)) {
         countries.add(country);

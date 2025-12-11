@@ -145,11 +145,32 @@ class Profile {
     return mainRole == RRHH || mainRole == ADMINISTRATIVE;
   }
 
-  static Future<List<Profile>> getProfiles({List<String>? emails}) async {
+  static Future<List<Profile>> getProfiles(
+      {List<String>? emails, String orgid = ""}) async {
+    print("Getting profiles for orgid: $orgid and emails: $emails");
     if ((emails != null) && (emails.isNotEmpty)) {
+      if (orgid.isEmpty) {
+        return FirebaseFirestore.instance
+            .collection(Profile.tbName)
+            .where("email", whereIn: emails)
+            .get()
+            .then((snap) =>
+                snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
+      } else {
+        return FirebaseFirestore.instance
+            .collection(Profile.tbName)
+            .where("email", whereIn: emails)
+            .where("organization", isEqualTo: orgid)
+            .get()
+            .then((snap) =>
+                snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());
+      }
+    }
+
+    if (orgid.isNotEmpty) {
       return FirebaseFirestore.instance
           .collection(Profile.tbName)
-          .where("email", whereIn: emails)
+          .where("organization", isEqualTo: orgid)
           .get()
           .then((snap) =>
               snap.docs.map((doc) => Profile.fromFirestore(doc)).toList());

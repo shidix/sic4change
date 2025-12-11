@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -10,6 +12,7 @@ class HolidaysConfig {
   static const String tbName = "s4c_holidays_config";
   DocumentReference? docRef;
   Function? onChanged;
+  StreamSubscription<DocumentSnapshot>? subscription;
 
   String id = "";
   String name = "";
@@ -56,7 +59,7 @@ class HolidaysConfig {
       temp.mapping(data);
       temp.docRef ??= doc;
       if (temp.docRef != null) {
-        temp.docRef!.snapshots().listen((event) {
+        temp.subscription = temp.docRef!.snapshots().listen((event) {
           if (event.exists) {
             Map data = event.data() as Map<String, dynamic>;
             temp?.mapping(data);
@@ -636,6 +639,7 @@ class HolidaysCategory {
   String code;
   int docRequired = 0;
   int year = DateTime.now().year;
+  DateTime validFrom = DateTime(DateTime.now().year, 1, 1);
   DateTime validUntil = DateTime(DateTime.now().year + 1, 1, 1);
   String docMessage = "";
   bool retroactive = false;
@@ -680,11 +684,13 @@ class HolidaysCategory {
       year: year,
     );
 
-    if (data.containsKey('validUntil')) {
-      item.validUntil = getDate(data['validUntil']);
-    } else {
-      item.validUntil = DateTime(year + 1, 1, 1);
-    }
+    item.validUntil = data.containsKey('validUntil')
+        ? getDate(data['validUntil'])
+        : DateTime(year + 1, 1, 1);
+
+    item.validFrom = data.containsKey('validFrom')
+        ? getDate(data['validFrom'])
+        : DateTime(year, 1, 1);
 
     String orgUuid = data['organization'];
 
@@ -705,6 +711,7 @@ class HolidaysCategory {
         'obligation': obligation,
         'days': days,
         'year': year,
+        'validFrom': validFrom,
         'validUntil': validUntil,
         'onlyRRHH': onlyRRHH,
       };
@@ -747,7 +754,7 @@ class HolidaysCategory {
   }
 
   bool isActive() {
-    if (year > DateTime.now().year) return false;
+    if (validFrom.isAfter(DateTime.now())) return false;
     if (validUntil.isBefore(DateTime.now())) return false;
     return true;
   }
@@ -782,8 +789,8 @@ class HolidaysCategory {
     }
   }
 
-  static Future<List<HolidaysCategory>> byOrganization(
-      dynamic organization) async {
+  static Future<List<HolidaysCategory>> byOrganization(dynamic organization,
+      {bool fromServer = false}) async {
     String uuid = "";
     if (organization is String) {
       uuid = organization;
@@ -798,7 +805,7 @@ class HolidaysCategory {
         .where("organization", isEqualTo: uuid);
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
-    if (querySnap.docs.isEmpty) {
+    if (querySnap.docs.isEmpty || fromServer) {
       querySnap = await query.get();
     }
     if (querySnap.docs.isNotEmpty) {
