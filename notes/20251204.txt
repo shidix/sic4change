@@ -19,7 +19,7 @@ ML:
     Todos los resultados obtenidos se debe poder registrar de forma acumulativa y con registro de fecha.
     Al generar tareas se debe de autocompletar: Proyecto y Programa.
     Me gustaría poder ver las tareas que corresponden a cada actividad.
-        - Sociolo... -> Objetivo 01 -> Actividad Terrible y terrorifica tiene tareas. Hay que ver la forma de mostrarlo... bpoton con numero que abra popup
+        - Sociolo... -> Objetivo 01 -> Actividad Terrible y terrorifica tiene tareas. Hay que ver la forma de mostrarlo... boton con numero que abra popup
     Al generar tareas necesitaría algún filtro para poder seleccionar ejecutores.
     La lista de supervisores está incompleta. Deberían de aparecer todo los usuarios de la plataforma.
     Esto molaria mogollon. Pero cuando se completan tareas asociadas a una actividad te debería de sacar un mensaje para rellenar "Resultados obtenidos" Esto lo hablamos bien.
