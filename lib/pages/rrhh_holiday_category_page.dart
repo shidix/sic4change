@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/services/cache_profiles.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/form_holiday.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_holidays.dart';
@@ -22,6 +23,7 @@ class HolidayCategoryPage extends StatefulWidget {
 class HolidayCategoryPageState extends State<HolidayCategoryPage> {
   List<HolidaysCategory> holidaysCategories = [];
   late ProfileProvider _profileProvider;
+  late RRHHProvider _rrhhProvider;
   late VoidCallback _listener;
   Profile? profile;
   Organization? currentOrganization;
@@ -29,13 +31,12 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
   late Widget mainMenuPanel;
   late Widget contentPanel;
 
-  int sortColumnIndex = 0;
+  int sortColumnIndex = 5;
   int orderDirection = 1; // 1 asc, -1 desc
 
   void initializeData() async {
     if ((currentOrganization == null) || (profile == null)) return;
-    holidaysCategories =
-        await HolidaysCategory.getAll(organization: currentOrganization);
+    holidaysCategories = _rrhhProvider.holidaysCategories;
     if (mounted) {
       setState(() {
         contentPanel = content(context);
@@ -46,10 +47,12 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
   @override
   void initState() {
     super.initState();
+    sortColumnIndex = 5;
     secondaryMenuPanel = secondaryMenu(context, HOLIDAYS_ITEM);
     mainMenuPanel = mainMenu(context, "/rrhh");
     contentPanel = content(context); // Initialize contentPanel
     _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _rrhhProvider = context.read<RRHHProvider>();
     _listener = () {
       if (!mounted) return;
       currentOrganization = _profileProvider.organization;
@@ -163,6 +166,8 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
 
     Widget filterPanel = Container();
 
+    holidaysCategories.sort((a, b) =>
+        orderDirection * a.activationDate.compareTo(b.activationDate));
     DataTable dataTable = DataTable(
       headingRowColor:
           WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
@@ -176,6 +181,7 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
         'Código',
         'Documentos',
         'Días disponibles',
+        'Fecha de activación',
         'Válido desde',
         'Válido hasta',
         'Acciones'
@@ -199,6 +205,10 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
               holidaysCategories.sort((a, b) =>
                   orderDirection *
                   (a.code).toLowerCase().compareTo((b.code).toLowerCase()));
+            } else if (e == 'Fecha de activación') {
+              holidaysCategories.sort((a, b) =>
+                  orderDirection *
+                  a.activationDate.compareTo(b.activationDate));
             } else if (e == 'Válido desde') {
               holidaysCategories.sort((a, b) =>
                   orderDirection * a.validFrom.compareTo(b.validFrom));
@@ -231,6 +241,8 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
           DataCell(Text(e.code)),
           DataCell(Text(e.docRequired.toString())),
           DataCell(Text(e.days.toString())),
+          DataCell(Text(
+              "${e.activationDate.day.toString().padLeft(2, '0')}/${e.activationDate.month.toString().padLeft(2, '0')}/${e.activationDate.year}")),
           DataCell(Text(
               "${e.validFrom.day.toString().padLeft(2, '0')}/${e.validFrom.month.toString().padLeft(2, '0')}/${e.validFrom.year}")),
           DataCell(Text(
@@ -279,6 +291,40 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
                             },
                           ),
                         ],
+                      );
+                    },
+                  );
+                },
+              ),
+              // Clone Button
+              IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: () {
+                  HolidaysCategory newCategory = HolidaysCategory.clone(e);
+                  newCategory.name = "${newCategory.name} (Copia)";
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: s4cTitleBar(
+                            "Clonar Permiso", context, Icons.copy_rounded),
+                        content: SizedBox(
+                          width:
+                              max(600, MediaQuery.of(context).size.width * 0.6),
+                          child: SingleChildScrollView(
+                              child: HolidaysCategoryForm(
+                            category: newCategory,
+                            afterSave: (item) {
+                              _rrhhProvider.addHolidaysCategory(item);
+                              holidaysCategories =
+                                  _rrhhProvider.holidaysCategories;
+                              setState(() {
+                                contentPanel = content(context);
+                              });
+                              return item;
+                            },
+                          )),
+                        ),
                       );
                     },
                   );

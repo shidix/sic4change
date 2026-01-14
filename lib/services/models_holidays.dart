@@ -73,6 +73,18 @@ class HolidaysConfig {
     return temp!;
   }
 
+  HolidaysConfig clone() {
+    return HolidaysConfig(
+      id: '',
+      name: name,
+      year: year,
+      // totalDays: totalDays,
+      organization: organization,
+      gralHolidays:
+          gralHolidays.map((e) => Event.fromJson(e.toJson())).toList(),
+    );
+  }
+
   // factory HolidaysConfig.fromFirestore(DocumentSnapshot doc) {
   //   Map data = doc.data() as Map<String, dynamic>;
   //   data['id'] = doc.id;
@@ -639,6 +651,7 @@ class HolidaysCategory {
   String code;
   int docRequired = 0;
   int year = DateTime.now().year;
+  DateTime activationDate = DateTime.now();
   DateTime validFrom = DateTime(DateTime.now().year, 1, 1);
   DateTime validUntil = DateTime(DateTime.now().year + 1, 1, 1);
   String docMessage = "";
@@ -684,6 +697,10 @@ class HolidaysCategory {
       year: year,
     );
 
+    item.activationDate = data.containsKey('activationDate')
+        ? getDate(data['activationDate'])
+        : DateTime.now();
+
     item.validUntil = data.containsKey('validUntil')
         ? getDate(data['validUntil'])
         : DateTime(year + 1, 1, 1);
@@ -700,6 +717,22 @@ class HolidaysCategory {
     return item;
   }
 
+  HolidaysCategory.clone(HolidaysCategory original)
+      : id = "",
+        name = original.name,
+        code = original.code,
+        organization = original.organization,
+        docRequired = original.docRequired,
+        retroactive = original.retroactive,
+        docMessage = original.docMessage,
+        days = original.days,
+        obligation = original.obligation,
+        onlyRRHH = original.onlyRRHH,
+        year = original.year,
+        validFrom = original.validFrom,
+        validUntil = original.validUntil,
+        activationDate = original.activationDate;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -713,6 +746,7 @@ class HolidaysCategory {
         'year': year,
         'validFrom': validFrom,
         'validUntil': validUntil,
+        'activationDate': activationDate,
         'onlyRRHH': onlyRRHH,
       };
 
@@ -754,7 +788,7 @@ class HolidaysCategory {
   }
 
   bool isActive() {
-    if (validFrom.isAfter(DateTime.now())) return false;
+    if (activationDate.isAfter(DateTime.now())) return false;
     if (validUntil.isBefore(DateTime.now())) return false;
     return true;
   }

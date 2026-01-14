@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/services/cache_profiles.dart';
+import 'package:sic4change/services/cache_rrhh.dart';
 import 'package:sic4change/services/form_holiday.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_contact.dart';
@@ -164,6 +165,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   Widget content = const Center(child: CircularProgressIndicator());
   Widget? listDatesView;
   late ProfileProvider _profileProvider;
+  late RRHHProvider _rrhhCache;
   late VoidCallback _listener;
 
   // List<Employee>? employees;
@@ -268,6 +270,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   initState() {
     super.initState();
     _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _rrhhCache = context.read<RRHHProvider>();
 
     _listener = () {
       if (!mounted) return;
@@ -489,10 +492,12 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
               content: HolidayConfigForm(
                 holidaysConfig: holidaysConfig,
                 afterSave: () {
+                  _rrhhCache.addCalendar(holidaysConfig!);
                   drawCalendar();
                 },
                 afterDelete: () {
                   holidaysList!.remove(holidaysConfig);
+                  _rrhhCache.removeCalendar(holidaysConfig!);
                   fillContent();
                 },
                 index: holidaysList!.indexOf(holidaysConfig!),
@@ -544,6 +549,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
   void drawCalendar() {
     List<Event> meetings = holidaysConfig!.gralHolidays;
     List<String> employeesInCalendars = [];
+    List<String> employeesInThisCalendar = holidaysConfig!.employees;
     for (HolidaysConfig calendar in holidaysList!) {
       if (calendar.id == holidaysConfig!.id) continue;
       for (String emp in calendar.employees) {
@@ -672,13 +678,13 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                   actionButtonVertical(context, "Usuarios", (context) {
                     // open dialog to add new employee
                     employeesInCalendars = [];
-                    for (HolidaysConfig calendar in holidaysList!) {
-                      if (calendar.id == holidaysConfig!.id) continue;
-                      if (calendar.year != holidaysConfig!.year) continue;
-                      for (String emp in calendar.employees) {
-                        employeesInCalendars.add(emp);
-                      }
-                    }
+                    // for (HolidaysConfig calendar in holidaysList!) {
+                    //   if (calendar.id == holidaysConfig!.id) continue;
+                    //   if (calendar.year != holidaysConfig!.year) continue;
+                    //   for (String emp in calendar.employees) {
+                    //     employeesInCalendars.add(emp);
+                    //   }
+                    // }
                     showDialog(
                         context: context,
                         builder: (context) {
