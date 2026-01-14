@@ -491,6 +491,10 @@ class _HomePageState extends State<HomePage> {
           ],
         ));
 
+    int lastMonthIndex =
+        DateTime.now().month - 2 < 0 ? 11 : DateTime.now().month - 2;
+    int currentMonthIndex = (lastMonthIndex + 1) % 12;
+
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Container(
@@ -563,16 +567,14 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                         flex: 1,
                         child: Text(
-                          MonthsNamesES[DateTime.now().month - 2]
-                              .substring(0, 3),
+                          MonthsNamesES[lastMonthIndex].substring(0, 3),
                           style: subTitleText,
                           textAlign: TextAlign.center,
                         )),
                     Expanded(
                         flex: 1,
                         child: Text(
-                          MonthsNamesES[DateTime.now().month - 1]
-                              .substring(0, 3),
+                          MonthsNamesES[currentMonthIndex].substring(0, 3),
                           style: subTitleText,
                           textAlign: TextAlign.center,
                         )),
