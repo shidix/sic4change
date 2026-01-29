@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
 import 'dart:convert';
+import 'dart:developer' as dev;
 // import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
@@ -2243,6 +2244,8 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
                   // return ListTile with info popup
+                  dev.log(
+                      "Rendering holiday ${holiday.id}, from ${holiday.startDate} to ${holiday.endDate}");
 
                   return Row(children: [
                     Expanded(

@@ -336,13 +336,29 @@ class HolidayRequest {
     if (!data.containsKey('documents')) {
       data['documents'] = [];
     }
+
+    DateTime startDate = getDate(data['startDate']);
+    // Check if time is 23:00:00, then set to 00:00:00 of next day
+    if (startDate.hour == 23 &&
+        startDate.minute == 0 &&
+        startDate.second == 0) {
+      startDate =
+          DateTime(startDate.year, startDate.month, startDate.day + 1, 0, 0, 0);
+    }
+    DateTime endDate = getDate(data['endDate']);
+    if (endDate.hour == 23 && endDate.minute == 0 && endDate.second == 0) {
+      endDate =
+          DateTime(endDate.year, endDate.month, endDate.day + 1, 23, 59, 59);
+    }
     HolidayRequest item = HolidayRequest(
       id: data['id'],
       // uuid: data['uuid'],
       userId: data['userId'],
       category: data['category'] ?? '',
-      startDate: data['startDate'].toDate(),
-      endDate: data['endDate'].toDate(),
+      startDate: startDate,
+      endDate: endDate,
+      // startDate: data['startDate'].toDate(),
+      // endDate: data['endDate'].toDate(),
       requestDate: data['requestDate'].toDate(),
       approvalDate: data['approvalDate'].toDate(),
       status: data['status'],
@@ -364,8 +380,9 @@ class HolidayRequest {
         // 'uuid': uuid,
         'userId': userId,
         'category': category,
-        'startDate': startDate,
-        'endDate': endDate,
+        // startDate and endDate as Strintg ISO8601
+        'startDate': toNaive(startDate),
+        'endDate': toNaive(endDate),
         'requestDate': requestDate,
         'approvalDate': approvalDate,
         'status': status,
@@ -469,7 +486,7 @@ class HolidayRequest {
   static Future<List<HolidayRequest>> byUser(dynamic email,
       [DateTime? startDate, DateTime? endDate, bool fromServer = false]) async {
     List<HolidayRequest> items = [];
-    startDate ??= DateTime(DateTime.now().year, 1, 1);
+    startDate ??= DateTime(DateTime.now().year - 1, 1, 1);
     endDate ??= DateTime(DateTime.now().year + 1, 12, 31);
 
     if (email is String) {

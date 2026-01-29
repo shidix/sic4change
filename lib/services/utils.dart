@@ -265,6 +265,16 @@ DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
   return truncate ? truncDate(result) : result;
 }
 
+String toNaive(DateTime date, {bool endOfDay = false}) {
+  if (endOfDay) {
+    date = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+  }
+  return date
+      .toLocal()
+      .toIso8601String()
+      .replaceFirst(RegExp(r'(Z|[+-]\d{2}:\d{2})$'), '');
+}
+
 int getDaysInMonth(int year, int month) {
   if (month == DateTime.february) {
     final bool isLeapYear =
