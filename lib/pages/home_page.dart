@@ -1603,21 +1603,15 @@ class _HomePageState extends State<HomePage> {
       month = month;
     }
 
-    // List<Workday> workdays = _rrhhProvider!.workdays
-    //     .where((wd) =>
-    //         (wd.userId == user.email) &&
-    //         (wd.startDate.year == month.year) &&
-    //         (wd.startDate.month == month.month))
-    //     .toList(growable: true);
+    List<DateTime> nonWorkingDays = await HolidaysConfig.holidaysDaysByEmployee(
+        currentEmployee!,
+        year: month.year);
+
     DateTime toDate = DateTime(month.year + ((month.month - 1 + 1) ~/ 12),
             (month.month - 1 + 1) % 12 + 1, 1)
         .subtract(const Duration(seconds: 1));
     List<Workday> workdays = await Workday.byUser(user.email!, month, toDate);
-    // workdays = workdays
-    //     .where((wd) =>
-    //         (wd.startDate.year == month.year) &&
-    //         (wd.startDate.month == month.month))
-    //     .toList(growable: true);
+
     if (workdays.isEmpty) {
       workdays = await Workday.byUser(user.email!, month).catchError((e) {
         return [] as List<Workday>;
@@ -1670,7 +1664,7 @@ class _HomePageState extends State<HomePage> {
           hoursInWeekEmployeeList[workday.startDate.weekday - 1];
 
       if (hoursInWeekEmployee != 0) {
-        if ((myCalendar!.isHoliday(truncDate(workday.startDate))) ||
+        if ((nonWorkingDays.contains(truncDate(workday.startDate))) ||
             (onHolidays(currentEmployee!.email, workday.startDate,
                 acceptedOnly: true))) {
           hoursInWeekEmployee = 0.0;

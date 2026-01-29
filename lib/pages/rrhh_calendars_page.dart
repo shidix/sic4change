@@ -233,7 +233,7 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
     // employeesList = results[1] as List<Employee>;
     // Filter holidays for the current year
     holidaysList = holidaysList!
-        .where((element) => element.year >= DateTime.now().year)
+        .where((element) => element.year >= DateTime.now().year - 1)
         .toList();
     if (holidaysList!.isNotEmpty) {
       holidaysConfig = holidaysList!.last;

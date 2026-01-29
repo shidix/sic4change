@@ -155,6 +155,44 @@ class HolidaysConfig {
         : getEmpty(name: 'Default', year: year);
   }
 
+  static Future<List<DateTime>> holidaysDaysByEmployee(Employee employee,
+      {int year = 0, bool fromServer = false}) async {
+    List<DateTime> result = [];
+    if (year == 0) {
+      year = DateTime.now().year;
+    }
+    if (employee.id!.isEmpty) {
+      return result;
+    }
+
+    final Query query = FirebaseFirestore.instance
+        .collection(tbName)
+        .where("employees", arrayContains: employee.id);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty || fromServer) {
+      querySnap = await query.get();
+    }
+
+    List<HolidaysConfig> items = [];
+    for (var result in querySnap.docs) {
+      Map<String, dynamic> data = result.data() as Map<String, dynamic>;
+      HolidaysConfig temp = HolidaysConfig.getEmpty();
+      temp.mapping(data);
+      items.add(temp);
+    }
+
+    for (var item in items) {
+      if (item.organization == employee.organization && item.year == year) {
+        for (var event in item.gralHolidays) {
+          result.add(event.startTime);
+        }
+      }
+    }
+
+    return result;
+  }
+
   //byOrganization (uuid)
   static Future<List<HolidaysConfig>> byOrganization(String uuid,
       {bool fromServer = false}) async {
