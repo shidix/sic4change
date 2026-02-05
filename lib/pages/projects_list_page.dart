@@ -132,7 +132,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = 450;
+    screenHeight = MediaQuery.of(context).size.height - 200;
     String currentTab = (prType == "Proyecto") ? "proyectos" : "consultorias";
     // Count of projects in each tab
     int proyectosCount = cacheProjects!.projects
@@ -168,14 +168,16 @@ class _ProjectListPageState extends State<ProjectListPage> {
             children: [
               Expanded(
                   flex: 1,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                            padding: const EdgeInsets.all(10),
-                            child: customTitle(context, "PROGRAMAS")),
-                        contentProgrammList,
-                      ])),
+                  child: SizedBox(
+                      height: screenHeight,
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                                padding: const EdgeInsets.all(10),
+                                child: customTitle(context, "PROGRAMAS")),
+                            contentProgrammList,
+                          ]))),
               Expanded(
                   flex: 4,
                   child: Column(
@@ -261,55 +263,54 @@ class _ProjectListPageState extends State<ProjectListPage> {
                      PROGRAMMES
 -------------------------------------------------------------*/
   Widget programmeList() {
-    return Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: Column(
-          children: [
-            for (var programme in programList)
-              Tooltip(
-                  message: "${programme.name}",
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      InkWell(
-                          child: Column(
+    return Flexible(
+        child: SingleChildScrollView(
+            child: Column(
+      children: [
+        for (var programme in programList)
+          Tooltip(
+              message: "${programme.name}",
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(
+                      child: Column(
+                        children: [
+                          (programme.logo != '')
+                              ? Image.network(programme.logo, height: 50)
+                              : const SizedBox(height: 50, width: 50),
+                          space(width: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              (programme.logo != '')
-                                  ? Image.network(programme.logo, height: 50)
-                                  : const SizedBox(height: 50, width: 50),
-                              space(width: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  customText(
-                                      programme.name.length < 16
-                                          ? programme.name
-                                          : programme.name.substring(0, 15) +
-                                              "...",
-                                      16,
-                                      bold: FontWeight.bold,
-                                      textColor: mainColor),
-                                  if (canAddProgramme(profile))
-                                    editBtn(context, callDialog,
-                                        {'programme': programme}),
-                                ],
-                              )
+                              customText(
+                                  programme.name.length < 16
+                                      ? programme.name
+                                      : programme.name.substring(0, 15) + "...",
+                                  16,
+                                  bold: FontWeight.bold,
+                                  textColor: mainColor),
+                              if (canAddProgramme(profile))
+                                editBtn(context, callDialog,
+                                    {'programme': programme}),
                             ],
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: ((context) =>
-                                        ProgrammePage(programme: programme))));
-                          }),
-                      const Divider(color: Colors.grey),
-                      space(height: 10),
-                    ],
-                  )),
-          ],
-        ));
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) =>
+                                    ProgrammePage(programme: programme))));
+                      }),
+                  const Divider(color: Colors.grey),
+                  space(height: 10),
+                ],
+              )),
+      ],
+    )));
   }
 
   Widget programmeList2() {
