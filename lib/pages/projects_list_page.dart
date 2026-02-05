@@ -43,11 +43,17 @@ class _ProjectListPageState extends State<ProjectListPage> {
   Widget contentProgrammList = Container();
   Widget contentProjectList = Container();
   Widget? _mainMenu;
-  double screenHeight = 300;
+  double screenHeight = 0;
   Profile? get currentProfile => cacheProjects!.profile;
   Organization? get currentOrg => cacheProjects!.organizations.firstWhere(
       (org) => org.id == currentProfile!.organization,
       orElse: () => Organization(''));
+
+  Widget projectFilter = Container();
+
+  String searchText = "";
+  String searchStatus = "";
+
   void setLoading() {
     setState(() {
       loading = true;
@@ -85,6 +91,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
             orElse: () => ProjectType(""));
       }
     }
+    if (!mounted) return;
+    screenHeight = prList.length * 100.0;
     contentProjectList = projectList(screenHeight);
     setState(() {});
   }
@@ -162,7 +170,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
         children: [
           _mainMenu!,
           //mainMenu(context, "/projects"),
-          projectSearch(),
+          doSecondaryMenu(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -231,30 +239,72 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  Widget projectSearch() {
+  Widget doSecondaryMenu() {
     return Container(
-        padding: const EdgeInsets.only(left: 20, top: 20),
+        padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(
+              flex: 1, child: const Text(projectTitle, style: headerTitleText)),
+          Expanded(flex: 3, child: Container()),
+          Expanded(
+              flex: 1,
+              child: Container(
+                  alignment: Alignment.centerRight,
+                  child: addBtn(context, callDialog, {"programme": null},
+                      text: "Añadir Programa"))),
+        ]));
+  }
+
+  Widget doProjectFilter() {
+    return Container(
+        padding: const EdgeInsets.only(left: 20, top: 10, right: 20),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(projectTitle, style: headerTitleText),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              addBtn(context, callDialog, {"programme": null},
-                  text: "Añadir Programa"),
-              space(width: 10),
-              /*addBtn(context, callProjectDialog, {"programme": null},
-                  text: "Añadir Iniciativa"),*/
-            ])
-            /*Container(
-          width: 500,
-          child: SearchBar(
-            padding: const MaterialStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 10.0)),
-            onTap: () {},
-            onChanged: (_) {},
-            leading: const Icon(Icons.search),
-          ),
-        ),*/
+            SizedBox(
+              width: 300,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Buscar',
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    searchText = val;
+                    contentProjectList = projectList(screenHeight);
+                  });
+                },
+              ),
+            ),
+            space(width: 20),
+            SizedBox(
+              width: 400,
+              child: DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Estado',
+                ),
+                value: (searchStatus != "") ? searchStatus : null,
+                items: [
+                  const DropdownMenuItem(
+                    value: "",
+                    child: Text("Todos"),
+                  ),
+                  ...cacheProjects!.status.map((status) {
+                    return DropdownMenuItem(
+                      value: status.name,
+                      child: Text(status.name),
+                    );
+                  }).toList(),
+                ],
+                onChanged: (val) {
+                  setState(() {
+                    searchStatus = val ?? "";
+                    contentProjectList = projectList(screenHeight);
+                  });
+                },
+              ),
+            ),
+            // Add more filters here
           ],
         ));
   }
@@ -299,6 +349,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
                                   cacheProjects!.removeProgramme(programme);
                                   programme.delete();
                                   loadProgrammes();
+                                  loadProjects();
                                 }, {'programme': programme}),
                             ],
                           )
@@ -308,8 +359,9 @@ class _ProjectListPageState extends State<ProjectListPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: ((context) =>
-                                    ProgrammePage(programme: programme))));
+                                builder: ((context) => ProgrammePage(
+                                    programme: programme,
+                                    returnToList: true))));
                       }),
                   const Divider(color: Colors.grey),
                   space(height: 10),
@@ -598,57 +650,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
                      PROJECTS
 -------------------------------------------------------------*/
 
-  /*void callActionsDialog(context, args) {
-    actionsDialog(context, args["project"]);
-  }
-
-  Future<void> actionsDialog(context, project) {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          //title: const Text('Modificar programa'),
-          titlePadding: const EdgeInsets.all(0),
-          title: s4cTitleBar('Modificar programa'),
-          content: SingleChildScrollView(
-              child: Column(children: [
-            Row(children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                goPage(context, "+ Info", ProjectInfoPage(project: project),
-                    Icons.info,
-                    style: "bigBtn", extraction: () {}),
-                /*(project.folderObj.uuid != "")
-                ? goPage(context, "Documentos",
-                    DocumentsPage(currentFolder: project.folderObj), Icons.info,
-                    style: "bigBtn", extraction: () {})
-                : Container(),*/
-                goPage(context, "Marco técnico", GoalsPage(project: project),
-                    Icons.task,
-                    style: "bigBtn", extraction: () {
-                  setState(() {});
-                }),
-                goPage(context, "Presupuesto", FinnsPage(project: project),
-                    Icons.euro,
-                    style: "bigBtn", extraction: () {
-                  setState(() {});
-                }),
-              ])
-            ])
-          ])),
-          actions: <Widget>[
-            Row(children: [
-              Expanded(
-                  flex: 5,
-                  child: actionButton(
-                      context, "Cerrar", cancelItem, Icons.cancel, context))
-            ]),
-          ],
-        );
-      },
-    );
-  }*/
-
   Widget actionsPopUpBtn(context, project) {
     SampleItem? selectedMenu;
     return PopupMenuButton<SampleItem>(
@@ -721,11 +722,20 @@ class _ProjectListPageState extends State<ProjectListPage> {
           .toList();
     }
 
-    // List<String> projAcronyms = [];
-    // for (SProject proj in prList) {
-    //   projAcronyms.add(
-    //       getAcronym(cacheProjects!, proj, currentOrg ?? Organization('')));
-    // }
+    if (searchText != "") {
+      prList = prList
+          .where((pr) =>
+              pr.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              pr.code.toLowerCase().contains(searchText.toLowerCase()) ||
+              getAcronym(cacheProjects!, pr, currentOrg ?? Organization(''))
+                  .toLowerCase()
+                  .contains(searchText.toLowerCase()))
+          .toList();
+    }
+
+    if (searchStatus != "") {
+      prList = prList.where((pr) => pr.statusObj.name == searchStatus).toList();
+    }
 
     List<double> columnWidths = [
       70,
@@ -739,6 +749,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return SizedBox(
         height: 0.7 * screenHeight,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          doProjectFilter(),
+          space(height: 10),
           Material(
               elevation: 2,
               child: LayoutBuilder(builder: (context, constraints) {
