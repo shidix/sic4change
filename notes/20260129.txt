@@ -1,8 +1,7 @@
 El dia 6 de enero del 2026 lo esta contando como no festivo, why? => DONE
-En los permisos el periodo de validez es el periodo durante el que se puede pedir y hasta cuando se puede pedir.
-
 El scrool de programas no funciona en el Admin y RRHH => DONE
 El perfil de RRHH y Admin debe tener los mismos filtros en Programas y Cuadro de consultorias y proyectos. => DONE
-
 El superadmin puede borrar los programas y los proyectos    => DONE
+
+En los permisos el periodo de validez es el periodo durante el que se puede pedir y hasta cuando se puede pedir.
 Al agregar un indicador en programas no refresca (las uds no se muestran / almacenan?)
