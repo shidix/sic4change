@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/pages/admin_ambits_page.dart';
 import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
@@ -20,8 +21,10 @@ import 'package:sic4change/pages/admin_skateholder_page.dart';
 import 'package:sic4change/pages/admin_task_status_page.dart';
 import 'package:sic4change/pages/admin_town_page.dart';
 import 'package:sic4change/pages/admin_zone_page.dart';
+import 'package:sic4change/pages/rrhh_holiday_category_page.dart';
 import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/models_commons.dart';
+import 'package:sic4change/services/models_holidays.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
@@ -249,6 +252,97 @@ class _AdminPageState extends State<AdminPage> {
               extraction: () {
             setState(() {});
           }),
+          space(width: 20),
+          goPage(context, "Utils", const AdminUtilsPage(), Icons.settings,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
         ]));
+  }
+}
+
+class AdminUtilsPage extends StatelessWidget {
+  const AdminUtilsPage({super.key});
+
+  void checkHolidayRequests(BuildContext context) async {
+    // Lógica para comprobar las solicitudes de vacaciones
+    List<SNotification> notifications = await SNotification.byObjType(
+        'S4C_HOLIDAYS',
+        senders: ['cparedes@sic4change.org']);
+    List<HolidaysCategory> categories = await HolidaysCategory.getAll();
+    List<SNotification> invalidNotifications = [];
+    List<String> modifiedRequests = [];
+    for (var notification in notifications) {
+      if (modifiedRequests.contains(notification.objId)) {
+        continue;
+      }
+      String categoryName = notification.msg
+          .split("categoría: ")[1]
+          .split(", Estado: ")[0]
+          .trim();
+
+      if (categoryName.contains('PR-')) {
+        categoryName = categoryName.replaceAll('PR-', 'PR25-');
+      }
+      HolidaysCategory category = categories.firstWhere(
+          (cat) => cat.name == categoryName,
+          orElse: () => HolidaysCategory.getEmpty());
+      if (category.id.isEmpty) {
+        categoryName = "PR25-$categoryName";
+        category = categories.firstWhere((cat) => cat.name == categoryName,
+            orElse: () => HolidaysCategory.getEmpty());
+      }
+      if (category.id.isEmpty) {
+        invalidNotifications.add(notification);
+        print("INVALID: ${notification.msg}");
+      } else {
+        print("VALID: ${notification.msg}");
+        if (notification.objId.isEmpty) {
+          continue;
+        }
+        HolidayRequest? request = await HolidayRequest.byId(notification.objId);
+        if (request.id == notification.objId) {
+          request.category = category.id;
+          print(
+              "\tModifying Request ${request.id} - Category: ${category.name}");
+          await request.save();
+          modifiedRequests.add(request.id);
+        }
+      }
+    }
+    print(
+        "Total Notifications: ${notifications.length}  Invalid Notifications: ${invalidNotifications.length}");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> buttons = [
+      backButton(context),
+      gralBtnRow(context, checkHolidayRequests, null,
+          text: "Comprobar solicitudes de vacaciones"),
+    ];
+
+    int ButtonsPerRow = 5;
+    List<Widget> arrangedButtons = [];
+    for (int i = 0; i < buttons.length; i += ButtonsPerRow) {
+      arrangedButtons.add(Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: buttons
+            .sublist(
+                i,
+                i + ButtonsPerRow > buttons.length
+                    ? buttons.length
+                    : i + ButtonsPerRow)
+            .map((button) => Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: button,
+                ))
+            .toList(),
+      ));
+    }
+
+    return Column(
+      children: arrangedButtons,
+    );
   }
 }

@@ -380,7 +380,6 @@ class HolidayRequest {
         // 'uuid': uuid,
         'userId': userId,
         'category': category,
-        // startDate and endDate as Strintg ISO8601
         'startDate': toNaive(startDate),
         'endDate': toNaive(endDate),
         'requestDate': requestDate,
@@ -395,18 +394,18 @@ class HolidayRequest {
     return 'HolidayRequest{id: $id, userId: $userId, catetory: $category, startDate: $startDate, endDate: $endDate, requestDate: $requestDate, approvalDate: $approvalDate, status: $status, approvedBy: $approvedBy}';
   }
 
-  void save2() {
-    if (id == "") {
-      Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
-        id = value.id;
-        save(); // Save again to update the id
-      });
-    } else {
-      Map<String, dynamic> data = toJson();
-      FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
-    }
-  }
+  // void save2() {
+  //   if (id == "") {
+  //     Map<String, dynamic> data = toJson();
+  //     FirebaseFirestore.instance.collection(tbName).add(data).then((value) {
+  //       id = value.id;
+  //       save(); // Save again to update the id
+  //     });
+  //   } else {
+  //     Map<String, dynamic> data = toJson();
+  //     FirebaseFirestore.instance.collection(tbName).doc(id).set(data);
+  //   }
+  // }
 
   Future<HolidayRequest> save() async {
     if (id == "") {
@@ -465,12 +464,9 @@ class HolidayRequest {
     }
     if (categories.any((cat) => cat.id == category)) {
       return categories.firstWhere((cat) => cat.id == category);
-    } else if (category.isEmpty) {
+    } else {
       return HolidaysCategory.getEmpty();
     }
-    category = categories.first.id;
-    save();
-    return categories.first;
   }
 
   static Future<HolidayRequest> byId(String id) async {
@@ -498,19 +494,26 @@ class HolidayRequest {
     for (var i = 0; i < email.length; i += chunkSize) {
       var chunk = email.sublist(
           i, i + chunkSize > email.length ? email.length : i + chunkSize);
+      QuerySnapshot query;
 
       // Query => usendIds in chunk and (startDate OR endDate in datesRange)
       // final query = await FirebaseFirestore.instance
       //     .collection(tbName)
       //     .where("userId", whereIn: chunk)
       //     .get();
+      // Query queryBuilder = FirebaseFirestore.instance
+      //     .collection(tbName)
+      //     .where("userId", whereIn: chunk)
+      //     .where("startDate", isLessThan: endDate)
+      //     .where("endDate", isGreaterThan: startDate);
       Query queryBuilder = FirebaseFirestore.instance
           .collection(tbName)
           .where("userId", whereIn: chunk)
-          .where("startDate", isLessThan: endDate)
-          .where("endDate", isGreaterThan: startDate);
+          .where("startDate", isLessThanOrEqualTo: toNaive(endDate))
+          .where("endDate", isGreaterThanOrEqualTo: toNaive(startDate));
 
-      QuerySnapshot query;
+      // Union
+
       if (!fromServer) {
         query = await queryBuilder.get(const GetOptions(source: Source.cache));
       } else {

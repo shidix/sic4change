@@ -918,6 +918,32 @@ class SNotification {
     }
     return items;
   }
+
+  static Future<List<SNotification>> byObjType(String objType,
+      {List<String>? senders}) async {
+    List<SNotification> items = [];
+    QuerySnapshot query;
+    if (senders != null && senders.isNotEmpty) {
+      query = await FirebaseFirestore.instance
+          .collection("s4c_notifications")
+          .where("objType", isEqualTo: objType)
+          .where("sender", whereIn: senders)
+          .get();
+    } else {
+      query = await FirebaseFirestore.instance
+          .collection("s4c_notifications")
+          .where("objType", isEqualTo: objType)
+          .get();
+    }
+
+    for (var doc in query.docs) {
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data["id"] = doc.id;
+      SNotification item = SNotification.fromJson(data);
+      items.add(item);
+    }
+    return items;
+  }
 }
 
 //--------------------------------------------------------------

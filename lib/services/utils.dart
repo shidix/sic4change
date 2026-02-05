@@ -274,6 +274,13 @@ String toNaive(DateTime date, {bool endOfDay = false}) {
       .toIso8601String()
       .replaceFirst(RegExp(r'(Z|[+-]\d{2}:\d{2})$'), '');
 }
+// DateTime toNaive(DateTime date, {bool endOfDay = false}) {
+//   if (endOfDay) {
+//     date = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+//   }
+//   return DateTime(date.year, date.month, date.day, date.hour, date.minute,
+//       date.second, date.millisecond);
+// }
 
 int getDaysInMonth(int year, int month) {
   if (month == DateTime.february) {

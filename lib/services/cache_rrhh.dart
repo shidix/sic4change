@@ -12,6 +12,7 @@ import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/models_workday.dart';
 
 class RRHHProvider with ChangeNotifier {
+  int cacheDurationMinutes = 60;
   late final Key key;
   User? user = FirebaseAuth.instance.currentUser;
   bool initialized = false;
@@ -42,7 +43,9 @@ class RRHHProvider with ChangeNotifier {
       lastUpdate = updateAt['holidaysCategories']!;
     }
     // Return holidaysCategories if lastUpdate is less than 5 minutes ago
-    if (DateTime.now().difference(lastUpdate).inMinutes > 60) {
+    if (DateTime.now().difference(lastUpdate).inMinutes >
+        cacheDurationMinutes) {
+      _holidaysCategories = [];
       loadHolidaysCategories(notify: true, fromServer: true);
     }
     return _holidaysCategories;
@@ -54,7 +57,9 @@ class RRHHProvider with ChangeNotifier {
       lastUpdate = updateAt['holidaysRequests']!;
     }
     // Return holidaysRequests if lastUpdate is less than 5 minutes ago
-    if (DateTime.now().difference(lastUpdate).inMinutes > 60) {
+    if (DateTime.now().difference(lastUpdate).inMinutes >
+        cacheDurationMinutes) {
+      _holidaysRequests = [];
       loadHolidaysRequests(notify: true, fromServer: true);
     }
     return _holidaysRequests;
@@ -65,7 +70,8 @@ class RRHHProvider with ChangeNotifier {
     if (updateAt.containsKey('calendars')) {
       lastUpdate = updateAt['calendars']!;
     }
-    if (DateTime.now().difference(lastUpdate).inMinutes > 15) {
+    if (DateTime.now().difference(lastUpdate).inMinutes >
+        cacheDurationMinutes) {
       loadCalendars(notify: true);
       updateAt['calendars'] = DateTime.now();
     }
@@ -367,6 +373,13 @@ class RRHHProvider with ChangeNotifier {
       bool notify = true,
       bool fromServer = false}) async {
     if (_organization != null) {
+      fromServer = fromServer ||
+          (DateTime.now()
+                  .difference(updateAt['holidaysRequests'] ??
+                      DateTime.fromMillisecondsSinceEpoch(0))
+                  .inMinutes >
+              cacheDurationMinutes) ||
+          (_employees.length <= 1);
       isLoading.add(true);
       List<String> emailsEmployees =
           _employees.map((e) => e.email).toList(growable: false);
