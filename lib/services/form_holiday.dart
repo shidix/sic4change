@@ -481,6 +481,8 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
   late HolidaysConfig holidaysConfig;
   bool isNewItem = false;
   int originalYear = 0;
+  String? selectedTimeZone;
+  late List<TimeZone> timeZones;
 
   @override
   void initState() {
@@ -488,6 +490,14 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
     isNewItem = (widget.index == -1);
     originalYear = widget.holidaysConfig!.year;
     holidaysConfig = widget.holidaysConfig!;
+    selectedTimeZone = holidaysConfig.timeZone;
+    timeZones = [];
+    TimeZone.getAll().then((value) {
+      timeZones = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   void saveItem(List args) {
@@ -546,6 +556,8 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
 
   @override
   Widget build(BuildContext context) {
+    List<KeyValue> timeZoneItems =
+        timeZones.map((tz) => KeyValue(tz.id, tz.name)).toList();
     List<Expanded> deleteButton = [];
     int flex = 5;
     if (!isNewItem) {
@@ -576,6 +588,24 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
               decoration: const InputDecoration(labelText: 'Nombre'),
               onSaved: (val) => setState(() {
                 holidaysConfig.name = val!;
+              }),
+            ),
+            space(),
+            DropdownButtonFormField(
+              decoration: const InputDecoration(labelText: 'Zona horaria'),
+              value: selectedTimeZone,
+              items: timeZoneItems
+                  .map((tz) =>
+                      DropdownMenuItem(value: tz.key, child: Text(tz.value)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedTimeZone = value as String?;
+                });
+              },
+              onSaved: (val) => setState(() {
+                holidaysConfig.timeZone =
+                    timeZones.firstWhere((tz) => tz.id == selectedTimeZone).id;
               }),
             ),
             space(),
@@ -849,6 +879,7 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                         setState(() => category.year = int.parse(val!)),
                   ),
                 ),
+
                 const SizedBox(width: 16),
                 // AvtivationDate picker
                 Expanded(
@@ -888,6 +919,23 @@ class _HolidaysCategoryFormState extends State<HolidaysCategoryForm> {
                           category.validUntil = date;
                         });
                       }),
+                ),
+              ],
+            ),
+            space(),
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    initialValue: (category.alias != null)
+                        ? category.alias!.join(';')
+                        : '',
+                    decoration: const InputDecoration(
+                        labelText: 'Alias (separados por ;)'),
+                    onSaved: (val) => setState(() => category.alias =
+                        val!.split(';').map((e) => e.trim()).toList()),
+                  ),
                 ),
               ],
             ),

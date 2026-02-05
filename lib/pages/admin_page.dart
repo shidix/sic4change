@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/pages/admin_ambits_page.dart';
+import 'package:sic4change/pages/admin_time_zone_page.dart';
 import 'package:sic4change/pages/rrhh_calendars_page.dart';
 import 'package:sic4change/pages/admin_categories_page.dart';
 import 'package:sic4change/pages/admin_charge_page.dart';
@@ -151,6 +152,11 @@ class _AdminPageState extends State<AdminPage> {
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
+          goPage(context, "Zonas Horarias", const TimeZonePage(),
+              Icons.access_time,
+              style: "bigBtn", extraction: () {
+            setState(() {});
+          }),
         ]));
   }
 
@@ -247,16 +253,20 @@ class _AdminPageState extends State<AdminPage> {
             setState(() {});
           }),
           space(width: 20),
-          goPage(context, "Categorías de vacaciones y permisos",
-              AdminHolidaysCategoriesPage(), Icons.category, style: "bigBtn",
-              extraction: () {
-            setState(() {});
-          }),
-          space(width: 20),
-          goPage(context, "Utils", const AdminUtilsPage(), Icons.settings,
+          goPage(
+              context,
+              "Categorías de vacaciones y permisos",
+              // AdminHolidaysCategoriesPage(),
+              const HolidayCategoryPage(),
+              Icons.category,
               style: "bigBtn", extraction: () {
             setState(() {});
           }),
+          // space(width: 20),
+          // goPage(context, "Utils", const AdminUtilsPage(), Icons.settings,
+          //     style: "bigBtn", extraction: () {
+          //   setState(() {});
+          // }),
         ]));
   }
 }
@@ -266,48 +276,63 @@ class AdminUtilsPage extends StatelessWidget {
 
   void checkHolidayRequests(BuildContext context) async {
     // Lógica para comprobar las solicitudes de vacaciones
-    List<SNotification> notifications = await SNotification.byObjType(
-        'S4C_HOLIDAYS',
-        senders: ['cparedes@sic4change.org']);
-    List<HolidaysCategory> categories = await HolidaysCategory.getAll();
+    Organization? org =
+        Provider.of<ProfileProvider>(context, listen: false).organization;
+    List<SNotification> notifications =
+        await SNotification.byObjType('holiday');
+    List<HolidaysCategory> categories =
+        await HolidaysCategory.byOrganization(org!);
     List<SNotification> invalidNotifications = [];
     List<String> modifiedRequests = [];
     for (var notification in notifications) {
+      print("Checking notification: ${notification.id} - ${notification.msg}");
       if (modifiedRequests.contains(notification.objId)) {
         continue;
       }
-      String categoryName = notification.msg
-          .split("categoría: ")[1]
-          .split(", Estado: ")[0]
-          .trim();
-
+      String categoryName = "";
+      try {
+        categoryName = notification.msg
+            .split("categoría: ")[1]
+            .split(", Estado: ")[0]
+            .trim();
+      } catch (e) {
+        //msg="La solicitud de ${holiday.getCategory(widget.categories).autoCode()} entre los"
+        categoryName = notification.msg
+            .split("solicitud de ")[1]
+            .split(" entre los")[0]
+            .trim();
+      }
       if (categoryName.contains('PR-')) {
         categoryName = categoryName.replaceAll('PR-', 'PR25-');
       }
+
       HolidaysCategory category = categories.firstWhere(
-          (cat) => cat.name == categoryName,
+          (cat) => (cat.name == categoryName ||
+              cat.autoCode() == categoryName ||
+              (cat.alias != null && cat.alias!.contains(categoryName))),
           orElse: () => HolidaysCategory.getEmpty());
       if (category.id.isEmpty) {
         categoryName = "PR25-$categoryName";
-        category = categories.firstWhere((cat) => cat.name == categoryName,
+        category = categories.firstWhere(
+            (cat) => (cat.name == categoryName ||
+                cat.autoCode() == categoryName ||
+                (cat.alias != null && cat.alias!.contains(categoryName))),
             orElse: () => HolidaysCategory.getEmpty());
       }
       if (category.id.isEmpty) {
         invalidNotifications.add(notification);
-        print("INVALID: ${notification.msg}");
       } else {
-        print("VALID: ${notification.msg}");
         if (notification.objId.isEmpty) {
           continue;
         }
         HolidayRequest? request = await HolidayRequest.byId(notification.objId);
         if (request.id == notification.objId) {
           request.category = category.id;
-          print(
-              "\tModifying Request ${request.id} - Category: ${category.name}");
           await request.save();
-          modifiedRequests.add(request.id);
+        } else {
+          invalidNotifications.add(notification);
         }
+        modifiedRequests.add(notification.objId);
       }
     }
     print(

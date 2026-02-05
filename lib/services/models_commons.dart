@@ -920,14 +920,29 @@ class SNotification {
   }
 
   static Future<List<SNotification>> byObjType(String objType,
-      {List<String>? senders}) async {
+      {List<String>? senders, List<String>? receivers}) async {
     List<SNotification> items = [];
     QuerySnapshot query;
     if (senders != null && senders.isNotEmpty) {
+      if (receivers != null && receivers.isNotEmpty) {
+        query = await FirebaseFirestore.instance
+            .collection("s4c_notifications")
+            .where("objType", isEqualTo: objType)
+            .where("sender", whereIn: senders)
+            .where("receiver", whereIn: receivers)
+            .get();
+      } else {
+        query = await FirebaseFirestore.instance
+            .collection("s4c_notifications")
+            .where("objType", isEqualTo: objType)
+            .where("sender", whereIn: senders)
+            .get();
+      }
+    } else if (receivers != null && receivers.isNotEmpty) {
       query = await FirebaseFirestore.instance
           .collection("s4c_notifications")
           .where("objType", isEqualTo: objType)
-          .where("sender", whereIn: senders)
+          .where("receiver", whereIn: receivers)
           .get();
     } else {
       query = await FirebaseFirestore.instance

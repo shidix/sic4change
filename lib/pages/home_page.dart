@@ -105,13 +105,14 @@ class _HomePageState extends State<HomePage> {
   bool onHolidays(String userEmail, DateTime date,
       {bool acceptedOnly = false}) {
     if (myHolidays == null) return false;
+    date = date.toUtc();
 
     for (HolidayRequest holiday in myHolidays!) {
-      bool inRange = (date.isAfter(holiday.startDate) &&
+      bool inRange = (date.isAfter(holiday.startDate.toUtc()) &&
               date.isBefore(
-                  truncDate(holiday.endDate.add(Duration(days: 1))))) ||
-          (holiday.startDate.isAtSameMomentAs(date) ||
-              holiday.endDate.isAtSameMomentAs(date));
+                  truncDate(holiday.endDate.toUtc().add(Duration(days: 1))))) ||
+          (holiday.startDate.toUtc().isAtSameMomentAs(date) ||
+              holiday.endDate.toUtc().isAtSameMomentAs(date));
       if (holiday.userId == userEmail && inRange) {
         if ((!acceptedOnly) || (acceptedOnly && (holiday.isAproved()))) {
           return true;
@@ -1622,7 +1623,7 @@ class _HomePageState extends State<HomePage> {
     DateTime checkDay = DateTime(month.year, month.month, 1);
     while (checkDay.month == month.month) {
       // check if there is any workday in that day
-      if (!(workdays.any((w) => truncDate(w.startDate) == checkDay))) {
+      if (!(workdays.any((w) => truncDate(w.startDate.toUtc()) == checkDay))) {
         // if not, add an empty workday
         workdays.add(Workday(
             id: '',
@@ -1656,21 +1657,22 @@ class _HomePageState extends State<HomePage> {
 
     for (Workday workday in workdays) {
       try {
-        Shift currentShift = currentEmployee!.getShift(date: workday.startDate);
+        Shift currentShift =
+            currentEmployee!.getShift(date: workday.startDate.toUtc());
         hoursInWeekEmployeeList = currentShift.hours;
       } catch (e) {
         hoursInWeekEmployeeList = [7.5, 7.5, 7.5, 7.5, 7.5, 0.0, 0.0];
       }
       hoursInWeekEmployee =
-          hoursInWeekEmployeeList[workday.startDate.weekday - 1];
+          hoursInWeekEmployeeList[workday.startDate.toUtc().weekday - 1];
 
       if (hoursInWeekEmployee != 0) {
-        if ((nonWorkingDays.contains(truncDate(workday.startDate))) ||
-            (onHolidays(currentEmployee!.email, workday.startDate,
+        if ((nonWorkingDays.contains(truncDate(workday.startDate.toUtc()))) ||
+            (onHolidays(currentEmployee!.email, workday.startDate.toUtc(),
                 acceptedOnly: true))) {
           hoursInWeekEmployee = 0.0;
-          if (onHolidays(currentEmployee!.email, workday.startDate,
-              acceptedOnly: true)) {
+          if (!(nonWorkingDays
+              .contains(truncDate(workday.startDate.toUtc())))) {
             workday.id = 'FREE';
           }
         }
@@ -1678,9 +1680,9 @@ class _HomePageState extends State<HomePage> {
 
       if (workday.startDate.month == month.month &&
           workday.startDate.year == month.year) {
-        if (truncDate(workday.startDate) != previousDate) {
+        if (truncDate(workday.startDate.toUtc()) != previousDate) {
           balanceHours = balanceHours - hoursInWeekEmployee;
-          previousDate = truncDate(workday.startDate);
+          previousDate = truncDate(workday.startDate.toUtc());
         }
         balanceHours = balanceHours + workday.hours();
         String key = DateFormat('yyyy-MM-dd').format(workday.startDate);
@@ -1694,17 +1696,17 @@ class _HomePageState extends State<HomePage> {
             inDict[key] = workday.startDate;
           }
         } else {
-          inDict[key] = workday.startDate;
+          inDict[key] = workday.startDate.toUtc();
         }
         if (outDict.containsKey(key)) {
           if (workday.endDate.isAfter(outDict[key]!)) {
-            outDict[key] = workday.endDate;
+            outDict[key] = workday.endDate.toUtc();
           }
         } else {
-          outDict[key] = workday.endDate;
+          outDict[key] = workday.endDate.toUtc();
         }
 
-        DateTime keyDate = truncDate(workday.startDate);
+        DateTime keyDate = truncDate(workday.startDate.toUtc());
 
         double normalHours = workday.hours();
         double extraHours = 0.0;
@@ -1726,16 +1728,16 @@ class _HomePageState extends State<HomePage> {
             (workday.id != '') ||
             (hoursInWeekEmployee > 0)) {
           fullRows.add([
-            DateFormat('dd-MM-yyyy').format(workday.startDate),
+            DateFormat('dd-MM-yyyy').format(workday.startDate.toUtc()),
             (workday.id != '')
                 ? (workday.id == 'FREE')
                     ? 'PERMISO'
-                    : DateFormat('HH:mm').format(workday.startDate)
+                    : DateFormat('HH:mm').format(workday.startDate.toUtc())
                 : '-',
             (workday.id != '')
                 ? (workday.id == 'FREE')
                     ? 'PERMISO'
-                    : DateFormat('HH:mm').format(workday.endDate)
+                    : DateFormat('HH:mm').format(workday.endDate.toUtc())
                 : '-',
             toDuration(normalHours, format: 'hm'),
             toDuration(extraHours, format: 'hm'),
@@ -2244,8 +2246,6 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (BuildContext context, int index) {
                   HolidayRequest holiday = myHolidays!.elementAt(index);
                   // return ListTile with info popup
-                  dev.log(
-                      "Rendering holiday ${holiday.id}, from ${holiday.startDate} to ${holiday.endDate}");
 
                   return Row(children: [
                     Expanded(

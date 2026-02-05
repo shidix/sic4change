@@ -19,40 +19,59 @@ const CALENDAR_ITEM = 3;
 const WORKPLACE_ITEM = 4;
 const HOLIDAYS_ITEM = 5;
 
-Widget secondaryMenu(context, int option) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    mainAxisSize: MainAxisSize.max,
-    children: [
+Widget secondaryMenu(context, int option, {isAdmin = false}) {
+  List<Widget> menuItems = [];
+  if (!isAdmin) {
+    menuItems.add(
       (option != NOMINA_ITEM)
           ? goPage(context, 'Nóminas', const NominasPage(), Icons.euro_symbol)
           : goPage(context, 'Nóminas', null, Icons.euro_symbol),
-      space(width: 10),
+    );
+    menuItems.add(space(width: 10));
+    menuItems.add(
       (option != EMPLOYEE_ITEM)
           ? goPage(context, 'Empleados', const EmployeesPage(), Icons.people)
           : goPage(context, 'Empleados', null, Icons.people),
-      space(width: 10),
+    );
+    menuItems.add(space(width: 10));
+    menuItems.add(
       (option != HIERARCHY_ITEM)
           ? goPage(context, 'Departamentos', const HierarchyPage(),
               Icons.account_tree)
           : goPage(context, 'Departamentos', null, Icons.account_tree),
-      space(width: 10),
+    );
+    menuItems.add(space(width: 10));
+
+    menuItems.add(
       (option != CALENDAR_ITEM)
           ? goPage(context, 'Calendarios', const CalendarHolidaysPage(),
               Icons.calendar_today)
           : goPage(context, 'Calendarios', null, Icons.calendar_today),
-      space(width: 10),
+    );
+    menuItems.add(space(width: 10));
+    menuItems.add(
       (option != WORKPLACE_ITEM)
           ? goPage(context, 'Centros de Trabajo', const WorkplacePage(),
               Icons.business_rounded)
           : goPage(context, 'Centros de Trabajo', null, Icons.business_rounded),
-      space(width: 10),
-      (option != HOLIDAYS_ITEM)
-          ? goPage(context, 'Permisos', const HolidayCategoryPage(),
-              Icons.beach_access)
-          : goPage(context, 'Permisos', null, Icons.beach_access),
-      // space(width: 10),
-      // backButton(context),
-    ],
+    );
+    menuItems.add(space(width: 10));
+  }
+  menuItems.add(
+    (option != HOLIDAYS_ITEM)
+        ? goPage(context, 'Permisos', const HolidayCategoryPage(),
+            Icons.beach_access)
+        : goPage(context, 'Permisos', null, Icons.beach_access),
+  );
+  if (isAdmin) {
+    menuItems.add(space(width: 10));
+    menuItems.add(backButton(context));
+  }
+  // menuItems.add(space(width: 10));
+  // menuItems.add(backButton(context));
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    mainAxisSize: MainAxisSize.max,
+    children: menuItems,
   );
 }

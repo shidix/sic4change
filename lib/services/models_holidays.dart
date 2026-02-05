@@ -8,6 +8,181 @@ import 'package:sic4change/services/utils.dart';
 import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
+class TimeZone extends ARBaseModel {
+  static const String tbName = "s4c_time_zones";
+  String id;
+  String name;
+  String code;
+  int offset; // in minutes
+
+  TimeZone({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.offset,
+  });
+
+  @override
+  void fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'] ?? '';
+    code = json['code'] ?? '';
+    offset = json['offset'] ?? 0;
+  }
+
+  @override
+  String getTbName() {
+    return tbName;
+  }
+
+  @override
+  String getId() {
+    return id;
+  }
+
+  @override
+  void setId(String id) {
+    this.id = id;
+  }
+
+  factory TimeZone.getEmpty() {
+    return TimeZone(
+      id: '',
+      name: '',
+      code: '',
+      offset: 0,
+    );
+  }
+
+  Future<void> getDefault() async {
+    return await byCode('CET');
+  }
+
+  Future<void> byCode(String code) async {
+    final query = await FirebaseFirestore.instance
+        .collection(tbName)
+        .where('code', isEqualTo: code)
+        .get();
+    if (query.docs.isNotEmpty) {
+      Map<String, dynamic> data = query.docs.first.data();
+      fromJson(data);
+    }
+  }
+
+  static Future<List<TimeZone>> getAll({bool fromServer = false}) async {
+    List<TimeZone> items = [];
+    Query query = FirebaseFirestore.instance.collection(tbName);
+    QuerySnapshot querySnap =
+        await query.get(const GetOptions(source: Source.cache));
+    if (querySnap.docs.isEmpty || fromServer) {
+      // dev.log("Fetching TimeZones from SERVER");
+      querySnap = await query.get();
+      // dev.log("TimeZones fetched from SERVER: ${querySnap.docs.length}");
+    } else {
+      // dev.log("Fetching ${querySnap.docs.length} TimeZones from CACHE");
+    }
+    for (var result in querySnap.docs) {
+      Map<String, dynamic> data = result.data() as Map<String, dynamic>;
+      TimeZone temp = TimeZone(
+        id: data['id'],
+        name: data['name'] ?? '',
+        code: data['code'] ?? '',
+        offset: data['offset'] ?? 0,
+      );
+      items.add(temp);
+    }
+    return items;
+  }
+
+  factory TimeZone.fromJson(Map data) {
+    return TimeZone(
+      id: data['id'],
+      name: data['name'] ?? '',
+      code: data['code'] ?? '',
+      offset: data['offset'] ?? 0,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'code': code,
+        'offset': offset,
+      };
+
+  TimeZone clone() {
+    return TimeZone(
+      id: id,
+      name: name,
+      code: code,
+      offset: offset,
+    );
+  }
+
+  static Future<void> initialize() async {
+    List<Map<String, dynamic>> timeZonesData = [
+      {
+        'name': 'Eastern Standard Time',
+        'code': 'EST',
+        'offset': -300,
+      },
+      // Madrid
+      {
+        'name': 'Central European Time/Madrid',
+        'code': 'CET',
+        'offset': 60,
+      },
+      {
+        'name': 'Central Standard Time',
+        'code': 'CST',
+        'offset': -360,
+      },
+      {
+        'name': 'Mountain Standard Time',
+        'code': 'MST',
+        'offset': -420,
+      },
+      {
+        'name': 'Pacific Standard Time',
+        'code': 'PST',
+        'offset': -480,
+      },
+      // Canary
+      {
+        'name': 'Atlántico/Islas Canarias',
+        'code': 'WET',
+        'offset': 0,
+      },
+    ];
+
+    for (var tzData in timeZonesData) {
+      final query = await FirebaseFirestore.instance
+          .collection(TimeZone.tbName)
+          .where('code', isEqualTo: tzData['code'])
+          .get();
+      if (query.docs.isEmpty) {
+        TimeZone tz = TimeZone(
+          id: '',
+          name: tzData['name'],
+          code: tzData['code'],
+          offset: tzData['offset'],
+        );
+        await tz.save();
+        // dev.log("TimeZone ${tz.code} added to Firestore");
+      } else {
+        // dev.log("TimeZone ${tzData['code']} already exists in Firestore");
+      }
+    }
+  }
+
+  @override
+  Future<void> reload() {
+    // TODO: implement reload
+    throw UnimplementedError();
+  }
+}
+
 class HolidaysConfig {
   static const String tbName = "s4c_holidays_config";
   DocumentReference? docRef;
@@ -22,6 +197,8 @@ class HolidaysConfig {
   List<Event> gralHolidays;
   // List<Employee> employees = [];
   List<String> employees = [];
+  // Define TimeZone
+  String? timeZone;
 
   HolidaysConfig({
     required this.id,
@@ -30,6 +207,7 @@ class HolidaysConfig {
     // required this.totalDays,
     required this.organization,
     required this.gralHolidays,
+    this.timeZone,
   });
 
   get totalDays => gralHolidays.length;
@@ -38,6 +216,7 @@ class HolidaysConfig {
     id = data['id'];
     name = data['name'] ?? '';
     year = data['year'];
+    timeZone = (data.containsKey('timeZone')) ? data['timeZone'] : null;
     // totalDays = data['totalDays'];
     organization = data['organization'] ?? '';
     gralHolidays = (data['gralHolidays'] as List)
@@ -95,6 +274,7 @@ class HolidaysConfig {
         'id': id,
         'name': name,
         'year': year,
+        'timeZone': timeZone,
         'totalDays': totalDays,
         'organization': organization,
         'gralHolidays': gralHolidays.map((e) => e.toJson()).toList(),
@@ -114,6 +294,7 @@ class HolidaysConfig {
       // totalDays: 0,
       organization: '',
       gralHolidays: [],
+      timeZone: null,
     );
   }
 
@@ -183,9 +364,16 @@ class HolidaysConfig {
     }
 
     for (var item in items) {
+      int offset = await item.getTimeZone().then((tz) => tz.offset);
       if (item.organization == employee.organization && item.year == year) {
         for (var event in item.gralHolidays) {
-          result.add(event.startTime);
+          DateTime normalizedDate =
+              truncDate(event.startTime.add(Duration(minutes: offset)).toUtc());
+
+          if (!result.any(
+              (date) => truncDate(date).isAtSameMomentAs(normalizedDate))) {
+            result.add(normalizedDate);
+          }
         }
       }
     }
@@ -203,11 +391,7 @@ class HolidaysConfig {
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
     if (querySnap.docs.isEmpty || fromServer) {
-      dev.log("Fetching HolidaysConfig from SERVER");
       querySnap = await query.get();
-      dev.log("HolidaysConfig fetched from SERVER: ${querySnap.docs.length}");
-    } else {
-      dev.log("Fetching ${querySnap.docs.length} HolidaysConfig from CACHE");
     }
     if (querySnap.docs.isNotEmpty) {
       for (var result in querySnap.docs) {
@@ -298,6 +482,18 @@ class HolidaysConfig {
 
   bool isWorkingDay(DateTime date) {
     return (!isHoliday(date));
+  }
+
+  Future<TimeZone> getTimeZone() async {
+    if (timeZone == null || timeZone!.isEmpty) {
+      TimeZone tz = TimeZone.getEmpty();
+      await tz.getDefault();
+      return tz;
+    } else {
+      TimeZone tz = TimeZone.getEmpty();
+      await tz.byId(timeZone!);
+      return tz;
+    }
   }
 }
 
@@ -607,6 +803,11 @@ class Event {
         'notes': notes,
         'isAllDay': isAllDay,
       };
+
+  @override
+  String toString() {
+    return 'Event{subject: $subject, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay}';
+  }
 }
 
 class HolidaysUser {
@@ -707,6 +908,7 @@ class HolidaysCategory {
   String id;
   String name;
   String code;
+  List<String>? alias;
   int docRequired = 0;
   int year = DateTime.now().year;
   DateTime activationDate = DateTime.now();
@@ -728,6 +930,7 @@ class HolidaysCategory {
     this.docRequired = 0,
     this.retroactive = false,
     this.days = 0,
+    this.alias,
     this.docMessage = "",
     this.obligation = false,
     this.onlyRRHH = false,
@@ -745,6 +948,8 @@ class HolidaysCategory {
       id: data['id'],
       code: data['code'] ?? '',
       name: data['name'] ?? '',
+      alias:
+          data.containsKey('alias') ? List<String>.from(data['alias']) : null,
       organization: null,
       docRequired: int.tryParse(data['docRequired'].toString()) ?? 0,
       retroactive: data['retroactive'] ?? false,
@@ -779,6 +984,7 @@ class HolidaysCategory {
       : id = "",
         name = original.name,
         code = original.code,
+        alias = null,
         organization = original.organization,
         docRequired = original.docRequired,
         retroactive = original.retroactive,
@@ -795,6 +1001,7 @@ class HolidaysCategory {
         'id': id,
         'name': name,
         'code': autoCode(),
+        'alias': alias ?? [],
         'organization': organization?.uuid ?? '',
         'docRequired': docRequired,
         'retroactive': retroactive,
@@ -810,7 +1017,7 @@ class HolidaysCategory {
 
   @override
   String toString() {
-    return 'HolidaysCategory{id: $id, name: $name, organization: ${organization?.name}, days: $days, code: $code}';
+    return 'HolidaysCategory{id: $id, name: $name, organization: ${organization?.name}, days: $days, code: $code, alias: $alias}';
   }
 
   String autoCode() {
@@ -901,11 +1108,6 @@ class HolidaysCategory {
       querySnap = await query.get();
     }
     if (querySnap.docs.isNotEmpty) {
-      if (querySnap.metadata.isFromCache) {
-        dev.log("Returned ${querySnap.docs.length} items from CACHE");
-      } else {
-        dev.log("Returned ${querySnap.docs.length} items from SERVER");
-      }
       return querySnap.docs
           .map((e) =>
               HolidaysCategory.fromJson(e.data() as Map<String, dynamic>))

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:googleapis/transcoder/v1.dart';
 import 'package:provider/provider.dart';
 import 'package:sic4change/services/cache_profiles.dart';
 import 'package:sic4change/services/cache_rrhh.dart';
@@ -48,17 +49,23 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
   void initState() {
     super.initState();
     sortColumnIndex = 5;
-    secondaryMenuPanel = secondaryMenu(context, HOLIDAYS_ITEM);
+    secondaryMenuPanel = secondaryMenu(context, HOLIDAYS_ITEM,
+        isAdmin: profile?.isAdmin() ?? false);
+    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     mainMenuPanel = mainMenu(context, "/rrhh");
     contentPanel = content(context); // Initialize contentPanel
-    _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     _rrhhProvider = context.read<RRHHProvider>();
     _listener = () {
       if (!mounted) return;
       currentOrganization = _profileProvider.organization;
 
       profile = _profileProvider.profile;
-      mainMenuPanel = mainMenu(context, "/rrhh");
+      if (profile!.isAdmin()) {
+        mainMenuPanel = mainMenu(context, "/admin");
+      } else {
+        mainMenuPanel = mainMenu(context, "/rrhh");
+      }
+
       if ((profile != null) && (currentOrganization != null)) {
         initializeData();
       } else {
@@ -72,6 +79,15 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
 
     currentOrganization = _profileProvider.organization;
     profile = _profileProvider.profile;
+    if (profile!.isAdmin()) {
+      mainMenuPanel = mainMenu(context, "/admin");
+      secondaryMenuPanel = secondaryMenu(context, HOLIDAYS_ITEM,
+          isAdmin: profile?.isAdmin() ?? false);
+    } else {
+      mainMenuPanel = mainMenu(context, "/rrhh");
+      secondaryMenuPanel = secondaryMenu(context, HOLIDAYS_ITEM,
+          isAdmin: profile?.isAdmin() ?? false);
+    }
     if ((profile == null) || (currentOrganization == null)) {
       _profileProvider.loadProfile();
     } else {
@@ -169,10 +185,11 @@ class HolidayCategoryPageState extends State<HolidayCategoryPage> {
     holidaysCategories.sort((a, b) =>
         orderDirection * a.activationDate.compareTo(b.activationDate));
     DataTable dataTable = DataTable(
-      headingRowColor:
-          WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-        return headerListBgColor;
-      }),
+      // headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+      //     (Set<WidgetState> states) {
+      //   return Colors.grey[300]; // Header background color
+      // }),
+      headingRowColor: MaterialStateProperty.all(Colors.grey[300]),
       sortAscending: orderDirection == 1,
       sortColumnIndex: sortColumnIndex,
       columns: [
