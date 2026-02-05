@@ -23,7 +23,7 @@ import 'package:provider/provider.dart';
 const projectTitle = "Proyectos";
 bool loading = false;
 
-enum SampleItem { itemOne, itemTwo, itemThree }
+enum SampleItem { itemOne, itemTwo, itemThree, itemFour }
 
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key, this.prList, this.prType});
@@ -684,6 +684,40 @@ class _ProjectListPageState extends State<ProjectListPage> {
                         returnToList: true,
                       ))));
         }
+        if (canDeleteProject(currentProfile)) {
+          if (selectedMenu == SampleItem.itemFour) {
+            // Show alert dialog with warning
+            showDialog<void>(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirmar eliminación'),
+                  content: const SingleChildScrollView(
+                    child: Text(
+                        '¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer.'),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('Cancelar'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Eliminar'),
+                      onPressed: () {
+                        project.delete();
+                        cacheProjects!.removeProject(project);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+        }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
         const PopupMenuItem<SampleItem>(
@@ -704,6 +738,15 @@ class _ProjectListPageState extends State<ProjectListPage> {
             children: [
               Icon(Icons.euro),
               Text(' Presupuesto'),
+            ],
+          ),
+        ),
+        const PopupMenuItem<SampleItem>(
+          value: SampleItem.itemFour,
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red),
+              Text(' Eliminar', style: TextStyle(color: Colors.red)),
             ],
           ),
         ),

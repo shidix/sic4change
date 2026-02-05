@@ -15,3 +15,8 @@ canDeleteProgramme(Profile? profile) {
   if (profile == null) return false;
   return profile.isAdmin();
 }
+
+canDeleteProject(Profile? profile) {
+  if (profile == null) return false;
+  return profile.isAdmin() || profile.isSupervisor();
+}
