@@ -294,6 +294,12 @@ class _ProjectListPageState extends State<ProjectListPage> {
                               if (canAddProgramme(profile))
                                 editBtn(context, callDialog,
                                     {'programme': programme}),
+                              if (canDeleteProgramme(profile))
+                                removeConfirmBtn(context, (ctx, args) {
+                                  cacheProjects!.removeProgramme(programme);
+                                  programme.delete();
+                                  loadProgrammes();
+                                }, {'programme': programme}),
                             ],
                           )
                         ],

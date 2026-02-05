@@ -10,3 +10,8 @@ canAddProject(Profile? profile) {
   if (profile == null) return false;
   return profile.isAdmin() || profile.isSupervisor();
 }
+
+canDeleteProgramme(Profile? profile) {
+  if (profile == null) return false;
+  return profile.isAdmin();
+}
