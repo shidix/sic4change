@@ -199,6 +199,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
       });
 
       projectsProvider!.addListener(() {
+        if (!mounted) return;
         loadProjectFromCache().then((value) {
           if (!mounted) return;
           projectInfoHeaderPanel = projectInfoHeader(context);

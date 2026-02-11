@@ -1,7 +1,7 @@
 // ignore_for_file: unused_import, no_leading_underscores_for_local_identifiers, library_private_types_in_public_api
 
 import 'dart:math';
-// import 'dart:developer' as dev;
+import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -540,6 +540,14 @@ Widget customDropdownField(controller, options, current, hint, {width = 220}) {
 }
 
 Widget customLinearPercent(context, _offset, _percent, _color) {
+  if (_percent > 1) {
+    dev.log("Percent value is greater than 1: $_percent. Setting to 1.");
+    _percent = 1;
+  }
+  if (_percent < 0) {
+    dev.log("Percent value is less than 0: $_percent. Setting to 0.");
+    _percent = 0;
+  }
   var _percentText = (_percent * 100).toStringAsFixed(2);
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     LinearPercentIndicator(

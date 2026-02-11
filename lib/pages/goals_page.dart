@@ -20,6 +20,8 @@ import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
+import 'dart:developer' as dev;
+
 const goalPageTitle = "Marco Lógico";
 bool loadingGoal = false;
 bool loadingResult = false;
@@ -80,6 +82,10 @@ class _GoalsPageState extends State<GoalsPage>
     bool first = true;
     await Goal.getGoalsByProject(project!.uuid).then((val) async {
       goals = val;
+      List<double> activitiesPercents = [];
+      List<double> resultPercents = [];
+      List<double> goalPercents = [];
+      List<double> allPercents = [];
       for (Goal goal in goals!) {
         results[goal.uuid] = await Result.getResultsByGoal(goal.uuid);
         double resPercent = 0;
@@ -95,6 +101,7 @@ class _GoalsPageState extends State<GoalsPage>
                 await ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid);
             activityIndicatorPercent[activity.uuid] =
                 await Activity.getIndicatorsPercent(activity.uuid);
+            activitiesPercents.add(activityIndicatorPercent[activity.uuid]);
             actPercent += activityIndicatorPercent[activity.uuid];
             j += 1;
           }
@@ -109,17 +116,32 @@ class _GoalsPageState extends State<GoalsPage>
             resultIndicatorPercent[res.uuid] = rPer;
           }
           resPercent = resPercent + rPer;
+          resultPercents.add(resultIndicatorPercent[res.uuid]);
           i += 1;
         }
         goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
         /*goalIndicatorPercent[goal.uuid] =
             await Goal.getIndicatorsPercent(goal.uuid);*/
         double indPercent = await Goal.getIndicatorsPercent(goal.uuid, goalIndicatorList[goal.uuid]);
-        if (i != 0) {
-          goalIndicatorPercent[goal.uuid] = (indPercent + (resPercent / i)) / 2;
+        goalPercents.add(indPercent);
+        dev.log("Percents: ${goalPercents.toString()}");
+
+        allPercents.addAll(goalPercents);
+        allPercents.addAll(resultPercents);
+        // allPercents.addAll(activitiesPercents);
+
+        if (allPercents.isNotEmpty) {
+          goalIndicatorPercent[goal.uuid] =
+              allPercents.reduce((a, b) => a + b) / allPercents.length;
         } else {
-          goalIndicatorPercent[goal.uuid] = indPercent;
+          goalIndicatorPercent[goal.uuid] = 0;
         }
+
+        // if (i != 0) {
+        //   goalIndicatorPercent[goal.uuid] = (indPercent + (resPercent / i)) / 2;
+        // } else {
+        //   goalIndicatorPercent[goal.uuid] = indPercent;
+        // }
         if (first) {
           first = false;
           stopLoading();

@@ -6,6 +6,8 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
+import 'dart:developer' as dev;
+
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------
@@ -78,25 +80,42 @@ class Goal {
     return proj.name;
   }*/
 
-  static Future<double> getIndicatorsPercent(uuid, List<GoalIndicator>? indicators) async {
-    double totalExpected = 0;
-    double totalObtained = 0;
+  static Future<double> getIndicatorsPercent(
+      uuid, List<GoalIndicator>? indicators) async {
     double total = 0;
-    indicators ??= await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;       
-        // await GoalIndicator.getGoalIndicatorsByGoal(uuid);
+    indicators ??=
+        await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;
+    // await GoalIndicator.getGoalIndicatorsByGoal(uuid);
     indicators = indicators.where((ind) => ind.goal == uuid).toList();
+    List<double> percentages = [];
 
     for (GoalIndicator indicator in indicators) {
+      double percent = 0;
       try {
-        totalExpected += double.parse(indicator.expected);
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        totalObtained += double.parse(indicator.obtained);
-        // ignore: empty_catches
-      } catch (e) {}
+        percent = (double.parse(indicator.obtained) -
+                double.parse(indicator.base)) /
+            (double.parse(indicator.expected) - double.parse(indicator.base));
+      } catch (e) {
+        percent = 0;
+      }
+      percentages.add(percent);
+
+      // try {
+      //   totalExpected +=
+      //       (double.parse(indicator.expected) - double.parse(indicator.base));
+      //   // ignore: empty_catches
+      // } catch (e) {}
+      // try {
+      //   totalObtained +=
+      //       (double.parse(indicator.obtained) - double.parse(indicator.base));
+      //   // ignore: empty_catches
+      // } catch (e) {}
     }
-    if (totalExpected > 0) total = totalObtained / totalExpected;
+    // if (totalExpected > 0) total = totalObtained / totalExpected;
+    dev.log("Percentages for goal $uuid: ${percentages.toString()}");
+    if (percentages.isNotEmpty) {
+      total = percentages.reduce((a, b) => a + b) / percentages.length;
+    }
     if (total > 1) total = 1;
     //indicatorsPercent = total;
     return total;
@@ -194,7 +213,6 @@ class Goal {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
         Goal item = Goal.fromJson(data);
-        //await item.getIndicatorsPercent();
         items.add(item);
       }
     } catch (e) {}
@@ -466,25 +484,30 @@ class Result {
   }
 
   static Future<double> getIndicatorsPercent(uuid) async {
-    double totalExpected = 0;
-    double totalObtained = 0;
-    double total = 0;
+    List<double> percentages = [];
 
     List<ResultIndicator> indicators =
         await ResultIndicator.getResultIndicatorsByResult(uuid);
     for (ResultIndicator indicator in indicators) {
+      double percent = 0;
       try {
-        totalExpected += double.parse(indicator.expected);
+        percent = (double.parse(indicator.obtained) -
+                double.parse(indicator.base)) /
+            (double.parse(indicator.expected) - double.parse(indicator.base));
         // ignore: empty_catches
-      } catch (e) {}
-      try {
-        totalObtained += double.parse(indicator.obtained);
-        // ignore: empty_catches
-      } catch (e) {}
+      } catch (e) {
+        percent = 0;
+      }
+      percentages.add(percent);
     }
-    if (totalExpected > 0) total = totalObtained / totalExpected;
+    double total = 0;
+    dev.log("Percentages for result $uuid: ${percentages.toString()}");
+    if (percentages.isNotEmpty) {
+      total = percentages.reduce((a, b) => a + b) / percentages.length;
+    }
+    dev.log("Total percent for result $uuid: $total");
     if (total > 1) total = 1;
-    return total * 100;
+    return total;
   }
 
   Future<String> getGoalName() async {
@@ -532,7 +555,6 @@ class Result {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data["id"] = doc.id;
         Result item = Result.fromJson(data);
-        //await item.getIndicatorsPercent();
         items.add(item);
       }
     } catch (e) {}
@@ -761,26 +783,42 @@ class Activity {
     // if (total > 1) total = 1;
     // //indicatorsPercent = total;
     // return total;
-    double totalExpected = 0;
-    double totalObtained = 0;
     double total = 0;
+    List<double> percentages = [];
     List<ActivityIndicator> indicators =
         await ActivityIndicator.getActivityIndicatorsByActivity(uuid);
     for (ActivityIndicator indicator in indicators) {
+      double percent = 0;
       try {
-        totalExpected += double.parse(indicator.expected);
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        totalObtained += double.parse(indicator.obtained);
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        total +=
-            double.parse(indicator.obtained) / double.parse(indicator.expected);
-      } catch (e) {}
+        percent = (double.parse(indicator.obtained) -
+                double.parse(indicator.base)) /
+            (double.parse(indicator.expected) - double.parse(indicator.base));
+      } catch (e) {
+        percent = 0;
+      }
+      percentages.add(percent);
+      // try {
+      //   totalExpected +=
+      //       (double.parse(indicator.expected) - double.parse(indicator.base));
+      //   // ignore: empty_catches
+      // } catch (e) {}
+      // try {
+      //   totalObtained +=
+      //       (double.parse(indicator.obtained) - double.parse(indicator.base));
+      //   // ignore: empty_catches
+      // } catch (e) {}
+      // try {
+      //   total +=
+      //       (double.parse(indicator.obtained) -
+      //           double.parse(indicator.base)) /
+      //       (double.parse(indicator.expected) - double.parse(indicator.base));
+      // } catch (e) {}
     }
-    if (totalExpected > 0) total = totalObtained / totalExpected;
+
+    // Calculate the average percentage
+    if (percentages.isNotEmpty) {
+      total = percentages.reduce((a, b) => a + b) / percentages.length;
+    }
     if (total > 1) total = 1;
     //indicatorsPercent = total;
     return total;
@@ -837,7 +875,6 @@ class Activity {
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       data["id"] = doc.id;
       Activity item = Activity.fromJson(data);
-      //await item.getIndicatorsPercent();
       items.add(item);
     }
     return items;
