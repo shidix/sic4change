@@ -841,7 +841,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Esperado",
+                    labelText: "Esperado",
                     initial: indicator.expected,
                     size: 290,
                     minLines: 1,
@@ -854,7 +854,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Obtenido",
+                    labelText: "Obtenido",
                     initial: indicator.obtained,
                     size: 290,
                     minLines: 1,
@@ -1277,7 +1277,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Esperado",
+                    labelText: "Esperado",
                     initial: indicator.expected,
                     size: 220,
                     minLines: 1,
@@ -1290,7 +1290,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Obtenido",
+                    labelText: "Obtenido",
                     initial: indicator.obtained,
                     size: 220,
                     minLines: 1,
@@ -1369,11 +1369,11 @@ class _GoalsPageState extends State<GoalsPage>
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Esperado", 14,
+              label: customText("Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Obtenido", 14,
+              label: customText("Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
@@ -1625,7 +1625,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Esperado",
+                    labelText: "Esperado",
                     initial: indicator.expected,
                     size: 220,
                     minLines: 1,
@@ -1639,7 +1639,7 @@ class _GoalsPageState extends State<GoalsPage>
                 space(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CustomTextField(
-                    labelText: "Resultado Obtenido",
+                    labelText: "Obtenido",
                     initial: indicator.obtained,
                     size: 220,
                     minLines: 1,
