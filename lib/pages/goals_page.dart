@@ -932,11 +932,11 @@ class _GoalsPageState extends State<GoalsPage>
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Esperado", 14,
+              label: customText("Esperado", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
-              label: customText("Resultado Obtenido", 14,
+              label: customText("Obtenido", 14,
                   bold: FontWeight.bold, textColor: headerListTitleColor),
             ),
             DataColumn(
@@ -954,12 +954,18 @@ class _GoalsPageState extends State<GoalsPage>
           rows: indicators
               .map(
                 (indicator) => DataRow(cells: [
-                  DataCell(Text(indicator.name)),
-                  DataCell(Text(indicator.source)),
-                  DataCell(Text(indicator.base)),
-                  DataCell(Text(indicator.expected)),
-                  DataCell(Text(indicator.obtained)),
-                  DataCell(Text(indicator.unit)),
+                  DataCell(Text(indicator.name,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text(indicator.source,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text(indicator.base,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text(indicator.expected,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text(indicator.obtained,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text(indicator.unit,
+                      maxLines: 2, overflow: TextOverflow.ellipsis)),
                   DataCell(
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     /*goPageIcon(context, "Ver", Icons.view_compact,
