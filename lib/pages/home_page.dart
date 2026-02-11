@@ -5,7 +5,6 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:html' as html;
 import 'dart:convert';
-import 'dart:developer' as dev;
 // import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';

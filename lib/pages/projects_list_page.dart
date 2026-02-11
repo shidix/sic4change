@@ -18,7 +18,6 @@ import 'package:sic4change/services/utils.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:provider/provider.dart';
-// import 'dart:developer' as dev;
 
 const projectTitle = "Proyectos";
 bool loading = false;

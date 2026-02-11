@@ -9,7 +9,6 @@ import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 
-import 'dart:developer' as dev;
 
 const timeZoneTitle = "Zonas Horarias";
 List<TimeZone> timeZones = [];

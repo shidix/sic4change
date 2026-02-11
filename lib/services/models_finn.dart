@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sic4change/generated/l10n.dart';
 import 'package:sic4change/services/logs_lib.dart';
 import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_commons.dart';
@@ -87,7 +87,7 @@ class SFinnInfo extends Object {
         return item;
       }
     } catch (e) {
-      log('ERROR in SFinnInfo.byProject');
+      return null;
     }
     return null;
   }
@@ -319,6 +319,7 @@ class SFinn extends Object {
 
   static Future<List> byProject(String uuidProject) async {
     final List<SFinn> items = [];
+    List<String> errors = [];
     await FirebaseFirestore.instance
         .collection(tbName)
         .where("project", isEqualTo: uuidProject)
@@ -332,7 +333,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          log(e.toString());
+          errors.add(doc.id);
         }
       }
     });
@@ -360,6 +361,7 @@ class SFinn extends Object {
   static Future<List> byProjectAndMain(String uuidProject) async {
     final List<SFinn> items = [];
     final database = FirebaseFirestore.instance.collection(tbName);
+    List<String> errors = [];
     await database
         .where("project", isEqualTo: uuidProject)
         .where("parent", isEqualTo: "")
@@ -373,7 +375,7 @@ class SFinn extends Object {
 
           items.add(item);
         } catch (e) {
-          log(e.toString());
+          errors.add(doc.id);
         }
       }
     });
@@ -1003,6 +1005,7 @@ class Invoice extends Object {
   static Future<List> getByFinn(finn) async {
     List finnUuids = [];
     finnUuids = [finn];
+    List<String> errors = [];
 
     List items = [];
     if (finnUuids.isEmpty) {
@@ -1020,7 +1023,7 @@ class Invoice extends Object {
         items.add(item);
       }
     } catch (e) {
-      log("DBG ERROR: $e");
+      errors.add(e.toString());
     }
     items.sort((a, b) => a.date.compareTo(b.date));
 
@@ -1113,8 +1116,6 @@ class Invoice extends Object {
     try {
       return toJson().toString();
     } catch (e, stacktrace) {
-      log(e.toString());
-      log(stacktrace.toString());
       return "ERROR IN INVOICE id: $id, uuid: $uuid, tracker: $tracker";
     }
   }
@@ -1562,9 +1563,7 @@ class BankTransfer {
           ]),
         ],
       );
-    } catch (e, stacktrace) {
-      log(e.toString());
-      log(stacktrace.toString());
+    } catch (e) {
       return const Text("Error en el flujo de trabajo");
     }
   }
@@ -1620,10 +1619,7 @@ class Distribution extends Object {
       }
 
       return item;
-    } catch (e, stacktrace) {
-      log(e.toString());
-      log(stacktrace.toString());
-    }
+    } catch (e) {}
 
     return getEmpty();
   }
@@ -1663,9 +1659,7 @@ class Distribution extends Object {
         items.add(item);
       }
       return items;
-    } catch (e, stacktrace) {
-      log(e.toString());
-      log(stacktrace.toString());
+    } catch (e) {
       return [];
     }
   }
@@ -1757,6 +1751,7 @@ class Distribution extends Object {
 
   double getExecuted() {
     double total = 0;
+
     if (mapinvoices.isEmpty) {
       return total;
     }
@@ -1767,9 +1762,8 @@ class Distribution extends Object {
         } else {
           total += invoice["amount"];
         }
-      } catch (e, stacktrace) {
-        log(e.toString());
-        log(stacktrace.toString());
+      } catch (e) {
+        total += 0;
       }
     }
 

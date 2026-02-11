@@ -20,8 +20,6 @@ import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
 
-import 'dart:developer' as dev;
-
 const goalPageTitle = "Marco Lógico";
 bool loadingGoal = false;
 bool loadingResult = false;
@@ -105,10 +103,6 @@ class _GoalsPageState extends State<GoalsPage>
             actPercent += activityIndicatorPercent[activity.uuid];
             j += 1;
           }
-
-          /*resultIndicatorPercent[res.uuid] =
-              await Result.getIndicatorsPercent(res.uuid);*/
-          //resultIndicatorPercent[res.uuid] = 0;
           double rPer = await Result.getIndicatorsPercent(res.uuid);
           if (j != 0) {
             resultIndicatorPercent[res.uuid] = (rPer + (actPercent / j)) / 2;
@@ -120,15 +114,12 @@ class _GoalsPageState extends State<GoalsPage>
           i += 1;
         }
         goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
-        /*goalIndicatorPercent[goal.uuid] =
-            await Goal.getIndicatorsPercent(goal.uuid);*/
+
         double indPercent = await Goal.getIndicatorsPercent(goal.uuid, goalIndicatorList[goal.uuid]);
         goalPercents.add(indPercent);
-        dev.log("Percents: ${goalPercents.toString()}");
 
         allPercents.addAll(goalPercents);
         allPercents.addAll(resultPercents);
-        // allPercents.addAll(activitiesPercents);
 
         if (allPercents.isNotEmpty) {
           goalIndicatorPercent[goal.uuid] =
@@ -137,11 +128,6 @@ class _GoalsPageState extends State<GoalsPage>
           goalIndicatorPercent[goal.uuid] = 0;
         }
 
-        // if (i != 0) {
-        //   goalIndicatorPercent[goal.uuid] = (indPercent + (resPercent / i)) / 2;
-        // } else {
-        //   goalIndicatorPercent[goal.uuid] = indPercent;
-        // }
         if (first) {
           first = false;
           stopLoading();

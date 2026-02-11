@@ -10,7 +10,6 @@ import 'package:sic4change/services/models_drive.dart';
 import 'package:sic4change/services/models_marco.dart';
 import 'package:sic4change/services/models_profile.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:developer' as dev;
 
 //--------------------------------------------------------------
 //                           TASKS
@@ -349,6 +348,7 @@ class STask {
 
   Future<void> getAssigned() async {
     List<Profile> listAssigned = [];
+    List<String> errors = [];
     for (String item in assigned) {
       try {
         // QuerySnapshot query =
@@ -360,7 +360,7 @@ class STask {
         Profile prof = await Profile.byEmail(item);
         listAssigned.add(prof);
       } catch (e) {
-        dev.log(e.toString());
+        errors.add(e.toString());
       }
     }
     assignedObj = listAssigned;
@@ -459,6 +459,7 @@ class STask {
 
   Future<void> getReceivers() async {
     List<Contact> listReceivers = [];
+    List<String> errors = [];
     for (String item in receivers) {
       try {
         // QuerySnapshot query =
@@ -470,7 +471,7 @@ class STask {
         Contact contact = await Contact.byUuid(item);
         listReceivers.add(contact);
       } catch (e) {
-        dev.log(e.toString());
+        errors.add(e.toString());
       }
     }
     receiversObj = listReceivers;
@@ -478,6 +479,7 @@ class STask {
 
   Future<void> getReceiversOrg() async {
     List<Organization> listReceivers = [];
+    List<String> errors = [];
     for (String item in receivers) {
       try {
         // QuerySnapshot query = await dbOrg.where("uuid", isEqualTo: item).get();
@@ -488,7 +490,7 @@ class STask {
         Organization org = await Organization.byUuid(item);
         listReceivers.add(org);
       } catch (e) {
-        dev.log(e.toString());
+        errors.add(e.toString());
       }
     }
     receiversOrgObj = listReceivers;
@@ -514,6 +516,7 @@ class STask {
 
   static Future<Map<String, dynamic>> getOccupation(user,
       [List<STask>? tasks]) async {
+    List<String> errors = [];
     DateTime now = DateTime.now();
     //DateTime tomorrow = DateTime(now.year, now.month, now.day + 1);
     Map<String, dynamic> row = {};
@@ -561,7 +564,7 @@ class STask {
         'month': getOccupationCell(monthVal)
       };
     } catch (e) {
-      dev.log(e.toString());
+      errors.add(e.toString());
     }
     return row;
   }
@@ -600,6 +603,7 @@ class STask {
 
   static Future<List> getTasks() async {
     List<STask> items = [];
+    List<String> errors = [];
     try {
       QuerySnapshot query =
           await FirebaseFirestore.instance.collection(tbName).get();
@@ -619,7 +623,7 @@ class STask {
         items.add(task);
       }
     } catch (e) {
-      dev.log(e.toString());
+      errors.add(e.toString());
     }
     return items;
   }
@@ -899,17 +903,7 @@ class TasksComments {
 
   static Future<List<TasksComments>> getCommentsByTasks(String uuid) async {
     List<TasksComments> items = [];
-/*    QuerySnapshot query;
-    query = await dbTasksComments
-        .where("task", isEqualTo: uuid)
-        .orderBy('date', descending: true)
-        .get();
-    for (var doc in query.docs) {
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data["id"] = doc.id;
-      TasksComments tc = TasksComments.fromJson(data);
-      await tc.getUser();
-      items.add(tc);*/
+    List<String> errors = [];
     try {
       QuerySnapshot query;
       query = await FirebaseFirestore.instance
@@ -925,7 +919,7 @@ class TasksComments {
         items.add(tc);
       }
     } catch (e) {
-      dev.log(e.toString());
+      errors.add(e.toString());
     }
     return items;
   }

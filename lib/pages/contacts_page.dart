@@ -12,7 +12,6 @@ import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/widgets/common_widgets.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'dart:developer' as dev;
 
 const pageContactTitle = "CRM Contactos de la organización";
 List orgs = [];

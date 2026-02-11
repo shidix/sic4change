@@ -1,6 +1,5 @@
 // ignore_for_file: unused_import
 
-import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sic4change/services/learning_form.dart';
