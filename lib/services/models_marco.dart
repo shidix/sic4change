@@ -6,7 +6,6 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
-import 'dart:developer' as dev;
 
 //--------------------------------------------------------------
 //                           GOAL
@@ -69,23 +68,11 @@ class Goal {
         "Borrado el objetivo '$name' de la iniciativa '${SProject.getProjectName(project)}'");
   }
 
-  /*Future<String> getProjectByGoal() async {
-    SProject proj = SProject("");
-    QuerySnapshot query =
-        await dbProject.where("uuid", isEqualTo: project).get();
-    final dbP = query.docs.first;
-    final Map<String, dynamic> data = dbP.data() as Map<String, dynamic>;
-    data["id"] = dbP.id;
-    proj = SProject.fromJson(data);
-    return proj.name;
-  }*/
-
   static Future<double> getIndicatorsPercent(
       uuid, List<GoalIndicator>? indicators) async {
     double total = 0;
     indicators ??=
         await GoalIndicator.getGoalIndicators() as List<GoalIndicator>;
-    // await GoalIndicator.getGoalIndicatorsByGoal(uuid);
     indicators = indicators.where((ind) => ind.goal == uuid).toList();
     List<double> percentages = [];
 
@@ -95,29 +82,18 @@ class Goal {
         percent = (double.parse(indicator.obtained) -
                 double.parse(indicator.base)) /
             (double.parse(indicator.expected) - double.parse(indicator.base));
+        if (percent > 1) percent = 1;
+        if (percent < 0) percent = 0;
       } catch (e) {
         percent = 0;
       }
       percentages.add(percent);
-
-      // try {
-      //   totalExpected +=
-      //       (double.parse(indicator.expected) - double.parse(indicator.base));
-      //   // ignore: empty_catches
-      // } catch (e) {}
-      // try {
-      //   totalObtained +=
-      //       (double.parse(indicator.obtained) - double.parse(indicator.base));
-      //   // ignore: empty_catches
-      // } catch (e) {}
     }
-    // if (totalExpected > 0) total = totalObtained / totalExpected;
-    dev.log("Percentages for goal $uuid: ${percentages.toString()}");
     if (percentages.isNotEmpty) {
       total = percentages.reduce((a, b) => a + b) / percentages.length;
     }
     if (total > 1) total = 1;
-    //indicatorsPercent = total;
+    if (total < 0) total = 0;
     return total;
   }
 
@@ -494,19 +470,19 @@ class Result {
         percent = (double.parse(indicator.obtained) -
                 double.parse(indicator.base)) /
             (double.parse(indicator.expected) - double.parse(indicator.base));
-        // ignore: empty_catches
+        if (percent > 1) percent = 1;
+        if (percent < 0) percent = 0;
       } catch (e) {
         percent = 0;
       }
       percentages.add(percent);
     }
     double total = 0;
-    dev.log("Percentages for result $uuid: ${percentages.toString()}");
     if (percentages.isNotEmpty) {
       total = percentages.reduce((a, b) => a + b) / percentages.length;
     }
-    dev.log("Total percent for result $uuid: $total");
     if (total > 1) total = 1;
+    if (total < 0) total = 0;
     return total;
   }
 
@@ -793,6 +769,8 @@ class Activity {
         percent = (double.parse(indicator.obtained) -
                 double.parse(indicator.base)) /
             (double.parse(indicator.expected) - double.parse(indicator.base));
+        if (percent > 1) percent = 1;
+        if (percent < 0) percent = 0;
       } catch (e) {
         percent = 0;
       }
@@ -820,6 +798,7 @@ class Activity {
       total = percentages.reduce((a, b) => a + b) / percentages.length;
     }
     if (total > 1) total = 1;
+    if (total < 0) total = 0;
     //indicatorsPercent = total;
     return total;
   }

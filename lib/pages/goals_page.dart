@@ -85,33 +85,34 @@ class _GoalsPageState extends State<GoalsPage>
       List<double> goalPercents = [];
       List<double> allPercents = [];
       for (Goal goal in goals!) {
+        activitiesPercents = [];
+        resultPercents = [];
+        goalPercents = [];
+        allPercents = [];
         results[goal.uuid] = await Result.getResultsByGoal(goal.uuid);
-        double resPercent = 0;
-        int i = 0;
+        // double resPercent = 0;
         for (Result res in results[goal.uuid]) {
           resultIndicatorList[res.uuid] =
               await ResultIndicator.getResultIndicatorsByResult(res.uuid);
           resultActivityList[res.uuid] = await Activity.getActivitiesByResult(res.uuid);
-          double actPercent = 0;
-          int j = 0;
+          // double actPercent = 0;
           for (Activity activity in resultActivityList[res.uuid]) {
             activityIndicatorList[activity.uuid] =
                 await ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid);
             activityIndicatorPercent[activity.uuid] =
                 await Activity.getIndicatorsPercent(activity.uuid);
             activitiesPercents.add(activityIndicatorPercent[activity.uuid]);
-            actPercent += activityIndicatorPercent[activity.uuid];
-            j += 1;
+            // actPercent += activityIndicatorPercent[activity.uuid];
           }
           double rPer = await Result.getIndicatorsPercent(res.uuid);
-          if (j != 0) {
-            resultIndicatorPercent[res.uuid] = (rPer + (actPercent / j)) / 2;
-          } else {
-            resultIndicatorPercent[res.uuid] = rPer;
-          }
-          resPercent = resPercent + rPer;
-          resultPercents.add(resultIndicatorPercent[res.uuid]);
-          i += 1;
+
+          // if (j != 0) {
+          //   resultIndicatorPercent[res.uuid] = (rPer + (actPercent / j)) / 2;
+          // } else {
+          //   resultIndicatorPercent[res.uuid] = rPer;
+          // }
+          // resPercent = resPercent + rPer;
+          resultPercents.add(rPer);
         }
         goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
 
@@ -120,7 +121,7 @@ class _GoalsPageState extends State<GoalsPage>
 
         allPercents.addAll(goalPercents);
         allPercents.addAll(resultPercents);
-
+        allPercents.addAll(activitiesPercents);
         if (allPercents.isNotEmpty) {
           goalIndicatorPercent[goal.uuid] =
               allPercents.reduce((a, b) => a + b) / allPercents.length;

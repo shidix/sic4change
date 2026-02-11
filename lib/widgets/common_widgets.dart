@@ -539,12 +539,14 @@ Widget customDropdownField(controller, options, current, hint, {width = 220}) {
 }
 
 Widget customLinearPercent(context, _offset, _percent, _color) {
+  _percent ??= 0;
   if (_percent > 1) {
     _percent = 1;
   }
   if (_percent < 0) {
     _percent = 0;
   }
+
   var _percentText = (_percent * 100).toStringAsFixed(2);
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     LinearPercentIndicator(
