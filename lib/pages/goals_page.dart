@@ -256,7 +256,7 @@ class _GoalsPageState extends State<GoalsPage>
           content: SingleChildScrollView(
               child: Column(children: <Widget>[
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              customText("Principal", 12),
+              customText("General", 12),
               FormField<bool>(builder: (FormFieldState<bool> state) {
                 return Checkbox(
                   value: goal.main,
