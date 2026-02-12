@@ -581,6 +581,6 @@ class RRHHProvider with ChangeNotifier {
     }
     clear();
 
-    super.dispose();
+    // super.dispose();
   }
 }
