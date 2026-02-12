@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 // import 'package:googleapis/monitoring/v3.dart';
 import 'package:intl/intl.dart';
@@ -17,15 +18,27 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/rrhh_menu_widget.dart';
 import 'package:uuid/uuid.dart';
 // import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'dart:developer' as dev;
+
+// Import TimeZone from models_holidays.dart
 
 class EventTile extends StatelessWidget {
   final Event event;
   final bool inSameYear;
+  final STimeZone timeZone;
 
-  const EventTile({super.key, required this.event, required this.inSameYear});
+  const EventTile(
+      {super.key,
+      required this.event,
+      required this.inSameYear,
+      required this.timeZone});
 
   @override
   Widget build(BuildContext context) {
+
+    // Get offset of local timezone in minutes
+    DateTime dateShowed = event.startTimeShowed(timeZone);
+
     return Column(mainAxisAlignment: MainAxisAlignment.end, children: [
       Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -39,7 +52,7 @@ class EventTile extends StatelessWidget {
                     radius: 20,
                     backgroundColor: Colors.purple,
                     child: Text(
-                      event.startTime.day.toString(),
+                      dateShowed.day.toString(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -51,7 +64,7 @@ class EventTile extends StatelessWidget {
                   flex: 2,
                   child: Text(
                     DateFormat('EEE, MMM', 'es')
-                        .format(event.startTime)
+                        .format(dateShowed)
                         .toUpperCase(),
                     style: const TextStyle(color: Colors.grey),
                     textAlign: TextAlign.center,
@@ -75,7 +88,7 @@ class EventTile extends StatelessWidget {
                             color: event.isAllDay ? Colors.grey : Colors.black,
                           )),
                       if (!inSameYear)
-                        Text(" (${event.startTime.year})",
+                        Text(" (${dateShowed.year})",
                             style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
@@ -117,7 +130,8 @@ class EventList extends StatelessWidget {
             child: EventTile(
                 event: events[index],
                 inSameYear:
-                    (events[index].startTime.year == holidaysConfig.year)),
+                    (events[index].startTime.year == holidaysConfig.year),
+                timeZone: holidaysConfig.timeZoneObj ?? STimeZone.getEmpty()),
             onTap: () {
               showDialog(
                   context: context,
@@ -125,7 +139,7 @@ class EventList extends StatelessWidget {
                     return CustomPopupDialog(
                         context: context,
                         title:
-                            "Editar evento ${DateFormat('EEE, d MMM', 'es').format(events[index].startTime).toUpperCase()}",
+                            "Editar evento ${DateFormat('EEE, d MMM', 'es').format(events[index].startTimeShowed(holidaysConfig.timeZoneObj)).toUpperCase()}",
                         icon: Icons.edit,
                         content: EventForm(
                           holidaysConfig: holidaysConfig,
@@ -634,13 +648,29 @@ class CalendarHolidaysPageState extends State<CalendarHolidaysPage> {
                   space(width: 10),
                   actionButtonVertical(context, "Festivo", (context) {
                     //open dialog to add new holiday
+                    DateTime initialDate = DateTime(holidaysConfig!.year, 1, 1);
+                    // while initialDate in gral holidays, change it to next day
+                    while (holidaysConfig!.gralHolidays.any((event) =>
+                        DateUtils.isSameDay(event.startTime, initialDate))) {
+                      initialDate = initialDate.add(Duration(days: 1));
+                    }
                     showDatePicker(
-                            context: context,
-                            initialDate: DateTime(holidaysConfig!.year, 1, 1),
-                            firstDate: DateTime(holidaysConfig!.year, 1, 1),
-                            lastDate: DateTime(holidaysConfig!.year + 1, 1, 31))
-                        .then((value) {
+                        context: context,
+                        initialDate: initialDate,
+                        firstDate: DateTime(holidaysConfig!.year, 1, 1),
+                        lastDate: DateTime(holidaysConfig!.year + 1, 1, 31),
+                        selectableDayPredicate: (date) {
+                          // Check if the date is already in the list of holidays
+                          for (Event event in holidaysConfig!.gralHolidays) {
+                            if (DateUtils.isSameDay(event.startTime, date)) {
+                              return false;
+                            }
+                          }
+                          return true;
+                        }).then((value) {
                       if (value != null) {
+                        value =
+                            dateTimeInTZ(value, holidaysConfig!.timeZoneObj);
                         Event newEvent = Event(
                             id: const Uuid().v4().toString(),
                             subject: "Día festivo",

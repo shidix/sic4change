@@ -19,6 +19,8 @@ import 'dart:math' as math;
 import 'package:sic4change/services/models_profile.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 
+import 'dart:developer' as dev;
+
 const String statusFormulation = "1"; //En formulación
 const String statusSended = "2"; //Presentado
 const String statusReject = "3"; //Denegado
@@ -233,6 +235,7 @@ DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
   if (date == null) {
     return defaultValue ?? DateTime(2099, 12, 31);
   }
+
   DateTime convert = DateTime(2099, 12, 31);
   DateTime result = convert;
 
@@ -241,6 +244,7 @@ DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
   }
   if (date is Timestamp) {
     result = date.toDate();
+    // Mostrar la hora en el uso horario de Madrid
   }
   if (date is String) {
     try {
@@ -251,23 +255,44 @@ DateTime getDate(dynamic date, {truncate = false, DateTime? defaultValue}) {
   }
   if (date is int) {
     try {
-      return DateTime.fromMillisecondsSinceEpoch(date);
+      int year = date ~/ 10000;
+      int month = (date % 10000) ~/ 100;
+      int day = date % 100;
+      result = DateTime(year, month, day);
     } catch (e) {
       result = convert;
     }
   }
+  // if (date is int) {
+  //   try {
+  //     return DateTime.fromMillisecondsSinceEpoch(date);
+  //   } catch (e) {
+  //     result = convert;
+  //   }
+  // }
   return truncate ? truncDate(result) : result;
 }
 
-String toNaive(DateTime date, {bool endOfDay = false}) {
+DateTime toNaive(DateTime date, {bool endOfDay = false}) {
+  Timestamp timestamp = Timestamp.fromDate(date);
+  const day = 86400; // Number of seconds in a day
+  int naiveSeconds = timestamp.seconds - (timestamp.seconds % day);
   if (endOfDay) {
-    date = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+    naiveSeconds += day - 1; // Move to the end of the day
   }
-  return date
-      .toLocal()
-      .toIso8601String()
-      .replaceFirst(RegExp(r'(Z|[+-]\d{2}:\d{2})$'), '');
+  Timestamp naiveTimestamp = Timestamp(naiveSeconds, 0);
+  return naiveTimestamp.toDate().toUtc();
 }
+
+// String toNaive(DateTime date, {bool endOfDay = false}) {
+//   if (endOfDay) {
+//     date = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+//   }
+//   return date
+//       .toLocal()
+//       .toIso8601String()
+//       .replaceFirst(RegExp(r'(Z|[+-]\d{2}:\d{2})$'), '');
+// }
 // DateTime toNaive(DateTime date, {bool endOfDay = false}) {
 //   if (endOfDay) {
 //     date = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
@@ -797,4 +822,11 @@ String getAcronym(
 int weekOfYear(DateTime date) {
   int dayOfYear = int.parse(DateFormat("D").format(date));
   return ((dayOfYear - date.weekday + 10) / 7).floor();
+}
+
+DateTime dateTimeInTZ(DateTime date, STimeZone? tz) {
+  int localOffset = date.toLocal().timeZoneOffset.inMinutes;
+  int tzOffset = tz != null ? tz.offset : 0;
+  int offsetDifference = tzOffset - localOffset;
+  return date.toUtc().subtract(Duration(minutes: offsetDifference));
 }

@@ -72,7 +72,8 @@ class CalendarWidgetState extends State<CalendarWidget> {
   }
 
   Widget eventLoader(Event event) {
-    return EventTile(event: event, inSameYear: true);
+    return EventTile(
+        event: event, inSameYear: true, timeZone: STimeZone.getEmpty());
   }
 
   // Dialog to show the list of holidays for the selected date

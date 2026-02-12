@@ -74,6 +74,7 @@ class _EventFormState extends State<EventForm> {
 
   void removeItem(List args) {
     holidaysConfig.gralHolidays.removeAt(widget.index);
+    holidaysConfig.save();
     //holidaysConfig.save();
     Navigator.of(args[0]).pop(null);
 
@@ -482,7 +483,8 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
   bool isNewItem = false;
   int originalYear = 0;
   String? selectedTimeZone;
-  late List<TimeZone> timeZones;
+  late List<STimeZone> timeZones;
+  late String? originalTimeZone;
 
   @override
   void initState() {
@@ -491,8 +493,9 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
     originalYear = widget.holidaysConfig!.year;
     holidaysConfig = widget.holidaysConfig!;
     selectedTimeZone = holidaysConfig.timeZone;
+    originalTimeZone = holidaysConfig.timeZone;
     timeZones = [];
-    TimeZone.getAll().then((value) {
+    STimeZone.getAll().then((value) {
       timeZones = value;
       if (mounted) {
         setState(() {});
@@ -528,7 +531,30 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
               event.endTime.second);
         }
       }
+      STimeZone? tz = holidaysConfig.timeZoneObj;
+      holidaysConfig.timeZoneObj = null;
+
+      if (selectedTimeZone != originalTimeZone) {
+        STimeZone? originalTz = timeZones.firstWhere(
+            (tz) => tz.id == originalTimeZone,
+            orElse: () =>
+                STimeZone(id: '', name: '', offset: 0, code: '--empty-'));
+        STimeZone? newTz = timeZones.firstWhere(
+            (tz) => tz.id == selectedTimeZone,
+            orElse: () =>
+                STimeZone(id: '', name: '', offset: 0, code: '--empty-'));
+        int offsetDifference = newTz.offset - originalTz.offset;
+        // Update the dates of all events in gralHolidays based on the offset difference
+        for (int i = 0; i < holidaysConfig.gralHolidays.length; i++) {
+          Event event = holidaysConfig.gralHolidays[i];
+          event.startTime =
+              event.startTime.subtract(Duration(minutes: offsetDifference));
+          event.endTime =
+              event.endTime.subtract(Duration(minutes: offsetDifference));
+        }
+      }
       holidaysConfig.save();
+      holidaysConfig.timeZoneObj = tz;
       if (widget.afterSave != null) {
         widget.afterSave!();
       }
@@ -606,6 +632,8 @@ class _HolidayConfigFormState extends State<HolidayConfigForm> {
               onSaved: (val) => setState(() {
                 holidaysConfig.timeZone =
                     timeZones.firstWhere((tz) => tz.id == selectedTimeZone).id;
+                holidaysConfig.timeZoneObj =
+                    timeZones.firstWhere((tz) => tz.id == selectedTimeZone);
               }),
             ),
             space(),

@@ -48,7 +48,7 @@ abstract class ARBaseModel {
     }
   }
 
-  Future<void> byId<T extends ARBaseModel>([String? idToSearch]) async {
+  Future<T> byId<T extends ARBaseModel>([String? idToSearch]) async {
     if (getTbName() == "") {
       throw Exception("Table name is not set");
     }
@@ -68,6 +68,7 @@ abstract class ARBaseModel {
     final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data["id"] = doc.id;
     fromJson(data);
+    return this as T;
   }
 
   Future<T> get<T extends ARBaseModel>() async {

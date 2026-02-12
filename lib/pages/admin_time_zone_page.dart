@@ -11,7 +11,7 @@ import 'package:sic4change/widgets/main_menu_widget.dart';
 
 
 const timeZoneTitle = "Zonas Horarias";
-List<TimeZone> timeZones = [];
+List<STimeZone> timeZones = [];
 bool loadingTimeZones = false;
 Widget? _mainMenu;
 
@@ -38,10 +38,10 @@ class _TimeZonePageState extends State<TimeZonePage>
 
   void loadTimeZones() async {
     setLoading();
-    timeZones = await TimeZone.getAll(fromServer: true);
+    timeZones = await STimeZone.getAll(fromServer: true);
     if (timeZones.isEmpty) {
-      await TimeZone.initialize();
-      timeZones = await TimeZone.getAll();
+      await STimeZone.initialize();
+      timeZones = await STimeZone.getAll();
       if (mounted) {
         setState(() {});
       }
@@ -83,7 +83,7 @@ class _TimeZonePageState extends State<TimeZonePage>
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             addBtn(
-                context, editTimeZoneDialog, {'timeZone': TimeZone.getEmpty()},
+                context, editTimeZoneDialog, {'timeZone': STimeZone.getEmpty()},
                 text: "Agregar Zona Horaria"),
             space(width: 10),
             returnBtn(context),
@@ -124,7 +124,7 @@ class _TimeZonePageState extends State<TimeZonePage>
   }
 
   void editTimeZoneDialog(List args) {
-    TimeZone timeZone = args[0];
+    STimeZone timeZone = args[0];
     // Implement the dialog to edit or add a TimeZone
     print("Editing TimeZone: ${timeZone.id}");
     showDialog(
@@ -144,7 +144,7 @@ class _TimeZonePageState extends State<TimeZonePage>
 }
 
 class TimeZoneForm extends StatefulWidget {
-  final TimeZone timeZone;
+  final STimeZone timeZone;
 
   const TimeZoneForm({super.key, required this.timeZone});
 

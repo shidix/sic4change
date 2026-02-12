@@ -1,20 +1,22 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:googleapis/driveactivity/v2.dart';
 import 'package:sic4change/services/models_arbase.dart';
 import 'package:sic4change/services/models_commons.dart';
 import 'package:sic4change/services/models_rrhh.dart';
 import 'package:sic4change/services/utils.dart';
+import 'dart:developer' as dev;
 // import 'package:uuid/uuid.dart';
 
-class TimeZone extends ARBaseModel {
+class STimeZone extends ARBaseModel {
   static const String tbName = "s4c_time_zones";
   String id;
   String name;
   String code;
   int offset; // in minutes
 
-  TimeZone({
+  STimeZone({
     required this.id,
     required this.name,
     required this.code,
@@ -44,8 +46,10 @@ class TimeZone extends ARBaseModel {
     this.id = id;
   }
 
-  factory TimeZone.getEmpty() {
-    return TimeZone(
+  // byId is ARBaseModel method, but we need to override it to return STimeZone
+
+  factory STimeZone.getEmpty() {
+    return STimeZone(
       id: '',
       name: '',
       code: '',
@@ -68,8 +72,8 @@ class TimeZone extends ARBaseModel {
     }
   }
 
-  static Future<List<TimeZone>> getAll({bool fromServer = false}) async {
-    List<TimeZone> items = [];
+  static Future<List<STimeZone>> getAll({bool fromServer = false}) async {
+    List<STimeZone> items = [];
     Query query = FirebaseFirestore.instance.collection(tbName);
     QuerySnapshot querySnap =
         await query.get(const GetOptions(source: Source.cache));
@@ -82,7 +86,7 @@ class TimeZone extends ARBaseModel {
     }
     for (var result in querySnap.docs) {
       Map<String, dynamic> data = result.data() as Map<String, dynamic>;
-      TimeZone temp = TimeZone(
+      STimeZone temp = STimeZone(
         id: data['id'],
         name: data['name'] ?? '',
         code: data['code'] ?? '',
@@ -93,8 +97,8 @@ class TimeZone extends ARBaseModel {
     return items;
   }
 
-  factory TimeZone.fromJson(Map data) {
-    return TimeZone(
+  factory STimeZone.fromJson(Map data) {
+    return STimeZone(
       id: data['id'],
       name: data['name'] ?? '',
       code: data['code'] ?? '',
@@ -110,8 +114,8 @@ class TimeZone extends ARBaseModel {
         'offset': offset,
       };
 
-  TimeZone clone() {
-    return TimeZone(
+  STimeZone clone() {
+    return STimeZone(
       id: id,
       name: name,
       code: code,
@@ -157,11 +161,11 @@ class TimeZone extends ARBaseModel {
 
     for (var tzData in timeZonesData) {
       final query = await FirebaseFirestore.instance
-          .collection(TimeZone.tbName)
+          .collection(STimeZone.tbName)
           .where('code', isEqualTo: tzData['code'])
           .get();
       if (query.docs.isEmpty) {
-        TimeZone tz = TimeZone(
+        STimeZone tz = STimeZone(
           id: '',
           name: tzData['name'],
           code: tzData['code'],
@@ -198,6 +202,7 @@ class HolidaysConfig {
   List<String> employees = [];
   // Define TimeZone
   String? timeZone;
+  STimeZone? timeZoneObj;
 
   HolidaysConfig({
     required this.id,
@@ -218,14 +223,21 @@ class HolidaysConfig {
     timeZone = (data.containsKey('timeZone')) ? data['timeZone'] : null;
     // totalDays = data['totalDays'];
     organization = data['organization'] ?? '';
-    gralHolidays = (data['gralHolidays'] as List)
-        .map<Event>((e) => Event.fromJson(e))
-        .toList();
+    gralHolidays = (data.containsKey('gralHolidays'))
+        ? (data['gralHolidays'] as List)
+            .map<Event>((e) => Event.fromJson(e))
+            .toList()
+        : [];
     if (!data.containsKey('employees')) {
       employees = [];
     } else {
       employees = List<String>.from(data['employees']);
     }
+    STimeZone.getEmpty().byId(timeZone ?? '').then((tz) {
+      timeZoneObj = tz as STimeZone;
+    }).catchError((error) {
+      timeZoneObj = null;
+    });
   }
 
   static Future<HolidaysConfig> fromJson(DocumentReference doc) async {
@@ -483,13 +495,13 @@ class HolidaysConfig {
     return (!isHoliday(date));
   }
 
-  Future<TimeZone> getTimeZone() async {
+  Future<STimeZone> getTimeZone() async {
     if (timeZone == null || timeZone!.isEmpty) {
-      TimeZone tz = TimeZone.getEmpty();
+      STimeZone tz = STimeZone.getEmpty();
       await tz.getDefault();
       return tz;
     } else {
-      TimeZone tz = TimeZone.getEmpty();
+      STimeZone tz = STimeZone.getEmpty();
       await tz.byId(timeZone!);
       return tz;
     }
@@ -795,17 +807,39 @@ class Event {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'subject': subject,
-        'startTime': startTime,
-        'endTime': endTime,
-        'notes': notes,
-        'isAllDay': isAllDay,
-      };
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> temp = <String, dynamic>{
+      'subject': subject,
+      'startTime': startTime,
+      'endTime': endTime,
+      'notes': notes,
+      'isAllDay': isAllDay,
+      'id': id,
+    };
+    return temp;
+  }
 
   @override
   String toString() {
     return 'Event{subject: $subject, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay}';
+  }
+
+  DateTime startTimeShowed(STimeZone? tz) {
+    if (tz == null) {
+      return startTime;
+    }
+    int localOffset = DateTime.now().timeZoneOffset.inMinutes;
+    int totalOffset = tz.offset - localOffset;
+    return startTime.add(Duration(minutes: totalOffset));
+  }
+
+  DateTime endTimeShowed(STimeZone? tz) {
+    if (tz == null) {
+      return endTime;
+    }
+    int localOffset = DateTime.now().timeZoneOffset.inMinutes;
+    int totalOffset = tz.offset - localOffset;
+    return endTime.add(Duration(minutes: totalOffset));
   }
 }
 
