@@ -679,7 +679,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   style: normalText, textAlign: TextAlign.center)),
           Expanded(
               flex: 1,
-              child: Text("${project.budget} €",
+              child: Text(toCurrency(project.budget),
                   style: normalText, textAlign: TextAlign.center)),
           // Expanded(
           //     flex: 1,
@@ -687,7 +687,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           //         style: normalText, textAlign: TextAlign.center)),
           Expanded(
               flex: 1,
-              child: Text("${toCurrency(project.execBudget)} €",
+              child: Text(toCurrency(project.execBudget),
                   style: normalText, textAlign: TextAlign.center)),
           Expanded(
               flex: 2,
