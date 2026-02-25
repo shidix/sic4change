@@ -41,6 +41,7 @@ class ProjectInfoPage extends StatefulWidget {
 class _ProjectInfoPageState extends State<ProjectInfoPage> {
   SProject? project;
   Profile? profile;
+  Organization? projectOrg;
   bool _canEdit = false;
   bool returnToList = false;
   ProjectsProvider? projectsProvider;
@@ -130,6 +131,9 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
     _canEdit = canEdit();
     if (!mounted) return;
     _mainMenu = mainMenu(context, null, profile);
+    projectOrg = projectsProvider!.organizations.firstWhere(
+        (element) => element.uuid == profile!.organization,
+        orElse: () => Organization("Unknown")); 
     if (!mounted) return;
     setState(() {});
   }
@@ -298,8 +302,13 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                           Icons.arrow_circle_left_outlined),
                 ]))
           ]),
+          space(height: 20),
           Row(children: [
-            Expanded(flex: 1, child: customText(project!.name, 20)),
+            Expanded(
+                flex: 1,
+                child: customText(
+                    "${getAcronym(projectsProvider!, project!, projectOrg!)} - ${project!.name}",
+                    20)),
           ]),
           space(height: 20),
           Row(

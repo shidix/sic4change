@@ -1490,6 +1490,9 @@ class _FinnsPageState extends State<FinnsPage> {
 -------------------------------------------------------------*/
   Widget finnHeader(context, project) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Expanded(
+          flex: 3,
+          child:
       Container(
         padding: const EdgeInsets.only(left: 40),
         child: Text(
@@ -1497,7 +1500,10 @@ class _FinnsPageState extends State<FinnsPage> {
                 ? "$PAGE_FINN_TITLE de ${project!.name}."
                 : "Esperando datos...",
             style: const TextStyle(fontSize: 20)),
-      ),
+          )),
+      Expanded(
+          flex: 1,
+          child:
       Container(
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -1520,7 +1526,7 @@ class _FinnsPageState extends State<FinnsPage> {
                     Icons.arrow_circle_left_outlined),
           ],
         ),
-      ),
+          )),
     ]);
   }
 
