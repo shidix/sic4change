@@ -312,7 +312,8 @@ class CalendarWidgetState extends State<CalendarWidget> {
                                       for (var docPath in holiday.documents) {
                                         openFileUrl(context, docPath);
                                       }
-                                    }, Icons.picture_as_pdf, [holiday, null],
+                                    }, Icons.find_in_page_outlined,
+                                        [holiday, null],
                                         iconColor: Colors.blue,
                                         tooltip: 'Ver documentos adjunto',
                                         scale: scale),

@@ -543,12 +543,28 @@ class _DocumentsPageState extends State<DocumentsPage> {
                   String? name = file?.name;
                   String? loc = "(${file?.loc})";
 
+                  IconData icon = Icons.insert_drive_file;
+
                   if (name != null && name.length > 6) {
                     name = '${name.substring(0, 6)}...';
+                    if (file?.name != null &&
+                        file!.name.split(".").length > 1) {
+                      String ext = file.name.split(".").last.toLowerCase();
+                      if (ext == "pdf") {
+                        icon = Icons.picture_as_pdf;
+                      } else if (["doc", "docx"].contains(ext)) {
+                        icon = Icons.description;
+                      } else if (["xls", "xlsx"].contains(ext)) {
+                        icon = Icons.table_chart;
+                      } else if (["png", "jpg", "jpeg", "gif"].contains(ext)) {
+                        icon = Icons.image;
+                      }
+                    }
                   }
+                  
                   return Row(children: [
                     customRowFileBtn(
-                        context, name, loc, Icons.picture_as_pdf, file?.link),
+                        context, name, loc, icon, file?.link),
                     filePopUpBtn(context, file, currentFolder)
                   ]);
                 });

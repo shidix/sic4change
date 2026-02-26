@@ -85,10 +85,19 @@ class _TransversalQuestionFormState extends State<TransversalQuestionForm> {
     if (transversalQuestion.files.isNotEmpty) {
       List<Widget> iconFiles = [];
       for (SFile file in transversalQuestion.files) {
+        IconData icon = Icons.insert_drive_file;
+        if (file.name.split(".").length > 1) {
+          String ext = file.name.split(".").last.toLowerCase();
+          if (ext == "pdf") {
+            icon = Icons.picture_as_pdf;
+          } else if (["jpg", "jpeg", "png"].contains(ext)) {
+            icon = Icons.image;
+          }
+        } 
         iconFiles.add(Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
             child: customRowFileBtn(context, file.name, file.loc,
-                Icons.picture_as_pdf, file.link)));
+                icon, file.link)));
       }
 
       docPanel = Column(children: [
