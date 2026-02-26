@@ -6,7 +6,6 @@ import 'package:sic4change/services/models.dart';
 import 'package:sic4change/services/models_drive.dart';
 import 'package:uuid/uuid.dart';
 
-
 //--------------------------------------------------------------
 //                           GOAL
 //--------------------------------------------------------------
@@ -549,22 +548,36 @@ class ResultIndicator {
   String source = "";
   String base = "";
   String expected = "";
-  String obtained = "";
   String unit = "";
   String result = "";
+  Map<String, double> history = {};
 
   ResultIndicator(this.result);
 
-  ResultIndicator.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        source = json['source'],
-        expected = json['expected'],
-        obtained = json['obtained'],
-        base = json['base'],
-        unit = json['unit'],
-        result = json['result'];
+  static ResultIndicator fromJson(Map<String, dynamic> json) {
+    ResultIndicator item = ResultIndicator("");
+
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    item.source = json['source'];
+    item.expected = json['expected'];
+    // item.obtained = json['obtained'];
+    item.base = json['base'];
+    item.unit = json['unit'];
+    item.history = (json.containsKey('history'))
+        ? Map<String, double>.from(json['history'])
+        : {};
+    item.result = json['result'];
+    if (json.containsKey('obtained')) {
+      if (item.history.isEmpty) {
+        item.history[DateTime.now().toIso8601String().split('T').first] =
+            double.tryParse(json['obtained']) ?? 0.0;
+        item.save();
+      }
+    }
+    return item;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -573,10 +586,35 @@ class ResultIndicator {
         'source': source,
         'base': base,
         'expected': expected,
-        'obtained': obtained,
+        // 'obtained': obtained,
         'unit': unit,
         'result': result,
+        'history': history,
       };
+
+  String get obtained {
+    // Ordenar history asumiendo que las claves son fechas en formato ISO (YYYY-MM-DD) y devolver el valor más reciente
+    if (history.isEmpty) return base;
+    var sortedKeys = history.keys.toList()
+      ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+    return history[sortedKeys.last]
+        .toString(); // Devolver el valor más reciente
+  }
+
+  set obtained(String value) {
+    // Agregar o actualizar el valor en history con la fecha actual como clave
+    if (history.isEmpty) {
+      history[DateTime.now().toIso8601String().split('T').first] =
+          double.tryParse(value) ?? 0.0;
+      return;
+    } else {
+      var sortedKeys = history.keys.toList()
+        ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+      String lastKey = sortedKeys.last;
+      history[lastKey] =
+          double.tryParse(value) ?? 0.0; // Actualizar el valor más reciente
+    }
+  }
 
   Future<void> save() async {
     if (id == "") {

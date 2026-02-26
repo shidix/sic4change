@@ -214,6 +214,8 @@ class MyApp extends StatelessWidget {
     '/invoices': (context) => const InvoicePage(),
     '/logs': (context) => const LogPage(),
     '/hierarchy': (context) => const HierarchyPage(),
+    // Quiero poder llamar a project-info con un parametro en la url
+    '/project-info/:id': (context) => const GoalsPage(),
   };
 
   @override

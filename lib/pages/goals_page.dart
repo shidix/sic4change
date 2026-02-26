@@ -19,6 +19,7 @@ import 'package:sic4change/widgets/footer_widget.dart';
 import 'package:sic4change/widgets/marco_menu_widget.dart';
 import 'package:sic4change/widgets/main_menu_widget.dart';
 import 'package:sic4change/widgets/path_header_widget.dart';
+import 'package:sic4change/widgets/graph_widget.dart';
 
 const goalPageTitle = "Marco Lógico";
 bool loadingGoal = false;
@@ -75,9 +76,17 @@ class _GoalsPageState extends State<GoalsPage>
     stopLoading();
   }
 
+  idProjectFromUrl(context) {
+    final uri = Uri.parse(ModalRoute.of(context)!.settings.name!);
+    final idProject = uri.pathSegments.length > 1 ? uri.pathSegments[1] : null;
+    return idProject;
+  }
+
   void loadInit() async {
     setLoading();
     bool first = true;
+    // Recovery idProject from url parameter
+
     await Goal.getGoalsByProject(project!.uuid).then((val) async {
       goals = val;
       List<double> activitiesPercents = [];
@@ -94,11 +103,13 @@ class _GoalsPageState extends State<GoalsPage>
         for (Result res in results[goal.uuid]) {
           resultIndicatorList[res.uuid] =
               await ResultIndicator.getResultIndicatorsByResult(res.uuid);
-          resultActivityList[res.uuid] = await Activity.getActivitiesByResult(res.uuid);
+          resultActivityList[res.uuid] =
+              await Activity.getActivitiesByResult(res.uuid);
           // double actPercent = 0;
           for (Activity activity in resultActivityList[res.uuid]) {
             activityIndicatorList[activity.uuid] =
-                await ActivityIndicator.getActivityIndicatorsByActivity(activity.uuid);
+                await ActivityIndicator.getActivityIndicatorsByActivity(
+                    activity.uuid);
             activityIndicatorPercent[activity.uuid] =
                 await Activity.getIndicatorsPercent(activity.uuid);
             activitiesPercents.add(activityIndicatorPercent[activity.uuid]);
@@ -114,9 +125,11 @@ class _GoalsPageState extends State<GoalsPage>
           // resPercent = resPercent + rPer;
           resultPercents.add(rPer);
         }
-        goalIndicatorList[goal.uuid] = await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
+        goalIndicatorList[goal.uuid] =
+            await GoalIndicator.getGoalIndicatorsByGoal(goal.uuid);
 
-        double indPercent = await Goal.getIndicatorsPercent(goal.uuid, goalIndicatorList[goal.uuid]);
+        double indPercent = await Goal.getIndicatorsPercent(
+            goal.uuid, goalIndicatorList[goal.uuid]);
         goalPercents.add(indPercent);
 
         allPercents.addAll(goalPercents);
@@ -169,7 +182,21 @@ class _GoalsPageState extends State<GoalsPage>
     project = widget.project;
     returnToList = getReturnList();
     _mainMenu = mainMenu(context);
-    loadInit();
+    if (project == null) {
+      final idProject = idProjectFromUrl(context);
+      if (idProject != null) {
+        SProject.byUuid(idProject).then((value) {
+          project = value;
+          if (mounted) {
+            setState(() {});
+          }
+          loadInit();
+        });
+      }
+    } else {
+      loadInit();
+    }
+
     createLog("Acceso al Marco Lógico de la iniciativa: ${project!.name}");
 
     //loadGoals();
@@ -486,7 +513,8 @@ class _GoalsPageState extends State<GoalsPage>
     List<Result> resultList = await Result.getResultsByGoal(goal.uuid);
     for (Result res in resultList) {
       //Indicadores de resultado
-      List<ResultIndicator> riList = await ResultIndicator.getResultIndicatorsByResult(res.uuid);
+      List<ResultIndicator> riList =
+          await ResultIndicator.getResultIndicatorsByResult(res.uuid);
       for (ResultIndicator ri in riList) {
         ri.delete();
       }
@@ -495,7 +523,8 @@ class _GoalsPageState extends State<GoalsPage>
       List actList = await Activity.getActivitiesByResult(res.uuid);
       for (Activity act in actList) {
         //Indicadores de la actividad
-        List aiList = await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
+        List aiList =
+            await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
         for (ActivityIndicator ai in aiList) {
           ai.delete();
         }
@@ -738,7 +767,8 @@ class _GoalsPageState extends State<GoalsPage>
     List actList = await Activity.getActivitiesByResult(res.uuid);
     for (Activity act in actList) {
       //Indicadores de la actividad
-      List aiList = await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
+      List aiList =
+          await ActivityIndicator.getActivityIndicatorsByActivity(act.uuid);
       for (ActivityIndicator ai in aiList) {
         ai.delete();
       }
@@ -779,7 +809,7 @@ class _GoalsPageState extends State<GoalsPage>
     Result.getIndicatorsPercent(indicator.result).then(
       (value) {
         resultIndicatorPercent[indicator.result] = value;
-        setState(() {});
+        if (mounted) setState(() {});
       },
     );
     //loadGoals();
@@ -889,6 +919,78 @@ class _GoalsPageState extends State<GoalsPage>
     );
   }
 
+  Future<void> addObtainedDialog(context, Map<String, dynamic> args) {
+    ResultIndicator indicator = args["indicator"];
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        TextEditingController obtainedController =
+            TextEditingController(text: indicator.obtained);
+
+        TextEditingController dateController = TextEditingController(
+            text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
+
+        DateTime selectedDate = DateTime.now();
+
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Añadir valor obtenido"),
+          content: Form(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextFormField(
+              decoration: InputDecoration(labelText: "Valor obtenido"),
+              controller: obtainedController,
+              maxLines: 1,
+            ),
+            // Campo de Fecha
+            TextFormField(
+              decoration: InputDecoration(labelText: "Fecha"),
+              controller: dateController,
+              maxLines: 1,
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null) {
+                  String formattedDate =
+                      "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                  selectedDate = pickedDate;
+                  if (mounted) {
+                    setState(() {
+                      dateController.text = formattedDate;
+                    });
+                  }
+                }
+              },
+            )
+          ])),
+          actions: <Widget>[
+            Row(children: [
+              actionButton(context, "Guardar", (args) {
+                String dateSelectedKey =
+                    DateFormat('yyyy-MM-dd').format(selectedDate);
+
+                double obtainedValue =
+                    double.tryParse(obtainedController.text) ?? 0;
+                indicator.history[dateSelectedKey] = obtainedValue;
+                saveResultIndicator([indicator]);
+              }, Icons.save_outlined, [null]),
+              space(width: 10),
+              actionButton(context, "Cancelar", (args) {
+                Navigator.of(context).pop();
+              }, Icons.cancel_outlined, [null])
+            ])
+          ],
+        );
+      },
+    );
+  }
+
   Widget resultIndicatorsHeader(context, result) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       customText("Indicadores de resultado", 15, bold: FontWeight.bold),
@@ -905,6 +1007,33 @@ class _GoalsPageState extends State<GoalsPage>
       indicators = resultIndicatorList[result.uuid];
     }
     return Container(child: resultIndicatorsRow(context, indicators));
+  }
+
+  Future<void> showGraphDialog(context, Map<String, double> history) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        List<MapEntry<DateTime, double>> historyList = history.entries
+            .map((e) => MapEntry(DateTime.parse(e.key), e.value))
+            .toList();
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar("Evolución del indicador", context),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.6,
+            child: history.isNotEmpty
+                ? TimeSeriesLineChart(series: historyList)
+                : customText("No hay datos para mostrar", 14),
+          ),
+          actions: <Widget>[
+            // actionButton(context, "Cerrar", (args) {
+            //   Navigator.of(context).pop();
+            // }, Icons.cancel_outlined, [null])
+          ],
+        );
+      },
+    );
   }
 
   Widget resultIndicatorsRow(context, List indicators) {
@@ -955,8 +1084,10 @@ class _GoalsPageState extends State<GoalsPage>
           rows: indicators
               .map(
                 (indicator) => DataRow(cells: [
-                  DataCell(Text(indicator.name,
-                      maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  DataCell(Tooltip(
+                      message: indicator.id,
+                      child: Text(indicator.name,
+                          maxLines: 2, overflow: TextOverflow.ellipsis))),
                   DataCell(Text(indicator.source,
                       maxLines: 2, overflow: TextOverflow.ellipsis)),
                   DataCell(Text(indicator.base,
@@ -974,7 +1105,15 @@ class _GoalsPageState extends State<GoalsPage>
                     editBtn(context, editResultIndicatorDialog,
                         {"indicator": indicator}),
                     removeBtn(context, removeResultIndicatorDialog,
-                        {"indicator": indicator})
+                        {"indicator": indicator}),
+                    iconBtn(
+                        context, addObtainedDialog, {"indicator": indicator},
+                        icon: Icons.plus_one_outlined,
+                        text: "Añadir nuevo resultado"),
+                    // iconBtn for dialog with graph data
+                    iconBtn(context, showGraphDialog, indicator.history,
+                        icon: Icons.show_chart_outlined,
+                        text: "Ver evolución del indicador"),
                   ]))
                 ]),
               )

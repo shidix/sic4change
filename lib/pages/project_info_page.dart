@@ -32,7 +32,9 @@ Widget? _mainMenu;
 class ProjectInfoPage extends StatefulWidget {
   final SProject? project;
   final bool? returnToList;
-  const ProjectInfoPage({super.key, this.project, this.returnToList});
+  final String? idProject;
+  const ProjectInfoPage(
+      {super.key, this.project, this.returnToList, this.idProject});
 
   @override
   State<ProjectInfoPage> createState() => _ProjectInfoPageState();
@@ -1024,6 +1026,14 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
         (element) => element.uuid == proj.type,
         orElse: () => ProjectType("Unknown"));
 
+    KeyValue progSelected = programmes.firstWhere(
+        (element) => element.key == proj.programme,
+        orElse: () => KeyValue("", "Sin asignar"));
+
+    KeyValue ambitSelected = ambits.firstWhere(
+        (element) => element.key == proj.ambit,
+        orElse: () => KeyValue("", "Sin asignar"));
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1158,7 +1168,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                     labelText: 'Programa',
                     padding: const EdgeInsets.only(right: 10),
                     size: 220,
-                    selected: proj.programmeObj.toKeyValue(),
+                    selected: progSelected,
                     options: programmes,
                     onSelectedOpt: (String val) {
                       proj.programme = val;
@@ -1170,7 +1180,7 @@ class _ProjectInfoPageState extends State<ProjectInfoPage> {
                   child: CustomDropdown(
                     labelText: 'Ámbito',
                     size: 220,
-                    selected: proj.ambitObj.toKeyValue(),
+                    selected: ambitSelected,
                     options: ambits,
                     onSelectedOpt: (String val) {
                       proj.ambit = val;
