@@ -371,7 +371,11 @@ Widget customRowPopBtn(context, btnName, btnIcon) {
 Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
   return ElevatedButton(
     onPressed: () {
-      js.context.callMethod('open', [btnRoute]);
+      // js.context.callMethod('open', [btnRoute]);
+      openFileUrl(
+        context,
+        btnRoute,
+      ).then((value) {});
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -399,7 +403,12 @@ Widget customRowExternalBtn(context, btnName, btnIcon, btnRoute) {
 Widget customRowFileBtn(context, btnName, btnLoc, btnIcon, btnRoute) {
   return ElevatedButton(
     onPressed: () {
-      js.context.callMethod('open', [btnRoute]);
+      // js.context.callMethod('open', [btnRoute]);
+      openFileUrl(
+        context,
+        btnRoute,
+      ).then((value) {});
+
     },
     style: ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
