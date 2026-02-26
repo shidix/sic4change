@@ -2044,6 +2044,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addHolidayRequestDialog(context) async {
+    // Open a waiting dialog while calculating remaining holidays
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      barrierColor: Colors.black54,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          title: s4cTitleBar('Cargando información...', context),
+          content: SizedBox(
+              height: 100,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Calculando permisos disponibles, por favor espere...',
+                        style: normalText),
+                    SizedBox(height: 20),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              )),
+        );
+      },
+    );
     currentHoliday = await _addHolidayRequestDialog(context);
     if (currentHoliday == null) {
       return;
@@ -2063,11 +2088,13 @@ class _HomePageState extends State<HomePage> {
     List<Employee> superiors = await currentEmployee!.getSuperiors();
 
     try {
+      Navigator.of(context).pop(); // Close the loading dialog
       HolidayRequest? item = await showDialog<HolidayRequest>(
         context: context,
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context2) {
           updateRemainingHolidays();
+
           return AlertDialog(
             titlePadding: const EdgeInsets.all(0),
             title: s4cTitleBar('Solicitud de días libres', context),
