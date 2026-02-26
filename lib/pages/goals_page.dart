@@ -1196,17 +1196,17 @@ class _GoalsPageState extends State<GoalsPage>
                       ))
                 ]),
                 space(height: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CustomTextField(
-                    labelText: "Usuarios",
-                    initial: activity.users,
-                    size: 900,
-                    fieldValue: (String val) {
-                      setState(() => activity.users = val);
-                    },
-                  )
-                ]),
-                space(width: 20),
+                // Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                //   CustomTextField(
+                //     labelText: "Usuarios",
+                //     initial: activity.users,
+                //     size: 900,
+                //     fieldValue: (String val) {
+                //       setState(() => activity.users = val);
+                //     },
+                //   )
+                // ]),
+                // space(width: 20),
                 Row(
                   children: [
                     Column(
@@ -1305,12 +1305,6 @@ class _GoalsPageState extends State<GoalsPage>
                 customText(
                     DateFormat("dd-MM-yyyy").format(activity.endDate), 14,
                     bold: FontWeight.bold),
-              ],
-            ),
-            Row(
-              children: [
-                customText("Usuarios: ", 14),
-                customText("${activity.users}", 14, bold: FontWeight.bold),
               ],
             ),
             Row(children: [
