@@ -2058,7 +2058,7 @@ class _HomePageState extends State<HomePage> {
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text('Calculando permisos disponibles, por favor espere...',
                         style: normalText),
                     SizedBox(height: 20),
@@ -2150,7 +2150,7 @@ class _HomePageState extends State<HomePage> {
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text('Calculando disponibles, por favor espere...',
                         style: normalText),
                     SizedBox(height: 20),
