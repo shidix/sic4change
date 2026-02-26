@@ -206,29 +206,69 @@ class GoalIndicator {
   String source = "";
   String base = "";
   String expected = "";
-  String obtained = "";
+  // String obtained = "";
   String folder = "";
   String order = "";
   String code = "";
   String unit = "";
   String goal = "";
+
+  Map<String, double> history = {};
   Folder? folderObj;
 
   GoalIndicator(this.goal);
 
-  GoalIndicator.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        source = json['source'],
-        base = json['base'],
-        expected = json['expected'],
-        obtained = json['obtained'],
-        folder = json['folder'],
-        order = json['order'],
-        code = json['code'],
-        unit = json['unit'],
-        goal = json['goal'];
+  String get obtained {
+    // Ordenar history asumiendo que las claves son fechas en formato ISO (YYYY-MM-DD) y devolver el valor más reciente
+    if (history.isEmpty) return base;
+    var sortedKeys = history.keys.toList()
+      ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+    return history[sortedKeys.last]
+        .toString(); // Devolver el valor más reciente
+  }
+
+  set obtained(String value) {
+    // Agregar o actualizar el valor en history con la fecha actual como clave
+    if (history.isEmpty) {
+      history[DateTime.now().toIso8601String().split('T').first] =
+          double.tryParse(value) ?? 0.0;
+      return;
+    } else {
+      var sortedKeys = history.keys.toList()
+        ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+      String lastKey = sortedKeys.last;
+      history[lastKey] =
+          double.tryParse(value) ?? 0.0; // Actualizar el valor más reciente
+    }
+  }
+
+  static GoalIndicator fromJson(Map<String, dynamic> json) {
+    GoalIndicator item = GoalIndicator(json['goal']);
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    item.source = json['source'];
+    item.base = json['base'];
+    item.expected = json['expected'];
+    // item.obtained = json['obtained'];
+    item.folder = json['folder'];
+    item.order = json['order'];
+    item.code = json['code'];
+    item.unit = json['unit'];
+    item.goal = json['goal'];
+    item.history = (json.containsKey('history'))
+        ? Map<String, double>.from(json['history'])
+        : {};
+    if (json.containsKey('obtained')) {
+      if (item.history.isEmpty) {
+        item.history[DateTime.now().toIso8601String().split('T').first] =
+            double.tryParse(json['obtained']) ?? 0.0;
+        item.save();
+      }
+    }
+
+    return item;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -237,12 +277,13 @@ class GoalIndicator {
         'source': source,
         'base': base,
         'expected': expected,
-        'obtained': obtained,
+        // 'obtained': obtained,
         'folder': folder,
         'order': order,
         'code': code,
         'unit': unit,
         'goal': goal,
+        'history': history,
       };
 
   Future<void> save() async {
@@ -909,22 +950,61 @@ class ActivityIndicator {
   String source = "";
   String base = "";
   String expected = "";
-  String obtained = "";
+  // String obtained = "";
   String unit = "";
   String activity = "";
+  Map<String, double> history = {};
+
+  String get obtained {
+    // Ordenar history asumiendo que las claves son fechas en formato ISO (YYYY-MM-DD) y devolver el valor más reciente
+    if (history.isEmpty) return base;
+    var sortedKeys = history.keys.toList()
+      ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+    return history[sortedKeys.last]
+        .toString(); // Devolver el valor más reciente
+  }
+
+  set obtained(String value) {
+    // Agregar o actualizar el valor en history con la fecha actual como clave
+    if (history.isEmpty) {
+      history[DateTime.now().toIso8601String().split('T').first] =
+          double.tryParse(value) ?? 0.0;
+      return;
+    } else {
+      var sortedKeys = history.keys.toList()
+        ..sort((a, b) => a.compareTo(b)); // Ordenar por fecha
+      String lastKey = sortedKeys.last;
+      history[lastKey] =
+          double.tryParse(value) ?? 0.0; // Actualizar el valor más reciente
+    }
+  }
 
   ActivityIndicator(this.activity);
 
-  ActivityIndicator.fromJson(Map<String, dynamic> json)
-      : id = json["id"],
-        uuid = json["uuid"],
-        name = json['name'],
-        source = json['source'],
-        base = json['base'],
-        expected = json['expected'],
-        obtained = json['obtained'],
-        unit = json['unit'],
-        activity = json['activity'];
+  static ActivityIndicator fromJson(Map<String, dynamic> json) {
+    ActivityIndicator item = ActivityIndicator(json['activity']);
+    item.id = json["id"];
+    item.uuid = json["uuid"];
+    item.name = json['name'];
+    item.source = json['source'];
+    item.base = json['base'];
+    item.expected = json['expected'];
+    // item.obtained = json['obtained'];
+    item.unit = json['unit'];
+    item.activity = json['activity'];
+    item.history = (json.containsKey('history'))
+        ? Map<String, double>.from(json['history'])
+        : {};
+    if (json.containsKey('obtained')) {
+      if (item.history.isEmpty) {
+        item.history[DateTime.now().toIso8601String().split('T').first] =
+            double.tryParse(json['obtained']) ?? 0.0;
+        item.save();
+      }
+    }
+    return item;
+  }
+
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -933,7 +1013,8 @@ class ActivityIndicator {
         'source': source,
         'base': base,
         'expected': expected,
-        'obtained': obtained,
+        // 'obtained': obtained,
+        'history': history,
         'unit': unit,
         'activity': activity,
       };

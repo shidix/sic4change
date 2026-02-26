@@ -919,8 +919,10 @@ class _GoalsPageState extends State<GoalsPage>
     );
   }
 
-  Future<void> addObtainedDialog(context, Map<String, dynamic> args) {
-    ResultIndicator indicator = args["indicator"];
+  Future<void> addObtainedDialog(context, args) {
+    int type = args["type"];
+    // type: 0 -> GoalIndicator, 1 -> ResultIndicator, 2 -> ActivityIndicator
+    dynamic indicator = args["indicator"];
 
     return showDialog<void>(
       context: context,
@@ -978,7 +980,13 @@ class _GoalsPageState extends State<GoalsPage>
                 double obtainedValue =
                     double.tryParse(obtainedController.text) ?? 0;
                 indicator.history[dateSelectedKey] = obtainedValue;
-                saveResultIndicator([indicator]);
+                if (type == 0) {
+                  saveGoalIndicator([indicator]);
+                } else if (type == 1) {
+                  saveResultIndicator([indicator]);
+                } else if (type == 2) {
+                  saveActivityIndicator([indicator]);
+                }
               }, Icons.save_outlined, [null]),
               space(width: 10),
               actionButton(context, "Cancelar", (args) {
@@ -1023,14 +1031,13 @@ class _GoalsPageState extends State<GoalsPage>
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.6,
             child: history.isNotEmpty
-                ? TimeSeriesLineChart(series: historyList)
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 4, right: 12),
+                    child: TimeSeriesLineChart(series: historyList),
+                  )
                 : customText("No hay datos para mostrar", 14),
           ),
-          actions: <Widget>[
-            // actionButton(context, "Cerrar", (args) {
-            //   Navigator.of(context).pop();
-            // }, Icons.cancel_outlined, [null])
-          ],
+          actions: const <Widget>[],
         );
       },
     );
@@ -1106,8 +1113,8 @@ class _GoalsPageState extends State<GoalsPage>
                         {"indicator": indicator}),
                     removeBtn(context, removeResultIndicatorDialog,
                         {"indicator": indicator}),
-                    iconBtn(
-                        context, addObtainedDialog, {"indicator": indicator},
+                    iconBtn(context, addObtainedDialog,
+                        {"indicator": indicator, "type": 1},
                         icon: Icons.plus_one_outlined,
                         text: "Añadir nuevo resultado"),
                     // iconBtn for dialog with graph data
@@ -1531,7 +1538,11 @@ class _GoalsPageState extends State<GoalsPage>
           rows: indicators
               .map(
                 (indicator) => DataRow(cells: [
-                  DataCell(Text(indicator.name)),
+                  DataCell(Tooltip(
+                    message: indicator.id,
+                    child: Text(indicator.name,
+                        maxLines: 2, overflow: TextOverflow.ellipsis),
+                  )),
                   DataCell(Text(indicator.source)),
                   DataCell(Text(indicator.base)),
                   DataCell(Text(indicator.expected)),
@@ -1544,7 +1555,14 @@ class _GoalsPageState extends State<GoalsPage>
                     editBtn(context, editActivityIndicatorDialog,
                         {"indicator": indicator}),
                     removeBtn(context, removeActivityIndicatorDialog,
-                        {"indicator": indicator})
+                        {"indicator": indicator}),
+                    iconBtn(context, addObtainedDialog,
+                        {"indicator": indicator, "type": 2},
+                        icon: Icons.plus_one_outlined,
+                        text: "Añadir nuevo resultado"),
+                    iconBtn(context, showGraphDialog, indicator.history,
+                        icon: Icons.show_chart_outlined,
+                        text: "Ver evolución del indicador"),
                   ]))
                 ]),
               )
@@ -1920,6 +1938,13 @@ class _GoalsPageState extends State<GoalsPage>
                         ? removeBtn(context, removeGoalIndicatorDialog,
                             {"indicator": indicator})
                         : Container(),
+                    iconBtn(context, addObtainedDialog,
+                        {"indicator": indicator, "type": 0},
+                        icon: Icons.plus_one_outlined,
+                        text: "Añadir nuevo valor"),
+                    iconBtn(context, showGraphDialog, indicator.history,
+                        icon: Icons.show_chart_outlined,
+                        text: "Ver evolución del indicador"),
                   ]))
                 ]),
               )

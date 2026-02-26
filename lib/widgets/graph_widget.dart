@@ -41,6 +41,7 @@ class TimeSeriesLineChart extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.7,
       child: LineChart(
+        
         LineChartData(
           minX: minX,
           maxX: maxX,
